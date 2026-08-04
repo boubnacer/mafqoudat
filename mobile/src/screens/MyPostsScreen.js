@@ -41,6 +41,7 @@ import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
+import { logical, row } from '../utils/rtl';
 
 const PAGE_SIZE = 10;
 const TOAST_DURATION_MS = 3000;
@@ -349,7 +350,7 @@ const MyPostsScreen = ({ navigation }) => {
 
     return (
       <TouchableOpacity
-        style={[styles.postCard, { borderStartColor: tone.main }]}
+        style={[styles.postCard, logical(isRTL, { borderStartColor: tone.main })]}
         activeOpacity={0.9}
         onPress={() => navigation.navigate('PostDetailScreen', { id: item._id })}
       >
@@ -582,8 +583,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     postCardSkeleton: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      borderStartWidth: 6,
-      borderStartColor: `${tokens.ink}14`,
+      ...logical(isRTL, { borderStartWidth: 6, borderStartColor: `${tokens.ink}14` }),
       marginBottom: 16,
       overflow: 'hidden',
       ...getElevation(isDark, 1),
@@ -593,14 +593,14 @@ const createStyles = (tokens, isRTL, isDark) =>
       height: 180,
       borderRadius: 0,
     },
-    // Row direction matches the real titleRow below (also isRTL-driven, not
-    // left to RN's native auto-mirror - see titleRow) - kept in sync so the
-    // skeleton doesn't visually jump when real content swaps in. postMetaRow/
+    // Row direction matches the real titleRow below (both via row(), see
+    // utils/rtl.js) - kept in sync so the skeleton doesn't visually jump when
+    // real content swaps in. postMetaRow/
     // actionsRow below are left as plain 'row' (multi-item toolbars, not an
     // icon+label pair), so their skeletons (metaRowSkeleton/actionsRowSkeleton)
     // stay plain 'row' too.
     titleRowSkeleton: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 8,
@@ -643,7 +643,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     postCard: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      borderStartWidth: 6,
+      ...logical(isRTL, { borderStartWidth: 6 }),
       marginBottom: 16,
       overflow: 'hidden',
       ...getElevation(isDark, 1),
@@ -663,15 +663,16 @@ const createStyles = (tokens, isRTL, isDark) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    // Manually driven by isRTL rather than left to RN's native auto-mirror:
-    // forceRTL only takes visual effect after a real app restart (see
-    // LanguageContext), so a live language switch needs icon+label order to
-    // flip immediately. `gap` (not marginEnd) handles the spacing either way.
+    // Direction-dependent styles go through the helpers in utils/rtl.js
+    // (row()/logical()), which compensate only when the language's direction
+    // differs from the one native is already mirroring - see that file. Do NOT
+    // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+    // cancels out native mirroring once forceRTL has taken effect on relaunch.
     statusTag: {
       position: 'absolute',
       top: 10,
-      start: 10,
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      ...logical(isRTL, { start: 10 }),
+      flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 4,
       paddingHorizontal: 9,
@@ -687,7 +688,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     dateBadge: {
       position: 'absolute',
       top: 10,
-      end: 10,
+      ...logical(isRTL, { end: 10 }),
       backgroundColor: `${tokens.surfaceRaised}D9`,
       paddingHorizontal: 9,
       paddingVertical: 5,
@@ -702,7 +703,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       padding: 14,
     },
     titleRow: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'flex-start',
       justifyContent: 'space-between',
       gap: 8,
@@ -731,7 +732,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       marginBottom: 14,
     },
     infoRow: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 5,
       flexShrink: 1,
@@ -752,7 +753,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingTop: 12,
     },
     actionButton: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 12,
@@ -839,8 +840,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     toast: {
       position: 'absolute',
       bottom: 24,
-      start: 24,
-      end: 24,
+      ...logical(isRTL, { start: 24, end: 24 }),
       backgroundColor: tokens.ink,
       borderRadius: radiusTokens.md,
       paddingHorizontal: 16,

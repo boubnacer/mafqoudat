@@ -16,6 +16,7 @@ import {
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
+import { logical } from '../utils/rtl';
 
 const languages = [
   { code: 'en', name: 'English', nativeName: 'English', flag: '🇬🇧' },
@@ -28,7 +29,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const LanguageDropdown = ({ style, compact = false, onOpen, closeSignal }) => {
   const { currentLanguage, setLanguage } = useLanguage();
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const isRTL = currentLanguage === 'ar';
+  const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
   const { t } = useTranslation();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const buttonRef = useRef(null);
@@ -153,7 +155,7 @@ const LanguageDropdown = ({ style, compact = false, onOpen, closeSignal }) => {
   );
 };
 
-const createStyles = ({ colors, spacing, radii, fontSizes }) => StyleSheet.create({
+const createStyles = ({ colors, spacing, radii, fontSizes }, isRTL) => StyleSheet.create({
   container: {
     position: 'relative',
   },
@@ -172,7 +174,7 @@ const createStyles = ({ colors, spacing, radii, fontSizes }) => StyleSheet.creat
   },
   flag: {
     fontSize: fontSizes.md,
-    marginEnd: spacing.sm,
+    ...logical(isRTL, { marginEnd: spacing.sm }),
   },
   languageText: {
     color: colors.textPrimary,
@@ -183,7 +185,7 @@ const createStyles = ({ colors, spacing, radii, fontSizes }) => StyleSheet.creat
   arrow: {
     color: colors.textSecondary,
     fontSize: 10,
-    marginStart: spacing.sm,
+    ...logical(isRTL, { marginStart: spacing.sm }),
   },
   // Icon-only trigger for use inside colored bars (e.g. AppHeader), where the
   // full flag+name+arrow button would be too wide and its inputBackground/border
@@ -235,7 +237,7 @@ const createStyles = ({ colors, spacing, radii, fontSizes }) => StyleSheet.creat
   },
   itemFlag: {
     fontSize: 20,
-    marginEnd: 12,
+    ...logical(isRTL, { marginEnd: 12 }),
   },
   itemText: {
     fontSize: 16,

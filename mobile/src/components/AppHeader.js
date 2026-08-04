@@ -33,6 +33,7 @@ import { storage } from '../utils/storage';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import CountryPickerModal from './CountryPickerModal';
 import HeaderMenu from './HeaderMenu';
+import { logical, row } from '../utils/rtl';
 
 const BRAND_MARK = require('../../assets/icon.png');
 const BRAND_WORDMARK = require('../../assets/mafWordmark.png');
@@ -189,18 +190,17 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       shadowRadius: 8,
       elevation: 3,
     },
-    // Manually driven by isRTL rather than left to RN's native auto-mirror:
-    // I18nManager.forceRTL only takes visual effect after a real app restart
-    // (see LanguageContext), so a live language switch needs this order to
-    // flip immediately. marginEnd/marginStart resolve the same stale way, so
-    // the backButton/brandMark gaps below are also picked explicitly by side
-    // rather than logically, to land on the correct edge right away too.
+    // Direction-dependent styles go through the helpers in utils/rtl.js
+    // (row()/logical()), which compensate only when the language's direction
+    // differs from the one native is already mirroring - see that file. Do NOT
+    // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+    // cancels out native mirroring once forceRTL has taken effect on relaunch.
     topRow: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
     },
     brand: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       flexShrink: 1,
     },
@@ -211,8 +211,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       backgroundColor: `${tokens.brandPrimary}1F`,
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: isRTL ? 0 : 10,
-      marginLeft: isRTL ? 10 : 0,
+      ...logical(isRTL, { marginEnd: 10 }),
     },
     brandMarkImg: {
       width: 23,
@@ -229,8 +228,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       backgroundColor: `${tokens.ink}0A`,
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: isRTL ? 0 : 8,
-      marginLeft: isRTL ? 8 : 0,
+      ...logical(isRTL, { marginEnd: 8 }),
     },
     title: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -252,7 +250,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       backgroundColor: `${tokens.ink}0A`,
       justifyContent: 'center',
       alignItems: 'center',
-      marginStart: 8,
+      ...logical(isRTL, { marginStart: 8 }),
     },
   });
 

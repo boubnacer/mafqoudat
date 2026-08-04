@@ -28,6 +28,7 @@ import apiClient from '../api/apiService';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
+import { logical, row } from '../utils/rtl';
 
 const SEARCH_DEBOUNCE_MS = 300;
 const MIN_SEARCH_LENGTH = 2;
@@ -268,13 +269,13 @@ const createStyles = (tokens, isDark, isRTL) =>
       minHeight: '50%',
       paddingBottom: 16,
     },
-    // Manually driven by isRTL rather than left to RN's native auto-mirror:
-    // forceRTL only takes visual effect after a real app restart (see
-    // LanguageContext), so a live language switch needs these rows to flip
-    // immediately. marginEnd/marginStart resolve just as statically, so gaps
-    // below are picked explicitly by physical side too.
+    // Direction-dependent styles go through the helpers in utils/rtl.js
+    // (row()/logical()), which compensate only when the language's direction
+    // differs from the one native is already mirroring - see that file. Do NOT
+    // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+    // cancels out native mirroring once forceRTL has taken effect on relaunch.
     header: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 20,
@@ -297,11 +298,10 @@ const createStyles = (tokens, isDark, isRTL) =>
       backgroundColor: `${tokens.ink}0A`,
       justifyContent: 'center',
       alignItems: 'center',
-      marginLeft: isRTL ? 0 : 8,
-      marginRight: isRTL ? 8 : 0,
+      ...logical(isRTL, { marginStart: 8 }),
     },
     searchRow: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       backgroundColor: `${tokens.ink}0A`,
       borderRadius: radiusTokens.md,
@@ -313,8 +313,7 @@ const createStyles = (tokens, isDark, isRTL) =>
       paddingHorizontal: 12,
     },
     searchIcon: {
-      marginRight: isRTL ? 0 : 8,
-      marginLeft: isRTL ? 8 : 0,
+      ...logical(isRTL, { marginEnd: 8 }),
     },
     searchInput: {
       flex: 1,
@@ -328,14 +327,13 @@ const createStyles = (tokens, isDark, isRTL) =>
       writingDirection: 'rtl',
     },
     loaderRow: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       justifyContent: 'center',
       alignItems: 'center',
       marginVertical: 28,
     },
     loaderText: {
-      marginLeft: isRTL ? 0 : 8,
-      marginRight: isRTL ? 8 : 0,
+      ...logical(isRTL, { marginStart: 8 }),
       color: `${tokens.ink}99`,
       fontFamily: fontFamilies.body,
       fontSize: 13,

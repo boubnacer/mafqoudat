@@ -33,6 +33,7 @@ import { languageStorage } from '../../utils/languageStorage';
 import apiClient from '../../api/apiService';
 import { getLocalizedLabel } from '../../context/ReferenceDataContext';
 import { colorTokens, radiusTokens, fontFamilies, lightColors } from '../../theme/tokens';
+import { row } from '../../utils/rtl';
 import {
   WelcomeMascotIllustration,
   ReportIllustration,
@@ -99,7 +100,7 @@ const OnboardingScreen = () => {
 
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const isRTL = currentLanguage === 'ar';
-  const styles = useMemo(() => createStyles(tokens), [tokens]);
+  const styles = useMemo(() => createStyles(tokens, isRTL), [tokens, isRTL]);
 
   const flatListRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -285,7 +286,7 @@ const OnboardingScreen = () => {
       />
       <Text style={styles.headline}>{t('onboardingWelcomeHeadline')}</Text>
 
-      <View style={[styles.languageChipsRow, isRTL && styles.rowReverse]}>
+      <View style={styles.languageChipsRow}>
         {LANGUAGE_CHIPS.map((lang) => {
           const isActive = currentLanguage === lang.code;
           return (
@@ -304,7 +305,7 @@ const OnboardingScreen = () => {
       </View>
 
       <Text style={styles.themeLabel}>{t('onboardingThemeLabel')}</Text>
-      <View style={[styles.themeToggleTrack, isRTL && styles.rowReverse]}>
+      <View style={styles.themeToggleTrack}>
         <TouchableOpacity
           style={[styles.themeToggleOption, !isDark && styles.themeToggleOptionActive]}
           onPress={() => setThemeMode('light')}
@@ -343,7 +344,7 @@ const OnboardingScreen = () => {
       <Text style={styles.headline}>{t('onboardingFilterHeadline')}</Text>
       <Text style={styles.body}>{t('onboardingFilterBody')}</Text>
 
-      <View style={[styles.filterPillsRow, isRTL && styles.rowReverse]}>
+      <View style={styles.filterPillsRow}>
         <View style={styles.filterPill}>
           <Ionicons name="earth" size={14} color={BRAND_BLUE} />
           <Text style={styles.filterPillText}>{t('country')}</Text>
@@ -491,7 +492,7 @@ const OnboardingScreen = () => {
       />
 
       <View style={styles.footer}>
-        <View style={[styles.dotsRow, isRTL && styles.rowReverse]}>
+        <View style={styles.dotsRow}>
           {SLIDE_INDICES.map((i) => (
             <Animated.View
               key={i}
@@ -509,7 +510,7 @@ const OnboardingScreen = () => {
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <View style={[styles.ctaContent, isRTL && styles.rowReverse]}>
+            <View style={styles.ctaContent}>
               <Text style={styles.ctaText}>{isLastSlide ? t('getStarted') : t('next')}</Text>
               <Ionicons
                 name={isRTL ? 'arrow-back' : 'arrow-forward'}
@@ -525,7 +526,7 @@ const OnboardingScreen = () => {
   );
 };
 
-const createStyles = (tokens) =>
+const createStyles = (tokens, isRTL) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -583,14 +584,11 @@ const createStyles = (tokens) =>
       marginBottom: 24,
     },
     languageChipsRow: {
-      flexDirection: 'row',
+      flexDirection: row(isRTL),
       flexWrap: 'wrap',
       justifyContent: 'center',
       gap: 10,
       marginTop: 8,
-    },
-    rowReverse: {
-      flexDirection: 'row-reverse',
     },
     languageChip: {
       flexDirection: 'row',
@@ -625,7 +623,7 @@ const createStyles = (tokens) =>
       marginBottom: 10,
     },
     themeToggleTrack: {
-      flexDirection: 'row',
+      flexDirection: row(isRTL),
       backgroundColor: `${tokens.ink}0D`,
       borderRadius: radiusTokens.md,
       padding: 4,
@@ -653,7 +651,7 @@ const createStyles = (tokens) =>
       fontFamily: fontFamilies.bodySemiBold,
     },
     filterPillsRow: {
-      flexDirection: 'row',
+      flexDirection: row(isRTL),
       flexWrap: 'wrap',
       justifyContent: 'center',
       gap: 10,
@@ -777,7 +775,7 @@ const createStyles = (tokens) =>
       paddingTop: 8,
     },
     dotsRow: {
-      flexDirection: 'row',
+      flexDirection: row(isRTL),
       justifyContent: 'center',
       alignItems: 'center',
       gap: 6,
@@ -811,7 +809,7 @@ const createStyles = (tokens) =>
       elevation: 0,
     },
     ctaContent: {
-      flexDirection: 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 8,
     },

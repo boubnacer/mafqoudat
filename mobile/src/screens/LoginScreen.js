@@ -20,6 +20,7 @@ import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
+import { logical, row } from '../utils/rtl';
 
 // Mirrors client/src/features/auth/SingUp/NewUserForm.js's own patterns, so the
 // mobile and web apps agree on what counts as a plausible email/phone.
@@ -431,21 +432,20 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
   placeholderColor: {
     color: `${tokens.ink}66`,
   },
-  // Manually driven by isRTL rather than left to RN's native auto-mirror:
-  // forceRTL only takes visual effect after a real app restart (see
-  // LanguageContext), so a live language switch needs the input/toggle order
-  // to flip immediately. paddingStart resolves just as statically, so it's
-  // picked explicitly by physical side too.
+  // Direction-dependent styles go through the helpers in utils/rtl.js
+  // (row()/logical()), which compensate only when the language's direction
+  // differs from the one native is already mirroring - see that file. Do NOT
+  // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+  // cancels out native mirroring once forceRTL has taken effect on relaunch.
   passwordWrapper: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: row(isRTL),
     alignItems: 'center',
     height: 52,
     borderWidth: 1,
     borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     borderRadius: radiusTokens.md,
     backgroundColor: `${tokens.ink}0A`,
-    paddingLeft: isRTL ? 0 : 14,
-    paddingRight: isRTL ? 14 : 0,
+    ...logical(isRTL, { paddingStart: 14 }),
   },
   passwordInput: {
     flex: 1,
@@ -543,7 +543,7 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     letterSpacing: 0.5,
   },
   googleButton: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: row(isRTL),
     alignItems: 'center',
     justifyContent: 'center',
     height: 52,
@@ -571,7 +571,7 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     marginTop: 8,
   },
   signUpRow: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: row(isRTL),
     justifyContent: 'center',
     alignItems: 'center',
     flexWrap: 'wrap',
@@ -581,7 +581,7 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     fontFamily: fontFamilies.body,
     fontSize: 14,
     color: `${tokens.ink}99`,
-    marginEnd: 6,
+    ...logical(isRTL, { marginEnd: 6 }),
   },
   signUpLink: {
     fontFamily: fontFamilies.bodySemiBold,

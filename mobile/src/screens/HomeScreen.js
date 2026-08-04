@@ -23,6 +23,7 @@ import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import WorldActivityMap from '../components/dashboard/WorldActivityMap';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
+import { alignEnd, logical, row } from '../utils/rtl';
 
 const SECTION_COUNT = 6;
 
@@ -149,8 +150,14 @@ const SectionHeader = ({ title, onSeeAll, seeAllColor, t, styles }) => (
 // Mirrors the blurred surfaceRaised panel shell shared by LeftSide.jsx /
 // TrendingItem.jsx's SectionPanel on web - every dashboard section now sits
 // in the same bordered/elevated card instead of floating on the page background.
-const Panel = ({ title, accentColor, style, styles, children }) => (
-  <View style={[styles.panelContainer, accentColor && { borderStartWidth: 4, borderStartColor: accentColor }, style]}>
+const Panel = ({ title, accentColor, style, styles, isRTL, children }) => (
+  <View
+    style={[
+      styles.panelContainer,
+      accentColor && logical(isRTL, { borderStartWidth: 4, borderStartColor: accentColor }),
+      style,
+    ]}
+  >
     {title ? <Text style={styles.panelTitleCentered}>{title}</Text> : null}
     {children}
   </View>
@@ -280,11 +287,12 @@ const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, isRTL, on
   const categoryLabel = getCategoryLabel(item, currentLanguage) || t('categories');
   const cityLabel = getCityLabel(item, currentLanguage) || t('unknownCity');
   const textColor = imageUri ? '#FFFFFF' : getContrastText(categoryConfig.color);
-  // Manually driven by isRTL rather than left to RN's native auto-mirror:
-  // I18nManager.forceRTL only takes visual effect after a real app restart
-  // (see LanguageContext), so a live language switch needs this row order to
-  // flip immediately.
-  const rowDirection = isRTL ? 'row-reverse' : 'row';
+  // Direction-dependent styles go through the helpers in utils/rtl.js
+  // (row()/logical()), which compensate only when the language's direction
+  // differs from the one native is already mirroring - see that file. Do NOT
+  // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+  // cancels out native mirroring once forceRTL has taken effect on relaunch.
+  const rowDirection = row(isRTL);
 
   return (
     <TouchableOpacity
@@ -821,24 +829,21 @@ const createStyles = (tokens, isRTL, isDark) =>
     posterScrimTop: {
       position: 'absolute',
       top: 0,
-      start: 0,
-      end: 0,
+      ...logical(isRTL, { start: 0, end: 0 }),
       height: '38%',
       backgroundColor: 'rgba(0,0,0,0.32)',
     },
     posterScrimBottom: {
       position: 'absolute',
       bottom: 0,
-      start: 0,
-      end: 0,
+      ...logical(isRTL, { start: 0, end: 0 }),
       height: '48%',
       backgroundColor: 'rgba(0,0,0,0.55)',
     },
     posterTopRow: {
       position: 'absolute',
       top: 0,
-      start: 0,
-      end: 0,
+      ...logical(isRTL, { start: 0, end: 0 }),
       padding: 10,
       justifyContent: 'space-between',
       alignItems: 'flex-start',
@@ -852,7 +857,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       textAlign: isRTL ? 'right' : 'left',
     },
     posterBadgeColumn: {
-      alignItems: isRTL ? 'flex-start' : 'flex-end',
+      alignItems: alignEnd(isRTL),
       gap: 4,
     },
     posterStatusPill: {
@@ -885,8 +890,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     posterBottomRow: {
       position: 'absolute',
       bottom: 0,
-      start: 0,
-      end: 0,
+      ...logical(isRTL, { start: 0, end: 0 }),
       padding: 10,
       gap: 2,
     },
@@ -924,7 +928,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     // Categories
     categoryRow: {
       gap: 16,
-      paddingEnd: 4,
+      ...logical(isRTL, { paddingEnd: 4 }),
     },
     categoryChip: {
       alignItems: 'center',
@@ -1024,7 +1028,7 @@ const createStyles = (tokens, isRTL, isDark) =>
 
     // Safety footer
     safetyFooter: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'flex-start',
       gap: 10,
       paddingHorizontal: 4,

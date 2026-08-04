@@ -20,6 +20,7 @@ import {
 } from 'react-native';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
+import { logical, row } from '../utils/rtl';
 
 const REPORT_REASONS = [
   'inappropriate_content',
@@ -170,11 +171,11 @@ const ReportPostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) =>
   );
 };
 
-// Manually driven by isRTL rather than left to RN's native auto-mirror:
-// forceRTL only takes visual effect after a real app restart (see
-// LanguageContext), so a live language switch needs these rows to flip
-// immediately. marginEnd resolves just as statically, so the gaps below are
-// picked explicitly by physical side too.
+// Direction-dependent styles go through the helpers in utils/rtl.js
+// (row()/logical()), which compensate only when the language's direction
+// differs from the one native is already mirroring - see that file. Do NOT
+// write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+// cancels out native mirroring once forceRTL has taken effect on relaunch.
 const createStyles = (isRTL) => StyleSheet.create({
   overlay: {
     flex: 1,
@@ -192,7 +193,7 @@ const createStyles = (isRTL) => StyleSheet.create({
     paddingBottom: 16,
   },
   header: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: row(isRTL),
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
@@ -229,7 +230,7 @@ const createStyles = (isRTL) => StyleSheet.create({
     marginBottom: 8,
   },
   reasonRow: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: row(isRTL),
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 12,
@@ -247,8 +248,7 @@ const createStyles = (isRTL) => StyleSheet.create({
     borderColor: '#999',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: isRTL ? 0 : 12,
-    marginLeft: isRTL ? 12 : 0,
+    ...logical(isRTL, { marginEnd: 12 }),
   },
   radioOuterSelected: {
     borderColor: '#2196F3',
@@ -284,7 +284,7 @@ const createStyles = (isRTL) => StyleSheet.create({
     writingDirection: 'rtl',
   },
   footer: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: row(isRTL),
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: 1,
@@ -297,8 +297,7 @@ const createStyles = (isRTL) => StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2196F3',
     alignItems: 'center',
-    marginRight: isRTL ? 0 : 8,
-    marginLeft: isRTL ? 8 : 0,
+    ...logical(isRTL, { marginEnd: 8 }),
   },
   cancelButtonText: {
     color: '#2196F3',

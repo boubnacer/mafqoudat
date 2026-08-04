@@ -36,6 +36,7 @@ import PromotePostSheet from '../components/PromotePostSheet';
 import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
+import { logical, row } from '../utils/rtl';
 
 const TOAST_DURATION_MS = 3000;
 const SECTION_COUNT = 2;
@@ -561,12 +562,13 @@ const createStyles = (tokens, isRTL, isDark) =>
       flexDirection: 'row',
       marginBottom: 14,
     },
-    // Manually driven by isRTL rather than left to RN's native auto-mirror:
-    // forceRTL only takes visual effect after a real app restart (see
-    // LanguageContext), so a live language switch needs icon+label order to
-    // flip immediately. `gap` (not marginEnd) handles the spacing either way.
+    // Direction-dependent styles go through the helpers in utils/rtl.js
+    // (row()/logical()), which compensate only when the language's direction
+    // differs from the one native is already mirroring - see that file. Do NOT
+    // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+    // cancels out native mirroring once forceRTL has taken effect on relaunch.
     badge: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 12,
@@ -580,7 +582,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       textTransform: 'uppercase',
     },
     resolvedBanner: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
@@ -599,20 +601,19 @@ const createStyles = (tokens, isRTL, isDark) =>
       marginBottom: 8,
     },
     categoryChip: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       paddingHorizontal: 10,
       paddingVertical: 6,
       borderRadius: radiusTokens.sm,
-      marginEnd: 8,
+      ...logical(isRTL, { marginEnd: 8 }),
       marginBottom: 8,
     },
     // Gap between the chip's own icon and label, so it needs to flip with
     // categoryChip's manual reversal above - marginEnd resolves just as
     // statically as flexDirection does (see comment on `badge` above).
     categoryChipIcon: {
-      marginRight: isRTL ? 0 : 5,
-      marginLeft: isRTL ? 5 : 0,
+      ...logical(isRTL, { marginEnd: 5 }),
     },
     categoryChipText: {
       fontFamily: fontFamilies.bodyMedium,
@@ -654,7 +655,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderTopColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
     metaItem: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 5,
     },
@@ -668,7 +669,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       gap: 12,
     },
     contactButton: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
@@ -704,7 +705,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     modalCloseButton: {
       position: 'absolute',
       top: 50,
-      end: 20,
+      ...logical(isRTL, { end: 20 }),
       width: 40,
       height: 40,
       borderRadius: 20,
@@ -715,8 +716,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     toast: {
       position: 'absolute',
       bottom: 24,
-      start: 24,
-      end: 24,
+      ...logical(isRTL, { start: 24, end: 24 }),
       backgroundColor: `${tokens.ink}E6`,
       borderRadius: radiusTokens.md,
       paddingHorizontal: 16,

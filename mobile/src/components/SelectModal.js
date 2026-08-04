@@ -14,6 +14,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, FlatList } 
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
+import { logical, row } from '../utils/rtl';
 
 const SelectModal = ({
   visible,
@@ -161,13 +162,13 @@ const createStyles = (tokens, isDark, isRTL) =>
       minHeight: '45%',
       paddingBottom: 16,
     },
-    // Manually driven by isRTL rather than left to RN's native auto-mirror:
-    // forceRTL only takes visual effect after a real app restart (see
-    // LanguageContext), so a live language switch needs these rows to flip
-    // immediately. marginEnd/marginStart resolve just as statically, so gaps
-    // below are picked explicitly by physical side too.
+    // Direction-dependent styles go through the helpers in utils/rtl.js
+    // (row()/logical()), which compensate only when the language's direction
+    // differs from the one native is already mirroring - see that file. Do NOT
+    // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+    // cancels out native mirroring once forceRTL has taken effect on relaunch.
     header: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 20,
@@ -190,11 +191,10 @@ const createStyles = (tokens, isDark, isRTL) =>
       backgroundColor: `${tokens.ink}0A`,
       justifyContent: 'center',
       alignItems: 'center',
-      marginLeft: isRTL ? 0 : 8,
-      marginRight: isRTL ? 8 : 0,
+      ...logical(isRTL, { marginStart: 8 }),
     },
     searchRow: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       backgroundColor: `${tokens.ink}0A`,
       borderRadius: radiusTokens.md,
@@ -206,8 +206,7 @@ const createStyles = (tokens, isDark, isRTL) =>
       paddingHorizontal: 12,
     },
     searchIcon: {
-      marginRight: isRTL ? 0 : 8,
-      marginLeft: isRTL ? 8 : 0,
+      ...logical(isRTL, { marginEnd: 8 }),
     },
     searchInput: {
       flex: 1,
@@ -232,15 +231,14 @@ const createStyles = (tokens, isDark, isRTL) =>
       paddingBottom: 8,
     },
     row: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       paddingVertical: 13,
       borderBottomWidth: 1,
       borderBottomColor: `${tokens.ink}${isDark ? '14' : '0F'}`,
     },
     rowLeading: {
-      marginRight: isRTL ? 0 : 12,
-      marginLeft: isRTL ? 12 : 0,
+      ...logical(isRTL, { marginEnd: 12 }),
     },
     rowLabel: {
       flex: 1,
@@ -256,8 +254,7 @@ const createStyles = (tokens, isDark, isRTL) =>
       borderColor: `${tokens.ink}40`,
       justifyContent: 'center',
       alignItems: 'center',
-      marginLeft: isRTL ? 0 : 8,
-      marginRight: isRTL ? 8 : 0,
+      ...logical(isRTL, { marginStart: 8 }),
     },
     checkboxChecked: {
       backgroundColor: tokens.brandPrimary,
