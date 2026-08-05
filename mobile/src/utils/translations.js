@@ -122,6 +122,9 @@ export const translations = {
     offlineMessage: "You're offline. Check your connection.",
     languageDirectionNotice: "Switching to English. Full layout will update the next time you open the app.",
     reopenAppNow: "Reopen App",
+    directionChangeTitle: "Reopen to finish switching",
+    directionChangeBodyRestart: "Arabic is written right to left, so the app needs to reopen to lay everything out correctly.",
+    directionChangeLater: "Later",
 
     // Report Post
     reportThisPost: "Report this post",
@@ -490,6 +493,9 @@ export const translations = {
     offlineMessage: "Vous êtes hors ligne. Vérifiez votre connexion.",
     languageDirectionNotice: "Passage au français. La mise en page complète s'appliquera au prochain démarrage de l'application.",
     reopenAppNow: "Rouvrir l'application",
+    directionChangeTitle: "Rouvrir pour terminer le changement",
+    directionChangeBodyRestart: "L'arabe s'écrit de droite à gauche : l'application doit être rouverte pour disposer correctement tous les éléments.",
+    directionChangeLater: "Plus tard",
 
     // Report Post
     reportThisPost: "Signaler cette publication",
@@ -858,6 +864,9 @@ export const translations = {
     offlineMessage: "أنت غير متصل بالإنترنت. تحقق من اتصالك.",
     languageDirectionNotice: "جارٍ التبديل إلى العربية. سيتم تطبيق التخطيط الكامل في المرة القادمة التي تفتح فيها التطبيق.",
     reopenAppNow: "إعادة فتح التطبيق",
+    directionChangeTitle: "أعد فتح التطبيق لإكمال التغيير",
+    directionChangeBodyRestart: "تُكتب العربية من اليمين إلى اليسار، لذا يجب إعادة فتح التطبيق لعرض جميع العناصر بشكل صحيح.",
+    directionChangeLater: "لاحقاً",
 
     // Report Post
     reportThisPost: "الإبلاغ عن هذا المنشور",

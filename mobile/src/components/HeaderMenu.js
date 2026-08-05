@@ -39,6 +39,7 @@ import { useAuth } from '../context/AuthContext';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import { WEB_BASE_URL } from '../config/api';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
+import { logical, row } from '../utils/rtl';
 
 // Website pages, in the order they should appear in the menu. Opened via the
 // site's own base URL (EXPO_PUBLIC_WEB_BASE_URL) rather than a hardcoded domain.
@@ -82,9 +83,10 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
 
   // Off-screen resting position is on the far side of the drawer's own start
   // edge: in LTR that's to the left (negative translateX), in RTL - where the
-  // drawer is anchored to the right via the explicit `right: 0` style below -
+  // drawer is anchored to the right via the `start: 0` logical style below -
   // it's to the right (positive translateX). transform values are raw pixels
-  // and don't auto-flip for RTL, so this has to be computed explicitly.
+  // and don't auto-flip for RTL the way `start`/`end` do, so this has to be
+  // computed explicitly.
   const hiddenOffset = isRTL ? DRAWER_WIDTH : -DRAWER_WIDTH;
   const translateX = useRef(new Animated.Value(hiddenOffset)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
@@ -355,11 +357,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
     drawer: {
       position: 'absolute',
-      // Physical left/right rather than logical start/end: start/end resolve
-      // off native I18nManager.isRTL, which (per the note above) only takes
-      // visual effect after a real app restart - a live language switch needs
-      // the drawer to actually jump sides immediately.
-      ...(isRTL ? { right: 0 } : { left: 0 }),
+      ...logical(isRTL, { start: 0 }),
       top: 0,
       bottom: 0,
       width: DRAWER_WIDTH,
@@ -368,23 +366,20 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       // platform-wide "no borders on containers" rule. Only the inner edge
       // (facing into the screen) is rounded since the outer/top/bottom edges
       // sit flush against the device edges.
-      ...(isRTL
-        ? { borderTopLeftRadius: radiusTokens.xl, borderBottomLeftRadius: radiusTokens.xl }
-        : { borderTopRightRadius: radiusTokens.xl, borderBottomRightRadius: radiusTokens.xl }),
+      ...logical(isRTL, { borderTopEndRadius: radiusTokens.xl, borderBottomEndRadius: radiusTokens.xl }),
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: isDark ? 0.55 : 0.2,
       shadowRadius: 20,
       elevation: 20,
     },
-    // Manually driven by isRTL rather than left to RN's native auto-mirror:
-    // forceRTL only takes visual effect after a real app restart (see
-    // LanguageContext), so a live language switch needs these rows to flip
-    // immediately. Icon/gap margins below are picked explicitly by physical
-    // side (not marginStart/End) for the same reason - those resolve just as
-    // statically as flexDirection does.
+    // Direction-dependent styles go through the helpers in utils/rtl.js
+    // (row()/logical()), which compensate only when the language's direction
+    // differs from the one native is already mirroring - see that file. Do NOT
+    // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+    // cancels out native mirroring once forceRTL has taken effect on relaunch.
     drawerHeader: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 18,
@@ -419,14 +414,13 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       paddingBottom: 6,
     },
     item: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       paddingHorizontal: 18,
       paddingVertical: 12,
     },
     itemIcon: {
-      marginRight: isRTL ? 0 : 10,
-      marginLeft: isRTL ? 10 : 0,
+      ...logical(isRTL, { marginEnd: 10 }),
     },
     itemText: {
       flex: 1,
@@ -451,7 +445,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       overflow: 'hidden',
     },
     prefRow: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       paddingHorizontal: 12,
       paddingVertical: 12,
@@ -463,8 +457,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
     prefFlag: {
       fontSize: 18,
-      marginRight: isRTL ? 0 : 10,
-      marginLeft: isRTL ? 10 : 0,
+      ...logical(isRTL, { marginEnd: 10 }),
     },
     prefTextWrap: {
       flex: 1,
@@ -482,17 +475,16 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
     prefLangHeaderRow: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       marginBottom: 8,
     },
     langOptionsWrap: {
-      paddingLeft: isRTL ? 0 : 29,
-      paddingRight: isRTL ? 29 : 0,
+      ...logical(isRTL, { paddingStart: 29 }),
       gap: 2,
     },
     langOption: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 10,

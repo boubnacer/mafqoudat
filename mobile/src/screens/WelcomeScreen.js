@@ -30,6 +30,7 @@ import { colorTokens, radiusTokens } from '../theme/tokens';
 import { getCategoryConfig } from '../config/categories';
 import LanguageDropdown from '../components/LanguageDropdown';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
+import { logical, row } from '../utils/rtl';
 
 const BRAND_MARK = require('../../assets/icon.png');
 
@@ -109,7 +110,7 @@ const WelcomeScreen = () => {
   const { colors, isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const isRTL = currentLanguage === 'ar';
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
   const { t } = useTranslation();
 
   const [countries, setCountries] = useState([]);
@@ -411,7 +412,7 @@ const WelcomeScreen = () => {
     if (!cityLabel) cityLabel = t('unknownCity');
 
     const { tilt, lift, zIndex, isFront } = getFanGeometry(index, total);
-    const overlapStyle = index === 0 ? null : isRTL ? { marginRight: -16 } : { marginLeft: -16 };
+    const overlapStyle = index === 0 ? null : logical(isRTL, { marginStart: -16 });
 
     return (
       <View
@@ -590,7 +591,7 @@ const WelcomeScreen = () => {
               {heroPostsLoading ? (
                 <ActivityIndicator size="small" color={colors.primary} />
               ) : heroPosts.length > 0 ? (
-                <View style={[styles.heroFan, isRTL && styles.heroFanRTL]}>
+                <View style={styles.heroFan}>
                   {heroPosts.map((item, index) => renderHeroCard(item, index, heroPosts.length))}
                 </View>
               ) : (
@@ -604,7 +605,7 @@ const WelcomeScreen = () => {
   );
 };
 
-const createStyles = (colors) => StyleSheet.create({
+const createStyles = (colors, isRTL) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -731,7 +732,7 @@ const createStyles = (colors) => StyleSheet.create({
   dropdownArrow: {
     fontSize: 12,
     color: colors.textSecondary,
-    marginStart: 8,
+    ...logical(isRTL, { marginStart: 8 }),
   },
   countryDropdown: {
     backgroundColor: colors.surface,
@@ -778,7 +779,7 @@ const createStyles = (colors) => StyleSheet.create({
   },
   countryFlag: {
     fontSize: 24,
-    marginEnd: 12,
+    ...logical(isRTL, { marginEnd: 12 }),
   },
   countryName: {
     fontSize: 16,
@@ -793,7 +794,7 @@ const createStyles = (colors) => StyleSheet.create({
     fontSize: 20,
     color: colors.primary,
     fontWeight: 'bold',
-    marginStart: 8,
+    ...logical(isRTL, { marginStart: 8 }),
   },
   textRTL: {
     textAlign: 'right',
@@ -828,11 +829,8 @@ const createStyles = (colors) => StyleSheet.create({
     alignItems: 'center',
   },
   heroFan: {
-    flexDirection: 'row',
+    flexDirection: row(isRTL),
     alignItems: 'flex-end',
-  },
-  heroFanRTL: {
-    flexDirection: 'row-reverse',
   },
   heroCard: {
     width: HERO_CARD_WIDTH,

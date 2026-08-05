@@ -22,6 +22,7 @@ import CountryPickerModal from '../components/CountryPickerModal';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS, WEB_BASE_URL } from '../config/api';
 import { IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
+import { logical, row } from '../utils/rtl';
 
 // Same shape rules as LoginScreen.js (mirrors client/src/features/auth/SingUp/NewUserForm.js's
 // EMAIL_REGEX/PHONE_REGEX) - deliberately NOT the web form's buggy PWD_REGEX
@@ -590,21 +591,20 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
   placeholderColor: {
     color: `${tokens.ink}66`,
   },
-  // Manually driven by isRTL rather than left to RN's native auto-mirror:
-  // forceRTL only takes visual effect after a real app restart (see
-  // LanguageContext), so a live language switch needs these rows to flip
-  // immediately. paddingStart/marginStart/marginEnd resolve just as
-  // statically, so gaps below are picked explicitly by physical side too.
+  // Direction-dependent styles go through the helpers in utils/rtl.js
+  // (row()/logical()), which compensate only when the language's direction
+  // differs from the one native is already mirroring - see that file. Do NOT
+  // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+  // cancels out native mirroring once forceRTL has taken effect on relaunch.
   passwordWrapper: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: row(isRTL),
     alignItems: 'center',
     height: 52,
     borderWidth: 1,
     borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     borderRadius: radiusTokens.md,
     backgroundColor: `${tokens.ink}0A`,
-    paddingLeft: isRTL ? 0 : 14,
-    paddingRight: isRTL ? 14 : 0,
+    ...logical(isRTL, { paddingStart: 14 }),
   },
   passwordInput: {
     flex: 1,
@@ -644,7 +644,7 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     color: tokens.status.lost.main,
   },
   countryInput: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: row(isRTL),
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -663,17 +663,15 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
   countryInputChevron: {
     fontSize: 18,
     color: `${tokens.ink}99`,
-    marginLeft: isRTL ? 0 : 8,
-    marginRight: isRTL ? 8 : 0,
+    ...logical(isRTL, { marginStart: 8 }),
   },
   termsRow: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: row(isRTL),
     alignItems: 'flex-start',
   },
   checkboxTouchable: {
     paddingTop: 2,
-    paddingRight: isRTL ? 0 : 10,
-    paddingLeft: isRTL ? 10 : 0,
+    ...logical(isRTL, { paddingEnd: 10 }),
   },
   checkboxBox: {
     width: 22,
@@ -764,7 +762,7 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     letterSpacing: 0.5,
   },
   googleButton: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: row(isRTL),
     alignItems: 'center',
     justifyContent: 'center',
     height: 52,
@@ -792,7 +790,7 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     marginTop: 8,
   },
   facebookButton: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: row(isRTL),
     alignItems: 'center',
     justifyContent: 'center',
     height: 52,
@@ -809,7 +807,7 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     color: '#1877F2',
   },
   signInRow: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
+    flexDirection: row(isRTL),
     justifyContent: 'center',
     alignItems: 'center',
     flexWrap: 'wrap',
@@ -819,8 +817,7 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     fontFamily: fontFamilies.body,
     fontSize: 14,
     color: `${tokens.ink}99`,
-    marginRight: isRTL ? 0 : 6,
-    marginLeft: isRTL ? 6 : 0,
+    ...logical(isRTL, { marginEnd: 6 }),
   },
   signInLink: {
     fontFamily: fontFamilies.bodySemiBold,

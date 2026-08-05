@@ -22,14 +22,15 @@ import { useTranslation } from '../utils/translations';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/apiService';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
+import { logical } from '../utils/rtl';
 
 const CountrySelectionScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const isRTL = currentLanguage === 'ar';
+  const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
   const { t } = useTranslation();
   const { pendingToken, pendingProvider, completeGoogleRegistration, completeFacebookRegistration } = useAuth();
-  const isRTL = currentLanguage === 'ar';
 
   const [countries, setCountries] = useState([]);
   const [filteredCountries, setFilteredCountries] = useState([]);
@@ -243,7 +244,7 @@ const CountrySelectionScreen = ({ navigation }) => {
   );
 };
 
-const createStyles = (colors) => StyleSheet.create({
+const createStyles = (colors, isRTL) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -308,7 +309,7 @@ const createStyles = (colors) => StyleSheet.create({
   },
   countryFlag: {
     fontSize: 22,
-    marginEnd: 12,
+    ...logical(isRTL, { marginEnd: 12 }),
   },
   countryName: {
     fontSize: 16,

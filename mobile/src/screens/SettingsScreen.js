@@ -17,6 +17,7 @@ import { useTranslation } from '../utils/translations';
 import { WEB_BASE_URL } from '../config/api';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
+import { logical, row } from '../utils/rtl';
 
 // Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
 // as RN shadow/elevation props - same shadow color/opacity ProfileScreen/LoginScreen use.
@@ -186,13 +187,13 @@ const createStyles = (tokens, isDark, isRTL) =>
       flexWrap: 'wrap',
       gap: 8,
     },
-    // Manually driven by isRTL rather than left to RN's native auto-mirror:
-    // forceRTL only takes visual effect after a real app restart (see
-    // LanguageContext), so a live language switch needs icon+label order (and
-    // the accompanying gap margin, which resolves just as statically) to flip
-    // immediately.
+    // Direction-dependent styles go through the helpers in utils/rtl.js
+    // (row()/logical()), which compensate only when the language's direction
+    // differs from the one native is already mirroring - see that file. Do NOT
+    // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+    // cancels out native mirroring once forceRTL has taken effect on relaunch.
     chip: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       paddingHorizontal: 14,
       paddingVertical: 9,
@@ -206,8 +207,7 @@ const createStyles = (tokens, isDark, isRTL) =>
       borderColor: tokens.brandPrimary,
     },
     chipIcon: {
-      marginRight: isRTL ? 0 : 6,
-      marginLeft: isRTL ? 6 : 0,
+      ...logical(isRTL, { marginEnd: 6 }),
     },
     chipText: {
       fontFamily: fontFamilies.bodyMedium,
@@ -226,7 +226,7 @@ const createStyles = (tokens, isDark, isRTL) =>
       ...getElevation(isDark, 1),
     },
     menuRow: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 16,

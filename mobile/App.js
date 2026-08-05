@@ -23,7 +23,7 @@ import { getNavigationTheme } from './src/theme/navigationTheme';
 import { useTranslation } from './src/utils/translations';
 import MaintenanceOverlay from './src/components/MaintenanceOverlay';
 import OfflineBanner from './src/components/OfflineBanner';
-import RestartNotice from './src/components/RestartNotice';
+import DirectionChangeDialog from './src/components/DirectionChangeDialog';
 import OnboardingScreen from './src/screens/onboarding/OnboardingScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
@@ -140,7 +140,7 @@ const AppShell = () => {
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <OfflineBanner />
-      <RestartNotice />
+      <DirectionChangeDialog />
       <RootNavigator />
     </>
   );

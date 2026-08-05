@@ -21,7 +21,6 @@ import {
   ActivityIndicator,
   NativeModules,
   Platform,
-  I18nManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,6 +33,7 @@ import { languageStorage } from '../../utils/languageStorage';
 import apiClient from '../../api/apiService';
 import { getLocalizedLabel } from '../../context/ReferenceDataContext';
 import { colorTokens, radiusTokens, fontFamilies, lightColors } from '../../theme/tokens';
+import { NATIVE_RTL, needsDirectionFlip } from '../../utils/rtl';
 import {
   WelcomeMascotIllustration,
   ReportIllustration,
@@ -63,7 +63,9 @@ const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 // view tree changes again until the app is genuinely restarted. So the layout
 // direction is a per-session constant and belongs at module scope, where it
 // cannot be mistaken for something that tracks the currently picked language.
-const LAYOUT_IS_RTL = I18nManager.isRTL;
+// Sourced from utils/rtl.js so this screen and the rest of the app agree on
+// it rather than each capturing their own copy.
+const LAYOUT_IS_RTL = NATIVE_RTL;
 
 // How a horizontal list reports contentOffset.x under an RTL layout is NOT the
 // same on both platforms, so this cannot be handled with a single sign flip:
@@ -141,7 +143,7 @@ const OnboardingScreen = () => {
   // isRTL is true (what this screen used to do) double-flips every row back to
   // the wrong order on any session that booted in Arabic.
   const isRTL = currentLanguage === 'ar';
-  const mirrorRows = isRTL !== LAYOUT_IS_RTL;
+  const mirrorRows = needsDirectionFlip(isRTL);
 
   const flatListRef = useRef(null);
   // Seeded with slide 0's resting offset rather than a bare 0: under the

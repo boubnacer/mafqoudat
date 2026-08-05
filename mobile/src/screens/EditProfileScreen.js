@@ -33,6 +33,7 @@ import { storage } from '../utils/storage';
 import { colorTokens, radiusTokens, fontFamilies, lightColors, darkColors } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
 import SelectModal from '../components/SelectModal';
+import { logical, row } from '../utils/rtl';
 
 // Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
 // as RN shadow/elevation props - same shadow color/opacity LoginScreen/ProfileScreen use.
@@ -397,13 +398,13 @@ const createStyles = (tokens, legacy, isDark, isRTL) =>
       fontSize: 12,
       marginTop: 6,
     },
-    // Manually driven by isRTL rather than left to RN's native auto-mirror:
-    // forceRTL only takes visual effect after a real app restart (see
-    // LanguageContext), so a live language switch needs icon/label order to
-    // flip immediately. marginEnd resolves just as statically, so the gaps
-    // below are picked explicitly by physical side too.
+    // Direction-dependent styles go through the helpers in utils/rtl.js
+    // (row()/logical()), which compensate only when the language's direction
+    // differs from the one native is already mirroring - see that file. Do NOT
+    // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+    // cancels out native mirroring once forceRTL has taken effect on relaunch.
     selectButton: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       height: 52,
       paddingHorizontal: 14,
@@ -413,13 +414,11 @@ const createStyles = (tokens, legacy, isDark, isRTL) =>
       borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
     selectButtonIcon: {
-      marginRight: isRTL ? 0 : 10,
-      marginLeft: isRTL ? 10 : 0,
+      ...logical(isRTL, { marginEnd: 10 }),
     },
     countryFlagText: {
       fontSize: 18,
-      marginRight: isRTL ? 0 : 10,
-      marginLeft: isRTL ? 10 : 0,
+      ...logical(isRTL, { marginEnd: 10 }),
     },
     selectButtonText: {
       flex: 1,

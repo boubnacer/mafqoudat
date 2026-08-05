@@ -21,6 +21,7 @@ import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
+import { row } from '../utils/rtl';
 
 const SECTION_COUNT = 3;
 
@@ -385,13 +386,13 @@ const createStyles = (tokens, isRTL, isDark) =>
       marginTop: 2,
       textAlign: 'center',
     },
-    // Manually driven by isRTL rather than left to RN's native auto-mirror:
-    // forceRTL only takes visual effect after a real app restart (see
-    // LanguageContext), so a live language switch needs icon/text order to
-    // flip immediately. `gap` (not marginEnd) handles the spacing, so it
-    // stays correct either way - only the order needs this override.
+    // Direction-dependent styles go through the helpers in utils/rtl.js
+    // (row()/logical()), which compensate only when the language's direction
+    // differs from the one native is already mirroring - see that file. Do NOT
+    // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+    // cancels out native mirroring once forceRTL has taken effect on relaunch.
     providerBadge: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 6,
       marginTop: 12,
@@ -415,7 +416,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       ...getElevation(isDark, 1),
     },
     infoRow: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 12,
       paddingHorizontal: 10,
@@ -450,7 +451,7 @@ const createStyles = (tokens, isRTL, isDark) =>
 
     // Primary CTA - mirrors LoginScreen.js's button.
     primaryButton: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
@@ -478,7 +479,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       ...getElevation(isDark, 1),
     },
     menuRow: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 12,
       paddingHorizontal: 14,

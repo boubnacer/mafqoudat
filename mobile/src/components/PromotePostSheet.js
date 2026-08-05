@@ -13,6 +13,7 @@ import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
+import { logical, row } from '../utils/rtl';
 
 const PromotePostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) => {
   const { isDark } = useTheme();
@@ -121,11 +122,11 @@ const PromotePostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) =
   );
 };
 
-// Manually driven by isRTL rather than left to RN's native auto-mirror:
-// forceRTL only takes visual effect after a real app restart (see
-// LanguageContext), so a live language switch needs these rows to flip
-// immediately. marginEnd resolves just as statically, so the gap below is
-// picked explicitly by physical side too.
+// Direction-dependent styles go through the helpers in utils/rtl.js
+// (row()/logical()), which compensate only when the language's direction
+// differs from the one native is already mirroring - see that file. Do NOT
+// write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+// cancels out native mirroring once forceRTL has taken effect on relaunch.
 const createStyles = (tokens, isDark, isRTL) =>
   StyleSheet.create({
     overlay: {
@@ -143,7 +144,7 @@ const createStyles = (tokens, isDark, isRTL) =>
       paddingBottom: 16,
     },
     header: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: 16,
@@ -204,7 +205,7 @@ const createStyles = (tokens, isDark, isRTL) =>
       writingDirection: 'rtl',
     },
     footer: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       paddingHorizontal: 16,
       paddingTop: 16,
       borderTopWidth: 1,
@@ -217,8 +218,7 @@ const createStyles = (tokens, isDark, isRTL) =>
       borderWidth: 1,
       borderColor: tokens.brandPrimary,
       alignItems: 'center',
-      marginRight: isRTL ? 0 : 8,
-      marginLeft: isRTL ? 8 : 0,
+      ...logical(isRTL, { marginEnd: 8 }),
     },
     cancelButtonText: {
       fontFamily: fontFamilies.bodySemiBold,

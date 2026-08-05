@@ -24,6 +24,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
+import { logical, row } from '../utils/rtl';
 
 const ALL_OPTION_ID = '__all__';
 
@@ -402,12 +403,13 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       maxHeight: '85%',
       paddingBottom: 16,
     },
-    // Manually driven by isRTL rather than left to RN's native auto-mirror:
-    // forceRTL only takes visual effect after a real app restart (see
-    // LanguageContext), so a live language switch needs these rows to flip
-    // immediately.
+    // Direction-dependent styles go through the helpers in utils/rtl.js
+    // (row()/logical()), which compensate only when the language's direction
+    // differs from the one native is already mirroring - see that file. Do NOT
+    // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
+    // cancels out native mirroring once forceRTL has taken effect on relaunch.
     header: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: 20,
@@ -443,7 +445,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       marginTop: 16,
     },
     postTypeRow: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: 'row',
       gap: 10,
       marginBottom: 4,
     },
@@ -469,7 +471,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       marginBottom: 4,
     },
     dropdownHeader: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       justifyContent: 'space-between',
       height: 46,
@@ -513,7 +515,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       maxHeight: 220,
     },
     dropdownOption: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 8,
       paddingHorizontal: 12,
@@ -553,7 +555,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       marginTop: 10,
     },
     selectedChip: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 10,
@@ -568,8 +570,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
 
     footer: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
-      gap: 10,
+      flexDirection: 'row',
       paddingHorizontal: 20,
       paddingTop: 14,
       borderTopWidth: 1,
@@ -582,6 +583,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       borderWidth: 1,
       borderColor: tokens.brandPrimary,
       alignItems: 'center',
+      ...logical(isRTL, { marginEnd: 10 }),
     },
     clearButtonText: {
       color: tokens.brandPrimary,
