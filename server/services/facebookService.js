@@ -2,7 +2,7 @@ const axios = require('axios');
 const FoundLost = require('../models/FoundLost');
 const City = require('../models/City');
 
-const GRAPH_API_VERSION = 'v19.0';
+const GRAPH_API_VERSION = 'v26.0';
 
 class FacebookService {
   constructor() {
