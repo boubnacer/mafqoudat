@@ -2,7 +2,7 @@ import * as WebBrowser from 'expo-web-browser';
 import {
   API_BASE_URL,
   API_ENDPOINTS,
-  GOOGLE_MOBILE_CALLBACK_URL,
+  MOBILE_OAUTH_CALLBACK_URL,
 } from '../config/api';
 
 // Minimal query-string parser for the deep-link callback URL - avoids depending on
@@ -26,16 +26,13 @@ WebBrowser.maybeCompleteAuthSession();
 // via passport-facebook, so the app never needs a Facebook App ID or SDK -
 // it only ever opens the server's own /auth/facebook in an ephemeral
 // auth-session browser and catches the deep-link redirect back, exactly like
-// googleAuth.js's signInWithGoogleBrowser() legacy fallback. Reusing
-// GOOGLE_MOBILE_CALLBACK_URL here is intentional, not a copy-paste slip: the
-// server's mobile-callback.html redirects to that fixed scheme regardless of
-// which provider's flow reached it - it isn't actually Google-specific.
+// googleAuth.js's signInWithGoogleBrowser() legacy fallback.
 class FacebookAuth {
   async signInWithFacebookBrowser() {
     try {
-      const authUrl = `${API_BASE_URL}${API_ENDPOINTS.AUTH.FACEBOOK}?mobile=true&redirect_uri=${encodeURIComponent(GOOGLE_MOBILE_CALLBACK_URL)}`;
+      const authUrl = `${API_BASE_URL}${API_ENDPOINTS.AUTH.FACEBOOK}?mobile=true&redirect_uri=${encodeURIComponent(MOBILE_OAUTH_CALLBACK_URL)}`;
 
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, GOOGLE_MOBILE_CALLBACK_URL);
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, MOBILE_OAUTH_CALLBACK_URL);
 
       if (result.type === 'cancel' || result.type === 'dismiss') {
         return { success: false, cancelled: true };
