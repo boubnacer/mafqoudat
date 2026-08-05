@@ -33,7 +33,7 @@ import { languageStorage } from '../../utils/languageStorage';
 import apiClient from '../../api/apiService';
 import { getLocalizedLabel } from '../../context/ReferenceDataContext';
 import { colorTokens, radiusTokens, fontFamilies, lightColors } from '../../theme/tokens';
-import { row } from '../../utils/rtl';
+import { NATIVE_RTL, needsDirectionFlip } from '../../utils/rtl';
 import {
   WelcomeMascotIllustration,
   ReportIllustration,
@@ -57,6 +57,34 @@ const BRAND_BLUE = lightColors.primary;
 // per-slide fade/translate + dot interpolation) - a plain FlatList can't back
 // a native-driven onScroll, only an Animated-wrapped one can.
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
+
+// I18nManager.isRTL is read from constants captured when the JS bundle loaded,
+// and forceRTL() only writes a native preference - neither the flag nor the
+// view tree changes again until the app is genuinely restarted. So the layout
+// direction is a per-session constant and belongs at module scope, where it
+// cannot be mistaken for something that tracks the currently picked language.
+// Sourced from utils/rtl.js so this screen and the rest of the app agree on
+// it rather than each capturing their own copy.
+const LAYOUT_IS_RTL = NATIVE_RTL;
+
+// How a horizontal list reports contentOffset.x under an RTL layout is NOT the
+// same on both platforms, so this cannot be handled with a single sign flip:
+//
+// - Android hands back the raw scrollX, still measured from the left edge
+//   (ReactHorizontalScrollView.onScrollChanged passes it through untouched),
+//   so slide 0 sits at the far end and index <-> offset runs backwards.
+// - iOS mirrors the scroll view and its content with a scale(-1, 1) transform
+//   (RCTScrollView's RCTApplyTransformationAccordingLayoutDirection), which
+//   leaves contentOffset.x reading exactly as it does in LTR.
+//
+// Offsets stay positive in both cases - only Android's ordering reverses.
+const OFFSETS_REVERSED = LAYOUT_IS_RTL && Platform.OS === 'android';
+const offsetForIndex = (index) =>
+  (OFFSETS_REVERSED ? SLIDE_COUNT - 1 - index : index) * SCREEN_WIDTH;
+const indexForOffset = (x) => {
+  const raw = Math.round(x / SCREEN_WIDTH);
+  return OFFSETS_REVERSED ? SLIDE_COUNT - 1 - raw : raw;
+};
 
 // Same wordmark image LoginScreen/SignUpScreen/AppHeader use in place of a
 // text brand name.
@@ -99,11 +127,30 @@ const OnboardingScreen = () => {
   const { t } = useTranslation();
 
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
+  const styles = useMemo(() => createStyles(tokens), [tokens]);
+
+  // Two different notions of "RTL" have to coexist on this screen, and keeping
+  // them apart is what makes it survive a language switch:
+  //
+  // - isRTL is the direction the PICKED LANGUAGE wants. It flips the instant
+  //   Arabic is tapped.
+  // - LAYOUT_IS_RTL is the direction the view tree is ACTUALLY laid out in for
+  //   this session, which does NOT follow isRTL until the app is restarted.
+  //
+  // mirrorRows is true only while the two disagree, i.e. while a direction
+  // change is pending that restart. A row with flexDirection 'row' ALREADY
+  // mirrors itself natively once the layout is RTL, so reversing rows whenever
+  // isRTL is true (what this screen used to do) double-flips every row back to
+  // the wrong order on any session that booted in Arabic.
   const isRTL = currentLanguage === 'ar';
-  const styles = useMemo(() => createStyles(tokens, isRTL), [tokens, isRTL]);
+  const mirrorRows = needsDirectionFlip(isRTL);
 
   const flatListRef = useRef(null);
-  const scrollX = useRef(new Animated.Value(0)).current;
+  // Seeded with slide 0's resting offset rather than a bare 0: under the
+  // reversed (Android RTL) mapping the list opens at the far end, so starting
+  // this at 0 would fade slide 0 out and the last slide in before the user has
+  // touched anything.
+  const scrollX = useRef(new Animated.Value(offsetForIndex(0))).current;
   // Own, JS-driven Animated.Values for the dot widths - 'width' isn't a style
   // property the native driver supports, so these can't be interpolated from
   // scrollX (which is native-driven for the opacity/transform slide fades).
@@ -204,13 +251,12 @@ const OnboardingScreen = () => {
   };
 
   const scrollToIndex = (index) => {
-    flatListRef.current?.scrollToOffset({ offset: index * SCREEN_WIDTH, animated: true });
+    flatListRef.current?.scrollToOffset({ offset: offsetForIndex(index), animated: true });
     setActiveIndex(index);
   };
 
   const handleMomentumScrollEnd = (event) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-    setActiveIndex(index);
+    setActiveIndex(indexForOffset(event.nativeEvent.contentOffset.x));
   };
 
   const handleSkip = () => scrollToIndex(SLIDE_COUNT - 1);
@@ -261,7 +307,11 @@ const OnboardingScreen = () => {
   const slideAnimatedStyles = useMemo(
     () =>
       SLIDE_INDICES.map((index) => {
-        const inputRange = [(index - 1) * SCREEN_WIDTH, index * SCREEN_WIDTH, (index + 1) * SCREEN_WIDTH];
+        // Centred on the offset this slide actually rests at, so the fade
+        // tracks the real scroll position under a reversed (Android RTL)
+        // mapping too. Always ascending, as interpolate() requires.
+        const center = offsetForIndex(index);
+        const inputRange = [center - SCREEN_WIDTH, center, center + SCREEN_WIDTH];
         return {
           opacity: scrollX.interpolate({ inputRange, outputRange: [0, 1, 0], extrapolate: 'clamp' }),
           transform: [
@@ -271,6 +321,29 @@ const OnboardingScreen = () => {
           ],
         };
       }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  // Must be created exactly once, for the same reason the interpolations above
+  // are. React Native keys a component's AnimatedProps on the IDENTITY of any
+  // AnimatedEvent/AnimatedNode prop (see createAnimatedPropsMemoHook), so an
+  // inline Animated.event makes every single render of this screen rebuild the
+  // list's AnimatedProps, which runs the ref-effect cleanup that rips the
+  // native onScroll -> scrollX binding off the list and re-attaches a new one.
+  // Any render landing while a paging scroll is in flight therefore loses the
+  // rest of that scroll and leaves scrollX stale, so the slide actually on
+  // screen interpolates to opacity 0 and the page goes blank.
+  //
+  // Pressing "Next" normally only re-renders once (setActiveIndex), while
+  // scrollX is still parked on the previous offset, so it survives. Switching
+  // language is what makes this fatal: a direction change additionally fires
+  // the pending-restart notice, that notice's 4s auto-dismiss timer, and the
+  // country refetch's async setStates - late re-renders that land after the
+  // scroll has already started. That is the "everything turns white after
+  // changing language" bug, and it is why it happened in BOTH directions.
+  const handleScroll = useMemo(
+    () => Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: true }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
@@ -286,7 +359,7 @@ const OnboardingScreen = () => {
       />
       <Text style={styles.headline}>{t('onboardingWelcomeHeadline')}</Text>
 
-      <View style={styles.languageChipsRow}>
+      <View style={[styles.languageChipsRow, mirrorRows && styles.rowReverse]}>
         {LANGUAGE_CHIPS.map((lang) => {
           const isActive = currentLanguage === lang.code;
           return (
@@ -305,7 +378,7 @@ const OnboardingScreen = () => {
       </View>
 
       <Text style={styles.themeLabel}>{t('onboardingThemeLabel')}</Text>
-      <View style={styles.themeToggleTrack}>
+      <View style={[styles.themeToggleTrack, mirrorRows && styles.rowReverse]}>
         <TouchableOpacity
           style={[styles.themeToggleOption, !isDark && styles.themeToggleOptionActive]}
           onPress={() => setThemeMode('light')}
@@ -344,7 +417,7 @@ const OnboardingScreen = () => {
       <Text style={styles.headline}>{t('onboardingFilterHeadline')}</Text>
       <Text style={styles.body}>{t('onboardingFilterBody')}</Text>
 
-      <View style={styles.filterPillsRow}>
+      <View style={[styles.filterPillsRow, mirrorRows && styles.rowReverse]}>
         <View style={styles.filterPill}>
           <Ionicons name="earth" size={14} color={BRAND_BLUE} />
           <Text style={styles.filterPillText}>{t('country')}</Text>
@@ -374,12 +447,20 @@ const OnboardingScreen = () => {
         {countryError ? <Text style={styles.errorText}>{countryError}</Text> : null}
 
         <TouchableOpacity
-          style={[styles.countryButton, selectedCountry && styles.countryButtonSelected]}
+          style={[
+            styles.countryButton,
+            selectedCountry && styles.countryButtonSelected,
+            mirrorRows && styles.rowReverse,
+          ]}
           onPress={() => setShowCountryList((prev) => !prev)}
           activeOpacity={0.8}
         >
           <Text
-            style={[styles.countryButtonText, !selectedCountry && styles.countryButtonPlaceholder]}
+            style={[
+              styles.countryButtonText,
+              !selectedCountry && styles.countryButtonPlaceholder,
+              isRTL ? styles.textRTL : styles.textLTR,
+            ]}
             numberOfLines={1}
           >
             {selectedCountry ? `${selectedCountry.flag || '🌍'} ${getCountryName(selectedCountry)}` : t('chooseCountry')}
@@ -390,7 +471,7 @@ const OnboardingScreen = () => {
         {showCountryList && (
           <View style={styles.countryDropdown}>
             <TextInput
-              style={[styles.searchInput, isRTL && styles.textRTL]}
+              style={[styles.searchInput, isRTL ? styles.textRTL : styles.textLTR]}
               placeholder={t('searchCountry')}
               placeholderTextColor={tokens.ink + '80'}
               value={countrySearch}
@@ -411,12 +492,16 @@ const OnboardingScreen = () => {
                     (selectedCountry?.id && selectedCountry.id === item.id);
                   return (
                     <TouchableOpacity
-                      style={[styles.countryItem, isSelected && styles.countryItemSelected]}
+                      style={[
+                        styles.countryItem,
+                        isSelected && styles.countryItemSelected,
+                        mirrorRows && styles.rowReverse,
+                      ]}
                       onPress={() => handleCountrySelect(item)}
                       activeOpacity={0.7}
                     >
                       <Text style={styles.countryFlag}>{item.flag || '🌍'}</Text>
-                      <Text style={[styles.countryName, isRTL && styles.textRTL]} numberOfLines={1}>
+                      <Text style={[styles.countryName, isRTL ? styles.textRTL : styles.textLTR]} numberOfLines={1}>
                         {getCountryName(item)}
                       </Text>
                       {isSelected && <Ionicons name="checkmark" size={18} color={BRAND_BLUE} />}
@@ -460,7 +545,7 @@ const OnboardingScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <View style={styles.header}>
+      <View style={[styles.header, mirrorRows && styles.headerRTL]}>
         {!isLastSlide ? (
           <TouchableOpacity onPress={handleSkip} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
             <Text style={styles.skipText}>{t('skip')}</Text>
@@ -483,15 +568,23 @@ const OnboardingScreen = () => {
         // Android clips/recycles offscreen subviews by default, which can flash
         // blank/black mid-transition on an Animated-opacity FlatList like this one.
         removeClippedSubviews={false}
+        // Describes where items sit inside the content (always index-ordered),
+        // not where the viewport is scrolled to - so this stays unsigned even
+        // when the offset mapping above reverses. Safe here because all five
+        // slides are below initialNumToRender and are always mounted anyway.
         getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index, index })}
         scrollEventThrottle={16}
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: true })}
+        onScroll={handleScroll}
         onMomentumScrollEnd={handleMomentumScrollEnd}
         renderItem={renderSlide}
         style={styles.flatList}
       />
 
       <View style={styles.footer}>
+        {/* Never mirrored by hand: the dots map to the slides' PHYSICAL order,
+            which already follows the list's real layout direction. Reversing
+            them on language alone made the active dot appear to walk backwards
+            while the carousel still advanced the other way. */}
         <View style={styles.dotsRow}>
           {SLIDE_INDICES.map((i) => (
             <Animated.View
@@ -510,10 +603,13 @@ const OnboardingScreen = () => {
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <View style={styles.ctaContent}>
+            <View style={[styles.ctaContent, mirrorRows && styles.rowReverse]}>
               <Text style={styles.ctaText}>{isLastSlide ? t('getStarted') : t('next')}</Text>
               <Ionicons
-                name={isRTL ? 'arrow-back' : 'arrow-forward'}
+                // Points the way the carousel physically moves, so it tracks
+                // the real layout rather than a direction change still waiting
+                // on a restart.
+                name={LAYOUT_IS_RTL ? 'arrow-back' : 'arrow-forward'}
                 size={18}
                 color="#FFFFFF"
                 style={styles.ctaIcon}
@@ -526,7 +622,7 @@ const OnboardingScreen = () => {
   );
 };
 
-const createStyles = (tokens, isRTL) =>
+const createStyles = (tokens) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -538,6 +634,9 @@ const createStyles = (tokens, isRTL) =>
       justifyContent: 'flex-end',
       alignItems: 'center',
       paddingHorizontal: 20,
+    },
+    headerRTL: {
+      justifyContent: 'flex-start',
     },
     skipText: {
       fontFamily: fontFamilies.bodyMedium,
@@ -584,11 +683,14 @@ const createStyles = (tokens, isRTL) =>
       marginBottom: 24,
     },
     languageChipsRow: {
-      flexDirection: row(isRTL),
+      flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'center',
       gap: 10,
       marginTop: 8,
+    },
+    rowReverse: {
+      flexDirection: 'row-reverse',
     },
     languageChip: {
       flexDirection: 'row',
@@ -623,7 +725,7 @@ const createStyles = (tokens, isRTL) =>
       marginBottom: 10,
     },
     themeToggleTrack: {
-      flexDirection: row(isRTL),
+      flexDirection: 'row',
       backgroundColor: `${tokens.ink}0D`,
       borderRadius: radiusTokens.md,
       padding: 4,
@@ -651,7 +753,7 @@ const createStyles = (tokens, isRTL) =>
       fontFamily: fontFamilies.bodySemiBold,
     },
     filterPillsRow: {
-      flexDirection: row(isRTL),
+      flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'center',
       gap: 10,
@@ -765,9 +867,16 @@ const createStyles = (tokens, isRTL) =>
       fontSize: 14,
       color: tokens.ink,
     },
+    // Stated explicitly in both directions rather than relying on the layout
+    // default, which is right-aligned on a session that booted in Arabic and
+    // would leave English/French text hanging on the wrong edge.
     textRTL: {
       textAlign: 'right',
       writingDirection: 'rtl',
+    },
+    textLTR: {
+      textAlign: 'left',
+      writingDirection: 'ltr',
     },
     footer: {
       paddingHorizontal: 28,
@@ -775,7 +884,7 @@ const createStyles = (tokens, isRTL) =>
       paddingTop: 8,
     },
     dotsRow: {
-      flexDirection: row(isRTL),
+      flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
       gap: 6,
@@ -809,7 +918,7 @@ const createStyles = (tokens, isRTL) =>
       elevation: 0,
     },
     ctaContent: {
-      flexDirection: row(isRTL),
+      flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
     },
