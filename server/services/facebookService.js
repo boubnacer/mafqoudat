@@ -1,6 +1,5 @@
 const axios = require('axios');
-const FoundLost = require('../models/FoundLost');
-const City = require('../models/City');
+const { buildListingCaption } = require('./socialCaption');
 
 const GRAPH_API_VERSION = 'v26.0';
 
@@ -13,15 +12,6 @@ class FacebookService {
 
   isConfigured() {
     return !!(this.pageId && this.pageAccessToken);
-  }
-
-  buildCaption(post, foundLostLabel, cityLabel) {
-    const lines = [];
-    const heading = cityLabel ? `${foundLostLabel} — ${cityLabel}` : foundLostLabel;
-    lines.push(heading);
-    if (post.description) lines.push(post.description);
-    if (post.exactLocation) lines.push(post.exactLocation);
-    return lines.join('\n\n');
   }
 
   /**
@@ -41,16 +31,7 @@ class FacebookService {
       return null;
     }
 
-    const [foundLost, city] = await Promise.all([
-      FoundLost.findById(post.foundLost).select('labels').lean(),
-      post.city ? City.findById(post.city).select('labels').lean() : Promise.resolve(null),
-    ]);
-
-    const caption = this.buildCaption(
-      post,
-      foundLost?.labels?.en || '',
-      city?.labels?.en || ''
-    );
+    const caption = await buildListingCaption(post);
 
     const response = await axios.post(`${this.baseURL}/${this.pageId}/photos`, null, {
       params: {
