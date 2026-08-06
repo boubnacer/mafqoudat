@@ -21,19 +21,27 @@ import {
   CalendarMonth as CalendarMonthIcon,
   HelpOutline as HelpOutlineIcon,
 } from "@mui/icons-material";
-import { useTranslation } from "../../../../utils/translations";
+import { useTranslation } from "../utils/translations";
 
 // Locales used only for generating month names / formatting the final string.
-// 'ar-SA' is deliberately avoided: modern browsers resolve it to the Islamic
-// calendar, which would print Hijri month names for a Gregorian date.
-const DATE_LOCALES = { en: 'en-US', fr: 'fr-FR', ar: 'ar' };
+// Arabic uses 'ar-MA' for the Maghrebi Gregorian month names (ماي/يوليوز/غشت/
+// شتنبر/نونبر/دجنبر) our users actually say. 'ar-SA' is deliberately avoided:
+// modern browsers resolve it to the Islamic calendar, which would print Hijri
+// month names for a Gregorian date.
+const DATE_LOCALES = { en: 'en-US', fr: 'fr-FR', ar: 'ar-MA' };
+
+// Month names already stored in posts created before the switch to 'ar-MA'
+// (Mashriqi set: يوليو/أغسطس/سبتمبر...). Only used when reading a value back,
+// never when writing one.
+const LEGACY_PARSE_LOCALES = ['ar'];
 
 const MIN_YEAR = 1900;
 
-// Gregorian month names in a given site language, with Latin digits so the
-// stored string stays readable in every language.
+// Gregorian month names in a given site language (or, for parsing only, in a
+// raw BCP 47 locale), with Latin digits so the stored string stays readable in
+// every language.
 export const getMonthNames = (language) => {
-  const formatter = new Intl.DateTimeFormat(DATE_LOCALES[language] || DATE_LOCALES.en, {
+  const formatter = new Intl.DateTimeFormat(DATE_LOCALES[language] || language || DATE_LOCALES.en, {
     month: 'long',
     calendar: 'gregory',
     numberingSystem: 'latn',
@@ -63,7 +71,7 @@ const parseDateValue = (value) => {
   const year = Number(yearMatch[1]);
 
   let month = null;
-  ['en', 'fr', 'ar'].forEach((language) => {
+  ['en', 'fr', 'ar', ...LEGACY_PARSE_LOCALES].forEach((language) => {
     if (month !== null) return;
     const names = getMonthNames(language);
     const index = names.findIndex((name) => value.toLowerCase().includes(name.toLowerCase()));

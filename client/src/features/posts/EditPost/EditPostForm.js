@@ -31,7 +31,8 @@ import {
   Card,
   CardMedia,
   CardActions,
-  Chip
+  Chip,
+  InputAdornment
 } from "@mui/material";
 import {
   LocationOn,
@@ -50,9 +51,11 @@ import {
   CallOutlined,
   AdminPanelSettingsOutlined,
   TaskAltOutlined,
-  SearchOffOutlined
+  SearchOffOutlined,
+  CalendarMonth as CalendarMonthIcon
 } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
+import DateEntryDialog from "../../../components/DateEntryDialog";
 import useAuth from "../../../hooks/useAuth";
 import CategoryPickerField from "../../../components/CategoryPickerField";
 import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
@@ -244,6 +247,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const [hasFormChanged, setHasFormChanged] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  // exactDate is entered through DateEntryDialog rather than typed freehand -
+  // users were writing ambiguous numeric dates (dd/mm vs mm/dd), so the field
+  // itself is read-only and just opens the dialog.
+  const [showDateDialog, setShowDateDialog] = useState(false);
 
   // UI-only state for the collapsible "view -> edit" sections (design-only
   // change - never read by Formik, validation, or submission). Every section
@@ -2591,11 +2598,69 @@ if (typeof document !== 'undefined') {
                       : t('exactDateFoundPlaceholderOptional')
                     }
                   </Typography>
-                  <Textfield
+                  <TextField
+                    fullWidth
+                    id="exactDate"
                     name="exactDate"
                     variant="outlined"
-                    placeholder={`${t('exactDatePlaceholder')} ${new Date().toLocaleDateString()})`}
+                    value={values.exactDate || ''}
+                    placeholder={t('datePickerOpen')}
                     data-testid="exactDate"
+                    onClick={() => setShowDateDialog(true)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setShowDateDialog(true);
+                      }
+                    }}
+                    InputProps={{
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <CalendarMonthIcon sx={{ color: theme.custom.color.brandPrimary }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: values.exactDate ? (
+                        <InputAdornment position="end">
+                          <IconButton
+                            size="small"
+                            aria-label={t('datePickerClear')}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setFieldValue('exactDate', '');
+                            }}
+                            sx={{ color: theme.palette.text.secondary }}
+                          >
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ) : null,
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        cursor: 'pointer',
+                        '& fieldset': {
+                          borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.3 : 0.2),
+                        },
+                        '&:hover fieldset': {
+                          borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.5 : 0.4),
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: theme.custom.color.brandPrimary,
+                        },
+                      },
+                      '& .MuiOutlinedInput-input': { cursor: 'pointer' },
+                    }}
+                  />
+
+                  <DateEntryDialog
+                    open={showDateDialog}
+                    value={values.exactDate}
+                    onClose={() => setShowDateDialog(false)}
+                    onConfirm={(formattedDate) => {
+                      setFieldValue('exactDate', formattedDate);
+                      setShowDateDialog(false);
+                    }}
                   />
                 </Box>
                 </EditableSection>

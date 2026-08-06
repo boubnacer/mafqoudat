@@ -53,7 +53,6 @@ const PostCardRoot = styled(Card)(({ theme, tone }) => ({
   backgroundColor: theme.custom.color.surfaceRaised,
   borderRadius: `${theme.custom.radius.lg}px`,
   boxShadow: theme.custom.elevation.e1,
-  border: `1px solid ${theme.palette.divider}`,
   borderInlineStart: `6px solid ${tone}`,
   overflow: "hidden",
   cursor: "pointer",

@@ -25,7 +25,7 @@ import Textfield from "../../../../components/Textfield";
 import { useTranslation } from "../../../../utils/translations";
 import { getCityDisplayName } from "../cityDisplay";
 import RequiredMark from "./RequiredMark";
-import DateEntryDialog from "./DateEntryDialog";
+import DateEntryDialog from "../../../../components/DateEntryDialog";
 
 // Step 2 "Where & when": country, city (dropdown + search + Add New City
 // trigger), exactLocation, exactDate. City search/dialog state is owned by
