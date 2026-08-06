@@ -77,7 +77,9 @@ class InstagramService {
 
     const imageUrl = post.cloudinaryUrl || post.image;
     if (!imageUrl) {
-      console.warn(`Instagram posting skipped for post ${post._id}: no image`);
+      // Hard platform limitation: Instagram has no text-only feed post type,
+      // unlike Facebook. Nothing to fall back to here.
+      console.warn(`Instagram posting skipped for post ${post._id}: no image (Instagram requires one, no text-only post type exists)`);
       return null;
     }
 
