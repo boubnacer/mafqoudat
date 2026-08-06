@@ -24,17 +24,18 @@ async function buildListingCaption(post) {
     FoundLost.findById(post.foundLost).select('code').lean(),
     post.city ? City.findById(post.city).select('labels').lean() : Promise.resolve(null),
     primaryCategoryId ? Category.findById(primaryCategoryId).select('labels').lean() : Promise.resolve(null),
-    post.country ? Country.findById(post.country).select('labels').lean() : Promise.resolve(null),
+    post.country ? Country.findById(post.country).select('names').lean() : Promise.resolve(null),
   ]);
 
   const status = STATUS_TEXT[foundLost?.code] || { emoji: '📢', label: '' };
-  const countryLabel = country?.labels?.ar || '';
+  const countryLabel = country?.names?.ar || '';
   const cityLabel = city?.labels?.ar || '';
   const categoryLabel = category?.labels?.ar || '';
 
   const infoLines = [
     countryLabel && `🌍 الدولة: ${countryLabel}`,
     cityLabel && `📍 المدينة: ${cityLabel}`,
+    post.exactLocation && `🧭 الموقع الدقيق: ${post.exactLocation}`,
     categoryLabel && `🏷️ الفئة: ${categoryLabel}`,
     status.label && `${status.emoji} النوع: ${status.label}`,
   ].filter(Boolean).join('\n');
@@ -42,7 +43,6 @@ async function buildListingCaption(post) {
   const lines = [infoLines];
 
   if (post.description) lines.push(post.description);
-  if (post.exactLocation) lines.push(`🧭 الموقع الدقيق: ${post.exactLocation}`);
 
   const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
   const postUrl = `${siteUrl}/dash/posts/${post._id}`;
