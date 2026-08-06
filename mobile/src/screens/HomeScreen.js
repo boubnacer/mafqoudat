@@ -10,6 +10,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Animated, RefreshControl, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
@@ -23,7 +24,7 @@ import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import WorldActivityMap from '../components/dashboard/WorldActivityMap';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
-import { alignEnd, logical, row } from '../utils/rtl';
+import { alignEnd, alignStart, logical, row } from '../utils/rtl';
 
 const SECTION_COUNT = 6;
 
@@ -54,6 +55,13 @@ const SOCIAL_LINKS = [
 ];
 
 const getImageUri = (image) => (image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : null);
+
+// Same scrim as web's RecentPosts.jsx card:
+// `linear-gradient(to top, rgba(0,0,0,.65) 0%, rgba(0,0,0,.05) 45%, rgba(0,0,0,.4) 100%)`.
+// CSS `to top` reads bottom -> top while LinearGradient's default axis reads
+// top -> bottom, so the stops are listed in reverse here.
+const POSTER_SCRIM_COLORS = ['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.65)'];
+const POSTER_SCRIM_LOCATIONS = [0, 0.55, 1];
 
 // Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow
 // strings, resolved per light/dark mode) as RN shadow/elevation props -
@@ -105,12 +113,6 @@ const getCityLabel = (item, currentLanguage) => {
   return null;
 };
 
-const isFoundType = (item) => {
-  if (item?.Floptions?.code) return item.Floptions.code === 'FOUND';
-  if (item?.floptionName) return item.floptionName.toUpperCase() === 'FOUND';
-  return true;
-};
-
 // Mirrors MUI's theme.palette.getContrastText() used by web's RecentPosts.jsx
 // to pick legible text/icon color against a solid category-color card fill.
 const getContrastText = (hexColor) => {
@@ -136,12 +138,21 @@ const formatRelativeTime = (dateString, t) => {
   return t('daysAgo', { count: diffDay });
 };
 
-const SectionHeader = ({ title, onSeeAll, seeAllColor, t, styles }) => (
-  <View style={styles.sectionHeaderRow}>
-    <Text style={styles.panelTitleInline}>{title}</Text>
+// Mirrors client/src/components/dashboard/RecentSection.jsx's header: a
+// tone-colored status icon paired with the section title on the start edge,
+// "See all" + chevron on the end edge.
+const SectionHeader = ({ title, icon, iconColor, onSeeAll, seeAllColor, t, styles, isRTL }) => (
+  <View style={[styles.sectionHeaderRow, { flexDirection: row(isRTL) }]}>
+    <View style={[styles.sectionTitleGroup, { flexDirection: row(isRTL) }]}>
+      {icon ? <Ionicons name={icon} size={24} color={iconColor} /> : null}
+      <Text style={styles.panelTitleInline} numberOfLines={1}>
+        {title}
+      </Text>
+    </View>
     {onSeeAll ? (
-      <TouchableOpacity onPress={onSeeAll} hitSlop={8}>
+      <TouchableOpacity onPress={onSeeAll} hitSlop={8} style={styles.seeAllRow}>
         <Text style={[styles.seeAllText, seeAllColor && { color: seeAllColor }]}>{t('seeAll')}</Text>
+        <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={14} color={seeAllColor || styles.seeAllText.color} />
       </TouchableOpacity>
     ) : null}
   </View>
@@ -279,8 +290,8 @@ const StatsSection = ({ data, isLoading, t, styles, tokens, onFoundPress, onLost
 // overlaid top, location + relative date overlaid bottom (stacked, matching
 // the web card's own xs/mobile layout since these are always narrow 2-up
 // cards here). Laid out 2-up by RecentSection, same as web's Recent.jsx grid.
-const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, isRTL, onPress }) => {
-  const found = isFoundType(item);
+const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isRTL, onPress }) => {
+  const found = type === 'found';
   const tone = found ? tokens.status.found : tokens.status.lost;
   const imageUri = getImageUri(item.image);
   const categoryConfig = getCategoryConfig(getCategoryInfo(item)?.code);
@@ -309,10 +320,12 @@ const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, isRTL, on
       )}
 
       {imageUri ? (
-        <>
-          <View style={styles.posterScrimTop} pointerEvents="none" />
-          <View style={styles.posterScrimBottom} pointerEvents="none" />
-        </>
+        <LinearGradient
+          colors={POSTER_SCRIM_COLORS}
+          locations={POSTER_SCRIM_LOCATIONS}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
       ) : null}
 
       <View style={[styles.posterTopRow, { flexDirection: rowDirection }]}>
@@ -321,14 +334,14 @@ const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, isRTL, on
         </Text>
         <View style={styles.posterBadgeColumn}>
           <View style={[styles.posterStatusPill, { backgroundColor: tone.main }]}>
-            <Ionicons name={found ? 'checkmark-circle' : 'search'} size={12} color={getContrastText(tone.main)} />
+            <Ionicons name={found ? 'checkmark-circle' : 'search'} size={14} color={getContrastText(tone.main)} />
             <Text style={[styles.posterStatusPillText, { color: getContrastText(tone.main) }]}>
               {found ? t('found') : t('lost')}
             </Text>
           </View>
           {item.returned ? (
             <View style={[styles.posterReturnedPill, { backgroundColor: tokens.status.found.main }]}>
-              <Ionicons name="checkmark-circle" size={11} color={getContrastText(tokens.status.found.main)} />
+              <Ionicons name="checkmark-circle" size={12} color={getContrastText(tokens.status.found.main)} />
               <Text style={[styles.posterReturnedPillText, { color: getContrastText(tokens.status.found.main) }]}>
                 {t('returned')}
               </Text>
@@ -339,7 +352,7 @@ const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, isRTL, on
 
       <View style={styles.posterBottomRow}>
         <View style={[styles.posterLocationRow, { flexDirection: rowDirection }]}>
-          <Ionicons name="location-outline" size={13} color={textColor} style={{ opacity: 0.9 }} />
+          <Ionicons name="location-outline" size={14} color={textColor} style={{ opacity: 0.9 }} />
           <Text style={[styles.posterLocationText, { color: textColor }]} numberOfLines={1}>
             {cityLabel}
           </Text>
@@ -359,10 +372,13 @@ const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tok
     <Panel styles={styles}>
       <SectionHeader
         title={title}
+        icon={type === 'found' ? 'checkmark-circle-outline' : 'search-outline'}
+        iconColor={tokens.status[type].main}
         onSeeAll={items.length > 0 ? onSeeAll : undefined}
         seeAllColor={tokens.status[type].main}
         t={t}
         styles={styles}
+        isRTL={isRTL}
       />
       {isLoading && items.length === 0 ? (
         <View style={styles.recentGrid}>
@@ -375,6 +391,7 @@ const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tok
             <RecentPreviewCard
               key={item._id}
               item={item}
+              type={type}
               currentLanguage={currentLanguage}
               t={t}
               styles={styles}
@@ -678,15 +695,29 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     panelTitleInline: {
       fontFamily: fontFamilies.display,
-      fontSize: 19,
+      fontSize: 20,
       color: tokens.ink,
-      textAlign: isRTL ? 'right' : 'left',
+      // No explicit textAlign - it gets swapped under native RTL and would
+      // detach the title from the status icon it sits next to. Default
+      // ('auto') resolves against the layout/text direction instead.
+      flexShrink: 1,
     },
     sectionHeaderRow: {
-      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      gap: 8,
       marginBottom: 14,
+    },
+    sectionTitleGroup: {
+      alignItems: 'center',
+      gap: 8,
+      flexShrink: 1,
+    },
+    seeAllRow: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      gap: 2,
+      flexShrink: 0,
     },
     seeAllText: {
       fontFamily: fontFamilies.bodyMedium,
@@ -823,23 +854,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    // Approximates the web card's linear-gradient scrim (no gradient lib in
-    // mobile) with two flat semi-transparent bands, just enough to keep the
-    // overlaid text legible on top of a photo.
-    posterScrimTop: {
-      position: 'absolute',
-      top: 0,
-      ...logical(isRTL, { start: 0, end: 0 }),
-      height: '38%',
-      backgroundColor: 'rgba(0,0,0,0.32)',
-    },
-    posterScrimBottom: {
-      position: 'absolute',
-      bottom: 0,
-      ...logical(isRTL, { start: 0, end: 0 }),
-      height: '48%',
-      backgroundColor: 'rgba(0,0,0,0.55)',
-    },
     posterTopRow: {
       position: 'absolute',
       top: 0,
@@ -850,41 +864,53 @@ const createStyles = (tokens, isRTL, isDark) =>
       gap: 6,
     },
     posterCategoryLabel: {
-      flex: 1,
+      // `flexShrink`, not `flex: 1`: a flex-grown box spans the row and then
+      // needs textAlign to pull the text back to the start edge - and an
+      // explicit `textAlign: 'right'` is swapped to the left by RN once native
+      // RTL mirroring is on (I18nManager.doLeftAndRightSwapInRTL), which is
+      // what left the label floating mid-card instead of flush to the start
+      // padding. A shrink-only box hugs its text, so `space-between` alone
+      // parks it on the correct edge in both directions.
+      flexShrink: 1,
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 12,
-      lineHeight: 15,
-      textAlign: isRTL ? 'right' : 'left',
+      fontSize: 13,
+      lineHeight: 16,
     },
     posterBadgeColumn: {
       alignItems: alignEnd(isRTL),
+      flexShrink: 0,
       gap: 4,
+      // Explicit margin, not just the row's `gap` - `gap` can fail to apply
+      // when flexDirection is 'row-reverse' (RTL live-switch case, see
+      // rowDirection above) on some Yoga versions, which left this column
+      // flush against the category label with no visible space.
+      ...logical(isRTL, { marginStart: 8 }),
     },
     posterStatusPill: {
-      flexDirection: 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 4,
-      paddingHorizontal: 7,
-      paddingVertical: 3,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
       borderRadius: radiusTokens.sm,
     },
     posterStatusPillText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 9,
+      fontSize: 10,
       textTransform: 'uppercase',
       letterSpacing: 0.3,
     },
     posterReturnedPill: {
-      flexDirection: 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 4,
-      paddingHorizontal: 7,
-      paddingVertical: 3,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
       borderRadius: radiusTokens.sm,
     },
     posterReturnedPillText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 9,
+      fontSize: 10,
       textTransform: 'uppercase',
     },
     posterBottomRow: {
@@ -892,24 +918,29 @@ const createStyles = (tokens, isRTL, isDark) =>
       bottom: 0,
       ...logical(isRTL, { start: 0, end: 0 }),
       padding: 10,
-      gap: 2,
+      gap: 3,
     },
     posterLocationRow: {
-      flexDirection: 'row',
+      flexDirection: row(isRTL),
       alignItems: 'center',
-      gap: 4,
+      alignSelf: alignStart(isRTL),
+      gap: 5,
     },
     posterLocationText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 11,
+      fontSize: 12,
       flexShrink: 1,
-      textAlign: isRTL ? 'right' : 'left',
     },
     posterDateText: {
       fontFamily: fontFamilies.body,
-      fontSize: 10,
+      fontSize: 12,
       opacity: 0.85,
-      textAlign: isRTL ? 'right' : 'left',
+      // Date sits under the location on the same (start) edge, as on web's
+      // RecentPosts.jsx card. Cross-axis alignment is resolved against the
+      // layout direction by Yoga, so it flips correctly - unlike an explicit
+      // `textAlign: 'right'`, which RN swaps back to the left under native
+      // RTL and pushed the date to the opposite corner from the location.
+      alignSelf: alignStart(isRTL),
     },
     recentEmpty: {
       alignItems: 'center',
@@ -927,6 +958,7 @@ const createStyles = (tokens, isRTL, isDark) =>
 
     // Categories
     categoryRow: {
+      flexDirection: row(isRTL),
       gap: 16,
       ...logical(isRTL, { paddingEnd: 4 }),
     },

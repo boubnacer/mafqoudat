@@ -40,7 +40,7 @@ import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip, alignStart } from '../utils/rtl';
 
 const SEARCH_DEBOUNCE_MS = 400;
 const PAGE_SIZE = 5;
@@ -101,13 +101,6 @@ const getCategoryLabel = (item, currentLanguage) => {
   const cat = getCategoryInfo(item);
   if (!cat) return null;
   return cat.labels ? cat.labels[currentLanguage] || cat.labels.en || cat.code : cat.code;
-};
-
-// Post model has no "title" field (see server/models/Post.js) - synthesize a
-// short one from data that actually exists instead of a fake "Untitled" label.
-const getPostDisplayTitle = (found, categoryLabel, t) => {
-  const statusLabel = found ? t('found') : t('lost');
-  return categoryLabel ? `${statusLabel} — ${categoryLabel}` : statusLabel;
 };
 
 // city here can be an object ({ labels, code, ... }) or absent - never a bare
@@ -533,13 +526,28 @@ const PostsListScreen = ({ navigation, route }) => {
           </View>
         </View>
         <View style={styles.postContent}>
-          <Text style={[styles.postTitle, isRTL && styles.textRTL]} numberOfLines={2}>
-            {item.title || getPostDisplayTitle(found, categoryLabel, t)}
-          </Text>
-          <Text style={[styles.postDescription, isRTL && styles.textRTL]} numberOfLines={2}>
-            {item.description || t('noDescriptionProvided')}
-          </Text>
-          <View style={styles.postMetaRow}>
+          {categoryLabel ? (
+            <View
+              style={[
+                styles.categoryPill,
+                { alignSelf: alignStart(isRTL), backgroundColor: categoryConfig.backgroundColor },
+              ]}
+            >
+              <Ionicons name={categoryConfig.icon} size={13} color={categoryConfig.color} />
+              <Text style={[styles.categoryPillText, { color: categoryConfig.color }]} numberOfLines={1}>
+                {categoryLabel}
+              </Text>
+            </View>
+          ) : null}
+          <View style={styles.postInfoRows}>
+            {item.mainDate && String(item.mainDate).trim() ? (
+              <View style={styles.infoRow}>
+                <Ionicons name="calendar-outline" size={14} color={`${tokens.ink}99`} />
+                <Text style={[styles.infoRowText, isRTL && styles.textRTL]} numberOfLines={1}>
+                  {item.mainDate}
+                </Text>
+              </View>
+            ) : null}
             {cityLabel ? (
               <View style={styles.infoRow}>
                 <Ionicons name="location-outline" size={14} color={`${tokens.ink}99`} />
@@ -548,13 +556,10 @@ const PostsListScreen = ({ navigation, route }) => {
                 </Text>
               </View>
             ) : null}
-            {categoryLabel ? (
-              <View style={styles.infoRow}>
-                <Ionicons name="pricetag-outline" size={14} color={`${tokens.ink}99`} />
-                <Text style={[styles.infoRowText, isRTL && styles.textRTL]} numberOfLines={1}>
-                  {categoryLabel}
-                </Text>
-              </View>
+            {item.exactLocation ? (
+              <Text style={[styles.exactLocationText, isRTL && styles.textRTL]} numberOfLines={1}>
+                {item.exactLocation}
+              </Text>
             ) : null}
           </View>
         </View>
@@ -810,7 +815,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
     textRTL: {
-      textAlign: 'right',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
     // Direction-dependent styles go through the helpers in utils/rtl.js
@@ -1005,23 +1010,26 @@ const createStyles = (tokens, isRTL, isDark) =>
     postContent: {
       padding: 14,
     },
-    postTitle: {
+    categoryPill: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      borderRadius: radiusTokens.md,
+      marginBottom: 12,
+    },
+    categoryPillText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 17,
-      color: tokens.ink,
-      marginBottom: 6,
+      fontSize: 12,
     },
-    postDescription: {
+    postInfoRows: {
+      gap: 8,
+    },
+    exactLocationText: {
       fontFamily: fontFamilies.body,
-      fontSize: 13,
+      fontSize: 12,
       color: `${tokens.ink}99`,
-      marginBottom: 10,
-      lineHeight: 19,
-    },
-    postMetaRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 14,
     },
     infoRow: {
       flexDirection: row(isRTL),

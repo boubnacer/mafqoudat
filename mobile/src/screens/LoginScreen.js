@@ -20,7 +20,7 @@ import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 // Mirrors client/src/features/auth/SingUp/NewUserForm.js's own patterns, so the
 // mobile and web apps agree on what counts as a plausible email/phone.
@@ -570,7 +570,7 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     textAlign: 'center',
   },
   textRTL: {
-    textAlign: 'right',
+    textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
     writingDirection: 'rtl',
   },
   dividerContainer: {

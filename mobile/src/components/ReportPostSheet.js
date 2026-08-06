@@ -20,7 +20,7 @@ import {
 } from 'react-native';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const REPORT_REASONS = [
   'inappropriate_content',
@@ -280,7 +280,7 @@ const createStyles = (isRTL) => StyleSheet.create({
     marginTop: 12,
   },
   textRTL: {
-    textAlign: 'right',
+    textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
     writingDirection: 'rtl',
   },
   footer: {

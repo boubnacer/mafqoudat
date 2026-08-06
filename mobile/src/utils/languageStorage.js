@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LANGUAGE_KEY = 'currentLanguage';
 const SUPPORTED_LANGUAGES = ['en', 'fr', 'ar'];
-const DEFAULT_LANGUAGE = 'en';
+const DEFAULT_LANGUAGE = 'ar';
 
 export const languageStorage = {
   /**

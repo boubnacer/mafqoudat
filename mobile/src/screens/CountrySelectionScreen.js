@@ -22,7 +22,7 @@ import { useTranslation } from '../utils/translations';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/apiService';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
-import { logical } from '../utils/rtl';
+import { logical, needsDirectionFlip } from '../utils/rtl';
 
 const CountrySelectionScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
@@ -357,7 +357,7 @@ const createStyles = (colors, isRTL) => StyleSheet.create({
     color: colors.textSecondary,
   },
   textRTL: {
-    textAlign: 'right',
+    textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
     writingDirection: 'rtl',
   },
 });

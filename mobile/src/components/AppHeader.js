@@ -33,7 +33,7 @@ import { storage } from '../utils/storage';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import CountryPickerModal from './CountryPickerModal';
 import HeaderMenu from './HeaderMenu';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const BRAND_MARK = require('../../assets/icon.png');
 const BRAND_WORDMARK = require('../../assets/mafWordmark.png');
@@ -237,7 +237,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       flexShrink: 1,
     },
     textRTL: {
-      textAlign: 'right',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
     spacer: {

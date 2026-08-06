@@ -14,7 +14,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, FlatList } 
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const SelectModal = ({
   visible,
@@ -216,7 +216,7 @@ const createStyles = (tokens, isDark, isRTL) =>
       color: tokens.ink,
     },
     textRTL: {
-      textAlign: 'right',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
     list: {

@@ -41,7 +41,7 @@ import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const PAGE_SIZE = 10;
 const TOAST_DURATION_MS = 3000;
@@ -554,7 +554,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       backgroundColor: tokens.surfaceBase,
     },
     textRTL: {
-      textAlign: 'right',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
     resultsCount: {

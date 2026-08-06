@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useFormikContext } from "formik";
 import {
   Box,
@@ -9,14 +10,22 @@ import {
   FormControl,
   Divider,
   CircularProgress,
+  IconButton,
+  InputAdornment,
   useTheme,
   alpha,
 } from "@mui/material";
-import { LocationOn, Add as AddIcon } from '@mui/icons-material';
+import {
+  LocationOn,
+  Add as AddIcon,
+  CalendarMonth as CalendarMonthIcon,
+  Close as CloseIcon,
+} from '@mui/icons-material';
 import Textfield from "../../../../components/Textfield";
 import { useTranslation } from "../../../../utils/translations";
 import { getCityDisplayName } from "../cityDisplay";
 import RequiredMark from "./RequiredMark";
+import DateEntryDialog from "./DateEntryDialog";
 
 // Step 2 "Where & when": country, city (dropdown + search + Add New City
 // trigger), exactLocation, exactDate. City search/dialog state is owned by
@@ -42,9 +51,14 @@ const StepLocation = ({
   handleCitySearchChange,
   handleCitySelect,
 }) => {
-  const { values } = useFormikContext();
+  const { values, setFieldValue } = useFormikContext();
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
+
+  // exactDate is entered through DateEntryDialog rather than typed freehand -
+  // users were writing ambiguous numeric dates (dd/mm vs mm/dd), so the field
+  // itself is read-only and just opens the dialog.
+  const [showDateDialog, setShowDateDialog] = useState(false);
 
   // Maps a city result's `source` field ('database' | 'geonames' | 'google',
   // set by the backend's DB -> GeoNames -> Google Places cascade) to a
@@ -665,13 +679,71 @@ const StepLocation = ({
             : t('exactDateFoundPlaceholderOptional')
           }
         </Typography>
-        <Textfield
+        <TextField
+          fullWidth
+          id="exactDate"
           name="exactDate"
           variant="outlined"
-          placeholder={`${t('exactDatePlaceholder')} ${new Date().toLocaleDateString()})`}
+          value={values.exactDate || ''}
+          placeholder={t('datePickerOpen')}
           data-testid="exactDate"
+          onClick={() => setShowDateDialog(true)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              setShowDateDialog(true);
+            }
+          }}
+          InputProps={{
+            readOnly: true,
+            startAdornment: (
+              <InputAdornment position="start">
+                <CalendarMonthIcon sx={{ color: theme.custom.color.brandPrimary }} />
+              </InputAdornment>
+            ),
+            endAdornment: values.exactDate ? (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  aria-label={t('datePickerClear')}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setFieldValue('exactDate', '');
+                  }}
+                  sx={{ color: theme.palette.text.secondary }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              cursor: 'pointer',
+              '& fieldset': {
+                borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.3 : 0.2),
+              },
+              '&:hover fieldset': {
+                borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.5 : 0.4),
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: theme.custom.color.brandPrimary,
+              },
+            },
+            '& .MuiOutlinedInput-input': { cursor: 'pointer' },
+          }}
         />
       </Box>
+
+      <DateEntryDialog
+        open={showDateDialog}
+        value={values.exactDate}
+        onClose={() => setShowDateDialog(false)}
+        onConfirm={(formattedDate) => {
+          setFieldValue('exactDate', formattedDate);
+          setShowDateDialog(false);
+        }}
+      />
     </Box>
   );
 };

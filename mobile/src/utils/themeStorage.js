@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const THEME_KEY = 'themeMode';
 const SUPPORTED_MODES = ['system', 'light', 'dark'];
-const DEFAULT_MODE = 'system';
+const DEFAULT_MODE = 'light';
 
 export const themeStorage = {
   /**

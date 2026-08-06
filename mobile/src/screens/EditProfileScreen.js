@@ -33,7 +33,7 @@ import { storage } from '../utils/storage';
 import { colorTokens, radiusTokens, fontFamilies, lightColors, darkColors } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
 import SelectModal from '../components/SelectModal';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 // Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
 // as RN shadow/elevation props - same shadow color/opacity LoginScreen/ProfileScreen use.
@@ -323,7 +323,7 @@ const createStyles = (tokens, legacy, isDark, isRTL) =>
       flex: 1,
     },
     textRTL: {
-      textAlign: 'right',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
     content: {

@@ -24,7 +24,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const ALL_OPTION_ID = '__all__';
 
@@ -462,7 +462,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       fontSize: 14,
     },
     textRTL: {
-      textAlign: 'right',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
 

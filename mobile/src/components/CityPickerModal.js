@@ -28,7 +28,7 @@ import apiClient from '../api/apiService';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const SEARCH_DEBOUNCE_MS = 300;
 const MIN_SEARCH_LENGTH = 2;
@@ -323,7 +323,7 @@ const createStyles = (tokens, isDark, isRTL) =>
       color: tokens.ink,
     },
     textRTL: {
-      textAlign: 'right',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
     loaderRow: {

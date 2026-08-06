@@ -17,7 +17,7 @@ import { useTranslation } from '../utils/translations';
 import { WEB_BASE_URL } from '../config/api';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 // Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
 // as RN shadow/elevation props - same shadow color/opacity ProfileScreen/LoginScreen use.
@@ -161,7 +161,7 @@ const createStyles = (tokens, isDark, isRTL) =>
       backgroundColor: tokens.surfaceBase,
     },
     textRTL: {
-      textAlign: 'right',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
     content: {

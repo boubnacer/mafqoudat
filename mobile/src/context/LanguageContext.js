@@ -39,7 +39,7 @@ const findRestartModule = () => {
 const canRestartNatively = !!findRestartModule();
 
 export const LanguageProvider = ({ children }) => {
-  const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [currentLanguage, setCurrentLanguage] = useState('ar');
   const [isInitialized, setIsInitialized] = useState(false);
   // Set (never cleared by this file) whenever a direction change couldn't be
   // applied automatically, so the user can be asked to reopen the app - see
@@ -62,7 +62,7 @@ export const LanguageProvider = ({ children }) => {
         setIsInitialized(true);
       } catch (error) {
         console.error('Error initializing language:', error);
-        setCurrentLanguage('en');
+        setCurrentLanguage('ar');
         setIsInitialized(true);
       }
     };

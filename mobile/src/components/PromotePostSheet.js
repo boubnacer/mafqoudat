@@ -13,7 +13,7 @@ import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const PromotePostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) => {
   const { isDark } = useTheme();
@@ -201,7 +201,7 @@ const createStyles = (tokens, isDark, isRTL) =>
       marginTop: 12,
     },
     textRTL: {
-      textAlign: 'right',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
     footer: {

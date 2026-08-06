@@ -21,7 +21,7 @@ import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
-import { row } from '../utils/rtl';
+import { row, needsDirectionFlip } from '../utils/rtl';
 
 const SECTION_COUNT = 3;
 
@@ -337,7 +337,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       backgroundColor: tokens.surfaceBase,
     },
     textRTL: {
-      textAlign: 'right',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
     centerContainer: {

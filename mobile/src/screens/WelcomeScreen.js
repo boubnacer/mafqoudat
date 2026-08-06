@@ -30,7 +30,7 @@ import { colorTokens, radiusTokens } from '../theme/tokens';
 import { getCategoryConfig } from '../config/categories';
 import LanguageDropdown from '../components/LanguageDropdown';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const BRAND_MARK = require('../../assets/icon.png');
 
@@ -797,7 +797,7 @@ const createStyles = (colors, isRTL) => StyleSheet.create({
     ...logical(isRTL, { marginStart: 8 }),
   },
   textRTL: {
-    textAlign: 'right',
+    textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
     writingDirection: 'rtl',
   },
   continueButton: {

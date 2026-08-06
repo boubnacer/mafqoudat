@@ -21,7 +21,7 @@ import {
 import apiClient from '../api/apiService';
 import { useTheme } from '../context/ThemeContext';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const CountryPickerModal = ({ visible, onClose, onSelect, selectedCountryId, t, currentLanguage, isRTL }) => {
   const theme = useTheme();
@@ -200,7 +200,7 @@ const createStyles = ({ colors, spacing, radii, fontSizes }, isRTL) => StyleShee
     marginBottom: spacing.sm,
   },
   textRTL: {
-    textAlign: 'right',
+    textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
     writingDirection: 'rtl',
   },
   loaderRow: {

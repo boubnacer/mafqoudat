@@ -29,6 +29,7 @@ import {
   Alert,
   Platform,
   KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -45,12 +46,15 @@ import { colorTokens, radiusTokens, fontFamilies, lightColors, darkColors } from
 import { getCategoryConfig } from '../config/categories';
 import CityPickerModal from './CityPickerModal';
 import SelectModal from './SelectModal';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const MAX_IMAGE_DIMENSION = 1920;
 const TARGET_IMAGE_BYTES = 1024 * 1024; // 1MB - the target we compress toward
 const HARD_CAP_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB - the server's hard limit
 const MAX_CATEGORIES = 10;
+// Breathing room left above a field once it has been scrolled into view, so the
+// field's label isn't flush against the top edge of the scroll area.
+const FIELD_SCROLL_MARGIN = 12;
 
 // Masks free-typed digits into dd/mm/yyyy as the user types (e.g. "24072026" -> "24/07/2026").
 const maskDateInput = (text) => {
@@ -209,6 +213,61 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   const [activeStep, setActiveStep] = useState(isEdit ? 3 : 0);
   const [maxStepReached, setMaxStepReached] = useState(isEdit ? 3 : 0);
   const scrollViewRef = useRef(null);
+
+  // Keyboard handling. Android under edge-to-edge (enforced since Expo SDK 54)
+  // no longer resizes the window when the soft keyboard opens, so a focused
+  // input near the bottom of a step - Description on step 1, Location/Date on
+  // step 2, Contact on step 4 - ends up hidden behind the keyboard with nothing
+  // moving it back into view. Three pieces cooperate to fix that:
+  //   1. `keyboardHeight` pads the scroll content so the last field can always
+  //      be scrolled clear of the keyboard (without it, scrollTo clamps short).
+  //   2. Each field records its offset inside the scroll content on layout.
+  //   3. Focusing a field scrolls that offset to the top of the scroll area.
+  // The KeyboardAvoidingView below still handles shrinking the scroll area (and
+  // lifting the Next/Back footer) - this covers the scrolling it doesn't do.
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const fieldOffsets = useRef({});
+  const focusedFieldRef = useRef(null);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      setKeyboardHeight(event.endCoordinates?.height || 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardHeight(0));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const scrollFocusedFieldIntoView = () => {
+    const key = focusedFieldRef.current;
+    const y = key ? fieldOffsets.current[key] : null;
+    if (y == null) return;
+    scrollViewRef.current?.scrollTo({ y: Math.max(y - FIELD_SCROLL_MARGIN, 0), animated: true });
+  };
+
+  // Runs after the keyboard padding has been committed, so the scroll offset
+  // below isn't clamped by a content height that hasn't grown yet.
+  useEffect(() => {
+    if (keyboardHeight === 0) return undefined;
+    const timer = setTimeout(scrollFocusedFieldIntoView, 50);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keyboardHeight]);
+
+  const handleFieldLayout = (key) => (event) => {
+    fieldOffsets.current[key] = event.nativeEvent.layout.y;
+  };
+
+  // Also scrolls on focus, not just on the keyboard opening: moving from one
+  // field straight to another leaves the keyboard up, so no keyboard event fires.
+  const handleFieldFocus = (key) => () => {
+    focusedFieldRef.current = key;
+    setTimeout(scrollFocusedFieldIntoView, 50);
+  };
 
   // Prefill country + contact from the account profile - only relevant for a
   // brand new post; edit mode already has everything it needs from initialPost.
@@ -380,6 +439,11 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
 
   const goToStep = (index) => {
     setActiveStep(index);
+    // The step being left takes its fields (and whatever was focused) with it -
+    // dropping the reference stops a late keyboard event from scrolling the new
+    // step to an offset that belonged to the old one.
+    focusedFieldRef.current = null;
+    Keyboard.dismiss();
     scrollViewRef.current?.scrollTo({ y: 0, animated: false });
   };
 
@@ -518,8 +582,12 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   const selectedCategories = categories.filter((cat) => selectedCategoryIds.includes(cat._id));
   const isLastStep = activeStep === steps.length - 1;
 
+  // KeyboardAvoidingView uses `padding` on Android too, not undefined: under
+  // edge-to-edge (Expo SDK 54+) the window is never resized for the keyboard, so
+  // with no behavior set this view did nothing there and the keyboard simply
+  // covered the lower half of the form.
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.flex} behavior="padding">
       <View style={styles.progressBlock}>
         <View style={styles.progressRow}>
           {steps.map((step, index) => (
@@ -534,7 +602,11 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
         </Text>
       </View>
 
-      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={[styles.content, keyboardHeight > 0 && { paddingBottom: keyboardHeight }]}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.stepHeader}>
           <Text style={[styles.stepTitle, textStyle]}>{steps[activeStep].title}</Text>
           <Text style={[styles.stepSubtitle, textStyle]}>{steps[activeStep].subtitle}</Text>
@@ -620,7 +692,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               {fieldErrors.categories ? <Text style={styles.fieldError}>{t('thisFieldRequired')}</Text> : null}
             </View>
 
-            <View style={styles.section}>
+            <View style={styles.section} onLayout={handleFieldLayout('description')}>
               <Text style={[styles.sectionLabel, textStyle]}>
                 {t('description')} ({t('optional')})
               </Text>
@@ -638,6 +710,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
                 placeholderTextColor={`${tokens.ink}80`}
                 value={description}
                 onChangeText={setDescription}
+                onFocus={handleFieldFocus('description')}
                 multiline
                 numberOfLines={4}
                 maxLength={2000}
@@ -689,7 +762,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               {fieldErrors.city ? <Text style={styles.fieldError}>{t('thisFieldRequired')}</Text> : null}
             </View>
 
-            <View style={styles.section}>
+            <View style={styles.section} onLayout={handleFieldLayout('exactLocation')}>
               <Text style={[styles.sectionLabel, textStyle]}>
                 {t('location')}
                 <Text style={styles.requiredMark}> *</Text>
@@ -706,12 +779,13 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
                   setExactLocation(text);
                   clearFieldError('exactLocation');
                 }}
+                onFocus={handleFieldFocus('exactLocation')}
                 maxLength={200}
               />
               {fieldErrors.exactLocation ? <Text style={styles.fieldError}>{t('thisFieldRequired')}</Text> : null}
             </View>
 
-            <View style={styles.section}>
+            <View style={styles.section} onLayout={handleFieldLayout('exactDate')}>
               <Text style={[styles.sectionLabel, textStyle]}>
                 {isFoundType ? t('exactDateFound') : t('exactDateLost')} ({t('optional')})
               </Text>
@@ -724,6 +798,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
                 placeholderTextColor={`${tokens.ink}80`}
                 value={exactDateText}
                 onChangeText={handleExactDateChange}
+                onFocus={handleFieldFocus('exactDate')}
                 onBlur={handleExactDateBlur}
                 keyboardType="number-pad"
                 maxLength={10}
@@ -804,7 +879,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               )}
             </ReviewSection>
 
-            <View style={styles.section}>
+            <View style={styles.section} onLayout={handleFieldLayout('contact')}>
               <Text style={[styles.sectionLabel, textStyle]}>
                 {t('contactSeller')}
                 <Text style={styles.requiredMark}> *</Text>
@@ -821,6 +896,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
                   setContact(text);
                   clearFieldError('contact');
                 }}
+                onFocus={handleFieldFocus('contact')}
                 maxLength={100}
                 autoCapitalize="none"
               />
@@ -951,17 +1027,19 @@ const FieldButton = ({ styles, textStyle, label, placeholder, error, disabled, o
     activeOpacity={0.7}
   >
     {leading ? <View style={styles.selectButtonLeading}>{leading}</View> : null}
-    <Text
-      style={[
-        styles.selectButtonText,
-        !label && styles.selectButtonPlaceholder,
-        tone && { color: tone.main, fontFamily: styles._fontSemiBold },
-        textStyle,
-      ]}
-      numberOfLines={1}
-    >
-      {label || placeholder}
-    </Text>
+    <View style={styles.selectButtonTextWrap}>
+      <Text
+        style={[
+          styles.selectButtonText,
+          !label && styles.selectButtonPlaceholder,
+          tone && { color: tone.main, fontFamily: styles._fontSemiBold },
+          textStyle,
+        ]}
+        numberOfLines={1}
+      >
+        {label || placeholder}
+      </Text>
+    </View>
     {badge ? (
       <View style={styles.selectButtonBadge}>
         <Text style={styles.selectButtonBadgeText}>{badge}</Text>
@@ -1064,7 +1142,7 @@ const createStyles = (tokens, legacy, isDark, isRTL) => {
       color: legacy.danger,
     },
     textRTL: {
-      textAlign: 'right',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
     helperText: {
@@ -1098,8 +1176,16 @@ const createStyles = (tokens, legacy, isDark, isRTL) => {
     selectButtonLeading: {
       ...logical(isRTL, { marginEnd: 10 }),
     },
-    selectButtonText: {
+    // flex lives on the wrapping View (selectButtonTextWrap), not here - Text
+    // nodes with numberOfLines that carry their own flex:1 inside a row have
+    // been observed on Android to size to content instead of stretching,
+    // which left the label stuck beside the leading icon/chevron instead of
+    // spanning to the far edge in RTL. A plain View absorbs the flex/stretch
+    // and hands Text a fixed width, which textAlign then honors reliably.
+    selectButtonTextWrap: {
       flex: 1,
+    },
+    selectButtonText: {
       fontFamily: fontFamilies.body,
       fontSize: 15,
       color: tokens.ink,

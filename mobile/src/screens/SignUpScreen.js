@@ -22,7 +22,7 @@ import CountryPickerModal from '../components/CountryPickerModal';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS, WEB_BASE_URL } from '../config/api';
 import { IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 // Same shape rules as LoginScreen.js (mirrors client/src/features/auth/SingUp/NewUserForm.js's
 // EMAIL_REGEX/PHONE_REGEX) - deliberately NOT the web form's buggy PWD_REGEX
@@ -740,7 +740,7 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     textAlign: 'center',
   },
   textRTL: {
-    textAlign: 'right',
+    textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
     writingDirection: 'rtl',
   },
   dividerContainer: {

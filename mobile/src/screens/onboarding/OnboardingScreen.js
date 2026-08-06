@@ -19,8 +19,6 @@ import {
   Dimensions,
   TextInput,
   ActivityIndicator,
-  NativeModules,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,7 +27,6 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useOnboarding } from '../../context/OnboardingContext';
 import { useTranslation } from '../../utils/translations';
-import { languageStorage } from '../../utils/languageStorage';
 import apiClient from '../../api/apiService';
 import { getLocalizedLabel } from '../../context/ReferenceDataContext';
 import { colorTokens, radiusTokens, fontFamilies, lightColors } from '../../theme/tokens';
@@ -67,24 +64,31 @@ const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 // it rather than each capturing their own copy.
 const LAYOUT_IS_RTL = NATIVE_RTL;
 
-// How a horizontal list reports contentOffset.x under an RTL layout is NOT the
-// same on both platforms, so this cannot be handled with a single sign flip:
+// The carousel's scroll container is pinned to LTR (styles.flatList's
+// `direction`), and every slide puts the session's real direction back for its
+// own contents (styles.slide). Only the paging mechanism is forced - nothing
+// the user reads is.
 //
-// - Android hands back the raw scrollX, still measured from the left edge
-//   (ReactHorizontalScrollView.onScrollChanged passes it through untouched),
-//   so slide 0 sits at the far end and index <-> offset runs backwards.
-// - iOS mirrors the scroll view and its content with a scale(-1, 1) transform
-//   (RCTScrollView's RCTApplyTransformationAccordingLayoutDirection), which
-//   leaves contentOffset.x reading exactly as it does in LTR.
+// This is deliberate, because how a horizontal list reports and accepts
+// contentOffset.x under an RTL layout is not something JS can predict:
+// ScrollView.js and VirtualizedList.js contain no RTL handling at all, so
+// scrollToOffset passes the number straight through, while the native side
+// applies its own convention (see ReactHorizontalScrollView.java's "offsets are
+// from the right edge in RTL layouts") - and which one you get depends on the
+// platform AND on whether the renderer laid the content out mirrored. Guessing
+// it per platform is what made "Next" jump several slides and never reach the
+// last one on Arabic.
 //
-// Offsets stay positive in both cases - only Android's ordering reverses.
-const OFFSETS_REVERSED = LAYOUT_IS_RTL && Platform.OS === 'android';
-const offsetForIndex = (index) =>
-  (OFFSETS_REVERSED ? SLIDE_COUNT - 1 - index : index) * SCREEN_WIDTH;
-const indexForOffset = (x) => {
-  const raw = Math.round(x / SCREEN_WIDTH);
-  return OFFSETS_REVERSED ? SLIDE_COUNT - 1 - raw : raw;
-};
+// With the container LTR the question disappears: slide i always rests at
+// i * SCREEN_WIDTH, on every platform and in every language, so index <-> offset
+// is plain identity and the fade interpolations below track the real position.
+// The cost is that the carousel advances left-to-right even in Arabic, in both
+// swipe and "Next" - the dots follow that same physical order, while the CTA
+// arrow keeps pointing the way the language reads.
+const CAROUSEL_DIRECTION = 'ltr';
+const offsetForIndex = (index) => index * SCREEN_WIDTH;
+const indexForOffset = (x) =>
+  Math.min(SLIDE_COUNT - 1, Math.max(0, Math.round(x / SCREEN_WIDTH)));
 
 // Same wordmark image LoginScreen/SignUpScreen/AppHeader use in place of a
 // text brand name.
@@ -103,22 +107,6 @@ const FALLBACK_COUNTRIES = [
   { _id: 'fallback-ma', code: 'MA', names: { en: 'Morocco', fr: 'Maroc', ar: 'المغرب' }, flag: '🇲🇦' },
 ];
 
-// No expo-localization dependency for this one lookup - RN's built-in native
-// module is enough to read the device locale before the user picks a language.
-const getDeviceLanguage = () => {
-  try {
-    const locale =
-      Platform.OS === 'ios'
-        ? NativeModules.SettingsManager?.settings?.AppleLocale ||
-          NativeModules.SettingsManager?.settings?.AppleLanguages?.[0]
-        : NativeModules.I18nManager?.localeIdentifier;
-    const code = (locale || 'en').slice(0, 2).toLowerCase();
-    return ['en', 'fr', 'ar'].includes(code) ? code : 'en';
-  } catch (error) {
-    return 'en';
-  }
-};
-
 const OnboardingScreen = () => {
   const { selectCountry } = useAuth();
   const { currentLanguage, setLanguage } = useLanguage();
@@ -127,7 +115,6 @@ const OnboardingScreen = () => {
   const { t } = useTranslation();
 
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
-  const styles = useMemo(() => createStyles(tokens), [tokens]);
 
   // Two different notions of "RTL" have to coexist on this screen, and keeping
   // them apart is what makes it survive a language switch:
@@ -145,11 +132,11 @@ const OnboardingScreen = () => {
   const isRTL = currentLanguage === 'ar';
   const mirrorRows = needsDirectionFlip(isRTL);
 
+  const styles = useMemo(() => createStyles(tokens, isRTL), [tokens, isRTL]);
+
   const flatListRef = useRef(null);
-  // Seeded with slide 0's resting offset rather than a bare 0: under the
-  // reversed (Android RTL) mapping the list opens at the far end, so starting
-  // this at 0 would fade slide 0 out and the last slide in before the user has
-  // touched anything.
+  // Slide 0's resting offset, which the LTR-pinned container guarantees is 0 in
+  // every language - the list can no longer open at the far end.
   const scrollX = useRef(new Animated.Value(offsetForIndex(0))).current;
   // Own, JS-driven Animated.Values for the dot widths - 'width' isn't a style
   // property the native driver supports, so these can't be interpolated from
@@ -165,23 +152,6 @@ const OnboardingScreen = () => {
   const [countryError, setCountryError] = useState('');
   const [showCountryList, setShowCountryList] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Applies the device locale as the implicit slide-1 default, but only on a
-  // genuine first launch - if the user (or a previous session) already saved
-  // a language explicitly, that choice must never be silently overridden.
-  useEffect(() => {
-    const applyDeviceDefault = async () => {
-      const hasStored = await languageStorage.hasStoredLanguage();
-      if (!hasStored) {
-        const deviceLanguage = getDeviceLanguage();
-        if (deviceLanguage !== currentLanguage) {
-          await setLanguage(deviceLanguage);
-        }
-      }
-    };
-    applyDeviceDefault();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     loadCountries();
@@ -568,11 +538,10 @@ const OnboardingScreen = () => {
         // Android clips/recycles offscreen subviews by default, which can flash
         // blank/black mid-transition on an Animated-opacity FlatList like this one.
         removeClippedSubviews={false}
-        // Describes where items sit inside the content (always index-ordered),
-        // not where the viewport is scrolled to - so this stays unsigned even
-        // when the offset mapping above reverses. Safe here because all five
-        // slides are below initialNumToRender and are always mounted anyway.
-        getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index, index })}
+        // Matches offsetForIndex exactly - VirtualizedList uses these frames to
+        // decide what to render, and it has no RTL handling of its own, so they
+        // have to agree with the container's (now always LTR) paging.
+        getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: offsetForIndex(index), index })}
         scrollEventThrottle={16}
         onScroll={handleScroll}
         onMomentumScrollEnd={handleMomentumScrollEnd}
@@ -581,10 +550,11 @@ const OnboardingScreen = () => {
       />
 
       <View style={styles.footer}>
-        {/* Never mirrored by hand: the dots map to the slides' PHYSICAL order,
-            which already follows the list's real layout direction. Reversing
-            them on language alone made the active dot appear to walk backwards
-            while the carousel still advanced the other way. */}
+        {/* The dots map to the slides' PHYSICAL order, which the LTR-pinned
+            carousel fixes as left-to-right - styles.dotsRow cancels the native
+            mirroring so dot 0 stays on the left with slide 0. Ordering them by
+            language instead made the active dot walk backwards while the
+            carousel advanced the other way. */}
         <View style={styles.dotsRow}>
           {SLIDE_INDICES.map((i) => (
             <Animated.View
@@ -606,10 +576,11 @@ const OnboardingScreen = () => {
             <View style={[styles.ctaContent, mirrorRows && styles.rowReverse]}>
               <Text style={styles.ctaText}>{isLastSlide ? t('getStarted') : t('next')}</Text>
               <Ionicons
-                // Points the way the carousel physically moves, so it tracks
-                // the real layout rather than a direction change still waiting
-                // on a restart.
-                name={LAYOUT_IS_RTL ? 'arrow-back' : 'arrow-forward'}
+                // Icons are never auto-mirrored, so this follows the PICKED
+                // language's reading direction (utils/rtl.js's rule for
+                // directional glyphs) and flips the moment Arabic is tapped -
+                // it no longer tracks the carousel, which is always LTR now.
+                name={isRTL ? 'arrow-back' : 'arrow-forward'}
                 size={18}
                 color="#FFFFFF"
                 style={styles.ctaIcon}
@@ -622,7 +593,7 @@ const OnboardingScreen = () => {
   );
 };
 
-const createStyles = (tokens) =>
+const createStyles = (tokens, isRTL) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -648,12 +619,22 @@ const createStyles = (tokens) =>
       width: 40,
       height: 20,
     },
+    // Pins the paging container to one direction (see CAROUSEL_DIRECTION), so
+    // index <-> offset never depends on the platform's RTL scroll convention.
+    // Yoga resolves `direction` per view and the renderer pushes it down to the
+    // native scroll view's own layout direction, so this also stops Android
+    // from starting the list at the far end.
     flatList: {
       flex: 1,
+      direction: CAROUSEL_DIRECTION,
     },
+    // ...and each slide puts the session's real direction back, so everything
+    // inside a slide lays out exactly as it does everywhere else in the app and
+    // the needsDirectionFlip compensations above stay valid.
     slide: {
       width: SCREEN_WIDTH,
       flex: 1,
+      direction: LAYOUT_IS_RTL ? 'rtl' : 'ltr',
     },
     slideContent: {
       flex: 1,
@@ -869,13 +850,16 @@ const createStyles = (tokens) =>
     },
     // Stated explicitly in both directions rather than relying on the layout
     // default, which is right-aligned on a session that booted in Arabic and
-    // would leave English/French text hanging on the wrong edge.
+    // would leave English/French text hanging on the wrong edge. The literal
+    // 'right'/'left' keyword itself gets swapped back once native RTL
+    // mirroring is active (post-relaunch release build), same as flexDirection
+    // - needsDirectionFlip compensates the same way mirrorRows does above.
     textRTL: {
-      textAlign: 'right',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
     textLTR: {
-      textAlign: 'left',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'ltr',
     },
     footer: {
@@ -884,7 +868,9 @@ const createStyles = (tokens) =>
       paddingTop: 8,
     },
     dotsRow: {
-      flexDirection: 'row',
+      // Cancels native mirroring so the dots read in the same physical order as
+      // the LTR-pinned carousel: dot 0 on the left, next to the left, always.
+      flexDirection: LAYOUT_IS_RTL ? 'row-reverse' : 'row',
       justifyContent: 'center',
       alignItems: 'center',
       gap: 6,

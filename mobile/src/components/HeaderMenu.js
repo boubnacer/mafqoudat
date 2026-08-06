@@ -39,7 +39,7 @@ import { useAuth } from '../context/AuthContext';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import { WEB_BASE_URL } from '../config/api';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
-import { logical, row } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 // Website pages, in the order they should appear in the menu. Opened via the
 // site's own base URL (EXPO_PUBLIC_WEB_BASE_URL) rather than a hardcoded domain.
@@ -423,13 +423,13 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       ...logical(isRTL, { marginEnd: 10 }),
     },
     itemText: {
-      flex: 1,
+      flexShrink: 1,
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 15,
       color: tokens.ink,
     },
     textRTL: {
-      textAlign: 'right',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
     divider: {
