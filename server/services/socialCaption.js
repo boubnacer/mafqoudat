@@ -18,10 +18,23 @@ const NO_DESCRIPTION_TEXT = 'هذا المنشور لا يحتوي على وصف
 const toHashtag = (label) => label && `#${label.replace(/[\s'"،.,-]/g, '')}`;
 
 /**
+ * A post without an uploaded image still posts with this branded graphic
+ * instead of being skipped (Instagram has no text-only post type) or
+ * falling back to plain text (Facebook, for visual consistency with IG).
+ */
+function resolveListingImage(post) {
+  const imageUrl = post.cloudinaryUrl || post.image;
+  if (imageUrl) return { imageUrl, isPlaceholder: false };
+
+  const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
+  return { imageUrl: `${siteUrl}/no-image-placeholder.png`, isPlaceholder: true };
+}
+
+/**
  * Shared by facebookService and instagramService - both post the same
  * listing content, just through different Graph API endpoints.
  */
-async function buildListingCaption(post) {
+async function buildListingCaption(post, { isPlaceholder = false } = {}) {
   const categoryIds = (post.categories && post.categories.length > 0)
     ? post.categories
     : (post.category ? [post.category] : []);
@@ -47,6 +60,7 @@ async function buildListingCaption(post) {
     status.label && `${status.emoji} النوع: ${status.label}`,
     // Matches the post detail page: the date row only appears when set.
     post.mainDate && post.mainDate.trim() && `🗓️ ${status.dateLabel}: ${post.mainDate}`,
+    isPlaceholder && '🖼️ الصورة: هذا المنشور لا يحتوي على صورة',
   ].filter(Boolean).join('\n');
 
   const lines = [infoLines, post.description || NO_DESCRIPTION_TEXT];
@@ -66,4 +80,4 @@ async function buildListingCaption(post) {
   return lines.join('\n\n');
 }
 
-module.exports = { buildListingCaption };
+module.exports = { buildListingCaption, resolveListingImage };

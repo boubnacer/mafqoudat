@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { buildListingCaption } = require('./socialCaption');
+const { buildListingCaption, resolveListingImage } = require('./socialCaption');
 
 const GRAPH_API_VERSION = 'v26.0';
 
@@ -75,15 +75,8 @@ class InstagramService {
       return null;
     }
 
-    const imageUrl = post.cloudinaryUrl || post.image;
-    if (!imageUrl) {
-      // Hard platform limitation: Instagram has no text-only feed post type,
-      // unlike Facebook. Nothing to fall back to here.
-      console.warn(`Instagram posting skipped for post ${post._id}: no image (Instagram requires one, no text-only post type exists)`);
-      return null;
-    }
-
-    const caption = await buildListingCaption(post);
+    const { imageUrl, isPlaceholder } = resolveListingImage(post);
+    const caption = await buildListingCaption(post, { isPlaceholder });
 
     // Instagram publishing is a two-step Graph API flow: create a media
     // container from the image, then publish that container.
