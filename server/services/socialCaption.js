@@ -14,6 +14,11 @@ const STATUS_TEXT = {
 // post detail page shows for a missing description.
 const NO_DESCRIPTION_TEXT = 'هذا المنشور لا يحتوي على وصف';
 
+// City and exact date are the only genuinely optional fields on a post
+// (country/category/type are schema-required, always present) - give them
+// the same "shown, but says it's missing" treatment as the description.
+const NOT_PROVIDED_TEXT = 'غير متوفر';
+
 // Hashtags can't contain spaces or punctuation - strip both.
 const toHashtag = (label) => label && `#${label.replace(/[\s'"،.,-]/g, '')}`;
 
@@ -54,12 +59,11 @@ async function buildListingCaption(post, { isPlaceholder = false } = {}) {
 
   const infoLines = [
     countryLabel && `🌍 الدولة: ${countryLabel}`,
-    cityLabel && `📍 المدينة: ${cityLabel}`,
+    `📍 المدينة: ${cityLabel || NOT_PROVIDED_TEXT}`,
     post.exactLocation && `🧭 الموقع الدقيق: ${post.exactLocation}`,
     categoryLabel && `🏷️ الفئة: ${categoryLabel}`,
     status.label && `${status.emoji} النوع: ${status.label}`,
-    // Matches the post detail page: the date row only appears when set.
-    post.mainDate && post.mainDate.trim() && `🗓️ ${status.dateLabel}: ${post.mainDate}`,
+    `🗓️ ${status.dateLabel || 'التاريخ'}: ${(post.mainDate && post.mainDate.trim()) || NOT_PROVIDED_TEXT}`,
     isPlaceholder && '🖼️ الصورة: هذا المنشور لا يحتوي على صورة',
   ].filter(Boolean).join('\n');
 
