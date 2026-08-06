@@ -1,10 +1,13 @@
 const FoundLost = require('../models/FoundLost');
 const City = require('../models/City');
 const Category = require('../models/Category');
+const Country = require('../models/Country');
 
-const STATUS_EMOJI = {
-  LOST: '🔴',
-  FOUND: '🟢',
+// Matches the badge text in client/src/utils/translations.js (found/lost, ar)
+// exactly - intentionally not FoundLost.labels.ar, which reads differently.
+const STATUS_TEXT = {
+  FOUND: { emoji: '✅', label: 'عثر عليه' },
+  LOST: { emoji: '🔍', label: 'مفقود' },
 };
 
 // Hashtags can't contain spaces or punctuation - strip both.
@@ -17,29 +20,32 @@ const toHashtag = (label) => label && `#${label.replace(/[\s'"،.,-]/g, '')}`;
 async function buildListingCaption(post) {
   const primaryCategoryId = post.category || (post.categories && post.categories[0]);
 
-  const [foundLost, city, category] = await Promise.all([
-    FoundLost.findById(post.foundLost).select('code labels').lean(),
+  const [foundLost, city, category, country] = await Promise.all([
+    FoundLost.findById(post.foundLost).select('code').lean(),
     post.city ? City.findById(post.city).select('labels').lean() : Promise.resolve(null),
     primaryCategoryId ? Category.findById(primaryCategoryId).select('labels').lean() : Promise.resolve(null),
+    post.country ? Country.findById(post.country).select('labels').lean() : Promise.resolve(null),
   ]);
 
-  const statusEmoji = STATUS_EMOJI[foundLost?.code] || '📢';
-  const statusLabel = foundLost?.labels?.ar || '';
-  const categoryLabel = category?.labels?.ar || '';
+  const status = STATUS_TEXT[foundLost?.code] || { emoji: '📢', label: '' };
+  const countryLabel = country?.labels?.ar || '';
   const cityLabel = city?.labels?.ar || '';
+  const categoryLabel = category?.labels?.ar || '';
 
-  const heading = [
-    `${statusEmoji} ${statusLabel}`,
-    categoryLabel && `🏷️ ${categoryLabel}`,
-    cityLabel && `📍 ${cityLabel}`,
-  ].filter(Boolean).join('  |  ');
+  const infoLines = [
+    countryLabel && `🌍 الدولة: ${countryLabel}`,
+    cityLabel && `📍 المدينة: ${cityLabel}`,
+    categoryLabel && `🏷️ الفئة: ${categoryLabel}`,
+    status.label && `${status.emoji} النوع: ${status.label}`,
+  ].filter(Boolean).join('\n');
 
-  const lines = [heading];
+  const lines = [infoLines];
 
   if (post.description) lines.push(post.description);
   if (post.exactLocation) lines.push(`🧭 الموقع الدقيق: ${post.exactLocation}`);
 
-  const postUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/dash/posts/${post._id}`;
+  const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
+  const postUrl = `${siteUrl}/dash/posts/${post._id}`;
   lines.push(`👉 التفاصيل والتواصل: ${postUrl}`);
 
   const hashtags = [
