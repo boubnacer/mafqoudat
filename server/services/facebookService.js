@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { buildListingCaption } = require('./socialCaption');
+const { buildListingCaption, resolveListingImage } = require('./socialCaption');
 
 const GRAPH_API_VERSION = 'v26.0';
 
@@ -25,18 +25,11 @@ class FacebookService {
       return null;
     }
 
-    const imageUrl = post.cloudinaryUrl || post.image;
-    const caption = await buildListingCaption(post);
+    const { imageUrl, isPlaceholder } = resolveListingImage(post);
+    const caption = await buildListingCaption(post, { isPlaceholder });
 
-    // Photos require an image; a post without one still goes out as a
-    // text-only feed post rather than being skipped entirely.
-    const endpoint = imageUrl ? 'photos' : 'feed';
-    const params = imageUrl
-      ? { url: imageUrl, caption, access_token: this.pageAccessToken }
-      : { message: caption, access_token: this.pageAccessToken };
-
-    const response = await axios.post(`${this.baseURL}/${this.pageId}/${endpoint}`, null, {
-      params,
+    const response = await axios.post(`${this.baseURL}/${this.pageId}/photos`, null, {
+      params: { url: imageUrl, caption, access_token: this.pageAccessToken },
       timeout: 10000,
     });
 
