@@ -41,6 +41,30 @@ class InstagramService {
   }
 
   /**
+   * Meta has a known race where status_code reports FINISHED slightly
+   * before media_publish's own readiness check catches up, failing with
+   * error_subcode 2207027 ("Media ID is not available") even though
+   * waitForContainerReady just confirmed FINISHED. Retry on that specific
+   * error instead of treating it as final.
+   */
+  async publishWithRetry(creationId, { maxAttempts = 3, delayMs = 3000 } = {}) {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const publishResponse = await axios.post(`${this.baseURL}/${this.igUserId}/media_publish`, null, {
+          params: { creation_id: creationId, access_token: this.accessToken },
+          timeout: 15000,
+        });
+        return publishResponse.data;
+      } catch (error) {
+        const isMediaNotReady = error.response?.data?.error?.error_subcode === 2207027;
+        const isLastAttempt = attempt === maxAttempts - 1;
+        if (!isMediaNotReady || isLastAttempt) throw error;
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+
+  /**
    * Posts a newly created listing to the configured Instagram Business account.
    * Never throws past this point in a way that should block post creation -
    * callers are expected to fire-and-forget and log/catch.
@@ -72,16 +96,10 @@ class InstagramService {
 
     await this.waitForContainerReady(containerResponse.data.id);
 
-    const publishResponse = await axios.post(`${this.baseURL}/${this.igUserId}/media_publish`, null, {
-      params: {
-        creation_id: containerResponse.data.id,
-        access_token: this.accessToken,
-      },
-      timeout: 15000,
-    });
+    const publishData = await this.publishWithRetry(containerResponse.data.id);
 
-    console.log(`✅ Instagram: posted post ${post._id} as IG media ${publishResponse.data.id}`);
-    return publishResponse.data;
+    console.log(`✅ Instagram: posted post ${post._id} as IG media ${publishData.id}`);
+    return publishData;
   }
 }
 
