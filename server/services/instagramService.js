@@ -17,6 +17,30 @@ class InstagramService {
   }
 
   /**
+   * IG needs time to fetch/process the image after container creation -
+   * publishing immediately can fail with "Media ID is not available"
+   * (error_subcode 2207027). Poll status_code until it's FINISHED.
+   */
+  async waitForContainerReady(containerId, { maxAttempts = 10, delayMs = 2000 } = {}) {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const statusResponse = await axios.get(`${this.baseURL}/${containerId}`, {
+        params: { fields: 'status_code', access_token: this.accessToken },
+        timeout: 10000,
+      });
+
+      const status = statusResponse.data.status_code;
+      if (status === 'FINISHED') return;
+      if (status === 'ERROR') {
+        throw new Error('Instagram media container failed processing (status: ERROR)');
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+
+    throw new Error('Instagram media container not ready after polling timeout');
+  }
+
+  /**
    * Posts a newly created listing to the configured Instagram Business account.
    * Never throws past this point in a way that should block post creation -
    * callers are expected to fire-and-forget and log/catch.
@@ -45,6 +69,8 @@ class InstagramService {
       },
       timeout: 15000,
     });
+
+    await this.waitForContainerReady(containerResponse.data.id);
 
     const publishResponse = await axios.post(`${this.baseURL}/${this.igUserId}/media_publish`, null, {
       params: {
