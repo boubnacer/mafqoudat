@@ -9,6 +9,7 @@ const { deleteFromCloudinary } = require("../config/cloudinary");
 const mongoose = require("mongoose");
 const TranslationService = require("../services/translationService");
 const facebookService = require("../services/facebookService");
+const instagramService = require("../services/instagramService");
 const { cacheService } = require("../config/cache");
 const { escapeRegex } = require("../utils/regexUtils");
 // const getCountryIso3 = require("country-iso-2-to-3");
@@ -1442,6 +1443,9 @@ const createNewPost = async (req, res) => {
       // Fire-and-forget: never block or fail post creation on a social posting error
       facebookService.postNewListing(post).catch((socialError) => {
         console.error(`Facebook auto-post failed for post ${post._id}:`, socialError.response?.data || socialError.message);
+      });
+      instagramService.postNewListing(post).catch((socialError) => {
+        console.error(`Instagram auto-post failed for post ${post._id}:`, socialError.response?.data || socialError.message);
       });
 
       // Created
