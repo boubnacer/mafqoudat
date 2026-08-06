@@ -26,19 +26,17 @@ class FacebookService {
     }
 
     const imageUrl = post.cloudinaryUrl || post.image;
-    if (!imageUrl) {
-      console.warn(`Facebook posting skipped for post ${post._id}: no image`);
-      return null;
-    }
-
     const caption = await buildListingCaption(post);
 
-    const response = await axios.post(`${this.baseURL}/${this.pageId}/photos`, null, {
-      params: {
-        url: imageUrl,
-        caption,
-        access_token: this.pageAccessToken,
-      },
+    // Photos require an image; a post without one still goes out as a
+    // text-only feed post rather than being skipped entirely.
+    const endpoint = imageUrl ? 'photos' : 'feed';
+    const params = imageUrl
+      ? { url: imageUrl, caption, access_token: this.pageAccessToken }
+      : { message: caption, access_token: this.pageAccessToken };
+
+    const response = await axios.post(`${this.baseURL}/${this.pageId}/${endpoint}`, null, {
+      params,
       timeout: 10000,
     });
 
