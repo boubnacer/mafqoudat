@@ -25,6 +25,7 @@ import SkeletonBlock from '../components/SkeletonBlock';
 import WorldActivityMap from '../components/dashboard/WorldActivityMap';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
 import { alignEnd, alignStart, logical, row } from '../utils/rtl';
+import { formatRelativeTime } from '../utils/relativeTime';
 
 const SECTION_COUNT = 6;
 
@@ -123,19 +124,6 @@ const getContrastText = (hexColor) => {
   const b = parseInt(hex.substring(4, 6), 16);
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   return luminance > 0.6 ? '#0B1220' : '#FFFFFF';
-};
-
-const formatRelativeTime = (dateString, t) => {
-  const date = new Date(dateString);
-  if (!dateString || isNaN(date.getTime())) return '';
-  const diffMs = Date.now() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return t('justNow');
-  if (diffMin < 60) return t('minutesAgo', { count: diffMin });
-  const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return t('hoursAgo', { count: diffHour });
-  const diffDay = Math.floor(diffHour / 24);
-  return t('daysAgo', { count: diffDay });
 };
 
 // Mirrors client/src/components/dashboard/RecentSection.jsx's header: a
@@ -358,7 +346,7 @@ const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isR
           </Text>
         </View>
         <Text style={[styles.posterDateText, { color: textColor }]} numberOfLines={1}>
-          {formatRelativeTime(item.createdAt, t)}
+          {formatRelativeTime(item.createdAt, t, currentLanguage)}
         </Text>
       </View>
     </TouchableOpacity>

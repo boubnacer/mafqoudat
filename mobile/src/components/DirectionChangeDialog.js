@@ -5,12 +5,13 @@
  * the new direction properly needs the app to reopen, and that is worth an
  * explicit decision rather than a notice the user can miss in 4 seconds.
  *
- * Why reopening matters: I18nManager.forceRTL (see LanguageContext) is persisted
- * natively and only takes effect on the next launch. Until then the app runs on
- * the manual compensation in utils/rtl.js, which can only reach styles React
- * Native owns - native text input carets and selection handles, keyboard layout,
- * scroll/swipe origin and modal gesture edges keep their old direction until the
- * process actually restarts.
+ * Why reopening matters: the native RTL preferences are only written as part of
+ * the relaunch itself (see LanguageContext - writing them while the app runs
+ * flips the live layout out from under every screen). Until the user reopens,
+ * the app runs on the manual compensation in utils/rtl.js, which can only reach
+ * styles React Native owns - native text input carets and selection handles,
+ * keyboard layout, scroll/swipe origin and modal gesture edges keep their old
+ * direction until the process actually restarts.
  *
  * Two shapes, so the user is never left tapping a dead button:
  *  - restart available -> "Reopen App" (primary) + "Later"

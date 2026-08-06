@@ -7,6 +7,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LANGUAGE_KEY = 'currentLanguage';
+// Which text direction we last relaunched the app to apply ('rtl' | 'ltr').
+// Read at startup by LanguageContext so one failed attempt can't turn into a
+// relaunch loop - see reconcileDirection there.
+const DIRECTION_RESTART_KEY = 'directionRestartAttempt';
 const SUPPORTED_LANGUAGES = ['en', 'fr', 'ar'];
 const DEFAULT_LANGUAGE = 'ar';
 
@@ -71,6 +75,48 @@ export const languageStorage = {
       return true;
     } catch (error) {
       console.error('Error clearing language:', error);
+      return false;
+    }
+  },
+
+  /**
+   * The text direction the app last relaunched itself to apply, if any.
+   * @returns {'rtl'|'ltr'|null}
+   */
+  async getDirectionRestartAttempt() {
+    try {
+      return await AsyncStorage.getItem(DIRECTION_RESTART_KEY);
+    } catch (error) {
+      console.error('Error reading direction restart attempt:', error);
+      return null;
+    }
+  },
+
+  /**
+   * Records that a relaunch has been attempted for a direction, so it is only
+   * ever tried once per direction.
+   * @param {'rtl'|'ltr'} direction
+   */
+  async setDirectionRestartAttempt(direction) {
+    try {
+      await AsyncStorage.setItem(DIRECTION_RESTART_KEY, direction);
+      return true;
+    } catch (error) {
+      console.error('Error saving direction restart attempt:', error);
+      return false;
+    }
+  },
+
+  /**
+   * Clears the marker once the app is actually laid out in the direction the
+   * saved language wants, freeing a future change to relaunch again.
+   */
+  async clearDirectionRestartAttempt() {
+    try {
+      await AsyncStorage.removeItem(DIRECTION_RESTART_KEY);
+      return true;
+    } catch (error) {
+      console.error('Error clearing direction restart attempt:', error);
       return false;
     }
   },

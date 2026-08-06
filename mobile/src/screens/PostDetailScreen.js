@@ -39,6 +39,7 @@ import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
+import { formatRelativeTime } from '../utils/relativeTime';
 
 const TOAST_DURATION_MS = 3000;
 const SECTION_COUNT = 2;
@@ -101,22 +102,6 @@ const getElevation = (isDark, level = 1) =>
         shadowRadius: 2,
         elevation: 2,
       };
-
-const formatRelativeTime = (dateString, t) => {
-  const date = new Date(dateString);
-  if (!dateString || isNaN(date.getTime())) return '';
-
-  const diffMs = Date.now() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return t('justNow');
-  if (diffMin < 60) return t('minutesAgo', { count: diffMin });
-
-  const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return t('hoursAgo', { count: diffHour });
-
-  const diffDay = Math.floor(diffHour / 24);
-  return t('daysAgo', { count: diffDay });
-};
 
 // `contact` is a single free-text field (see contactPreferences backend bug), so the
 // contact type is inferred from its shape rather than trusted from contactPreferences.
@@ -400,7 +385,7 @@ const PostDetailScreen = ({ navigation, route }) => {
 
             {post.createdAt ? (
               <View style={styles.dateBadge}>
-                <Text style={styles.dateBadgeText}>{`${t('posted')} ${formatRelativeTime(post.createdAt, t)}`}</Text>
+                <Text style={styles.dateBadgeText}>{`${t('posted')} ${formatRelativeTime(post.createdAt, t, currentLanguage)}`}</Text>
               </View>
             ) : null}
           </View>

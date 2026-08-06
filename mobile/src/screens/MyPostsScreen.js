@@ -42,6 +42,7 @@ import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
+import { formatRelativeTime } from '../utils/relativeTime';
 
 const PAGE_SIZE = 10;
 const TOAST_DURATION_MS = 3000;
@@ -143,19 +144,6 @@ const getCityLabel = (item, currentLanguage) => {
     if (label && label.trim()) return label.trim();
   }
   return null;
-};
-
-const formatRelativeTime = (dateString, t) => {
-  const date = new Date(dateString);
-  if (!dateString || isNaN(date.getTime())) return '';
-  const diffMs = Date.now() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return t('justNow');
-  if (diffMin < 60) return t('minutesAgo', { count: diffMin });
-  const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return t('hoursAgo', { count: diffHour });
-  const diffDay = Math.floor(diffHour / 24);
-  return t('daysAgo', { count: diffDay });
 };
 
 const ActionButton = ({ icon, label, tone, onPress, styles }) => (
@@ -367,7 +355,7 @@ const MyPostsScreen = ({ navigation }) => {
             <Text style={styles.statusTagText}>{found ? t('found') : t('lost')}</Text>
           </View>
           <View style={styles.dateBadge}>
-            <Text style={styles.dateBadgeText}>{formatRelativeTime(item.createdAt, t)}</Text>
+            <Text style={styles.dateBadgeText}>{formatRelativeTime(item.createdAt, t, currentLanguage)}</Text>
           </View>
         </View>
 

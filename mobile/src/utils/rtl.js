@@ -16,11 +16,17 @@
  *    correct edges, and even physical `left`/`right`/`marginLeft`/... are
  *    swapped (I18nManager.doLeftAndRightSwapInRTL defaults to true).
  *
- * The catch is that the two can disagree. I18nManager.forceRTL() (see
- * LanguageContext) is persisted natively and only takes effect on the NEXT app
- * launch - I18nManager.isRTL is effectively a constant for the lifetime of the
- * JS bundle. So immediately after a live language switch the language wants RTL
- * while native is still laying out LTR (or vice versa).
+ * The catch is that the two can disagree. I18nManager.isRTL is a constant for
+ * the lifetime of the JS bundle (it comes from constants captured at load), so
+ * immediately after a live language switch the language wants RTL while native
+ * is still laying out LTR (or vice versa).
+ *
+ * What keeps `NATIVE_RTL` trustworthy is that LanguageContext writes the native
+ * RTL preferences ONLY as part of relaunching the app. That is deliberate and
+ * load-bearing: the preferences are not a "next launch" setting, they are re-read
+ * by FabricUIManager.updateRootLayoutSpecs on every root re-measure, so writing
+ * them mid-session flips the live layout at an unpredictable moment and silently
+ * invalidates every helper in this file. See the long note in LanguageContext.
  *
  * Writing `flexDirection: isRTL ? 'row-reverse' : 'row'` compensates for that
  * transient disagreement - but it does so unconditionally. Once the app is

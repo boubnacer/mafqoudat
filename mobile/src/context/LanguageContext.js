@@ -38,16 +38,54 @@ const findRestartModule = () => {
 
 const canRestartNatively = !!findRestartModule();
 
+// The direction this session is ACTUALLY laid out in. I18nManager.isRTL is read
+// once from the constants captured when the JS bundle loaded and never changes
+// again for this JS context (Libraries/ReactNative/I18nManager.js keeps them in a
+// module-level object; allowRTL/forceRTL only call into native).
+const SESSION_RTL = I18nManager.isRTL;
+
+const wantsRTL = (language) => language === 'ar';
+
+// Writing the native RTL preferences is NOT the harmless "queue it up for next
+// launch" it looks like - it changes the direction of the RUNNING app, at a
+// moment we don't control.
+//
+// allowRTL/forceRTL persist to SharedPreferences, and on the New Architecture
+// FabricUIManager.updateRootLayoutSpecs re-reads I18nUtil.isRTL(context) - those
+// very preferences - on EVERY root re-measure, then pushes the result into the
+// running surface's layout constraints. So the whole view tree flips direction
+// the next time anything re-measures the root: a Modal opening (the direction
+// notice itself does this), the keyboard, a rotation. It may be seconds after
+// the language was tapped, or not until another screen.
+//
+// Meanwhile I18nManager.isRTL - which every screen's RTL handling is built on,
+// see utils/rtl.js - stays frozen at its bundle-load value. Once the two
+// disagree, every mirrored row, edge inset and horizontal scroll offset in the
+// app is computed against the wrong direction. That is what made the onboarding
+// carousel skip slides and the Skip button jump sides mid-session.
+//
+// So this is called from exactly one place: immediately before a relaunch, where
+// the value written is the one the next launch boots with. A running session's
+// direction then never changes and I18nManager.isRTL is always the truth.
+const commitDirectionPreferences = (isRTL) => {
+  I18nManager.allowRTL(isRTL);
+  I18nManager.forceRTL(isRTL);
+};
+
+// Puts the preferences back to the direction this session is laid out in, for
+// when a relaunch was started and didn't happen. Without it a failed restart
+// would leave the app primed to flip direction at the next re-measure.
+const revertDirectionPreferences = () => commitDirectionPreferences(SESSION_RTL);
+
 export const LanguageProvider = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState('ar');
   const [isInitialized, setIsInitialized] = useState(false);
-  // Set (never cleared by this file) whenever a direction change couldn't be
-  // applied automatically, so the user can be asked to reopen the app - see
-  // promptForRestart below. Consumed by components/DirectionChangeDialog.js,
-  // which owns clearing it again.
+  // Raised whenever the saved language wants a direction this session isn't laid
+  // out in, so the user can be asked to reopen the app. Consumed by
+  // components/DirectionChangeDialog.js, which owns dismissing it.
   const [directionChangeNotice, setDirectionChangeNotice] = useState(false);
   // Set when a restart was offered but the call actually failed, so the dialog
-  // can stop offering a button that doesn't work. See restartApp below.
+  // can stop offering a button that doesn't work. See restartNow below.
   const [restartUnavailable, setRestartUnavailable] = useState(false);
 
   // Initialize language on mount
@@ -56,63 +94,30 @@ export const LanguageProvider = ({ children }) => {
       try {
         const savedLanguage = await languageStorage.getCurrentLanguage();
         setCurrentLanguage(savedLanguage);
-        // Cold start: just line up I18nManager with the persisted language,
-        // no reload prompt - there's nothing running yet to restart.
-        applyLanguageDirection(savedLanguage);
-        setIsInitialized(true);
+        await reconcileDirection(savedLanguage);
       } catch (error) {
         console.error('Error initializing language:', error);
         setCurrentLanguage('ar');
+      } finally {
         setIsInitialized(true);
       }
     };
 
     initializeLanguage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Applies RTL/LTR to I18nManager and reports whether the actual direction
-  // changed (as opposed to e.g. switching en <-> fr, which never touches RTL).
-  const applyLanguageDirection = (language) => {
-    const shouldBeRTL = language === 'ar';
-    const directionChanged = I18nManager.isRTL !== shouldBeRTL;
-
-    I18nManager.allowRTL(shouldBeRTL);
-    I18nManager.forceRTL(shouldBeRTL);
-
-    return directionChanged;
-  };
-
-  // I18nManager.forceRTL doesn't visually apply until the JS bundle reloads.
-  // Updates.reloadAsync() would do that silently, but it rejects (ERR_UPDATES_DISABLED)
-  // whenever expo-updates isn't both running outside dev/Expo Go AND enabled+configured
-  // for OTA - this app has updates.enabled: false in app.config.js (no EAS Update
-  // channel/project is set up), so today that's every environment, not just Expo Go/dev
-  // client. Kept here anyway: it's a harmless no-op call now and becomes a real silent
-  // reload for free if OTA updates are ever enabled later. Until then, there is no
-  // automatic path available, so we raise the direction-change dialog, which offers
-  // a real native restart where one is available and otherwise explains that the new
-  // direction applies the next time the user opens the app.
-  const promptForRestart = async () => {
-    try {
-      await Updates.reloadAsync();
-    } catch (error) {
-      setDirectionChangeNotice(true);
-    }
-  };
-
-  const dismissDirectionChangeNotice = () => setDirectionChangeNotice(false);
-
-  // Only ever called from a user tap (the direction-change dialog's "Reopen app"
-  // button) - a real process restart is more jarring than the silent reloadAsync
-  // path above, so it's opt-in rather than automatic.
-  //
-  // Tries the JS-level reload first (cheaper, and enough for RTL to take effect
-  // since the root view is recreated), then falls back to a full native restart.
-  // Detection above can only tell us the native module is registered, not that
-  // the call will succeed, so a throw here flips restartUnavailable and the
-  // dialog degrades to "this applies next time you open the app" rather than
-  // leaving the user tapping a dead button.
-  const restartApp = async () => {
+  // Tries the JS-level reload first (cheaper, and enough on its own since the
+  // surface is recreated and re-reads the preferences), then a full native
+  // restart. Updates.reloadAsync() rejects with ERR_UPDATES_DISABLED whenever
+  // expo-updates isn't both outside dev/Expo Go AND configured for OTA - this app
+  // has updates.enabled: false in app.config.js, so today that is every
+  // environment. Kept anyway: it costs nothing now and becomes a real silent
+  // reload for free if OTA is ever enabled. Detection at module scope can only
+  // tell us RNRestart is registered, not that the call will succeed, so a throw
+  // flips restartUnavailable and the dialog degrades to an acknowledgement
+  // rather than leaving the user tapping a dead button.
+  const restartNow = async () => {
     try {
       await Updates.reloadAsync();
       return true;
@@ -129,6 +134,55 @@ export const LanguageProvider = ({ children }) => {
     }
   };
 
+  // Cold start only. If the saved language disagrees with the direction this
+  // session actually booted in, the only honest way to apply it is to relaunch -
+  // writing the preference and carrying on would flip the layout underneath the
+  // running app (see commitDirectionPreferences).
+  const reconcileDirection = async (language) => {
+    const shouldBeRTL = wantsRTL(language);
+
+    if (shouldBeRTL === SESSION_RTL) {
+      // Already correct - forget any earlier attempt so a future change is free
+      // to relaunch again.
+      await languageStorage.clearDirectionRestartAttempt();
+      return;
+    }
+
+    // One relaunch per direction, ever. If the app comes back up still laid out
+    // the old way - no android:supportsRtl in the manifest, Expo Go, a device
+    // that ignores the preference - a second attempt would just loop the user
+    // through an endless restart.
+    const marker = shouldBeRTL ? 'rtl' : 'ltr';
+    const alreadyAttempted = await languageStorage.getDirectionRestartAttempt();
+
+    if (canRestartNatively && alreadyAttempted !== marker) {
+      await languageStorage.setDirectionRestartAttempt(marker);
+      commitDirectionPreferences(shouldBeRTL);
+      if (await restartNow()) return; // app is on its way down
+      revertDirectionPreferences();
+    }
+
+    // Can't relaunch: keep running in the direction we booted in, which
+    // utils/rtl.js compensates for, and let the user choose when to reopen.
+    // Only for a language they actually picked - the implicit default shouldn't
+    // greet a first launch with a restart prompt.
+    if (await languageStorage.hasStoredLanguage()) {
+      setDirectionChangeNotice(true);
+    }
+  };
+
+  const dismissDirectionChangeNotice = () => setDirectionChangeNotice(false);
+
+  // Only ever called from a user tap (the direction-change dialog's "Reopen app"
+  // button). This is the one place the native preferences are written, and it
+  // writes them for the language the app is about to boot into.
+  const restartApp = async () => {
+    commitDirectionPreferences(wantsRTL(currentLanguage));
+    const ok = await restartNow();
+    if (!ok) revertDirectionPreferences();
+    return ok;
+  };
+
   /**
    * Set language and save to storage
    * @param {string} language - Language code (en, fr, ar)
@@ -140,10 +194,11 @@ export const LanguageProvider = ({ children }) => {
         const success = await languageStorage.setLanguage(language);
         if (success) {
           setCurrentLanguage(language);
-          const directionChanged = applyLanguageDirection(language);
-          if (directionChanged) {
-            await promptForRestart();
-          }
+          // Text, icons and alignment follow immediately - utils/rtl.js
+          // compensates while the layout is still mirrored the other way. Only
+          // the native layout direction has to wait, and it waits by leaving the
+          // preferences alone until a relaunch.
+          setDirectionChangeNotice(wantsRTL(language) !== SESSION_RTL);
           return true;
         }
       }

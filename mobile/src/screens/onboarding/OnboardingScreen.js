@@ -56,12 +56,12 @@ const BRAND_BLUE = lightColors.primary;
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 // I18nManager.isRTL is read from constants captured when the JS bundle loaded,
-// and forceRTL() only writes a native preference - neither the flag nor the
-// view tree changes again until the app is genuinely restarted. So the layout
-// direction is a per-session constant and belongs at module scope, where it
-// cannot be mistaken for something that tracks the currently picked language.
-// Sourced from utils/rtl.js so this screen and the rest of the app agree on
-// it rather than each capturing their own copy.
+// and LanguageContext only writes the native RTL preferences as part of a
+// relaunch - so neither the flag nor the view tree changes again while the app
+// runs. The layout direction is a per-session constant and belongs at module
+// scope, where it cannot be mistaken for something that tracks the currently
+// picked language. Sourced from utils/rtl.js so this screen and the rest of the
+// app agree on it rather than each capturing their own copy.
 const LAYOUT_IS_RTL = NATIVE_RTL;
 
 // The carousel's scroll container is pinned to LTR (styles.flatList's
