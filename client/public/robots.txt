@@ -9,4 +9,8 @@ Disallow: /dash/admin
 Disallow: /dash/users
 Disallow: /dash/dependencies
 
+# sitemap.xml is a sitemap index; its children are listed explicitly too, for
+# crawlers that handle index files poorly.
 Sitemap: https://www.mafqoudat.com/sitemap.xml
+Sitemap: https://www.mafqoudat.com/sitemap-static.xml
+Sitemap: https://www.mafqoudat.com/sitemap-posts.xml

@@ -1,6 +1,8 @@
-// Regenerates sitemap.xml from the static route manifest + blogPosts.json so
-// every blog post gets its own <url> entry automatically. Runs standalone
-// (`node scripts/generateSitemap.js`) or is invoked from postbuild.js.
+// Regenerates the sitemap files from the static route manifest + blogPosts.json
+// so every blog post gets its own <url> entry automatically. Emits two files:
+// sitemap-static.xml (these build-time routes) and sitemap.xml (an index that
+// also points at the database-backed /sitemap-posts.xml). Runs standalone
+// (`node scripts/generateSitemap.js [outputDir]`) or from postbuild.js.
 
 const fs = require('fs');
 const path = require('path');
@@ -53,16 +55,49 @@ ${[...staticEntries, ...blogEntries].join('\n')}
 `;
 };
 
-const writeSitemap = (outputPath) => {
-  const xml = generateSitemap();
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, xml, 'utf8');
-  console.log(`Sitemap written: ${outputPath} (${STATIC_ROUTES.length} static + ${blogPosts.length} blog URLs)`);
+// Sitemap index. Post detail pages are user-generated and change constantly,
+// so they can't live in a build-time file - /sitemap-posts.xml is served from
+// the database by the API (server/routes/sitemapRoutes.js) and reaches this
+// origin through the Vercel rewrite. /sitemap.xml stays the single URL to
+// submit in Search Console; it now points at both children.
+//
+// No <lastmod> on the posts entry on purpose: its real value changes whenever
+// a user posts, which build time can't know. A stale timestamp there would
+// discourage Google from refetching it.
+const generateSitemapIndex = () => {
+  const today = new Date().toISOString().slice(0, 10);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>${BASE_URL}/sitemap-static.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${BASE_URL}/sitemap-posts.xml</loc>
+  </sitemap>
+</sitemapindex>
+`;
 };
 
-module.exports = { generateSitemap, writeSitemap };
+// Writes the sitemap index plus the static/blog child sitemap into outputDir.
+const writeSitemaps = (outputDir) => {
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const staticPath = path.join(outputDir, 'sitemap-static.xml');
+  fs.writeFileSync(staticPath, generateSitemap(), 'utf8');
+  console.log(
+    `Sitemap written: ${staticPath} (${STATIC_ROUTES.length} static + ${blogPosts.length} blog URLs)`
+  );
+
+  const indexPath = path.join(outputDir, 'sitemap.xml');
+  fs.writeFileSync(indexPath, generateSitemapIndex(), 'utf8');
+  console.log(`Sitemap index written: ${indexPath} (static + dynamic posts)`);
+};
+
+module.exports = { generateSitemap, generateSitemapIndex, writeSitemaps };
 
 if (require.main === module) {
-  const target = process.argv[2] || path.join(__dirname, '..', 'public', 'sitemap.xml');
-  writeSitemap(target);
+  const target = process.argv[2] || path.join(__dirname, '..', 'public');
+  writeSitemaps(target);
 }

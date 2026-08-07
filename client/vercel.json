@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/sitemap-posts.xml",
+      "destination": "https://mafqoudat-api.onrender.com/sitemap-posts.xml"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://mafqoudat-api.onrender.com/api/:path*"
     },
