@@ -100,8 +100,8 @@ if (isVercel) {
 // Sitemap: always regenerate from the current static-route manifest + blog
 // posts, so newly added blog posts show up automatically on every build.
 try {
-  const { writeSitemap } = require('./generateSitemap');
-  writeSitemap(path.join(__dirname, '..', 'build', 'sitemap.xml'));
+  const { writeSitemaps } = require('./generateSitemap');
+  writeSitemaps(path.join(__dirname, '..', 'build'));
 } catch (error) {
   console.error('❌ Sitemap generation failed:', error.message);
 }

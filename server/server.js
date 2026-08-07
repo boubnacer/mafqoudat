@@ -185,6 +185,10 @@ app.use(maintenanceMode);
 
 // API routes
 app.use("/", require("./routes/root"));
+// Dynamic posts sitemap. Reached in production as
+// https://www.mafqoudat.com/sitemap-posts.xml via the Vercel rewrite, so that
+// the sitemap index and all its children share the site's own origin.
+app.use("/", require("./routes/sitemapRoutes"));
 app.use("/dashboard", require("./routes/dashRoutes"));
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/auth", require("./routes/googleAuthRoutes"));

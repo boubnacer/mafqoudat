@@ -1,5 +1,5 @@
 // Fixed Vercel routing - added basename and removed homepage field
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { Box, CircularProgress, CssBaseline, ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
@@ -145,13 +145,14 @@ const AppContent = () => {
           </Suspense>
         } />
 
-        {/* Public routes - require country selection but no authentication */}
+        {/* Public posts listing. No CountryGuard: PublicPostsPage already
+            renders its own country-picker screen (with SEO meta) when none is
+            selected, so the guard only ever preempted that with a redirect to
+            "/" - which made the page invisible to crawlers for no UX gain. */}
         <Route path="/posts" element={
-          <CountryGuard allowAuthenticatedWithoutCountry={false}>
-            <Suspense fallback={<PostsListSkeleton />}>
-              <PublicPostsPage />
-            </Suspense>
-          </CountryGuard>
+          <Suspense fallback={<PostsListSkeleton />}>
+            <PublicPostsPage />
+          </Suspense>
         } />
 
         {/* Legal and Information Pages - Public Access */}
@@ -228,87 +229,102 @@ const AppContent = () => {
           </Suspense>
         } />
 
-        {/* Dashboard layout - all dashboard routes go through this - require country selection */}
+        {/* Dashboard layout - shared chrome (navbar/sidebar/footer) for every
+            /dash/* route. The country requirement deliberately does NOT live
+            here: it sits on the nested pathless CountryGuard route below, so
+            that post detail pages stay reachable without a selected country.
+            Guarding the whole layout redirected every visitor with no stored
+            country - which includes search engine crawlers, who carry no
+            localStorage - straight back to "/", making post pages impossible
+            to index and breaking shared post links for first-time visitors. */}
         <Route path="dash" element={
-          <CountryGuard>
-            <Suspense fallback={<LoadingFallback />}>
-              <DashLayout />
-            </Suspense>
-          </CountryGuard>
+          <Suspense fallback={<LoadingFallback />}>
+            <DashLayout />
+          </Suspense>
         }>
-          {/* Dashboard home - public access */}
-          <Route index element={
-            <PrefetchDependencies>
-              <Suspense fallback={<DashboardSkeleton />}>
-                <Dash />
-              </Suspense>
-            </PrefetchDependencies>
-          } />
-
-          {/* Posts routes - public access with dependency prefetching */}
-          <Route path="posts" element={
-            <PrefetchDependencies>
-              <Suspense fallback={<PostsListSkeleton />}>
-                <PostsList />
-              </Suspense>
-            </PrefetchDependencies>
-          } />
+          {/* Post detail - public, and intentionally outside CountryGuard: a
+              post already carries its own country (countryname/countryLabels
+              come from the post itself), so no global country selection is
+              needed to render it. Static-segment routes like "posts/new" still
+              win over this one under React Router's ranking, so declaring it
+              first changes no other match. */}
           <Route path="posts/:id" element={
             <Suspense fallback={<SinglePostSkeleton />}>
               <SinglePost />
             </Suspense>
           } />
 
-          {/* Protected routes - require authentication for creating/editing posts and admin actions */}
-          <Route element={
-            <ProtectedRoute requireAuth={true} requireCountry={true}>
-              <Suspense fallback={<LoadingFallback />}>
-                <Prefetch />
-              </Suspense>
-            </ProtectedRoute>
-          }>
-            <Route path="posts/new" element={
-              <Suspense fallback={<PostFormSkeleton />}>
-                <NewPost />
-              </Suspense>
+          {/* Everything below needs a country to filter its data by. */}
+          <Route element={<CountryGuard><Outlet /></CountryGuard>}>
+            {/* Dashboard home - public access */}
+            <Route index element={
+              <PrefetchDependencies>
+                <Suspense fallback={<DashboardSkeleton />}>
+                  <Dash />
+                </Suspense>
+              </PrefetchDependencies>
             } />
-            <Route path="posts/edit/:id" element={
-              <Suspense fallback={<PostFormSkeleton />}>
-                <EditPost />
-              </Suspense>
+
+            {/* Posts routes - public access with dependency prefetching */}
+            <Route path="posts" element={
+              <PrefetchDependencies>
+                <Suspense fallback={<PostsListSkeleton />}>
+                  <PostsList />
+                </Suspense>
+              </PrefetchDependencies>
             } />
-            <Route path="profile" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <UserProfile />
-              </Suspense>
-            } />
-            <Route path="myposts" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <MyPostsPage />
-              </Suspense>
-            } />
-            <Route path="users">
-              <Route index element={
+
+            {/* Protected routes - require authentication for creating/editing posts and admin actions */}
+            <Route element={
+              <ProtectedRoute requireAuth={true} requireCountry={true}>
                 <Suspense fallback={<LoadingFallback />}>
-                  <UsersList />
+                  <Prefetch />
+                </Suspense>
+              </ProtectedRoute>
+            }>
+              <Route path="posts/new" element={
+                <Suspense fallback={<PostFormSkeleton />}>
+                  <NewPost />
                 </Suspense>
               } />
-              <Route path=":id" element={
+              <Route path="posts/edit/:id" element={
+                <Suspense fallback={<PostFormSkeleton />}>
+                  <EditPost />
+                </Suspense>
+              } />
+              <Route path="profile" element={
                 <Suspense fallback={<LoadingFallback />}>
-                  <EditUser />
+                  <UserProfile />
+                </Suspense>
+              } />
+              <Route path="myposts" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <MyPostsPage />
+                </Suspense>
+              } />
+              <Route path="users">
+                <Route index element={
+                  <Suspense fallback={<LoadingFallback />}>
+                    <UsersList />
+                  </Suspense>
+                } />
+                <Route path=":id" element={
+                  <Suspense fallback={<LoadingFallback />}>
+                    <EditUser />
+                  </Suspense>
+                } />
+              </Route>
+              <Route path="dependencies" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <DependenciesManager />
+                </Suspense>
+              } />
+              <Route path="admin" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <AdminDashboard />
                 </Suspense>
               } />
             </Route>
-            <Route path="dependencies" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <DependenciesManager />
-              </Suspense>
-            } />
-            <Route path="admin" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <AdminDashboard />
-              </Suspense>
-            } />
           </Route>
         </Route>
 
