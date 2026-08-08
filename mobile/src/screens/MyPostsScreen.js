@@ -338,7 +338,7 @@ const MyPostsScreen = ({ navigation }) => {
 
     return (
       <TouchableOpacity
-        style={[styles.postCard, logical(isRTL, { borderStartColor: tone.main })]}
+        style={styles.postCard}
         activeOpacity={0.9}
         onPress={() => navigation.navigate('PostDetailScreen', { id: item._id })}
       >
@@ -571,7 +571,6 @@ const createStyles = (tokens, isRTL, isDark) =>
     postCardSkeleton: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      ...logical(isRTL, { borderStartWidth: 6, borderStartColor: `${tokens.ink}14` }),
       marginBottom: 16,
       overflow: 'hidden',
       ...getElevation(isDark, 1),
@@ -626,12 +625,10 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderRadius: radiusTokens.md,
     },
 
-    // Post card - mirrors PostsListScreen's post card DNA: surfaceRaised,
-    // radius.lg, borderStart accent bar in the Found/Lost tone, elevation e1.
+    // Post card - mirrors PostsListScreen's post card DNA: surfaceRaised, radius.lg, elevation e1.
     postCard: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      ...logical(isRTL, { borderStartWidth: 6 }),
       marginBottom: 16,
       overflow: 'hidden',
       ...getElevation(isDark, 1),

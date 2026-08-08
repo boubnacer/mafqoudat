@@ -45,15 +45,14 @@ import LazyCardMedia from "../../../components/LazyCardMedia";
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
 // Post card DNA — canonical here, mirrored by TrendingItem.jsx:
-// surfaceRaised + radius.lg + elevation.e1->e2 hover-lift + status accent bar.
-const PostCardRoot = styled(Card)(({ theme, tone }) => ({
+// surfaceRaised + radius.lg + elevation.e1->e2 hover-lift.
+const PostCardRoot = styled(Card)(({ theme }) => ({
   height: "100%",
   display: "flex",
   flexDirection: "column",
   backgroundColor: theme.custom.color.surfaceRaised,
   borderRadius: `${theme.custom.radius.lg}px`,
   boxShadow: theme.custom.elevation.e1,
-  borderInlineStart: `6px solid ${tone}`,
   overflow: "hidden",
   cursor: "pointer",
   transition: "transform 0.2s ease, box-shadow 0.2s ease",
@@ -790,7 +789,7 @@ const Post = ({ post, viewMode = "grid" }) => {
   const tone = foundLostStatus.isFound ? theme.custom.status.found : theme.custom.status.lost;
 
   return (
-    <PostCardRoot tone={tone.main} onClick={handleViewDetails} sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}>
+    <PostCardRoot onClick={handleViewDetails} sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}>
       <MediaFrame sx={{ height: { xs: '260px', sm: '200px' }, backgroundColor: post?.image ? 'transparent' : alpha(tone.main, 0.06) }}>
         {post?.image && imageUrl ? (
           <LazyCardMedia
