@@ -239,7 +239,9 @@ const WorldActivityMap = ({
       {citiesWithNewToday.map((city, index) => {
         const label = `+${city.todayCount}`;
         const width = badgeWidth(label);
-        const anchorY = -(cityRadius(city.count) + 6);
+        // Sits just clear of the dot's stroke, close enough to read as part
+        // of the same marker rather than a floating label.
+        const anchorY = -(cityRadius(city.count) + 1);
         return (
           <Marker key={`${city.name}-${index}-count`} coordinates={[city.lon, city.lat]}>
             <g pointerEvents="none">
