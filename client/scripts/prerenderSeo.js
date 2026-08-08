@@ -97,25 +97,39 @@ const escapeHtml = (value) =>
     '"': '&quot;',
   }[char]));
 
+// Everything this script injects that SeoMeta also renders at runtime carries
+// data-rh="true". react-helmet-async only removes tags matching `[data-rh]`, so
+// an untagged prerendered tag would sit in the document forever next to the
+// Helmet-rendered one - two canonicals, two og:title, and so on. Tagging them
+// lets Helmet reuse the identical ones and replace the rest, leaving exactly
+// one of each. See the comment block in public/index.html.
+const RH = 'data-rh="true"';
+
 const buildHreflangLinks = (routePath) => {
   const links = SUPPORTED_LANGUAGES.map((lang) => {
     const url = `${BASE_URL}${routePath}?lang=${lang}`;
-    return `    <link rel="alternate" hreflang="${lang}" href="${escapeHtml(url)}" />`;
+    return `    <link rel="alternate" hreflang="${lang}" href="${escapeHtml(url)}" ${RH} />`;
   });
-  links.push(`    <link rel="alternate" hreflang="x-default" href="${escapeHtml(BASE_URL + routePath)}" />`);
+  links.push(`    <link rel="alternate" hreflang="x-default" href="${escapeHtml(BASE_URL + routePath)}" ${RH} />`);
   return links.join('\n');
 };
 
 // The shell already carries generic og:image*/og:locale*/og:type tags (see
 // public/index.html). Strip them before injecting route-specific values so a
 // crawler never sees two conflicting og:image or og:locale pairs.
+//
+// The patterns match on the property name alone and end at the tag's closing
+// bracket, rather than assuming `content="..." />` comes next: the shell's tags
+// now carry a trailing data-rh attribute, which the stricter form silently
+// failed to match. (The og:image:[a-z_]+ character class also has to allow the
+// underscore in og:image:secure_url, which [a-z]+ never matched.)
 const stripGenericOgTags = (html) =>
   html
-    .replace(/<meta property="og:image"[^>]*\/>/g, '')
-    .replace(/<meta property="og:image:[a-z]+" content="[^"]*"\s*\/>/g, '')
-    .replace(/<meta property="og:locale" content="[^"]*"\s*\/>/g, '')
-    .replace(/<meta property="og:locale:alternate" content="[^"]*"\s*\/>/g, '')
-    .replace(/<meta property="og:type" content="[^"]*"\s*\/>/g, '');
+    .replace(/<meta property="og:image"[^>]*>/g, '')
+    .replace(/<meta property="og:image:[a-z_]+"[^>]*>/g, '')
+    .replace(/<meta property="og:locale"[^>]*>/g, '')
+    .replace(/<meta property="og:locale:alternate"[^>]*>/g, '')
+    .replace(/<meta property="og:type"[^>]*>/g, '');
 
 const buildHeadInjection = ({ routePath, title, description, image, structuredData, locale, ogType }) => {
   const canonicalUrl = `${BASE_URL}${routePath}`;
@@ -123,17 +137,17 @@ const buildHeadInjection = ({ routePath, title, description, image, structuredDa
     ? (image.startsWith('http') ? image : `${BASE_URL}${image}`)
     : `${BASE_URL}/maflogo1200-630.png`;
   const parts = [
-    `    <link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`,
+    `    <link rel="canonical" href="${escapeHtml(canonicalUrl)}" ${RH} />`,
     buildHreflangLinks(routePath),
-    `    <meta property="og:type" content="${ogType || 'website'}" />`,
-    `    <meta property="og:locale" content="${LOCALE_MAP[locale] || LOCALE_MAP.en}" />`,
-    `    <meta property="og:title" content="${escapeHtml(title)}" />`,
-    `    <meta property="og:description" content="${escapeHtml(description)}" />`,
-    `    <meta property="og:url" content="${escapeHtml(canonicalUrl)}" />`,
-    `    <meta property="og:image" content="${escapeHtml(absoluteImage)}" />`,
-    `    <meta name="twitter:title" content="${escapeHtml(title)}" />`,
-    `    <meta name="twitter:description" content="${escapeHtml(description)}" />`,
-    `    <meta name="twitter:image" content="${escapeHtml(absoluteImage)}" />`,
+    `    <meta property="og:type" content="${ogType || 'website'}" ${RH} />`,
+    `    <meta property="og:locale" content="${LOCALE_MAP[locale] || LOCALE_MAP.en}" ${RH} />`,
+    `    <meta property="og:title" content="${escapeHtml(title)}" ${RH} />`,
+    `    <meta property="og:description" content="${escapeHtml(description)}" ${RH} />`,
+    `    <meta property="og:url" content="${escapeHtml(canonicalUrl)}" ${RH} />`,
+    `    <meta property="og:image" content="${escapeHtml(absoluteImage)}" ${RH} />`,
+    `    <meta name="twitter:title" content="${escapeHtml(title)}" ${RH} />`,
+    `    <meta name="twitter:description" content="${escapeHtml(description)}" ${RH} />`,
+    `    <meta name="twitter:image" content="${escapeHtml(absoluteImage)}" ${RH} />`,
   ];
   (structuredData || []).forEach((schema) => {
     parts.push(`    <script type="application/ld+json">${JSON.stringify(schema)}</script>`);
@@ -176,7 +190,10 @@ const injectHead = (html, headAdditions) => html.replace('</head>', `${headAddit
 const setTitle = (html, title) => html.replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(title)}</title>`);
 
 const setDescription = (html, description) =>
-  html.replace(/<meta name="description" content="[^"]*" \/>/, `<meta name="description" content="${escapeHtml(description)}" />`);
+  html.replace(
+    /<meta name="description"[^>]*>/,
+    `<meta name="description" content="${escapeHtml(description)}" ${RH} />`
+  );
 
 const writeRoute = (routePath, html) => {
   const outDir = path.join(BUILD_DIR, routePath);

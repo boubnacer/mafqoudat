@@ -13,35 +13,60 @@
     <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
-    <meta name="description" content="Mafqoudat - The leading lost and found platform in Morocco and the Arab world. Connect with your community to recover lost belongings. Report lost items, help return found items, and reunite with your belongings." />
-    <meta name="keywords" content="mafqoudat, mafqudat, mafqodat, mafqud, mafqod, mafkoudat, mafkudat, mafkodat, mafkoud, mafkod, mafgoudat, mafgudat, mafgodat, mafgoud, mafgod, mafoudat, mafodat, maf9oudat, mafkouda, mafqouda, مفقودات, موجودات, فقد, ضياع, فقدت, وجدت, وجد, موجود, فقدان, مفقود, مفقودة, مفكودات, منصة مفقودات, lost and found, Morocco, Arabic, community, lost items, found items, recovery, reunite, lost and found Morocco, lost and found Arabic, objets perdus, objets trouvés, objets perdus et trouvés, objet perdu Maroc, objet trouvé Maroc, plateforme objets perdus Maroc" />
+    <!--
+      data-rh="true" on the tags below is load-bearing, not decoration.
+
+      These are generic fallbacks so that clients which never run JavaScript
+      (social scrapers in particular) still get something sane. Once React
+      mounts, SeoMeta re-renders all of them with page-specific values via
+      react-helmet-async - but Helmet only ever removes tags it can recognise
+      as its own: its updateTags() selects `meta[data-rh]` and deletes what is
+      no longer current. A tag without the attribute is invisible to it and
+      survives forever, so the generic value stayed in the document alongside
+      the page-specific one. Two <meta name="description">, and on post pages
+      two conflicting og:image (site logo vs the item's photo).
+
+      Marking them hands ownership to Helmet: it reuses a tag when the value is
+      identical and replaces it otherwise, so exactly one of each survives.
+      Do NOT add this attribute to the JSON-LD blocks further down - SeoMeta
+      never re-renders those site-wide schemas, so Helmet would delete them.
+    -->
+    <meta name="description" content="Mafqoudat - The leading lost and found platform in Morocco and the Arab world. Connect with your community to recover lost belongings. Report lost items, help return found items, and reunite with your belongings." data-rh="true" />
+    <meta name="keywords" content="mafqoudat, mafqudat, mafqodat, mafqud, mafqod, mafkoudat, mafkudat, mafkodat, mafkoud, mafkod, mafgoudat, mafgudat, mafgodat, mafgoud, mafgod, mafoudat, mafodat, maf9oudat, mafkouda, mafqouda, مفقودات, موجودات, فقد, ضياع, فقدت, وجدت, وجد, موجود, فقدان, مفقود, مفقودة, مفكودات, منصة مفقودات, lost and found, Morocco, Arabic, community, lost items, found items, recovery, reunite, lost and found Morocco, lost and found Arabic, objets perdus, objets trouvés, objets perdus et trouvés, objet perdu Maroc, objet trouvé Maroc, plateforme objets perdus Maroc" data-rh="true" />
     <meta name="author" content="Mafqoudat Team" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow" data-rh="true" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!-- Canonical URL is set dynamically - this script ensures it's set immediately for SEO -->
+    <!-- Canonical URL is set dynamically - this script ensures it's set immediately for SEO.
+         Tagged data-rh so SeoMeta's canonical replaces this one instead of the
+         document ending up with two competing rel=canonical links. -->
     <script>
       (function() {
         var path = window.location.pathname;
         var canonical = document.createElement('link');
         canonical.setAttribute('rel', 'canonical');
         canonical.setAttribute('href', 'https://www.mafqoudat.com' + path);
+        canonical.setAttribute('data-rh', 'true');
         document.head.appendChild(canonical);
       })();
     </script>
 
     <!-- Open Graph / Facebook Meta Tags -->
     <!-- These are set dynamically by SeoMeta component for each page -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Mafqoudat" />
-    <meta property="og:image" content="https://www.mafqoudat.com/maflogo1200-630.png" />
-    <meta property="og:image:secure_url" content="https://www.mafqoudat.com/maflogo1200-630.png" />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Mafqoudat - Lost and Found Platform" />
-    <meta property="og:locale" content="en_US" />
-    <meta property="og:locale:alternate" content="ar_AR" />
-    <meta property="og:locale:alternate" content="fr_FR" />
+    <meta property="og:type" content="website" data-rh="true" />
+    <meta property="og:site_name" content="Mafqoudat" data-rh="true" />
+    <meta property="og:image" content="https://www.mafqoudat.com/maflogo1200-630.png" data-rh="true" />
+    <!-- The og:image:* siblings describe the logo above. SeoMeta renders an
+         og:image but no dimensions (a post's Cloudinary height isn't known),
+         so these are tagged too: Helmet drops them rather than leaving the
+         logo's 1200x630 and alt text attached to an item photo. -->
+    <meta property="og:image:secure_url" content="https://www.mafqoudat.com/maflogo1200-630.png" data-rh="true" />
+    <meta property="og:image:type" content="image/png" data-rh="true" />
+    <meta property="og:image:width" content="1200" data-rh="true" />
+    <meta property="og:image:height" content="630" data-rh="true" />
+    <meta property="og:image:alt" content="Mafqoudat - Lost and Found Platform" data-rh="true" />
+    <meta property="og:locale" content="en_US" data-rh="true" />
+    <meta property="og:locale:alternate" content="ar_AR" data-rh="true" />
+    <meta property="og:locale:alternate" content="fr_FR" data-rh="true" />
 
     <!-- Cache busting meta tags -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
