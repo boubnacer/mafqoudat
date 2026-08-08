@@ -70,20 +70,13 @@ export const defaultSeo = {
   keywords: defaultKeywords,
   path: '/',
   image: `${BASE_URL}/maflogo1200-630.png`,
-  structuredData: [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: 'Mafqoudat',
-      description: 'Lost and found platform for Morocco and the Arab world',
-      url: BASE_URL,
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: `${BASE_URL}/dash/posts?search={search_term_string}`,
-        'query-input': 'required name=search_term_string',
-      },
-    },
-  ],
+  // Intentionally empty. The site-wide WebSite and Organization schemas live in
+  // public/index.html, which is the only place that reaches crawlers that don't
+  // run JavaScript. Emitting a WebSite schema here too put two of them on every
+  // page that falls back to this default (the homepage among them). SeoMeta is
+  // for page-specific schema - breadcrumbs, articles, ItemPage - and pages with
+  // none simply add nothing on top of the shell's.
+  structuredData: [],
 };
 
 export const createBreadcrumbSchema = (items = []) => ({
@@ -157,7 +150,9 @@ export const pageSeoConfig = {
     description:
       'Reconnect with your belongings through Mafqoudat. Report lost items, browse found items, and collaborate with your community across Morocco and the Arab region.',
     keywords: defaultKeywords,
-    structuredData: defaultSeo.structuredData,
+    // No breadcrumbs on the homepage (it is the root), and the site-wide
+    // WebSite/Organization schemas come from the shell - so nothing to add.
+    structuredData: [],
   },
   posts: {
     path: '/posts',

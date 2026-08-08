@@ -189,7 +189,12 @@ const PublicPostsPage = () => {
   const activeLanguage = currentLanguage || langContext || 'en';
 
   const currentCountry = useSelector(selectCurrentCountry);
-  const [searchQuery, setSearchQuery] = useState("");
+  // Seeded from ?search= so the WebSite SearchAction in public/index.html
+  // describes something real: Google's sitelinks searchbox sends users to
+  // /posts?search=<term>, and that has to actually filter on arrival.
+  const [searchQuery, setSearchQuery] = useState(
+    () => new URLSearchParams(window.location.search).get('search') || ""
+  );
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [foundLostFilter, setFoundLostFilter] = useState("all");
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);

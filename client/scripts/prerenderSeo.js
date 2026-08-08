@@ -149,8 +149,17 @@ const buildHeadInjection = ({ routePath, title, description, image, structuredDa
     `    <meta name="twitter:description" content="${escapeHtml(description)}" ${RH} />`,
     `    <meta name="twitter:image" content="${escapeHtml(absoluteImage)}" ${RH} />`,
   ];
+  // Tagged like the meta above: the route components render the equivalent
+  // schema through SeoMeta once React mounts (blog posts pass an Article +
+  // breadcrumb pair, static pages get breadcrumbs from pageSeoConfig), so
+  // without the attribute each page ended up with two BreadcrumbList blocks -
+  // and blog posts with two BlogPosting. Helmet replaces the tagged ones.
+  //
+  // This only ever applies to routes this script writes. The shell's site-wide
+  // WebSite/Organization blocks stay untagged and survive on every page,
+  // including "/", which this script deliberately never rewrites.
   (structuredData || []).forEach((schema) => {
-    parts.push(`    <script type="application/ld+json">${JSON.stringify(schema)}</script>`);
+    parts.push(`    <script type="application/ld+json" ${RH}>${JSON.stringify(schema)}</script>`);
   });
   return parts.join('\n');
 };
