@@ -917,7 +917,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       ...logical(isRTL, { borderStartWidth: 6, borderStartColor: `${tokens.ink}14` }),
       marginBottom: 16,
       overflow: 'hidden',
-      ...getElevation(isDark, 1),
     },
     postMediaSkeleton: {
       width: '100%',
@@ -947,7 +946,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       ...logical(isRTL, { borderStartWidth: 6 }),
       marginBottom: 16,
       overflow: 'hidden',
-      ...getElevation(isDark, 1),
     },
     postMedia: {
       width: '100%',
@@ -974,6 +972,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingHorizontal: 9,
       paddingVertical: 5,
       borderRadius: radiusTokens.sm,
+      ...getElevation(isDark, 1),
     },
     statusTagText: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -989,6 +988,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingHorizontal: 9,
       paddingVertical: 5,
       borderRadius: radiusTokens.sm,
+      ...getElevation(isDark, 1),
     },
     dateBadgeText: {
       fontFamily: fontFamilies.bodyMedium,
@@ -1006,6 +1006,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingVertical: 7,
       borderRadius: radiusTokens.md,
       marginBottom: 12,
+      ...getElevation(isDark, 1),
     },
     categoryPillText: {
       fontFamily: fontFamilies.bodySemiBold,

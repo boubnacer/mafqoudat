@@ -110,7 +110,7 @@ const WelcomeScreen = () => {
   const { colors, isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const isRTL = currentLanguage === 'ar';
-  const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
+  const styles = useMemo(() => createStyles(colors, isRTL, isDark), [colors, isRTL, isDark]);
   const { t } = useTranslation();
 
   const [countries, setCountries] = useState([]);
@@ -420,7 +420,6 @@ const WelcomeScreen = () => {
         style={[
           styles.heroCard,
           overlapStyle,
-          getElevation(isDark, isFront ? 2 : 1),
           {
             backgroundColor: categoryConfig.color,
             zIndex,
@@ -605,7 +604,7 @@ const WelcomeScreen = () => {
   );
 };
 
-const createStyles = (colors, isRTL) => StyleSheet.create({
+const createStyles = (colors, isRTL, isDark) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -869,6 +868,7 @@ const createStyles = (colors, isRTL) => StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: radiusTokens.sm,
+    ...getElevation(isDark, 1),
   },
   heroStatusTagText: {
     fontSize: 10,

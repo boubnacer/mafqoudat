@@ -413,7 +413,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderRadius: radiusTokens.lg,
       padding: 8,
       marginBottom: 20,
-      ...getElevation(isDark, 1),
     },
     infoRow: {
       flexDirection: row(isRTL),
@@ -433,6 +432,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       backgroundColor: `${tokens.brandPrimary}14`,
       justifyContent: 'center',
       alignItems: 'center',
+      ...getElevation(isDark, 1),
     },
     infoRowTextWrap: {
       flex: 1,
@@ -476,7 +476,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
       overflow: 'hidden',
-      ...getElevation(isDark, 1),
     },
     menuRow: {
       flexDirection: row(isRTL),
@@ -497,6 +496,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       backgroundColor: `${tokens.brandPrimary}14`,
       justifyContent: 'center',
       alignItems: 'center',
+      ...getElevation(isDark, 1),
     },
     menuRowText: {
       flex: 1,

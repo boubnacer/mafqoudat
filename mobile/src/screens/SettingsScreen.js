@@ -19,25 +19,6 @@ import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
-// Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
-// as RN shadow/elevation props - same shadow color/opacity ProfileScreen/LoginScreen use.
-const getElevation = (isDark, level = 1) =>
-  level === 2
-    ? {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: isDark ? 0.45 : 0.1,
-        shadowRadius: 16,
-        elevation: 4,
-      }
-    : {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: isDark ? 0.4 : 0.06,
-        shadowRadius: 2,
-        elevation: 2,
-      };
-
 const LANGUAGES = [
   { code: 'en', labelKey: 'english' },
   { code: 'fr', labelKey: 'french' },
@@ -180,7 +161,6 @@ const createStyles = (tokens, isDark, isRTL) =>
       borderRadius: radiusTokens.lg,
       padding: 14,
       marginBottom: 22,
-      ...getElevation(isDark, 1),
     },
     chipsRow: {
       flexDirection: 'row',
@@ -223,7 +203,6 @@ const createStyles = (tokens, isDark, isRTL) =>
       borderRadius: radiusTokens.lg,
       overflow: 'hidden',
       marginBottom: 26,
-      ...getElevation(isDark, 1),
     },
     menuRow: {
       flexDirection: row(isRTL),

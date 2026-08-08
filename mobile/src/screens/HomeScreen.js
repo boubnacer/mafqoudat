@@ -672,7 +672,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
       padding: 20,
-      ...getElevation(isDark, 1),
     },
     panelTitleCentered: {
       fontFamily: fontFamilies.display,
@@ -718,7 +717,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
       overflow: 'hidden',
-      ...getElevation(isDark, 1),
     },
     foundLostSkeleton: {
       height: 220,
@@ -744,6 +742,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderRadius: radiusTokens.sm,
       justifyContent: 'center',
       alignItems: 'center',
+      ...getElevation(isDark, 1),
     },
     statSegmentLabel: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -779,7 +778,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
       padding: 18,
-      ...getElevation(isDark, 1),
     },
     bigStatCardTop: {
       flexDirection: 'row',
@@ -799,6 +797,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderRadius: radiusTokens.sm,
       justifyContent: 'center',
       alignItems: 'center',
+      ...getElevation(isDark, 1),
     },
     bigStatCardValue: {
       fontFamily: fontFamilies.display,
@@ -832,7 +831,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       aspectRatio: 3 / 4,
       borderRadius: radiusTokens.lg,
       overflow: 'hidden',
-      ...getElevation(isDark, 1),
     },
     posterImage: {
       ...StyleSheet.absoluteFillObject,
@@ -881,6 +879,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: radiusTokens.sm,
+      ...getElevation(isDark, 1),
     },
     posterStatusPillText: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -895,6 +894,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: radiusTokens.sm,
+      ...getElevation(isDark, 1),
     },
     posterReturnedPillText: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -935,7 +935,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderRadius: radiusTokens.md,
       backgroundColor: `${tokens.ink}08`,
       padding: 24,
-      ...getElevation(isDark, 1),
     },
     recentEmptyText: {
       fontFamily: fontFamilies.body,
@@ -1008,7 +1007,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingVertical: 22,
       paddingHorizontal: 20,
       alignItems: 'center',
-      ...getElevation(isDark, 1),
     },
     socialTitle: {
       fontFamily: fontFamilies.display,
@@ -1039,6 +1037,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderRadius: 28,
       justifyContent: 'center',
       alignItems: 'center',
+      ...getElevation(isDark, 1),
     },
     socialLabel: {
       fontFamily: fontFamilies.bodyMedium,
