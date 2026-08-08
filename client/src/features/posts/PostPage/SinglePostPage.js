@@ -45,7 +45,7 @@ import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
 import PromotionDialog from "../../../components/PromotionDialog";
 import ClaimItemDialog from "../../../components/ClaimItemDialog";
 
-// Solid-fill tag, same signature as the post card DNA (PublicPostsPage/TrendingItem):
+// Solid-fill tag, same signature as the post card DNA (Post.js/TrendingItem):
 // this is the single most load-bearing fact on the page, so it lives on the image,
 // not buried in a label:value row further down.
 const StatusTag = ({ tone, icon: Icon, label }) => {

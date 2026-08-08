@@ -4,7 +4,7 @@ import SkeletonBlock from './SkeletonBlock';
 
 // Shared placeholder for the site's "Post card DNA" (see CLAUDE.md: image
 // thumbnail + status/date badges, title, description lines, meta rows,
-// action button) — reused by PublicPostsPage and the dashboard's PostsList
+// action button) — reused by the dashboard's PostsList
 // so both show a grid that already looks like their real post cards while
 // loading, instead of a generic spinner.
 const PostCardSkeleton = () => {
