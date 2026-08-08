@@ -45,6 +45,38 @@ validateEnv();
 
 const Stack = createNativeStackNavigator();
 
+// Deep link / Universal Link (iOS) / App Link (Android) config. Only
+// PostDetailScreen is mapped: it's the one screen a shared web URL
+// (https://www.mafqoudat.com/dash/posts/:id - the same address the OG-card
+// endpoint at server/routes/ogRoutes.js renders a real preview for) should
+// open directly into. Every other https path is intentionally left
+// unmapped - React Navigation ignores an unmatched URL rather than erroring,
+// so those just open in the browser as before.
+//
+// The mafqoudat:// prefix is unrelated to this: MOBILE_OAUTH_CALLBACK_URL
+// (config/api.js) already resolves mafqoudat://auth/callback directly via
+// WebBrowser.openAuthSessionAsync's own promise, never through this linking
+// config. Including it here is additive - "auth/callback" isn't in the
+// screens map below, so this listener just ignores that URL - and it makes
+// mafqoudat://dash/posts/<id> a working custom-scheme link too, which is
+// useful for QR codes and testing before the native App/Universal Links
+// config (app.config.js's associatedDomains/intentFilters, plus the
+// .well-known files served by the web app) is fully live.
+//
+// Only takes effect when AppNavigator is the mounted tree (see
+// RootNavigator's showAppShell below) - a shared link opened on a fresh
+// install with no country/session yet lands on the normal Onboarding/Welcome
+// flow rather than the post, since PostDetailScreen isn't registered in
+// AuthNavigator. No deferred-deep-link handling for that case today.
+const linking = {
+  prefixes: ['mafqoudat://', 'https://mafqoudat.com', 'https://www.mafqoudat.com'],
+  config: {
+    screens: {
+      PostDetailScreen: 'dash/posts/:id',
+    },
+  },
+};
+
 // Pre-country navigator: Onboarding (first launch only) -> Welcome (country/language
 // landing). Only mounted before a country has ever been picked - once it has
 // (RootNavigator's hasCountry), AppNavigator takes over even for a signed-out
@@ -125,7 +157,12 @@ const RootNavigator = () => {
   const showAppShell = isSignedIn || hasCountry;
 
   return (
-    <NavigationContainer ref={navigationRef} theme={getNavigationTheme(colors, isDark)} fallback={<Text>Loading...</Text>}>
+    <NavigationContainer
+      ref={navigationRef}
+      theme={getNavigationTheme(colors, isDark)}
+      fallback={<Text>Loading...</Text>}
+      linking={linking}
+    >
       {showAppShell ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );

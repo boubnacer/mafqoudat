@@ -37,7 +37,18 @@ export default {
       },
       config: {
         usesNonExemptEncryption: false
-      }
+      },
+      // Universal Links: lets a tap on https://(www.)mafqoudat.com/dash/posts/:id
+      // open straight into PostDetailScreen (see App.js's `linking` config)
+      // instead of Safari, on a device with the app installed. Requires
+      // https://www.mafqoudat.com/.well-known/apple-app-site-association to
+      // list this app's real Team ID - see mobile/UNIVERSAL_LINKS_SETUP.md -
+      // and only takes effect from a fresh native build (`eas build`), never
+      // an OTA update.
+      associatedDomains: [
+        "applinks:mafqoudat.com",
+        "applinks:www.mafqoudat.com"
+      ]
     },
     android: {
       adaptiveIcon: {
@@ -62,6 +73,30 @@ export default {
               scheme: "mafqoudat",
               host: "auth",
               pathPrefix: "/callback"
+            }
+          ],
+          category: ["BROWSABLE", "DEFAULT"]
+        },
+        // App Links: Android's counterpart to iOS's associatedDomains above -
+        // same feature, same caveats (needs the real SHA-256 signing
+        // fingerprint in assetlinks.json, see
+        // mobile/UNIVERSAL_LINKS_SETUP.md; needs a fresh native build).
+        // pathPrefix also matches the bare "/dash/posts" listing URL, which
+        // isn't registered in App.js's `linking.config.screens` - opening
+        // that one is a harmless no-op, not a crash.
+        {
+          action: "VIEW",
+          autoVerify: true,
+          data: [
+            {
+              scheme: "https",
+              host: "mafqoudat.com",
+              pathPrefix: "/dash/posts"
+            },
+            {
+              scheme: "https",
+              host: "www.mafqoudat.com",
+              pathPrefix: "/dash/posts"
             }
           ],
           category: ["BROWSABLE", "DEFAULT"]
