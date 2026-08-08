@@ -284,7 +284,7 @@ export const buildPostSeo = ({ post, language = 'en', t }) => {
     itemPageSchema,
     createBreadcrumbSchema([
       { name: defaultSeo.siteName, path: '/' },
-      { name: translate('posts'), path: '/posts' },
+      { name: translate('posts'), path: '/dash/posts' },
       // Breadcrumb trails show the page's place in the site, so the brand
       // suffix the <title> carries would just repeat the first crumb.
       { name: stripBrandSuffix(title), path },

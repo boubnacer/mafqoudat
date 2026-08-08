@@ -33,7 +33,6 @@ import PostsListSkeleton from "./features/posts/PostsList/PostsListSkeleton";
 
 // Lazy load all major page components for better code splitting
 const WelcomePage = lazy(() => import("./components/WelcomePage"));
-const PublicPostsPage = lazy(() => import("./components/PublicPostsPage"));
 const Login = lazy(() => import("./features/auth/Login/Login"));
 const CountrySelection = lazy(() => import("./features/auth/CountrySelection"));
 const OAuthCallback = lazy(() => import("./features/auth/OAuthCallback"));
@@ -145,15 +144,10 @@ const AppContent = () => {
           </Suspense>
         } />
 
-        {/* Public posts listing. No CountryGuard: PublicPostsPage already
-            renders its own country-picker screen (with SEO meta) when none is
-            selected, so the guard only ever preempted that with a redirect to
-            "/" - which made the page invisible to crawlers for no UX gain. */}
-        <Route path="/posts" element={
-          <Suspense fallback={<PostsListSkeleton />}>
-            <PublicPostsPage />
-          </Suspense>
-        } />
+        {/* No "/posts" route: it was a superseded second listing page that
+            duplicated /dash/posts, and the vercel.json "/posts/:path*" rewrite
+            proxies that path to the API anyway, so it could not reliably serve
+            a page in production. /dash/posts is the only listing. */}
 
         {/* Legal and Information Pages - Public Access */}
         <Route path="/privacy" element={

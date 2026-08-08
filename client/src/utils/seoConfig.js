@@ -154,19 +154,8 @@ export const pageSeoConfig = {
     // WebSite/Organization schemas come from the shell - so nothing to add.
     structuredData: [],
   },
-  posts: {
-    path: '/posts',
-    title: 'Explore Lost and Found Posts | Mafqoudat',
-    description:
-      'Browse the latest lost and found posts on Mafqoudat. Filter by category, location, and status to help reunite items with their owners across Morocco.',
-    keywords: [...defaultKeywords, 'lost and found posts', 'lost items Morocco', 'found items Morocco'],
-    structuredData: [
-      createBreadcrumbSchema([
-        { name: 'Home', path: '/' },
-        { name: 'Posts', path: '/posts' },
-      ]),
-    ],
-  },
+  // No "posts" key: the /posts listing page is gone (see App.js). Anything
+  // describing the listing belongs under dashPosts, the surviving route.
   about: {
     path: '/about',
     title: 'About Mafqoudat | Lost and Found Community',

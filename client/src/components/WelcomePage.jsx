@@ -461,7 +461,7 @@ const WelcomePage = () => {
     skip: !selectedCountry?._id
   });
   // The endpoint returns { postsWithUser, page, totalPages, total } — not an
-  // entity-adapter { ids, entities } shape (see PublicPostsPage.jsx / TrendingItem.jsx).
+  // entity-adapter { ids, entities } shape (see TrendingItem.jsx).
   const heroPosts = heroPostsData?.postsWithUser || [];
 
   // Same public /dashboard endpoint Dash.js's useDashboard hook reads for
@@ -515,7 +515,7 @@ const WelcomePage = () => {
     return categoryCode;
   };
 
-  // Posts have no "title" field — mirror TrendingItem/PublicPostsPage's city
+  // Posts have no "title" field — mirror TrendingItem's city
   // resolution chain, falling back to exactLocation.
   const getHeroPostCityName = (post) => {
     if (post.cityLabels && typeof post.cityLabels === 'object') {

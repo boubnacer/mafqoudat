@@ -104,8 +104,12 @@ const PostsList = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
   const [fl, setFl] = useState(foundOrlost);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  // Seeded from ?search= so the WebSite SearchAction in public/index.html
+  // describes something real: Google's sitelinks searchbox sends users to
+  // /dash/posts?search=<term>, and that has to actually search on arrival.
+  const initialSearchTerm = new URLSearchParams(window.location.search).get('search') || "";
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialSearchTerm);
   const [sortBy, setSortBy] = useState("newest");
   const [viewMode, setViewMode] = useState("grid");
   const [localCategoryFilter, setLocalCategoryFilter] = useState("all");

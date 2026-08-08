@@ -44,7 +44,7 @@ import LazyCardMedia from "../../../components/LazyCardMedia";
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
-// Post card DNA — same recipe as PublicPostsPage.jsx / TrendingItem.jsx:
+// Post card DNA — canonical here, mirrored by TrendingItem.jsx:
 // surfaceRaised + radius.lg + elevation.e1->e2 hover-lift + status accent bar.
 const PostCardRoot = styled(Card)(({ theme, tone }) => ({
   height: "100%",
