@@ -15,9 +15,10 @@ Three pieces, already wired up in code:
   Google verify the app is actually allowed to claim the domain (anyone could
   otherwise put your domain in their own app's config).
 
-**The two `.well-known` files currently contain placeholder values and do
-nothing until you replace them.** Universal/App Links degrade safely in the
-meantime — a shared link just opens in the browser, exactly like today.
+**Android is configured for the `preview` build profile only; iOS is still a
+placeholder.** Until a platform's file holds a real value *and* that file is
+live on the deployed site, that platform's links degrade safely — a shared
+link just opens in the browser, exactly like today.
 
 ## 1. iOS: replace the Team ID
 
@@ -33,25 +34,29 @@ Find it at either:
 - https://developer.apple.com/account → **Membership details**
 - Or, if this project is already linked to EAS: `eas credentials -p ios` (select the build profile, it's printed in the credentials summary)
 
-## 2. Android: replace the SHA-256 fingerprint
+## 2. Android: the SHA-256 fingerprint
 
-`client/public/.well-known/assetlinks.json` has:
+`client/public/.well-known/assetlinks.json` lists the fingerprint of the
+certificate the installed APK/AAB is signed with. Android downloads that file
+after install and compares it against the app's actual signature; a match is
+what lets a tapped link open the app instead of the browser.
 
-```json
-"sha256_cert_fingerprints": ["REPLACE_WITH_YOUR_APP_SIGNING_SHA256_FINGERPRINT"]
-```
+It currently holds the EAS-managed keystore for the **`preview`** build
+profile (`E3:57:12:…:D3:00`), so internal builds from that profile verify.
 
-This must be the fingerprint of the certificate your **released** APK/AAB is
-actually signed with — for a Play Store release using Play App Signing,
-that's Google's certificate, not your local upload key.
+**Before a Play Store release, the release fingerprint has to be added.** With
+Play App Signing that is Google's certificate, not the upload key EAS holds —
+the two are different, and a build distributed through Play is signed with
+Google's. `sha256_cert_fingerprints` is a list, so add it as a second entry
+rather than replacing the preview one; both keys can be trusted at once.
 
-Find it at either:
-- Google Play Console → your app → **Setup → App signing** → "App signing key certificate" → SHA-256
-- Or: `eas credentials -p android` (select `production`, look for "SHA256 Fingerprint")
+Find each at:
+- **Preview / internal builds:** `npx eas-cli credentials` from `mobile/` → Android → the build profile → "SHA256 Fingerprint"
+- **Play release:** Google Play Console → your app → **Setup → App signing** → "App signing key certificate" → SHA-256
 
-If you support multiple build variants (e.g. a separate debug/internal
-signing key you want to deep-link too), add each fingerprint as an
-additional string in that array — it's a list, not a single value.
+The value must be uppercase hex, colon-separated, 32 bytes. A SHA-1 (20 bytes)
+will not work here regardless of formatting — that is a different hash of the
+same certificate, and is what Google Sign-In uses, not App Links.
 
 ## 3. Deploy the web files, then rebuild the app natively
 

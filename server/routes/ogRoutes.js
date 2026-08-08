@@ -8,9 +8,16 @@
 // its Arabic title. On a platform where posts spread mainly through WhatsApp
 // groups, that is the difference between a shareable card and a blank one.
 //
-// Vercel routes only those scraper user-agents here (see client/vercel.json);
-// browsers and Googlebot keep getting the normal SPA. The URL is unchanged by
-// the rewrite, so the canonical below is self-referencing.
+// Bingbot and YandexBot are routed here for the same reason. Both do run some
+// JavaScript, but far less reliably than Googlebot, so a client-rendered route
+// is a coin flip for them - this is dynamic rendering, which both Bing and
+// Yandex document as an accepted way to serve a JS-heavy site. The markup they
+// get here describes the same post a human sees, so it is not cloaking.
+//
+// Vercel routes only those user-agents here (see client/vercel.json); browsers
+// and Googlebot keep getting the normal SPA, since Googlebot renders it fine
+// and the full page is richer than this card. The URL is unchanged by the
+// rewrite, so the canonical below is self-referencing.
 
 const express = require("express");
 const router = express.Router();
