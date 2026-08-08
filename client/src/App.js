@@ -225,12 +225,14 @@ const AppContent = () => {
 
         {/* Dashboard layout - shared chrome (navbar/sidebar/footer) for every
             /dash/* route. The country requirement deliberately does NOT live
-            here: it sits on the nested pathless CountryGuard route below, so
-            that post detail pages stay reachable without a selected country.
+            here: it sits on the nested pathless CountryGuard route further
+            down, wrapping only the auth-gated subtree that has no fallback UI
+            of its own for a missing country. Post detail, dashboard home, and
+            the posts listing all stay outside it - see the comments at each.
             Guarding the whole layout redirected every visitor with no stored
             country - which includes search engine crawlers, who carry no
-            localStorage - straight back to "/", making post pages impossible
-            to index and breaking shared post links for first-time visitors. */}
+            localStorage - straight back to "/", making those pages impossible
+            to index and breaking shared links for first-time visitors. */}
         <Route path="dash" element={
           <Suspense fallback={<LoadingFallback />}>
             <DashLayout />
@@ -248,26 +250,34 @@ const AppContent = () => {
             </Suspense>
           } />
 
-          {/* Everything below needs a country to filter its data by. */}
+          {/* Dashboard home and the posts listing are also outside
+              CountryGuard, for the same reason as post detail above: both
+              Dash.js and PostsList.js already render their own
+              "please select a country" screen (with real SeoMeta) when
+              currentCountry is empty - CountryGuard's hard redirect to "/"
+              was firing first and pre-empting that, so a crawler with no
+              stored country (i.e. every crawler) never reached it. That made
+              /dash/posts the one page linking to individual posts
+              unreachable, even after post detail pages themselves were
+              fixed. */}
+          <Route index element={
+            <PrefetchDependencies>
+              <Suspense fallback={<DashboardSkeleton />}>
+                <Dash />
+              </Suspense>
+            </PrefetchDependencies>
+          } />
+          <Route path="posts" element={
+            <PrefetchDependencies>
+              <Suspense fallback={<PostsListSkeleton />}>
+                <PostsList />
+              </Suspense>
+            </PrefetchDependencies>
+          } />
+
+          {/* Everything below needs a country to filter its data by, and has
+              no fallback UI of its own for a missing one. */}
           <Route element={<CountryGuard><Outlet /></CountryGuard>}>
-            {/* Dashboard home - public access */}
-            <Route index element={
-              <PrefetchDependencies>
-                <Suspense fallback={<DashboardSkeleton />}>
-                  <Dash />
-                </Suspense>
-              </PrefetchDependencies>
-            } />
-
-            {/* Posts routes - public access with dependency prefetching */}
-            <Route path="posts" element={
-              <PrefetchDependencies>
-                <Suspense fallback={<PostsListSkeleton />}>
-                  <PostsList />
-                </Suspense>
-              </PrefetchDependencies>
-            } />
-
             {/* Protected routes - require authentication for creating/editing posts and admin actions */}
             <Route element={
               <ProtectedRoute requireAuth={true} requireCountry={true}>
