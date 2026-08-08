@@ -189,6 +189,10 @@ app.use("/", require("./routes/root"));
 // https://www.mafqoudat.com/sitemap-posts.xml via the Vercel rewrite, so that
 // the sitemap index and all its children share the site's own origin.
 app.use("/", require("./routes/sitemapRoutes"));
+// Open Graph cards for social scrapers. Reached in production as
+// https://www.mafqoudat.com/dash/posts/:id via a user-agent-conditional Vercel
+// rewrite, so the shared URL and the rendered card share one origin.
+app.use("/", require("./routes/ogRoutes"));
 app.use("/dashboard", require("./routes/dashRoutes"));
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/auth", require("./routes/googleAuthRoutes"));
