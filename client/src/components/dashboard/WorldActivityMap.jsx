@@ -110,6 +110,14 @@ const WorldActivityMap = ({
   const CITY_MAX_RADIUS = 12;
   const cityRadius = (count) => CITY_MIN_RADIUS + (count / maxCityCount) * (CITY_MAX_RADIUS - CITY_MIN_RADIUS);
 
+  // Cities that got at least one new post today — the only ones that get a
+  // "+N" badge. todayCount comes from the same cityActivity aggregation as
+  // `count`, over the same server-local day window the header's "+N today"
+  // stats use, so the two never disagree. Falls back to no badges at all
+  // (rather than badging totals) when talking to a server that predates the
+  // field, since a total-count badge labelled "+N" would read as "N new".
+  const citiesWithNewToday = useMemo(() => cities.filter((c) => (c.todayCount || 0) > 0), [cities]);
+
   // Post-count badge above each city dot ("+12"). Sized in SVG user units
   // rather than CSS, so it scales with the map exactly like the dots and
   // city labels do. Width is approximated from the label's character count
@@ -223,13 +231,13 @@ const WorldActivityMap = ({
         </Marker>
       ))}
 
-      {/* Count badges in their own pass after all dots/labels, so a badge is
-          never overlapped by a neighbouring city's marker drawn later. The
-          number is the city's real post count from the same cityActivity
-          aggregation that sizes the dot — the badge just makes it readable
-          instead of leaving it encoded in radius alone. */}
-      {cities.map((city, index) => {
-        const label = `+${city.count}`;
+      {/* Today's-new-posts badges, in their own pass after all dots/labels
+          so a badge is never overlapped by a neighbouring city's marker
+          drawn later. Only cities with activity today are badged — the dot
+          radius still encodes each city's all-time total, so the two layers
+          answer different questions instead of repeating one. */}
+      {citiesWithNewToday.map((city, index) => {
+        const label = `+${city.todayCount}`;
         const width = badgeWidth(label);
         const anchorY = -(cityRadius(city.count) + 6);
         return (

@@ -1023,6 +1023,11 @@ const getDashboard = async (req, res) => {
           displayName: { $ifNull: [`$CityDoc.labels.${language}`, `$CityDoc.labels.en`] },
           city: 1,
           exactLocation: 1,
+          // Counted client-side in the grouping below rather than as a
+          // separate $facet branch, so today's per-city tally uses exactly
+          // the same city-resolution/fallback path as the total count and
+          // the two can never disagree about which city a post belongs to.
+          createdAt: 1,
         },
       },
     ]);
@@ -1048,9 +1053,15 @@ const getDashboard = async (req, res) => {
       if (!geocodeName) return;
       const displayName = post.displayName || geocodeName;
       const key = geocodeName.toLowerCase();
+      // Same day boundaries createdToday uses (server-local midnight to
+      // midnight), so a city's "today" badge on the map and the header's
+      // "+N today" stats always cover the identical window.
+      const createdAt = post.createdAt ? new Date(post.createdAt) : null;
+      const isToday = Boolean(createdAt && createdAt >= todayStart && createdAt < todayEnd);
       const existing = cityCounts.get(key);
       if (existing) {
         existing.count += 1;
+        if (isToday) existing.todayCount += 1;
         // Prefer the linked City doc's localized label over a name
         // recovered from free text, regardless of which post the grouping
         // happened to see first.
@@ -1059,15 +1070,15 @@ const getDashboard = async (req, res) => {
           existing.hasCityDoc = true;
         }
       } else {
-        cityCounts.set(key, { geocodeName, displayName, count: 1, hasCityDoc });
+        cityCounts.set(key, { geocodeName, displayName, count: 1, todayCount: isToday ? 1 : 0, hasCityDoc });
       }
     });
 
     const cityActivity = [];
     if (currentCountryDoc?.code) {
-      cityCounts.forEach(({ geocodeName, displayName, count }) => {
+      cityCounts.forEach(({ geocodeName, displayName, count, todayCount }) => {
         const geo = geocodeCityName(geocodeName, currentCountryDoc.code);
-        if (geo) cityActivity.push({ name: displayName, count, lon: geo.lon, lat: geo.lat });
+        if (geo) cityActivity.push({ name: displayName, count, todayCount, lon: geo.lon, lat: geo.lat });
       });
     }
 
