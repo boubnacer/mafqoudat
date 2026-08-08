@@ -20,10 +20,11 @@ import {
   Alert,
   Animated,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import apiClient from '../api/apiService';
-import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
+import { API_ENDPOINTS, API_BASE_URL, WEB_BASE_URL } from '../config/api';
 import { getCategoryConfig } from '../config/categories';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -301,6 +302,32 @@ const PostDetailScreen = ({ navigation, route }) => {
 
   const openActionsSheet = () => setActionsSheetVisible(true);
 
+  // Shares the same URL the web OG-card endpoint (server/routes/ogRoutes.js)
+  // renders a real preview for, and that App Links/Universal Links (see
+  // app.config.js) route straight back into this screen on a device with the
+  // app installed - so this button, that card, and the deep link config are
+  // one feature split across three files.
+  const handleSharePost = async () => {
+    const url = `${WEB_BASE_URL}/dash/posts/${post._id}`;
+    const categoryLabel = categories
+      .map((cat) => getLocalizedLabel(cat, currentLanguage))
+      .filter(Boolean)
+      .join(', ');
+    const message = categoryLabel
+      ? t('shareMessage', { status: badgeLabel, item: categoryLabel, city: cityLabel || t('unknownCity'), url })
+      : t('shareMessageNoCategory', { status: badgeLabel, city: cityLabel || t('unknownCity'), url });
+
+    try {
+      await Share.share({ message, url });
+    } catch (err) {
+      // User-cancelled share sheets also land here on both platforms - only
+      // surface a toast for an actual failure, not a dismissal.
+      if (err?.message && !/cancel/i.test(err.message)) {
+        showToast(t('shareFailed'));
+      }
+    }
+  };
+
   const handleEditPost = () => {
     navigation.navigate('EditPostScreen', { id: post._id });
   };
@@ -337,16 +364,26 @@ const PostDetailScreen = ({ navigation, route }) => {
         showMenu={false}
         onBack={() => navigation.goBack()}
         rightActions={
-          canManage ? (
+          <View style={styles.headerActionsRow}>
             <TouchableOpacity
-              onPress={openActionsSheet}
+              onPress={handleSharePost}
               style={styles.headerActionsButton}
-              accessibilityLabel={t('moreOptions')}
+              accessibilityLabel={t('sharePost')}
               hitSlop={8}
             >
-              <Ionicons name="ellipsis-vertical" size={20} color={tokens.ink} />
+              <Ionicons name="share-outline" size={20} color={tokens.ink} />
             </TouchableOpacity>
-          ) : null
+            {canManage ? (
+              <TouchableOpacity
+                onPress={openActionsSheet}
+                style={styles.headerActionsButton}
+                accessibilityLabel={t('moreOptions')}
+                hitSlop={8}
+              >
+                <Ionicons name="ellipsis-vertical" size={20} color={tokens.ink} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
         }
       />
       <ScrollView
@@ -593,6 +630,10 @@ const createStyles = (tokens, isRTL, isDark) =>
       justifyContent: 'center',
       alignItems: 'center',
       padding: 24,
+    },
+    headerActionsRow: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
     },
     headerActionsButton: {
       width: 38,

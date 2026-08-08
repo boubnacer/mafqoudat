@@ -130,6 +130,12 @@ export const translations = {
     reportThisPost: "Report this post",
     moreOptions: "More options",
     menu: "Menu",
+
+    // Share post (see PostDetailScreen.js)
+    sharePost: "Share post",
+    shareMessage: "{status}: {item} in {city} - {url}",
+    shareMessageNoCategory: "{status} in {city} - {url}",
+    shareFailed: "Couldn't share this post. Please try again.",
     reportPost: "Report Post",
     reportPostDescription: "Please select a reason for reporting this post. This helps us review and take appropriate action.",
     selectReportReason: "Select Report Reason",
@@ -515,6 +521,12 @@ export const translations = {
     reportThisPost: "Signaler cette publication",
     moreOptions: "Plus d'options",
     menu: "Menu",
+
+    // Share post (see PostDetailScreen.js)
+    sharePost: "Partager la publication",
+    shareMessage: "{status} : {item} à {city} - {url}",
+    shareMessageNoCategory: "{status} à {city} - {url}",
+    shareFailed: "Impossible de partager cette publication. Veuillez réessayer.",
     reportPost: "Signaler la publication",
     reportPostDescription: "Veuillez sélectionner une raison pour signaler cette publication. Cela nous aide à examiner et à prendre les mesures appropriées.",
     selectReportReason: "Sélectionner la raison du signalement",
@@ -910,6 +922,11 @@ export const translations = {
     // Report Post
     reportThisPost: "الإبلاغ عن هذا المنشور",
     moreOptions: "خيارات إضافية",
+    // Share post (see PostDetailScreen.js)
+    sharePost: "مشاركة المنشور",
+    shareMessage: "{status}: {item} في {city} - {url}",
+    shareMessageNoCategory: "{status} في {city} - {url}",
+    shareFailed: "تعذّرت مشاركة هذا المنشور. حاول مرة أخرى.",
     menu: "القائمة",
     reportPost: "إبلاغ عن المنشور",
     reportPostDescription: "يرجى اختيار سبب للإبلاغ عن هذا المنشور. هذا يساعدنا في المراجعة واتخاذ الإجراء المناسب.",

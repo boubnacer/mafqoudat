@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.com.mafqoudat.app",
+        "paths": ["/dash/posts/*"]
+      }
+    ]
+  }
+}
