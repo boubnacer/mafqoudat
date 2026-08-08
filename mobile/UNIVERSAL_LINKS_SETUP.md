@@ -81,15 +81,20 @@ additional string in that array — it's a list, not a single value.
   whether the values are *correct* for your app) —
   https://developers.google.com/digital-asset-links/tools/generator
 
-## Known limitation (by design, not a bug)
+## Deferred deep linking
 
-If someone taps a post link on a fresh install with no app data yet (no
-country picked, not signed in), the app opens to the normal
-Onboarding/Welcome screen, **not** the post — `PostDetailScreen` only exists
-in the navigator that mounts once a country is set (see `App.js`'s
-`AppNavigator` vs `AuthNavigator`), so the linking config has nothing to
-match against yet. This is a plain cold start, not a crash or an error.
-Carrying the pending post through onboarding and resuming it afterward
-("deferred deep linking") is a real feature some apps add, but it's a
-separate, larger piece of work than what this fixes — ask if you want it
-scoped.
+A post link tapped on a fresh install (no country picked, not signed in)
+doesn't get dropped: `App.js`'s `RootNavigator` captures the URL
+independently of the `linking` config above — via `Linking.getInitialURL()` /
+`Linking.addEventListener('url', ...)`, gated so it only captures while
+`AuthNavigator` (no `PostDetailScreen` route) is what's mounted — and
+replays it as soon as the user picks a country and `AppNavigator` takes
+over. The user sees Onboarding/Welcome first, same as any first launch, and
+lands on the post right after finishing that step rather than on Home.
+
+Session-scoped only: if the OS kills the app before a country gets picked,
+the pending post is lost on the next launch rather than persisted across
+restarts. That mirrors this codebase's existing pattern for pending
+navigation intent (`AuthContext`'s `loginNotice`), which makes the same
+tradeoff, and adding `SecureStore`/`AsyncStorage` persistence for a case
+this narrow isn't worth the extra surface.

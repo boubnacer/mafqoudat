@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { getStateFromPath } from '@react-navigation/core';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts, Cairo_700Bold, Cairo_400Regular } from '@expo-google-fonts/cairo';
@@ -38,7 +39,7 @@ import MyPostsScreen from './src/screens/MyPostsScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
-import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Text, Linking } from 'react-native';
 
 // Runs once, at module evaluation, before anything renders - see validateEnv.js.
 validateEnv();
@@ -63,11 +64,13 @@ const Stack = createNativeStackNavigator();
 // config (app.config.js's associatedDomains/intentFilters, plus the
 // .well-known files served by the web app) is fully live.
 //
-// Only takes effect when AppNavigator is the mounted tree (see
-// RootNavigator's showAppShell below) - a shared link opened on a fresh
-// install with no country/session yet lands on the normal Onboarding/Welcome
-// flow rather than the post, since PostDetailScreen isn't registered in
-// AuthNavigator. No deferred-deep-link handling for that case today.
+// This config only resolves a URL against whichever navigator is CURRENTLY
+// mounted - it can't reach PostDetailScreen while AuthNavigator (no country/
+// session yet) is what's showing. RootNavigator's deferred-link handling
+// below covers that case: it captures the same URL independently and replays
+// it once AppNavigator takes over, using getStateFromPath directly against
+// this exact object so the two can never disagree on what counts as an
+// openable post link.
 const linking = {
   prefixes: ['mafqoudat://', 'https://mafqoudat.com', 'https://www.mafqoudat.com'],
   config: {
@@ -75,6 +78,33 @@ const linking = {
       PostDetailScreen: 'dash/posts/:id',
     },
   },
+};
+
+// Shared by both NavigationContainer's automatic resolution above and
+// RootNavigator's manual capture below - returns a post id if (and only if)
+// `url` is one this app treats as an openable post, else null.
+const resolvePendingPostId = (url) => {
+  if (!url) return null;
+  const prefix = linking.prefixes.find((p) => url.startsWith(p));
+  const path = prefix ? url.slice(prefix.length) : url;
+  const state = getStateFromPath(path, linking.config);
+  const route = state?.routes?.[0];
+  return route?.name === 'PostDetailScreen' ? route.params?.id ?? null : null;
+};
+
+// Retries navigationRef.navigate until the container reports ready, rather
+// than a single fixed delay: RootNavigator's effect below fires the instant
+// AppNavigator mounts, and while that's typically enough for
+// NavigationContainer to already be ready, there is no hard guarantee of it
+// on every device/timing - the docs-recommended pattern for "navigate right
+// after a navigator swap" is poll-until-ready, not a guessed timeout.
+const navigateWhenReady = (screen, params, attemptsLeft = 20) => {
+  if (navigationRef.isReady()) {
+    navigationRef.navigate(screen, params);
+    return;
+  }
+  if (attemptsLeft <= 0) return;
+  setTimeout(() => navigateWhenReady(screen, params, attemptsLeft - 1), 50);
 };
 
 // Pre-country navigator: Onboarding (first launch only) -> Welcome (country/language
@@ -138,6 +168,64 @@ const RootNavigator = () => {
   const { isActive, message, estimatedReturn } = useMaintenance();
   const { colors, isDark } = useTheme();
 
+  // A country pick (even without signing in) is enough to unlock guest
+  // browsing - only a user who has never chosen one gets funneled through
+  // AuthNavigator's Onboarding/Welcome first.
+  const showAppShell = isSignedIn || hasCountry;
+
+  // Deferred deep link: a post URL that opens/resumes the app while
+  // AuthNavigator (no PostDetailScreen route registered) is what's mounted
+  // would otherwise be silently dropped by the `linking` config above, since
+  // that only resolves against the currently-active navigator. This captures
+  // it independently and replays it the moment showAppShell flips true.
+  //
+  // Deliberately does nothing when showAppShell is ALREADY true at capture
+  // time - NavigationContainer's own `linking` prop already resolves and
+  // navigates correctly for that case (verified: getStateFromPath matches
+  // dash/posts/:id against AppNavigator's registered screens), and also
+  // re-firing here would risk a double-navigate.
+  //
+  // Session-scoped only, matching this codebase's existing convention for
+  // pending navigation intent (see AuthContext's loginNotice): if the OS
+  // kills the app before a country gets picked, the pending post is lost on
+  // next launch rather than persisted - the same tradeoff loginNotice makes,
+  // and disproportionate to add SecureStore/AsyncStorage persistence for.
+  const showAppShellRef = useRef(showAppShell);
+  const [pendingPostId, setPendingPostId] = useState(null);
+
+  useEffect(() => {
+    showAppShellRef.current = showAppShell;
+  }, [showAppShell]);
+
+  useEffect(() => {
+    const captureIfDeferred = (url) => {
+      // Read via the ref, not the `showAppShell` closed over at effect-setup
+      // time (this effect's deps are intentionally empty - see below) - it
+      // needs this listener's live value, not its value when first mounted.
+      if (showAppShellRef.current) return;
+      const id = resolvePendingPostId(url);
+      if (id) setPendingPostId(id);
+    };
+
+    Linking.getInitialURL().then(captureIfDeferred);
+    // Deliberately not in the dependency array: re-subscribing on every
+    // showAppShell change would create a window, between unsubscribe and
+    // resubscribe, where an incoming URL is missed entirely.
+    const subscription = Linking.addEventListener('url', ({ url }) => captureIfDeferred(url));
+    return () => subscription.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!showAppShell || !pendingPostId) return;
+    navigateWhenReady('PostDetailScreen', { id: pendingPostId });
+    // Consumed once queued (not only once navigated - navigateWhenReady's own
+    // retries handle the rare case navigationRef isn't ready yet): prevents
+    // this from re-firing on a later showAppShell toggle within the same
+    // session (e.g. sign out, then pick a country again).
+    setPendingPostId(null);
+  }, [showAppShell, pendingPostId]);
+
   if (isActive) {
     return <MaintenanceOverlay message={message} estimatedReturn={estimatedReturn} />;
   }
@@ -150,11 +238,6 @@ const RootNavigator = () => {
       </View>
     );
   }
-
-  // A country pick (even without signing in) is enough to unlock guest
-  // browsing - only a user who has never chosen one gets funneled through
-  // AuthNavigator's Onboarding/Welcome first.
-  const showAppShell = isSignedIn || hasCountry;
 
   return (
     <NavigationContainer
