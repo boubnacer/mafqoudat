@@ -24,7 +24,7 @@ import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import WorldActivityMap from '../components/dashboard/WorldActivityMap';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
-import { alignEnd, alignStart, logical, row } from '../utils/rtl';
+import { alignEnd, alignStart, logical, needsDirectionFlip, row } from '../utils/rtl';
 import { formatRelativeTime } from '../utils/relativeTime';
 
 const SECTION_COUNT = 6;
@@ -656,7 +656,12 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontSize: 20,
       color: tokens.ink,
       marginBottom: 14,
-      textAlign: isRTL ? 'right' : 'left',
+      // Plain `isRTL ? 'right' : 'left'` is wrong here: RN swaps explicit
+      // left/right textAlign back once native RTL mirroring is on
+      // (I18nManager.doLeftAndRightSwapInRTL) - see posterCategoryLabel/
+      // posterDateText below for the same gotcha. needsDirectionFlip
+      // compensates so this lands on the right edge in Arabic either way.
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
     },
 
     // Dashboard header: Statistics panel then the world activity map panel,
@@ -1062,14 +1067,14 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 12,
       color: tokens.ink,
-      textAlign: isRTL ? 'right' : 'left',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       marginBottom: 2,
     },
     safetyFooterBody: {
       fontFamily: fontFamilies.body,
       fontSize: 11,
       color: `${tokens.ink}80`,
-      textAlign: isRTL ? 'right' : 'left',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       lineHeight: 16,
     },
   });
