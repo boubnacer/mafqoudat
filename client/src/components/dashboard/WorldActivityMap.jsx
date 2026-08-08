@@ -110,6 +110,17 @@ const WorldActivityMap = ({
   const CITY_MAX_RADIUS = 12;
   const cityRadius = (count) => CITY_MIN_RADIUS + (count / maxCityCount) * (CITY_MAX_RADIUS - CITY_MIN_RADIUS);
 
+  // Post-count badge above each city dot ("+12"). Sized in SVG user units
+  // rather than CSS, so it scales with the map exactly like the dots and
+  // city labels do. Width is approximated from the label's character count
+  // (no text metrics available at render time in SVG) — 6.2 units per glyph
+  // at fontSize 11 bold, plus horizontal padding, floored so a single-digit
+  // badge still reads as a pill rather than a circle.
+  const BADGE_HEIGHT = 18;
+  const BADGE_FONT_SIZE = 11;
+  const badgeWidth = (label) => Math.max(26, label.length * 6.2 + 12);
+  const badgeText = theme.palette.getContrastText(brand);
+
   const currentNumericId = currentCountryCode ? ISO2_TO_NUMERIC[currentCountryCode] : null;
 
   const currentFeature = useMemo(() => {
@@ -211,6 +222,47 @@ const WorldActivityMap = ({
           </text>
         </Marker>
       ))}
+
+      {/* Count badges in their own pass after all dots/labels, so a badge is
+          never overlapped by a neighbouring city's marker drawn later. The
+          number is the city's real post count from the same cityActivity
+          aggregation that sizes the dot — the badge just makes it readable
+          instead of leaving it encoded in radius alone. */}
+      {cities.map((city, index) => {
+        const label = `+${city.count}`;
+        const width = badgeWidth(label);
+        const anchorY = -(cityRadius(city.count) + 6);
+        return (
+          <Marker key={`${city.name}-${index}-count`} coordinates={[city.lon, city.lat]}>
+            <g pointerEvents="none">
+              {/* Panel-colored halo, same trick the city label uses: keeps
+                  the pill legible over a saturated country fill without
+                  needing an opaque plate behind it. */}
+              <rect
+                x={-width / 2}
+                y={anchorY - BADGE_HEIGHT}
+                width={width}
+                height={BADGE_HEIGHT}
+                rx={BADGE_HEIGHT / 2}
+                fill={brand}
+                stroke={panel}
+                strokeWidth={2}
+              />
+              <text
+                x={0}
+                y={anchorY - BADGE_HEIGHT / 2}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={BADGE_FONT_SIZE}
+                fontWeight={700}
+                fill={badgeText}
+              >
+                {label}
+              </text>
+            </g>
+          </Marker>
+        );
+      })}
     </ComposableMap>
   ) : (
     <Box sx={{ width: "100%", height: "100%", backgroundColor: alpha(ink, 0.05) }} />
