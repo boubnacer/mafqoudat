@@ -679,7 +679,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingTop: 20,
       paddingHorizontal: 20,
       paddingBottom: 8,
-      ...getElevation(isDark, 2),
     },
     imageWrapper: {
       position: 'relative',
@@ -697,6 +696,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingVertical: 6,
       borderRadius: radiusTokens.sm,
       ...logical(isRTL, { start: 12 }),
+      ...getElevation(isDark, 1),
     },
     statusTagText: {
       color: '#FFFFFF',
@@ -712,6 +712,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderRadius: radiusTokens.sm,
       backgroundColor: `${tokens.surfaceRaised}D9`,
       ...logical(isRTL, { end: 12 }),
+      ...getElevation(isDark, 1),
     },
     dateBadgeText: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -746,6 +747,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderRadius: radiusTokens.sm,
       ...logical(isRTL, { marginEnd: 8 }),
       marginBottom: 8,
+      ...getElevation(isDark, 1),
     },
     // Gap between the chip's own icon and label, so it needs to flip with
     // categoryChip's manual reversal above - marginEnd resolves just as

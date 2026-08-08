@@ -31,25 +31,6 @@ const PHONE_REGEX = /^[+]?[\d\s\-()]{7,20}$/;
 const BRAND_WORDMARK = require('../../assets/mafWordmark.png');
 const WORDMARK_RATIO = 984 / 213;
 
-// Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
-// as RN shadow/elevation props - same shadow color/opacity the web cards use.
-const getElevation = (isDark, level = 1) =>
-  level === 2
-    ? {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: isDark ? 0.45 : 0.1,
-        shadowRadius: 16,
-        elevation: 4,
-      }
-    : {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: isDark ? 0.4 : 0.06,
-        shadowRadius: 2,
-        elevation: 2,
-      };
-
 const LoginScreen = ({ navigation }) => {
   const {
     signInWithGoogle,
@@ -453,7 +434,6 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     backgroundColor: tokens.surfaceRaised,
     borderRadius: radiusTokens.xl,
     padding: 22,
-    ...getElevation(isDark, 2),
   },
   fieldGroup: {
     marginBottom: 18,

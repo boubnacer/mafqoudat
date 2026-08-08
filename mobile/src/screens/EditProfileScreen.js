@@ -35,25 +35,6 @@ import AppHeader from '../components/AppHeader';
 import SelectModal from '../components/SelectModal';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
-// Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
-// as RN shadow/elevation props - same shadow color/opacity LoginScreen/ProfileScreen use.
-const getElevation = (isDark, level = 1) =>
-  level === 2
-    ? {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: isDark ? 0.45 : 0.1,
-        shadowRadius: 16,
-        elevation: 4,
-      }
-    : {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: isDark ? 0.4 : 0.06,
-        shadowRadius: 2,
-        elevation: 2,
-      };
-
 const EditProfileScreen = ({ navigation, route }) => {
   const { user } = route.params || {};
   const { refreshSession } = useAuth();
@@ -335,7 +316,6 @@ const createStyles = (tokens, legacy, isDark, isRTL) =>
       borderRadius: radiusTokens.xl,
       padding: 20,
       marginBottom: 20,
-      ...getElevation(isDark, 2),
     },
     fieldGroup: {
       marginBottom: 18,
