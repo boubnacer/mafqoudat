@@ -656,7 +656,6 @@ const SinglePostPage = ({
             sx={{
               borderRadius: `${theme.custom.radius.lg}px`,
               overflow: 'hidden',
-              borderInlineStart: `6px solid ${statusTone.main}`,
               backgroundColor: theme.custom.color.surfaceRaised,
               boxShadow: theme.custom.elevation.e1,
             }}
