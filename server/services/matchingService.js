@@ -45,6 +45,27 @@ const WEIGHTS = {
 const SHARED_REFERENCE_BONUS = 8;
 const KEYWORD_MAX = WEIGHTS.keywords + SHARED_REFERENCE_BONUS;
 
+// Confidence band boundaries, shared with the API layer so the label a user
+// sees and the score the engine assigns can never drift apart.
+const GOOD_MATCH_SCORE = 55;
+const STRONG_MATCH_SCORE = 75;
+
+// A shared category in the same city is treated as a strong lead in its own
+// right, whatever the free-text signals say. Two people in one city, one
+// reporting a lost item and one reporting a found item of the same kind, is the
+// exact situation this platform exists to resolve - and descriptions are the
+// least reliable part of a listing (often blank, often written in a different
+// language from the other side). On weights alone that pair scores 50, which
+// reads as a lukewarm "possible match"; the floor below lifts it into the
+// strong band so it is labelled - and delivered - as the lead it actually is.
+//
+// Consequence worth knowing: `score` can exceed the sum of `breakdown` when
+// this applies. The breakdown stays a faithful record of what each signal
+// earned, so keep reading it as an explanation, not as an addend list.
+const applyCoreMatchFloor = (total, { sameCategory, sameCity }) => (
+  sameCategory && sameCity ? Math.max(total, STRONG_MATCH_SCORE) : total
+);
+
 const readIntEnv = (name, fallback, { min, max }) => {
   const parsed = Number.parseInt(process.env[name], 10);
   const value = Number.isNaN(parsed) ? fallback : parsed;
@@ -248,9 +269,18 @@ const scorePair = (post, candidate, roles) => {
     || (dates.daysApart !== null && dates.daysApart <= 10);
   if (!corroborated) return null;
 
+  const earned = Math.round(
+    categoryPoints + cityPoints + locationPoints + datePoints + keywordPoints
+  );
   const total = Math.min(
     100,
-    Math.round(categoryPoints + cityPoints + locationPoints + datePoints + keywordPoints)
+    applyCoreMatchFloor(earned, {
+      // Always true this far in - the early return above rejects a pair with no
+      // shared category - but passed explicitly so the rule reads as its own
+      // condition rather than depending on where it sits in the function.
+      sameCategory: shared > 0,
+      sameCity: cityPoints > 0,
+    })
   );
   if (total < STORE_MIN_SCORE) return null;
 
@@ -609,4 +639,6 @@ module.exports = {
   WEIGHTS,
   STORE_MIN_SCORE,
   NOTIFY_MIN_SCORE,
+  GOOD_MATCH_SCORE,
+  STRONG_MATCH_SCORE,
 };

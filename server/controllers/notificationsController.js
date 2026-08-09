@@ -25,10 +25,14 @@ const pickLabel = (labels, language) => {
 /**
  * Confidence bands. The raw score is still sent, but the band is what the UI
  * leads with - "strong match" is far more actionable to a reader than "78".
+ *
+ * The boundaries come from the engine rather than being restated here: it
+ * floors same-category-same-city pairs onto the strong boundary exactly, so a
+ * copy of that number drifting by one would silently relabel every such match.
  */
 const scoreTier = (score) => {
-  if (score >= 75) return 'strong';
-  if (score >= 55) return 'good';
+  if (score >= matchingService.STRONG_MATCH_SCORE) return 'strong';
+  if (score >= matchingService.GOOD_MATCH_SCORE) return 'good';
   return 'possible';
 };
 
@@ -546,7 +550,16 @@ const updatePreferences = async (req, res) => {
       if (!Number.isFinite(minScore) || minScore < 0 || minScore > 100) {
         return res.status(400).json({ success: false, message: 'minScore must be between 0 and 100' });
       }
-      updates['notificationPreferences.minScore'] = Math.round(minScore);
+      // Capped at the strong-match boundary. A same-category, same-city pair is
+      // floored onto exactly that score by the engine, and that pair is the one
+      // case the product guarantees reaches its owner - a preference above it
+      // would silently suppress the strongest lead the platform can produce.
+      // The client's slider already stops here; this makes it true for any
+      // caller.
+      updates['notificationPreferences.minScore'] = Math.min(
+        matchingService.STRONG_MATCH_SCORE,
+        Math.round(minScore)
+      );
     }
 
     if (Object.keys(updates).length === 0) {

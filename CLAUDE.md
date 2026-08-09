@@ -66,13 +66,24 @@ not just token parity.
   category, within `MATCH_LOOKBACK_DAYS`. Scores each pair 0-100 on five weighted signals:
   category 30 / city 20 / location-text 10 / date 15 / keywords 25 (+8 bonus for a shared
   reference number). Category alone never qualifies — a pair needs at least one
-  corroborating signal. Pure helpers live in [textMatching.js](server/utils/textMatching.js)
+  corroborating signal. **Shared category + same city is floored onto the strong-match
+  boundary (75)** by `applyCoreMatchFloor`, whatever the other signals say: that pair is the
+  product's core promise, and free text is the least reliable part of a listing. Consequence:
+  `PostMatch.breakdown` can sum to less than `score` — it's a per-signal record, not the
+  arithmetic behind the total. `GOOD_MATCH_SCORE`/`STRONG_MATCH_SCORE` are exported and the
+  API's tier bands read them rather than restating the numbers.
+  Pure helpers live in [textMatching.js](server/utils/textMatching.js)
   (en/fr/ar script-normalized tokenizer + Dice similarity) and
   [postDates.js](server/utils/postDates.js) (parses the free-text `mainDate` written by
   `DateEntryDialog`, month names in all three languages).
 - **Tunables** (all env, all optional): `MATCH_MIN_SCORE` (store floor, 40),
   `MATCH_NOTIFY_MIN_SCORE` (notify floor, 50), `MATCH_EMAIL_MIN_SCORE` (70),
   `MATCH_LOOKBACK_DAYS` (180), `MATCH_CANDIDATE_LIMIT` (300), `MATCH_MAX_PER_RUN` (10).
+  `MATCH_LOOKBACK_DAYS` and `MATCH_MAX_PER_RUN` are the two levers on alert volume — with
+  the category+city floor in place, every same-category counterpart in the same city within
+  the lookback window is a strong match, so a dense city/category combination produces a lot
+  of them. The per-user confidence slider caps at 75 (client and API both) so a strong match
+  can never be filtered out by a preference; turning match alerts off entirely still works.
 - **Models**: [PostMatch.js](server/models/PostMatch.js) (the scored pair — canonical
   `postA`/`postB` ordering for its unique index, per-user `dismissedBy`) and
   [Notification.js](server/models/Notification.js) (one row per recipient, unique on

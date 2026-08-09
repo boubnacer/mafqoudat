@@ -124,10 +124,13 @@ const NotificationPreferences = () => {
       <Box sx={{ opacity: matchAlerts ? 1 : 0.5, pointerEvents: matchAlerts ? "auto" : "none" }}>
         {rowLabel(t('notifPrefMinScore'), t('notifPrefMinScoreDescription'))}
         <Box sx={{ paddingInline: 1, mt: 1 }}>
+          {/* Stops at 75, the strong-match boundary: a shared category in the
+              same city always scores exactly that, and letting the bar go above
+              it would mute the one match the product promises to deliver. */}
           <Slider
             value={minScore}
             min={50}
-            max={90}
+            max={75}
             step={5}
             marks
             valueLabelDisplay="auto"
