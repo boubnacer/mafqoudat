@@ -84,10 +84,12 @@ export const colorTokens = {
     ink: '#0B1220',
     surfaceBase: '#F7F8FB',
     surfaceRaised: '#FFFFFF',
-    // Variant of surfaceRaised for cards sitting directly on flat surfaceBase
-    // with nothing between them (posts list cards) — plain surfaceRaised was
-    // only ~3% off surfaceBase in light mode and the card nearly disappeared.
-    surfaceCard: '#EDEFF6',
+    // Backdrop for the posts list screens themselves (not the cards) —
+    // plain surfaceBase sat only ~3% off the white surfaceRaised cards on
+    // top of it, so the cards nearly disappeared. Gives those screens a
+    // slightly deeper tone than surfaceBase so the (plain white) cards read
+    // clearly against it.
+    postsListBackdrop: '#EDEFF6',
     status: {
       found: { main: '#1A8563', bg: '#E5F5EF' },
       lost: { main: '#C64335', bg: '#FBEAE8' },
@@ -98,8 +100,9 @@ export const colorTokens = {
     ink: '#EDEFF5',
     surfaceBase: '#0E1116',
     surfaceRaised: '#171B22',
-    // Dark mode already separates surfaceRaised from surfaceBase enough — unchanged.
-    surfaceCard: '#171B22',
+    // Equals surfaceBase's dark value verbatim (no-op) — surfaceRaised
+    // already separates from surfaceBase enough in dark mode.
+    postsListBackdrop: '#0E1116',
     status: {
       found: { main: '#3DDCA6', bg: 'rgba(61,220,166,0.16)' },
       lost: { main: '#FF6B5E', bg: 'rgba(255,107,94,0.16)' },

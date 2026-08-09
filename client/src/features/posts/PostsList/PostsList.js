@@ -824,7 +824,8 @@ const PostsList = () => {
         <Box sx={{
         p: { xs: 2, md: 4 },
         pt: { xs: "6rem", md: "7rem" },
-        minHeight: "100vh"
+        minHeight: "100vh",
+        backgroundColor: theme.custom.color.postsListBackdrop
       }}>
         {/* Header Section — a slim results line replaces the old full-sentence
             "Search for Found Items in Morocco..." title, which just restated

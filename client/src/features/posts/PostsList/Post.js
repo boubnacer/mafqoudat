@@ -45,15 +45,14 @@ import LazyCardMedia from "../../../components/LazyCardMedia";
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
 // Post card DNA — canonical here, mirrored by TrendingItem.jsx:
-// surfaceRaised + radius.lg + elevation.e1->e2 hover-lift. Uses surfaceCard
-// (not surfaceRaised) since this card sits directly on flat surfaceBase with
-// no panel/gradient between them — plain surfaceRaised was nearly invisible
-// against the page in light mode.
+// surfaceRaised + radius.lg + elevation.e1->e2 hover-lift. The page behind
+// this card (PostsList.js's root Box) uses postsListBackdrop rather than
+// plain surfaceBase specifically so this plain-white card stands out from it.
 const PostCardRoot = styled(Card)(({ theme }) => ({
   height: "100%",
   display: "flex",
   flexDirection: "column",
-  backgroundColor: theme.custom.color.surfaceCard,
+  backgroundColor: theme.custom.color.surfaceRaised,
   borderRadius: `${theme.custom.radius.lg}px`,
   boxShadow: theme.custom.elevation.e1,
   overflow: "hidden",
@@ -472,7 +471,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                 : '0 12px 40px rgba(0, 0, 0, 0.1)'),
           },
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-          backgroundColor: theme.custom.color.surfaceCard
+          backgroundColor: theme.custom.color.surfaceRaised
         }}
       >
 

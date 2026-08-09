@@ -776,14 +776,14 @@ const createStyles = (tokens, isRTL, isDark) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: tokens.surfaceBase,
+      backgroundColor: tokens.postsListBackdrop,
     },
     searchRow: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingTop: 12,
-      backgroundColor: tokens.surfaceBase,
+      backgroundColor: tokens.postsListBackdrop,
     },
     searchIcon: {
       position: 'absolute',
@@ -912,7 +912,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       marginBottom: 16,
     },
     postCardSkeleton: {
-      backgroundColor: tokens.surfaceCard,
+      backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
       marginBottom: 16,
       overflow: 'hidden',
@@ -937,10 +937,11 @@ const createStyles = (tokens, isRTL, isDark) =>
       width: '55%',
     },
 
-    // Post card - mirrors the web post card DNA: radius.lg, elevation e1. Uses
-    // surfaceCard (not surfaceRaised) since it sits directly on flat surfaceBase.
+    // Post card - mirrors the web post card DNA: surfaceRaised, radius.lg,
+    // elevation e1. The screen behind it uses postsListBackdrop (not plain
+    // surfaceBase) specifically so this plain-white card stands out from it.
     postCard: {
-      backgroundColor: tokens.surfaceCard,
+      backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
       marginBottom: 16,
       overflow: 'hidden',
