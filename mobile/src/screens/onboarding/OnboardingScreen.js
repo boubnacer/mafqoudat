@@ -3,11 +3,11 @@
  * hasSeenOnboarding flag), then never again. Slide 1 picks a language and
  * light/dark mode, slides 2-4 introduce the app (report, browse, filter),
  * slide 5 requires a country before "Get Started".
- * FlatList + Animated only (no reanimated/carousel/swiper lib), per the
+ * Animated + PanResponder only (no reanimated/carousel/swiper lib), per the
  * mobile app's existing dependency footprint.
  */
 
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import {
   StyleSheet,
   FlatList,
   Animated,
+  Easing,
+  PanResponder,
   Dimensions,
   TextInput,
   ActivityIndicator,
@@ -30,7 +32,7 @@ import { useTranslation } from '../../utils/translations';
 import apiClient from '../../api/apiService';
 import { getLocalizedLabel } from '../../context/ReferenceDataContext';
 import { colorTokens, radiusTokens, fontFamilies, lightColors } from '../../theme/tokens';
-import { NATIVE_RTL, needsDirectionFlip } from '../../utils/rtl';
+import { useMeasuredLayoutDirection } from '../../utils/rtl';
 import {
   WelcomeMascotIllustration,
   ReportIllustration,
@@ -50,45 +52,39 @@ const SLIDE_INDICES = Array.from({ length: SLIDE_COUNT }, (_, i) => i);
 // with the illustrations instead of the newer, different-shade brand token.
 const BRAND_BLUE = lightColors.primary;
 
-// The outer slides list drives scrollX with useNativeDriver: true (for smooth
-// per-slide fade/translate + dot interpolation) - a plain FlatList can't back
-// a native-driven onScroll, only an Animated-wrapped one can.
-const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
+// How far / how fast a drag has to go before it counts as a page turn.
+const SWIPE_DISTANCE_RATIO = 0.25;
+const SWIPE_VELOCITY = 0.35;
+const PAGE_DURATION = 280;
+// A drag only takes over the gesture once it is clearly horizontal, so the
+// country dropdown's own vertical list keeps its scrolling.
+const DRAG_ACTIVATION_DISTANCE = 8;
+const HORIZONTAL_DOMINANCE = 1.5;
 
-// I18nManager.isRTL is read from constants captured when the JS bundle loaded,
-// and LanguageContext only writes the native RTL preferences as part of a
-// relaunch - so neither the flag nor the view tree changes again while the app
-// runs. The layout direction is a per-session constant and belongs at module
-// scope, where it cannot be mistaken for something that tracks the currently
-// picked language. Sourced from utils/rtl.js so this screen and the rest of the
-// app agree on it rather than each capturing their own copy.
-const LAYOUT_IS_RTL = NATIVE_RTL;
-
-// The carousel's scroll container is pinned to LTR (styles.flatList's
-// `direction`), and every slide puts the session's real direction back for its
-// own contents (styles.slide). Only the paging mechanism is forced - nothing
-// the user reads is.
+// The carousel is a transform, not a scroll view, and that is the whole fix for
+// the Arabic slides.
 //
-// This is deliberate, because how a horizontal list reports and accepts
-// contentOffset.x under an RTL layout is not something JS can predict:
-// ScrollView.js and VirtualizedList.js contain no RTL handling at all, so
-// scrollToOffset passes the number straight through, while the native side
-// applies its own convention (see ReactHorizontalScrollView.java's "offsets are
-// from the right edge in RTL layouts") - and which one you get depends on the
-// platform AND on whether the renderer laid the content out mirrored. Guessing
-// it per platform is what made "Next" jump several slides and never reach the
-// last one on Arabic.
+// A horizontal ScrollView/FlatList has no portable relationship between "slide
+// index" and contentOffset.x once the layout is RTL: ScrollView.js and
+// VirtualizedList.js contain no RTL handling at all, so scrollToOffset passes
+// the number straight through, while the native side applies its own convention
+// (ReactHorizontalScrollView.java: "offsets are from the right edge in RTL
+// layouts"). Which one you actually get depends on the platform AND on whether
+// the tree was really laid out mirrored - and after a JS-level relaunch it may
+// not be, whatever I18nManager says (see useMeasuredLayoutDirection). Every
+// index <-> offset guess is therefore wrong in at least one of those
+// combinations: that mismatch is what left the scroll position and the slide
+// fades out of sync, so the slide on screen interpolated to opacity 0 and slides
+// 2-5 came up blank white in Arabic.
 //
-// With the container LTR the question disappears: slide i always rests at
-// i * SCREEN_WIDTH, on every platform and in every language, so index <-> offset
-// is plain identity and the fade interpolations below track the real position.
-// The cost is that the carousel advances left-to-right even in Arabic, in both
-// swipe and "Next" - the dots follow that same physical order, while the CTA
-// arrow keeps pointing the way the language reads.
-const CAROUSEL_DIRECTION = 'ltr';
-const offsetForIndex = (index) => index * SCREEN_WIDTH;
-const indexForOffset = (x) =>
-  Math.min(SLIDE_COUNT - 1, Math.max(0, Math.round(x / SCREEN_WIDTH)));
+// translateX has no such convention. React Native never mirrors transforms, so
+// `translateX: (index - progress) * width` puts slide i in exactly the same
+// physical place in every language, on every platform, laid out either way.
+// `progress` (in slide units) is the single source of truth for both the paging
+// and the per-slide fade, so they cannot drift apart, and the animations look
+// identical in RTL and LTR - which is the intent: only text, icons and control
+// rows follow the language, never the motion.
+const clampIndex = (index) => Math.min(SLIDE_COUNT - 1, Math.max(0, index));
 
 // Same wordmark image LoginScreen/SignUpScreen/AppHeader use in place of a
 // text brand name.
@@ -120,29 +116,43 @@ const OnboardingScreen = () => {
   // them apart is what makes it survive a language switch:
   //
   // - isRTL is the direction the PICKED LANGUAGE wants. It flips the instant
-  //   Arabic is tapped.
-  // - LAYOUT_IS_RTL is the direction the view tree is ACTUALLY laid out in for
-  //   this session, which does NOT follow isRTL until the app is restarted.
+  //   Arabic is tapped, and it drives content only: which arrow glyph to show,
+  //   which edge text hangs off.
+  // - layoutIsRTL is the direction the view tree is ACTUALLY laid out in, which
+  //   does NOT follow isRTL until the app is relaunched - and is MEASURED, not
+  //   taken from I18nManager.isRTL, because after a JS-level relaunch the two
+  //   disagree (see useMeasuredLayoutDirection). Reading the constant instead is
+  //   what put Skip on the wrong side and reversed every row in Arabic.
   //
-  // mirrorRows is true only while the two disagree, i.e. while a direction
-  // change is pending that restart. A row with flexDirection 'row' ALREADY
-  // mirrors itself natively once the layout is RTL, so reversing rows whenever
-  // isRTL is true (what this screen used to do) double-flips every row back to
-  // the wrong order on any session that booted in Arabic.
+  // mirrorRows is true only while the two disagree. A row with flexDirection
+  // 'row' ALREADY mirrors itself natively once the layout is RTL, so reversing
+  // rows whenever isRTL is true double-flips them back to the wrong order.
+  const [layoutIsRTL, directionProbe] = useMeasuredLayoutDirection();
   const isRTL = currentLanguage === 'ar';
-  const mirrorRows = needsDirectionFlip(isRTL);
+  const mirrorRows = isRTL !== layoutIsRTL;
 
-  const styles = useMemo(() => createStyles(tokens, isRTL), [tokens, isRTL]);
+  const styles = useMemo(
+    () => createStyles(tokens, mirrorRows, layoutIsRTL),
+    [tokens, mirrorRows, layoutIsRTL]
+  );
 
-  const flatListRef = useRef(null);
-  // Slide 0's resting offset, which the LTR-pinned container guarantees is 0 in
-  // every language - the list can no longer open at the far end.
-  const scrollX = useRef(new Animated.Value(offsetForIndex(0))).current;
-  // Own, JS-driven Animated.Values for the dot widths - 'width' isn't a style
-  // property the native driver supports, so these can't be interpolated from
-  // scrollX (which is native-driven for the opacity/transform slide fades).
-  const dotWidths = useRef(SLIDE_INDICES.map(() => new Animated.Value(8))).current;
+  // Position of the carousel measured in slides: 0 is slide 1, 2.5 is halfway
+  // between slides 3 and 4. Drives translateX and the fades alike.
+  const progress = useRef(new Animated.Value(0)).current;
   const [activeIndex, setActiveIndex] = useState(0);
+  // The pan handlers are created once and never re-created (a new PanResponder
+  // mid-gesture drops the rest of it), so they read the live index and width
+  // through refs rather than closing over state.
+  const activeIndexRef = useRef(0);
+  const dragStartIndex = useRef(0);
+  // Measured rather than taken from Dimensions, so a split screen / foldable /
+  // any inset that makes the carousel narrower than the window still pages by
+  // exactly one slide.
+  const [pagerWidth, setPagerWidth] = useState(SCREEN_WIDTH);
+  const pagerWidthRef = useRef(SCREEN_WIDTH);
+  // Own, JS-driven Animated.Values for the dot widths - 'width' isn't a style
+  // property the native driver supports.
+  const dotWidths = useRef(SLIDE_INDICES.map(() => new Animated.Value(8))).current;
 
   const [countries, setCountries] = useState([]);
   const [filteredCountries, setFilteredCountries] = useState([]);
@@ -220,22 +230,70 @@ const OnboardingScreen = () => {
     return label || country.code || '';
   };
 
-  const scrollToIndex = (index) => {
-    flatListRef.current?.scrollToOffset({ offset: offsetForIndex(index), animated: true });
-    setActiveIndex(index);
-  };
-
-  const handleMomentumScrollEnd = (event) => {
-    setActiveIndex(indexForOffset(event.nativeEvent.contentOffset.x));
-  };
-
-  const handleSkip = () => scrollToIndex(SLIDE_COUNT - 1);
-
-  const handleNext = () => {
-    if (activeIndex < SLIDE_COUNT - 1) {
-      scrollToIndex(activeIndex + 1);
+  const handlePagerLayout = useCallback((event) => {
+    const width = event.nativeEvent.layout.width;
+    if (width > 0 && width !== pagerWidthRef.current) {
+      pagerWidthRef.current = width;
+      setPagerWidth(width);
     }
-  };
+  }, []);
+
+  const goToIndex = useCallback(
+    (index) => {
+      const target = clampIndex(index);
+      activeIndexRef.current = target;
+      setActiveIndex(target);
+      Animated.timing(progress, {
+        toValue: target,
+        duration: PAGE_DURATION,
+        easing: Easing.out(Easing.cubic),
+        // 'progress' is written directly by the drag below, and a value can be
+        // driven either from JS or natively but not both.
+        useNativeDriver: false,
+      }).start();
+    },
+    [progress]
+  );
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        // Taps must reach the language chips / theme toggle / country list, so
+        // the responder is only ever claimed on a clearly horizontal drag.
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          Math.abs(gesture.dx) > DRAG_ACTIVATION_DISTANCE &&
+          Math.abs(gesture.dx) > Math.abs(gesture.dy) * HORIZONTAL_DOMINANCE,
+        onPanResponderGrant: () => {
+          dragStartIndex.current = activeIndexRef.current;
+        },
+        onPanResponderMove: (_, gesture) => {
+          // Dragging left (negative dx) advances, in every language - the
+          // carousel's motion is deliberately the same in RTL and LTR.
+          const raw = dragStartIndex.current - gesture.dx / pagerWidthRef.current;
+          progress.setValue(Math.min(SLIDE_COUNT - 1, Math.max(0, raw)));
+        },
+        onPanResponderRelease: (_, gesture) => {
+          const threshold = pagerWidthRef.current * SWIPE_DISTANCE_RATIO;
+          let target = dragStartIndex.current;
+          if (gesture.dx <= -threshold || gesture.vx <= -SWIPE_VELOCITY) {
+            target = dragStartIndex.current + 1;
+          } else if (gesture.dx >= threshold || gesture.vx >= SWIPE_VELOCITY) {
+            target = dragStartIndex.current - 1;
+          }
+          goToIndex(target);
+        },
+        // Settle back onto a whole slide if the gesture is taken away
+        // mid-drag (a modal opening, the navigator moving on).
+        onPanResponderTerminationRequest: () => true,
+        onPanResponderTerminate: () => goToIndex(activeIndexRef.current),
+      }),
+    [goToIndex, progress]
+  );
+
+  const handleSkip = () => goToIndex(SLIDE_COUNT - 1);
+
+  const handleNext = () => goToIndex(activeIndexRef.current + 1);
 
   const handleLanguageSelect = async (code) => {
     if (code === currentLanguage) return;
@@ -268,59 +326,38 @@ const OnboardingScreen = () => {
     }
   };
 
-  // Built once per slide index and reused across renders - scrollX.interpolate()
-  // creates a native-driven Animated node, and recreating it on every render (as
-  // a plain per-call function would) tears down/reattaches that node while a
-  // scroll animation may be in flight (setActiveIndex in scrollToIndex re-renders
-  // this component the instant "Next" is pressed, right as the native scroll
-  // starts), which is what caused the black-flash glitch on slide transitions.
+  // Rebuilt only when the carousel's width changes. translateX extrapolates
+  // linearly on purpose, so slide i sits at exactly (i - progress) * width for
+  // every progress value, however far away; the fade clamps instead, so
+  // anything more than one slide out is simply invisible.
   const slideAnimatedStyles = useMemo(
     () =>
       SLIDE_INDICES.map((index) => {
-        // Centred on the offset this slide actually rests at, so the fade
-        // tracks the real scroll position under a reversed (Android RTL)
-        // mapping too. Always ascending, as interpolate() requires.
-        const center = offsetForIndex(index);
-        const inputRange = [center - SCREEN_WIDTH, center, center + SCREEN_WIDTH];
+        const center = index;
+        const inputRange = [center - 1, center, center + 1];
         return {
-          opacity: scrollX.interpolate({ inputRange, outputRange: [0, 1, 0], extrapolate: 'clamp' }),
+          opacity: progress.interpolate({ inputRange, outputRange: [0, 1, 0], extrapolate: 'clamp' }),
           transform: [
             {
-              translateY: scrollX.interpolate({ inputRange, outputRange: [16, 0, 16], extrapolate: 'clamp' }),
+              translateX: progress.interpolate({
+                inputRange,
+                outputRange: [pagerWidth, 0, -pagerWidth],
+              }),
+            },
+            {
+              translateY: progress.interpolate({ inputRange, outputRange: [16, 0, 16], extrapolate: 'clamp' }),
             },
           ],
         };
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
-
-  // Must be created exactly once, for the same reason the interpolations above
-  // are. React Native keys a component's AnimatedProps on the IDENTITY of any
-  // AnimatedEvent/AnimatedNode prop (see createAnimatedPropsMemoHook), so an
-  // inline Animated.event makes every single render of this screen rebuild the
-  // list's AnimatedProps, which runs the ref-effect cleanup that rips the
-  // native onScroll -> scrollX binding off the list and re-attaches a new one.
-  // Any render landing while a paging scroll is in flight therefore loses the
-  // rest of that scroll and leaves scrollX stale, so the slide actually on
-  // screen interpolates to opacity 0 and the page goes blank.
-  //
-  // Pressing "Next" normally only re-renders once (setActiveIndex), while
-  // scrollX is still parked on the previous offset, so it survives. Switching
-  // language is what makes this fatal: a direction change additionally fires
-  // the pending-restart notice, that notice's 4s auto-dismiss timer, and the
-  // country refetch's async setStates - late re-renders that land after the
-  // scroll has already started. That is the "everything turns white after
-  // changing language" bug, and it is why it happened in BOTH directions.
-  const handleScroll = useMemo(
-    () => Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: true }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [pagerWidth, progress]
   );
 
   const renderLanguageSlide = () => (
-    <Animated.View style={[styles.slideContent, slideAnimatedStyles[0]]}>
-      <WelcomeMascotIllustration isDark={isDark} />
+    <View style={styles.slideContent}>
+      <View style={styles.illustrationHolder}>
+        <WelcomeMascotIllustration isDark={isDark} />
+      </View>
       <Image
         source={BRAND_WORDMARK}
         resizeMode="contain"
@@ -370,20 +407,24 @@ const OnboardingScreen = () => {
           </Text>
         </TouchableOpacity>
       </View>
-    </Animated.View>
+    </View>
   );
 
-  const renderInfoSlide = (index, IllustrationComponent, headlineKey, bodyKey) => (
-    <Animated.View style={[styles.slideContent, slideAnimatedStyles[index]]}>
-      <IllustrationComponent isDark={isDark} />
+  const renderInfoSlide = (IllustrationComponent, headlineKey, bodyKey) => (
+    <View style={styles.slideContent}>
+      <View style={styles.illustrationHolder}>
+        <IllustrationComponent isDark={isDark} />
+      </View>
       <Text style={styles.headline}>{t(headlineKey)}</Text>
       <Text style={styles.body}>{t(bodyKey)}</Text>
-    </Animated.View>
+    </View>
   );
 
   const renderFilterSlide = () => (
-    <Animated.View style={[styles.slideContent, slideAnimatedStyles[3]]}>
-      <FilterIllustration />
+    <View style={styles.slideContent}>
+      <View style={styles.illustrationHolder}>
+        <FilterIllustration />
+      </View>
       <Text style={styles.headline}>{t('onboardingFilterHeadline')}</Text>
       <Text style={styles.body}>{t('onboardingFilterBody')}</Text>
 
@@ -401,12 +442,14 @@ const OnboardingScreen = () => {
           <Text style={styles.filterPillText}>{t('categories')}</Text>
         </View>
       </View>
-    </Animated.View>
+    </View>
   );
 
   const renderCountrySlide = () => (
-    <Animated.View style={[styles.slideContent, slideAnimatedStyles[4]]}>
-      <SecureIllustration />
+    <View style={styles.slideContent}>
+      <View style={styles.illustrationHolder}>
+        <SecureIllustration />
+      </View>
       <Text style={styles.headline}>{t('securePlatform')}</Text>
       <Text style={styles.body}>{t('securePlatformDesc')}</Text>
 
@@ -483,30 +526,22 @@ const OnboardingScreen = () => {
           </View>
         )}
       </View>
-    </Animated.View>
+    </View>
   );
 
-  const renderSlide = ({ index }) => {
+  const renderSlideContent = (index) => {
     switch (index) {
       case 0:
-        return <View style={styles.slide}>{renderLanguageSlide()}</View>;
+        return renderLanguageSlide();
       case 1:
-        return (
-          <View style={styles.slide}>
-            {renderInfoSlide(1, ReportIllustration, 'onboardingReportHeadline', 'onboardingReportBody')}
-          </View>
-        );
+        return renderInfoSlide(ReportIllustration, 'onboardingReportHeadline', 'onboardingReportBody');
       case 2:
-        return (
-          <View style={styles.slide}>
-            {renderInfoSlide(2, FindIllustration, 'onboardingFindHeadline', 'onboardingFindBody')}
-          </View>
-        );
+        return renderInfoSlide(FindIllustration, 'onboardingFindHeadline', 'onboardingFindBody');
       case 3:
-        return <View style={styles.slide}>{renderFilterSlide()}</View>;
+        return renderFilterSlide();
       case 4:
       default:
-        return <View style={styles.slide}>{renderCountrySlide()}</View>;
+        return renderCountrySlide();
     }
   };
 
@@ -515,6 +550,8 @@ const OnboardingScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      {directionProbe}
+
       <View style={[styles.header, mirrorRows && styles.headerRTL]}>
         {!isLastSlide ? (
           <TouchableOpacity onPress={handleSkip} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
@@ -525,36 +562,24 @@ const OnboardingScreen = () => {
         )}
       </View>
 
-      <AnimatedFlatList
-        ref={flatListRef}
-        data={SLIDE_INDICES}
-        keyExtractor={(item) => String(item)}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        snapToAlignment="center"
-        decelerationRate="fast"
-        bounces={false}
-        // Android clips/recycles offscreen subviews by default, which can flash
-        // blank/black mid-transition on an Animated-opacity FlatList like this one.
-        removeClippedSubviews={false}
-        // Matches offsetForIndex exactly - VirtualizedList uses these frames to
-        // decide what to render, and it has no RTL handling of its own, so they
-        // have to agree with the container's (now always LTR) paging.
-        getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: offsetForIndex(index), index })}
-        scrollEventThrottle={16}
-        onScroll={handleScroll}
-        onMomentumScrollEnd={handleMomentumScrollEnd}
-        renderItem={renderSlide}
-        style={styles.flatList}
-      />
+      <View style={styles.pager} onLayout={handlePagerLayout} {...panResponder.panHandlers}>
+        {SLIDE_INDICES.map((index) => (
+          <Animated.View
+            key={index}
+            style={[styles.slide, { width: pagerWidth }, slideAnimatedStyles[index]]}
+            // Off-screen slides are pushed outside the pager's clipped box, but
+            // this also keeps their buttons out of the accessibility/touch tree.
+            pointerEvents={activeIndex === index ? 'auto' : 'none'}
+          >
+            {renderSlideContent(index)}
+          </Animated.View>
+        ))}
+      </View>
 
       <View style={styles.footer}>
-        {/* The dots map to the slides' PHYSICAL order, which the LTR-pinned
-            carousel fixes as left-to-right - styles.dotsRow cancels the native
-            mirroring so dot 0 stays on the left with slide 0. Ordering them by
-            language instead made the active dot walk backwards while the
-            carousel advanced the other way. */}
+        {/* The dots map to the slides' PHYSICAL order, which is left-to-right in
+            every language because the carousel's translateX is - styles.dotsRow
+            cancels any native mirroring so dot 0 stays on the left with slide 0. */}
         <View style={styles.dotsRow}>
           {SLIDE_INDICES.map((i) => (
             <Animated.View
@@ -577,9 +602,9 @@ const OnboardingScreen = () => {
               <Text style={styles.ctaText}>{isLastSlide ? t('getStarted') : t('next')}</Text>
               <Ionicons
                 // Icons are never auto-mirrored, so this follows the PICKED
-                // language's reading direction (utils/rtl.js's rule for
-                // directional glyphs) and flips the moment Arabic is tapped -
-                // it no longer tracks the carousel, which is always LTR now.
+                // language's reading direction and flips the moment Arabic is
+                // tapped - it does not track the carousel, whose motion is the
+                // same in both directions.
                 name={isRTL ? 'arrow-back' : 'arrow-forward'}
                 size={18}
                 color="#FFFFFF"
@@ -593,7 +618,7 @@ const OnboardingScreen = () => {
   );
 };
 
-const createStyles = (tokens, isRTL) =>
+const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -619,28 +644,33 @@ const createStyles = (tokens, isRTL) =>
       width: 40,
       height: 20,
     },
-    // Pins the paging container to one direction (see CAROUSEL_DIRECTION), so
-    // index <-> offset never depends on the platform's RTL scroll convention.
-    // Yoga resolves `direction` per view and the renderer pushes it down to the
-    // native scroll view's own layout direction, so this also stops Android
-    // from starting the list at the far end.
-    flatList: {
+    // The slides all sit on top of each other and are moved into place by
+    // translateX, so the pager clips whatever is currently off to the side.
+    pager: {
       flex: 1,
-      direction: CAROUSEL_DIRECTION,
+      overflow: 'hidden',
     },
-    // ...and each slide puts the session's real direction back, so everything
-    // inside a slide lays out exactly as it does everywhere else in the app and
-    // the needsDirectionFlip compensations above stay valid.
     slide: {
-      width: SCREEN_WIDTH,
-      flex: 1,
-      direction: LAYOUT_IS_RTL ? 'rtl' : 'ltr',
+      position: 'absolute',
+      top: 0,
+      bottom: 0,
+      // No left/right inset on purpose: the slide is exactly as wide as the
+      // pager, so its static position is 0 whichever edge the layout starts
+      // from, and there is nothing for RTL to swap.
     },
     slideContent: {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 28,
+    },
+    // The illustrations position their own parts with physical left/right, which
+    // React Native swaps under an RTL layout (doLeftAndRightSwapInRTL). Pinning
+    // the wrapper to LTR keeps every drawing identical in both directions - only
+    // text and controls are supposed to follow the language.
+    illustrationHolder: {
+      direction: 'ltr',
+      alignItems: 'center',
     },
     brandWordmarkImg: {
       height: 30,
@@ -849,17 +879,16 @@ const createStyles = (tokens, isRTL) =>
       color: tokens.ink,
     },
     // Stated explicitly in both directions rather than relying on the layout
-    // default, which is right-aligned on a session that booted in Arabic and
-    // would leave English/French text hanging on the wrong edge. The literal
-    // 'right'/'left' keyword itself gets swapped back once native RTL
-    // mirroring is active (post-relaunch release build), same as flexDirection
-    // - needsDirectionFlip compensates the same way mirrorRows does above.
+    // default, which is right-aligned on a tree laid out RTL and would leave
+    // English/French text hanging on the wrong edge. The literal 'right'/'left'
+    // keyword is itself swapped once the layout really is mirrored, so it is
+    // chosen against mirrorRows, exactly like the rows above.
     textRTL: {
-      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
+      textAlign: mirrorRows ? 'right' : 'left',
       writingDirection: 'rtl',
     },
     textLTR: {
-      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
+      textAlign: mirrorRows ? 'right' : 'left',
       writingDirection: 'ltr',
     },
     footer: {
@@ -869,8 +898,8 @@ const createStyles = (tokens, isRTL) =>
     },
     dotsRow: {
       // Cancels native mirroring so the dots read in the same physical order as
-      // the LTR-pinned carousel: dot 0 on the left, next to the left, always.
-      flexDirection: LAYOUT_IS_RTL ? 'row-reverse' : 'row',
+      // the carousel: dot 0 on the left, next to the left, always.
+      flexDirection: layoutIsRTL ? 'row-reverse' : 'row',
       justifyContent: 'center',
       alignItems: 'center',
       gap: 6,

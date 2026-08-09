@@ -39,7 +39,8 @@
  * styles are correct both mid-session and after a relaunch.
  */
 
-import { I18nManager } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { I18nManager, StyleSheet, View } from 'react-native';
 
 // The direction the native layer is already laying out for. Read once at module
 // load on purpose: forceRTL() never changes it for the current JS bundle.
@@ -48,6 +49,65 @@ export const NATIVE_RTL = I18nManager.isRTL;
 // True only when the language's direction differs from what native is already
 // mirroring - the one case where styles have to compensate by hand.
 export const needsDirectionFlip = (isRTL) => Boolean(isRTL) !== NATIVE_RTL;
+
+const probeStyles = StyleSheet.create({
+  // Absolutely positioned and fully transparent, so it takes part in layout
+  // (which is the whole point - it has to be laid out to be measured) without
+  // occupying space or being visible. 1x1 children, because Android skips
+  // onLayout for zero-sized views.
+  probe: {
+    position: 'absolute',
+    top: 0,
+    width: 2,
+    height: 1,
+    flexDirection: 'row',
+    opacity: 0,
+  },
+  probeCell: {
+    width: 1,
+    height: 1,
+  },
+});
+
+/**
+ * The direction the view tree is REALLY laid out in, measured instead of asked
+ * for.
+ *
+ * NATIVE_RTL above is what the app *believes* - I18nManager.isRTL, i.e. the
+ * forceRTL preference that was persisted before the last relaunch. It is only
+ * as good as that relaunch: when the app comes back through a JS-level reload
+ * (Updates.reloadAsync / RNRestart) the existing surface is not re-measured, so
+ * its root keeps the layout direction it was created with while JS reads the
+ * freshly persisted - and now opposite - preference. I18nManager.isRTL then
+ * reports RTL for a tree that is still laid out LTR, and every helper above
+ * compensates in exactly the wrong direction: rows reverse, `start`/`end` land
+ * on the far edge, `left`/`right` stop being swapped.
+ *
+ * A one-frame probe settles it with no guessing: two children in a
+ * `flexDirection: 'row'` box, and whether the first one lands at x=0 or x=1 IS
+ * the layout direction, whatever any constant claims.
+ *
+ * Returns `[layoutIsRTL, probe]`. Render `probe` anywhere inside the subtree
+ * being measured; it renders nothing visible. Until the first layout lands the
+ * value is NATIVE_RTL, which is right whenever the two agree.
+ */
+export const useMeasuredLayoutDirection = () => {
+  const [layoutIsRTL, setLayoutIsRTL] = useState(NATIVE_RTL);
+
+  const handleProbeLayout = useCallback((event) => {
+    const measured = event.nativeEvent.layout.x > 0;
+    setLayoutIsRTL((previous) => (previous === measured ? previous : measured));
+  }, []);
+
+  const probe = (
+    <View pointerEvents="none" importantForAccessibility="no-hide-descendants" style={probeStyles.probe}>
+      <View style={probeStyles.probeCell} onLayout={handleProbeLayout} />
+      <View style={probeStyles.probeCell} />
+    </View>
+  );
+
+  return [layoutIsRTL, probe];
+};
 
 /**
  * flexDirection for a row whose children should read start -> end in the
