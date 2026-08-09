@@ -204,7 +204,7 @@ const FoundLostStrip = ({ data, t, styles, tokens, onFoundPress, onLostPress }) 
         t={t}
       />
       <StatSegment
-        icon="help-circle-outline"
+        icon="search-outline"
         label={t('lostItems')}
         value={totalLosts}
         todayValue={data?.createdToday?.todaysLostPosts || 0}
@@ -221,11 +221,11 @@ const FoundLostStrip = ({ data, t, styles, tokens, onFoundPress, onLostPress }) 
 // Mirrors TotalBox.jsx's mobile treatment (tall card, icon top-corner, big
 // value, caption pinned to the bottom) for the two supporting stats below
 // the Found/Lost hero strip.
-const BigStatCard = ({ icon, title, value, description, tone, styles }) => (
-  <View style={styles.bigStatCard}>
+const BigStatCard = ({ icon, title, value, description, tone, cardStyle, styles }) => (
+  <View style={[styles.bigStatCard, cardStyle]}>
     <View style={styles.bigStatCardTop}>
       <Text style={styles.bigStatCardTitle}>{title}</Text>
-      <View style={[styles.bigStatCardIcon, { backgroundColor: `${tone}1A` }]}>
+      <View style={[styles.bigStatCardIcon, { backgroundColor: `${tone}26` }]}>
         <Ionicons name={icon} size={20} color={tone} />
       </View>
     </View>
@@ -237,7 +237,7 @@ const BigStatCard = ({ icon, title, value, description, tone, styles }) => (
 const StatsSection = ({ data, isLoading, t, styles, tokens, onFoundPress, onLostPress }) => {
   if (isLoading && !data) {
     return (
-      <Panel title={t('statistics')} styles={styles}>
+      <Panel title={t('statistics')} style={styles.statsPanelGlass} styles={styles}>
         <SkeletonBlock tokens={tokens} style={styles.foundLostSkeleton} />
         <View style={styles.bigStatsRow}>
           <SkeletonBlock tokens={tokens} style={styles.bigStatSkeleton} />
@@ -257,6 +257,7 @@ const StatsSection = ({ data, isLoading, t, styles, tokens, onFoundPress, onLost
           value={data?.totalPosts || 0}
           description={t('sinceLastMonth')}
           tone={tokens.brandPrimary}
+          cardStyle={styles.bigStatCardBrand}
           styles={styles}
         />
         <BigStatCard
@@ -717,6 +718,17 @@ const createStyles = (tokens, isRTL, isDark) =>
       color: tokens.brandPrimary,
     },
 
+    // The statistics panel itself is a bare wrapper, not a card: web's
+    // LeftSide.jsx paints it with a 14%-opacity surfaceRaised wash, so on the
+    // page background the only shapes that read are the Found/Lost strip and
+    // the two supporting stat cards inside it. Keeping the opaque
+    // panelContainer fill here made those inner cards (also surfaceRaised)
+    // disappear into their own parent.
+    statsPanelGlass: {
+      backgroundColor: 'transparent',
+      padding: 0,
+    },
+
     // Found/Lost hero strip
     foundLostStrip: {
       backgroundColor: tokens.surfaceRaised,
@@ -741,13 +753,15 @@ const createStyles = (tokens, isRTL, isDark) =>
       gap: 10,
       marginBottom: 10,
     },
+    // Flat tinted square, same as web's FoundLostStrip.jsx segment icon - the
+    // Phase 9 sub-element shadow is dropped in this section now that the
+    // parent cards carry their own fill again and read as separate shapes.
     statSegmentIcon: {
       width: 36,
       height: 36,
       borderRadius: radiusTokens.sm,
       justifyContent: 'center',
       alignItems: 'center',
-      ...getElevation(isDark, 1),
     },
     statSegmentLabel: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -768,8 +782,8 @@ const createStyles = (tokens, isRTL, isDark) =>
     // Total/Returned supporting stats
     bigStatsRow: {
       flexDirection: 'row',
-      gap: 12,
-      marginTop: 12,
+      gap: 16,
+      marginTop: 16,
     },
     bigStatSkeleton: {
       flex: 1,
@@ -783,6 +797,12 @@ const createStyles = (tokens, isRTL, isDark) =>
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
       padding: 18,
+    },
+    // Total items reads as the brand-tinted tile, the same split web's
+    // LeftSide.jsx makes between its two TotalBox cards (brandPrimary wash at
+    // 8% light / 14% dark vs. plain surfaceRaised for Returned).
+    bigStatCardBrand: {
+      backgroundColor: `${tokens.brandPrimary}${isDark ? '24' : '14'}`,
     },
     bigStatCardTop: {
       flexDirection: 'row',
@@ -802,7 +822,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderRadius: radiusTokens.sm,
       justifyContent: 'center',
       alignItems: 'center',
-      ...getElevation(isDark, 1),
     },
     bigStatCardValue: {
       fontFamily: fontFamilies.display,
