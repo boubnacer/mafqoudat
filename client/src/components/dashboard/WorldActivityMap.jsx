@@ -55,6 +55,14 @@ const ISO2_TO_NUMERIC = {
   TN: "788",
 };
 
+// Every city dot is the same small size. The dots used to be a
+// proportional symbol (radius scaled by the city's all-time post count),
+// which made a busy city's marker swallow its neighbours and read as an
+// arbitrary difference in importance at a glance; the per-city numbers are
+// carried by the "+N today" badges instead. Matches mobile's
+// WorldActivityMap.js.
+const CITY_DOT_RADIUS = 4;
+
 const WorldActivityMap = ({
   worldActivity,
   cityActivity,
@@ -105,10 +113,6 @@ const WorldActivityMap = ({
   );
 
   const cities = useMemo(() => (Array.isArray(cityActivity) ? cityActivity : []), [cityActivity]);
-  const maxCityCount = useMemo(() => cities.reduce((m, c) => Math.max(m, c.count || 0), 0) || 1, [cities]);
-  const CITY_MIN_RADIUS = 4;
-  const CITY_MAX_RADIUS = 12;
-  const cityRadius = (count) => CITY_MIN_RADIUS + (count / maxCityCount) * (CITY_MAX_RADIUS - CITY_MIN_RADIUS);
 
   // Cities that got at least one new post today — the only ones that get a
   // "+N" badge. todayCount comes from the same cityActivity aggregation as
@@ -200,17 +204,16 @@ const WorldActivityMap = ({
         }
       </Geographies>
 
-      {/* City markers — proportional-symbol dots (radius scaled by post
-          count) layered on top of the country fill. Panel-filled with a
-          brand stroke so they read as solid pins regardless of the fill
-          tone beneath them; labels get a panel-colored text outline
-          (paintOrder="stroke") for the same reason, rather than a
-          background pill shape. */}
+      {/* City markers — uniform small dots (see CITY_DOT_RADIUS) layered on
+          top of the country fill. Panel-filled with a brand stroke so they
+          read as solid pins regardless of the fill tone beneath them;
+          labels get a panel-colored text outline (paintOrder="stroke") for
+          the same reason, rather than a background pill shape. */}
       {cities.map((city, index) => (
         <Marker key={`${city.name}-${index}`} coordinates={[city.lon, city.lat]}>
-          <circle r={cityRadius(city.count)} fill={panel} stroke={brand} strokeWidth={2} />
+          <circle r={CITY_DOT_RADIUS} fill={panel} stroke={brand} strokeWidth={2} />
           <text
-            y={cityRadius(city.count) + 12}
+            y={CITY_DOT_RADIUS + 12}
             textAnchor="middle"
             fontSize={10}
             fontWeight={600}
@@ -227,15 +230,15 @@ const WorldActivityMap = ({
 
       {/* Today's-new-posts badges, in their own pass after all dots/labels
           so a badge is never overlapped by a neighbouring city's marker
-          drawn later. Only cities with activity today are badged — the dot
-          radius still encodes each city's all-time total, so the two layers
-          answer different questions instead of repeating one. */}
+          drawn later. Only cities with activity today are badged — now that
+          every dot is the same size, this is the only per-city number the
+          map shows. */}
       {citiesWithNewToday.map((city, index) => {
         const label = `+${city.todayCount}`;
         const width = badgeWidth(label);
         // Sits just clear of the dot's stroke, close enough to read as part
         // of the same marker rather than a floating label.
-        const anchorY = -(cityRadius(city.count) + 1);
+        const anchorY = -(CITY_DOT_RADIUS + 1);
         return (
           <Marker key={`${city.name}-${index}-count`} coordinates={[city.lon, city.lat]}>
             <g pointerEvents="none">
