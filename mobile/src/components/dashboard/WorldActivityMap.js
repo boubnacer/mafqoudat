@@ -3,7 +3,7 @@
  * Ports client/src/components/dashboard/WorldActivityMap.jsx to React Native:
  * an SVG world map (react-native-svg), zoomed to the current country,
  * countries colored by worldActivity ({code, count}) with the current
- * country highlighted, and city markers (proportional-symbol dots) from
+ * country highlighted, and city markers (uniform small dots) from
  * cityActivity. Uses the same free/no-API-key data web does - world-atlas's
  * countries-50m topojson (Natural Earth, public domain), converted to
  * GeoJSON via topojson-client, projected with d3-geo (pure JS, no DOM
@@ -42,8 +42,12 @@ const ISO2_TO_NUMERIC = {
 
 const MAP_WIDTH = 520;
 const MAP_HEIGHT = 520;
-const CITY_MIN_RADIUS = 4;
-const CITY_MAX_RADIUS = 12;
+// Every city dot is the same small size. The dots used to be a
+// proportional symbol (radius scaled by the city's all-time post count),
+// which made a busy city's marker swallow its neighbours and read as an
+// arbitrary difference in importance at a glance. Matches web's
+// WorldActivityMap.jsx.
+const CITY_DOT_RADIUS = 4;
 
 const hexToRgba = (hex, alpha) => {
   const clean = (hex || '#000000').replace('#', '');
@@ -203,8 +207,6 @@ const WorldActivityMap = ({
   );
 
   const cities = useMemo(() => (Array.isArray(cityActivity) ? cityActivity : []), [cityActivity]);
-  const maxCityCount = useMemo(() => cities.reduce((m, c) => Math.max(m, c.count || 0), 0) || 1, [cities]);
-  const cityRadius = (count) => CITY_MIN_RADIUS + (count / maxCityCount) * (CITY_MAX_RADIUS - CITY_MIN_RADIUS);
 
   const currentNumericId = currentCountryCode ? ISO2_TO_NUMERIC[currentCountryCode] : null;
 
@@ -258,7 +260,7 @@ const WorldActivityMap = ({
           const point = projection([city.lon, city.lat]);
           if (!point) return null;
           const [x, y] = point;
-          return { city, x, y, r: cityRadius(city.count) };
+          return { city, x, y, r: CITY_DOT_RADIUS };
         })
         .filter(Boolean)
     : [];
