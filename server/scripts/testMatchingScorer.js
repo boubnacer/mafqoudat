@@ -15,7 +15,12 @@
 const mongoose = require('mongoose');
 const { normalizeText, tokenize, tokenSet, tokenSimilarity } = require('../utils/textMatching');
 const { parseMainDate, resolveEventDate } = require('../utils/postDates');
-const { scorePair, STORE_MIN_SCORE } = require('../services/matchingService');
+const {
+  scorePair,
+  STORE_MIN_SCORE,
+  NOTIFY_MIN_SCORE,
+  STRONG_MATCH_SCORE,
+} = require('../services/matchingService');
 
 let failures = 0;
 let checks = 0;
@@ -183,6 +188,57 @@ checkThat(
   'category + city + close dates alone still clears the storage floor',
   noText && noText.score >= STORE_MIN_SCORE,
   `score=${noText?.score}`
+);
+
+// ---------------------------------------------------------------------------
+console.log('\n--- same category + same city is always a strong match ---');
+
+// Nothing in common but the category and the city: no description, no shared
+// location wording, and dates half a year apart so the date signal is spent.
+const coreOnly = scorePair(lostPost, candidate({
+  description: '',
+  exactLocation: '',
+  mainDate: 'September 20, 2026',
+  createdAt: new Date('2026-09-20'),
+}), roles);
+
+checkThat(
+  'bare category + city pair is not rejected',
+  coreOnly !== null
+);
+checkThat(
+  'bare category + city pair lands in the strong band',
+  coreOnly && coreOnly.score >= STRONG_MATCH_SCORE,
+  `score=${coreOnly?.score}`
+);
+checkThat(
+  'bare category + city pair clears the notification floor',
+  coreOnly && coreOnly.score >= NOTIFY_MIN_SCORE,
+  `score=${coreOnly?.score} floor=${NOTIFY_MIN_SCORE}`
+);
+check(
+  'bare category + city pair cites both reasons',
+  coreOnly && coreOnly.reasons.includes('same_category') && coreOnly.reasons.includes('same_city'),
+  true
+);
+checkThat(
+  'the floor does not cap a pair that earned more on its own',
+  strong && strong.score > STRONG_MATCH_SCORE,
+  `score=${strong?.score}`
+);
+checkThat(
+  'a different city is left to the other signals',
+  (() => {
+    const otherCity = scorePair(lostPost, candidate({
+      city: CITY_B,
+      description: '',
+      exactLocation: '',
+      mainDate: 'September 20, 2026',
+      createdAt: new Date('2026-09-20'),
+    }), roles);
+    return otherCity === null;
+  })(),
+  'same category in another city, months apart, still rejected'
 );
 
 // ---------------------------------------------------------------------------

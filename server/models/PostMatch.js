@@ -55,6 +55,12 @@ const postMatchSchema = new mongoose.Schema(
     // Per-signal contribution, in the same 0-100 space as `score`. Kept so the
     // UI can explain a match and so a future weighting change can be evaluated
     // against pairs already scored.
+    //
+    // These do not always add up to `score`: a shared category in the same city
+    // is floored onto the strong-match boundary regardless of what the signals
+    // earned (see applyCoreMatchFloor in services/matchingService.js). Read the
+    // breakdown as the record of each signal, not as the arithmetic behind the
+    // total.
     breakdown: {
       category: { type: Number, default: 0 },
       city: { type: Number, default: 0 },
