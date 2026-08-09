@@ -993,7 +993,7 @@ const Navbar = () => {
             AppBar above is pinned to at drawer+1) — without this the drawer's
             default zIndex.drawer level renders it BEHIND the fixed navbar. */}
         <Drawer
-          anchor={currentLanguage === "ar" ? "left" : "right"}
+          anchor={currentLanguage === "ar" ? "right" : "left"}
           open={mobileDrawerOpen}
           onClose={handleMobileDrawerClose}
           sx={{ zIndex: (theme) => theme.zIndex.modal }}
