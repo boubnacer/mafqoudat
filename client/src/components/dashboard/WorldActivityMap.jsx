@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
+import { Box, useTheme, useMediaQuery, alpha } from "@mui/material";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { geoMercator, geoPath, geoBounds } from "d3-geo";
 import { useTranslation } from "../../utils/translations";
@@ -66,7 +66,7 @@ const WorldActivityMap = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { t, currentLanguage } = useTranslation();
+  const { currentLanguage } = useTranslation();
   const isRTL = currentLanguage === "ar";
   const [geoFeatures, setGeoFeatures] = useState(null);
 
@@ -153,12 +153,6 @@ const WorldActivityMap = ({
     const scale = Math.min((MAP_WIDTH - padding * 2) / Math.max(x1 - x0, 0.001), (mapHeight - padding * 2) / Math.max(y1 - y0, 0.001));
     return { center, scale };
   }, [currentFeature, MAP_WIDTH, mapHeight, isMobile]);
-
-  const currentCountryName =
-    countriesByCode?.[currentCountryCode]?.names?.[currentLanguage] ||
-    countriesByCode?.[currentCountryCode]?.names?.en ||
-    currentCountryCode ||
-    "";
 
   if (isLoading) {
     return <SkeletonBlock radius={0} sx={{ width: "100%", height: "100%" }} />;
@@ -278,12 +272,6 @@ const WorldActivityMap = ({
     <Box sx={{ width: "100%", height: "100%", backgroundColor: alpha(ink, 0.05) }} />
   );
 
-  const titleNode = (
-    <Typography sx={{ fontSize: { xs: "0.95rem", sm: "1.05rem" }, fontWeight: 700, color: ink, textAlign: "center" }}>
-      {t("worldActivityCountries", { country: currentCountryName })}
-    </Typography>
-  );
-
   const legendSwatch = (
     <Box
       sx={{
@@ -341,7 +329,6 @@ const WorldActivityMap = ({
       <Box sx={mapCropSx}>{mapNode}</Box>
       {!hideTitle && (
         <Box sx={titleOverlaySx}>
-          {titleNode}
           {legendSwatch}
         </Box>
       )}

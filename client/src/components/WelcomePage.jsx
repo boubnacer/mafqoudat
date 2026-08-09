@@ -830,12 +830,6 @@ const WelcomePage = () => {
                 <HeroGlassPanel sx={{ p: 2.5 }}>{heroPanelContent}</HeroGlassPanel>
                 {selectedCountry && (
                   <Box sx={{ textAlign: 'center', mb: -1 }}>
-                    <Typography
-                      variant="overline"
-                      sx={{ display: 'block', fontWeight: 600, letterSpacing: 1, color: 'text.secondary', mb: 0.5 }}
-                    >
-                      {t('worldActivityCountries', { country: getCountryName(selectedCountry) })}
-                    </Typography>
                     <Box
                       sx={{
                         width: 48,
