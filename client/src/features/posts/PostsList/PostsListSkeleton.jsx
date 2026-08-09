@@ -10,7 +10,7 @@ const PostsListSkeleton = () => {
   const theme = useTheme();
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, pt: { xs: "6rem", md: "7rem" }, minHeight: "100vh" }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, pt: { xs: "6rem", md: "7rem" }, minHeight: "100vh", backgroundColor: theme.custom.color.postsListBackdrop }}>
       <SkeletonBlock sx={{ height: 20, width: 160, mb: 3 }} />
 
       <Box sx={{ mb: 4 }}>
