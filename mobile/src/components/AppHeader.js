@@ -28,7 +28,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
-import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationsContext';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import { storage } from '../utils/storage';
@@ -68,7 +67,6 @@ const AppHeader = ({
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { isSignedIn } = useAuth();
   const { unreadCount } = useNotifications();
   const { countries } = useReferenceData();
   const isRTL = currentLanguage === 'ar';
@@ -155,11 +153,16 @@ const AppHeader = ({
 
         {rightActions}
 
-        {/* Match alerts. Signed-in only - every /notifications endpoint is
-            behind verifyJWT, so a bell for a guest would just poll a 401. The
-            badge is what makes it worth a permanent slot in the bar rather
-            than a row inside the overflow menu (it's in both). */}
-        {isSignedIn && !isOnNotificationsScreen ? (
+        {/* Match alerts, in the bar rather than only in the overflow menu
+            because the badge is only useful if it is visible without opening
+            anything first.
+            Shown to guests as well: NotificationsContext polls only while a
+            session exists, so a signed-out user simply sees an unbadged bell,
+            and tapping it lands on the screen's own Login guard - the same
+            behaviour as New Post/My Posts/Profile. Gating it on isSignedIn
+            instead made the whole feature invisible to anyone browsing
+            signed out, with nothing to explain why. */}
+        {!isOnNotificationsScreen ? (
           <TouchableOpacity
             onPress={() => navigation.navigate('Notifications')}
             style={styles.bellButton}

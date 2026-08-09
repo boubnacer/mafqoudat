@@ -323,17 +323,17 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
             {renderItem({ key: 'newPost', label: t('createNewPost'), icon: 'add-circle-outline', onPress: handleNewPost })}
             {renderItem({ key: 'myPosts', label: t('myPosts'), icon: 'list-outline', onPress: handleMyPosts })}
             {/* Also reachable from the header bell, which carries the badge.
-                Listed here too so the account section stays a complete map of
-                where a signed-in user can go. */}
-            {isSignedIn
-              ? renderItem({
-                  key: 'notifications',
-                  label: t('notifications'),
-                  icon: 'notifications-outline',
-                  trailingCount: unreadCount,
-                  onPress: handleNotifications,
-                })
-              : null}
+                Shown to guests too - like New Post/My Posts/Profile above and
+                below it, the screen itself bounces a signed-out user to Login.
+                Hiding it instead left a guest with no way to discover that
+                match alerts exist at all. */}
+            {renderItem({
+              key: 'notifications',
+              label: t('notifications'),
+              icon: 'notifications-outline',
+              trailingCount: unreadCount,
+              onPress: handleNotifications,
+            })}
             {renderItem({ key: 'profile', label: t('profile'), icon: 'person-outline', onPress: handleProfile })}
             {renderItem({ key: 'settings', label: t('settings'), icon: 'settings-outline', onPress: handleSettings })}
 
