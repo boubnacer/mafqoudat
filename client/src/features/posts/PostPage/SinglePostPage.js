@@ -44,6 +44,7 @@ import { authStorage } from "../../../utils/authStorage";
 import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
 import PromotionDialog from "../../../components/PromotionDialog";
 import ClaimItemDialog from "../../../components/ClaimItemDialog";
+import PostMatchesPanel from "../../notifications/PostMatchesPanel";
 
 // Solid-fill tag, same signature as the post card DNA (Post.js/TrendingItem):
 // this is the single most load-bearing fact on the page, so it lives on the image,
@@ -1078,6 +1079,10 @@ const SinglePostPage = ({
           </Box>
         </Grid>
       </Grid>
+
+      {/* Possible matches — owner-only. Renders nothing for anyone else, and
+          nothing once the item is marked returned. */}
+      <PostMatchesPanel postId={_id} isOwner={isAuthor && isAuthenticated} postReturned={!!returned} />
 
       {/* Success Message */}
       {showSuccessMessage && (

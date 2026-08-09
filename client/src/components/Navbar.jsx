@@ -45,6 +45,7 @@ import {
   Build,
   Refresh,
   Close,
+  NotificationsNoneOutlined,
 } from "@mui/icons-material";
 import {
   selectCurrentCountry,
@@ -64,6 +65,7 @@ import { useUnifiedLanguageChange } from "../hooks/useUnifiedLanguageChange";
 import { forceRefreshAllDependencies } from "../utils/cacheRefresh";
 import { selectIsLoggedIn, selectCurrentUser } from "../features/auth/authSlice";
 import { useGetSystemSettingsQuery } from "../features/admin/systemSettingsApiSlice";
+import NotificationBell from "../features/notifications/NotificationBell";
 
 // Phase 1 tokens only (theme.custom.*) — see designTokens.js / CLAUDE.md.
 // Three-column grid (not flex space-between) so the center cluster is
@@ -735,6 +737,11 @@ const Navbar = () => {
             </ActionButton>
           )}
 
+          {/* Match alerts. Signed-in only — every notifications endpoint is
+              authenticated, so rendering the bell for a guest would just poll
+              a 401. */}
+          {showDesktopNav && authLoggedIn && <NotificationBell variant="desktop" />}
+
           {showDesktopNav && authLoggedIn && (
             <IconButton onClick={handleProfileClick} sx={{ padding: "4px" }}>
               <Avatar
@@ -752,7 +759,10 @@ const Navbar = () => {
             </IconButton>
           )}
 
-          {/* Mobile menu button — everything else lives in the drawer below (<760px) */}
+          {/* Mobile menu button — everything else lives in the drawer below
+              (<760px). The bell is the one exception: a badge is only useful if
+              it is visible without opening the drawer first. */}
+          {!showDesktopNav && authLoggedIn && <NotificationBell variant="mobile" />}
           {!showDesktopNav && (
             <ActionButton onClick={() => setMobileDrawerOpen(true)}>
               <MenuIcon sx={{ fontSize: "24px" }} />
@@ -956,6 +966,17 @@ const Navbar = () => {
               <PostAdd sx={{ fontSize: 20 }} />
             </ListItemIcon>
             <ListItemText primary={t("myPosts")} primaryTypographyProps={{ fontWeight: 600, fontSize: "0.95rem" }} />
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              handleProfileClose();
+              navigate("/dash/notifications");
+            }}
+          >
+            <ListItemIcon>
+              <NotificationsNoneOutlined sx={{ fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText primary={t("notifications")} primaryTypographyProps={{ fontWeight: 600, fontSize: "0.95rem" }} />
           </MenuItem>
 
           {adminNavigationItems.length > 0 && <Divider />}
@@ -1168,6 +1189,17 @@ const Navbar = () => {
                   <Person sx={{ fontSize: 22 }} />
                 </ListItemIcon>
                 <ListItemText primary={t("myProfile")} primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }} />
+              </DrawerRow>
+              <DrawerRow
+                onClick={() => {
+                  handleMobileDrawerClose();
+                  navigate("/dash/notifications");
+                }}
+              >
+                <ListItemIcon>
+                  <NotificationsNoneOutlined sx={{ fontSize: 22 }} />
+                </ListItemIcon>
+                <ListItemText primary={t("notifications")} primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }} />
               </DrawerRow>
               <DrawerRow
                 onClick={() => {
