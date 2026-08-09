@@ -96,9 +96,21 @@ never in one platform's UI.
   the badge can never claim a count the list won't render; both drop notifications whose
   posts are no longer active/unreturned. Localization happens server-side from a `language`
   query param — reason/tier codes stay stable, wording lives in `translations.js`.
+- **The inbox returns groups, not rows.** `GET /notifications` `$group`s by the *recipient's
+  own post* and pages over groups: `{ id (own post id), post, matches[], matchCount,
+  unreadCount, topScore, topTier, latestAt }`. One new listing in a dense city/category
+  produces a notification per pair all at once, and flat that is a wall of near-identical
+  rows. Grouping is a **read-time** concern only — the per-pair rows stay the unit of
+  read/dismiss state (each counterpart is judged on its own), nothing was migrated, and
+  older notifications group retroactively. `unreadCount` everywhere still counts individual
+  alerts, so it matches the bell badge exactly; `total`/`totalPages` count groups. Matches
+  inside a group are sorted by score in JS (not `$sortArray`, to stay off a server-version
+  floor) and capped at 20, with `matchCount` reporting the true total.
 - **Client**: [features/notifications/](client/src/features/notifications/) — navbar
-  `NotificationBell` (60s unread poll, popover preview), `/dash/notifications` page (tabs +
-  inline `NotificationPreferences`), and `PostMatchesPanel` on post detail for the owner
+  `NotificationBell` (60s unread poll, popover of `NotificationGroupPreview` rows),
+  `/dash/notifications` page (tabs + inline `NotificationPreferences`) rendering
+  `NotificationGroup` (header + up to 3 `NotificationItem` rows, expandable), and
+  `PostMatchesPanel` on post detail for the owner
   (which is also the retroactive path: it triggers an on-demand, 6h-throttled scan, so posts
   predating the engine still get leads). Reuses the paired-panel and status-tag patterns
   above; no new card language.
@@ -112,6 +124,8 @@ never in one platform's UI.
   [NotificationsContext.js](mobile/src/context/NotificationsContext.js) rather than in each
   header — AppHeader remounts on every navigation, so a per-component poll would restart
   its timer constantly; it polls only while signed in *and* foregrounded (`AppState`).
+  `NotificationGroupCard` is the mobile twin of web's `NotificationGroup`, with
+  `NotificationCard` as the per-counterpart row inside it.
   Follows Phase 9 (parent cards borderless and shadowless, sub-badges carry the
   elevation) and routes every direction-dependent style through `utils/rtl.js`.
   Differences from web, both deliberate: the confidence floor is a row of discrete

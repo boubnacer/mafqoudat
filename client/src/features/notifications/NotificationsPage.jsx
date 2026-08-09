@@ -26,7 +26,7 @@ import {
 } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
 import useTitle from "../../hooks/useTitle";
-import NotificationItem from "./NotificationItem";
+import NotificationGroup from "./NotificationGroup";
 import NotificationPreferences from "./NotificationPreferences";
 import {
   useGetNotificationsQuery,
@@ -67,7 +67,7 @@ const NotificationsPage = () => {
   const [markAllRead, { isLoading: isMarkingAll }] = useMarkAllNotificationsReadMutation();
   const [dismissNotification, { isLoading: isDismissing }] = useDismissNotificationMutation();
 
-  const notifications = data?.notifications || [];
+  const groups = data?.groups || [];
   const unreadCount = data?.unreadCount || 0;
   const totalPages = data?.totalPages || 1;
 
@@ -78,20 +78,20 @@ const NotificationsPage = () => {
     setPage(1);
   }, []);
 
-  const handleOpen = useCallback(async (notification) => {
-    if (!notification.isRead) {
+  const handleOpenMatch = useCallback(async (match) => {
+    if (!match.isRead) {
       try {
-        await markRead(notification.id).unwrap();
+        await markRead(match.notificationId).unwrap();
       } catch (error) {
         /* opening the listing matters more than recording the read receipt */
       }
     }
-    navigate(`/dash/posts/${notification.matchedPost.id}`);
+    navigate(`/dash/posts/${match.matchedPost.id}`);
   }, [markRead, navigate]);
 
-  const handleDismiss = useCallback(async (notification) => {
+  const handleDismissMatch = useCallback(async (match) => {
     try {
-      await dismissNotification(notification.id).unwrap();
+      await dismissNotification(match.notificationId).unwrap();
     } catch (error) {
       /* the list refetches from the invalidated tag regardless */
     }
@@ -233,7 +233,7 @@ const NotificationsPage = () => {
           </Box>
         )}
 
-        {!isLoading && !isError && notifications.length === 0 && (
+        {!isLoading && !isError && groups.length === 0 && (
           <Box sx={{ textAlign: "center", py: 6, paddingInline: 2 }}>
             <NotificationsOffOutlined sx={{ fontSize: 44, color: theme.palette.text.disabled, mb: 1 }} />
             <Typography sx={{ fontWeight: 700, fontSize: "1rem", color: theme.custom.color.ink }}>
@@ -245,14 +245,14 @@ const NotificationsPage = () => {
           </Box>
         )}
 
-        {!isLoading && notifications.length > 0 && (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1, opacity: isFetching ? 0.6 : 1, transition: "opacity 0.2s ease" }}>
-            {notifications.map((notification) => (
-              <NotificationItem
-                key={notification.id}
-                notification={notification}
-                onOpen={handleOpen}
-                onDismiss={handleDismiss}
+        {!isLoading && groups.length > 0 && (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, opacity: isFetching ? 0.6 : 1, transition: "opacity 0.2s ease" }}>
+            {groups.map((group) => (
+              <NotificationGroup
+                key={group.id}
+                group={group}
+                onOpenMatch={handleOpenMatch}
+                onDismissMatch={handleDismissMatch}
                 isDismissing={isDismissing}
               />
             ))}

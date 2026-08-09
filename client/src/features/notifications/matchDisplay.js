@@ -95,11 +95,12 @@ export const formatDaysApart = (daysApart, t, language) => {
 };
 
 /**
- * Headline for a match, written from the reader's point of view: what matters
- * is what the *other* listing is, relative to the one they posted.
+ * Headline for a group of matches, written from the reader's point of view and
+ * naming their own listing - that is what tells them which of their posts the
+ * leads underneath belong to.
  */
-export const getMatchHeadlineKey = (ownFoundLostCode) => (
+export const getGroupHeadlineKey = (ownFoundLostCode) => (
   String(ownFoundLostCode).toUpperCase() === 'LOST'
-    ? 'notifMatchHeadlineForLost'
-    : 'notifMatchHeadlineForFound'
+    ? 'notifGroupHeadlineLost'
+    : 'notifGroupHeadlineFound'
 );

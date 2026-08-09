@@ -25,7 +25,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AppHeader from '../components/AppHeader';
-import NotificationCard from '../components/notifications/NotificationCard';
+import NotificationGroupCard from '../components/notifications/NotificationGroupCard';
 import NotificationPreferencesPanel from '../components/notifications/NotificationPreferencesPanel';
 import SkeletonBlock from '../components/SkeletonBlock';
 import { useAuth } from '../context/AuthContext';
@@ -72,7 +72,7 @@ const NotificationsScreen = ({ navigation }) => {
 
   const [filter, setFilter] = useState('all');
   const [page, setPage] = useState(1);
-  const [notifications, setNotifications] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -116,7 +116,7 @@ const NotificationsScreen = ({ navigation }) => {
         });
         if (requestIdRef.current !== requestId) return;
 
-        setNotifications(data?.notifications || []);
+        setGroups(data?.groups || []);
         setTotalPages(data?.totalPages || 1);
         setPage(data?.page || pageNum);
         // The list and the badge come from the same server-side pipeline, so
@@ -152,32 +152,60 @@ const NotificationsScreen = ({ navigation }) => {
     setPage(1);
   };
 
-  const handleOpen = async (notification) => {
-    if (!notification.isRead) {
+  // Applies a transform to one match inside whichever group holds it, leaving
+  // every other group untouched.
+  const updateMatch = (notificationId, transform) => {
+    setGroups((current) =>
+      current.map((group) => {
+        if (!group.matches?.some((match) => match.notificationId === notificationId)) return group;
+        return { ...group, ...transform(group) };
+      })
+    );
+  };
+
+  const handleOpenMatch = async (match) => {
+    if (!match.isRead) {
       // Opening is the read receipt, but reaching the listing matters more:
       // a failed receipt must not block the navigation the user asked for.
-      setNotifications((current) =>
-        current.map((item) => (item.id === notification.id ? { ...item, isRead: true } : item))
-      );
+      updateMatch(match.notificationId, (group) => ({
+        unreadCount: Math.max(0, (group.unreadCount || 0) - 1),
+        matches: group.matches.map((item) =>
+          item.notificationId === match.notificationId ? { ...item, isRead: true } : item
+        ),
+      }));
       setUnreadCount((count) => Math.max(0, count - 1));
       try {
-        await markNotificationRead(notification.id);
+        await markNotificationRead(match.notificationId);
       } catch (error) {
         refreshUnreadCount();
       }
     }
-    navigation.navigate('PostDetailScreen', { id: notification.matchedPost.id });
+    navigation.navigate('PostDetailScreen', { id: match.matchedPost.id });
   };
 
-  const handleDismiss = async (notification) => {
-    setBusyId(notification.id);
-    const previous = notifications;
-    setNotifications((current) => current.filter((item) => item.id !== notification.id));
+  const handleDismissMatch = async (match) => {
+    setBusyId(match.notificationId);
+    const previous = groups;
+    // Drop the match, and the whole group with it once its last one is gone.
+    setGroups((current) =>
+      current
+        .map((group) => ({
+          ...group,
+          matches: group.matches.filter((item) => item.notificationId !== match.notificationId),
+          matchCount: group.matches.some((item) => item.notificationId === match.notificationId)
+            ? Math.max(0, (group.matchCount || 1) - 1)
+            : group.matchCount,
+          unreadCount: !match.isRead && group.matches.some((item) => item.notificationId === match.notificationId)
+            ? Math.max(0, (group.unreadCount || 0) - 1)
+            : group.unreadCount,
+        }))
+        .filter((group) => group.matches.length > 0)
+    );
     try {
-      await dismissNotification(notification.id);
+      await dismissNotification(match.notificationId);
       refreshUnreadCount();
     } catch (error) {
-      setNotifications(previous);
+      setGroups(previous);
     } finally {
       setBusyId(null);
     }
@@ -187,7 +215,13 @@ const NotificationsScreen = ({ navigation }) => {
     setIsMarkingAll(true);
     try {
       await markAllNotificationsRead();
-      setNotifications((current) => current.map((item) => ({ ...item, isRead: true })));
+      setGroups((current) =>
+        current.map((group) => ({
+          ...group,
+          unreadCount: 0,
+          matches: group.matches.map((match) => ({ ...match, isRead: true })),
+        }))
+      );
       setUnreadCount(0);
       // "Unread" becomes an empty set the moment this succeeds, so that tab has
       // to be re-fetched rather than left showing rows it no longer contains.
@@ -205,7 +239,7 @@ const NotificationsScreen = ({ navigation }) => {
   };
 
   const textStyle = isRTL ? styles.textRTL : null;
-  const showEmpty = !isLoading && !hasError && notifications.length === 0;
+  const showEmpty = !isLoading && !hasError && groups.length === 0;
 
   if (!isSignedIn) return null;
 
@@ -302,14 +336,14 @@ const NotificationsScreen = ({ navigation }) => {
       <AppHeader title={t('notifications')} onBack={() => navigation.goBack()} />
 
       <FlatList
-        data={isLoading ? [] : notifications}
+        data={isLoading ? [] : groups}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <NotificationCard
-            notification={item}
-            onOpen={handleOpen}
-            onDismiss={handleDismiss}
-            isBusy={busyId === item.id}
+          <NotificationGroupCard
+            group={item}
+            onOpenMatch={handleOpenMatch}
+            onDismissMatch={handleDismissMatch}
+            busyId={busyId}
           />
         )}
         contentContainerStyle={styles.listContent}
