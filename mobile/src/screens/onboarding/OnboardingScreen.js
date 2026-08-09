@@ -91,6 +91,12 @@ const clampIndex = (index) => Math.min(SLIDE_COUNT - 1, Math.max(0, index));
 const BRAND_WORDMARK = require('../../../assets/mafWordmark.png');
 const WORDMARK_RATIO = 984 / 213;
 
+// Arabic rendering of the brand name, paired under the English wordmark image
+// on the first slide's lockup - a brand asset, not language-driven UI copy, so
+// it stays fixed the same way the wordmark image itself does not swap per
+// currentLanguage.
+const BRAND_WORDMARK_AR = 'مفقودات';
+
 const LANGUAGE_CHIPS = [
   { code: 'en', nativeName: 'English' },
   { code: 'fr', nativeName: 'Français' },
@@ -355,16 +361,18 @@ const OnboardingScreen = () => {
 
   const renderLanguageSlide = () => (
     <View style={styles.slideContent}>
-      <View style={styles.illustrationHolder}>
-        <WelcomeMascotIllustration isDark={isDark} />
-      </View>
       <Image
         source={BRAND_WORDMARK}
         resizeMode="contain"
         accessibilityLabel={t('brandName')}
         style={styles.brandWordmarkImg}
       />
-      <Text style={styles.headline}>{t('onboardingWelcomeHeadline')}</Text>
+      <Text style={styles.brandWordmarkAr}>{BRAND_WORDMARK_AR}</Text>
+
+      <View style={styles.illustrationHolder}>
+        <WelcomeMascotIllustration isDark={isDark} />
+      </View>
+      <Text style={styles.languageQuestionText}>{t('onboardingWelcomeHeadline')}</Text>
 
       <View style={[styles.languageChipsRow, mirrorRows && styles.rowReverse]}>
         {LANGUAGE_CHIPS.map((lang) => {
@@ -675,7 +683,17 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
     brandWordmarkImg: {
       height: 30,
       width: 30 * WORDMARK_RATIO,
-      marginBottom: 16,
+      marginBottom: 4,
+    },
+    // Arabic half of the slide-1 lockup, directly under the English wordmark
+    // image - same brand blue as the logo, Cairo (the display face) for a
+    // proper Arabic headline weight rather than the body face.
+    brandWordmarkAr: {
+      fontFamily: fontFamilies.display,
+      fontSize: 20,
+      color: BRAND_BLUE,
+      textAlign: 'center',
+      marginBottom: 20,
     },
     headline: {
       fontSize: 22,
@@ -692,6 +710,16 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
       textAlign: 'center',
       lineHeight: 22,
       marginBottom: 24,
+    },
+    // "Choose your language" - shares font/size/color with themeLabel below
+    // ("Choose your look") so the two section questions read as one matched
+    // pair instead of one looking like a headline and the other a caption.
+    languageQuestionText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 15,
+      color: tokens.ink,
+      textAlign: 'center',
+      marginBottom: 8,
     },
     languageChipsRow: {
       flexDirection: 'row',
@@ -727,10 +755,9 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
       fontFamily: fontFamilies.bodySemiBold,
     },
     themeLabel: {
-      fontFamily: fontFamilies.bodyMedium,
-      fontSize: 13,
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 15,
       color: tokens.ink,
-      opacity: 0.6,
       textAlign: 'center',
       marginTop: 28,
       marginBottom: 10,
