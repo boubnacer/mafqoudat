@@ -137,7 +137,7 @@ export default {
           android: {
             enableProguardInReleaseBuilds: true,
             enableShrinkResourcesInReleaseBuilds: true,
-            ...(isInternalTestBuild ? { abiFilters: ["arm64-v8a"] } : {})
+            ...(isInternalTestBuild ? { buildArchs: ["arm64-v8a"] } : {})
           }
         }
       ]
