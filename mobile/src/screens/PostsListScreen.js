@@ -919,7 +919,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     postMediaSkeleton: {
       width: '100%',
-      height: 180,
+      height: 260,
       borderRadius: 0,
     },
     titleLineSkeleton: {
@@ -947,7 +947,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     postMedia: {
       width: '100%',
-      height: 180,
+      height: 260,
       backgroundColor: tokens.surfaceBase,
     },
     postImage: {
