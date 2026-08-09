@@ -118,7 +118,7 @@ const PostMatchesPanel = ({ postId, isOwner, postReturned = false }) => {
         const otherIsFound = String(other.foundLostCode).toUpperCase() === 'FOUND';
         const tone = otherIsFound ? theme.custom.status.found : theme.custom.status.lost;
         const StatusIcon = otherIsFound ? TaskAltOutlined : SearchOffOutlined;
-        const daysApartLabel = formatDaysApart(match.daysApart, t);
+        const daysApartLabel = formatDaysApart(match.daysApart, t, currentLanguage);
         const location = [other.cityLabel, other.exactLocation].filter(Boolean).join(' · ');
 
         return (

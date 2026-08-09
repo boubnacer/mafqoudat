@@ -69,10 +69,27 @@ export const REASON_LABEL_KEYS = {
   shared_reference: 'matchReasonSharedReference',
 };
 
-/** "Same day" / "1 day apart" / "12 days apart", or null when unknown. */
-export const formatDaysApart = (daysApart, t) => {
+/**
+ * "Same day" / "1 day apart" / "12 days apart", or null when unknown.
+ *
+ * Arabic has distinct singular, dual and small-plural forms, so "بفارق 2 يومًا"
+ * is as ungrammatical as "2 day apart" would be in English. Those CLDR
+ * categories get their own keys; every other language resolves to the single
+ * numeric template. Mirrors the same split in the mobile app's copy of this
+ * helper and in client's own date handling.
+ */
+export const formatDaysApart = (daysApart, t, language) => {
   if (daysApart === null || daysApart === undefined) return null;
   if (daysApart <= 0) return t('matchSameDay');
+
+  if (language === 'ar') {
+    if (daysApart === 1) return t('matchOneDayApart');
+    if (daysApart === 2) return t('matchTwoDaysApart');
+    const mod100 = daysApart % 100;
+    if (mod100 >= 3 && mod100 <= 10) return t('matchDaysApartFew', { days: daysApart });
+    return t('matchDaysApart', { days: daysApart });
+  }
+
   if (daysApart === 1) return t('matchOneDayApart');
   return t('matchDaysApart', { days: daysApart });
 };

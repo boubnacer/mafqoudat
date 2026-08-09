@@ -36,6 +36,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationsContext';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import { WEB_BASE_URL } from '../config/api';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
@@ -74,6 +75,7 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
   const { currentLanguage, setLanguage } = useLanguage();
   const { t } = useTranslation();
   const { isSignedIn, signOut } = useAuth();
+  const { unreadCount } = useNotifications();
   const { floptions } = useReferenceData();
   const navigation = useNavigation();
   const isRTL = currentLanguage === 'ar';
@@ -147,6 +149,10 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
     runAndClose(() => navigation.navigate('Profile'));
   };
 
+  const handleNotifications = () => {
+    runAndClose(() => navigation.navigate('Notifications'));
+  };
+
   const handleSettings = () => {
     runAndClose(() => navigation.navigate('SettingsScreen'));
   };
@@ -181,7 +187,7 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
     setThemeMode(isDark ? 'light' : 'dark');
   };
 
-  const renderItem = ({ key, label, icon, iconColor, onPress, destructive }) => (
+  const renderItem = ({ key, label, icon, iconColor, onPress, destructive, trailingCount }) => (
     <TouchableOpacity key={key} style={styles.item} onPress={onPress} activeOpacity={0.7}>
       <Ionicons
         name={icon}
@@ -192,6 +198,13 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
       <Text style={[styles.itemText, textStyle, destructive && { color: tokens.status.lost.main }]} numberOfLines={1}>
         {label}
       </Text>
+      {trailingCount > 0 ? (
+        <View style={styles.itemCount}>
+          <Text style={styles.itemCountText} numberOfLines={1}>
+            {trailingCount > 99 ? '99+' : String(trailingCount)}
+          </Text>
+        </View>
+      ) : null}
     </TouchableOpacity>
   );
 
@@ -309,6 +322,18 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
 
             {renderItem({ key: 'newPost', label: t('createNewPost'), icon: 'add-circle-outline', onPress: handleNewPost })}
             {renderItem({ key: 'myPosts', label: t('myPosts'), icon: 'list-outline', onPress: handleMyPosts })}
+            {/* Also reachable from the header bell, which carries the badge.
+                Listed here too so the account section stays a complete map of
+                where a signed-in user can go. */}
+            {isSignedIn
+              ? renderItem({
+                  key: 'notifications',
+                  label: t('notifications'),
+                  icon: 'notifications-outline',
+                  trailingCount: unreadCount,
+                  onPress: handleNotifications,
+                })
+              : null}
             {renderItem({ key: 'profile', label: t('profile'), icon: 'person-outline', onPress: handleProfile })}
             {renderItem({ key: 'settings', label: t('settings'), icon: 'settings-outline', onPress: handleSettings })}
 
@@ -423,10 +448,26 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       ...logical(isRTL, { marginEnd: 10 }),
     },
     itemText: {
-      flexShrink: 1,
+      flex: 1,
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 15,
       color: tokens.ink,
+    },
+    // Unread pill on the Notifications row - same count the header bell shows.
+    itemCount: {
+      minWidth: 20,
+      height: 20,
+      borderRadius: 10,
+      paddingHorizontal: 5,
+      backgroundColor: tokens.status.lost.main,
+      justifyContent: 'center',
+      alignItems: 'center',
+      ...logical(isRTL, { marginStart: 8 }),
+    },
+    itemCountText: {
+      color: '#FFFFFF',
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 11,
     },
     textRTL: {
       textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',

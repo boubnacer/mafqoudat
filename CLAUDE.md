@@ -57,11 +57,12 @@ Reuse these, don't invent new card/panel treatment — now house style:
 
 - Phase 11 — mobile `HomeScreen.js` world activity map brought to parity with web's `Dash.js` mobile header: done. Map loses its `Panel` wrapper (no `worldActivityCountries` title, no card, no radius, no loading tint) and becomes a chrome-less full-bleed backdrop — absolutely positioned, bottom-anchored in the header stack, pulled out past `scrollContent`'s 16px padding (`SCREEN_PADDING`) to the screen edges, with a square `mapSpacer` below the stats reserving its room (web's spacer row). Stats now float over it, same as web. Web's oversized/CSS-percentage-cropped map layer isn't reproduced (react-native-svg percentage sizing renders corrupted on a `flex: 1` parent); the placement comes from layout instead.
 
-## Match notifications (web only — `mobile/` not wired up yet)
+## Match notifications (web + mobile)
 
-Lost↔found matching engine + in-app notifications. Web (`client/` + `server/`) only;
-no `mobile/` surface exists for it yet, so a future mobile pass needs new screens,
-not just token parity.
+Lost↔found matching engine + in-app notifications. The engine and API are shared —
+`client/` and `mobile/` are two front ends over the same `/notifications/*` routes,
+so a scoring or wording change belongs on the server or in both translation files,
+never in one platform's UI.
 
 - **Engine**: [matchingService.js](server/services/matchingService.js). On post create/edit
   (fire-and-forget `scheduleMatchScan`, deferred via `setImmediate` — never blocks or fails
@@ -104,6 +105,23 @@ not just token parity.
   (which is also the retroactive path: it triggers an on-demand, 6h-throttled scan, so posts
   predating the engine still get leads). Reuses the paired-panel and status-tag patterns
   above; no new card language.
+- **Mobile**: [components/notifications/](mobile/src/components/notifications/) +
+  [NotificationsScreen.js](mobile/src/screens/NotificationsScreen.js), over
+  [notificationsApi.js](mobile/src/api/notificationsApi.js) (plain axios wrappers, no
+  RTK Query on this side). Same three surfaces as web: a badged bell in
+  [AppHeader.js](mobile/src/components/AppHeader.js) (plus a counted row in `HeaderMenu`),
+  the inbox screen with tabs + inline preferences, and `PostMatchesSection` on
+  `PostDetailScreen` for the owner. Unread count lives in
+  [NotificationsContext.js](mobile/src/context/NotificationsContext.js) rather than in each
+  header — AppHeader remounts on every navigation, so a per-component poll would restart
+  its timer constantly; it polls only while signed in *and* foregrounded (`AppState`).
+  Follows Phase 9 (parent cards borderless and shadowless, sub-badges carry the
+  elevation) and routes every direction-dependent style through `utils/rtl.js`.
+  Differences from web, both deliberate: the confidence floor is a row of discrete
+  options instead of a slider (no slider dependency in this app, and a tap beats a drag
+  on a phone), and `formatDaysApart` carries Arabic dual/small-plural forms the way
+  `utils/relativeTime.js` does — the web copy was given the same forms so both platforms
+  word it identically.
 - **Offline check**: `npm run test-matching` in `server/` — no DB needed, covers
   normalization, date parsing and scoring.
 
