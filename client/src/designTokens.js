@@ -14,6 +14,12 @@ export const colorTokens = {
   ink: { light: '#0B1220', dark: '#EDEFF5' },
   surfaceBase: { light: '#F7F8FB', dark: '#0E1116' },
   surfaceRaised: { light: '#FFFFFF', dark: '#171B22' },
+  // Variant of surfaceRaised for cards that sit directly on flat surfaceBase
+  // with no intervening panel/gradient (e.g. the posts list grid/list cards)
+  // — plain white was only ~3% off surfaceBase's F7F8FB in light mode, so the
+  // card all but vanished into the page. Dark mode's surfaceRaised already
+  // has enough separation from surfaceBase, so it's unchanged there.
+  surfaceCard: { light: '#EDEFF6', dark: '#171B22' },
   status: {
     // light-mode `main` deepened slightly from the original #D6483B/#1E8F6B so
     // getContrastText's white-on-main pick clears 4.5:1 on solid-fill status
@@ -60,6 +66,7 @@ export const resolveDesignTokens = (mode) => {
       ink: colorTokens.ink[m],
       surfaceBase: colorTokens.surfaceBase[m],
       surfaceRaised: colorTokens.surfaceRaised[m],
+      surfaceCard: colorTokens.surfaceCard[m],
     },
     status: {
       lost: colorTokens.status.lost[m],

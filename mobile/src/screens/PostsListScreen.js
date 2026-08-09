@@ -912,7 +912,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       marginBottom: 16,
     },
     postCardSkeleton: {
-      backgroundColor: tokens.surfaceRaised,
+      backgroundColor: tokens.surfaceCard,
       borderRadius: radiusTokens.lg,
       marginBottom: 16,
       overflow: 'hidden',
@@ -937,9 +937,10 @@ const createStyles = (tokens, isRTL, isDark) =>
       width: '55%',
     },
 
-    // Post card - mirrors the web post card DNA: surfaceRaised, radius.lg, elevation e1.
+    // Post card - mirrors the web post card DNA: radius.lg, elevation e1. Uses
+    // surfaceCard (not surfaceRaised) since it sits directly on flat surfaceBase.
     postCard: {
-      backgroundColor: tokens.surfaceRaised,
+      backgroundColor: tokens.surfaceCard,
       borderRadius: radiusTokens.lg,
       marginBottom: 16,
       overflow: 'hidden',

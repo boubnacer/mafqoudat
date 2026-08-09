@@ -14,7 +14,7 @@ const PostCardSkeleton = () => {
       sx={{
         borderRadius: `${theme.custom.radius.lg}px`,
         overflow: 'hidden',
-        backgroundColor: theme.custom.color.surfaceRaised,
+        backgroundColor: theme.custom.color.surfaceCard,
         boxShadow: theme.custom.elevation.e1,
       }}
     >
