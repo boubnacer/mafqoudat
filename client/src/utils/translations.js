@@ -1606,6 +1606,8 @@ export const translations = {
     matchReasonSharedReference: "Same reference number",
     matchSameDay: "Same day",
     matchOneDayApart: "1 day apart",
+    matchTwoDaysApart: "2 days apart",
+    matchDaysApartFew: "{days} days apart",
     matchDaysApart: "{days} days apart"
   },
   fr: {
@@ -3195,6 +3197,8 @@ export const translations = {
     matchReasonSharedReference: "Même numéro de référence",
     matchSameDay: "Le même jour",
     matchOneDayApart: "1 jour d'écart",
+    matchTwoDaysApart: "2 jours d'écart",
+    matchDaysApartFew: "{days} jours d'écart",
     matchDaysApart: "{days} jours d'écart"
   },
   ar: {
@@ -4767,6 +4771,8 @@ export const translations = {
     matchReasonSharedReference: "نفس الرقم المرجعي",
     matchSameDay: "نفس اليوم",
     matchOneDayApart: "بفارق يوم واحد",
+    matchTwoDaysApart: "بفارق يومين",
+    matchDaysApartFew: "بفارق {days} أيام",
     matchDaysApart: "بفارق {days} يومًا"
   }
 };

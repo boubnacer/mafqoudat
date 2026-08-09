@@ -74,6 +74,20 @@ export const API_ENDPOINTS = {
   PROMOTION: {
     REQUEST: "/promotion/request",
   },
+  // Lost/found match alerts. Every one of these requires a session - the server
+  // mounts the whole router behind verifyJWT and scopes each query to req.user
+  // (server/routes/notificationRoutes.js), so nothing here is callable as a guest.
+  NOTIFICATIONS: {
+    LIST: "/notifications",
+    UNREAD_COUNT: "/notifications/unread-count",
+    MARK_READ: (id) => `/notifications/${id}/read`,
+    MARK_ALL_READ: "/notifications/read-all",
+    DISMISS: (id) => `/notifications/${id}`,
+    PREFERENCES: "/notifications/preferences",
+    MATCHES: "/notifications/matches",
+    MATCHES_FOR_POST: (postId) => `/notifications/matches/post/${postId}`,
+    DISMISS_MATCH: (matchId) => `/notifications/matches/${matchId}/dismiss`,
+  },
 };
 
 // The backend (Render free tier) cold-starts after idling and can take 30-50s

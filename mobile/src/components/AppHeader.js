@@ -22,12 +22,14 @@
 
 import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
+import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationsContext';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import { storage } from '../utils/storage';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
@@ -58,11 +60,16 @@ const AppHeader = ({
 }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  // The bell is hidden on the notifications screen itself - a control that
+  // navigates to where you already are is just a dead target.
+  const isOnNotificationsScreen = useRoute().name === 'Notifications';
   const theme = useTheme();
   const { isDark, setThemeMode } = theme;
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
+  const { isSignedIn } = useAuth();
+  const { unreadCount } = useNotifications();
   const { countries } = useReferenceData();
   const isRTL = currentLanguage === 'ar';
   const isControlled = controlledCountryId !== undefined;
@@ -147,6 +154,32 @@ const AppHeader = ({
         <View style={styles.spacer} />
 
         {rightActions}
+
+        {/* Match alerts. Signed-in only - every /notifications endpoint is
+            behind verifyJWT, so a bell for a guest would just poll a 401. The
+            badge is what makes it worth a permanent slot in the bar rather
+            than a row inside the overflow menu (it's in both). */}
+        {isSignedIn && !isOnNotificationsScreen ? (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Notifications')}
+            style={styles.bellButton}
+            accessibilityLabel={t('notifications')}
+            hitSlop={8}
+          >
+            <Ionicons
+              name={unreadCount > 0 ? 'notifications' : 'notifications-outline'}
+              size={20}
+              color={unreadCount > 0 ? tokens.brandPrimary : tokens.ink}
+            />
+            {unreadCount > 0 ? (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeText} numberOfLines={1}>
+                  {unreadCount > 99 ? '99+' : String(unreadCount)}
+                </Text>
+              </View>
+            ) : null}
+          </TouchableOpacity>
+        ) : null}
 
         {showMenu ? (
           <TouchableOpacity onPress={openMenu} style={styles.menuButton} accessibilityLabel={t('menu')} hitSlop={8}>
@@ -251,6 +284,35 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       justifyContent: 'center',
       alignItems: 'center',
       ...logical(isRTL, { marginStart: 8 }),
+    },
+    bellButton: {
+      width: 38,
+      height: 38,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.ink}0A`,
+      justifyContent: 'center',
+      alignItems: 'center',
+      ...logical(isRTL, { marginStart: 8 }),
+    },
+    bellBadge: {
+      position: 'absolute',
+      top: 2,
+      // Pinned to the button's logical end corner so it stays on the outer
+      // side of the icon in both directions.
+      ...logical(isRTL, { end: 2 }),
+      minWidth: 16,
+      height: 16,
+      borderRadius: 8,
+      paddingHorizontal: 3,
+      backgroundColor: tokens.status.lost.main,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    bellBadgeText: {
+      color: '#FFFFFF',
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 9,
+      lineHeight: 12,
     },
   });
 

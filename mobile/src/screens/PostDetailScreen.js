@@ -36,6 +36,7 @@ import AppHeader from '../components/AppHeader';
 import ReportPostSheet from '../components/ReportPostSheet';
 import PromotePostSheet from '../components/PromotePostSheet';
 import PostActionsSheet from '../components/PostActionsSheet';
+import PostMatchesSection from '../components/notifications/PostMatchesSection';
 import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
@@ -542,6 +543,15 @@ const PostDetailScreen = ({ navigation, route }) => {
               </TouchableOpacity>
             </View>
           ) : null}
+
+          {/* Possible matches - renders nothing for anyone but this post's
+              owner, and nothing once the item is marked returned. */}
+          <PostMatchesSection
+            postId={post._id}
+            isOwner={isOwner}
+            postReturned={post.returned === true}
+            onOpenPost={(matchedPostId) => navigation.push('PostDetailScreen', { id: matchedPostId })}
+          />
         </Animated.View>
       </ScrollView>
 

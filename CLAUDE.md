@@ -54,11 +54,12 @@ Reuse these, don't invent new card/panel treatment — now house style:
 - Phase 8 — remove borders from containers platform-wide (elevation-only surfaces), across both `client/` (WelcomePage, the since-removed PublicPostsPage, dashboard panels/cards in `LeftSide.jsx`/`TrendingItem.jsx`/`RecentPosts.jsx`/`Categories.jsx`/`QuickActions.jsx`/`RecentSection.jsx`/`Process.jsx`/`HelpSupportSection.jsx`/`SearchPartyHero.jsx`/`Dash.js`/`TotalBox.jsx`) and `mobile/` (`HomeScreen.js`, `WelcomeScreen.js`, `PostDetailScreen.js`, `PostsListScreen.js`, `MyPostsScreen.js`, `ProfileScreen.js`, `AppHeader.js`, `LoginScreen.js`, `SignUpScreen.js`): done. This is the first design pass to touch `mobile/`.
 - Phase 9 — `mobile/` parent card/panel containers lose their shadow entirely (border was already gone from Phase 8); their nested badge/icon/pill sub-elements (still borderless) pick up a small shadow (`getElevation(isDark, 1)`) instead, so depth reads from the sub-elements rather than the outer card. Touched `HomeScreen.js` (`panelContainer`/`foundLostStrip`/`bigStatCard`/`posterCard`/`recentEmpty`/`socialPanel` parents; `statSegmentIcon`/`bigStatCardIcon`/`posterStatusPill`/`posterReturnedPill`/`socialIconCircle` sub-elements), `PostsListScreen.js` + `MyPostsScreen.js` (`postCard`/`postCardSkeleton` parents; `statusTag`/`dateBadge`/`categoryPill`/`lifecycleBadge` sub-elements), `PostDetailScreen.js` (`body` parent; `statusTag`/`dateBadge`/`categoryChip` sub-elements), `ProfileScreen.js` (`infoCard`/`menuCard` parents; `infoRowIcon`/`menuRowIcon` sub-elements), `SettingsScreen.js` (`card`/`menuCard` parents, no sub-element badges), `WelcomeScreen.js` (`heroCard` parent; `heroStatusTag` sub-element — `createStyles` there now also takes `isDark`), `LoginScreen.js`/`SignUpScreen.js`/`EditProfileScreen.js` (`card` parent only — their inner elements are form inputs/buttons, exempt from this treatment same as the border rule). Buttons, form inputs, and dropdown/menu/dialog chrome (`filterButton`/`paginationBar`/`addPostButton`/`chip`/`countryDropdown`/toast/notice banners) were left with their existing elevation — same exemption list as Phase 8's border removal, not new "cards." Where a screen's `getElevation` helper ended up with no remaining callers (`LoginScreen.js`, `SignUpScreen.js`, `EditProfileScreen.js`, `SettingsScreen.js`), the now-dead helper was deleted rather than left unused: done.
 
-## Match notifications (web only — `mobile/` not wired up yet)
+## Match notifications (web + mobile)
 
-Lost↔found matching engine + in-app notifications. Web (`client/` + `server/`) only;
-no `mobile/` surface exists for it yet, so a future mobile pass needs new screens,
-not just token parity.
+Lost↔found matching engine + in-app notifications. The engine and API are shared —
+`client/` and `mobile/` are two front ends over the same `/notifications/*` routes,
+so a scoring or wording change belongs on the server or in both translation files,
+never in one platform's UI.
 
 - **Engine**: [matchingService.js](server/services/matchingService.js). On post create/edit
   (fire-and-forget `scheduleMatchScan`, deferred via `setImmediate` — never blocks or fails
@@ -101,6 +102,23 @@ not just token parity.
   (which is also the retroactive path: it triggers an on-demand, 6h-throttled scan, so posts
   predating the engine still get leads). Reuses the paired-panel and status-tag patterns
   above; no new card language.
+- **Mobile**: [components/notifications/](mobile/src/components/notifications/) +
+  [NotificationsScreen.js](mobile/src/screens/NotificationsScreen.js), over
+  [notificationsApi.js](mobile/src/api/notificationsApi.js) (plain axios wrappers, no
+  RTK Query on this side). Same three surfaces as web: a badged bell in
+  [AppHeader.js](mobile/src/components/AppHeader.js) (plus a counted row in `HeaderMenu`),
+  the inbox screen with tabs + inline preferences, and `PostMatchesSection` on
+  `PostDetailScreen` for the owner. Unread count lives in
+  [NotificationsContext.js](mobile/src/context/NotificationsContext.js) rather than in each
+  header — AppHeader remounts on every navigation, so a per-component poll would restart
+  its timer constantly; it polls only while signed in *and* foregrounded (`AppState`).
+  Follows Phase 9 (parent cards borderless and shadowless, sub-badges carry the
+  elevation) and routes every direction-dependent style through `utils/rtl.js`.
+  Differences from web, both deliberate: the confidence floor is a row of discrete
+  options instead of a slider (no slider dependency in this app, and a tap beats a drag
+  on a phone), and `formatDaysApart` carries Arabic dual/small-plural forms the way
+  `utils/relativeTime.js` does — the web copy was given the same forms so both platforms
+  word it identically.
 - **Offline check**: `npm run test-matching` in `server/` — no DB needed, covers
   normalization, date parsing and scoring.
 

@@ -19,6 +19,7 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { MaintenanceProvider, useMaintenance } from './src/context/MaintenanceContext';
 import { ReferenceDataProvider } from './src/context/ReferenceDataContext';
 import { OnboardingProvider, useOnboarding } from './src/context/OnboardingContext';
+import { NotificationsProvider } from './src/context/NotificationsContext';
 import { lightColors, darkColors } from './src/theme/tokens';
 import { getNavigationTheme } from './src/theme/navigationTheme';
 import { useTranslation } from './src/utils/translations';
@@ -39,6 +40,7 @@ import MyPostsScreen from './src/screens/MyPostsScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import NotificationsScreen from './src/screens/NotificationsScreen';
 import { ActivityIndicator, View, StyleSheet, Text, Linking } from 'react-native';
 
 // Runs once, at module evaluation, before anything renders - see validateEnv.js.
@@ -156,6 +158,7 @@ const AppNavigator = () => {
         <Stack.Screen name="EditPostScreen" component={EditPostScreen} />
         <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
         {/* Add other screens here */}
       </Stack.Navigator>
     </ReferenceDataProvider>
@@ -319,11 +322,16 @@ export default function App() {
       <LanguageProvider>
         <MaintenanceProvider>
           <AuthProvider>
-            <OnboardingProvider>
-              <SafeAreaProvider>
-                <AppShell />
-              </SafeAreaProvider>
-            </OnboardingProvider>
+            {/* Inside AuthProvider (it polls only while a session exists) and
+                above both navigators, because AppHeader - which renders the
+                bell - is mounted by screens in each of them. */}
+            <NotificationsProvider>
+              <OnboardingProvider>
+                <SafeAreaProvider>
+                  <AppShell />
+                </SafeAreaProvider>
+              </OnboardingProvider>
+            </NotificationsProvider>
           </AuthProvider>
         </MaintenanceProvider>
       </LanguageProvider>

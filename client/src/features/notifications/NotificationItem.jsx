@@ -35,7 +35,7 @@ const NotificationItem = ({
   const matchedIsFound = String(matchedPost.foundLostCode).toUpperCase() === 'FOUND';
   const tone = matchedIsFound ? theme.custom.status.found : theme.custom.status.lost;
   const StatusIcon = matchedIsFound ? TaskAltOutlined : SearchOffOutlined;
-  const daysApartLabel = formatDaysApart(notification.daysApart, t);
+  const daysApartLabel = formatDaysApart(notification.daysApart, t, currentLanguage);
 
   const location = [matchedPost.cityLabel, matchedPost.exactLocation]
     .filter(Boolean)
