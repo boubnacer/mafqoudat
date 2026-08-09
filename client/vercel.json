@@ -52,6 +52,10 @@
       "destination": "https://mafqoudat-api.onrender.com/posts/:path*"
     },
     {
+      "source": "/notifications/:path*",
+      "destination": "https://mafqoudat-api.onrender.com/notifications/:path*"
+    },
+    {
       "source": "/countries/:path*",
       "destination": "https://mafqoudat-api.onrender.com/countries/:path*"
     },

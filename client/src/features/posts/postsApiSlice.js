@@ -205,7 +205,13 @@ export const postsApiSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: [
         { type: "Post", id: "LIST" },
-        { type: "Dashboard" }
+        { type: "Dashboard" },
+        // A new listing can produce match pairs on the opposite side, so the
+        // match panels are stale from here on. The scan itself runs
+        // asynchronously server-side; the navbar bell's poll picks up anything
+        // that lands after this invalidation.
+        "PostMatch",
+        "Notification"
       ],
     }),
 
@@ -239,7 +245,13 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         }
         return response;
       },
-      invalidatesTags: (result, error, arg) => [{ type: "Post", id: arg.id }],
+      invalidatesTags: (result, error, arg) => [
+        { type: "Post", id: arg.id },
+        // Editing changes the fields the matcher scores on, and deleting drops
+        // the pairs entirely - either way the stored matches are re-derived.
+        "PostMatch",
+        "Notification"
+      ],
     }),
 
     // delete post
@@ -271,7 +283,13 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         }
         return response;
       },
-      invalidatesTags: (result, error, arg) => [{ type: "Post", id: arg.id }],
+      invalidatesTags: (result, error, arg) => [
+        { type: "Post", id: arg.id },
+        // Editing changes the fields the matcher scores on, and deleting drops
+        // the pairs entirely - either way the stored matches are re-derived.
+        "PostMatch",
+        "Notification"
+      ],
     }),
 
     // Request promotion for a lost item
@@ -336,7 +354,11 @@ export const postsApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: (result, error, arg) => [
         { type: "Post", id: arg },
         { type: "Post", id: "LIST" },
-        { type: "Dashboard" }
+        { type: "Dashboard" },
+        // The item is home: its match pairs are closed server-side and its
+        // alerts drop out of the inbox, so both caches have to be refetched.
+        "PostMatch",
+        "Notification"
       ],
     }),
   }),

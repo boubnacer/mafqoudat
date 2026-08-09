@@ -62,6 +62,7 @@ const NewUser = lazy(() => import("./features/auth/SingUp/NewUser"));
 const SinglePost = lazy(() => import("./features/posts/PostPage/SinglePost"));
 const UserProfile = lazy(() => import("./features/userSettings/UserProfile/UserProfile"));
 const MyPostsPage = lazy(() => import("./features/posts/MyPostsPage/MyPostsPage"));
+const NotificationsPage = lazy(() => import("./features/notifications/NotificationsPage"));
 
 
 // Lazy load dashboard components
@@ -304,6 +305,11 @@ const AppContent = () => {
               <Route path="myposts" element={
                 <Suspense fallback={<LoadingFallback />}>
                   <MyPostsPage />
+                </Suspense>
+              } />
+              <Route path="notifications" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <NotificationsPage />
                 </Suspense>
               } />
               <Route path="users">

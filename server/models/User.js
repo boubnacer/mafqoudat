@@ -112,6 +112,29 @@ const userSchema = new mongoose.Schema({
   ipAddress: {
     type: String,
     default: null
+  },
+  // Controls the lost/found match alerts produced by services/matchingService.js.
+  // Every field has a default, so users created before this block existed
+  // behave exactly like a user who never touched the settings.
+  notificationPreferences: {
+    // Master switch for in-app match alerts.
+    matchAlerts: {
+      type: Boolean,
+      default: true
+    },
+    // Opt-in email copy of a match alert. Off by default: an unsolicited email
+    // is a very different thing from a badge on a bell icon.
+    emailAlerts: {
+      type: Boolean,
+      default: false
+    },
+    // Confidence floor, 0-100. Raising it makes alerts rarer and stronger.
+    minScore: {
+      type: Number,
+      default: 50,
+      min: 0,
+      max: 100
+    }
   }
 }, {
   timestamps: true

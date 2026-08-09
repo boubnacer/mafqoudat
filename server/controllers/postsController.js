@@ -10,6 +10,7 @@ const mongoose = require("mongoose");
 const TranslationService = require("../services/translationService");
 const facebookService = require("../services/facebookService");
 const instagramService = require("../services/instagramService");
+const matchingService = require("../services/matchingService");
 const { cacheService } = require("../config/cache");
 const { escapeRegex } = require("../utils/regexUtils");
 // const getCountryIso3 = require("country-iso-2-to-3");
@@ -1448,6 +1449,11 @@ const createNewPost = async (req, res) => {
         console.error(`Instagram auto-post failed for post ${post._id}:`, socialError.response?.data || socialError.message);
       });
 
+      // Look for counterparts on the opposite side (lost <-> found) and alert
+      // both owners. Deferred and self-contained: a matching failure must never
+      // turn a successful post creation into an error for the author.
+      matchingService.scheduleMatchScan(post._id);
+
       // Created
       const response = {
         message: "New post created",
@@ -1920,6 +1926,15 @@ const updatePost = async (req, res) => {
     await cacheService.invalidatePattern('posts:*');
     await cacheService.invalidatePattern('dashboard:*');
 
+    // An edit can change every signal the match engine scores on (category,
+    // city, description, date), so the stored pairs are re-derived. A post that
+    // was just marked returned is retired from matching instead.
+    if (updatedPost.returned) {
+      await matchingService.closeMatchesForPost(updatedPost._id);
+    } else {
+      matchingService.scheduleMatchScan(updatedPost._id);
+    }
+
     res.json(`Post with ID ${updatedPost._id} updated`);
   } catch (error) {
     console.log('❌ UPDATE POST SERVER - Error saving post:', error.message);
@@ -1957,6 +1972,9 @@ const deletePost = async (req, res) => {
 
   const result = await post.deleteOne();
 
+  // Nothing should keep pointing at a row that no longer exists.
+  await matchingService.purgeMatchesForPost(result._id);
+
   // Invalidate related cache entries
   await cacheService.invalidatePattern('posts:*');
   await cacheService.invalidatePattern('dashboard:*');
@@ -1982,7 +2000,11 @@ const markPostAsReturned = async (req, res) => {
     }
 
     // Find the post
-    const post = await Post.findById(postId).select('_id user returned').exec();
+    // `categories`/`category` are read by Post's pre('save') hook, which rejects
+    // a document whose categories array is empty. On a projection that leaves
+    // them out they read as undefined, so save() failed here for every post -
+    // include them even though this handler never modifies them.
+    const post = await Post.findById(postId).select('_id user returned categories category').exec();
 
     if (!post) {
       return res.status(404).json({
@@ -2002,6 +2024,11 @@ const markPostAsReturned = async (req, res) => {
     post.returned = true;
     post.resolvedAt = new Date();
     await post.save();
+
+    // The item is home: retire its match pairs so nobody keeps chasing a lead
+    // that is already resolved. The alerts pointing at it drop out of the inbox
+    // on their own - that query filters on both posts still being unreturned.
+    await matchingService.closeMatchesForPost(post._id);
 
     // Invalidate related cache entries
     await cacheService.invalidatePattern('posts:*');

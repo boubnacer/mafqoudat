@@ -129,6 +129,15 @@ const postSchema = new mongoose.Schema(
       type: String,
       trim: true
     }],
+    // Last time services/matchingService.js scored this post against the
+    // opposite side. Read by the on-demand path so opening a post's "possible
+    // matches" panel cannot re-run a full scan on every page view - including
+    // for posts that legitimately have no matches at all, which is exactly the
+    // case a "do we have stored pairs?" check would fail to throttle.
+    lastMatchScanAt: {
+      type: Date,
+      default: null
+    },
   },
   {
     timestamps: true,

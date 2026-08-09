@@ -208,6 +208,7 @@ app.use("/contact", require("./routes/contactRoutes"));
 app.use("/cities-public", require("./routes/citiesPublicRoutes"));
 app.use("/dependencies", require("./routes/dependenciesRoutes"));
 app.use("/cities-api", require("./routes/citiesRoutes"));
+app.use("/notifications", require("./routes/notificationRoutes"));
 
 app.use("/promotion", require("./routes/promotionRoutes"));
 app.use("/admin", require("./routes/adminRoutes"));

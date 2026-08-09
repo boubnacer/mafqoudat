@@ -54,6 +54,45 @@ Reuse these, don't invent new card/panel treatment — now house style:
 - Phase 8 — remove borders from containers platform-wide (elevation-only surfaces), across both `client/` (WelcomePage, the since-removed PublicPostsPage, dashboard panels/cards in `LeftSide.jsx`/`TrendingItem.jsx`/`RecentPosts.jsx`/`Categories.jsx`/`QuickActions.jsx`/`RecentSection.jsx`/`Process.jsx`/`HelpSupportSection.jsx`/`SearchPartyHero.jsx`/`Dash.js`/`TotalBox.jsx`) and `mobile/` (`HomeScreen.js`, `WelcomeScreen.js`, `PostDetailScreen.js`, `PostsListScreen.js`, `MyPostsScreen.js`, `ProfileScreen.js`, `AppHeader.js`, `LoginScreen.js`, `SignUpScreen.js`): done. This is the first design pass to touch `mobile/`.
 - Phase 9 — `mobile/` parent card/panel containers lose their shadow entirely (border was already gone from Phase 8); their nested badge/icon/pill sub-elements (still borderless) pick up a small shadow (`getElevation(isDark, 1)`) instead, so depth reads from the sub-elements rather than the outer card. Touched `HomeScreen.js` (`panelContainer`/`foundLostStrip`/`bigStatCard`/`posterCard`/`recentEmpty`/`socialPanel` parents; `statSegmentIcon`/`bigStatCardIcon`/`posterStatusPill`/`posterReturnedPill`/`socialIconCircle` sub-elements), `PostsListScreen.js` + `MyPostsScreen.js` (`postCard`/`postCardSkeleton` parents; `statusTag`/`dateBadge`/`categoryPill`/`lifecycleBadge` sub-elements), `PostDetailScreen.js` (`body` parent; `statusTag`/`dateBadge`/`categoryChip` sub-elements), `ProfileScreen.js` (`infoCard`/`menuCard` parents; `infoRowIcon`/`menuRowIcon` sub-elements), `SettingsScreen.js` (`card`/`menuCard` parents, no sub-element badges), `WelcomeScreen.js` (`heroCard` parent; `heroStatusTag` sub-element — `createStyles` there now also takes `isDark`), `LoginScreen.js`/`SignUpScreen.js`/`EditProfileScreen.js` (`card` parent only — their inner elements are form inputs/buttons, exempt from this treatment same as the border rule). Buttons, form inputs, and dropdown/menu/dialog chrome (`filterButton`/`paginationBar`/`addPostButton`/`chip`/`countryDropdown`/toast/notice banners) were left with their existing elevation — same exemption list as Phase 8's border removal, not new "cards." Where a screen's `getElevation` helper ended up with no remaining callers (`LoginScreen.js`, `SignUpScreen.js`, `EditProfileScreen.js`, `SettingsScreen.js`), the now-dead helper was deleted rather than left unused: done.
 
+## Match notifications (web only — `mobile/` not wired up yet)
+
+Lost↔found matching engine + in-app notifications. Web (`client/` + `server/`) only;
+no `mobile/` surface exists for it yet, so a future mobile pass needs new screens,
+not just token parity.
+
+- **Engine**: [matchingService.js](server/services/matchingService.js). On post create/edit
+  (fire-and-forget `scheduleMatchScan`, deferred via `setImmediate` — never blocks or fails
+  a post write) it scans the *opposite* `foundLost` side of the same country, sharing ≥1
+  category, within `MATCH_LOOKBACK_DAYS`. Scores each pair 0-100 on five weighted signals:
+  category 30 / city 20 / location-text 10 / date 15 / keywords 25 (+8 bonus for a shared
+  reference number). Category alone never qualifies — a pair needs at least one
+  corroborating signal. Pure helpers live in [textMatching.js](server/utils/textMatching.js)
+  (en/fr/ar script-normalized tokenizer + Dice similarity) and
+  [postDates.js](server/utils/postDates.js) (parses the free-text `mainDate` written by
+  `DateEntryDialog`, month names in all three languages).
+- **Tunables** (all env, all optional): `MATCH_MIN_SCORE` (store floor, 40),
+  `MATCH_NOTIFY_MIN_SCORE` (notify floor, 50), `MATCH_EMAIL_MIN_SCORE` (70),
+  `MATCH_LOOKBACK_DAYS` (180), `MATCH_CANDIDATE_LIMIT` (300), `MATCH_MAX_PER_RUN` (10).
+- **Models**: [PostMatch.js](server/models/PostMatch.js) (the scored pair — canonical
+  `postA`/`postB` ordering for its unique index, per-user `dismissedBy`) and
+  [Notification.js](server/models/Notification.js) (one row per recipient, unique on
+  user+type+post+matchedPost so re-scoring updates in place). `User.notificationPreferences`
+  and `Post.lastMatchScanAt` were added for this.
+- **API**: `/notifications/*` ([notificationRoutes.js](server/routes/notificationRoutes.js) /
+  [notificationsController.js](server/controllers/notificationsController.js)), all behind
+  `verifyJWT` and scoped to `req.user`. The inbox and the unread badge share one pipeline so
+  the badge can never claim a count the list won't render; both drop notifications whose
+  posts are no longer active/unreturned. Localization happens server-side from a `language`
+  query param — reason/tier codes stay stable, wording lives in `translations.js`.
+- **Client**: [features/notifications/](client/src/features/notifications/) — navbar
+  `NotificationBell` (60s unread poll, popover preview), `/dash/notifications` page (tabs +
+  inline `NotificationPreferences`), and `PostMatchesPanel` on post detail for the owner
+  (which is also the retroactive path: it triggers an on-demand, 6h-throttled scan, so posts
+  predating the engine still get leads). Reuses the paired-panel and status-tag patterns
+  above; no new card language.
+- **Offline check**: `npm run test-matching` in `server/` — no DB needed, covers
+  normalization, date parsing and scoring.
+
 ## Rules for this work
 
 - Use existing design tokens (`theme.custom.*` from designTokens.js); never hardcode colors or font-families in component styles.
