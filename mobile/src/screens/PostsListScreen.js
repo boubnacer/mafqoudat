@@ -696,7 +696,7 @@ const PostsListScreen = ({ navigation, route }) => {
                 // only appears once the current page's posts have actually rendered (i.e. the user has
                 // browsed all of them), not as a persistent floating action button.
                 ListFooterComponent={
-                  !isLoading && posts.length > 0 ? (
+                  !isLoading && posts.length > 0 && page >= totalPages ? (
                     <TouchableOpacity style={styles.addPostButton} onPress={handleNewPostPress} activeOpacity={0.85}>
                       <Ionicons name="add" size={18} color="#FFFFFF" />
                       <Text style={styles.addPostButtonText}>{t('createPost')}</Text>
