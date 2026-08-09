@@ -669,8 +669,8 @@ const createStyles = (tokens, isRTL, isDark) =>
     // out past scrollContent's horizontal padding so it bleeds to the
     // screen edges the way web's full-bleed header map does. Height comes
     // from its square aspect ratio, so it stands 2 x SCREEN_PADDING taller
-    // than mapSpacer below and creeps up behind the stat cards -
-    // the same overlap web gets from its oversized/cropped map layer.
+    // than mapSpacer below - mapSpacer's marginTop pays that back so the map
+    // clears the stat cards instead of creeping up behind them.
     mapBackdrop: {
       position: 'absolute',
       bottom: 0,
@@ -680,10 +680,16 @@ const createStyles = (tokens, isRTL, isDark) =>
       // measure this absolutely-positioned box.
       aspectRatio: 1,
     },
+    // Square of the content width, while the map layer above is a square of
+    // the full screen width - i.e. 2 x SCREEN_PADDING taller. Absorbing that
+    // difference as marginTop keeps headerStack's own 20px gap as the actual
+    // breathing room between the stat cards and the top of the map, matching
+    // the space web leaves below LeftSide.
     mapSpacer: {
       width: '100%',
       aspectRatio: 1,
       minHeight: 300,
+      marginTop: SCREEN_PADDING * 2,
     },
 
     // Panel shell - mirrors LeftSide.jsx / TrendingItem.jsx's SectionPanel:
