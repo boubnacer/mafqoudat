@@ -21,6 +21,7 @@ import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
+import { GoogleGlyph, FacebookGlyph } from '../components/AuthSocialGlyphs';
 
 // Mirrors client/src/features/auth/SingUp/NewUserForm.js's own patterns, so the
 // mobile and web apps agree on what counts as a plausible email/phone.
@@ -267,6 +268,57 @@ const LoginScreen = ({ navigation }) => {
               </View>
             ) : null}
 
+            {/* Google OAuth Button */}
+            <TouchableOpacity
+              style={[
+                styles.googleButton,
+                (isGoogleLoading || !IS_GOOGLE_AUTH_CONFIGURED) && styles.buttonDisabled,
+              ]}
+              onPress={handleGoogleLogin}
+              disabled={isGoogleLoading || !IS_GOOGLE_AUTH_CONFIGURED}
+              activeOpacity={0.7}
+            >
+              {isGoogleLoading ? (
+                <ActivityIndicator color={tokens.ink} />
+              ) : (
+                <>
+                  <GoogleGlyph size={20} />
+                  <Text style={styles.googleButtonText}>
+                    {t('continueWithGoogle')}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+            {!IS_GOOGLE_AUTH_CONFIGURED ? (
+              <Text style={styles.googleAuthHint}>{t('googleAuthNotConfigured')}</Text>
+            ) : null}
+
+            {/* Facebook OAuth Button */}
+            <TouchableOpacity
+              style={[styles.facebookButton, isFacebookLoading && styles.buttonDisabled]}
+              onPress={handleFacebookLogin}
+              disabled={isFacebookLoading}
+              activeOpacity={0.7}
+            >
+              {isFacebookLoading ? (
+                <ActivityIndicator color={tokens.ink} />
+              ) : (
+                <>
+                  <FacebookGlyph size={20} />
+                  <Text style={styles.googleButtonText}>
+                    {t('continueWithFacebook')}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>{t('or')}</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
             {/* Traditional Login Form */}
             <View style={styles.fieldGroup}>
               <Text style={[styles.label, textStyle]}>{t('emailOrPhone')}</Text>
@@ -333,57 +385,6 @@ const LoginScreen = ({ navigation }) => {
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
                 <Text style={styles.buttonText}>{t('login')}</Text>
-              )}
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>{t('or')}</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Google OAuth Button */}
-            <TouchableOpacity
-              style={[
-                styles.googleButton,
-                (isGoogleLoading || !IS_GOOGLE_AUTH_CONFIGURED) && styles.buttonDisabled,
-              ]}
-              onPress={handleGoogleLogin}
-              disabled={isGoogleLoading || !IS_GOOGLE_AUTH_CONFIGURED}
-              activeOpacity={0.7}
-            >
-              {isGoogleLoading ? (
-                <ActivityIndicator color={tokens.ink} />
-              ) : (
-                <>
-                  <Text style={styles.googleIcon}>G</Text>
-                  <Text style={styles.googleButtonText}>
-                    {t('continueWithGoogle')}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-            {!IS_GOOGLE_AUTH_CONFIGURED ? (
-              <Text style={styles.googleAuthHint}>{t('googleAuthNotConfigured')}</Text>
-            ) : null}
-
-            {/* Facebook OAuth Button */}
-            <TouchableOpacity
-              style={[styles.facebookButton, isFacebookLoading && styles.buttonDisabled]}
-              onPress={handleFacebookLogin}
-              disabled={isFacebookLoading}
-              activeOpacity={0.7}
-            >
-              {isFacebookLoading ? (
-                <ActivityIndicator color={tokens.ink} />
-              ) : (
-                <>
-                  <Text style={styles.facebookIcon}>f</Text>
-                  <Text style={styles.googleButtonText}>
-                    {t('continueWithFacebook')}
-                  </Text>
-                </>
               )}
             </TouchableOpacity>
           </View>
@@ -582,11 +583,6 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     gap: 10,
   },
-  googleIcon: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#4285F4',
-  },
   googleButtonText: {
     color: tokens.ink,
     fontFamily: fontFamilies.bodySemiBold,
@@ -610,11 +606,6 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     borderWidth: 1,
     borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     gap: 10,
-  },
-  facebookIcon: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1877F2',
   },
   signUpRow: {
     flexDirection: row(isRTL),
