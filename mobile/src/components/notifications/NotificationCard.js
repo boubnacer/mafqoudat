@@ -1,14 +1,14 @@
 /**
- * One match alert in the notifications inbox.
+ * One counterpart listing inside a notification group.
  * Mirrors: client/src/features/notifications/NotificationItem.jsx
  *
- * Built around a single question - is the listing on the other side mine? - so
- * it leads with that listing's photo and category, states the confidence,
- * explains the pairing, and keeps the reader's own listing underneath as
- * context rather than as the subject.
+ * The group header already says which of the reader's own listings this is
+ * about, so this row answers only the follow-up question: is *this* the item?
+ * Photo first, then what it is and where, then the confidence and the reasons
+ * behind the pairing.
  *
  * Container treatment follows CLAUDE.md Phase 9: no border and no shadow on the
- * card itself; depth reads from the thumbnail, the confidence badge and the
+ * row itself; depth reads from the thumbnail, the confidence badge and the
  * reason chips, which carry their own. The unread accent bar is the same
  * borderStart exemption the post cards use for their Found/Lost tone.
  */
@@ -24,9 +24,9 @@ import { logical, row, needsDirectionFlip } from '../../utils/rtl';
 import { formatRelativeTime } from '../../utils/relativeTime';
 import { ConfidenceBadge, MatchReasons } from './MatchMeta';
 import MatchThumbnail from './MatchThumbnail';
-import { formatDaysApart, formatMatchLocation, getMatchHeadlineKey } from './matchDisplay';
+import { formatDaysApart, formatMatchLocation } from './matchDisplay';
 
-const NotificationCard = ({ notification, onOpen, onDismiss, isBusy = false }) => {
+const NotificationCard = ({ match, onOpen, onDismiss, isBusy = false }) => {
   const { isDark } = useTheme();
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
@@ -34,35 +34,37 @@ const NotificationCard = ({ notification, onOpen, onDismiss, isBusy = false }) =
   const isRTL = currentLanguage === 'ar';
   const styles = createStyles({ tokens, isDark, isRTL });
 
-  const { post, matchedPost } = notification || {};
-  // Both sides are required to render anything meaningful. The server already
-  // drops notifications whose posts are gone, so this is belt-and-braces.
-  if (!post || !matchedPost) return null;
+  const matchedPost = match?.matchedPost;
+  // The server already drops matches whose posts are gone; this is
+  // belt-and-braces against a partially-rendered payload.
+  if (!matchedPost) return null;
 
-  const daysApartLabel = formatDaysApart(notification.daysApart, t, currentLanguage);
+  const daysApartLabel = formatDaysApart(match.daysApart, t, currentLanguage);
   const location = formatMatchLocation(matchedPost);
   const textStyle = isRTL ? styles.textRTL : null;
 
+  const metaLine = [daysApartLabel, formatRelativeTime(match.createdAt, t, currentLanguage)]
+    .filter(Boolean)
+    .join(' · ');
+
   return (
     <TouchableOpacity
-      style={[styles.card, !notification.isRead && styles.cardUnread]}
-      onPress={() => onOpen?.(notification)}
+      style={[styles.row, !match.isRead && styles.rowUnread]}
+      onPress={() => onOpen?.(match)}
       activeOpacity={0.85}
       accessibilityRole="button"
     >
-      <MatchThumbnail post={matchedPost} size={76} />
+      <MatchThumbnail post={matchedPost} size={64} />
 
       <View style={styles.body}>
-        <View style={styles.headlineRow}>
-          <Text style={[styles.headline, textStyle]} numberOfLines={2}>
-            {t(getMatchHeadlineKey(post.foundLostCode), {
-              item: matchedPost.categoryLabel || t('unknownCategory'),
-            })}
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, textStyle]} numberOfLines={2}>
+            {matchedPost.categoryLabel || t('unknownCategory')}
           </Text>
 
           {onDismiss ? (
             <TouchableOpacity
-              onPress={() => onDismiss(notification)}
+              onPress={() => onDismiss(match)}
               disabled={isBusy}
               hitSlop={10}
               style={styles.dismissButton}
@@ -80,25 +82,17 @@ const NotificationCard = ({ notification, onOpen, onDismiss, isBusy = false }) =
         ) : null}
 
         <View style={styles.badgeRow}>
-          <ConfidenceBadge tier={notification.tier} score={notification.score} compact />
-          {daysApartLabel ? (
-            <Text style={[styles.daysApart, textStyle]} numberOfLines={1}>
-              {daysApartLabel}
+          <ConfidenceBadge tier={match.tier} score={match.score} compact />
+          {metaLine ? (
+            <Text style={[styles.meta, textStyle]} numberOfLines={1}>
+              {metaLine}
             </Text>
           ) : null}
         </View>
 
         <View style={styles.reasonsRow}>
-          <MatchReasons reasons={notification.reasons} max={4} />
+          <MatchReasons reasons={match.reasons} max={4} />
         </View>
-
-        {/* The reader's own listing, stated plainly - without it the pairing is
-            ambiguous for anyone with several open listings. */}
-        <Text style={[styles.footnote, textStyle]} numberOfLines={2}>
-          {t('notifAgainstYourListing', { item: post.categoryLabel || t('unknownCategory') })}
-          {' · '}
-          {formatRelativeTime(notification.createdAt, t, currentLanguage)}
-        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -111,27 +105,26 @@ const NotificationCard = ({ notification, onOpen, onDismiss, isBusy = false }) =
 // cancels out native mirroring once forceRTL has taken effect on relaunch.
 const createStyles = ({ tokens, isDark, isRTL }) =>
   StyleSheet.create({
-    card: {
+    row: {
       flexDirection: row(isRTL),
-      backgroundColor: tokens.surfaceCard,
-      borderRadius: radiusTokens.lg,
-      padding: 12,
-      marginBottom: 10,
-      // No border, no shadow on the parent - see the file header.
+      borderRadius: radiusTokens.md,
+      padding: 10,
+      marginTop: 6,
+      // No border, no shadow on the row - see the file header.
     },
-    cardUnread: {
+    rowUnread: {
       backgroundColor: `${tokens.brandPrimary}${isDark ? '1F' : '0F'}`,
-      ...logical(isRTL, { borderStartWidth: 4, borderStartColor: tokens.brandPrimary }),
+      ...logical(isRTL, { borderStartWidth: 3, borderStartColor: tokens.brandPrimary }),
     },
     body: {
       flex: 1,
-      ...logical(isRTL, { marginStart: 12 }),
+      ...logical(isRTL, { marginStart: 10 }),
     },
-    headlineRow: {
+    titleRow: {
       flexDirection: row(isRTL),
       alignItems: 'flex-start',
     },
-    headline: {
+    title: {
       flex: 1,
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 14,
@@ -146,7 +139,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       fontFamily: fontFamilies.body,
       fontSize: 12,
       color: `${tokens.ink}99`,
-      marginTop: 3,
+      marginTop: 2,
     },
     badgeRow: {
       flexDirection: row(isRTL),
@@ -155,18 +148,12 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       gap: 8,
       marginTop: 8,
     },
-    daysApart: {
+    meta: {
       fontFamily: fontFamilies.body,
       fontSize: 11,
       color: `${tokens.ink}99`,
     },
     reasonsRow: {
-      marginTop: 8,
-    },
-    footnote: {
-      fontFamily: fontFamilies.body,
-      fontSize: 11,
-      color: `${tokens.ink}80`,
       marginTop: 8,
     },
     textRTL: {

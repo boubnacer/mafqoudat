@@ -20,13 +20,12 @@ import {
   NotificationsOffOutlined,
 } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
-import NotificationItem from "./NotificationItem";
+import NotificationGroupPreview from "./NotificationGroupPreview";
 import {
   useGetUnreadNotificationCountQuery,
   useGetNotificationsQuery,
   useMarkNotificationReadMutation,
   useMarkAllNotificationsReadMutation,
-  useDismissNotificationMutation,
 } from "./notificationsApiSlice";
 
 // How often the badge re-checks for new matches. Matching runs on post
@@ -34,7 +33,8 @@ import {
 // clear of the API's rate limits.
 const UNREAD_POLL_MS = 60000;
 
-// The popover is a preview, not the inbox - the page handles paging.
+// The popover is a preview, not the inbox - the page handles paging. Counted
+// in groups (one per listing of the reader's), not in individual matches.
 const PREVIEW_SIZE = 6;
 
 /**
@@ -67,34 +67,38 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
 
   const [markRead] = useMarkNotificationReadMutation();
   const [markAllRead, { isLoading: isMarkingAll }] = useMarkAllNotificationsReadMutation();
-  const [dismissNotification, { isLoading: isDismissing }] = useDismissNotificationMutation();
 
-  const notifications = data?.notifications || [];
+  const groups = data?.groups || [];
 
   const closePopover = useCallback(() => setAnchorEl(null), []);
 
-  const handleOpenNotification = useCallback(async (notification) => {
+  /**
+   * A group with exactly one lead has an unambiguous destination, so it opens
+   * that listing directly. A group with several does not - it opens the inbox,
+   * where they can be compared side by side.
+   */
+  const handleOpenGroup = useCallback(async (group) => {
     closePopover();
-    if (!notification.isRead) {
+
+    const onlyMatch = group.matches?.length === 1 ? group.matches[0] : null;
+    if (!onlyMatch) {
+      navigate('/dash/notifications');
+      onNavigate?.();
+      return;
+    }
+
+    if (!onlyMatch.isRead) {
       // Opening is the read receipt. Failing to record it must not block the
       // navigation the user actually asked for.
       try {
-        await markRead(notification.id).unwrap();
+        await markRead(onlyMatch.notificationId).unwrap();
       } catch (error) {
         /* non-blocking */
       }
     }
-    navigate(`/dash/posts/${notification.matchedPost.id}`);
+    navigate(`/dash/posts/${onlyMatch.matchedPost.id}`);
     onNavigate?.();
   }, [closePopover, markRead, navigate, onNavigate]);
-
-  const handleDismiss = useCallback(async (notification) => {
-    try {
-      await dismissNotification(notification.id).unwrap();
-    } catch (error) {
-      /* the list refetches on the next poll either way */
-    }
-  }, [dismissNotification]);
 
   const bellIcon = unreadCount > 0
     ? <NotificationsActiveOutlined sx={{ fontSize: variant === "desktop" ? 20 : 22 }} />
@@ -189,7 +193,7 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
         <Divider />
 
         <Box sx={{ overflowY: "auto", padding: 1, flex: 1 }}>
-          {isFetching && notifications.length === 0 && (
+          {isFetching && groups.length === 0 && (
             <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
               <CircularProgress size={24} />
             </Box>
@@ -201,7 +205,7 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
             </Typography>
           )}
 
-          {!isFetching && !isError && notifications.length === 0 && (
+          {!isFetching && !isError && groups.length === 0 && (
             <Box sx={{ textAlign: "center", py: 4, paddingInline: 2 }}>
               <NotificationsOffOutlined sx={{ fontSize: 34, color: theme.palette.text.disabled, mb: 1 }} />
               <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: theme.custom.color.ink }}>
@@ -213,15 +217,8 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
             </Box>
           )}
 
-          {notifications.map((notification) => (
-            <NotificationItem
-              key={notification.id}
-              notification={notification}
-              compact
-              onOpen={handleOpenNotification}
-              onDismiss={handleDismiss}
-              isDismissing={isDismissing}
-            />
+          {groups.map((group) => (
+            <NotificationGroupPreview key={group.id} group={group} onOpen={handleOpenGroup} />
           ))}
         </Box>
 

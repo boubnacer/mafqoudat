@@ -130,6 +130,10 @@ const notificationPipeline = (userId, { unreadOnly = false } = {}) => ([
       ...(unreadOnly ? { isRead: false } : {}),
     },
   },
+  // Groups are re-sorted by their newest activity further down, so this sort
+  // survives only as the tiebreak *inside* a group: the matches array is later
+  // sorted by score with a stable sort, which leaves equal-scoring counterparts
+  // in newest-first order.
   { $sort: { createdAt: -1 } },
   ...postLookupStages('post', 'ownPost'),
   ...postLookupStages('matchedPost', 'otherPost'),
@@ -154,26 +158,67 @@ const serializePost = (post, language) => {
   };
 };
 
-/** Turns the aggregation output into the localized payload the client renders. */
-const serializeNotification = (row, language) => ({
-  id: String(row._id),
-  type: row.type,
-  score: row.score,
-  tier: scoreTier(row.score),
-  reasons: row.reasons || [],
-  isRead: !!row.isRead,
-  createdAt: row.createdAt,
-  matchId: row.match ? String(row.match) : null,
-  daysApart: row.daysApart ?? null,
-  post: serializePost(row.post, language),
-  matchedPost: serializePost(row.matchedPost, language),
+/** One match inside a group: the counterpart listing plus why it was paired. */
+const serializeMatchEntry = (entry, language) => ({
+  notificationId: String(entry.notificationId),
+  score: entry.score,
+  tier: scoreTier(entry.score),
+  reasons: entry.reasons || [],
+  isRead: !!entry.isRead,
+  createdAt: entry.createdAt,
+  matchId: entry.match ? String(entry.match) : null,
+  daysApart: entry.daysApart ?? null,
+  matchedPost: serializePost(entry.matchedPost, language),
 });
+
+// Cap on how many counterpart listings travel inside one group. A listing that
+// accumulates more than this is a browsing problem, not an inbox one - the
+// group still reports its true `matchCount`, and the post's own matches panel
+// shows the full set.
+const MAX_MATCHES_PER_GROUP = 20;
+
+/**
+ * A group is "every alert about one of my listings", collapsed into a single
+ * inbox entry.
+ *
+ * Posting a lost cat in a city that already holds six found-cat listings
+ * produces six notifications at once, and six near-identical rows is not an
+ * inbox - it's a wall. Grouping them by the reader's own post turns that into
+ * one entry that says "possible matches for your lost cat" and lists them.
+ *
+ * Grouping happens here, on read, rather than by writing a different kind of
+ * notification: the per-pair rows stay the unit of read/dismiss state (each
+ * counterpart is accepted or rejected on its own), and existing notifications
+ * group retroactively with no migration.
+ */
+const serializeGroup = (group, language) => {
+  const matches = (group.matches || [])
+    // Highest confidence first - the reader should meet the best lead before
+    // scrolling. $push preserves the pipeline's createdAt order, which is the
+    // wrong axis for this, so the sort happens here where the array is small.
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .slice(0, MAX_MATCHES_PER_GROUP)
+    .map((entry) => serializeMatchEntry(entry, language));
+
+  return {
+    // The reader's own post identifies the group: stable across pages and
+    // across new matches arriving later.
+    id: String(group._id),
+    post: serializePost(group.post, language),
+    matches,
+    matchCount: group.matchCount || matches.length,
+    unreadCount: group.unreadCount || 0,
+    topScore: group.topScore || 0,
+    topTier: scoreTier(group.topScore || 0),
+    latestAt: group.latestAt,
+  };
+};
 
 // ---------------------------------------------------------------------------
 // Handlers
 // ---------------------------------------------------------------------------
 
-// @desc   List the signed-in user's notifications
+// @desc   List the signed-in user's match alerts, grouped by their own listing
 // @route  GET /notifications
 // @access Private
 const listNotifications = async (req, res) => {
@@ -186,15 +231,41 @@ const listNotifications = async (req, res) => {
 
     const basePipeline = notificationPipeline(userId, { unreadOnly });
 
-    // Rows and counts are two aggregations over the same prefix rather than one
-    // $facet: the row branch needs a $lookup, and $lookup inside $facet has a
-    // patchy history across server versions. Both branches are cheap - the
-    // prefix is bounded by one user's notifications.
-    const [rows, [counts]] = await Promise.all([
+    // Collapses the per-pair rows into one entry per listing the reader owns.
+    // Runs after LIVE_POSTS_MATCH, so a counterpart that has since been
+    // returned is already gone and never inflates a group's count.
+    const groupStage = {
+      $group: {
+        _id: '$post',
+        post: { $first: postProjection('ownPost') },
+        matchCount: { $sum: 1 },
+        unreadCount: { $sum: { $cond: [{ $eq: ['$isRead', false] }, 1, 0] } },
+        topScore: { $max: '$score' },
+        latestAt: { $max: '$createdAt' },
+        matches: {
+          $push: {
+            notificationId: '$_id',
+            score: '$score',
+            reasons: '$reasons',
+            isRead: '$isRead',
+            createdAt: '$createdAt',
+            match: '$match',
+            daysApart: '$matchDoc.daysApart',
+            matchedPost: postProjection('otherPost'),
+          },
+        },
+      },
+    };
+
+    // Groups and totals are two aggregations over the same prefix rather than
+    // one $facet: the group branch needs a $lookup, and $lookup inside $facet
+    // has a patchy history across server versions. Both are cheap - the prefix
+    // is bounded by one user's notifications.
+    const [groups, [counts]] = await Promise.all([
       Notification.aggregate([
         ...basePipeline,
-        { $skip: (page - 1) * pageSize },
-        { $limit: pageSize },
+        // daysApart lives on the pair, and it is joined before the grouping so
+        // each match inside a group can carry its own value.
         {
           $lookup: {
             from: 'postmatches',
@@ -204,42 +275,43 @@ const listNotifications = async (req, res) => {
           },
         },
         { $unwind: { path: '$matchDoc', preserveNullAndEmptyArrays: true } },
-        {
-          $project: {
-            type: 1,
-            score: 1,
-            reasons: 1,
-            isRead: 1,
-            createdAt: 1,
-            match: 1,
-            daysApart: '$matchDoc.daysApart',
-            post: postProjection('ownPost'),
-            matchedPost: postProjection('otherPost'),
-          },
-        },
+        groupStage,
+        // Newest activity first, so a listing that just picked up a lead rises
+        // to the top even if the listing itself is old.
+        { $sort: { latestAt: -1 } },
+        { $skip: (page - 1) * pageSize },
+        { $limit: pageSize },
       ]),
       Notification.aggregate([
         ...basePipeline,
         {
           $group: {
-            _id: null,
-            total: { $sum: 1 },
+            _id: '$post',
             unread: { $sum: { $cond: [{ $eq: ['$isRead', false] }, 1, 0] } },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            // Paging is over groups, so `total` counts groups; `unread` stays a
+            // count of individual alerts, matching the bell badge exactly.
+            totalGroups: { $sum: 1 },
+            unread: { $sum: '$unread' },
           },
         },
       ]),
     ]);
 
-    const total = counts?.total || 0;
+    const totalGroups = counts?.totalGroups || 0;
     const unreadCount = counts?.unread || 0;
 
     return res.json({
       success: true,
-      notifications: rows.map((row) => serializeNotification(row, language)),
+      groups: groups.map((group) => serializeGroup(group, language)),
       page,
       pageSize,
-      total,
-      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      total: totalGroups,
+      totalPages: Math.max(1, Math.ceil(totalGroups / pageSize)),
       unreadCount,
     });
   } catch (error) {
