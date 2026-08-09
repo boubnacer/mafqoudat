@@ -437,8 +437,10 @@ const SocialSection = ({ t, styles }) => (
           activeOpacity={0.75}
           onPress={() => Linking.openURL(social.url)}
         >
-          <View style={[styles.socialIconCircle, { backgroundColor: `${social.brandColor}1A` }]}>
-            <Ionicons name={social.icon} size={26} color={social.brandColor} />
+          <View style={styles.socialIconCircleShadow}>
+            <View style={[styles.socialIconCircle, { backgroundColor: `${social.brandColor}1A` }]}>
+              <Ionicons name={social.icon} size={26} color={social.brandColor} />
+            </View>
           </View>
           <Text style={styles.socialLabel}>{t(social.labelKey)}</Text>
         </TouchableOpacity>
@@ -1036,13 +1038,22 @@ const createStyles = (tokens, isRTL, isDark) =>
       alignItems: 'center',
       gap: 8,
     },
+    // Shadow lives on this opaque wrapper, not the tinted circle below it -
+    // elevation + a translucent background is a known RN/Android bug that
+    // renders the shadow as a visible octagon bleeding through the tint.
+    socialIconCircleShadow: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: tokens.surfaceRaised,
+      ...getElevation(isDark, 1),
+    },
     socialIconCircle: {
       width: 56,
       height: 56,
       borderRadius: 28,
       justifyContent: 'center',
       alignItems: 'center',
-      ...getElevation(isDark, 1),
     },
     socialLabel: {
       fontFamily: fontFamilies.bodyMedium,
