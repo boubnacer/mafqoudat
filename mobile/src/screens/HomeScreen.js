@@ -29,6 +29,10 @@ import { formatRelativeTime } from '../utils/relativeTime';
 
 const SECTION_COUNT = 6;
 
+// Horizontal padding of the scroll content - kept as a constant so the
+// header's map backdrop can cancel it out and bleed to the screen edges.
+const SCREEN_PADDING = 16;
+
 // Same accounts as client/src/components/Footer/DashFooter.js's socialLinks -
 // kept in sync manually since the mobile app has no shared config module yet.
 const SOCIAL_LINKS = [
@@ -488,28 +492,10 @@ const HomeScreen = ({ navigation }) => {
   const goToPost = (id) => navigation.navigate('PostDetailScreen', { id });
   const goToNewPost = () => navigation.navigate('NewPost');
 
-  // Keyed by ISO2 code so WorldActivityMap can look up a localized country
-  // name from the aggregation's { code, count } rows - mirrors
-  // Dash.js's countriesByCode (there keyed off countriesData.entities, here
-  // off useReferenceData's flat countries array).
-  const countriesByCode = useMemo(() => {
-    const map = {};
-    (countries || []).forEach((c) => {
-      if (c?.code) map[c.code] = c;
-    });
-    return map;
-  }, [countries]);
-
   const currentCountryCode = useMemo(() => {
     const match = (countries || []).find((c) => (c._id || c.id) === countryId);
     return match?.code || null;
   }, [countries, countryId]);
-
-  const currentCountryName =
-    countriesByCode?.[currentCountryCode]?.names?.[currentLanguage] ||
-    countriesByCode?.[currentCountryCode]?.names?.en ||
-    currentCountryCode ||
-    '';
 
   const recentFounds = Array.isArray(data?.recentFounds) ? data.recentFounds.slice(0, 2) : [];
   const recentLosts = Array.isArray(data?.recentLosts) ? data.recentLosts.slice(0, 2) : [];
@@ -541,16 +527,31 @@ const HomeScreen = ({ navigation }) => {
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} colors={[tokens.brandPrimary]} tintColor={tokens.brandPrimary} />
         }
       >
-        {/* Header: Statistics panel, then (below it, its own card - not a
-            layered backdrop) the world activity map. Web's Dash.js runs the
-            map as a full-bleed backdrop cropped/panned behind a translucent
-            LeftSide via CSS percentage positioning; react-native-svg's
-            percentage sizing doesn't resolve the same way on a `flex: 1`
-            parent (it rendered corrupted, not just imprecisely positioned -
-            confirmed live via expo web), so this stays a plain bounded card
-            instead of chasing that. TrendingSection has been retired - this
-            header now covers the space it and StatsSection used to share. */}
+        {/* Header: statistics over a full-bleed world activity map, matching
+            web's Dash.js mobile layout - the map is a chrome-less backdrop
+            (no panel card, no title), not a card of its own, and it bleeds
+            past the scroll view's horizontal padding to the screen edges.
+            Web crops/pans an oversized map with CSS percentages so the
+            country lands below LeftSide; react-native-svg's percentage
+            sizing doesn't resolve the same way (verified live via expo web),
+            so the same result is built from layout instead: the map keeps
+            its natural square, is bottom-anchored in this section, and a
+            spacer below the stats reserves the room it occupies.
+            TrendingSection has been retired - this header now covers the
+            space it and StatsSection used to share. */}
         <Animated.View style={[animatedSectionStyle(0), styles.headerStack]}>
+          {!hasNoData && (
+            <View style={styles.mapBackdrop} pointerEvents="none">
+              <WorldActivityMap
+                worldActivity={data?.worldActivity}
+                cityActivity={data?.cityActivity}
+                currentCountryCode={currentCountryCode}
+                isLoading={isLoading}
+                tokens={tokens}
+                isDark={isDark}
+              />
+            </View>
+          )}
           <StatsSection
             data={data}
             isLoading={isLoading}
@@ -560,18 +561,10 @@ const HomeScreen = ({ navigation }) => {
             onFoundPress={() => goToPosts({ initialFl: foundOption?._id || '' })}
             onLostPress={() => goToPosts({ initialFl: lostOption?._id || '' })}
           />
-          {!hasNoData && (
-            <Panel title={t('worldActivityCountries', { country: currentCountryName })} styles={styles}>
-              <WorldActivityMap
-                worldActivity={data?.worldActivity}
-                cityActivity={data?.cityActivity}
-                currentCountryCode={currentCountryCode}
-                isLoading={isLoading}
-                tokens={tokens}
-                isDark={isDark}
-              />
-            </Panel>
-          )}
+          {/* Reserves the vertical room the bottom-anchored map layer above
+              occupies, exactly like the spacer row web's mobile header
+              keeps below LeftSide. */}
+          {!hasNoData && <View style={styles.mapSpacer} />}
         </Animated.View>
 
         <Animated.View style={[styles.section, animatedSectionStyle(1)]}>
@@ -644,7 +637,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       backgroundColor: tokens.surfaceBase,
     },
     scrollContent: {
-      paddingHorizontal: 16,
+      paddingHorizontal: SCREEN_PADDING,
       paddingTop: 16,
       paddingBottom: 32,
     },
@@ -667,11 +660,30 @@ const createStyles = (tokens, isRTL, isDark) =>
       textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
     },
 
-    // Dashboard header: Statistics panel then the world activity map panel,
-    // stacked as two independent bounded cards (see the comment above their
-    // render for why this isn't a layered/cropped backdrop like web).
+    // Dashboard header: the statistics panel layered over a chrome-less
+    // world activity map (see the comment above their render).
     headerStack: {
       gap: 20,
+    },
+    // The map layer itself: bottom-anchored behind the header, and pulled
+    // out past scrollContent's horizontal padding so it bleeds to the
+    // screen edges the way web's full-bleed header map does. Height comes
+    // from its square aspect ratio, so it stands 2 x SCREEN_PADDING taller
+    // than mapSpacer below and creeps up behind the stat cards -
+    // the same overlap web gets from its oversized/cropped map layer.
+    mapBackdrop: {
+      position: 'absolute',
+      bottom: 0,
+      left: -SCREEN_PADDING,
+      right: -SCREEN_PADDING,
+      // Explicit square rather than relying on the child's aspect ratio to
+      // measure this absolutely-positioned box.
+      aspectRatio: 1,
+    },
+    mapSpacer: {
+      width: '100%',
+      aspectRatio: 1,
+      minHeight: 300,
     },
 
     // Panel shell - mirrors LeftSide.jsx / TrendingItem.jsx's SectionPanel:

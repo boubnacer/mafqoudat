@@ -12,14 +12,16 @@
  * Deliberately NOT mirrored for RTL, matching web: a real map has to stay
  * geographically accurate regardless of reading direction.
  *
- * Unlike web's Dash.js, this renders as a plain bounded square (HomeScreen
- * wraps it in its own Panel card, below Statistics, not behind it). Web's
- * full-bleed backdrop is achieved by rendering the map oversized and
- * panning it via CSS percentage positioning on an absolutely-positioned
- * layer; react-native-svg's percentage sizing doesn't resolve the same way
- * on a `flex: 1` parent (verified live via `expo start --web` - it
- * rendered corrupted, not just imprecisely positioned), so that trick isn't
- * worth chasing here.
+ * Chrome-less, like web's version: no card, no radius, no background of its
+ * own - it renders as a bare square that fills whatever box it is given, and
+ * HomeScreen positions it as a full-bleed backdrop behind the statistics.
+ * Web achieves that backdrop by rendering the map oversized and panning it
+ * via CSS percentage positioning on an absolutely-positioned layer;
+ * react-native-svg's percentage sizing doesn't resolve the same way on a
+ * `flex: 1` parent (verified live via `expo start --web` - it rendered
+ * corrupted, not just imprecisely positioned), so HomeScreen reproduces the
+ * placement with layout instead: the map keeps its natural square and is
+ * bottom-anchored in the header, with a spacer reserving its room.
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
@@ -271,11 +273,11 @@ const WorldActivityMap = ({
   // box's actual on-screen size - pushing them outside the clipped box on
   // any cold start where the dashboard fetch was still in flight when this
   // component first mounted.
+  // No loading placeholder fill: the map now sits directly on the page as a
+  // backdrop rather than inside a card, so a tinted square would read as a
+  // stray panel. It simply appears once the topojson is parsed.
   return (
-    <View
-      style={[styles.mapBox, !ready && { backgroundColor: hexToRgba(ink, 0.05) }]}
-      onLayout={(e) => setBoxSize(e.nativeEvent.layout)}
-    >
+    <View style={styles.mapBox} onLayout={(e) => setBoxSize(e.nativeEvent.layout)}>
       {ready && (
         <>
           <Svg width="100%" height="100%" viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}>
@@ -328,7 +330,6 @@ const styles = StyleSheet.create({
   mapBox: {
     width: '100%',
     aspectRatio: 1,
-    borderRadius: 12,
     overflow: 'hidden',
     // Pins this whole subtree's Yoga layout direction to LTR, independent
     // of I18nManager's global RTL state - see the long comment on
