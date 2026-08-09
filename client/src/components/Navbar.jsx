@@ -1049,7 +1049,13 @@ const Navbar = () => {
               sx={{ fontSize: "20px", transition: "transform 0.2s ease", transform: mobileExploreOpen ? "rotate(180deg)" : "rotate(0deg)" }}
             />
           </DrawerRow>
-          <Collapse in={mobileExploreOpen} timeout="auto" unmountOnExit>
+          {/* flexShrink: 0 — the Drawer's Paper is a flex column (MUI default)
+              with overflowY: auto; MUI's Collapse sets its own min-height: 0,
+              so without this it gets squeezed shorter than its content once
+              the drawer's total content exceeds viewport height, and (since
+              Collapse keeps overflow: visible) the overflow spills onto the
+              sections below instead of the Paper scrolling. */}
+          <Collapse in={mobileExploreOpen} timeout="auto" unmountOnExit sx={{ flexShrink: 0 }}>
             <Box sx={{ paddingInlineStart: 2, borderInlineStart: `2px solid ${alpha(theme.custom.color.ink, 0.08)}`, marginInlineStart: 2, mb: 0.5 }}>
               {navigationItems.map((item) => (
                 <DrawerRow
