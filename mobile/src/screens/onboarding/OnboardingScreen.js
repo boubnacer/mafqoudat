@@ -693,7 +693,8 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
       fontSize: 20,
       color: BRAND_BLUE,
       textAlign: 'center',
-      marginBottom: 20,
+      // ~1cm gap down to the illustration (96 CSS px/in ÷ 2.54cm/in ≈ 38dp).
+      marginBottom: 38,
     },
     headline: {
       fontSize: 22,
@@ -719,6 +720,8 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
       fontSize: 15,
       color: tokens.ink,
       textAlign: 'center',
+      // ~1cm gap up from the illustration (96 CSS px/in ÷ 2.54cm/in ≈ 38dp).
+      marginTop: 38,
       marginBottom: 8,
     },
     languageChipsRow: {
