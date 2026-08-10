@@ -15,13 +15,11 @@ import {
   CardContent,
   Button,
   Typography,
-  IconButton,
-  InputAdornment,
   Alert,
   useTheme,
   alpha,
 } from "@mui/material";
-import { Visibility, VisibilityOff, Lock, Email, Phone } from "@mui/icons-material";
+import { Lock, Email, Phone } from "@mui/icons-material";
 
 import {
   AuthPageContainer,
@@ -30,14 +28,17 @@ import {
   AuthTopControls,
   AuthHeader,
   AuthDivider,
-  AuthTextField,
+  AuthFormField,
   AuthPrimaryButton,
   AuthGoogleButton,
   AuthFacebookButton,
   AuthOutlineButton,
   AuthNeutralButton,
+  AuthPromptRow,
   GoogleGlyph,
   FacebookGlyph,
+  useAuthCompactLayout,
+  AUTH_CARD_CONTENT_SX,
   redirectToGoogleAuth,
   redirectToFacebookAuth,
   OAUTH_WARNING_MESSAGE_KEYS,
@@ -53,6 +54,7 @@ const LoginComponent = () => {
   const theme = useTheme();
   const { t, currentLanguage } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const isCompact = useAuthCompactLayout();
 
   const hasLoadedRedirectMessage = useRef(false);
   const hasReadOauthCallbackError = useRef(false);
@@ -198,9 +200,21 @@ const LoginComponent = () => {
       <AuthTopControls />
 
       <AuthCardSlot>
+        {/* Mobile puts the wordmark on the page background above the card,
+            the way the Expo LoginScreen does; desktop keeps it inside. */}
+        {isCompact && (
+          <AuthHeader
+            title={t('welcomeBack')}
+            subtitle={t('welcomeMessage')}
+            tagline={t('loginToAccount')}
+          />
+        )}
+
         <AuthCard>
-          <CardContent sx={{ p: { xs: 3, md: 5 } }}>
-            <AuthHeader title={t('welcomeBack')} subtitle={t('welcomeMessage')} />
+          <CardContent sx={AUTH_CARD_CONTENT_SX}>
+            {!isCompact && (
+              <AuthHeader title={t('welcomeBack')} subtitle={t('welcomeMessage')} />
+            )}
 
             {infoAlertMessage && (
               <Alert
@@ -260,98 +274,121 @@ const LoginComponent = () => {
             <AuthDivider />
 
             <Box component="form" onSubmit={handleSubmit}>
-              <AuthTextField
-                fullWidth
+              <AuthFormField
                 label={t('emailOrPhone')}
                 placeholder={t('emailOrPhonePlaceholder')}
                 value={formData.emailOrPhone}
                 onChange={handleInputChange('emailOrPhone')}
-                margin="normal"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Email sx={{ color: alpha(theme.custom.color.ink, 0.5), fontSize: '1.2rem' }} />
-                        <Phone sx={{ color: alpha(theme.custom.color.ink, 0.5), fontSize: '1.2rem' }} />
-                      </Box>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 1 }}
+                margin={isCompact ? 'none' : 'normal'}
+                startIcon={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Email sx={{ color: alpha(theme.custom.color.ink, 0.5), fontSize: '1.2rem' }} />
+                    <Phone sx={{ color: alpha(theme.custom.color.ink, 0.5), fontSize: '1.2rem' }} />
+                  </Box>
+                }
+                sx={{ mb: { xs: 2.25, sm: 1 } }}
               />
 
-              <AuthTextField
-                fullWidth
+              <AuthFormField
                 label={t('password')}
-                type={showPassword ? 'text' : 'password'}
+                placeholder={t('passwordPlaceholder')}
                 value={formData.password}
                 onChange={handleInputChange('password')}
-                margin="normal"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock sx={{ color: alpha(theme.custom.color.ink, 0.5) }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                        size="small"
-                        sx={{ color: alpha(theme.custom.color.ink, 0.5) }}
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
+                margin={isCompact ? 'none' : 'normal'}
+                password
+                showPassword={showPassword}
+                onTogglePassword={() => setShowPassword(!showPassword)}
+                startIcon={<Lock sx={{ color: alpha(theme.custom.color.ink, 0.5) }} />}
                 sx={{ mb: 1 }}
               />
 
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-                <Button
-                  onClick={() => setResetPasswordDialogOpen(true)}
-                  sx={{
-                    color: theme.custom.color.brandPrimary,
-                    textTransform: 'none',
-                    fontWeight: 500,
-                  }}
-                >
-                  {t('forgotPassword')}
-                </Button>
-              </Box>
+              {/* The Expo screen has no reset link; on mobile it moves below the
+                  submit button rather than crowding the field stack. */}
+              {!isCompact && (
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+                  <Button
+                    onClick={() => setResetPasswordDialogOpen(true)}
+                    sx={{
+                      color: theme.custom.color.brandPrimary,
+                      textTransform: 'none',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {t('forgotPassword')}
+                  </Button>
+                </Box>
+              )}
 
               <AuthPrimaryButton
                 type="submit"
                 fullWidth
                 variant="contained"
                 disabled={isSubmitting}
+                sx={{ mt: { xs: 1.5, sm: 0 } }}
               >
                 {isSubmitting ? t('signingIn') : t('signin')}
               </AuthPrimaryButton>
+
+              {isCompact && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                  <Button
+                    onClick={() => setResetPasswordDialogOpen(true)}
+                    sx={{
+                      color: theme.custom.color.brandPrimary,
+                      textTransform: 'none',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {t('forgotPassword')}
+                  </Button>
+                </Box>
+              )}
             </Box>
 
-            <Box sx={{ textAlign: 'center', mt: 4 }}>
-              <Typography
-                variant="body2"
-                sx={{ mb: 2, color: alpha(theme.custom.color.ink, 0.7) }}
-              >
-                {t('firstTime')}
-              </Typography>
+            {!isCompact && (
+              <Box sx={{ textAlign: 'center', mt: 4 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ mb: 2, color: alpha(theme.custom.color.ink, 0.7) }}
+                >
+                  {t('firstTime')}
+                </Typography>
 
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <AuthOutlineButton component={Link} to="/signup">
-                  {t('createAccount')}
-                </AuthOutlineButton>
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <AuthOutlineButton component={Link} to="/signup">
+                    {t('createAccount')}
+                  </AuthOutlineButton>
 
-                <AuthNeutralButton component={Link} to="/">
-                  {t('searchCountry')}
-                </AuthNeutralButton>
+                  <AuthNeutralButton component={Link} to="/">
+                    {t('searchCountry')}
+                  </AuthNeutralButton>
+                </Box>
               </Box>
-            </Box>
+            )}
           </CardContent>
         </AuthCard>
+
+        {isCompact && (
+          <>
+            <AuthPromptRow
+              prompt={t('signUpPrompt')}
+              actionLabel={t('signup')}
+              to="/signup"
+            />
+            <Button
+              component={Link}
+              to="/"
+              sx={{
+                mt: 0.5,
+                textTransform: 'none',
+                fontWeight: 500,
+                color: alpha(theme.custom.color.ink, 0.6),
+              }}
+            >
+              {t('searchCountry')}
+            </Button>
+          </>
+        )}
       </AuthCardSlot>
 
       <PasswordResetDialog

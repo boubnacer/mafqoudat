@@ -1,7 +1,7 @@
 import React from 'react';
 import { CardContent, useTheme } from '@mui/material';
 import SkeletonBlock from '../../components/SkeletonBlock';
-import { AuthPageContainer, AuthCardSlot, AuthCard } from './authShared';
+import { AuthPageContainer, AuthCardSlot, AuthCard, AUTH_CARD_CONTENT_SX } from './authShared';
 
 // Shared shell (AuthPageContainer/AuthCardSlot/AuthCard) reused directly from
 // authShared.jsx so this lines up pixel-for-pixel with Login/CountrySelection/
@@ -14,7 +14,7 @@ const AuthPageSkeleton = ({ fields = 2 }) => {
     <AuthPageContainer>
       <AuthCardSlot>
         <AuthCard>
-          <CardContent sx={{ p: { xs: 3, md: 5 } }}>
+          <CardContent sx={AUTH_CARD_CONTENT_SX}>
             <SkeletonBlock sx={{ height: 28, width: '55%', mx: 'auto', mb: 1.5 }} />
             <SkeletonBlock sx={{ height: 16, width: '75%', mx: 'auto', mb: 4 }} />
 

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
 import {
   Box,
   Card,
@@ -7,12 +8,14 @@ import {
   FormControl,
   Button,
   IconButton,
+  InputAdornment,
   Menu,
   MenuItem,
   ListItemIcon,
   ListItemText,
   Typography,
   Divider,
+  useMediaQuery,
   useTheme,
   alpha,
   styled,
@@ -22,6 +25,8 @@ import {
   LightModeOutlined,
   Language,
   KeyboardArrowDown,
+  Visibility,
+  VisibilityOff,
 } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
 import { useLanguage } from "../../utils/languageContext";
@@ -29,6 +34,16 @@ import { setMode } from "../../app/state";
 
 // Shared visual language for Login / SignUp / CountrySelection.
 // Every value is sourced from theme.custom (Phase 1 tokens) — see CLAUDE.md.
+
+// Below `sm` these screens drop the desktop auth-card look and take the layout
+// the Expo app's LoginScreen/SignUpScreen use: flat borderless card on the page
+// background, labels above the fields instead of MUI's floating label, no
+// leading field icons, a SHOW/HIDE text control on password fields, and the
+// switch-to-the-other-page prompt as one inline row under the card. Everything
+// that can be expressed as a breakpoint lives in the styled components below;
+// this hook covers the cases where the markup itself differs.
+export const useAuthCompactLayout = () =>
+  useMediaQuery((theme) => theme.breakpoints.down("sm"));
 
 export const redirectToGoogleAuth = () => {
   const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
@@ -63,14 +78,22 @@ export const AuthPageContainer = styled(Box)(({ theme }) => ({
   flexDirection: "column",
 }));
 
+// Column, not row: on mobile the "already have an account?" prompt sits under
+// the card as a sibling (the way the Expo screens lay it out) instead of inside
+// the card body.
 export const AuthCardSlot = styled(Box)(({ theme }) => ({
   flex: 1,
   width: "100%",
   display: "flex",
+  flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
   padding: theme.spacing(2),
   paddingBottom: theme.spacing(6),
+  [theme.breakpoints.down("sm")]: {
+    padding: theme.spacing(2.5),
+    paddingBottom: theme.spacing(4),
+  },
 }));
 
 export const AuthCard = styled(Card)(({ theme }) => ({
@@ -80,7 +103,29 @@ export const AuthCard = styled(Card)(({ theme }) => ({
   boxShadow: theme.custom.elevation.e2,
   backgroundColor: theme.custom.color.surfaceRaised,
   border: `1px solid ${alpha(theme.custom.color.ink, 0.06)}`,
+  // Mobile app parity: the card is a flat panel on the page background, with
+  // no border and no shadow (mobile Phase 9 — parent containers carry neither).
+  [theme.breakpoints.down("sm")]: {
+    border: "none",
+    boxShadow: "none",
+  },
 }));
+
+// Card body padding, shared by both pages so the compact value stays in one place.
+export const AUTH_CARD_CONTENT_SX = { p: { xs: 2.75, md: 5 } };
+
+// Mobile app input: 52px tall, ink-tinted fill instead of surfaceBase, hairline
+// border. Shared by AuthTextField and AuthSelectField so both read identically.
+const compactFieldStyles = (theme) => ({
+  "& .MuiOutlinedInput-root": {
+    minHeight: 52,
+    backgroundColor: alpha(theme.custom.color.ink, 0.04),
+    fontSize: "1rem",
+    "& fieldset": {
+      borderColor: alpha(theme.custom.color.ink, 0.08),
+    },
+  },
+});
 
 export const AuthTextField = styled(TextField)(({ theme }) => ({
   "& .MuiOutlinedInput-root": {
@@ -100,6 +145,7 @@ export const AuthTextField = styled(TextField)(({ theme }) => ({
   "& .MuiInputLabel-root.Mui-focused": {
     color: theme.custom.color.brandPrimary,
   },
+  [theme.breakpoints.down("sm")]: compactFieldStyles(theme),
 }));
 
 export const AuthSelectField = styled(FormControl)(({ theme }) => ({
@@ -120,6 +166,16 @@ export const AuthSelectField = styled(FormControl)(({ theme }) => ({
   "& .MuiInputLabel-root.Mui-focused": {
     color: theme.custom.color.brandPrimary,
   },
+  [theme.breakpoints.down("sm")]: compactFieldStyles(theme),
+}));
+
+// Field label sitting above the input on mobile, replacing MUI's floating label.
+export const AuthFieldLabel = styled(Typography)(({ theme }) => ({
+  display: "block",
+  fontWeight: 600,
+  fontSize: "0.8125rem",
+  color: alpha(theme.custom.color.ink, 0.6),
+  marginBottom: theme.spacing(1),
 }));
 
 export const AuthPrimaryButton = styled(Button)(({ theme }) => ({
@@ -140,7 +196,28 @@ export const AuthPrimaryButton = styled(Button)(({ theme }) => ({
     backgroundColor: alpha(theme.custom.color.ink, 0.12),
     color: alpha(theme.custom.color.ink, 0.4),
   },
+  [theme.breakpoints.down("sm")]: {
+    minHeight: 52,
+    // Brand-tinted lift under the primary action, as on the Expo screens
+    // (dropped in dark mode there, where a colored glow reads as haze).
+    boxShadow:
+      theme.palette.mode === "light"
+        ? `0 4px 8px ${alpha(theme.custom.color.brandPrimary, 0.25)}`
+        : "none",
+  },
 }));
+
+// The two OAuth buttons are one shape; mobile fills them with the same ink tint
+// the inputs use so they read as a pair above the divider.
+const compactSocialButtonStyles = (theme) => ({
+  [theme.breakpoints.down("sm")]: {
+    minHeight: 52,
+    fontWeight: 600,
+    fontSize: "0.9375rem",
+    backgroundColor: alpha(theme.custom.color.ink, 0.04),
+    borderColor: alpha(theme.custom.color.ink, 0.08),
+  },
+});
 
 export const AuthGoogleButton = styled(Button)(({ theme }) => ({
   borderRadius: theme.custom.radius.md,
@@ -155,6 +232,7 @@ export const AuthGoogleButton = styled(Button)(({ theme }) => ({
     borderColor: theme.custom.color.brandPrimary,
     backgroundColor: alpha(theme.custom.color.brandPrimary, 0.05),
   },
+  ...compactSocialButtonStyles(theme),
 }));
 
 export const AuthFacebookButton = styled(Button)(({ theme }) => ({
@@ -170,6 +248,7 @@ export const AuthFacebookButton = styled(Button)(({ theme }) => ({
     borderColor: theme.custom.color.brandPrimary,
     backgroundColor: alpha(theme.custom.color.brandPrimary, 0.05),
   },
+  ...compactSocialButtonStyles(theme),
 }));
 
 export const AuthOutlineButton = styled(Button)(({ theme }) => ({
@@ -217,23 +296,43 @@ export const FacebookGlyph = () => (
   </Box>
 );
 
-export const AuthHeader = ({ eyebrow, title, subtitle }) => {
+// `tagline` is the mobile-only one-liner under the wordmark (the Expo screens'
+// `loginToAccount` / `createAccountTagline`); on mobile it replaces the
+// title + subtitle pair, which is too much copy above a full form on a phone.
+export const AuthHeader = ({ eyebrow, title, subtitle, tagline }) => {
   const theme = useTheme();
+  const isCompact = useAuthCompactLayout();
+
+  const wordmark = (
+    <Box
+      component="img"
+      src="/maflogoSVG.svg"
+      alt="Mafqoudat"
+      sx={{
+        height: { xs: 36, md: 56 },
+        width: "auto",
+        maxWidth: "100%",
+        objectFit: "contain",
+        mb: { xs: 0.75, md: 3 },
+        filter: theme.palette.mode === "dark" ? "brightness(1.1)" : "none",
+      }}
+    />
+  );
+
+  if (isCompact) {
+    return (
+      <Box sx={{ textAlign: "center", mb: 3.5 }}>
+        {wordmark}
+        <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.6) }}>
+          {tagline || subtitle || title}
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ textAlign: "center", mb: 4 }}>
-      <Box
-        component="img"
-        src="/maflogoSVG.svg"
-        alt="Mafqoudat"
-        sx={{
-          height: { xs: 44, md: 56 },
-          width: "auto",
-          maxWidth: "100%",
-          objectFit: "contain",
-          mb: 3,
-          filter: theme.palette.mode === "dark" ? "brightness(1.1)" : "none",
-        }}
-      />
+      {wordmark}
       {eyebrow && (
         <Typography
           variant="overline"
@@ -269,14 +368,134 @@ export const AuthDivider = () => {
   return (
     <Divider
       sx={{
-        my: 3,
+        my: { xs: 2.25, md: 3 },
         "&::before, &::after": { borderColor: alpha(theme.custom.color.ink, 0.12) },
       }}
     >
-      <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.5), px: 1.5 }}>
+      <Typography
+        variant="body2"
+        sx={{
+          color: alpha(theme.custom.color.ink, 0.5),
+          px: 1.5,
+          textTransform: { xs: "uppercase", md: "none" },
+          fontWeight: { xs: 600, md: 400 },
+          fontSize: { xs: "0.75rem", md: "0.875rem" },
+          letterSpacing: { xs: "0.5px", md: "normal" },
+        }}
+      >
         {t("or")}
       </Typography>
     </Divider>
+  );
+};
+
+// One form field, in whichever of the two shapes the viewport calls for:
+// desktop keeps MUI's floating label plus the leading icon adornment, mobile
+// puts the label above a placeholder-only input and drops the icon.
+export const AuthFormField = ({
+  label,
+  startIcon,
+  password = false,
+  showPassword = false,
+  onTogglePassword,
+  type,
+  InputProps,
+  sx,
+  ...textFieldProps
+}) => {
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const isCompact = useAuthCompactLayout();
+
+  const passwordAdornment = password ? (
+    <InputAdornment position="end">
+      {isCompact ? (
+        <Button
+          onClick={onTogglePassword}
+          size="small"
+          sx={{
+            color: theme.custom.color.brandPrimary,
+            fontWeight: 600,
+            fontSize: "0.75rem",
+            letterSpacing: "0.5px",
+            textTransform: "uppercase",
+            minWidth: "auto",
+          }}
+        >
+          {showPassword ? t("hidePassword") : t("showPassword")}
+        </Button>
+      ) : (
+        <IconButton
+          onClick={onTogglePassword}
+          edge="end"
+          size="small"
+          sx={{ color: alpha(theme.custom.color.ink, 0.5) }}
+        >
+          {showPassword ? <VisibilityOff /> : <Visibility />}
+        </IconButton>
+      )}
+    </InputAdornment>
+  ) : null;
+
+  const field = (
+    <AuthTextField
+      fullWidth
+      label={isCompact ? undefined : label}
+      type={password ? (showPassword ? "text" : "password") : type}
+      sx={sx}
+      InputProps={{
+        ...InputProps,
+        startAdornment:
+          !isCompact && startIcon ? (
+            <InputAdornment position="start">{startIcon}</InputAdornment>
+          ) : undefined,
+        endAdornment: passwordAdornment || InputProps?.endAdornment,
+      }}
+      {...textFieldProps}
+    />
+  );
+
+  if (!isCompact) return field;
+
+  return (
+    <Box>
+      <AuthFieldLabel component="label">{label}</AuthFieldLabel>
+      {field}
+    </Box>
+  );
+};
+
+// "Don't have an account? Sign Up" — the inline switch row the Expo screens put
+// under the card, used in place of the desktop two-button block.
+export const AuthPromptRow = ({ prompt, actionLabel, to }) => {
+  const theme = useTheme();
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 0.75,
+        mt: 3,
+      }}
+    >
+      <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.6) }}>
+        {prompt}
+      </Typography>
+      <Typography
+        component={Link}
+        to={to}
+        variant="body2"
+        sx={{
+          color: theme.custom.color.brandPrimary,
+          fontWeight: 700,
+          textDecoration: "none",
+        }}
+      >
+        {actionLabel}
+      </Typography>
+    </Box>
   );
 };
 
@@ -329,7 +548,8 @@ export const AuthTopControls = () => {
         width: "100%",
         maxWidth: 480,
         margin: "0 auto",
-        padding: (t) => t.spacing(2),
+        // Matches AuthCardSlot's padding so the controls line up with the card edge.
+        padding: { xs: 2.5, sm: 2 },
       }}
     >
       <LanguageChip onClick={(e) => setAnchorEl(e.currentTarget)}>

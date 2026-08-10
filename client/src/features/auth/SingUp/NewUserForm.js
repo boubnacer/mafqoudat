@@ -14,7 +14,6 @@ import {
   CardContent,
   Button,
   Typography,
-  IconButton,
   InputAdornment,
   Alert,
   useTheme,
@@ -25,7 +24,7 @@ import {
   Grid,
   Checkbox,
 } from "@mui/material";
-import { Visibility, VisibilityOff, Lock, Email, Phone, LocationOn } from "@mui/icons-material";
+import { Lock, Email, Phone, LocationOn } from "@mui/icons-material";
 
 import {
   AuthPageContainer,
@@ -34,15 +33,19 @@ import {
   AuthTopControls,
   AuthHeader,
   AuthDivider,
-  AuthTextField,
+  AuthFormField,
+  AuthFieldLabel,
   AuthSelectField,
   AuthPrimaryButton,
   AuthGoogleButton,
   AuthFacebookButton,
   AuthOutlineButton,
   AuthNeutralButton,
+  AuthPromptRow,
   GoogleGlyph,
   FacebookGlyph,
+  useAuthCompactLayout,
+  AUTH_CARD_CONTENT_SX,
   redirectToGoogleAuth,
   redirectToFacebookAuth,
   OAUTH_WARNING_MESSAGE_KEYS,
@@ -55,6 +58,7 @@ const NewUserFormComponent = ({ countries }) => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const { t, currentLanguage } = useTranslation();
+  const isCompact = useAuthCompactLayout();
 
   // Check for already logged in users and redirect if needed
   useEffect(() => {
@@ -213,9 +217,21 @@ const NewUserFormComponent = ({ countries }) => {
       <AuthTopControls />
 
       <AuthCardSlot>
+        {/* Mobile puts the wordmark on the page background above the card,
+            the way the Expo SignUpScreen does; desktop keeps it inside. */}
+        {isCompact && (
+          <AuthHeader
+            title={t('createAccount')}
+            subtitle={t('createAccountMessage')}
+            tagline={t('createAccountTagline')}
+          />
+        )}
+
         <AuthCard>
-          <CardContent sx={{ p: { xs: 3, md: 5 } }}>
-            <AuthHeader title={t('createAccount')} subtitle={t('createAccountMessage')} />
+          <CardContent sx={AUTH_CARD_CONTENT_SX}>
+            {!isCompact && (
+              <AuthHeader title={t('createAccount')} subtitle={t('createAccountMessage')} />
+            )}
 
             {warningMessage && (
               <Alert
@@ -269,24 +285,19 @@ const NewUserFormComponent = ({ countries }) => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <AuthTextField
-                    fullWidth
+                  <AuthFormField
                     label={t('emailOrPhone')}
                     placeholder={t('emailOrPhonePlaceholder')}
                     value={formData.emailOrPhone}
                     onChange={handleInputChange('emailOrPhone')}
                     error={!!errors.emailOrPhone}
                     helperText={errors.emailOrPhone}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Email sx={{ color: alpha(theme.custom.color.ink, 0.5), fontSize: '1.2rem' }} />
-                            <Phone sx={{ color: alpha(theme.custom.color.ink, 0.5), fontSize: '1.2rem' }} />
-                          </Box>
-                        </InputAdornment>
-                      ),
-                    }}
+                    startIcon={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Email sx={{ color: alpha(theme.custom.color.ink, 0.5), fontSize: '1.2rem' }} />
+                        <Phone sx={{ color: alpha(theme.custom.color.ink, 0.5), fontSize: '1.2rem' }} />
+                      </Box>
+                    }
                     inputProps={{
                       autoComplete: 'off',
                       spellCheck: false,
@@ -295,47 +306,34 @@ const NewUserFormComponent = ({ countries }) => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <AuthTextField
-                    fullWidth
+                  <AuthFormField
                     label={t('password')}
-                    type={showPassword ? 'text' : 'password'}
+                    placeholder={t('passwordPlaceholder')}
                     value={formData.password}
                     onChange={handleInputChange('password')}
                     error={!!errors.password}
                     helperText={errors.password}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Lock sx={{ color: alpha(theme.custom.color.ink, 0.5) }} />
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowPassword(!showPassword)}
-                            edge="end"
-                            size="small"
-                            sx={{ color: alpha(theme.custom.color.ink, 0.5) }}
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
+                    password
+                    showPassword={showPassword}
+                    onTogglePassword={() => setShowPassword(!showPassword)}
+                    startIcon={<Lock sx={{ color: alpha(theme.custom.color.ink, 0.5) }} />}
                   />
                 </Grid>
 
                 <Grid item xs={12}>
+                  {isCompact && <AuthFieldLabel component="label">{t('chooseCountry')}</AuthFieldLabel>}
                   <AuthSelectField fullWidth error={!!errors.country}>
-                    <InputLabel>{t('chooseCountry')}</InputLabel>
+                    {!isCompact && <InputLabel>{t('chooseCountry')}</InputLabel>}
                     <Select
                       value={formData.country}
                       onChange={handleInputChange('country')}
-                      label={t('chooseCountry')}
+                      label={isCompact ? undefined : t('chooseCountry')}
                       startAdornment={
-                        <InputAdornment position="start">
-                          <LocationOn sx={{ color: alpha(theme.custom.color.ink, 0.5) }} />
-                        </InputAdornment>
+                        isCompact ? undefined : (
+                          <InputAdornment position="start">
+                            <LocationOn sx={{ color: alpha(theme.custom.color.ink, 0.5) }} />
+                          </InputAdornment>
+                        )
                       }
                     >
                       {countries?.map((country) => (
@@ -364,10 +362,11 @@ const NewUserFormComponent = ({ countries }) => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: { xs: 0.5, sm: 1.5 } }}>
                     <Checkbox
                       checked={formData.acceptTerms}
                       onChange={handleCheckboxChange('acceptTerms')}
+                      size={isCompact ? 'small' : 'medium'}
                       sx={{
                         color: alpha(theme.custom.color.ink, 0.4),
                         '&.Mui-checked': {
@@ -375,7 +374,7 @@ const NewUserFormComponent = ({ countries }) => {
                         },
                       }}
                     />
-                    <Box sx={{ flex: 1, pt: 1 }}>
+                    <Box sx={{ flex: 1, pt: { xs: 0.5, sm: 1 } }}>
                       <Typography
                         variant="body2"
                         sx={{ lineHeight: 1.6, color: theme.custom.color.ink }}
@@ -422,26 +421,50 @@ const NewUserFormComponent = ({ countries }) => {
               </AuthPrimaryButton>
             </Box>
 
-            <Box sx={{ textAlign: 'center', mt: 4 }}>
-              <Typography
-                variant="body2"
-                sx={{ mb: 2, color: alpha(theme.custom.color.ink, 0.7) }}
-              >
-                {t('alreadyMember')}
-              </Typography>
+            {!isCompact && (
+              <Box sx={{ textAlign: 'center', mt: 4 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ mb: 2, color: alpha(theme.custom.color.ink, 0.7) }}
+                >
+                  {t('alreadyMember')}
+                </Typography>
 
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <AuthOutlineButton component={Link} to="/login">
-                  {t('signin')}
-                </AuthOutlineButton>
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <AuthOutlineButton component={Link} to="/login">
+                    {t('signin')}
+                  </AuthOutlineButton>
 
-                <AuthNeutralButton component={Link} to="/">
-                  {t('searchCountry')}
-                </AuthNeutralButton>
+                  <AuthNeutralButton component={Link} to="/">
+                    {t('searchCountry')}
+                  </AuthNeutralButton>
+                </Box>
               </Box>
-            </Box>
+            )}
           </CardContent>
         </AuthCard>
+
+        {isCompact && (
+          <>
+            <AuthPromptRow
+              prompt={t('signInPrompt')}
+              actionLabel={t('signin')}
+              to="/login"
+            />
+            <Button
+              component={Link}
+              to="/"
+              sx={{
+                mt: 0.5,
+                textTransform: 'none',
+                fontWeight: 500,
+                color: alpha(theme.custom.color.ink, 0.6),
+              }}
+            >
+              {t('searchCountry')}
+            </Button>
+          </>
+        )}
       </AuthCardSlot>
     </AuthPageContainer>
   );
