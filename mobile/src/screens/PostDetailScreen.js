@@ -408,7 +408,7 @@ const PostDetailScreen = ({ navigation, route }) => {
               accessibilityLabel={t('sharePost')}
               hitSlop={8}
             >
-              <Ionicons name="share-outline" size={20} color={tokens.ink} />
+              <Ionicons name="share-social-outline" size={20} color={tokens.ink} />
             </TouchableOpacity>
             {canManage ? (
               <TouchableOpacity
