@@ -44,23 +44,30 @@ const BlockedUsersScreen = ({ navigation }) => {
 
   const [blocked, setBlocked] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  // A translation *key*, not a translated string. useTranslation() builds a new
+  // `t` on every render, so translating at fetch time would force `t` into this
+  // callback's dependencies - and that is what made this screen spin: a new `t`
+  // gave a new loadBlocked, which gave useFocusEffect a new callback, which
+  // re-ran the effect, which set state and re-rendered. An endless refetch loop.
+  // Storing the key and translating at render keeps the fetch free of `t`
+  // entirely, matching how PostDetailScreen's loadPost already handles this.
+  const [errorKey, setErrorKey] = useState('');
   // Per-row, so unblocking one entry never greys out the rest of the list.
   const [pendingId, setPendingId] = useState(null);
 
   const loadBlocked = useCallback(async () => {
     setIsLoading(true);
-    setError('');
+    setErrorKey('');
     try {
       const response = await apiClient.get(API_ENDPOINTS.USERS.BLOCKS);
       setBlocked(response.data?.blocked || []);
     } catch (err) {
       console.error('Error loading blocked users:', err);
-      setError(err.response ? t('blockedUsersError') : t('networkError'));
+      setErrorKey(err.response ? 'blockedUsersError' : 'networkError');
     } finally {
       setIsLoading(false);
     }
-  }, [t]);
+  }, []);
 
   // Refetch on focus: the user can block someone from PostDetailScreen and come
   // straight back here, and this screen stays mounted in the stack meanwhile.
@@ -133,10 +140,10 @@ const BlockedUsersScreen = ({ navigation }) => {
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={tokens.brandPrimary} />
         </View>
-      ) : error ? (
+      ) : errorKey ? (
         <DataStateView
           variant="error"
-          message={error}
+          message={t(errorKey)}
           actionLabel={t('retry')}
           onAction={loadBlocked}
           isRTL={isRTL}
