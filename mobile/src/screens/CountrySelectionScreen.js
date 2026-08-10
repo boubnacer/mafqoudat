@@ -23,6 +23,7 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/apiService';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 import { logical, needsDirectionFlip } from '../utils/rtl';
+import { navigateAfterLogin } from '../navigation/afterLogin';
 
 const CountrySelectionScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
@@ -30,7 +31,13 @@ const CountrySelectionScreen = ({ navigation }) => {
   const isRTL = currentLanguage === 'ar';
   const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
   const { t } = useTranslation();
-  const { pendingToken, pendingProvider, completeGoogleRegistration, completeFacebookRegistration } = useAuth();
+  const {
+    pendingToken,
+    pendingProvider,
+    completeGoogleRegistration,
+    completeFacebookRegistration,
+    consumeLoginRedirect,
+  } = useAuth();
 
   const [countries, setCountries] = useState([]);
   const [filteredCountries, setFilteredCountries] = useState([]);
@@ -130,10 +137,10 @@ const CountrySelectionScreen = ({ navigation }) => {
         return;
       }
 
-      // Login/SignUp/CountrySelection share a stack with Home (guest
-      // browsing - see App.js), so isSignedIn flipping doesn't remount the
-      // tree the way it used to; navigate to Home explicitly.
-      navigation.navigate('Home');
+      // Registering through OAuth ends the same sign-in the user started, so
+      // it honours the same pending redirect a password login does - see
+      // navigation/afterLogin.js.
+      navigateAfterLogin(navigation, consumeLoginRedirect());
     } catch (err) {
       console.error('Country selection error:', err);
       setError(t('registrationFailed'));

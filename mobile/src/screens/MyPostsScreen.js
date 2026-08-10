@@ -158,7 +158,7 @@ const ActionButton = ({ icon, label, tone, onPress, styles }) => (
 );
 
 const MyPostsScreen = ({ navigation }) => {
-  const { isSignedIn, setLoginNotice } = useAuth();
+  const { isSignedIn, requireLogin } = useAuth();
   const { currentLanguage } = useLanguage();
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -432,10 +432,10 @@ const MyPostsScreen = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       if (!isSignedIn) {
-        setLoginNotice('loginRequiredMyPosts');
+        requireLogin('loginRequiredMyPosts', { screen: 'MyPosts' });
         navigation.navigate('Login');
       }
-    }, [isSignedIn, navigation, setLoginNotice])
+    }, [isSignedIn, navigation, requireLogin])
   );
 
   if (!isSignedIn) {

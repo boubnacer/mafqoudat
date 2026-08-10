@@ -61,7 +61,7 @@ const NotificationsSkeleton = ({ styles, tokens }) => (
 );
 
 const NotificationsScreen = ({ navigation }) => {
-  const { isSignedIn, setLoginNotice } = useAuth();
+  const { isSignedIn, requireLogin } = useAuth();
   const { isDark } = useTheme();
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
@@ -90,10 +90,10 @@ const NotificationsScreen = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       if (!isSignedIn) {
-        setLoginNotice('loginRequiredNotifications');
+        requireLogin('loginRequiredNotifications', { screen: 'Notifications' });
         navigation.navigate('Login');
       }
-    }, [isSignedIn, navigation, setLoginNotice])
+    }, [isSignedIn, navigation, requireLogin])
   );
 
   const load = useCallback(

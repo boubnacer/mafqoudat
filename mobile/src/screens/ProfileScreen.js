@@ -81,7 +81,7 @@ const getElevation = (isDark, level = 1) =>
       };
 
 const ProfileScreen = ({ navigation }) => {
-  const { user: authUser, setLoginNotice } = useAuth();
+  const { user: authUser, requireLogin } = useAuth();
   const { isDark } = useTheme();
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
@@ -149,10 +149,10 @@ const ProfileScreen = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       if (!authUser) {
-        setLoginNotice('loginRequiredProfile');
+        requireLogin('loginRequiredProfile', { screen: 'Profile' });
         navigation.navigate('Login');
       }
-    }, [authUser, navigation, setLoginNotice])
+    }, [authUser, navigation, requireLogin])
   );
 
   if (!authUser) {

@@ -24,6 +24,7 @@ import { API_ENDPOINTS, WEB_BASE_URL } from '../config/api';
 import { IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 import { GoogleGlyph, FacebookGlyph } from '../components/AuthSocialGlyphs';
+import { navigateAfterLogin } from '../navigation/afterLogin';
 
 // Same shape rules as LoginScreen.js (mirrors client/src/features/auth/SingUp/NewUserForm.js's
 // EMAIL_REGEX/PHONE_REGEX) - deliberately NOT the web form's buggy PWD_REGEX
@@ -38,7 +39,7 @@ const BRAND_WORDMARK = require('../../assets/mafWordmark.png');
 const WORDMARK_RATIO = 984 / 213;
 
 const SignUpScreen = ({ navigation }) => {
-  const { signInWithGoogle, signInWithFacebook, completeLogin } = useAuth();
+  const { signInWithGoogle, signInWithFacebook, completeLogin, consumeLoginRedirect } = useAuth();
   const { currentLanguage } = useLanguage();
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
@@ -163,11 +164,11 @@ const SignUpScreen = ({ navigation }) => {
       const { accessToken } = response.data;
 
       if (accessToken) {
-        // Same storage/state path as password login. Login/SignUp share a
-        // stack with Home (guest browsing - see App.js), so isSignedIn
-        // flipping doesn't remount the tree; navigate to Home explicitly.
+        // Same storage/state path as password login, and the same landing
+        // rule: a guest who was bounced into the auth flow mid-action resumes
+        // it here too (see navigation/afterLogin.js).
         await completeLogin(accessToken);
-        navigation.navigate('Home');
+        navigateAfterLogin(navigation, consumeLoginRedirect());
       } else {
         setError(t('networkError'));
       }
@@ -210,7 +211,7 @@ const SignUpScreen = ({ navigation }) => {
       const result = await signInWithGoogle();
 
       if (result.success) {
-        navigation.navigate('Home');
+        navigateAfterLogin(navigation, consumeLoginRedirect());
       } else if (result.pending) {
         navigation.navigate('CountrySelection');
       } else if (!result.cancelled) {
@@ -233,7 +234,7 @@ const SignUpScreen = ({ navigation }) => {
       const result = await signInWithFacebook();
 
       if (result.success) {
-        navigation.navigate('Home');
+        navigateAfterLogin(navigation, consumeLoginRedirect());
       } else if (result.pending) {
         navigation.navigate('CountrySelection');
       } else if (!result.cancelled) {
