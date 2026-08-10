@@ -38,10 +38,14 @@ export default {
       supportsTablet: true,
       bundleIdentifier: "com.mafqoudat.app",
       buildNumber: "1",
+      // Only the photo-library string is declared. The camera and location
+      // strings that used to sit here described features this app does not
+      // have: nothing calls launchCameraAsync, and there is no location API in
+      // the project at all (the "location" on a post is free text the user
+      // types). A usage string for a capability the app never exercises is a
+      // review question with no good answer.
       infoPlist: {
-        NSPhotoLibraryUsageDescription: "This app needs access to your photo library to upload images for lost and found items.",
-        NSCameraUsageDescription: "This app needs access to your camera to take photos for lost and found items.",
-        NSLocationWhenInUseUsageDescription: "This app uses your location to help you find lost items in your area."
+        NSPhotoLibraryUsageDescription: "This app needs access to your photo library to upload images for lost and found items."
       },
       config: {
         usesNonExemptEncryption: false
@@ -65,12 +69,36 @@ export default {
       },
       package: "com.mafqoudat.app",
       versionCode: 1,
-      permissions: [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+      // Google Play requires every requested permission to be necessary for a
+      // feature the app actually has. This app needs none of the dangerous ones:
+      // it talks to the network (INTERNET is added by React Native itself) and
+      // picks photos through the OS photo picker, which grants access to the
+      // selected item only and requires no permission.
+      //
+      // The two location permissions that used to be listed here were never
+      // backed by any code - there is no expo-location dependency and no
+      // geolocation call anywhere in src/. A post's location is free text the
+      // user types. Requesting location for a feature that does not exist would
+      // have forced a Location Permissions declaration in the Play Console that
+      // could not be answered truthfully.
+      permissions: [],
+      // Permissions listed above are *added*; these are *removed*. Libraries
+      // merge their own <uses-permission> entries into the final manifest
+      // regardless of the list above, so dropping a permission from `permissions`
+      // is not enough on its own - it has to be blocked.
+      //
+      // expo-image-picker's AndroidManifest declares CAMERA (for
+      // launchCameraAsync, which this app never calls) and the two legacy
+      // storage permissions (which only requestMediaLibraryPermissionsAsync
+      // needed - see the note in components/PostForm.js, which no longer calls
+      // it). CAMERA and RECORD_AUDIO are additionally blocked by the plugin
+      // options below; listing them here too keeps the full set readable in one
+      // place and is harmless, since both paths emit the same removal.
+      blockedPermissions: [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
       intentFilters: [
         {
@@ -118,7 +146,16 @@ export default {
       [
         "expo-image-picker",
         {
-          photosPermission: "The app accesses your photos to let you share them for lost and found items."
+          photosPermission: "The app accesses your photos to let you share them for lost and found items.",
+          // Both `false` values are load-bearing, not cosmetic. The plugin adds
+          // RECORD_AUDIO to the Android manifest unless microphonePermission is
+          // explicitly false - so this app was shipping a microphone permission
+          // it has no feature for. Setting either to false also makes the plugin
+          // block that permission on Android and skip the matching iOS usage
+          // string, which is what we want for both: the app records no audio and
+          // never opens the camera.
+          cameraPermission: false,
+          microphonePermission: false
         }
       ],
       // Required by expo-web-browser v15+ (config plugin sets up the native

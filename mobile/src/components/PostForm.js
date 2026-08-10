@@ -334,13 +334,17 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
     );
   };
 
+  // No permission request here, deliberately. launchImageLibraryAsync opens the
+  // OS photo picker (PickVisualMedia on Android, PHPickerViewController on iOS),
+  // which runs out of process and returns only what the user selected - neither
+  // platform's implementation checks a permission before launching it.
+  // requestMediaLibraryPermissionsAsync is what made this app *need* the storage
+  // permissions at all: on Android 12 and below it asks for
+  // READ_EXTERNAL_STORAGE + WRITE_EXTERNAL_STORAGE (on 13+ it asks for nothing
+  // and trivially resolves as granted). Dropping it removes a runtime prompt the
+  // picker never needed, and lets app.config.js block those permissions outright
+  // rather than justify them to Google Play.
   const pickImage = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permission.status !== 'granted') {
-      Alert.alert(t('error'), t('imagePickerPermissionDenied'));
-      return;
-    }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 1,
