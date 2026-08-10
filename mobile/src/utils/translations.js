@@ -299,6 +299,7 @@ export const translations = {
     account: "Account",
 
     // User blocking (PostDetailScreen + BlockedUsersScreen)
+    viewFullImage: "View full image",
     blockUser: "Block user",
     unblockUser: "Unblock",
     blockedUsers: "Blocked users",
@@ -786,6 +787,7 @@ export const translations = {
     account: "Compte",
 
     // Blocage d'utilisateurs (PostDetailScreen + BlockedUsersScreen)
+    viewFullImage: "Voir l'image en grand",
     blockUser: "Bloquer l'utilisateur",
     unblockUser: "Débloquer",
     blockedUsers: "Utilisateurs bloqués",
@@ -1284,6 +1286,7 @@ export const translations = {
     account: "الحساب",
 
     // حظر المستخدمين (PostDetailScreen + BlockedUsersScreen)
+    viewFullImage: "عرض الصورة بالحجم الكامل",
     blockUser: "حظر المستخدم",
     unblockUser: "إلغاء الحظر",
     blockedUsers: "المستخدمون المحظورون",

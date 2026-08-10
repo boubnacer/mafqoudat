@@ -234,7 +234,7 @@ const PostFilterSheet = ({
         <View style={styles.sheet}>
           <View style={styles.header}>
             <Text style={[styles.headerTitle, textStyle]}>{t('filters')}</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={8}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('close')}>
               <Ionicons name="close" size={20} color={`${tokens.ink}CC`} />
             </TouchableOpacity>
           </View>

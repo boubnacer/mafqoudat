@@ -76,7 +76,7 @@ const PromotePostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) =
         <View style={styles.sheet}>
           <View style={styles.header}>
             <Text style={[styles.headerTitle, textStyle]}>{t('promotePostTitle')}</Text>
-            <TouchableOpacity onPress={resetAndClose} style={styles.closeButton} hitSlop={8}>
+            <TouchableOpacity onPress={resetAndClose} style={styles.closeButton} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('close')}>
               <Ionicons name="close" size={20} color={`${tokens.ink}CC`} />
             </TouchableOpacity>
           </View>

@@ -50,7 +50,8 @@
     "world-atlas": "^2.0.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "babel-plugin-transform-remove-console": "^6.9.4"
   },
   "private": true
 }

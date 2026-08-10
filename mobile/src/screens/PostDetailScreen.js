@@ -436,7 +436,12 @@ const PostDetailScreen = ({ navigation, route }) => {
         <Animated.View style={getSectionStyle(0)}>
           <View style={styles.imageWrapper}>
             {imageUri ? (
-              <TouchableOpacity activeOpacity={0.9} onPress={() => setImageModalVisible(true)}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => setImageModalVisible(true)}
+                accessibilityRole="imagebutton"
+                accessibilityLabel={t('viewFullImage')}
+              >
                 <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
               </TouchableOpacity>
             ) : (
@@ -623,6 +628,8 @@ const PostDetailScreen = ({ navigation, route }) => {
           style={styles.modalOverlay}
           activeOpacity={1}
           onPress={() => setImageModalVisible(false)}
+          accessibilityRole="button"
+          accessibilityLabel={t('close')}
         >
           {imageUri ? (
             <Image source={{ uri: imageUri }} style={styles.fullscreenImage} resizeMode="contain" />

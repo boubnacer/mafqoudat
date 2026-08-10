@@ -256,7 +256,7 @@ const DateEntryModalBody = ({
               {t('datePickerTitle')}
             </Text>
           </View>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={8}>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('close')}>
             <Ionicons name="close" size={20} color={tokens.ink} />
           </TouchableOpacity>
         </View>
