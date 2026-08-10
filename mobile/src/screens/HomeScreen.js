@@ -8,7 +8,7 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Animated, RefreshControl, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Image, Animated, RefreshControl, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
@@ -21,6 +21,7 @@ import { API_BASE_URL } from '../config/api';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
 import DataStateView from '../components/DataStateView';
+import NeumorphicSurface from '../components/NeumorphicSurface';
 import SkeletonBlock from '../components/SkeletonBlock';
 import WorldActivityMap from '../components/dashboard/WorldActivityMap';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
@@ -32,6 +33,11 @@ const SECTION_COUNT = 6;
 // Horizontal padding of the scroll content - kept as a constant so the
 // header's map backdrop can cancel it out and bleed to the screen edges.
 const SCREEN_PADDING = 16;
+
+// Diameters of the two neumorphic circles. Constants because the surface needs
+// the matching corner radius as a prop, not just in a style.
+const CATEGORY_CIRCLE_SIZE = 68;
+const SOCIAL_CIRCLE_SIZE = 56;
 
 // Same accounts as client/src/components/Footer/DashFooter.js's socialLinks -
 // kept in sync manually since the mobile app has no shared config module yet.
@@ -403,17 +409,33 @@ const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tok
   );
 };
 
-const CategoryChip = ({ category, currentLanguage, styles, onPress }) => {
+// "Browse by category" chip, neumorphic (see components/NeumorphicSurface.js
+// and theme/neumorphism.js): the circle is painted in the page's own base tone
+// and reads as an extruded pebble, so the category color lives in the icon
+// alone rather than in a tinted fill. Pressing sinks the circle instead of
+// fading it - hence a Pressable with a render-prop child, since the pressed
+// state has to reach the surface rather than just dim a wrapper.
+const CategoryChip = ({ category, currentLanguage, styles, isDark, onPress }) => {
   const config = getCategoryConfig(category.code);
   return (
-    <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={styles.categoryChip}>
-      <View style={[styles.categoryChipCircle, { backgroundColor: config.backgroundColor }]}>
-        <Ionicons name={config.icon} size={30} color={config.color} />
-      </View>
-      <Text style={styles.categoryChipLabel} numberOfLines={1}>
-        {getLocalizedLabel(category, currentLanguage)}
-      </Text>
-    </TouchableOpacity>
+    <Pressable onPress={onPress} style={styles.categoryChip}>
+      {({ pressed }) => (
+        <>
+          <NeumorphicSurface
+            isDark={isDark}
+            radius={CATEGORY_CIRCLE_SIZE / 2}
+            pressed={pressed}
+            style={styles.categoryChipCircle}
+            contentStyle={styles.categoryChipCircleFace}
+          >
+            <Ionicons name={config.icon} size={30} color={config.color} />
+          </NeumorphicSurface>
+          <Text style={styles.categoryChipLabel} numberOfLines={1}>
+            {getLocalizedLabel(category, currentLanguage)}
+          </Text>
+        </>
+      )}
+    </Pressable>
   );
 };
 
@@ -429,29 +451,36 @@ const EmptyStateCallout = ({ t, styles, onCreatePost }) => (
 
 // Mirrors DashFooter.js's social row (same brand icons/links) but reframed
 // as its own panel rather than a footer strip, since the mobile Home tab has
-// no persistent site footer for it to live in.
-const SocialSection = ({ t, styles }) => (
-  <View style={styles.socialPanel}>
+// no persistent site footer for it to live in. Neumorphic like the category
+// chips above: the panel is a raised face in the page's base tone instead of a
+// surfaceRaised card, and each brand button is a smaller face sitting on it
+// that sinks when pressed. The brand tint behind the icons is gone with the
+// fill - a tinted circle would break the one rule the effect rests on (element
+// and background share a tone), so the brand color is carried by the icon.
+const SocialSection = ({ t, styles, isDark }) => (
+  <NeumorphicSurface isDark={isDark} radius={radiusTokens.lg} contentStyle={styles.socialPanel}>
     <Text style={styles.socialTitle}>{t('followUsTitle')}</Text>
     <Text style={styles.socialSubtitle}>{t('followUsSubtitle')}</Text>
     <View style={styles.socialRow}>
       {SOCIAL_LINKS.map((social) => (
-        <TouchableOpacity
-          key={social.key}
-          style={styles.socialButton}
-          activeOpacity={0.75}
-          onPress={() => Linking.openURL(social.url)}
-        >
-          <View style={styles.socialIconCircleShadow}>
-            <View style={[styles.socialIconCircle, { backgroundColor: `${social.brandColor}1A` }]}>
-              <Ionicons name={social.icon} size={26} color={social.brandColor} />
-            </View>
-          </View>
-          <Text style={styles.socialLabel}>{t(social.labelKey)}</Text>
-        </TouchableOpacity>
+        <Pressable key={social.key} style={styles.socialButton} onPress={() => Linking.openURL(social.url)}>
+          {({ pressed }) => (
+            <>
+              <NeumorphicSurface
+                isDark={isDark}
+                radius={SOCIAL_CIRCLE_SIZE / 2}
+                pressed={pressed}
+                contentStyle={styles.socialIconCircle}
+              >
+                <Ionicons name={social.icon} size={26} color={social.brandColor} />
+              </NeumorphicSurface>
+              <Text style={styles.socialLabel}>{t(social.labelKey)}</Text>
+            </>
+          )}
+        </Pressable>
       ))}
     </View>
-  </View>
+  </NeumorphicSurface>
 );
 
 const SafetyFooter = ({ t, styles }) => (
@@ -612,6 +641,7 @@ const HomeScreen = ({ navigation }) => {
                 category={cat}
                 currentLanguage={currentLanguage}
                 styles={styles}
+                isDark={isDark}
                 onPress={() => goToPosts({ initialCategoryId: cat._id })}
               />
             ))}
@@ -619,7 +649,7 @@ const HomeScreen = ({ navigation }) => {
         </Animated.View>
 
         <Animated.View style={[styles.section, animatedSectionStyle(4)]}>
-          <SocialSection t={t} styles={styles} />
+          <SocialSection t={t} styles={styles} isDark={isDark} />
         </Animated.View>
 
         <Animated.View style={[styles.section, styles.lastSection, animatedSectionStyle(5)]}>
@@ -987,23 +1017,32 @@ const createStyles = (tokens, isRTL, isDark) =>
       textAlign: isRTL ? 'right' : 'left',
     },
 
-    // Categories
+    // Categories - neumorphic chips (see CategoryChip above).
     categoryRow: {
       flexDirection: row(isRTL),
       gap: 16,
+      // Vertical room for the circles' highlight/shade, which are drawn
+      // outside the layer's own box and would otherwise be cropped by the
+      // horizontal ScrollView's content height.
+      paddingVertical: 8,
       ...logical(isRTL, { paddingEnd: 4 }),
     },
     categoryChip: {
       alignItems: 'center',
       width: 88,
     },
+    // Outer neumorphic layer: margins only. The circle's own size and radius
+    // live on the face below, so the shadow layers wrap it instead of needing
+    // a size of their own (see NeumorphicSurface).
     categoryChipCircle: {
-      width: 68,
-      height: 68,
-      borderRadius: 34,
+      marginBottom: 8,
+    },
+    categoryChipCircleFace: {
+      width: CATEGORY_CIRCLE_SIZE,
+      height: CATEGORY_CIRCLE_SIZE,
+      borderRadius: CATEGORY_CIRCLE_SIZE / 2,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: 8,
     },
     categoryChipLabel: {
       fontFamily: fontFamilies.body,
@@ -1042,12 +1081,11 @@ const createStyles = (tokens, isRTL, isDark) =>
       color: '#FFFFFF',
     },
 
-    // Social section - mirrors the panelContainer shell but with a centered
-    // title/subtitle pair (like panelTitleCentered) above a row of circular
-    // brand-colored icon buttons.
+    // Social section - a neumorphic panel (its fill, radius and shadows come
+    // from NeumorphicSurface, so this is only the face's padding/alignment)
+    // with a centered title/subtitle pair above a row of circular brand
+    // icon buttons.
     socialPanel: {
-      backgroundColor: tokens.surfaceRaised,
-      borderRadius: radiusTokens.lg,
       paddingVertical: 22,
       paddingHorizontal: 20,
       alignItems: 'center',
@@ -1075,20 +1113,15 @@ const createStyles = (tokens, isRTL, isDark) =>
       alignItems: 'center',
       gap: 8,
     },
-    // Shadow lives on this opaque wrapper, not the tinted circle below it -
-    // elevation + a translucent background is a known RN/Android bug that
-    // renders the shadow as a visible octagon bleeding through the tint.
-    socialIconCircleShadow: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: tokens.surfaceRaised,
-      ...getElevation(isDark, 1),
-    },
+    // Face of the neumorphic brand button - opaque and untinted by design:
+    // the effect needs the circle to share the panel's tone, so the brand
+    // color is carried by the icon alone. That also retires the separate
+    // opaque shadow wrapper this used to need, since there is no longer a
+    // translucent fill for an Android elevation shadow to bleed through.
     socialIconCircle: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
+      width: SOCIAL_CIRCLE_SIZE,
+      height: SOCIAL_CIRCLE_SIZE,
+      borderRadius: SOCIAL_CIRCLE_SIZE / 2,
       justifyContent: 'center',
       alignItems: 'center',
     },
