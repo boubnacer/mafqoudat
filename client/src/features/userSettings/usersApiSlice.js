@@ -135,6 +135,41 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 { type: 'User', id: arg.id }
             ]
         }),
+        // User blocking. Same endpoints the mobile app uses - the block itself
+        // is enforced server-side on every listing and notification read, so
+        // these are only the create/read/undo controls.
+        getBlockedUsers: builder.query({
+            query: () => ({
+                url: '/users/me/blocks',
+                validateStatus: (response, result) => response.status === 200 && !result.isError,
+            }),
+            providesTags: [{ type: 'BlockedUser', id: 'LIST' }]
+        }),
+        blockUser: builder.mutation({
+            query: ({ userId }) => ({
+                url: '/users/me/blocks',
+                method: 'POST',
+                body: { userId }
+            }),
+            // Blocking changes which posts and notifications come back, so the
+            // cached lists have to be dropped, not just the block list itself.
+            invalidatesTags: [
+                { type: 'BlockedUser', id: 'LIST' },
+                { type: 'Post', id: 'LIST' },
+                { type: 'Notification', id: 'LIST' }
+            ]
+        }),
+        unblockUser: builder.mutation({
+            query: ({ userId }) => ({
+                url: `/users/me/blocks/${userId}`,
+                method: 'DELETE'
+            }),
+            invalidatesTags: [
+                { type: 'BlockedUser', id: 'LIST' },
+                { type: 'Post', id: 'LIST' },
+                { type: 'Notification', id: 'LIST' }
+            ]
+        }),
         // Self-service account deletion, required by Google Play's User Data
         // policy (the store also requires the same thing to be reachable from a
         // public web URL - see components/Pages/DeleteAccount.jsx). Distinct
@@ -203,6 +238,9 @@ export const {
     useUpdateUserMutation,
     useDeleteUserMutation,
     useDeleteMyAccountMutation,
+    useGetBlockedUsersQuery,
+    useBlockUserMutation,
+    useUnblockUserMutation,
 } = usersApiSlice
 
 // returns the query result object

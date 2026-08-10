@@ -133,6 +133,7 @@ export const apiSlice = createApi({
     "Notification",
     "PostMatch",
     "NotificationPreferences",
+    "BlockedUser",
   ],
   endpoints: (builder) => ({}),
 });

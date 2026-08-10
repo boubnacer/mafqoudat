@@ -950,6 +950,20 @@ export const translations = {
     // The wording is shared with the mobile app on purpose - both platforms
     // describe the same server-side deletion, so they must describe it the same.
     deleteAccount: "Delete account",
+
+    // User blocking (SinglePostPage + Pages/BlockedUsers.jsx). Same wording as
+    // the mobile app - one server-side feature, described the same on both.
+    blockUser: "Block user",
+    unblockUser: "Unblock",
+    blockedUsers: "Blocked users",
+    blockUserConfirmMessage:
+      "Block this user? You will stop seeing their posts and will not get match alerts from them. You can undo this any time from your blocked users page.",
+    blockUserError: "We could not block this user. Please try again.",
+    unblockUserError: "We could not unblock this user. Please try again.",
+    blockedUsersIntro:
+      "You do not see posts or match alerts from the people listed here. Unblocking restores them right away.",
+    blockedUsersEmptyMessage: "You have not blocked anyone.",
+    blockedUsersError: "We could not load your blocked users.",
     deleteAccountPageTitle: "Delete your Mafqoudat account",
     deleteAccountPageIntro:
       "You can permanently delete your Mafqoudat account and all of the data stored with it, either from this page or from inside the mobile app.",
@@ -2574,6 +2588,19 @@ export const translations = {
 
     // Suppression du compte (Pages/DeleteAccount.jsx + mobile DeleteAccountScreen)
     deleteAccount: "Supprimer le compte",
+
+    // Blocage d'utilisateurs (SinglePostPage + Pages/BlockedUsers.jsx)
+    blockUser: "Bloquer l'utilisateur",
+    unblockUser: "Débloquer",
+    blockedUsers: "Utilisateurs bloqués",
+    blockUserConfirmMessage:
+      "Bloquer cet utilisateur ? Vous ne verrez plus ses annonces et ne recevrez plus d'alertes de correspondance de sa part. Vous pouvez annuler à tout moment depuis votre page des utilisateurs bloqués.",
+    blockUserError: "Impossible de bloquer cet utilisateur. Veuillez réessayer.",
+    unblockUserError: "Impossible de débloquer cet utilisateur. Veuillez réessayer.",
+    blockedUsersIntro:
+      "Vous ne voyez ni les annonces ni les alertes de correspondance des personnes listées ici. Le déblocage les rétablit immédiatement.",
+    blockedUsersEmptyMessage: "Vous n'avez bloqué personne.",
+    blockedUsersError: "Impossible de charger vos utilisateurs bloqués.",
     deleteAccountPageTitle: "Supprimer votre compte Mafqoudat",
     deleteAccountPageIntro:
       "Vous pouvez supprimer définitivement votre compte Mafqoudat et toutes les données qui y sont associées, depuis cette page ou depuis l'application mobile.",
@@ -4186,6 +4213,19 @@ export const translations = {
 
     // حذف الحساب (Pages/DeleteAccount.jsx + mobile DeleteAccountScreen)
     deleteAccount: "حذف الحساب",
+
+    // حظر المستخدمين (SinglePostPage + Pages/BlockedUsers.jsx)
+    blockUser: "حظر المستخدم",
+    unblockUser: "إلغاء الحظر",
+    blockedUsers: "المستخدمون المحظورون",
+    blockUserConfirmMessage:
+      "هل تريد حظر هذا المستخدم؟ لن ترى إعلاناته بعد الآن ولن تصلك تنبيهات تطابق منه. يمكنك التراجع في أي وقت من صفحة المستخدمين المحظورين.",
+    blockUserError: "تعذّر حظر هذا المستخدم. يرجى المحاولة مرة أخرى.",
+    unblockUserError: "تعذّر إلغاء حظر هذا المستخدم. يرجى المحاولة مرة أخرى.",
+    blockedUsersIntro:
+      "لا ترى إعلانات أو تنبيهات تطابق من الأشخاص المدرجين هنا. إلغاء الحظر يعيدها فوراً.",
+    blockedUsersEmptyMessage: "لم تحظر أي شخص.",
+    blockedUsersError: "تعذّر تحميل قائمة المستخدمين المحظورين.",
     deleteAccountPageTitle: "حذف حسابك في مفقودات",
     deleteAccountPageIntro:
       "يمكنك حذف حسابك في مفقودات وجميع البيانات المرتبطة به نهائياً، من خلال هذه الصفحة أو من داخل تطبيق الهاتف.",

@@ -42,6 +42,7 @@ const PrefetchDependencies = lazy(() => import("./features/PrefetchData/Prefetch
 // Lazy load legal and information pages
 const PrivacyPolicy = lazy(() => import("./components/Pages/PrivacyPolicy"));
 const DeleteAccount = lazy(() => import("./components/Pages/DeleteAccount"));
+const BlockedUsers = lazy(() => import("./components/Pages/BlockedUsers"));
 const TermsOfUse = lazy(() => import("./components/Pages/TermsOfUse"));
 const CookieNotice = lazy(() => import("./components/Pages/CookieNotice"));
 const CommunityGuidelines = lazy(() => import("./components/Pages/CommunityGuidelines"));
@@ -164,6 +165,14 @@ const AppContent = () => {
         <Route path="/delete-account" element={
           <Suspense fallback={<InfoPageSkeleton />}>
             <DeleteAccount />
+          </Suspense>
+        } />
+        {/* Public like the page above, and for the same reason - it renders a
+            sign-in prompt rather than a redirect when signed out, so the URL is
+            always reachable. The list itself needs a session. */}
+        <Route path="/blocked-users" element={
+          <Suspense fallback={<InfoPageSkeleton />}>
+            <BlockedUsers />
           </Suspense>
         } />
         <Route path="/terms" element={
