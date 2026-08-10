@@ -7,6 +7,7 @@
  * that lists other people's content is expected to go through here, so "what a
  * block hides" has one definition instead of one per controller.
  */
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const { getRequestUserId } = require('./requestUser');
@@ -37,10 +38,14 @@ const getBlockedUserIdsForRequest = (req) => getBlockedUserIds(getRequestUserId(
  */
 const blockedCacheTag = (blockedIds) => {
   if (!blockedIds || blockedIds.length === 0) return 'none';
-  return blockedIds
+  // Hashed rather than joined: cacheService.generateKey concatenates its
+  // params verbatim, so a user who has blocked a few dozen people would
+  // otherwise push a kilobyte of ObjectIds into every posts cache key.
+  const joined = blockedIds
     .map((id) => id.toString())
     .sort()
     .join(',');
+  return crypto.createHash('sha1').update(joined).digest('hex').slice(0, 16);
 };
 
 /**

@@ -1,5 +1,6 @@
 const NodeCache = require('node-cache');
 const redis = require('redis');
+const { getCacheUserKey } = require('../utils/requestUser');
 
 // In-memory cache configuration
 const memoryCache = new NodeCache({
@@ -192,7 +193,7 @@ const cacheMiddleware = (prefix, ttl = 300) => {
     const cacheKey = cacheService.generateKey(prefix, {
       ...req.query,
       ...req.params,
-      user: req.user?.id || 'anonymous'
+      user: getCacheUserKey(req)
     });
 
     try {

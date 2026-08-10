@@ -9,6 +9,7 @@ const Category = require("../models/Category");
 const City = require("../models/City");
 const { cacheService } = require("../config/cache");
 const { geocodeCityName } = require("../utils/cityGeocode");
+const { getCacheUserKey } = require('../utils/requestUser');
 
 // Get Dashboard
 const getDashboard = async (req, res) => {
@@ -37,7 +38,7 @@ const getDashboard = async (req, res) => {
     const cacheKey = cacheService.generateKey('dashboard', {
       currentCountry,
       language,
-      user: req.user?.id || 'anonymous'
+      user: getCacheUserKey(req)
     });
     
     // Check cache first

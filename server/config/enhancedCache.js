@@ -1,5 +1,6 @@
 const NodeCache = require('node-cache');
 const redis = require('redis');
+const { getCacheUserKey } = require('../utils/requestUser');
 
 /**
  * Enhanced Caching Strategy for MongoDB Atlas Flex Plan
@@ -351,7 +352,7 @@ class EnhancedCacheService {
       const cacheKey = this.generateKey(namespace, prefix, {
         ...req.query,
         ...req.params,
-        user: req.user?.id || 'anonymous'
+        user: getCacheUserKey(req)
       });
 
       try {

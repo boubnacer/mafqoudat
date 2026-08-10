@@ -45,6 +45,7 @@ const Sponsored = ({ post }) => {
   };
 
   return (
+    <>
     <Link to={`/dash/posts/${post.id}`} className="sponsored__link">
       <div className="sponsored__card">
         <div className="sponsored__info">
@@ -91,6 +92,7 @@ const Sponsored = ({ post }) => {
       post={post}
       onSubmit={handleSubmitReport}
     />
+    </>
   );
 };
 
