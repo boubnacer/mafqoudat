@@ -4,13 +4,24 @@
  * Selections apply immediately (parent recomposes the query); this component only
  * owns the sheet's own UI state (open/closed, per-field search text, fetched city list).
  *
- * Country/Categories/City are each a searchable dropdown field (accordion-style,
- * inline within this sheet rather than a nested Modal - the app deliberately keeps
+ * Country/Categories/City are each a dropdown field (accordion-style, inline
+ * within this sheet rather than a nested Modal - the app deliberately keeps
  * only one overlay open at a time, see AppHeader/HeaderMenu) - mirrors the web
  * app's Autocomplete-driven category/city filters in
- * client/src/features/posts/PostsList/PostsList.js: a search box filters the
- * option list, categories is multi-select with removable chips, city is
- * single-select. Only one dropdown is open at a time.
+ * client/src/features/posts/PostsList/PostsList.js: categories is multi-select
+ * with removable chips, city is single-select. Only one dropdown is open at a
+ * time.
+ *
+ * Country and City carry a search box (their lists are long); Categories does
+ * not - it is a plain checkbox list, since the set is short enough to scan and
+ * a search box there only cost the user the soft keyboard over the options.
+ *
+ * Keyboard: the search inputs do NOT autofocus, so opening a dropdown always
+ * shows its options first and the keyboard appears only when the user taps the
+ * search box. When it does open, the same three-part treatment PostForm uses
+ * (keyboardHeight padding + per-field offsets + scroll-into-view) keeps the
+ * open dropdown above it - Android under edge-to-edge never resizes the window
+ * for the keyboard, so without this the option list sits behind it.
  *
  * Post type (All/Lost/Found) is the first, most prominent section - it writes
  * through the same selectedFl/onSelectFl prop pair the active-filter chip and
@@ -18,7 +29,7 @@
  * matter which surface changes it.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -29,6 +40,8 @@ import {
   Modal,
   ActivityIndicator,
   KeyboardAvoidingView,
+  Keyboard,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
@@ -37,6 +50,10 @@ import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const ALL_OPTION_ID = '__all__';
+
+// Breathing room left above a dropdown scrolled into view, so its section label
+// stays visible rather than sitting flush against the sheet header.
+const FIELD_SCROLL_MARGIN = 12;
 
 // Mirrors PostsListScreen's getElevation (client's designTokens.js elevationTokens
 // as RN shadow/elevation props) so the sheet and its raised controls read as the
@@ -58,9 +75,10 @@ const getElevation = (isDark, level = 1) =>
         elevation: 3,
       };
 
-// Accordion-style searchable dropdown: a header row showing the current value
-// (or placeholder) toggles an inline search box + filtered option list. Reused
-// for country (single-select), categories (multi-select) and city (single-select).
+// Accordion-style dropdown: a header row showing the current value (or
+// placeholder) toggles an inline option list, optionally preceded by a search
+// box. Reused for country (single-select + search), categories (multi-select,
+// checkbox rows, no search) and city (single-select + search).
 const DropdownField = ({
   label,
   placeholder,
@@ -77,13 +95,18 @@ const DropdownField = ({
   renderOptionLeading,
   noResultsText,
   loading,
+  searchable = true,
+  multiSelect = false,
+  compactList = false,
+  onLayout,
+  onSearchFocus,
   styles,
   tokens,
   isRTL,
 }) => {
   const textStyle = isRTL ? styles.textRTL : null;
   return (
-    <View style={styles.dropdownField}>
+    <View style={styles.dropdownField} onLayout={onLayout}>
       <Text style={[styles.sectionLabel, textStyle]}>{label}</Text>
       <TouchableOpacity
         style={[styles.dropdownHeader, isOpen && styles.dropdownHeaderActive]}
@@ -105,23 +128,27 @@ const DropdownField = ({
 
       {isOpen ? (
         <View style={styles.dropdownPanel}>
-          <View style={styles.dropdownSearchRow}>
-            <Ionicons name="search-outline" size={16} color={`${tokens.ink}80`} style={styles.dropdownSearchIcon} />
-            <TextInput
-              style={[styles.dropdownSearchInput, textStyle]}
-              placeholder={searchPlaceholder}
-              placeholderTextColor={`${tokens.ink}66`}
-              value={query}
-              onChangeText={onQueryChange}
-              autoCapitalize="none"
-              autoFocus
-            />
-          </View>
+          {searchable ? (
+            <View style={styles.dropdownSearchRow}>
+              <Ionicons name="search-outline" size={16} color={`${tokens.ink}80`} style={styles.dropdownSearchIcon} />
+              {/* Deliberately not autoFocus: the keyboard would cover the very
+                  options the user opened the dropdown to read. */}
+              <TextInput
+                style={[styles.dropdownSearchInput, textStyle]}
+                placeholder={searchPlaceholder}
+                placeholderTextColor={`${tokens.ink}66`}
+                value={query}
+                onChangeText={onQueryChange}
+                onFocus={onSearchFocus}
+                autoCapitalize="none"
+              />
+            </View>
+          ) : null}
           {loading ? (
             <ActivityIndicator size="small" color={tokens.brandPrimary} style={styles.dropdownLoader} />
           ) : (
             <ScrollView
-              style={styles.dropdownList}
+              style={[styles.dropdownList, compactList && styles.dropdownListCompact]}
               nestedScrollEnabled
               keyboardShouldPersistTaps="handled"
             >
@@ -144,7 +171,15 @@ const DropdownField = ({
                       >
                         {getOptionLabel(option)}
                       </Text>
-                      {selected ? <Ionicons name="checkmark" size={16} color={tokens.brandPrimary} /> : null}
+                      {multiSelect ? (
+                        // Same checkbox as SelectModal's multi-select rows, so a
+                        // tickable list reads the same wherever it appears.
+                        <View style={[styles.optionCheckbox, selected && styles.optionCheckboxChecked]}>
+                          {selected ? <Ionicons name="checkmark" size={13} color={tokens.surfaceRaised} /> : null}
+                        </View>
+                      ) : selected ? (
+                        <Ionicons name="checkmark" size={16} color={tokens.brandPrimary} />
+                      ) : null}
                     </TouchableOpacity>
                   );
                 })
@@ -186,10 +221,57 @@ const PostFilterSheet = ({
   // Only one dropdown open at a time - opening one closes whichever else was open.
   const [openField, setOpenField] = useState(null);
   const [countryQuery, setCountryQuery] = useState('');
-  const [categoryQuery, setCategoryQuery] = useState('');
   const [citySearch, setCitySearch] = useState('');
 
+  // Keyboard handling, same three-part treatment as PostForm (see the note
+  // there): pad the scroll content by the keyboard height so scrollTo isn't
+  // clamped short, record each field's offset on layout, and scroll the open
+  // field to the top of the body whenever it opens or its search box focuses.
+  const bodyRef = useRef(null);
+  const fieldOffsets = useRef({});
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
   const styles = useMemo(() => createStyles({ tokens, isDark, isRTL }), [tokens, isDark, isRTL]);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      setKeyboardHeight(event.endCoordinates?.height || 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardHeight(0));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const scrollFieldIntoView = (field) => {
+    const y = fieldOffsets.current[field];
+    if (y == null) return;
+    bodyRef.current?.scrollTo({ y: Math.max(y - FIELD_SCROLL_MARGIN, 0), animated: true });
+  };
+
+  // Re-runs once the keyboard padding has been committed and the sheet has
+  // finished shrinking, so the offset isn't clamped by a stale content height.
+  useEffect(() => {
+    if (keyboardHeight === 0 || !openField) return undefined;
+    const timer = setTimeout(() => scrollFieldIntoView(openField), 50);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keyboardHeight, openField]);
+
+  const handleFieldLayout = (field) => (event) => {
+    fieldOffsets.current[field] = event.nativeEvent.layout.y;
+  };
+
+  // Dismiss explicitly rather than relying on the Modal unmount to blur the
+  // focused search box - on Android the keyboard otherwise stays up over the
+  // posts list the sheet just closed onto.
+  const handleClose = () => {
+    Keyboard.dismiss();
+    onClose();
+  };
 
   useEffect(() => {
     if (!visible || !countryId) return;
@@ -213,13 +295,20 @@ const PostFilterSheet = ({
     if (!visible) {
       setOpenField(null);
       setCountryQuery('');
-      setCategoryQuery('');
       setCitySearch('');
     }
   }, [visible]);
 
   const toggleField = (field) => {
-    setOpenField((prev) => (prev === field ? null : field));
+    const next = openField === field ? null : field;
+    setOpenField(next);
+    // Moving between fields leaves the previous field's search box focused
+    // otherwise, so the keyboard would stay up over the newly opened list.
+    Keyboard.dismiss();
+    if (next) {
+      // After the panel has rendered, so the content is tall enough to scroll to.
+      setTimeout(() => scrollFieldIntoView(next), 60);
+    }
   };
 
   const filteredCountries = countryQuery.trim()
@@ -228,15 +317,12 @@ const PostFilterSheet = ({
       )
     : countries;
 
+  // No search box on categories: the list is short enough to scan, and the
+  // keyboard it raised covered the options themselves.
   const categoryOptions = [{ id: null, label: t('all') }, ...categories.map((cat) => ({
     id: cat._id,
     label: getLocalizedLabel(cat, currentLanguage),
   }))];
-  const filteredCategoryOptions = categoryQuery.trim()
-    ? categoryOptions.filter(
-        (option) => option.id === null || option.label.toLowerCase().includes(categoryQuery.trim().toLowerCase())
-      )
-    : categoryOptions;
   const selectedCategoryChips = categories.filter((cat) => selectedCategoryIds.includes(cat._id));
 
   const filteredCities = citySearch.trim()
@@ -279,22 +365,28 @@ const PostFilterSheet = ({
   const textStyle = isRTL ? styles.textRTL : null;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
       <KeyboardAvoidingView
         style={styles.overlay}
         behavior="padding"
       >
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
+        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={handleClose} />
         <View style={styles.sheet}>
           <View style={styles.grabHandle} />
           <View style={styles.header}>
             <Text style={[styles.headerTitle, textStyle]}>{t('filters')}</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('close')}>
+            <TouchableOpacity onPress={handleClose} style={styles.closeButton} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('close')}>
               <Ionicons name="close" size={20} color={`${tokens.ink}CC`} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.body} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
+          <ScrollView
+            ref={bodyRef}
+            style={styles.body}
+            contentContainerStyle={[styles.bodyContent, keyboardHeight > 0 && { paddingBottom: keyboardHeight }]}
+            keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled
+          >
             <Text style={[styles.sectionLabel, textStyle, styles.firstSectionLabel]}>{t('postType')}</Text>
             <View style={styles.postTypeRow}>
               {postTypeOptions.map((option) => {
@@ -345,12 +437,16 @@ const PostFilterSheet = ({
                 onSelectCountry(option.id);
                 setOpenField(null);
                 setCountryQuery('');
+                Keyboard.dismiss();
               }}
               getOptionLabel={(option) => option.label}
               renderOptionLeading={(option) =>
                 option.flag ? <Text style={styles.optionFlag}>{option.flag}</Text> : null
               }
               noResultsText={t('countryNoResults')}
+              compactList={keyboardHeight > 0}
+              onLayout={handleFieldLayout('country')}
+              onSearchFocus={() => scrollFieldIntoView('country')}
               styles={styles}
               tokens={tokens}
               isRTL={isRTL}
@@ -359,13 +455,12 @@ const PostFilterSheet = ({
             <DropdownField
               label={t('categories')}
               placeholder={t('selectCategories')}
-              searchPlaceholder={t('searchCategories')}
               displayValue={categoryDisplayValue}
               isOpen={openField === 'categories'}
               onToggle={() => toggleField('categories')}
-              query={categoryQuery}
-              onQueryChange={setCategoryQuery}
-              options={filteredCategoryOptions}
+              options={categoryOptions}
+              searchable={false}
+              multiSelect
               isSelected={(option) => (option.id === null ? selectedCategoryIds.length === 0 : selectedCategoryIds.includes(option.id))}
               onSelectOption={(option) => {
                 if (option.id === null) {
@@ -376,6 +471,7 @@ const PostFilterSheet = ({
               }}
               getOptionLabel={(option) => option.label}
               noResultsText={t('noSearchResults')}
+              onLayout={handleFieldLayout('categories')}
               styles={styles}
               tokens={tokens}
               isRTL={isRTL}
@@ -414,10 +510,14 @@ const PostFilterSheet = ({
                 }
                 setOpenField(null);
                 setCitySearch('');
+                Keyboard.dismiss();
               }}
               getOptionLabel={(option) => option.label}
               noResultsText={t('noSearchResults')}
               loading={citiesLoading}
+              compactList={keyboardHeight > 0}
+              onLayout={handleFieldLayout('city')}
+              onSearchFocus={() => scrollFieldIntoView('city')}
               styles={styles}
               tokens={tokens}
               isRTL={isRTL}
@@ -428,7 +528,7 @@ const PostFilterSheet = ({
             <TouchableOpacity style={styles.clearButton} onPress={onClearAll} activeOpacity={0.75}>
               <Text style={styles.clearButtonText}>{t('clearFilters')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.doneButton} onPress={onClose} activeOpacity={0.85}>
+            <TouchableOpacity style={styles.doneButton} onPress={handleClose} activeOpacity={0.85}>
               <Text style={styles.doneButtonText}>{t('done')}</Text>
             </TouchableOpacity>
           </View>
@@ -503,6 +603,9 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
     body: {
       paddingHorizontal: 20,
+    },
+    bodyContent: {
+      paddingBottom: 8,
     },
     sectionLabel: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -603,6 +706,12 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     dropdownList: {
       maxHeight: 220,
     },
+    // With the keyboard up the sheet has far less room, and a list taller than
+    // that room can't be scrolled past from inside itself (it's a nested
+    // ScrollView) - shortening it keeps the whole list reachable.
+    dropdownListCompact: {
+      maxHeight: 160,
+    },
     dropdownOption: {
       flexDirection: row(isRTL),
       alignItems: 'center',
@@ -634,6 +743,19 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
     optionFlag: {
       fontSize: 16,
+    },
+    optionCheckbox: {
+      width: 20,
+      height: 20,
+      borderRadius: radiusTokens.sm / 1.5,
+      borderWidth: 1.5,
+      borderColor: `${tokens.ink}40`,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    optionCheckboxChecked: {
+      backgroundColor: tokens.brandPrimary,
+      borderColor: tokens.brandPrimary,
     },
 
     // Selected category chips (mirrors web's Autocomplete renderTags)
