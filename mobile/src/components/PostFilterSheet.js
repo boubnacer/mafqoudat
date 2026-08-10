@@ -19,7 +19,17 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  Modal,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
@@ -27,6 +37,26 @@ import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const ALL_OPTION_ID = '__all__';
+
+// Mirrors PostsListScreen's getElevation (client's designTokens.js elevationTokens
+// as RN shadow/elevation props) so the sheet and its raised controls read as the
+// same depth language as the rest of the app.
+const getElevation = (isDark, level = 1) =>
+  level === 2
+    ? {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: isDark ? 0.5 : 0.14,
+        shadowRadius: 24,
+        elevation: 8,
+      }
+    : {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.4 : 0.08,
+        shadowRadius: 6,
+        elevation: 3,
+      };
 
 // Accordion-style searchable dropdown: a header row showing the current value
 // (or placeholder) toggles an inline search box + filtered option list. Reused
@@ -55,27 +85,38 @@ const DropdownField = ({
   return (
     <View style={styles.dropdownField}>
       <Text style={[styles.sectionLabel, textStyle]}>{label}</Text>
-      <TouchableOpacity style={styles.dropdownHeader} onPress={onToggle} activeOpacity={0.75}>
+      <TouchableOpacity
+        style={[styles.dropdownHeader, isOpen && styles.dropdownHeaderActive]}
+        onPress={onToggle}
+        activeOpacity={0.75}
+      >
         <Text
           style={[styles.dropdownHeaderText, !displayValue && styles.dropdownPlaceholderText, textStyle]}
           numberOfLines={1}
         >
           {displayValue || placeholder}
         </Text>
-        <Ionicons name={isOpen ? 'chevron-up' : 'chevron-down'} size={18} color={`${tokens.ink}80`} />
+        <Ionicons
+          name={isOpen ? 'chevron-up' : 'chevron-down'}
+          size={18}
+          color={isOpen ? tokens.brandPrimary : `${tokens.ink}80`}
+        />
       </TouchableOpacity>
 
       {isOpen ? (
         <View style={styles.dropdownPanel}>
-          <TextInput
-            style={[styles.dropdownSearchInput, textStyle]}
-            placeholder={searchPlaceholder}
-            placeholderTextColor={`${tokens.ink}66`}
-            value={query}
-            onChangeText={onQueryChange}
-            autoCapitalize="none"
-            autoFocus
-          />
+          <View style={styles.dropdownSearchRow}>
+            <Ionicons name="search-outline" size={16} color={`${tokens.ink}80`} style={styles.dropdownSearchIcon} />
+            <TextInput
+              style={[styles.dropdownSearchInput, textStyle]}
+              placeholder={searchPlaceholder}
+              placeholderTextColor={`${tokens.ink}66`}
+              value={query}
+              onChangeText={onQueryChange}
+              autoCapitalize="none"
+              autoFocus
+            />
+          </View>
           {loading ? (
             <ActivityIndicator size="small" color={tokens.brandPrimary} style={styles.dropdownLoader} />
           ) : (
@@ -220,18 +261,32 @@ const PostFilterSheet = ({
   const lostOption = floptions.find((fl) => fl.code === 'LOST');
   const foundOption = floptions.find((fl) => fl.code === 'FOUND');
   const postTypeOptions = [
-    { id: '', label: t('all'), tone: tokens.brandPrimary },
-    lostOption && { id: lostOption._id, label: getLocalizedLabel(lostOption, currentLanguage), tone: tokens.status.lost.main },
-    foundOption && { id: foundOption._id, label: getLocalizedLabel(foundOption, currentLanguage), tone: tokens.status.found.main },
+    { id: '', label: t('all'), tone: tokens.brandPrimary, icon: 'apps-outline' },
+    lostOption && {
+      id: lostOption._id,
+      label: getLocalizedLabel(lostOption, currentLanguage),
+      tone: tokens.status.lost.main,
+      icon: 'search-outline',
+    },
+    foundOption && {
+      id: foundOption._id,
+      label: getLocalizedLabel(foundOption, currentLanguage),
+      tone: tokens.status.found.main,
+      icon: 'checkmark-circle-outline',
+    },
   ].filter(Boolean);
 
   const textStyle = isRTL ? styles.textRTL : null;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.overlay}>
+      <KeyboardAvoidingView
+        style={styles.overlay}
+        behavior="padding"
+      >
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
         <View style={styles.sheet}>
+          <View style={styles.grabHandle} />
           <View style={styles.header}>
             <Text style={[styles.headerTitle, textStyle]}>{t('filters')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('close')}>
@@ -250,11 +305,17 @@ const PostFilterSheet = ({
                     style={[
                       styles.postTypeOption,
                       { borderColor: option.tone },
-                      isSelected && { backgroundColor: option.tone },
+                      isSelected && { backgroundColor: option.tone, ...getElevation(isDark, 1) },
                     ]}
                     onPress={() => onSelectFl(option.id)}
                     activeOpacity={0.8}
                   >
+                    <Ionicons
+                      name={option.icon}
+                      size={16}
+                      color={isSelected ? '#FFFFFF' : option.tone}
+                      style={styles.postTypeOptionIcon}
+                    />
                     <Text
                       style={[
                         styles.postTypeOptionText,
@@ -364,15 +425,15 @@ const PostFilterSheet = ({
           </ScrollView>
 
           <View style={styles.footer}>
-            <TouchableOpacity style={styles.clearButton} onPress={onClearAll}>
+            <TouchableOpacity style={styles.clearButton} onPress={onClearAll} activeOpacity={0.75}>
               <Text style={styles.clearButtonText}>{t('clearFilters')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.doneButton} onPress={onClose}>
+            <TouchableOpacity style={styles.doneButton} onPress={onClose} activeOpacity={0.85}>
               <Text style={styles.doneButtonText}>{t('done')}</Text>
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -402,6 +463,15 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       borderTopRightRadius: radiusTokens.xl,
       maxHeight: '85%',
       paddingBottom: 16,
+      ...getElevation(isDark, 2),
+    },
+    grabHandle: {
+      alignSelf: 'center',
+      width: 36,
+      height: 4,
+      borderRadius: 2,
+      marginTop: 10,
+      backgroundColor: `${tokens.ink}26`,
     },
     // Direction-dependent styles go through the helpers in utils/rtl.js
     // (row()/logical()), which compensate only when the language's direction
@@ -412,13 +482,15 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       flexDirection: row(isRTL),
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: 20,
+      paddingHorizontal: 20,
+      paddingTop: 14,
+      paddingBottom: 18,
       borderBottomWidth: 1,
       borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
     headerTitle: {
       fontFamily: fontFamilies.display,
-      fontSize: 19,
+      fontSize: 20,
       color: tokens.ink,
     },
     closeButton: {
@@ -451,11 +523,15 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
     postTypeOption: {
       flex: 1,
+      flexDirection: row(isRTL),
       paddingVertical: 12,
-      borderRadius: radiusTokens.lg,
-      borderWidth: 2,
+      borderRadius: radiusTokens.xl,
+      borderWidth: 1.5,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    postTypeOptionIcon: {
+      ...logical(isRTL, { marginEnd: 6 }),
     },
     postTypeOptionText: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -474,12 +550,17 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       flexDirection: row(isRTL),
       alignItems: 'center',
       justifyContent: 'space-between',
-      height: 46,
+      height: 48,
       paddingHorizontal: 14,
       borderRadius: radiusTokens.md,
       backgroundColor: tokens.surfaceBase,
       borderWidth: 1,
       borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+      ...getElevation(isDark, 1),
+    },
+    dropdownHeaderActive: {
+      borderColor: tokens.brandPrimary,
+      borderWidth: 1.5,
     },
     dropdownHeaderText: {
       flex: 1,
@@ -499,14 +580,22 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       backgroundColor: tokens.surfaceBase,
       overflow: 'hidden',
     },
-    dropdownSearchInput: {
-      height: 42,
+    dropdownSearchRow: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
       paddingHorizontal: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    },
+    dropdownSearchIcon: {
+      ...logical(isRTL, { marginEnd: 8 }),
+    },
+    dropdownSearchInput: {
+      flex: 1,
+      height: 42,
       fontFamily: fontFamilies.body,
       fontSize: 14,
       color: tokens.ink,
-      borderBottomWidth: 1,
-      borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
     dropdownLoader: {
       paddingVertical: 20,
@@ -579,8 +668,8 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     clearButton: {
       flex: 1,
       paddingVertical: 14,
-      borderRadius: radiusTokens.md,
-      borderWidth: 1,
+      borderRadius: radiusTokens.xl,
+      borderWidth: 1.5,
       borderColor: tokens.brandPrimary,
       alignItems: 'center',
       ...logical(isRTL, { marginEnd: 10 }),
@@ -593,9 +682,10 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     doneButton: {
       flex: 1,
       paddingVertical: 14,
-      borderRadius: radiusTokens.md,
+      borderRadius: radiusTokens.xl,
       backgroundColor: tokens.brandPrimary,
       alignItems: 'center',
+      ...getElevation(isDark, 1),
     },
     doneButtonText: {
       color: '#FFFFFF',
