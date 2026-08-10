@@ -25,6 +25,7 @@ import {
 } from '../../features/userSettings/usersApiSlice';
 import Navbar from '../Navbar';
 import DashFooter from '../Footer/DashFooter';
+import SeoMeta from '../SeoMeta';
 
 /**
  * Management side of the block action on a post page - the web twin of the
@@ -145,6 +146,9 @@ const BlockedUsers = () => {
 
   return (
     <Box width="100%" height="100%">
+      {/* Reachable without a session so the sign-in prompt can be shown, but
+          there is nothing here to index - the page is empty without one. */}
+      <SeoMeta title={t('blockedUsers')} noindex />
       <Box sx={{ backgroundColor: theme.palette.background.default }}>
         <Navbar />
         <Box

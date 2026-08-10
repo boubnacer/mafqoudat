@@ -227,10 +227,13 @@ const DashFooter = () => {
     }
   };
 
+  // `name` is the screen-reader name for each icon-only link. Untranslated on
+  // purpose: these are proper nouns, and a reader announcing "Facebook" is
+  // right in every language the site ships.
   const socialLinks = [
-    { icon: Facebook, href: "https://www.facebook.com/profile.php?id=100075968495897" },
-    { icon: Instagram, href: "https://www.instagram.com/mafkoudat?igsh=d29saTdtajZ5dWpu" },
-    { icon: WhatsApp, href: "https://wa.me/212711621132" },
+    { icon: Facebook, name: "Facebook", href: "https://www.facebook.com/profile.php?id=100075968495897" },
+    { icon: Instagram, name: "Instagram", href: "https://www.instagram.com/mafkoudat?igsh=d29saTdtajZ5dWpu" },
+    { icon: WhatsApp, name: "WhatsApp", href: "https://wa.me/212711621132" },
   ];
 
   const languageOptions = [
@@ -281,11 +284,12 @@ const DashFooter = () => {
             {t("footerDescription")}
           </Typography>
           <Box sx={{ display: "flex", gap: 1 }}>
-            {socialLinks.map(({ icon: SocialIcon, href }) => (
+            {socialLinks.map(({ icon: SocialIcon, name, href }) => (
               <IconButton
                 key={href}
                 component={Link}
                 href={href}
+                aria-label={name}
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={{

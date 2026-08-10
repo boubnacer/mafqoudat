@@ -6,6 +6,10 @@ import { BrowserRouter } from 'react-router-dom';
 
 import { store } from './app/store'
 import { Provider } from 'react-redux'
+import silenceProductionLogs from './utils/silenceProductionLogs'
+
+// Before anything renders, so no module's import-time logging slips through.
+silenceProductionLogs();
 
 const rootElement = document.getElementById('root');
 

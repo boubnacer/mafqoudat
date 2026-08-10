@@ -961,6 +961,18 @@ export const translations = {
 
     // User blocking (SinglePostPage + Pages/BlockedUsers.jsx). Same wording as
     // the mobile app - one server-side feature, described the same on both.
+    account: "Account",
+
+    // Screen-reader names for icon-only controls (no visible text to read).
+    changeImage: "Change image",
+    removeImage: "Remove image",
+    showPassword: "Show password",
+    hidePassword: "Hide password",
+    openMenu: "Open menu",
+    toggleSidebar: "Toggle sidebar",
+    selectLanguage: "Select language",
+    toggleColorMode: "Switch between light and dark mode",
+    openProfileMenu: "Open profile menu",
     blockUser: "Block user",
     unblockUser: "Unblock",
     blockedUsers: "Blocked users",
@@ -2606,6 +2618,18 @@ export const translations = {
     deleteAccount: "Supprimer le compte",
 
     // Blocage d'utilisateurs (SinglePostPage + Pages/BlockedUsers.jsx)
+    account: "Compte",
+
+    // Noms lus par les lecteurs d'écran pour les boutons sans texte visible.
+    changeImage: "Changer l'image",
+    removeImage: "Supprimer l'image",
+    showPassword: "Afficher le mot de passe",
+    hidePassword: "Masquer le mot de passe",
+    openMenu: "Ouvrir le menu",
+    toggleSidebar: "Afficher ou masquer la barre latérale",
+    selectLanguage: "Choisir la langue",
+    toggleColorMode: "Basculer entre le mode clair et sombre",
+    openProfileMenu: "Ouvrir le menu du profil",
     blockUser: "Bloquer l'utilisateur",
     unblockUser: "Débloquer",
     blockedUsers: "Utilisateurs bloqués",
@@ -4239,6 +4263,18 @@ export const translations = {
     deleteAccount: "حذف الحساب",
 
     // حظر المستخدمين (SinglePostPage + Pages/BlockedUsers.jsx)
+    account: "الحساب",
+
+    // أسماء يقرأها قارئ الشاشة للأزرار التي لا تحمل نصاً ظاهراً.
+    changeImage: "تغيير الصورة",
+    removeImage: "إزالة الصورة",
+    showPassword: "إظهار كلمة المرور",
+    hidePassword: "إخفاء كلمة المرور",
+    openMenu: "فتح القائمة",
+    toggleSidebar: "إظهار أو إخفاء الشريط الجانبي",
+    selectLanguage: "اختيار اللغة",
+    toggleColorMode: "التبديل بين الوضع الفاتح والداكن",
+    openProfileMenu: "فتح قائمة الملف الشخصي",
     blockUser: "حظر المستخدم",
     unblockUser: "إلغاء الحظر",
     blockedUsers: "المستخدمون المحظورون",

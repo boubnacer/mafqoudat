@@ -65,6 +65,7 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
         <Tooltip title="Change Language">
           <IconButton
             onClick={handleClick}
+            aria-label={t('selectLanguage')}
             sx={{
               color: theme.palette.text.primary,
               '&:hover': {

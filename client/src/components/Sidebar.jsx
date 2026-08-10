@@ -84,6 +84,7 @@ const Sidebar = () => {
                 {!isNonMobile && (
                   <IconButton
                     onClick={() => dispatch(setIsSidebarOpen(!isSidebarOpen))}
+                    aria-label={t('toggleSidebar')}
                   >
                     {currentLanguage === 'ar' ? <ChevronRightOutlined /> : <ChevronLeft />}
                   </IconButton>

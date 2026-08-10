@@ -101,7 +101,7 @@ const UserPostsDialog = ({
               Viewing all posts created by this user
             </Typography>
           </Box>
-          <IconButton onClick={onClose} size="small">
+          <IconButton onClick={onClose} size="small" aria-label="Close">
             <Close />
           </IconButton>
         </Box>

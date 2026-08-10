@@ -273,6 +273,7 @@ const StepPhoto = ({
           </Typography>
           <IconButton
             onClick={handleWarningDialogClose}
+            aria-label={t('close')}
             sx={{
               color: theme.palette.text.secondary,
               '&:hover': { backgroundColor: theme.palette.action.hover }

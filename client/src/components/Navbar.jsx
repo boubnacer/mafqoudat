@@ -743,7 +743,7 @@ const Navbar = () => {
           {showDesktopNav && authLoggedIn && <NotificationBell variant="desktop" />}
 
           {showDesktopNav && authLoggedIn && (
-            <IconButton onClick={handleProfileClick} sx={{ padding: "4px" }}>
+            <IconButton onClick={handleProfileClick} sx={{ padding: "4px" }} aria-label={t("openProfileMenu")}>
               <Avatar
                 sx={{
                   width: 34,
@@ -1028,7 +1028,7 @@ const Navbar = () => {
           }}
         >
           <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
-            <IconButton onClick={handleMobileDrawerClose}>
+            <IconButton onClick={handleMobileDrawerClose} aria-label={t("close")}>
               <Close sx={{ fontSize: "24px" }} />
             </IconButton>
           </Box>

@@ -135,6 +135,7 @@ const NotificationItem = ({
               <span>
                 <IconButton
                   size="small"
+                  aria-label={t('notifDismiss')}
                   disabled={isDismissing}
                   onClick={(event) => {
                     event.stopPropagation();

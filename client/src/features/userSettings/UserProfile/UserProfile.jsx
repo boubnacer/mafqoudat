@@ -33,6 +33,8 @@ import {
   Edit,
   ArrowBack,
   Public,
+  Block as BlockIcon,
+  DeleteForever as DeleteForeverIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -272,6 +274,7 @@ const UserProfile = () => {
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
         <IconButton
           onClick={() => navigate('/dash')}
+          aria-label={t('back')}
           sx={{
             color: theme.palette.text.primary,
             '&:hover': {
@@ -591,6 +594,7 @@ const UserProfile = () => {
                               <InputAdornment position="end">
                                 <IconButton
                                   onClick={() => setShowPassword(!showPassword)}
+                                  aria-label={showPassword ? t('hidePassword') : t('showPassword')}
                                   edge="end"
                                 >
                                   {showPassword ? <VisibilityOff /> : <Visibility />}
@@ -627,6 +631,7 @@ const UserProfile = () => {
                               <InputAdornment position="end">
                                 <IconButton
                                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                  aria-label={showConfirmPassword ? t('hidePassword') : t('showPassword')}
                                   edge="end"
                                 >
                                   {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
@@ -700,6 +705,48 @@ const UserProfile = () => {
                     </Grid>
                   )}
                 </Grid>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Account management. The mobile app groups these under Settings; on
+            the web the profile page is the equivalent home for them. Account
+            deletion in particular has to be findable from inside the signed-in
+            experience, not only from the footer link that the Play Console
+            points at. */}
+        <Grid item xs={12}>
+          <Card
+            sx={{
+              borderRadius: 3,
+              boxShadow: theme.palette.mode === 'dark'
+                ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+                : '0 8px 32px rgba(0, 0, 0, 0.08)',
+            }}
+          >
+            <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                {t('account')}
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<BlockIcon />}
+                  onClick={() => navigate('/blocked-users')}
+                  sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                >
+                  {t('blockedUsers')}
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  startIcon={<DeleteForeverIcon />}
+                  onClick={() => navigate('/delete-account')}
+                  sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                >
+                  {t('deleteAccount')}
+                </Button>
               </Box>
             </CardContent>
           </Card>

@@ -1368,6 +1368,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             {t('addNewCity')}
           </Typography>
           <IconButton
+            aria-label={t('cancel')}
             onClick={() => {
               setShowCustomCityInput(false);
               setCustomCityName("");
@@ -1512,6 +1513,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           </Typography>
           <IconButton
             onClick={handleImageDialogClose}
+            aria-label={t('close')}
             sx={{
               color: theme.palette.text.secondary,
               '&:hover': {

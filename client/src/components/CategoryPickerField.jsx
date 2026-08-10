@@ -195,7 +195,7 @@ const CategoryPickerField = ({ categories, value, onChange, error, errorText, da
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
             {t("categories")}
           </Typography>
-          <IconButton onClick={handleClose} size="small">
+          <IconButton onClick={handleClose} size="small" aria-label={t('close')}>
             <CloseIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
