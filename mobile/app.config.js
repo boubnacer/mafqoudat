@@ -37,7 +37,8 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.mafqoudat.app",
-      buildNumber: "1",
+      // Omitted for the same reason as android.versionCode above - EAS owns it
+      // under `appVersionSource: "remote"`.
       // Only the photo-library string is declared. The camera and location
       // strings that used to sit here described features this app does not
       // have: nothing calls launchCameraAsync, and there is no location API in
@@ -65,10 +66,19 @@ export default {
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
+        // Themed icons (Android 13+): without this layer the launcher falls
+        // back to the full-colour icon while every other icon on the home
+        // screen follows the wallpaper palette.
+        monochromeImage: "./assets/adaptive-icon-monochrome.png",
         backgroundColor: "#ffffff"
       },
       package: "com.mafqoudat.app",
-      versionCode: 1,
+      // No versionCode here on purpose: eas.json sets
+      // `cli.appVersionSource: "remote"`, so EAS owns the build number and the
+      // production profile auto-increments it. A hardcoded 1 in this file is
+      // ignored by every EAS build, and the moment anyone flipped the source
+      // back to "local" it would start uploading duplicate version codes, which
+      // Play rejects. Run `eas build:version:set` to change it instead.
       // Google Play requires every requested permission to be necessary for a
       // feature the app actually has. This app needs none of the dangerous ones:
       // it talks to the network (INTERNET is added by React Native itself) and
@@ -101,9 +111,14 @@ export default {
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
       intentFilters: [
+        // The OAuth callback bridge. No autoVerify here, deliberately: Android
+        // App Links verification applies only to http/https filters, and from
+        // Android 12 the verification agent evaluates every autoVerify filter in
+        // the manifest as one batch - a non-web filter carrying the flag can
+        // sink verification for the real https filter below it. The custom
+        // scheme needs no verification anyway; it is claimed by declaration.
         {
           action: "VIEW",
-          autoVerify: true,
           data: [
             {
               scheme: "mafqoudat",
@@ -115,11 +130,16 @@ export default {
         },
         // App Links: Android's counterpart to iOS's associatedDomains above -
         // same feature, same caveats (needs the real SHA-256 signing
-        // fingerprint in assetlinks.json, see
-        // mobile/UNIVERSAL_LINKS_SETUP.md; needs a fresh native build).
-        // pathPrefix also matches the bare "/dash/posts" listing URL, which
-        // isn't registered in App.js's `linking.config.screens` - opening
-        // that one is a harmless no-op, not a crash.
+        // fingerprint in assetlinks.json, and that has to be the Play App
+        // Signing key rather than the upload key, since Play re-signs the AAB;
+        // see mobile/UNIVERSAL_LINKS_SETUP.md. Needs a fresh native build).
+        //
+        // pathPattern rather than pathPrefix: App.js's
+        // `linking.config.screens` only registers "dash/posts/:id", so a prefix
+        // match also claimed the bare "/dash/posts" listing URL and opened the
+        // app on a link it cannot resolve. "/dash/posts/.*" requires something
+        // after the slash, which matches what the iOS side already declares in
+        // .well-known/apple-app-site-association ("/dash/posts/*").
         {
           action: "VIEW",
           autoVerify: true,
@@ -127,12 +147,12 @@ export default {
             {
               scheme: "https",
               host: "mafqoudat.com",
-              pathPrefix: "/dash/posts"
+              pathPattern: "/dash/posts/.*"
             },
             {
               scheme: "https",
               host: "www.mafqoudat.com",
-              pathPrefix: "/dash/posts"
+              pathPattern: "/dash/posts/.*"
             }
           ],
           category: ["BROWSABLE", "DEFAULT"]
