@@ -21,6 +21,7 @@ import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
+import { navigateAfterLogin } from '../navigation/afterLogin';
 import { GoogleGlyph, FacebookGlyph } from '../components/AuthSocialGlyphs';
 
 // Mirrors client/src/features/auth/SingUp/NewUserForm.js's own patterns, so the
@@ -43,6 +44,8 @@ const LoginScreen = ({ navigation }) => {
     clearSessionExpired,
     loginNotice,
     clearLoginNotice,
+    consumeLoginRedirect,
+    clearLoginRedirect,
   } = useAuth();
   const { currentLanguage } = useLanguage();
   const { isDark } = useTheme();
@@ -78,6 +81,10 @@ const LoginScreen = ({ navigation }) => {
     return () => {
       if (sessionExpired) clearSessionExpired();
       if (loginNotice) clearLoginNotice();
+      // Also drops the pending redirect when the user backs out of Login
+      // without signing in, so it can't fire on a later, unrelated sign-in.
+      // A successful login has already consumed it by this point.
+      clearLoginRedirect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -85,6 +92,10 @@ const LoginScreen = ({ navigation }) => {
   // sessionExpired (forced sign-out) takes priority over a screen-specific
   // loginNotice (e.g. "please log in to create a post") if both are somehow set.
   const noticeKey = sessionExpired ? 'sessionExpiredNotice' : loginNotice;
+
+  // See navigation/afterLogin.js: resumes a pending redirect if the user was
+  // bounced here mid-action, else lands on Home.
+  const goAfterLogin = () => navigateAfterLogin(navigation, consumeLoginRedirect());
 
   const handleEmailChange = (value) => {
     setEmailOrPhone(value);
@@ -135,12 +146,8 @@ const LoginScreen = ({ navigation }) => {
       const { accessToken } = response.data;
 
       if (accessToken) {
-        // Login/SignUp/CountrySelection live in the same stack as Home
-        // (guest browsing shares it - see App.js), so isSignedIn flipping
-        // doesn't remount into a signed-in tree the way it used to; navigate
-        // back to Home explicitly instead.
         await completeLogin(accessToken);
-        navigation.navigate('Home');
+        goAfterLogin();
       } else {
         setError(t('invalidCredentials'));
       }
@@ -180,7 +187,7 @@ const LoginScreen = ({ navigation }) => {
 
       if (result.success) {
         console.log('✅ Google sign in successful');
-        navigation.navigate('Home');
+        goAfterLogin();
       } else if (result.pending) {
         console.log('⏳ New Google user, navigating to country selection...');
         navigation.navigate('CountrySelection');
@@ -208,7 +215,7 @@ const LoginScreen = ({ navigation }) => {
 
       if (result.success) {
         console.log('✅ Facebook sign in successful');
-        navigation.navigate('Home');
+        goAfterLogin();
       } else if (result.pending) {
         console.log('⏳ New Facebook user, navigating to country selection...');
         navigation.navigate('CountrySelection');

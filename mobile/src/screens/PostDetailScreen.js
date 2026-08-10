@@ -133,7 +133,7 @@ const PostDetailScreen = ({ navigation, route }) => {
   const { id } = route.params || {};
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { user, setLoginNotice } = useAuth();
+  const { user, requireLogin } = useAuth();
   const { isDark } = useTheme();
   const isRTL = currentLanguage === 'ar';
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
@@ -291,7 +291,9 @@ const PostDetailScreen = ({ navigation, route }) => {
 
   const openReportSheet = () => {
     if (!user) {
-      setLoginNotice('loginRequiredReportPost');
+      // Comes back to this same post once signed in - the report sheet itself
+      // isn't reopened automatically, matching web's redirect-to-post-URL.
+      requireLogin('loginRequiredReportPost', { screen: 'PostDetailScreen', params: { id } });
       navigation.navigate('Login');
       return;
     }

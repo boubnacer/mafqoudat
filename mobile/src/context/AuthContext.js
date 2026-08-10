@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useReducer, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useReducer, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import googleAuth, { useGoogleIdTokenAuth, IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
@@ -126,6 +126,13 @@ export const AuthProvider = ({ children }) => {
   // redirected there from a protected screen/action (mirrors client's
   // authStorage.setRedirectAfterLoginWithMessage + Login.js's loginNotice).
   const [loginNotice, setLoginNotice] = useState(null);
+  // Where to land after a successful sign-in when the user was bounced to Login
+  // mid-action: a navigation target ({ screen, params }) inside AppNavigator,
+  // the mobile equivalent of client's authStorage redirectAfterLogin URL. A ref
+  // rather than state deliberately - nothing renders from it, and the sign-in
+  // handlers need to read *and* clear it in one synchronous step
+  // (consumeLoginRedirect) without waiting on a re-render.
+  const loginRedirectRef = useRef(null);
 
   // Registered with apiService's response interceptor so a 401/403 that means "your
   // token is no longer valid" (not a resource-ownership 403 - see apiService.js for the
@@ -147,6 +154,30 @@ export const AuthProvider = ({ children }) => {
 
   const clearSessionExpired = () => setSessionExpired(false);
   const clearLoginNotice = () => setLoginNotice(null);
+
+  const setLoginRedirect = useCallback((target) => {
+    loginRedirectRef.current = target || null;
+  }, []);
+
+  const clearLoginRedirect = useCallback(() => setLoginRedirect(null), [setLoginRedirect]);
+
+  // A pending redirect is one-shot: read it and clear it together, so a later
+  // sign-in the user started deliberately (menu -> Login) can't replay it.
+  const consumeLoginRedirect = useCallback(() => {
+    const target = loginRedirectRef.current;
+    clearLoginRedirect();
+    return target;
+  }, [clearLoginRedirect]);
+
+  // Single call for the "guest hit a protected screen/action" path: the notice
+  // banner LoginScreen shows, plus where to send them once they're signed in.
+  const requireLogin = useCallback(
+    (noticeKey, target) => {
+      setLoginNotice(noticeKey || null);
+      setLoginRedirect(target || null);
+    },
+    [setLoginRedirect]
+  );
 
   // Shared by every path that ends up with a valid access token (password login,
   // Google sign-in, Google registration): persists it and flips auth state, which
@@ -471,6 +502,10 @@ export const AuthProvider = ({ children }) => {
     loginNotice,
     setLoginNotice,
     clearLoginNotice,
+    setLoginRedirect,
+    clearLoginRedirect,
+    consumeLoginRedirect,
+    requireLogin,
   };
 
   return (

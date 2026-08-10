@@ -18,7 +18,7 @@ import AppHeader from '../components/AppHeader';
 
 const NewPostScreen = ({ navigation }) => {
   const { t } = useTranslation();
-  const { isSignedIn, setLoginNotice } = useAuth();
+  const { isSignedIn, requireLogin } = useAuth();
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const styles = useMemo(() => createStyles(tokens), [tokens]);
@@ -79,10 +79,10 @@ const NewPostScreen = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       if (!isSignedIn) {
-        setLoginNotice('loginRequiredCreatePost');
+        requireLogin('loginRequiredCreatePost', { screen: 'NewPost' });
         navigation.navigate('Login');
       }
-    }, [isSignedIn, navigation, setLoginNotice])
+    }, [isSignedIn, navigation, requireLogin])
   );
 
   if (!isSignedIn) {
