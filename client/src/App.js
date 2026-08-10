@@ -41,6 +41,7 @@ const PrefetchDependencies = lazy(() => import("./features/PrefetchData/Prefetch
 
 // Lazy load legal and information pages
 const PrivacyPolicy = lazy(() => import("./components/Pages/PrivacyPolicy"));
+const DeleteAccount = lazy(() => import("./components/Pages/DeleteAccount"));
 const TermsOfUse = lazy(() => import("./components/Pages/TermsOfUse"));
 const CookieNotice = lazy(() => import("./components/Pages/CookieNotice"));
 const CommunityGuidelines = lazy(() => import("./components/Pages/CommunityGuidelines"));
@@ -154,6 +155,15 @@ const AppContent = () => {
         <Route path="/privacy" element={
           <Suspense fallback={<InfoPageSkeleton />}>
             <PrivacyPolicy />
+          </Suspense>
+        } />
+        {/* Deliberately public: this is the account-deletion URL declared in the
+            Play Console, and Google requires it to be reachable without signing
+            in (or installing the app). The page explains the process to
+            everyone and only gates the form itself. */}
+        <Route path="/delete-account" element={
+          <Suspense fallback={<InfoPageSkeleton />}>
+            <DeleteAccount />
           </Suspense>
         } />
         <Route path="/terms" element={

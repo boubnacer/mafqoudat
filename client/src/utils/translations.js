@@ -945,7 +945,42 @@ export const translations = {
     cookieNotice: "Cookie Notice",
     itemFoundIn: "Item found in",
     area: "area",
-    
+
+    // Account deletion (Pages/DeleteAccount.jsx + mobile DeleteAccountScreen).
+    // The wording is shared with the mobile app on purpose - both platforms
+    // describe the same server-side deletion, so they must describe it the same.
+    deleteAccount: "Delete account",
+    deleteAccountPageTitle: "Delete your Mafqoudat account",
+    deleteAccountPageIntro:
+      "You can permanently delete your Mafqoudat account and all of the data stored with it, either from this page or from inside the mobile app.",
+    deleteAccountAction: "Permanently delete my account",
+    deleteAccountWarning:
+      "Deleting your account is permanent. It cannot be undone, and your data cannot be restored afterwards.",
+    deleteAccountWhatIsErased: "What gets deleted",
+    deleteAccountItemPosts: "All of your lost and found posts",
+    deleteAccountItemPhotos: "Every photo you uploaded with those posts",
+    deleteAccountItemAlerts: "Your match alerts and notification settings",
+    deleteAccountItemProfile: "Your profile, email address and phone number",
+    deleteAccountItemMessages: "Any support messages you sent us",
+    deleteAccountRetentionTitle: "What we keep, and for how long",
+    deleteAccountRetentionBody:
+      "Reports that other people filed about a post stay in our moderation records, but they are anonymised so they are no longer linked to you. Nothing else is retained: your account, posts, photos and alerts are removed immediately when you confirm the deletion.",
+    deleteAccountHowTitle: "How to delete your account",
+    deleteAccountFromAppTitle: "From the mobile app",
+    deleteAccountFromAppSteps:
+      "Open Mafqoudat, go to Settings, tap Delete account, type your username to confirm, and confirm again when prompted.",
+    deleteAccountFromWebTitle: "From this page",
+    deleteAccountSignInPrompt:
+      "Sign in with the account you want to delete, then return to this page to complete the deletion.",
+    deleteAccountConfirmHelper: "To confirm, type your username:",
+    deleteAccountConfirmPlaceholder: "Enter your username",
+    deleteAccountConfirmTitle: "Delete your account?",
+    deleteAccountConfirmMessage:
+      "This will permanently delete your account and all of your posts. This cannot be undone.",
+    deleteAccountConfirmAction: "Delete",
+    deleteAccountDoneMessage: "Your account and all of its data have been permanently deleted.",
+    deleteAccountError: "We could not delete your account. Please try again.",
+
     // Privacy Policy translations
     lastUpdated: "Last Updated",
     privacyPolicyDescription: "This Privacy Policy describes how Mafqoudat collects, uses, and protects your personal information when you use our platform.",
@@ -2536,7 +2571,41 @@ export const translations = {
     privacyPolicy: "Politique de confidentialité",
     termsOfUse: "Conditions d'utilisation",
     cookieNotice: "Avis sur les cookies",
-    
+
+    // Suppression du compte (Pages/DeleteAccount.jsx + mobile DeleteAccountScreen)
+    deleteAccount: "Supprimer le compte",
+    deleteAccountPageTitle: "Supprimer votre compte Mafqoudat",
+    deleteAccountPageIntro:
+      "Vous pouvez supprimer définitivement votre compte Mafqoudat et toutes les données qui y sont associées, depuis cette page ou depuis l'application mobile.",
+    deleteAccountAction: "Supprimer définitivement mon compte",
+    deleteAccountWarning:
+      "La suppression de votre compte est définitive. Elle est irréversible et vos données ne pourront pas être récupérées.",
+    deleteAccountWhatIsErased: "Ce qui sera supprimé",
+    deleteAccountItemPosts: "Toutes vos annonces d'objets perdus et trouvés",
+    deleteAccountItemPhotos: "Toutes les photos publiées avec ces annonces",
+    deleteAccountItemAlerts: "Vos alertes de correspondance et vos préférences de notification",
+    deleteAccountItemProfile: "Votre profil, votre adresse e-mail et votre numéro de téléphone",
+    deleteAccountItemMessages: "Les messages que vous avez envoyés au support",
+    deleteAccountRetentionTitle: "Ce que nous conservons, et pendant combien de temps",
+    deleteAccountRetentionBody:
+      "Les signalements déposés par d'autres personnes au sujet d'une annonce restent dans nos registres de modération, mais ils sont anonymisés et ne sont plus liés à vous. Rien d'autre n'est conservé : votre compte, vos annonces, vos photos et vos alertes sont supprimés immédiatement après votre confirmation.",
+    deleteAccountHowTitle: "Comment supprimer votre compte",
+    deleteAccountFromAppTitle: "Depuis l'application mobile",
+    deleteAccountFromAppSteps:
+      "Ouvrez Mafqoudat, allez dans Paramètres, appuyez sur Supprimer le compte, saisissez votre nom d'utilisateur pour confirmer, puis confirmez à nouveau.",
+    deleteAccountFromWebTitle: "Depuis cette page",
+    deleteAccountSignInPrompt:
+      "Connectez-vous avec le compte que vous souhaitez supprimer, puis revenez sur cette page pour terminer la suppression.",
+    deleteAccountConfirmHelper: "Pour confirmer, saisissez votre nom d'utilisateur :",
+    deleteAccountConfirmPlaceholder: "Saisissez votre nom d'utilisateur",
+    deleteAccountConfirmTitle: "Supprimer votre compte ?",
+    deleteAccountConfirmMessage:
+      "Cette action supprimera définitivement votre compte et toutes vos annonces. Elle est irréversible.",
+    deleteAccountConfirmAction: "Supprimer",
+    deleteAccountDoneMessage:
+      "Votre compte et toutes ses données ont été définitivement supprimés.",
+    deleteAccountError: "Impossible de supprimer votre compte. Veuillez réessayer.",
+
     // Privacy Policy translations
     lastUpdated: "Dernière mise à jour",
     privacyPolicyDescription: "Cette Politique de confidentialité décrit comment Mafqoudat collecte, utilise et protège vos informations personnelles lorsque vous utilisez notre plateforme.",
@@ -4114,7 +4183,40 @@ export const translations = {
     cookieNotice: "إشعار ملفات تعريف الارتباط",
     itemFoundIn: "تم العثور على العنصر في",
     area: "المنطقة",
-    
+
+    // حذف الحساب (Pages/DeleteAccount.jsx + mobile DeleteAccountScreen)
+    deleteAccount: "حذف الحساب",
+    deleteAccountPageTitle: "حذف حسابك في مفقودات",
+    deleteAccountPageIntro:
+      "يمكنك حذف حسابك في مفقودات وجميع البيانات المرتبطة به نهائياً، من خلال هذه الصفحة أو من داخل تطبيق الهاتف.",
+    deleteAccountAction: "حذف حسابي نهائياً",
+    deleteAccountWarning:
+      "حذف حسابك إجراء نهائي. لا يمكن التراجع عنه، ولا يمكن استعادة بياناتك بعد ذلك.",
+    deleteAccountWhatIsErased: "ما الذي سيتم حذفه",
+    deleteAccountItemPosts: "جميع إعلانات المفقودات والموجودات الخاصة بك",
+    deleteAccountItemPhotos: "كل الصور التي رفعتها مع تلك الإعلانات",
+    deleteAccountItemAlerts: "تنبيهات التطابق وإعدادات الإشعارات الخاصة بك",
+    deleteAccountItemProfile: "ملفك الشخصي وبريدك الإلكتروني ورقم هاتفك",
+    deleteAccountItemMessages: "أي رسائل دعم أرسلتها إلينا",
+    deleteAccountRetentionTitle: "ما الذي نحتفظ به، ولأي مدة",
+    deleteAccountRetentionBody:
+      "تبقى البلاغات التي قدّمها أشخاص آخرون بشأن إعلان ما ضمن سجلات الإشراف لدينا، لكنها تصبح مجهولة المصدر ولم تعد مرتبطة بك. لا نحتفظ بأي شيء آخر: يُحذف حسابك وإعلاناتك وصورك وتنبيهاتك فوراً عند تأكيد الحذف.",
+    deleteAccountHowTitle: "كيفية حذف حسابك",
+    deleteAccountFromAppTitle: "من تطبيق الهاتف",
+    deleteAccountFromAppSteps:
+      "افتح تطبيق مفقودات، انتقل إلى الإعدادات، اضغط على حذف الحساب، اكتب اسم المستخدم الخاص بك للتأكيد، ثم أكّد مرة أخرى.",
+    deleteAccountFromWebTitle: "من هذه الصفحة",
+    deleteAccountSignInPrompt:
+      "سجّل الدخول بالحساب الذي تريد حذفه، ثم عد إلى هذه الصفحة لإتمام الحذف.",
+    deleteAccountConfirmHelper: "للتأكيد، اكتب اسم المستخدم الخاص بك:",
+    deleteAccountConfirmPlaceholder: "أدخل اسم المستخدم الخاص بك",
+    deleteAccountConfirmTitle: "هل تريد حذف حسابك؟",
+    deleteAccountConfirmMessage:
+      "سيؤدي هذا إلى حذف حسابك وجميع إعلاناتك نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+    deleteAccountConfirmAction: "حذف",
+    deleteAccountDoneMessage: "تم حذف حسابك وجميع بياناته نهائياً.",
+    deleteAccountError: "تعذّر حذف حسابك. يرجى المحاولة مرة أخرى.",
+
     // Privacy Policy translations
     lastUpdated: "آخر تحديث",
     privacyPolicyDescription: "تصف سياسة الخصوصية هذه كيفية جمع واستخدام وحماية مفقودات لمعلوماتك الشخصية عند استخدام منصتنا.",

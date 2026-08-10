@@ -135,6 +135,38 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 { type: 'User', id: arg.id }
             ]
         }),
+        // Self-service account deletion, required by Google Play's User Data
+        // policy (the store also requires the same thing to be reachable from a
+        // public web URL - see components/Pages/DeleteAccount.jsx). Distinct
+        // from deleteUser below: this one carries no id at all, because the
+        // server always targets the caller's own account.
+        deleteMyAccount: builder.mutation({
+            query: ({ confirmUsername }) => ({
+                url: '/users/me',
+                method: 'DELETE',
+                body: { confirmUsername }
+            }),
+            transformErrorResponse: (response) => {
+                if (response.status === 400) {
+                    return {
+                        status: 400,
+                        data: { message: "Username confirmation does not match." }
+                    };
+                }
+                if (response.status === 500) {
+                    return {
+                        status: 500,
+                        data: { message: "Failed to delete account. Please try again." }
+                    };
+                }
+                return response;
+            },
+            invalidatesTags: [
+                { type: 'User', id: "LIST" }
+            ]
+        }),
+        // Admin-only: deletes an arbitrary user by id (server gates this behind
+        // verifyAdmin). A user deleting themselves goes through deleteMyAccount.
         deleteUser: builder.mutation({
             query: ({ id }) => ({
                 url: `/users`,
@@ -170,6 +202,7 @@ export const {
     useAddNewUserMutation,
     useUpdateUserMutation,
     useDeleteUserMutation,
+    useDeleteMyAccountMutation,
 } = usersApiSlice
 
 // returns the query result object

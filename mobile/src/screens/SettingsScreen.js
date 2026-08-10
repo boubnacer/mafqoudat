@@ -127,7 +127,35 @@ const SettingsScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.signOutButton} onPress={handleAuthButtonPress} activeOpacity={0.85}>
+        {/* Account deletion has to be reachable from inside the app (Google
+            Play User Data policy), so it lives here rather than only on the
+            website. Hidden for guests - there is no account to delete. */}
+        {isSignedIn ? (
+          <>
+            <Text style={[styles.sectionLabel, textStyle]}>{t('account')}</Text>
+            <View style={styles.menuCard}>
+              <TouchableOpacity
+                style={styles.menuRow}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('DeleteAccountScreen')}
+                accessibilityRole="button"
+                accessibilityLabel={t('deleteAccount')}
+              >
+                <Text style={[styles.menuRowText, styles.menuRowTextDanger, textStyle]}>
+                  {t('deleteAccount')}
+                </Text>
+                <Ionicons name={chevronIcon} size={18} color={tokens.status.lost.main} />
+              </TouchableOpacity>
+            </View>
+          </>
+        ) : null}
+
+        <TouchableOpacity
+          style={styles.signOutButton}
+          onPress={handleAuthButtonPress}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+        >
           <Text style={styles.signOutButtonText}>{isSignedIn ? t('logout') : t('login')}</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -222,6 +250,10 @@ const createStyles = (tokens, isDark, isRTL) =>
       fontSize: 15,
       color: tokens.ink,
       textAlign: isRTL ? 'right' : 'left',
+    },
+    menuRowTextDanger: {
+      color: tokens.status.lost.main,
+      fontFamily: fontFamilies.bodyMedium,
     },
     signOutButton: {
       height: 50,

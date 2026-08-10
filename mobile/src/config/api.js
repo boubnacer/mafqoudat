@@ -55,6 +55,10 @@ export const API_ENDPOINTS = {
   USERS: {
     // Public (no auth required) - server/routes/userRoutes.js POST / -> createNewUser
     CREATE: "/users",
+    // Self-service account deletion, required by Google Play's User Data policy.
+    // Always targets the signed-in user server-side (req.user), so no id is sent;
+    // the body carries only the typed username confirmation.
+    DELETE_ME: "/users/me",
   },
   DASHBOARD: {
     GET: "/dashboard",

@@ -14,6 +14,12 @@ const verifyJWT = (req, res, next) => {
     req.user = decoded.UserInfo.usernameId;
     req.username = decoded.UserInfo.username;
     req.country = decoded.UserInfo.country;
+    // generateTokens has always put the role in the payload, but this middleware
+    // never read it back out - so ownership checks written as
+    // `req.user !== owner && req.role !== 'admin'` were silently evaluating an
+    // undefined role. Tokens issued before the field existed simply come back
+    // undefined here, which reads as "not an admin".
+    req.role = decoded.UserInfo.role;
     next();
   });
 };

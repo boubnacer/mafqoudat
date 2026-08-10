@@ -40,6 +40,7 @@ import MyPostsScreen from './src/screens/MyPostsScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import DeleteAccountScreen from './src/screens/DeleteAccountScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import { ActivityIndicator, View, StyleSheet, Text, Linking } from 'react-native';
 
@@ -158,6 +159,8 @@ const AppNavigator = () => {
         <Stack.Screen name="EditPostScreen" component={EditPostScreen} />
         <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
+        {/* Only linked from Settings while signed in - see SettingsScreen. */}
+        <Stack.Screen name="DeleteAccountScreen" component={DeleteAccountScreen} />
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
         {/* Add other screens here */}
       </Stack.Navigator>

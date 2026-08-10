@@ -296,6 +296,30 @@ export const translations = {
     termsOfService: "Terms of Service",
     signOutConfirm: "Are you sure you want to sign out?",
 
+    // Account deletion (DeleteAccountScreen)
+    account: "Account",
+    deleteAccount: "Delete account",
+    deleteAccountAction: "Permanently delete my account",
+    deleteAccountWarning:
+      "Deleting your account is permanent. It cannot be undone, and your data cannot be restored afterwards.",
+    deleteAccountWhatIsErased: "What gets deleted",
+    deleteAccountItemPosts: "All of your lost and found posts",
+    deleteAccountItemPhotos: "Every photo you uploaded with those posts",
+    deleteAccountItemAlerts: "Your match alerts and notification settings",
+    deleteAccountItemProfile: "Your profile, email address and phone number",
+    deleteAccountItemMessages: "Any support messages you sent us",
+    deleteAccountConfirmLabel: "Confirm deletion",
+    deleteAccountConfirmHelper: "Type your username below to confirm.",
+    deleteAccountConfirmPlaceholder: "Enter your username",
+    deleteAccountConfirmMismatch: "That does not match your username.",
+    deleteAccountConfirmTitle: "Delete your account?",
+    deleteAccountConfirmMessage:
+      "This will permanently delete your account and all of your posts. This cannot be undone.",
+    deleteAccountConfirmAction: "Delete",
+    deleteAccountDoneTitle: "Account deleted",
+    deleteAccountDoneMessage: "Your account and all of its data have been permanently deleted.",
+    deleteAccountError: "We could not delete your account. Please try again.",
+
     // Common
     loading: "Loading...",
     error: "Error",
@@ -742,6 +766,31 @@ export const translations = {
     privacyPolicy: "Politique de confidentialité",
     termsOfService: "Conditions d'utilisation",
     signOutConfirm: "Êtes-vous sûr de vouloir vous déconnecter ?",
+
+    // Suppression du compte (DeleteAccountScreen)
+    account: "Compte",
+    deleteAccount: "Supprimer le compte",
+    deleteAccountAction: "Supprimer définitivement mon compte",
+    deleteAccountWarning:
+      "La suppression de votre compte est définitive. Elle est irréversible et vos données ne pourront pas être récupérées.",
+    deleteAccountWhatIsErased: "Ce qui sera supprimé",
+    deleteAccountItemPosts: "Toutes vos annonces d'objets perdus et trouvés",
+    deleteAccountItemPhotos: "Toutes les photos publiées avec ces annonces",
+    deleteAccountItemAlerts: "Vos alertes de correspondance et vos préférences de notification",
+    deleteAccountItemProfile: "Votre profil, votre adresse e-mail et votre numéro de téléphone",
+    deleteAccountItemMessages: "Les messages que vous avez envoyés au support",
+    deleteAccountConfirmLabel: "Confirmer la suppression",
+    deleteAccountConfirmHelper: "Saisissez votre nom d'utilisateur ci-dessous pour confirmer.",
+    deleteAccountConfirmPlaceholder: "Saisissez votre nom d'utilisateur",
+    deleteAccountConfirmMismatch: "Cela ne correspond pas à votre nom d'utilisateur.",
+    deleteAccountConfirmTitle: "Supprimer votre compte ?",
+    deleteAccountConfirmMessage:
+      "Cette action supprimera définitivement votre compte et toutes vos annonces. Elle est irréversible.",
+    deleteAccountConfirmAction: "Supprimer",
+    deleteAccountDoneTitle: "Compte supprimé",
+    deleteAccountDoneMessage:
+      "Votre compte et toutes ses données ont été définitivement supprimés.",
+    deleteAccountError: "Impossible de supprimer votre compte. Veuillez réessayer.",
 
     // Common
     loading: "Chargement...",
@@ -1199,6 +1248,30 @@ export const translations = {
     privacyPolicy: "سياسة الخصوصية",
     termsOfService: "شروط الخدمة",
     signOutConfirm: "هل أنت متأكد أنك تريد تسجيل الخروج؟",
+
+    // حذف الحساب (DeleteAccountScreen)
+    account: "الحساب",
+    deleteAccount: "حذف الحساب",
+    deleteAccountAction: "حذف حسابي نهائياً",
+    deleteAccountWarning:
+      "حذف حسابك إجراء نهائي. لا يمكن التراجع عنه، ولا يمكن استعادة بياناتك بعد ذلك.",
+    deleteAccountWhatIsErased: "ما الذي سيتم حذفه",
+    deleteAccountItemPosts: "جميع إعلانات المفقودات والموجودات الخاصة بك",
+    deleteAccountItemPhotos: "كل الصور التي رفعتها مع تلك الإعلانات",
+    deleteAccountItemAlerts: "تنبيهات التطابق وإعدادات الإشعارات الخاصة بك",
+    deleteAccountItemProfile: "ملفك الشخصي وبريدك الإلكتروني ورقم هاتفك",
+    deleteAccountItemMessages: "أي رسائل دعم أرسلتها إلينا",
+    deleteAccountConfirmLabel: "تأكيد الحذف",
+    deleteAccountConfirmHelper: "اكتب اسم المستخدم الخاص بك أدناه للتأكيد.",
+    deleteAccountConfirmPlaceholder: "أدخل اسم المستخدم الخاص بك",
+    deleteAccountConfirmMismatch: "هذا لا يطابق اسم المستخدم الخاص بك.",
+    deleteAccountConfirmTitle: "هل تريد حذف حسابك؟",
+    deleteAccountConfirmMessage:
+      "سيؤدي هذا إلى حذف حسابك وجميع إعلاناتك نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+    deleteAccountConfirmAction: "حذف",
+    deleteAccountDoneTitle: "تم حذف الحساب",
+    deleteAccountDoneMessage: "تم حذف حسابك وجميع بياناته نهائياً.",
+    deleteAccountError: "تعذّر حذف حسابك. يرجى المحاولة مرة أخرى.",
 
     // Common
     loading: "جاري التحميل...",
