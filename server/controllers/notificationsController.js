@@ -4,6 +4,7 @@ const PostMatch = require("../models/PostMatch");
 const Post = require("../models/Post");
 const User = require("../models/User");
 const matchingService = require("../services/matchingService");
+const { getBlockedUserIds } = require("../utils/blockedUsers");
 
 /**
  * Read/write API for in-app notifications and the lost/found match pairs they
@@ -122,7 +123,25 @@ const LIVE_POSTS_MATCH = {
   },
 };
 
-const notificationPipeline = (userId, { unreadOnly = false } = {}) => ([
+/**
+ * Drops matches whose counterpart belongs to a user the reader has blocked.
+ *
+ * Applied here, at read time, rather than in matchingService: blocking is
+ * reversible and must not destroy anything, so the PostMatch rows and the
+ * Notification rows stay exactly as they were and simply stop being rendered.
+ * Unblocking brings them straight back.
+ *
+ * Sits alongside LIVE_POSTS_MATCH in the shared pipeline for the same reason
+ * that stage does - the list and the unread badge both go through it, so the
+ * badge can never count an alert the list refuses to show.
+ */
+const blockedOwnerMatch = (blockedIds) => (
+  blockedIds && blockedIds.length > 0
+    ? [{ $match: { 'otherPost.user': { $nin: blockedIds } } }]
+    : []
+);
+
+const notificationPipeline = (userId, { unreadOnly = false, blockedIds = [] } = {}) => ([
   {
     $match: {
       user: userId,
@@ -138,6 +157,7 @@ const notificationPipeline = (userId, { unreadOnly = false } = {}) => ([
   ...postLookupStages('post', 'ownPost'),
   ...postLookupStages('matchedPost', 'otherPost'),
   LIVE_POSTS_MATCH,
+  ...blockedOwnerMatch(blockedIds),
 ]);
 
 /** Localized, client-ready shape for one side of a match. */
@@ -229,7 +249,8 @@ const listNotifications = async (req, res) => {
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const pageSize = Math.min(Math.max(parseInt(req.query.pageSize, 10) || 10, 1), 50);
 
-    const basePipeline = notificationPipeline(userId, { unreadOnly });
+    const blockedIds = await getBlockedUserIds(req.user);
+    const basePipeline = notificationPipeline(userId, { unreadOnly, blockedIds });
 
     // Collapses the per-pair rows into one entry per listing the reader owns.
     // Runs after LIVE_POSTS_MATCH, so a counterpart that has since been
@@ -326,8 +347,9 @@ const listNotifications = async (req, res) => {
 const getUnreadCount = async (req, res) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.user);
+    const blockedIds = await getBlockedUserIds(req.user);
     const [result] = await Notification.aggregate([
-      ...notificationPipeline(userId, { unreadOnly: true }),
+      ...notificationPipeline(userId, { unreadOnly: true, blockedIds }),
       { $count: 'value' },
     ]);
 
@@ -433,7 +455,7 @@ const serializeMatch = (match, viewerId, language) => {
   };
 };
 
-const matchPipelineTail = () => ([
+const matchPipelineTail = (blockedIds = []) => ([
   ...postLookupStages('postA', 'postADoc'),
   ...postLookupStages('postB', 'postBDoc'),
   {
@@ -444,6 +466,17 @@ const matchPipelineTail = () => ([
       'postBDoc.returned': false,
     },
   },
+  // Testing both sides rather than working out which one is the counterpart:
+  // the viewer owns one of them and cannot have blocked themselves (blockUser
+  // rejects that), so only the counterpart can ever match here.
+  ...(blockedIds.length > 0
+    ? [{
+      $match: {
+        'postADoc.user': { $nin: blockedIds },
+        'postBDoc.user': { $nin: blockedIds },
+      },
+    }]
+    : []),
   {
     $project: {
       score: 1,
@@ -497,7 +530,7 @@ const getMatchesForPost = async (req, res) => {
           dismissedBy: { $ne: viewerObjectId },
         },
       },
-      ...matchPipelineTail(),
+      ...matchPipelineTail(await getBlockedUserIds(viewerId)),
       { $limit: 20 },
     ]);
 
@@ -529,7 +562,7 @@ const getMyMatches = async (req, res) => {
           dismissedBy: { $ne: viewerObjectId },
         },
       },
-      ...matchPipelineTail(),
+      ...matchPipelineTail(await getBlockedUserIds(viewerId)),
       { $limit: limit },
     ]);
 

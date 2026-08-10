@@ -59,6 +59,10 @@ export const API_ENDPOINTS = {
     // Always targets the signed-in user server-side (req.user), so no id is sent;
     // the body carries only the typed username confirmation.
     DELETE_ME: "/users/me",
+    // User blocking (Google Play UGC policy). The blocker is always the
+    // signed-in caller server-side, so only the blocked user's id is sent.
+    BLOCKS: "/users/me/blocks",
+    UNBLOCK: (userId) => `/users/me/blocks/${userId}`,
   },
   DASHBOARD: {
     GET: "/dashboard",

@@ -146,6 +146,7 @@ const PostDetailScreen = ({ navigation, route }) => {
   const [error, setError] = useState('');
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [reportSheetVisible, setReportSheetVisible] = useState(false);
+  const [isBlocking, setIsBlocking] = useState(false);
   const [promoteSheetVisible, setPromoteSheetVisible] = useState(false);
   const [actionsSheetVisible, setActionsSheetVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -295,6 +296,39 @@ const PostDetailScreen = ({ navigation, route }) => {
       return;
     }
     setReportSheetVisible(true);
+  };
+
+  // Blocking hides every post by this author from this viewer, and stops their
+  // listings producing match alerts. Reversible from Settings > Blocked users,
+  // so the confirmation says so rather than warning about permanence.
+  const handleBlockUser = () => {
+    if (!user) {
+      setLoginNotice('loginRequiredReportPost');
+      navigation.navigate('Login');
+      return;
+    }
+
+    Alert.alert(t('blockUserConfirmTitle'), t('blockUserConfirmMessage'), [
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('blockUser'),
+        style: 'destructive',
+        onPress: async () => {
+          setIsBlocking(true);
+          try {
+            await apiClient.post(API_ENDPOINTS.USERS.BLOCKS, { userId: String(post.user) });
+            showToast(t('blockUserSuccess'));
+            // The listing this viewer came from still holds the blocked post,
+            // so send them back rather than leaving them on hidden content.
+            navigation.goBack();
+          } catch (error) {
+            console.error('Error blocking user:', error);
+            Alert.alert(t('error'), error.response?.data?.message || t('blockUserError'));
+            setIsBlocking(false);
+          }
+        },
+      },
+    ]);
   };
 
   const openPromoteSheet = () => {
@@ -531,15 +565,39 @@ const PostDetailScreen = ({ navigation, route }) => {
             )}
           </View>
 
+          {/* Report asks us to act on this post; Block lets the viewer act on
+              the poster themselves, straight away. Google Play's UGC policy
+              wants both, not one standing in for the other. */}
           {!isOwner ? (
             <View style={styles.section}>
               <TouchableOpacity
                 style={[styles.contactButton, styles.reportButton]}
                 onPress={openReportSheet}
                 activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={t('reportThisPost')}
               >
                 <Ionicons name="flag-outline" size={16} color="#FFFFFF" />
                 <Text style={styles.contactButtonText}>{t('reportThisPost')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.contactButton, styles.blockButton]}
+                onPress={handleBlockUser}
+                activeOpacity={0.85}
+                disabled={isBlocking}
+                accessibilityRole="button"
+                accessibilityLabel={t('blockUser')}
+              >
+                {isBlocking ? (
+                  <ActivityIndicator size="small" color={tokens.status.lost.main} />
+                ) : (
+                  <>
+                    <Ionicons name="ban-outline" size={16} color={tokens.status.lost.main} />
+                    <Text style={[styles.contactButtonText, styles.blockButtonText]}>
+                      {t('blockUser')}
+                    </Text>
+                  </>
+                )}
               </TouchableOpacity>
             </View>
           ) : null}
@@ -861,6 +919,18 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     reportButton: {
       backgroundColor: tokens.status.lost.main,
+    },
+    // Outlined rather than filled, so Report stays the primary of the two:
+    // reporting is what gets bad content taken down for everyone, blocking only
+    // changes this viewer's own feed.
+    blockButton: {
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderColor: tokens.status.lost.main,
+      marginTop: 10,
+    },
+    blockButtonText: {
+      color: tokens.status.lost.main,
     },
     contactButtonText: {
       color: '#FFFFFF',

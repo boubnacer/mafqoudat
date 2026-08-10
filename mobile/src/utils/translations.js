@@ -297,6 +297,23 @@ export const translations = {
 
     // Account deletion (DeleteAccountScreen)
     account: "Account",
+
+    // User blocking (PostDetailScreen + BlockedUsersScreen)
+    blockUser: "Block user",
+    unblockUser: "Unblock",
+    blockedUsers: "Blocked users",
+    blockUserConfirmTitle: "Block this user?",
+    blockUserConfirmMessage:
+      "You will stop seeing their posts and will not get match alerts from them. You can undo this any time from Settings.",
+    blockUserSuccess: "User blocked. Their posts are now hidden from you.",
+    blockUserError: "We could not block this user. Please try again.",
+    unblockUserConfirmTitle: "Unblock this user?",
+    unblockUserConfirmMessage: "Their posts will show up in your listings again.",
+    unblockUserError: "We could not unblock this user. Please try again.",
+    blockedUsersIntro:
+      "You do not see posts or match alerts from the people listed here. Unblocking restores them right away.",
+    blockedUsersEmptyMessage: "You have not blocked anyone.",
+    blockedUsersError: "We could not load your blocked users.",
     deleteAccount: "Delete account",
     deleteAccountAction: "Permanently delete my account",
     deleteAccountWarning:
@@ -767,6 +784,23 @@ export const translations = {
 
     // Suppression du compte (DeleteAccountScreen)
     account: "Compte",
+
+    // Blocage d'utilisateurs (PostDetailScreen + BlockedUsersScreen)
+    blockUser: "Bloquer l'utilisateur",
+    unblockUser: "Débloquer",
+    blockedUsers: "Utilisateurs bloqués",
+    blockUserConfirmTitle: "Bloquer cet utilisateur ?",
+    blockUserConfirmMessage:
+      "Vous ne verrez plus ses annonces et ne recevrez plus d'alertes de correspondance de sa part. Vous pouvez annuler à tout moment depuis les Paramètres.",
+    blockUserSuccess: "Utilisateur bloqué. Ses annonces vous sont désormais masquées.",
+    blockUserError: "Impossible de bloquer cet utilisateur. Veuillez réessayer.",
+    unblockUserConfirmTitle: "Débloquer cet utilisateur ?",
+    unblockUserConfirmMessage: "Ses annonces réapparaîtront dans vos listes.",
+    unblockUserError: "Impossible de débloquer cet utilisateur. Veuillez réessayer.",
+    blockedUsersIntro:
+      "Vous ne voyez ni les annonces ni les alertes de correspondance des personnes listées ici. Le déblocage les rétablit immédiatement.",
+    blockedUsersEmptyMessage: "Vous n'avez bloqué personne.",
+    blockedUsersError: "Impossible de charger vos utilisateurs bloqués.",
     deleteAccount: "Supprimer le compte",
     deleteAccountAction: "Supprimer définitivement mon compte",
     deleteAccountWarning:
@@ -1248,6 +1282,23 @@ export const translations = {
 
     // حذف الحساب (DeleteAccountScreen)
     account: "الحساب",
+
+    // حظر المستخدمين (PostDetailScreen + BlockedUsersScreen)
+    blockUser: "حظر المستخدم",
+    unblockUser: "إلغاء الحظر",
+    blockedUsers: "المستخدمون المحظورون",
+    blockUserConfirmTitle: "هل تريد حظر هذا المستخدم؟",
+    blockUserConfirmMessage:
+      "لن ترى إعلاناته بعد الآن ولن تصلك تنبيهات تطابق منه. يمكنك التراجع في أي وقت من الإعدادات.",
+    blockUserSuccess: "تم حظر المستخدم. أصبحت إعلاناته مخفية عنك.",
+    blockUserError: "تعذّر حظر هذا المستخدم. يرجى المحاولة مرة أخرى.",
+    unblockUserConfirmTitle: "هل تريد إلغاء حظر هذا المستخدم؟",
+    unblockUserConfirmMessage: "ستظهر إعلاناته مجدداً في قوائمك.",
+    unblockUserError: "تعذّر إلغاء حظر هذا المستخدم. يرجى المحاولة مرة أخرى.",
+    blockedUsersIntro:
+      "لا ترى إعلانات أو تنبيهات تطابق من الأشخاص المدرجين هنا. إلغاء الحظر يعيدها فوراً.",
+    blockedUsersEmptyMessage: "لم تحظر أي شخص.",
+    blockedUsersError: "تعذّر تحميل قائمة المستخدمين المحظورين.",
     deleteAccount: "حذف الحساب",
     deleteAccountAction: "حذف حسابي نهائياً",
     deleteAccountWarning:

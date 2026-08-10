@@ -113,6 +113,19 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  // Users this user has blocked. Google Play's user-generated-content policy
+  // requires a way to block another user, not only to report their content:
+  // reporting asks us to act, blocking lets the user act for themselves and
+  // takes effect immediately.
+  //
+  // Deliberately one-directional and read-time only. Blocking hides the blocked
+  // user's posts and match alerts from the blocker (see utils/blockedUsers.js
+  // and its callers); it does not hide the blocker from the blocked user, and
+  // it destroys nothing, so unblocking restores the previous view exactly.
+  blockedUsers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  }],
   // Controls the lost/found match alerts produced by services/matchingService.js.
   // Every field has a default, so users created before this block existed
   // behave exactly like a user who never touched the settings.
@@ -149,6 +162,9 @@ userSchema.index({ googleId: 1 }, { sparse: true, unique: true });
 userSchema.index({ facebookId: 1 }, { sparse: true, unique: true });
 
 // 2. User management indexes
+// blockedUsers is read on nearly every listing request for a signed-in viewer,
+// and swept once per account deletion ("who blocked this user?").
+userSchema.index({ blockedUsers: 1 });
 userSchema.index({ country: 1, isActive: 1 });
 userSchema.index({ role: 1, isActive: 1 });
 userSchema.index({ country: 1, role: 1, isActive: 1 });

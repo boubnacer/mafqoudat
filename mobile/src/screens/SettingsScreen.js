@@ -137,6 +137,17 @@ const SettingsScreen = ({ navigation }) => {
               <TouchableOpacity
                 style={styles.menuRow}
                 activeOpacity={0.7}
+                onPress={() => navigation.navigate('BlockedUsersScreen')}
+                accessibilityRole="button"
+                accessibilityLabel={t('blockedUsers')}
+              >
+                <Text style={[styles.menuRowText, textStyle]}>{t('blockedUsers')}</Text>
+                <Ionicons name={chevronIcon} size={18} color={`${tokens.ink}66`} />
+              </TouchableOpacity>
+              <View style={styles.menuRowDivider} />
+              <TouchableOpacity
+                style={styles.menuRow}
+                activeOpacity={0.7}
                 onPress={() => navigation.navigate('DeleteAccountScreen')}
                 accessibilityRole="button"
                 accessibilityLabel={t('deleteAccount')}

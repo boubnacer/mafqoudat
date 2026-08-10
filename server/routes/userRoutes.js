@@ -12,6 +12,18 @@ router
   .route("/me")
   .delete(verifyJWT, usersController.deleteMyAccount);
 
+// User blocking (Google Play UGC policy: reporting content is not enough on its
+// own, a user must also be able to block another user). Scoped to the caller
+// the same way /me is - the blocker is always req.user.
+router
+  .route("/me/blocks")
+  .get(verifyJWT, usersController.getBlockedUsers)
+  .post(verifyJWT, usersController.blockUser);
+
+router
+  .route("/me/blocks/:userId")
+  .delete(verifyJWT, usersController.unblockUser);
+
 router
   .route("/")
   // Returns every user's email and role, so it is an admin tool, not a

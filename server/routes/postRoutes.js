@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const postsController = require("../controllers/postsController");
 const { verifyJWT } = require("../middleware/jwtSecurity");
+const optionalAuth = require("../middleware/optionalAuth");
 const { dynamicDataCache, paginatedCache, invalidateCache } = require("../middleware/cacheMiddleware");
 const { 
   postsCache, 
@@ -28,10 +29,15 @@ const conditionalImageUploadLimit = (req, res, next) => {
   next();
 };
 
-// Public routes - no authentication required (using optimized caching)
+// Public routes - still reachable by guests, but optionalAuth identifies a
+// signed-in viewer so the controller can drop posts by users they have blocked.
+// It has to run BEFORE the cache middleware: those key on the viewer, and a key
+// computed before the token is read would serve one viewer's filtered listing to
+// everyone else.
 router.route("/")
   .get(
     // searchRateLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
+    optionalAuth,
     commonValidations.pagination(),
     validateRequest,
     optimizedPaginatedCache('posts'),
@@ -41,6 +47,7 @@ router.route("/")
 router.route("/filtered")
   .get(
     // searchRateLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
+    optionalAuth,
     commonValidations.pagination(),
     validateRequest,
     searchResultsCache('posts-filtered'),

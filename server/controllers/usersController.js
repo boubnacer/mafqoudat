@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const User = require("../models/User");
 const Post = require("../models/Post");
 const bcrypt = require("bcrypt");
@@ -370,6 +371,89 @@ const updateUser = async (req, res) => {
   }
 };
 
+// @desc List the users the caller has blocked
+// @route GET /users/me/blocks
+// @access Private (self only)
+const getBlockedUsers = async (req, res) => {
+  try {
+    const viewer = await User.findById(req.user)
+      .select('blockedUsers')
+      .populate('blockedUsers', 'username profile.firstName profile.lastName')
+      .lean()
+      .exec();
+
+    if (!viewer) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // populate drops ids whose user has since been deleted, so this is already
+    // free of dangling entries.
+    const blocked = (viewer.blockedUsers || []).map((user) => ({
+      id: user._id,
+      username: user.username,
+      firstName: user.profile?.firstName || '',
+      lastName: user.profile?.lastName || '',
+    }));
+
+    return res.json({ blocked, count: blocked.length });
+  } catch (error) {
+    console.error('Error listing blocked users:', error);
+    return res.status(500).json({ message: "Failed to load blocked users" });
+  }
+};
+
+// @desc Block another user, hiding their posts and match alerts from the caller
+// @route POST /users/me/blocks
+// @access Private (self only)
+const blockUser = async (req, res) => {
+  try {
+    const { userId } = req.body || {};
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Valid user ID required" });
+    }
+
+    if (userId === req.user) {
+      return res.status(400).json({ message: "You cannot block yourself" });
+    }
+
+    const target = await User.findById(userId).select('_id').lean().exec();
+    if (!target) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // $addToSet keeps a repeated block idempotent rather than growing the array.
+    await User.updateOne({ _id: req.user }, { $addToSet: { blockedUsers: userId } });
+
+    return res.json({ success: true, message: "User blocked", blockedUserId: userId });
+  } catch (error) {
+    console.error('Error blocking user:', error);
+    return res.status(500).json({ message: "Failed to block user" });
+  }
+};
+
+// @desc Unblock a previously blocked user
+// @route DELETE /users/me/blocks/:userId
+// @access Private (self only)
+const unblockUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Valid user ID required" });
+    }
+
+    // No existence check on the target: a block whose user has since deleted
+    // their account still has to be removable.
+    await User.updateOne({ _id: req.user }, { $pull: { blockedUsers: userId } });
+
+    return res.json({ success: true, message: "User unblocked", unblockedUserId: userId });
+  } catch (error) {
+    console.error('Error unblocking user:', error);
+    return res.status(500).json({ message: "Failed to unblock user" });
+  }
+};
+
 /**
  * Erases a user and everything of theirs that carries personal data.
  *
@@ -455,6 +539,11 @@ const purgeUserData = async (user) => {
   if (user.email) {
     await Contact.deleteMany({ email: user.email });
   }
+
+  // Anyone who blocked this user is left holding an id that resolves to
+  // nothing. Harmless to read past, but it would keep showing up in their
+  // blocked-users list forever with no way to act on it.
+  await User.updateMany({ blockedUsers: userId }, { $pull: { blockedUsers: userId } });
 
   await User.deleteOne({ _id: userId });
 
@@ -556,6 +645,9 @@ module.exports = {
   updateUser,
   deleteUser,
   deleteMyAccount,
+  getBlockedUsers,
+  blockUser,
+  unblockUser,
   // Shared with adminController's deleteUserAdmin so every route that erases an
   // account erases exactly the same set of data.
   purgeUserData,
