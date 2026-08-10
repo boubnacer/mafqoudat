@@ -427,6 +427,10 @@ export const AuthFormField = ({
       ) : (
         <IconButton
           onClick={onTogglePassword}
+          // The compact variant above is a Button whose visible text names it;
+          // this one is an eye icon with nothing to read, so it needs the same
+          // words as an explicit label.
+          aria-label={showPassword ? t("hidePassword") : t("showPassword")}
           edge="end"
           size="small"
           sx={{ color: alpha(theme.custom.color.ink, 0.5) }}
