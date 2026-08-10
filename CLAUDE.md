@@ -129,8 +129,12 @@ never in one platform's UI.
   its timer constantly; it polls only while signed in *and* foregrounded (`AppState`).
   `NotificationGroupCard` is the mobile twin of web's `NotificationGroup`, with
   `NotificationCard` as the per-counterpart row inside it.
-  Follows Phase 9 (parent cards borderless and shadowless, sub-badges carry the
-  elevation) and routes every direction-dependent style through `utils/rtl.js`.
+  Follows Phase 9 for parent cards (borderless and shadowless) and routes every
+  direction-dependent style through `utils/rtl.js`. The sub-elements are the one
+  documented departure from Phase 9: `MatchThumbnail`'s square and `MatchMeta`'s
+  confidence badge + reason chips carry a `StyleSheet.hairlineWidth` ink outline
+  (`${ink}33` dark / `${ink}1F` light) instead of the sub-element shadow — several
+  pills to a row made those shadows read as smudges on the post-detail section.
   Differences from web, both deliberate: the confidence floor is a row of discrete
   options instead of a slider (no slider dependency in this app, and a tap beats a drag
   on a phone), and `formatDaysApart` carries Arabic dual/small-plural forms the way

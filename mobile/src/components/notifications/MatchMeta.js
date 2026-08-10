@@ -3,9 +3,9 @@
  * confidence badge and the "why we paired these" reason chips.
  * Mirrors: client/src/features/notifications/MatchMeta.jsx
  *
- * Both are borderless pills carrying a small shadow of their own, per the
- * platform-wide treatment where depth reads from a card's sub-elements rather
- * than from the card (CLAUDE.md, Phase 9).
+ * Both are pills separated from the card behind them by a hairline border
+ * rather than by the Phase 9 sub-element shadow: sitting several to a row on
+ * the post-detail matches section, those shadows read as smudges.
  */
 
 import React from 'react';
@@ -18,14 +18,11 @@ import { colorTokens, radiusTokens, fontFamilies } from '../../theme/tokens';
 import { logical, row, needsDirectionFlip } from '../../utils/rtl';
 import { REASON_ICONS, REASON_LABEL_KEYS, TIER_LABEL_KEYS, getTierTone } from './matchDisplay';
 
-// Mirrors client/src/designTokens.js's elevationTokens e1, as RN shadow props -
-// same helper every other mobile screen defines locally.
-const getElevation = (isDark) => ({
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: isDark ? 0.4 : 0.06,
-  shadowRadius: 2,
-  elevation: 2,
+// Hairline outline standing in for that shadow: ink at a low alpha, so the pill
+// reads as an edge in both modes without becoming a drawn box.
+const getHairline = (tokens, isDark) => ({
+  borderWidth: StyleSheet.hairlineWidth,
+  borderColor: `${tokens.ink}${isDark ? '33' : '1F'}`,
 });
 
 /**
@@ -39,7 +36,7 @@ export const ConfidenceBadge = ({ tier, score, compact = false }) => {
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const isRTL = currentLanguage === 'ar';
   const tone = getTierTone(tokens, isDark, tier);
-  const styles = createStyles({ isDark, isRTL });
+  const styles = createStyles({ tokens, isDark, isRTL });
 
   return (
     <View style={[styles.badge, { backgroundColor: tone.bg }, compact && styles.badgeCompact]}>
@@ -63,7 +60,7 @@ export const MatchReasons = ({ reasons = [], max = 6 }) => {
   const { t } = useTranslation();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const isRTL = currentLanguage === 'ar';
-  const styles = createStyles({ isDark, isRTL });
+  const styles = createStyles({ tokens, isDark, isRTL });
 
   const known = reasons.filter((reason) => REASON_LABEL_KEYS[reason]).slice(0, max);
   if (known.length === 0) return null;
@@ -92,7 +89,7 @@ export const MatchReasons = ({ reasons = [], max = 6 }) => {
 // differs from the one native is already mirroring - see that file. Do NOT
 // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
 // cancels out native mirroring once forceRTL has taken effect on relaunch.
-const createStyles = ({ isDark, isRTL }) =>
+const createStyles = ({ tokens, isDark, isRTL }) =>
   StyleSheet.create({
     badge: {
       flexDirection: row(isRTL),
@@ -101,7 +98,7 @@ const createStyles = ({ isDark, isRTL }) =>
       paddingHorizontal: 10,
       paddingVertical: 5,
       borderRadius: radiusTokens.sm,
-      ...getElevation(isDark),
+      ...getHairline(tokens, isDark),
     },
     badgeCompact: {
       paddingHorizontal: 8,
@@ -129,7 +126,7 @@ const createStyles = ({ isDark, isRTL }) =>
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: radiusTokens.sm,
-      ...getElevation(isDark),
+      ...getHairline(tokens, isDark),
     },
     reasonChipIcon: {
       ...logical(isRTL, { marginEnd: 4 }),

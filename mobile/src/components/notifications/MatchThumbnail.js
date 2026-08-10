@@ -22,12 +22,11 @@ import { logical, row } from '../../utils/rtl';
 // path for older rows.
 const getImageUri = (image) => (image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : null);
 
-const getElevation = (isDark) => ({
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: isDark ? 0.4 : 0.06,
-  shadowRadius: 2,
-  elevation: 2,
+// The thumbnail is outlined rather than raised, matching the confidence badge
+// and reason chips it sits beside in MatchMeta.js.
+const getHairline = (tokens, isDark) => ({
+  borderWidth: StyleSheet.hairlineWidth,
+  borderColor: `${tokens.ink}${isDark ? '33' : '1F'}`,
 });
 
 const MatchThumbnail = ({ post, size = 76 }) => {
@@ -78,7 +77,7 @@ const createStyles = ({ tokens, isDark, isRTL, size }) =>
       borderRadius: radiusTokens.md,
       overflow: 'hidden',
       backgroundColor: `${tokens.ink}0F`,
-      ...getElevation(isDark),
+      ...getHairline(tokens, isDark),
     },
     image: {
       width: '100%',
