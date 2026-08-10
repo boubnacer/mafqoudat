@@ -1,5 +1,6 @@
 const rateLimit = require("express-rate-limit");
 const { logEvents } = require("./logger");
+const { getRequestUserId } = require('../utils/requestUser');
 
 // Create rate limiter with custom options
 const createRateLimiter = (options) => {
@@ -203,7 +204,7 @@ const userActionRateLimiter = createRateLimiter({
   max: 20, // 20 actions per minute
   keyGenerator: (req) => {
     // Use user ID if authenticated, otherwise IP
-    return req.user?.id || req.ip;
+    return getRequestUserId(req) || req.ip;
   },
   message: "Too many actions, please slow down"
 });

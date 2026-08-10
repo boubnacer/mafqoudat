@@ -5,11 +5,15 @@ const { verifyJWT } = require("../middleware/jwtSecurity");
 const { commonValidations, validateRequest } = require("../middleware/validation");
 const { createRateLimiter } = require("../middleware/rateLimiting");
 
-// Keyed by the authenticated user rather than by IP. The shared
-// userActionRateLimiter reads `req.user?.id`, but verifyJWT sets `req.user` to
-// the id string itself, so that limiter silently degrades to IP keying - which
-// on this platform's CGNAT-heavy networks would throttle unrelated people
-// together. Everything below runs after verifyJWT, so `req.user` is always set.
+// Keyed by the authenticated user rather than by IP - on this platform's
+// CGNAT-heavy networks, IP keying throttles unrelated people together.
+// Everything below runs after verifyJWT, so `req.user` is always set.
+//
+// This used to be the only limiter that keyed correctly: the shared
+// userActionRateLimiter read `req.user?.id`, which is undefined on the id
+// string verifyJWT actually assigns, so it silently degraded to IP keying.
+// That is fixed at the source now (utils/requestUser.js), and this local
+// limiter is kept for its own window and message rather than as a workaround.
 const notificationActionLimiter = createRateLimiter({
   windowMs: 60 * 1000,
   max: 60,

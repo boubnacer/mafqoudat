@@ -525,6 +525,26 @@ const DashFooter = () => {
             >
               {t("cookieNotice")}
             </Link>
+            <Link
+              component="button"
+              onClick={() => navigate("/blocked-users")}
+              color="text.secondary"
+              underline="hover"
+              sx={{ background: "none", border: "none", cursor: "pointer", fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
+            >
+              {t("blockedUsers")}
+            </Link>
+            {/* The account-deletion URL registered with the Play Console has to
+                be discoverable on the site, not just reachable by direct link. */}
+            <Link
+              component="button"
+              onClick={() => navigate("/delete-account")}
+              color="text.secondary"
+              underline="hover"
+              sx={{ background: "none", border: "none", cursor: "pointer", fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
+            >
+              {t("deleteAccount")}
+            </Link>
           </Box>
         </Grid>
       </Grid>

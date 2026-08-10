@@ -10,6 +10,7 @@ const mongoose = require("mongoose");
 const TranslationService = require("../services/translationService");
 const { cacheService } = require("../config/cache");
 const { getCountryId } = require("../utils/countryCache");
+const { getCacheUserKey } = require('../utils/requestUser');
 
 /**
  * OPTIMIZED getAllPosts - Reduced from 5 to 3 $lookup operations
@@ -279,7 +280,7 @@ const getDashboardOptimized = async (req, res) => {
     // Generate cache key
     const cacheKey = cacheService.generateKey('dashboard_optimized', {
       currentCountry,
-      user: req.user?.id || 'anonymous'
+      user: getCacheUserKey(req)
     });
     
     // Check cache first

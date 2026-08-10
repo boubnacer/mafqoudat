@@ -1,5 +1,6 @@
 const Contact = require("../models/Contact");
 const { logger } = require("../middleware/logger");
+const { getRequestUserId } = require('../utils/requestUser');
 
 // @desc    Submit a contact form
 // @route   POST /contact
@@ -222,7 +223,7 @@ const updateContact = async (req, res) => {
   try {
     const { status, response, priority } = req.body;
     const contactId = req.params.id;
-    const userId = req.user?.id;
+    const userId = getRequestUserId(req);
 
     const updateData = {};
     if (status) updateData.status = status;
@@ -286,7 +287,7 @@ const deleteContact = async (req, res) => {
 
     logger.info(`Contact deleted: ${req.params.id}`, {
       contactId: req.params.id,
-      deletedBy: req.user?.id
+      deletedBy: getRequestUserId(req)
     });
 
     res.json({

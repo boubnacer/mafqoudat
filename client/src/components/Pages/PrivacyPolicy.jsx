@@ -11,6 +11,7 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  Link,
   alpha,
 } from '@mui/material';
 import {
@@ -213,10 +214,44 @@ const PrivacyPolicy = () => {
                   ))}
                 </Box>
 
-                {/* Contact Information */}
+                {/* Account deletion. Called out separately from the "Your
+                    rights" bullet above because Google Play checks this policy
+                    against the deletion URL declared in the Play Console - the
+                    policy has to say how deletion actually works, and link to
+                    it, not just assert the right exists. */}
                 <Box
                   sx={{
                     mt: 6,
+                    p: 3,
+                    borderRadius: 2,
+                    backgroundColor: theme.palette.mode === 'dark'
+                      ? 'rgba(33, 150, 243, 0.1)'
+                      : 'rgba(33, 150, 243, 0.05)',
+                    border: `1px solid ${theme.palette.primary.main}20`,
+                  }}
+                >
+                  <Typography variant="h6" component="h3" sx={{ mb: 2, fontWeight: '600' }}>
+                    {t('deleteAccount')}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {t('deleteAccountPageIntro')}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {t('deleteAccountRetentionBody')}
+                  </Typography>
+                  <Link
+                    href="/delete-account"
+                    variant="body2"
+                    sx={{ fontWeight: 600 }}
+                  >
+                    {t('deleteAccountPageTitle')}
+                  </Link>
+                </Box>
+
+                {/* Contact Information */}
+                <Box
+                  sx={{
+                    mt: 4,
                     p: 3,
                     borderRadius: 2,
                     backgroundColor: theme.palette.mode === 'dark' 

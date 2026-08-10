@@ -1,4 +1,5 @@
 const { cacheService } = require('../config/cache');
+const { getCacheUserKey } = require('../utils/requestUser');
 
 // Cache TTL constants
 const CACHE_TTL = {
@@ -21,7 +22,7 @@ const cacheMiddleware = (prefix, ttl = CACHE_TTL.DYNAMIC_DATA) => {
     const cacheKey = cacheService.generateKey(prefix, {
       ...req.query,
       ...req.params,
-      user: req.user?.id || 'anonymous',
+      user: getCacheUserKey(req),
       lang: req.headers['accept-language'] || 'en'
     });
 
@@ -122,7 +123,7 @@ const paginatedCache = (prefix, ttl = CACHE_TTL.DYNAMIC_DATA) => {
       ...req.params,
       page,
       pageSize,
-      user: req.user?.id || 'anonymous',
+      user: getCacheUserKey(req),
       lang: req.headers['accept-language'] || 'en'
     });
 

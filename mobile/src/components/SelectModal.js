@@ -13,6 +13,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { useTranslation } from '../utils/translations';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
@@ -36,6 +37,10 @@ const SelectModal = ({
   searchable = true,
 }) => {
   const { isDark } = useTheme();
+  // Every visible string here arrives as a prop from the caller, so this hook
+  // is only for the screen-reader label on the close button - there is no
+  // caller-supplied text to name that control.
+  const { t } = useTranslation();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const styles = useMemo(() => createStyles(tokens, isDark, isRTL), [tokens, isDark, isRTL]);
   const textStyle = isRTL ? styles.textRTL : null;
@@ -84,7 +89,7 @@ const SelectModal = ({
             <Text style={[styles.headerTitle, textStyle]} numberOfLines={1}>
               {title}
             </Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={8}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('close')}>
               <Ionicons name="close" size={20} color={tokens.ink} />
             </TouchableOpacity>
           </View>

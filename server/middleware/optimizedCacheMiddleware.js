@@ -9,6 +9,7 @@ const {
   userDataCache,
   CACHE_TTL 
 } = require('../config/optimizedCache');
+const { getCacheUserKey } = require('../utils/requestUser');
 
 /**
  * Optimized Cache Middleware for MongoDB Atlas Flex
@@ -96,7 +97,7 @@ const paginatedCache = (prefix, ttl = null) => {
       pageSize,
       sort,
       order,
-      user: req.user?.id || 'anonymous',
+      user: getCacheUserKey(req),
       lang: req.headers['accept-language'] || 'en'
     });
 
@@ -164,7 +165,7 @@ const searchResultsCache = (prefix, ttl = null) => {
       ...filters,
       page: req.query.page || 1,
       pageSize: req.query.pageSize || 10,
-      user: req.user?.id || 'anonymous',
+      user: getCacheUserKey(req),
       lang: req.headers['accept-language'] || 'en'
     });
 
@@ -215,7 +216,7 @@ const dashboardCacheMiddleware = (prefix) => {
     const cacheKey = optimizedCacheService.generateKey('dashboard', prefix, {
       currentCountry,
       language,
-      user: req.user?.id || 'anonymous'
+      user: getCacheUserKey(req)
     });
 
     try {

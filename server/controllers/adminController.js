@@ -9,6 +9,7 @@ const PasswordResetRequest = require("../models/PasswordResetRequest");
 const Visitor = require("../models/Visitor");
 const bcrypt = require("bcrypt");
 const { logEvents } = require("../middleware/logger");
+const { purgeUserData } = require("./usersController");
 
 
 // @desc Get all reports with pagination and filtering
@@ -673,8 +674,9 @@ const deleteUserAdmin = async (req, res) => {
     const { userId } = req.params;
     const adminId = req.user;
 
-    // Validate user exists
-    const user = await User.findById(userId).select('username email role');
+    // Validate user exists - phone is included because purgeUserData matches
+    // support messages and password-reset requests on every contact string.
+    const user = await User.findById(userId).select('username email phone role');
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -690,17 +692,11 @@ const deleteUserAdmin = async (req, res) => {
       });
     }
 
-    // Count user's posts before deletion
-    const postCount = await Post.countDocuments({ user: userId });
-
-    // Delete all user's posts
-    await Post.deleteMany({ user: userId });
-
-    // Delete any reports created by the user
-    await Report.deleteMany({ reportedBy: userId });
-
-    // Delete the user
-    await User.findByIdAndDelete(userId);
+    // Delegated so an admin deletion erases exactly what a self-service
+    // deletion erases - including the Cloudinary images, match rows and
+    // notifications that this route used to leave behind pointing at posts
+    // that no longer existed.
+    const { deletedPosts: postCount } = await purgeUserData(user);
 
     // Get admin info for logging
     const admin = await User.findById(adminId).select('username');

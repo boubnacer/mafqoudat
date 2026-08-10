@@ -199,7 +199,6 @@ export const translations = {
     removeImage: "Remove",
     compressingImage: "Compressing...",
     imageTooLarge: "Image is too large even after compression (max 2MB). Please choose a smaller photo.",
-    imagePickerPermissionDenied: "Please allow photo library access to add an image",
     publishPost: "Post",
     submitting: "Submitting...",
     postCreatedSuccessfully: "Post Created Successfully!",
@@ -295,6 +294,48 @@ export const translations = {
     privacyPolicy: "Privacy Policy",
     termsOfService: "Terms of Service",
     signOutConfirm: "Are you sure you want to sign out?",
+
+    // Account deletion (DeleteAccountScreen)
+    account: "Account",
+
+    // User blocking (PostDetailScreen + BlockedUsersScreen)
+    viewFullImage: "View full image",
+    blockUser: "Block user",
+    unblockUser: "Unblock",
+    blockedUsers: "Blocked users",
+    blockUserConfirmTitle: "Block this user?",
+    blockUserConfirmMessage:
+      "You will stop seeing their posts and will not get match alerts from them. You can undo this any time from Settings.",
+    blockUserSuccess: "User blocked. Their posts are now hidden from you.",
+    blockUserError: "We could not block this user. Please try again.",
+    unblockUserConfirmTitle: "Unblock this user?",
+    unblockUserConfirmMessage: "Their posts will show up in your listings again.",
+    unblockUserError: "We could not unblock this user. Please try again.",
+    blockedUsersIntro:
+      "You do not see posts or match alerts from the people listed here. Unblocking restores them right away.",
+    blockedUsersEmptyMessage: "You have not blocked anyone.",
+    blockedUsersError: "We could not load your blocked users.",
+    deleteAccount: "Delete account",
+    deleteAccountAction: "Permanently delete my account",
+    deleteAccountWarning:
+      "Deleting your account is permanent. It cannot be undone, and your data cannot be restored afterwards.",
+    deleteAccountWhatIsErased: "What gets deleted",
+    deleteAccountItemPosts: "All of your lost and found posts",
+    deleteAccountItemPhotos: "Every photo you uploaded with those posts",
+    deleteAccountItemAlerts: "Your match alerts and notification settings",
+    deleteAccountItemProfile: "Your profile, email address and phone number",
+    deleteAccountItemMessages: "Any support messages you sent us",
+    deleteAccountConfirmLabel: "Confirm deletion",
+    deleteAccountConfirmHelper: "Type your username below to confirm.",
+    deleteAccountConfirmPlaceholder: "Enter your username",
+    deleteAccountConfirmMismatch: "That does not match your username.",
+    deleteAccountConfirmTitle: "Delete your account?",
+    deleteAccountConfirmMessage:
+      "This will permanently delete your account and all of your posts. This cannot be undone.",
+    deleteAccountConfirmAction: "Delete",
+    deleteAccountDoneTitle: "Account deleted",
+    deleteAccountDoneMessage: "Your account and all of its data have been permanently deleted.",
+    deleteAccountError: "We could not delete your account. Please try again.",
 
     // Common
     loading: "Loading...",
@@ -646,7 +687,6 @@ export const translations = {
     removeImage: "Retirer",
     compressingImage: "Compression...",
     imageTooLarge: "L'image est trop volumineuse même après compression (2 Mo max). Veuillez choisir une photo plus petite.",
-    imagePickerPermissionDenied: "Veuillez autoriser l'accès à la photothèque pour ajouter une image",
     publishPost: "Publier",
     submitting: "Soumission...",
     postCreatedSuccessfully: "Publication créée avec succès !",
@@ -742,6 +782,49 @@ export const translations = {
     privacyPolicy: "Politique de confidentialité",
     termsOfService: "Conditions d'utilisation",
     signOutConfirm: "Êtes-vous sûr de vouloir vous déconnecter ?",
+
+    // Suppression du compte (DeleteAccountScreen)
+    account: "Compte",
+
+    // Blocage d'utilisateurs (PostDetailScreen + BlockedUsersScreen)
+    viewFullImage: "Voir l'image en grand",
+    blockUser: "Bloquer l'utilisateur",
+    unblockUser: "Débloquer",
+    blockedUsers: "Utilisateurs bloqués",
+    blockUserConfirmTitle: "Bloquer cet utilisateur ?",
+    blockUserConfirmMessage:
+      "Vous ne verrez plus ses annonces et ne recevrez plus d'alertes de correspondance de sa part. Vous pouvez annuler à tout moment depuis les Paramètres.",
+    blockUserSuccess: "Utilisateur bloqué. Ses annonces vous sont désormais masquées.",
+    blockUserError: "Impossible de bloquer cet utilisateur. Veuillez réessayer.",
+    unblockUserConfirmTitle: "Débloquer cet utilisateur ?",
+    unblockUserConfirmMessage: "Ses annonces réapparaîtront dans vos listes.",
+    unblockUserError: "Impossible de débloquer cet utilisateur. Veuillez réessayer.",
+    blockedUsersIntro:
+      "Vous ne voyez ni les annonces ni les alertes de correspondance des personnes listées ici. Le déblocage les rétablit immédiatement.",
+    blockedUsersEmptyMessage: "Vous n'avez bloqué personne.",
+    blockedUsersError: "Impossible de charger vos utilisateurs bloqués.",
+    deleteAccount: "Supprimer le compte",
+    deleteAccountAction: "Supprimer définitivement mon compte",
+    deleteAccountWarning:
+      "La suppression de votre compte est définitive. Elle est irréversible et vos données ne pourront pas être récupérées.",
+    deleteAccountWhatIsErased: "Ce qui sera supprimé",
+    deleteAccountItemPosts: "Toutes vos annonces d'objets perdus et trouvés",
+    deleteAccountItemPhotos: "Toutes les photos publiées avec ces annonces",
+    deleteAccountItemAlerts: "Vos alertes de correspondance et vos préférences de notification",
+    deleteAccountItemProfile: "Votre profil, votre adresse e-mail et votre numéro de téléphone",
+    deleteAccountItemMessages: "Les messages que vous avez envoyés au support",
+    deleteAccountConfirmLabel: "Confirmer la suppression",
+    deleteAccountConfirmHelper: "Saisissez votre nom d'utilisateur ci-dessous pour confirmer.",
+    deleteAccountConfirmPlaceholder: "Saisissez votre nom d'utilisateur",
+    deleteAccountConfirmMismatch: "Cela ne correspond pas à votre nom d'utilisateur.",
+    deleteAccountConfirmTitle: "Supprimer votre compte ?",
+    deleteAccountConfirmMessage:
+      "Cette action supprimera définitivement votre compte et toutes vos annonces. Elle est irréversible.",
+    deleteAccountConfirmAction: "Supprimer",
+    deleteAccountDoneTitle: "Compte supprimé",
+    deleteAccountDoneMessage:
+      "Votre compte et toutes ses données ont été définitivement supprimés.",
+    deleteAccountError: "Impossible de supprimer votre compte. Veuillez réessayer.",
 
     // Common
     loading: "Chargement...",
@@ -1103,7 +1186,6 @@ export const translations = {
     removeImage: "إزالة",
     compressingImage: "جاري الضغط...",
     imageTooLarge: "الصورة كبيرة جدًا حتى بعد الضغط (الحد الأقصى 2 ميجابايت). يرجى اختيار صورة أصغر.",
-    imagePickerPermissionDenied: "يرجى السماح بالوصول إلى مكتبة الصور لإضافة صورة",
     publishPost: "نشر",
     submitting: "جاري الإرسال...",
     postCreatedSuccessfully: "تم إنشاء المنشور بنجاح!",
@@ -1199,6 +1281,48 @@ export const translations = {
     privacyPolicy: "سياسة الخصوصية",
     termsOfService: "شروط الخدمة",
     signOutConfirm: "هل أنت متأكد أنك تريد تسجيل الخروج؟",
+
+    // حذف الحساب (DeleteAccountScreen)
+    account: "الحساب",
+
+    // حظر المستخدمين (PostDetailScreen + BlockedUsersScreen)
+    viewFullImage: "عرض الصورة بالحجم الكامل",
+    blockUser: "حظر المستخدم",
+    unblockUser: "إلغاء الحظر",
+    blockedUsers: "المستخدمون المحظورون",
+    blockUserConfirmTitle: "هل تريد حظر هذا المستخدم؟",
+    blockUserConfirmMessage:
+      "لن ترى إعلاناته بعد الآن ولن تصلك تنبيهات تطابق منه. يمكنك التراجع في أي وقت من الإعدادات.",
+    blockUserSuccess: "تم حظر المستخدم. أصبحت إعلاناته مخفية عنك.",
+    blockUserError: "تعذّر حظر هذا المستخدم. يرجى المحاولة مرة أخرى.",
+    unblockUserConfirmTitle: "هل تريد إلغاء حظر هذا المستخدم؟",
+    unblockUserConfirmMessage: "ستظهر إعلاناته مجدداً في قوائمك.",
+    unblockUserError: "تعذّر إلغاء حظر هذا المستخدم. يرجى المحاولة مرة أخرى.",
+    blockedUsersIntro:
+      "لا ترى إعلانات أو تنبيهات تطابق من الأشخاص المدرجين هنا. إلغاء الحظر يعيدها فوراً.",
+    blockedUsersEmptyMessage: "لم تحظر أي شخص.",
+    blockedUsersError: "تعذّر تحميل قائمة المستخدمين المحظورين.",
+    deleteAccount: "حذف الحساب",
+    deleteAccountAction: "حذف حسابي نهائياً",
+    deleteAccountWarning:
+      "حذف حسابك إجراء نهائي. لا يمكن التراجع عنه، ولا يمكن استعادة بياناتك بعد ذلك.",
+    deleteAccountWhatIsErased: "ما الذي سيتم حذفه",
+    deleteAccountItemPosts: "جميع إعلانات المفقودات والموجودات الخاصة بك",
+    deleteAccountItemPhotos: "كل الصور التي رفعتها مع تلك الإعلانات",
+    deleteAccountItemAlerts: "تنبيهات التطابق وإعدادات الإشعارات الخاصة بك",
+    deleteAccountItemProfile: "ملفك الشخصي وبريدك الإلكتروني ورقم هاتفك",
+    deleteAccountItemMessages: "أي رسائل دعم أرسلتها إلينا",
+    deleteAccountConfirmLabel: "تأكيد الحذف",
+    deleteAccountConfirmHelper: "اكتب اسم المستخدم الخاص بك أدناه للتأكيد.",
+    deleteAccountConfirmPlaceholder: "أدخل اسم المستخدم الخاص بك",
+    deleteAccountConfirmMismatch: "هذا لا يطابق اسم المستخدم الخاص بك.",
+    deleteAccountConfirmTitle: "هل تريد حذف حسابك؟",
+    deleteAccountConfirmMessage:
+      "سيؤدي هذا إلى حذف حسابك وجميع إعلاناتك نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+    deleteAccountConfirmAction: "حذف",
+    deleteAccountDoneTitle: "تم حذف الحساب",
+    deleteAccountDoneMessage: "تم حذف حسابك وجميع بياناته نهائياً.",
+    deleteAccountError: "تعذّر حذف حسابك. يرجى المحاولة مرة أخرى.",
 
     // Common
     loading: "جاري التحميل...",

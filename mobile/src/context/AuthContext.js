@@ -425,6 +425,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Used after the account itself has been deleted (DELETE /users/me). Same
+  // local teardown as signOut, minus the server round trip: there is no session
+  // left to invalidate server-side, and the user row the logout endpoint would
+  // look up no longer exists. Keeps the selected country like signOut does, so
+  // the user lands back on Login inside the guest-browsing stack.
+  const signOutLocally = async () => {
+    try {
+      await storage.clearSession();
+    } catch (error) {
+      console.error('❌ Error clearing session after account deletion:', error);
+    }
+    dispatch({ type: AUTH_ACTIONS.LOGOUT });
+    resetToLogin();
+  };
+
   const clearError = () => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
   };
@@ -445,6 +460,7 @@ export const AuthProvider = ({ children }) => {
     signInWithGoogle,
     signInWithFacebook,
     signOut,
+    signOutLocally,
     clearError,
     completeGoogleRegistration,
     completeFacebookRegistration,

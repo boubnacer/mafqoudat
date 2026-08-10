@@ -13,6 +13,11 @@ const instagramService = require("../services/instagramService");
 const matchingService = require("../services/matchingService");
 const { cacheService } = require("../config/cache");
 const { escapeRegex } = require("../utils/regexUtils");
+const {
+  getBlockedUserIdsForRequest,
+  blockedCacheTag,
+  applyBlockedFilter,
+} = require("../utils/blockedUsers");
 // const getCountryIso3 = require("country-iso-2-to-3");
 const getCountryIso3 = require("country-iso-2-to-3");
 const { getCountryId } = require("../utils/countryCache");
@@ -52,7 +57,15 @@ const getAllPosts = async (req, res) => {
     }
   }
   
-  // Generate cache key
+  // Who is asking. This route is public (optionalAuth, not verifyJWT), so this
+  // is null for a guest and the listing below is unfiltered for them.
+  const blockedIds = await getBlockedUserIdsForRequest(req);
+
+  // Generate cache key. `blocked` has to be part of it now that the response
+  // depends on the viewer - without it, the first signed-in viewer with blocks
+  // would poison the shared entry for everyone else. It collapses to the
+  // literal "none" for guests and for anyone who has blocked nobody, so the
+  // common case still shares one cache entry.
   const cacheKey = cacheService.generateKey('posts', {
     currentCountry,
     page,
@@ -61,9 +74,10 @@ const getAllPosts = async (req, res) => {
     categoryId,
     categoryIds,
     cityId,
-    search
+    search,
+    blocked: blockedCacheTag(blockedIds)
   });
-  
+
   // Check cache first
   const cachedPosts = await cacheService.get(cacheKey);
   if (cachedPosts) {
@@ -72,6 +86,9 @@ const getAllPosts = async (req, res) => {
 
   let totalPosts;
   let match = {};
+
+  // Hide posts by users this viewer has blocked.
+  applyBlockedFilter(match, blockedIds);
 
 
   
@@ -598,7 +615,11 @@ const getFilteredPosts = async (req, res) => {
 
     // Build match conditions
     let match = {};
-    
+
+    // Hide posts by users this viewer has blocked. Public route, so this is a
+    // no-op for guests (see middleware/optionalAuth.js).
+    applyBlockedFilter(match, await getBlockedUserIdsForRequest(req));
+
     if (fl && fl !== '') {
       match.foundLost = new mongoose.Types.ObjectId(fl);
     }

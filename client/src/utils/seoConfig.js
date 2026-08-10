@@ -208,6 +208,19 @@ export const pageSeoConfig = {
       ]),
     ],
   },
+  deleteAccount: {
+    path: '/delete-account',
+    title: 'Delete Your Account | Mafqoudat',
+    description:
+      'Permanently delete your Mafqoudat account and all of the data stored with it, from the web or from inside the mobile app.',
+    keywords: [...defaultKeywords, 'delete mafqoudat account', 'account deletion', 'remove my data'],
+    structuredData: [
+      createBreadcrumbSchema([
+        { name: 'Home', path: '/' },
+        { name: 'Delete Account', path: '/delete-account' },
+      ]),
+    ],
+  },
   terms: {
     path: '/terms',
     title: 'Terms of Use | Mafqoudat',

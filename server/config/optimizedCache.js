@@ -2,6 +2,7 @@ const NodeCache = require('node-cache');
 const redis = require('redis');
 const zlib = require('zlib');
 const { promisify } = require('util');
+const { getCacheUserKey } = require('../utils/requestUser');
 
 /**
  * Optimized Caching Strategy for MongoDB Atlas Flex
@@ -627,7 +628,7 @@ const createCacheMiddleware = (namespace, prefix, ttl = null, options = {}) => {
     const cacheKey = optimizedCacheService.generateKey(namespace, prefix, {
       ...req.query,
       ...req.params,
-      user: req.user?.id || 'anonymous',
+      user: getCacheUserKey(req),
       lang: req.headers['accept-language'] || 'en'
     });
 

@@ -16,6 +16,7 @@ import noImageSvg from "../../../img/noimage.svg";
 import { useState, useCallback, useMemo } from "react";
 import ReportDialog from "../../../components/ReportDialog";
 import { useSubmitReportMutation } from "../reportsApiSlice";
+import { useBlockUserMutation } from "../../userSettings/usersApiSlice";
 import { useDeletePostMutation } from "../postsApiSlice";
 import {
   Edit as EditIcon,
@@ -31,6 +32,7 @@ import {
   SearchOffOutlined,
   Visibility as ViewIcon,
   Flag as FlagIcon,
+  Block as BlockIcon,
   VerifiedUser as VerifiedUserIcon,
 } from "@mui/icons-material";
 
@@ -205,6 +207,7 @@ const SinglePostPage = ({
   const isAuthor = user === usernameId;
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
+  const [blockUser, { isLoading: isBlocking }] = useBlockUserMutation();
   const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -244,6 +247,30 @@ const SinglePostPage = ({
   const handleCloseReportDialog = useCallback(() => {
     setReportDialogOpen(false);
   }, []);
+
+  // Blocking hides every post by this author from the signed-in viewer and
+  // stops their listings producing match alerts. Reversible from the blocked
+  // users page, so the confirmation says so instead of warning about
+  // permanence. Same endpoint and semantics as the mobile app.
+  const handleBlockAuthor = useCallback(async () => {
+    if (!usernameId) {
+      authStorage.setRedirectAfterLoginWithMessage(window.location.pathname, 'loginRequiredReportPost');
+      navigate('/login');
+      return;
+    }
+
+    if (!window.confirm(t('blockUserConfirmMessage'))) return;
+
+    try {
+      await blockUser({ userId: user }).unwrap();
+      // The listing this viewer came from still holds the blocked post, so send
+      // them back to it refreshed rather than leaving them on hidden content.
+      navigate('/dash/posts');
+    } catch (error) {
+      setSuccessMessage(error?.data?.message || t('blockUserError'));
+      setShowSuccessMessage(true);
+    }
+  }, [usernameId, user, blockUser, navigate, t]);
 
   const handleDeletePost = useCallback(async () => {
     if (window.confirm(t('confirmDeletePost') || 'Are you sure you want to delete this post? This action cannot be undone.')) {
@@ -1060,21 +1087,46 @@ const SinglePostPage = ({
             {/* Report — the safety valve, not a peer action to Claim. A quiet
                 text link, not a bordered button, and hidden for the post's own
                 author (reporting your own listing isn't a real action). */}
+            {/* Report asks us to act on the post; Block lets the viewer act on
+                the poster themselves, straight away. Both are quiet text links
+                for the same reason - neither is a peer action to Claim. */}
             {!isAuthor && (
-              <Button
-                onClick={handleReport}
-                startIcon={<FlagIcon sx={{ fontSize: 16 }} />}
+              <Box
                 sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 1,
                   alignSelf: { xs: 'center', lg: 'flex-start' },
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  fontSize: '0.8125rem',
-                  color: 'text.secondary',
-                  '&:hover': { color: theme.palette.error.main, backgroundColor: 'transparent' }
                 }}
               >
-                {t('reportThisPost')}
-              </Button>
+                <Button
+                  onClick={handleReport}
+                  startIcon={<FlagIcon sx={{ fontSize: 16 }} />}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    fontSize: '0.8125rem',
+                    color: 'text.secondary',
+                    '&:hover': { color: theme.palette.error.main, backgroundColor: 'transparent' }
+                  }}
+                >
+                  {t('reportThisPost')}
+                </Button>
+                <Button
+                  onClick={handleBlockAuthor}
+                  disabled={isBlocking}
+                  startIcon={<BlockIcon sx={{ fontSize: 16 }} />}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    fontSize: '0.8125rem',
+                    color: 'text.secondary',
+                    '&:hover': { color: theme.palette.error.main, backgroundColor: 'transparent' }
+                  }}
+                >
+                  {t('blockUser')}
+                </Button>
+              </Box>
             )}
           </Box>
         </Grid>
