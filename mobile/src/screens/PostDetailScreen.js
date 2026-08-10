@@ -305,7 +305,9 @@ const PostDetailScreen = ({ navigation, route }) => {
   // so the confirmation says so rather than warning about permanence.
   const handleBlockUser = () => {
     if (!user) {
-      setLoginNotice('loginRequiredReportPost');
+      // Same guest path as the report button: come back to this post once
+      // signed in, so the viewer can tap Block again with a session.
+      requireLogin('loginRequiredBlockUser', { screen: 'PostDetailScreen', params: { id } });
       navigation.navigate('Login');
       return;
     }

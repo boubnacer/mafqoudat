@@ -36,6 +36,7 @@ export const translations = {
     loginRequiredDefault: "Please log in to continue.",
     loginRequiredCreatePost: "Please log in to create a post.",
     loginRequiredReportPost: "Please log in to report this post.",
+    loginRequiredBlockUser: "Please log in to block this user.",
     loginRequiredProfile: "Please log in to view your profile.",
     loginRequiredMyPosts: "Please log in to view your posts.",
 
@@ -524,6 +525,7 @@ export const translations = {
     loginRequiredDefault: "Veuillez vous connecter pour continuer.",
     loginRequiredCreatePost: "Veuillez vous connecter pour créer une publication.",
     loginRequiredReportPost: "Veuillez vous connecter pour signaler cette publication.",
+    loginRequiredBlockUser: "Veuillez vous connecter pour bloquer cet utilisateur.",
     loginRequiredProfile: "Veuillez vous connecter pour voir votre profil.",
     loginRequiredMyPosts: "Veuillez vous connecter pour voir vos publications.",
 
@@ -1013,6 +1015,7 @@ export const translations = {
     loginRequiredDefault: "يرجى تسجيل الدخول للمتابعة.",
     loginRequiredCreatePost: "يرجى تسجيل الدخول لإنشاء منشور.",
     loginRequiredReportPost: "يرجى تسجيل الدخول للإبلاغ عن هذا المنشور.",
+    loginRequiredBlockUser: "يرجى تسجيل الدخول لحظر هذا المستخدم.",
     loginRequiredProfile: "يرجى تسجيل الدخول لعرض ملفك الشخصي.",
     loginRequiredMyPosts: "يرجى تسجيل الدخول لعرض منشوراتك.",
 
