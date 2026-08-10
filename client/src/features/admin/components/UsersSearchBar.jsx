@@ -67,6 +67,7 @@ const UsersSearchBar = ({
               <IconButton
                 size="small"
                 onClick={handleClear}
+                aria-label="Clear search"
                 edge="end"
               >
                 <Clear fontSize="small" />

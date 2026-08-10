@@ -808,6 +808,7 @@ const WelcomePage = () => {
 
               <IconButton
                 onClick={handleModeToggle}
+                aria-label={t('toggleColorMode')}
                 sx={{
                   backgroundColor: theme.custom.color.surfaceRaised,
                   boxShadow: theme.custom.elevation.e1,

@@ -176,6 +176,8 @@ const EditableSection = ({ theme, icon: Icon, title, editing, onToggle, summary,
       </Box>
       <IconButton
         size="small"
+        aria-label={title}
+        aria-expanded={editing}
         onClick={(e) => {
           e.stopPropagation();
           onToggle();
@@ -2919,6 +2921,7 @@ if (typeof document !== 'undefined') {
                           <Box display="flex" gap={1}>
                             <IconButton
                               size="small"
+                              aria-label={t('changeImage')}
                               onClick={handleImageDialogOpen}
                               sx={{
                                 color: theme.custom.color.brandPrimary,
@@ -2931,6 +2934,7 @@ if (typeof document !== 'undefined') {
                             </IconButton>
                             <IconButton
                               size="small"
+                              aria-label={t('removeImage')}
                               onClick={handleImageRemove}
                               sx={{
                                 color: theme.palette.error.main,
@@ -3361,6 +3365,7 @@ if (typeof document !== 'undefined') {
           </Typography>
           <IconButton
             onClick={handleImageDialogClose}
+            aria-label={t('close')}
             sx={{
               color: theme.palette.text.secondary,
               '&:hover': {
@@ -3471,6 +3476,7 @@ if (typeof document !== 'undefined') {
             {t('addNewCity')}
           </Typography>
           <IconButton
+            aria-label={t('cancel')}
             onClick={() => {
               setShowCustomCityInput(false);
               setCustomCityName("");

@@ -63,6 +63,9 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
     return (
       <>
         <Tooltip title="Change Language">
+          {/* No aria-label needed: the Tooltip above supplies one. MUI puts a
+              string `title` onto its child as aria-label unless describeChild
+              is set. */}
           <IconButton
             onClick={handleClick}
             sx={{

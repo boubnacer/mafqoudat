@@ -84,7 +84,7 @@ const PostDetailsDialog = ({
           <Typography variant="h6" fontWeight="bold">
             Post Details
           </Typography>
-          <IconButton onClick={onClose} size="small">
+          <IconButton onClick={onClose} size="small" aria-label="Close">
             <Close />
           </IconButton>
         </Box>

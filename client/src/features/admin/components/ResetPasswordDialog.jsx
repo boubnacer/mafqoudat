@@ -122,7 +122,7 @@ const ResetPasswordDialog = ({
               Reset User Password
             </Typography>
           </Box>
-          <IconButton onClick={handleClose} size="small" disabled={isSubmitting}>
+          <IconButton onClick={handleClose} size="small" disabled={isSubmitting} aria-label="Close">
             <Close />
           </IconButton>
         </Box>
@@ -160,6 +160,7 @@ const ResetPasswordDialog = ({
               <InputAdornment position="end">
                 <IconButton
                   onClick={handleTogglePasswordVisibility}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   edge="end"
                   size="small"
                   disabled={isSubmitting}

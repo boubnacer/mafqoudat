@@ -28,7 +28,7 @@ import { useTranslation } from "../utils/translations";
 const Sidebar = () => {
   const theme = useTheme();
   const isNonMobile = useMediaQuery("(min-width:600px)");
-  const { currentLanguage } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -84,6 +84,7 @@ const Sidebar = () => {
                 {!isNonMobile && (
                   <IconButton
                     onClick={() => dispatch(setIsSidebarOpen(!isSidebarOpen))}
+                    aria-label={t('toggleSidebar')}
                   >
                     {currentLanguage === 'ar' ? <ChevronRightOutlined /> : <ChevronLeft />}
                   </IconButton>

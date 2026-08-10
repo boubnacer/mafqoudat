@@ -2,15 +2,28 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <!-- Favicons for Google Search Results -->
-    <link rel="icon" type="image/png" sizes="16x16" href="%PUBLIC_URL%/favicon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon.png" />
-    <link rel="icon" type="image/png" sizes="48x48" href="%PUBLIC_URL%/favicon.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="%PUBLIC_URL%/favicon.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="%PUBLIC_URL%/favicon.png" />
+    <!--
+      Favicons for Google Search Results.
+
+      Every size below used to point at favicon.png, which was a copy of the
+      1808x2048 transparent splash artwork. That made each of these a 591KB
+      download the browser then squeezed into a non-square box - and Google's
+      search-results favicon needs a square image, which it never was. The
+      apple-touch-icon had the same file, so an iOS home-screen shortcut got
+      transparency painted black behind a squashed logo.
+
+      These are now real square renders of the brand glyph, the same mark the
+      mobile app icons use, at the size each slot actually asks for.
+    -->
+    <link rel="icon" type="image/png" sizes="16x16" href="%PUBLIC_URL%/favicon-16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="%PUBLIC_URL%/favicon-48.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="%PUBLIC_URL%/favicon-96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="%PUBLIC_URL%/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="%PUBLIC_URL%/icon-512.png" />
     <link rel="icon" type="image/x-icon" href="%PUBLIC_URL%/favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/maficonSVG.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/apple-touch-icon-180.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <!--

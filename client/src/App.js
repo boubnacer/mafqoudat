@@ -18,6 +18,7 @@ import useMaintenanceCheck from "./hooks/useMaintenanceCheck";
 import LanguageSwitchHandler from "./components/LanguageSwitchHandler";
 import LanguageChangeHandler from "./components/LanguageChangeHandler";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import CountryGuard from "./components/CountryGuard";
 import MaintenanceMode from "./components/MaintenanceMode";
 import { initializeVisitorSession } from "./utils/visitorSessionSync";
@@ -331,28 +332,35 @@ const AppContent = () => {
                   <NotificationsPage />
                 </Suspense>
               } />
-              <Route path="users">
-                <Route index element={
+              {/* Admin-only. The server enforces this too (verifyAdmin on
+                  /users, /admin/* and the dependency endpoints), so this guard
+                  is about not sending a normal user to a screen that can only
+                  answer them with a 403 - the router previously had no notion
+                  that these routes were privileged at all. */}
+              <Route element={<AdminRoute />}>
+                <Route path="users">
+                  <Route index element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <UsersList />
+                    </Suspense>
+                  } />
+                  <Route path=":id" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <EditUser />
+                    </Suspense>
+                  } />
+                </Route>
+                <Route path="dependencies" element={
                   <Suspense fallback={<LoadingFallback />}>
-                    <UsersList />
+                    <DependenciesManager />
                   </Suspense>
                 } />
-                <Route path=":id" element={
+                <Route path="admin" element={
                   <Suspense fallback={<LoadingFallback />}>
-                    <EditUser />
+                    <AdminDashboard />
                   </Suspense>
                 } />
               </Route>
-              <Route path="dependencies" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <DependenciesManager />
-                </Suspense>
-              } />
-              <Route path="admin" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <AdminDashboard />
-                </Suspense>
-              } />
             </Route>
           </Route>
         </Route>

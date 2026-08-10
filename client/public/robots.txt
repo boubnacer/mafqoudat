@@ -8,6 +8,10 @@ Disallow: /dash/myposts
 Disallow: /dash/admin
 Disallow: /dash/users
 Disallow: /dash/dependencies
+# Personal, and useless without a session. /delete-account is deliberately NOT
+# listed: it is the account-deletion URL declared in the Play Console, and
+# Google expects it to be publicly reachable.
+Disallow: /blocked-users
 
 # sitemap.xml is a sitemap index; its children are listed explicitly too, for
 # crawlers that handle index files poorly.
