@@ -32,7 +32,9 @@ import LanguageDropdown from '../components/LanguageDropdown';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
-const BRAND_MARK = require('../../assets/icon.png');
+// Transparent in-app mark - see the note in components/AppHeader.js for why
+// this is not assets/icon.png.
+const BRAND_MARK = require('../../assets/brandMark.png');
 
 const HERO_CARD_WIDTH = 140;
 const HERO_CARD_HEIGHT = 188;

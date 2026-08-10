@@ -36,7 +36,12 @@ import CountryPickerModal from './CountryPickerModal';
 import HeaderMenu from './HeaderMenu';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
-const BRAND_MARK = require('../../assets/icon.png');
+// The in-app logo, NOT the launcher icon. assets/icon.png is the Android/iOS
+// app icon and has to be an opaque square with the glyph inset, which is the
+// wrong shape for a UI element: rendered here it showed a white box covering
+// the tinted tile behind it, with a visibly smaller glyph. brandMark.png is
+// the same artwork cropped tight to the glyph and left transparent.
+const BRAND_MARK = require('../../assets/brandMark.png');
 const BRAND_WORDMARK = require('../../assets/mafWordmark.png');
 const WORDMARK_RATIO = 984 / 213;
 
