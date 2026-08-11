@@ -5,6 +5,25 @@
  * slide 5 requires a country before "Get Started".
  * Animated + PanResponder only (no reanimated/carousel/swiper lib), per the
  * mobile app's existing dependency footprint.
+ *
+ * Every interactive field on the slides - the language chips, the light/dark
+ * options, the filter pills, the country picker and its list - is a neumorphic
+ * face (components/NeumorphicSurface.js, palette in theme/neumorphism.js), the
+ * same treatment Home's category and social sections use. That means each one
+ * is painted in the screen's own `surfaceBase` tone and reads only from a
+ * top-left highlight plus a bottom-right shade: no fill contrast, no border,
+ * no tinted background. Brand blue survives in icons, text and the footer CTA,
+ * never as a face fill - a tinted face would break the one rule the effect
+ * rests on. Selected state is the sunken face (`pressed`), which is also what a
+ * touch does, hence Pressable with a render-prop child rather than
+ * TouchableOpacity: the press has to reach the surface, not dim a wrapper.
+ *
+ * The faces are all siblings, never nested. NeumorphicSurface clips its
+ * children (its highlight layer is `overflow: 'hidden'`), so a face inside
+ * another face loses part of its own shadow unless the parent's padding is
+ * larger than the shadow - fine for Home's social panel, not for a segmented
+ * control. The light/dark toggle therefore dropped its track and became two
+ * standalone pebbles, matching the language chips right above it.
  */
 
 import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
@@ -21,6 +40,7 @@ import {
   Dimensions,
   TextInput,
   ActivityIndicator,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,6 +53,7 @@ import apiClient from '../../api/apiService';
 import { getLocalizedLabel } from '../../context/ReferenceDataContext';
 import { colorTokens, radiusTokens, fontFamilies, lightColors } from '../../theme/tokens';
 import { useMeasuredLayoutDirection } from '../../utils/rtl';
+import NeumorphicSurface from '../../components/NeumorphicSurface';
 import {
   WelcomeMascotIllustration,
   ReportIllustration,
@@ -101,6 +122,19 @@ const LANGUAGE_CHIPS = [
   { code: 'en', nativeName: 'English' },
   { code: 'fr', nativeName: 'Français' },
   { code: 'ar', nativeName: 'العربية' },
+];
+
+const THEME_OPTIONS = [
+  { mode: 'light', icon: 'sunny', labelKey: 'themeLight' },
+  { mode: 'dark', icon: 'moon', labelKey: 'themeDark' },
+];
+
+// Non-interactive labels illustrating what the browse filters cover - they get
+// the same raised face as the real controls so the slide reads as one system.
+const FILTER_PILLS = [
+  { icon: 'earth', labelKey: 'country' },
+  { icon: 'location', labelKey: 'city' },
+  { icon: 'pricetag', labelKey: 'categories' },
 ];
 
 // Fallback used only if /countries can't be reached during onboarding - keeps
@@ -378,42 +412,53 @@ const OnboardingScreen = () => {
         {LANGUAGE_CHIPS.map((lang) => {
           const isActive = currentLanguage === lang.code;
           return (
-            <TouchableOpacity
-              key={lang.code}
-              style={[styles.languageChip, isActive && styles.languageChipActive]}
-              onPress={() => handleLanguageSelect(lang.code)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.languageChipText, isActive && styles.languageChipTextActive]}>
-                {lang.nativeName}
-              </Text>
-            </TouchableOpacity>
+            <Pressable key={lang.code} onPress={() => handleLanguageSelect(lang.code)}>
+              {({ pressed }) => (
+                <NeumorphicSurface
+                  isDark={isDark}
+                  radius={radiusTokens.md}
+                  // The picked language stays sunken; tapping another one sinks
+                  // it under the finger. Same face, same affordance.
+                  pressed={pressed || isActive}
+                  contentStyle={styles.languageChip}
+                >
+                  <Text style={[styles.languageChipText, isActive && styles.languageChipTextActive]}>
+                    {lang.nativeName}
+                  </Text>
+                </NeumorphicSurface>
+              )}
+            </Pressable>
           );
         })}
       </View>
 
       <Text style={styles.themeLabel}>{t('onboardingThemeLabel')}</Text>
-      <View style={[styles.themeToggleTrack, mirrorRows && styles.rowReverse]}>
-        <TouchableOpacity
-          style={[styles.themeToggleOption, !isDark && styles.themeToggleOptionActive]}
-          onPress={() => setThemeMode('light')}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="sunny" size={16} color={!isDark ? '#FFFFFF' : tokens.ink} />
-          <Text style={[styles.themeToggleText, !isDark && styles.themeToggleTextActive]}>
-            {t('themeLight')}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.themeToggleOption, isDark && styles.themeToggleOptionActive]}
-          onPress={() => setThemeMode('dark')}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="moon" size={16} color={isDark ? '#FFFFFF' : tokens.ink} />
-          <Text style={[styles.themeToggleText, isDark && styles.themeToggleTextActive]}>
-            {t('themeDark')}
-          </Text>
-        </TouchableOpacity>
+      <View style={[styles.themeOptionsRow, mirrorRows && styles.rowReverse]}>
+        {THEME_OPTIONS.map((option) => {
+          const isActive = option.mode === 'dark' ? isDark : !isDark;
+          return (
+            <Pressable key={option.mode} onPress={() => setThemeMode(option.mode)}>
+              {({ pressed }) => (
+                <NeumorphicSurface
+                  isDark={isDark}
+                  radius={radiusTokens.md}
+                  pressed={pressed || isActive}
+                  contentStyle={styles.themeOption}
+                >
+                  <Ionicons
+                    name={option.icon}
+                    size={16}
+                    color={isActive ? BRAND_BLUE : tokens.ink}
+                    style={isActive ? null : styles.mutedIcon}
+                  />
+                  <Text style={[styles.themeOptionText, isActive && styles.themeOptionTextActive]}>
+                    {t(option.labelKey)}
+                  </Text>
+                </NeumorphicSurface>
+              )}
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
@@ -437,18 +482,17 @@ const OnboardingScreen = () => {
       <Text style={styles.body}>{t('onboardingFilterBody')}</Text>
 
       <View style={[styles.filterPillsRow, mirrorRows && styles.rowReverse]}>
-        <View style={styles.filterPill}>
-          <Ionicons name="earth" size={14} color={BRAND_BLUE} />
-          <Text style={styles.filterPillText}>{t('country')}</Text>
-        </View>
-        <View style={styles.filterPill}>
-          <Ionicons name="location" size={14} color={BRAND_BLUE} />
-          <Text style={styles.filterPillText}>{t('city')}</Text>
-        </View>
-        <View style={styles.filterPill}>
-          <Ionicons name="pricetag" size={14} color={BRAND_BLUE} />
-          <Text style={styles.filterPillText}>{t('categories')}</Text>
-        </View>
+        {FILTER_PILLS.map((pill) => (
+          <NeumorphicSurface
+            key={pill.labelKey}
+            isDark={isDark}
+            radius={radiusTokens.md}
+            contentStyle={styles.filterPill}
+          >
+            <Ionicons name={pill.icon} size={14} color={BRAND_BLUE} />
+            <Text style={styles.filterPillText}>{t(pill.labelKey)}</Text>
+          </NeumorphicSurface>
+        ))}
       </View>
     </View>
   );
@@ -467,30 +511,47 @@ const OnboardingScreen = () => {
 
         {countryError ? <Text style={styles.errorText}>{countryError}</Text> : null}
 
-        <TouchableOpacity
-          style={[
-            styles.countryButton,
-            selectedCountry && styles.countryButtonSelected,
-            mirrorRows && styles.rowReverse,
-          ]}
-          onPress={() => setShowCountryList((prev) => !prev)}
-          activeOpacity={0.8}
-        >
-          <Text
-            style={[
-              styles.countryButtonText,
-              !selectedCountry && styles.countryButtonPlaceholder,
-              isRTL ? styles.textRTL : styles.textLTR,
-            ]}
-            numberOfLines={1}
-          >
-            {selectedCountry ? `${selectedCountry.flag || '🌍'} ${getCountryName(selectedCountry)}` : t('chooseCountry')}
-          </Text>
-          <Ionicons name={showCountryList ? 'chevron-up' : 'chevron-down'} size={18} color={tokens.ink} />
-        </TouchableOpacity>
+        <Pressable onPress={() => setShowCountryList((prev) => !prev)}>
+          {({ pressed }) => (
+            <NeumorphicSurface
+              isDark={isDark}
+              radius={radiusTokens.md}
+              // Open reads as held down, which is also what the list below it
+              // is: a well opened in the same surface.
+              pressed={pressed || showCountryList}
+              contentStyle={[styles.countryButton, mirrorRows && styles.rowReverse]}
+            >
+              <Text
+                style={[
+                  styles.countryButtonText,
+                  !selectedCountry && styles.countryButtonPlaceholder,
+                  isRTL ? styles.textRTL : styles.textLTR,
+                ]}
+                numberOfLines={1}
+              >
+                {selectedCountry
+                  ? `${selectedCountry.flag || '🌍'} ${getCountryName(selectedCountry)}`
+                  : t('chooseCountry')}
+              </Text>
+              <Ionicons
+                name={showCountryList ? 'chevron-up' : 'chevron-down'}
+                size={18}
+                color={selectedCountry ? BRAND_BLUE : tokens.ink}
+              />
+            </NeumorphicSurface>
+          )}
+        </Pressable>
 
         {showCountryList && (
-          <View style={styles.countryDropdown}>
+          // Sunken face: the list is a well cut into the surface rather than a
+          // card floating over it, so it belongs to the button that opened it.
+          <NeumorphicSurface
+            isDark={isDark}
+            radius={radiusTokens.md}
+            pressed
+            style={styles.countryDropdown}
+            contentStyle={styles.countryDropdownFace}
+          >
             <TextInput
               style={[styles.searchInput, isRTL ? styles.textRTL : styles.textLTR]}
               placeholder={t('searchCountry')}
@@ -513,16 +574,19 @@ const OnboardingScreen = () => {
                     (selectedCountry?.id && selectedCountry.id === item.id);
                   return (
                     <TouchableOpacity
-                      style={[
-                        styles.countryItem,
-                        isSelected && styles.countryItemSelected,
-                        mirrorRows && styles.rowReverse,
-                      ]}
+                      style={[styles.countryItem, mirrorRows && styles.rowReverse]}
                       onPress={() => handleCountrySelect(item)}
                       activeOpacity={0.7}
                     >
                       <Text style={styles.countryFlag}>{item.flag || '🌍'}</Text>
-                      <Text style={[styles.countryName, isRTL ? styles.textRTL : styles.textLTR]} numberOfLines={1}>
+                      <Text
+                        style={[
+                          styles.countryName,
+                          isSelected && styles.countryNameSelected,
+                          isRTL ? styles.textRTL : styles.textLTR,
+                        ]}
+                        numberOfLines={1}
+                      >
                         {getCountryName(item)}
                       </Text>
                       {isSelected && <Ionicons name="checkmark" size={18} color={BRAND_BLUE} />}
@@ -531,7 +595,7 @@ const OnboardingScreen = () => {
                 }}
               />
             )}
-          </View>
+          </NeumorphicSurface>
         )}
       </View>
     </View>
@@ -597,30 +661,46 @@ const OnboardingScreen = () => {
           ))}
         </View>
 
-        <TouchableOpacity
-          style={[styles.ctaButton, isCtaDisabled && styles.ctaButtonDisabled]}
-          onPress={isLastSlide ? handleGetStarted : handleNext}
-          disabled={isCtaDisabled}
-          activeOpacity={0.85}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <View style={[styles.ctaContent, mirrorRows && styles.rowReverse]}>
-              <Text style={styles.ctaText}>{isLastSlide ? t('getStarted') : t('next')}</Text>
-              <Ionicons
-                // Icons are never auto-mirrored, so this follows the PICKED
-                // language's reading direction and flips the moment Arabic is
-                // tapped - it does not track the carousel, whose motion is the
-                // same in both directions.
-                name={isRTL ? 'arrow-back' : 'arrow-forward'}
-                size={18}
-                color="#FFFFFF"
-                style={styles.ctaIcon}
-              />
-            </View>
-          )}
-        </TouchableOpacity>
+        {/* The one accent-filled shape on the screen. It stays brand blue
+            rather than becoming a neumorphic face: a soft UI needs a single
+            element that clearly outranks the others, and a face painted in the
+            page tone cannot be that. Disabled is the exception - it has nothing
+            to outrank yet, so it drops to a sunken face like every other
+            unavailable control here. */}
+        {isCtaDisabled && !isSubmitting ? (
+          <NeumorphicSurface isDark={isDark} radius={radiusTokens.md} pressed contentStyle={styles.ctaFace}>
+            <Text style={[styles.ctaText, styles.ctaTextDisabled]}>
+              {isLastSlide ? t('getStarted') : t('next')}
+            </Text>
+          </NeumorphicSurface>
+        ) : (
+          // Submitting keeps the filled button (with its spinner) and only
+          // blocks the press - it is working, not unavailable.
+          <TouchableOpacity
+            style={[styles.ctaButton, styles.ctaFace]}
+            onPress={isLastSlide ? handleGetStarted : handleNext}
+            disabled={isCtaDisabled}
+            activeOpacity={0.85}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <View style={[styles.ctaContent, mirrorRows && styles.rowReverse]}>
+                <Text style={styles.ctaText}>{isLastSlide ? t('getStarted') : t('next')}</Text>
+                <Ionicons
+                  // Icons are never auto-mirrored, so this follows the PICKED
+                  // language's reading direction and flips the moment Arabic is
+                  // tapped - it does not track the carousel, whose motion is the
+                  // same in both directions.
+                  name={isRTL ? 'arrow-back' : 'arrow-forward'}
+                  size={18}
+                  color="#FFFFFF"
+                  style={styles.ctaIcon}
+                />
+              </View>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -734,28 +814,25 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
     rowReverse: {
       flexDirection: 'row-reverse',
     },
+    // Faces carry padding/alignment only - the fill, radius and both shadows
+    // come from NeumorphicSurface, and a background or border here would undo
+    // the effect rather than add to it.
     languageChip: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 10,
-      paddingHorizontal: 14,
-      borderRadius: radiusTokens.md,
-      backgroundColor: tokens.surfaceRaised,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}1A`,
-    },
-    languageChipActive: {
-      borderColor: BRAND_BLUE,
-      backgroundColor: `${BRAND_BLUE}14`,
+      paddingVertical: 11,
+      paddingHorizontal: 18,
     },
     languageChipText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 14,
       color: tokens.ink,
+      opacity: 0.65,
     },
     languageChipTextActive: {
       color: BRAND_BLUE,
       fontFamily: fontFamilies.bodySemiBold,
+      opacity: 1,
     },
     themeLabel: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -765,56 +842,52 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
       marginTop: 28,
       marginBottom: 10,
     },
-    themeToggleTrack: {
+    themeOptionsRow: {
       flexDirection: 'row',
-      backgroundColor: `${tokens.ink}0D`,
-      borderRadius: radiusTokens.md,
-      padding: 4,
-      gap: 4,
+      justifyContent: 'center',
+      gap: 12,
     },
-    themeToggleOption: {
+    themeOption: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 6,
-      paddingVertical: 9,
-      paddingHorizontal: 20,
-      borderRadius: radiusTokens.sm,
+      gap: 7,
+      paddingVertical: 11,
+      paddingHorizontal: 22,
     },
-    themeToggleOptionActive: {
-      backgroundColor: BRAND_BLUE,
+    mutedIcon: {
+      opacity: 0.55,
     },
-    themeToggleText: {
+    themeOptionText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 13,
       color: tokens.ink,
+      opacity: 0.65,
     },
-    themeToggleTextActive: {
-      color: '#FFFFFF',
+    themeOptionTextActive: {
+      color: BRAND_BLUE,
       fontFamily: fontFamilies.bodySemiBold,
+      opacity: 1,
     },
     filterPillsRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'center',
-      gap: 10,
+      gap: 12,
       marginTop: 4,
     },
     filterPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-      paddingVertical: 9,
+      gap: 7,
+      paddingVertical: 10,
       paddingHorizontal: 16,
-      borderRadius: radiusTokens.md,
-      backgroundColor: `${BRAND_BLUE}14`,
-      borderWidth: 1,
-      borderColor: `${BRAND_BLUE}33`,
     },
     filterPillText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 13,
-      color: BRAND_BLUE,
+      color: tokens.ink,
+      opacity: 0.8,
     },
     countrySection: {
       width: '100%',
@@ -846,15 +919,8 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      height: 52,
-      backgroundColor: tokens.surfaceRaised,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}1A`,
-      borderRadius: radiusTokens.md,
-      paddingHorizontal: 16,
-    },
-    countryButtonSelected: {
-      borderColor: BRAND_BLUE,
+      height: 54,
+      paddingHorizontal: 18,
     },
     countryButtonText: {
       fontFamily: fontFamilies.body,
@@ -865,23 +931,24 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
     countryButtonPlaceholder: {
       opacity: 0.5,
     },
+    // Margin/positioning on the outer box, size on the face - see
+    // NeumorphicSurface for why the two are split.
     countryDropdown: {
-      marginTop: 8,
-      backgroundColor: tokens.surfaceRaised,
-      borderRadius: radiusTokens.md,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}1A`,
-      overflow: 'hidden',
+      marginTop: 10,
+    },
+    countryDropdownFace: {
       maxHeight: 260,
+      paddingVertical: 4,
     },
     searchInput: {
       height: 44,
-      paddingHorizontal: 16,
+      marginHorizontal: 10,
+      paddingHorizontal: 6,
       fontFamily: fontFamilies.body,
       fontSize: 14,
       color: tokens.ink,
-      borderBottomWidth: 1,
-      borderBottomColor: `${tokens.ink}1A`,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: `${tokens.ink}26`,
     },
     countryListLoading: {
       paddingVertical: 20,
@@ -896,9 +963,6 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
       paddingVertical: 12,
       gap: 10,
     },
-    countryItemSelected: {
-      backgroundColor: `${BRAND_BLUE}14`,
-    },
     countryFlag: {
       fontSize: 20,
     },
@@ -907,6 +971,13 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
       fontFamily: fontFamilies.body,
       fontSize: 14,
       color: tokens.ink,
+    },
+    // The rows sit inside the sunken list face, which is the same tone as
+    // everything else - a tinted selected row would be the one fill contrast on
+    // the screen, so selection is carried by the label and the checkmark.
+    countryNameSelected: {
+      fontFamily: fontFamilies.bodySemiBold,
+      color: BRAND_BLUE,
     },
     // Stated explicitly in both directions rather than relying on the layout
     // default, which is right-aligned on a tree laid out RTL and would leave
@@ -945,22 +1016,21 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
     dotInactive: {
       backgroundColor: `${tokens.ink}33`,
     },
-    ctaButton: {
+    // Shared by the filled button and the sunken disabled face so the footer
+    // never changes height between the two.
+    ctaFace: {
       height: 54,
-      borderRadius: radiusTokens.md,
-      backgroundColor: BRAND_BLUE,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    ctaButton: {
+      borderRadius: radiusTokens.md,
+      backgroundColor: BRAND_BLUE,
       shadowColor: BRAND_BLUE,
       shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 0.3,
       shadowRadius: 12,
       elevation: 6,
-    },
-    ctaButtonDisabled: {
-      backgroundColor: `${tokens.ink}33`,
-      shadowOpacity: 0,
-      elevation: 0,
     },
     ctaContent: {
       flexDirection: 'row',
@@ -971,6 +1041,10 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 16,
       color: '#FFFFFF',
+    },
+    ctaTextDisabled: {
+      color: tokens.ink,
+      opacity: 0.4,
     },
     ctaIcon: {
       marginTop: 1,

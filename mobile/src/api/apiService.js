@@ -30,13 +30,12 @@ export const setAuthFailureHandler = (handler) => {
   authFailureHandler = handler;
 };
 
-// The server runs two different JWT-verification middlewares depending on the route
-// (middleware/jwtSecurity.js on /posts, plain middleware/verifyJWT.js everywhere else),
-// so neither a single status code nor a single message string reliably means "this
-// request failed because postRoutes.js's session/token is invalid" on its own:
-//  - jwtSecurity.js always tags real token failures with one of these `code` values.
-//  - the plain verifyJWT.js has no `code` field at all, and always uses the literal
-//    message "Forbidden" for an invalid/expired token (401 is always "no token sent").
+// server/middleware/jwtSecurity.js answers 401 with one of these `code` values for
+// every "the token you sent cannot be used" case, so status alone is enough to decide
+// on current deployments. The 403 arm below is a compatibility fallback for a server
+// that predates that change (it answered 403 for a bad token, and the second, weaker
+// middleware that used to live in server/middleware/verifyJWT.js sent a bare
+// "Forbidden" with no code at all) - a shipped build outlives any one API deploy.
 // Resource-ownership 403s (e.g. "Not authorized to update this post") come from
 // controllers after auth already passed, so they carry neither a matching code nor
 // that exact message - this is what keeps them from forcing a logout below.

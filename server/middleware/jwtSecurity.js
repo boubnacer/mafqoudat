@@ -12,6 +12,38 @@ const JWT_CONFIG = {
   audience: 'mafqoudat-client'
 };
 
+// Convert a jsonwebtoken-style expiry string ("30d", "15m") to seconds.
+const parseExpiryToSeconds = (expiry) => {
+  if (!expiry) return 3600; // Default 1 hour
+
+  const unit = expiry.slice(-1);
+  const value = parseInt(expiry.slice(0, -1));
+
+  switch (unit) {
+    case 's': return value;
+    case 'm': return value * 60;
+    case 'h': return value * 3600;
+    case 'd': return value * 86400;
+    default: return 3600; // Default 1 hour
+  }
+};
+
+// Every response below that means "the token you sent cannot be used" answers 401,
+// never 403. The two are not interchangeable to a client: 401 is "re-authenticate",
+// 403 is "you are authenticated but may not do this". Answering 403 for an expired
+// token is what let a dead session masquerade as a permissions problem - the browser
+// kept the token, kept showing the user as signed in, and every write failed. 403 is
+// left to the controllers, which use it for genuine ownership/role refusals.
+// The `code` values are part of the contract with both clients (client/src/app/api/
+// apiSlice.js and mobile/src/api/apiService.js key off them) - do not rename them.
+const unauthorized = (res, message, code) =>
+  res.status(401).json({
+    message,
+    isError: true,
+    code,
+    timestamp: new Date().toISOString()
+  });
+
 // Simplified JWT token generation - only access tokens
 const generateTokens = (userInfo) => {
   const payload = {
@@ -44,27 +76,10 @@ const verifyJWT = (req, res, next) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
 
   if (!authHeader?.startsWith("Bearer ")) {
-    return res.status(401).json({ 
-      message: "Unauthorized - No token provided",
-      isError: true,
-      code: 'NO_TOKEN'
-    });
+    return unauthorized(res, "Unauthorized - No token provided", 'NO_TOKEN');
   }
 
   const token = authHeader.split(" ")[1];
-
-  // Check if token is blacklisted
-  if (isTokenBlacklisted(token)) {
-    logEvents(
-      `JWT Blacklisted Token Attempt: ${req.method}\t${req.url}\t${req.ip}`,
-      "errLog.log"
-    );
-    return res.status(403).json({ 
-      message: "Token has been revoked",
-      isError: true,
-      code: 'TOKEN_REVOKED'
-    });
-  }
 
   // Verify token with enhanced options
   jwt.verify(token, process.env.JWT_SECRET, {
@@ -73,7 +88,7 @@ const verifyJWT = (req, res, next) => {
     algorithms: ['HS256']
   }, (err, decoded) => {
     if (err) {
-      let errorMessage = "Forbidden - Invalid token";
+      let errorMessage = "Unauthorized - Invalid token";
       let errorCode = 'INVALID_TOKEN';
       
       if (err.name === 'TokenExpiredError') {
@@ -96,12 +111,7 @@ const verifyJWT = (req, res, next) => {
         "errLog.log"
       );
 
-      return res.status(403).json({ 
-        message: errorMessage,
-        isError: true,
-        code: errorCode,
-        timestamp: new Date().toISOString()
-      });
+      return unauthorized(res, errorMessage, errorCode);
     }
 
     // Comprehensive payload validation
@@ -110,11 +120,7 @@ const verifyJWT = (req, res, next) => {
         `JWT Invalid Payload: Missing UserInfo\t${req.method}\t${req.url}\t${req.ip}`,
         "errLog.log"
       );
-      return res.status(403).json({ 
-        message: "Invalid token payload",
-        isError: true,
-        code: 'INVALID_PAYLOAD'
-      });
+      return unauthorized(res, "Invalid token payload", 'INVALID_PAYLOAD');
     }
 
     // Validate required fields in UserInfo
@@ -124,32 +130,11 @@ const verifyJWT = (req, res, next) => {
         `JWT Incomplete UserInfo: ${JSON.stringify(decoded.UserInfo)}\t${req.method}\t${req.url}\t${req.ip}`,
         "errLog.log"
       );
-      return res.status(403).json({ 
-        message: "Incomplete user information in token",
-        isError: true,
-        code: 'INCOMPLETE_USER_INFO'
-      });
+      return unauthorized(res, "Incomplete user information in token", 'INCOMPLETE_USER_INFO');
     }
 
     // Check token age (additional security layer)
     const tokenAge = Date.now() / 1000 - decoded.iat;
-    
-    // Parse the access token expiry to get max age in seconds
-    const parseExpiryToSeconds = (expiry) => {
-      if (!expiry) return 3600; // Default 1 hour
-      
-      const unit = expiry.slice(-1);
-      const value = parseInt(expiry.slice(0, -1));
-      
-      switch (unit) {
-        case 's': return value;
-        case 'm': return value * 60;
-        case 'h': return value * 3600;
-        case 'd': return value * 86400;
-        default: return 3600; // Default 1 hour
-      }
-    };
-    
     const maxAge = parseExpiryToSeconds(JWT_CONFIG.accessTokenExpiry);
     
     if (tokenAge > maxAge) {
@@ -157,11 +142,7 @@ const verifyJWT = (req, res, next) => {
         `JWT Token Too Old: ${tokenAge}s (max: ${maxAge}s)\t${req.method}\t${req.url}\t${req.ip}`,
         "errLog.log"
       );
-      return res.status(403).json({ 
-        message: "Token too old",
-        isError: true,
-        code: 'TOKEN_TOO_OLD'
-      });
+      return unauthorized(res, "Token too old", 'TOKEN_TOO_OLD');
     }
 
     // Check token freshness (prevent replay attacks)
@@ -171,11 +152,7 @@ const verifyJWT = (req, res, next) => {
         `JWT Future Token: ${tokenFreshness}s\t${req.method}\t${req.url}\t${req.ip}`,
         "errLog.log"
       );
-      return res.status(403).json({ 
-        message: "Token from future",
-        isError: true,
-        code: 'FUTURE_TOKEN'
-      });
+      return unauthorized(res, "Token from future", 'FUTURE_TOKEN');
     }
 
     // Validate JWT ID for tracking
@@ -184,11 +161,19 @@ const verifyJWT = (req, res, next) => {
         `JWT Missing JTI: ${req.method}\t${req.url}\t${req.ip}`,
         "errLog.log"
       );
-      return res.status(403).json({ 
-        message: "Token missing ID",
-        isError: true,
-        code: 'MISSING_JTI'
-      });
+      return unauthorized(res, "Token missing ID", 'MISSING_JTI');
+    }
+
+    // The blacklist is keyed by `jti` (that is what logout stores), so the lookup can
+    // only happen here, once the token is decoded - checking it against the raw token
+    // string before verification, as this used to, never matched a single entry and
+    // left logout unable to revoke anything.
+    if (isTokenBlacklisted(decoded.jti)) {
+      logEvents(
+        `JWT Blacklisted Token Attempt: ${req.method}\t${req.url}\t${req.ip}`,
+        "errLog.log"
+      );
+      return unauthorized(res, "Token has been revoked", 'TOKEN_REVOKED');
     }
 
     // Attach comprehensive user info to request
@@ -211,17 +196,22 @@ const verifyJWT = (req, res, next) => {
   });
 };
 
-// Enhanced token blacklist with expiration tracking
-const tokenBlacklist = new Map(); // Changed to Map to store expiration times
+// Enhanced token blacklist with expiration tracking.
+// In-memory and therefore per-process: a restart, or a second instance behind a load
+// balancer, does not see these entries. Revocation is best-effort until this moves to
+// a shared store.
+const tokenBlacklist = new Map(); // jti -> epoch ms at which the entry may be dropped
 
+// An entry has to outlive the token it revokes. Dropping it any earlier hands the
+// token back its validity - which the old 15-minute default did to 30-day tokens.
 const blacklistToken = (tokenId, expiresAt = null) => {
-  const expirationTime = expiresAt || Date.now() + (15 * 60 * 1000); // Default 15 minutes
+  const expirationTime = expiresAt || Date.now() + parseExpiryToSeconds(JWT_CONFIG.accessTokenExpiry) * 1000;
   tokenBlacklist.set(tokenId, expirationTime);
-  
-  // Remove from blacklist after token expiry (cleanup)
-  setTimeout(() => {
-    tokenBlacklist.delete(tokenId);
-  }, expirationTime - Date.now());
+
+  // No per-entry setTimeout: a 30-day delay overflows setTimeout's 32-bit range and
+  // fires immediately, which would delete the entry as soon as it was added.
+  // cleanupBlacklist below sweeps on an interval, and isTokenBlacklisted expires
+  // entries lazily on read, so an entry is never honoured past its time either way.
 };
 
 const isTokenBlacklisted = (tokenId) => {
@@ -255,9 +245,10 @@ setInterval(cleanupBlacklist, 5 * 60 * 1000);
 const logout = (req, res) => {
   const tokenId = req.tokenId;
   
-  // Blacklist the current access token
+  // Blacklist the current access token until its own expiry - past that point the
+  // token is refused on its `exp` alone and the entry is dead weight.
   if (tokenId) {
-    blacklistToken(tokenId);
+    blacklistToken(tokenId, req.tokenExpiresAt ? req.tokenExpiresAt * 1000 : null);
     logEvents(
       `Access token blacklisted on logout: ${req.username || 'unknown'}\t${req.method}\t${req.url}\t${req.ip}`,
       "reqLog.log"
@@ -398,11 +389,6 @@ const optionalAuth = (req, res, next) => {
 
   const token = authHeader.split(" ")[1];
 
-  // Check if token is blacklisted
-  if (isTokenBlacklisted(token)) {
-    return next(); // Continue without authentication
-  }
-
   // Verify token with enhanced options
   jwt.verify(token, process.env.JWT_SECRET, {
     issuer: JWT_CONFIG.issuer,
@@ -411,6 +397,13 @@ const optionalAuth = (req, res, next) => {
   }, (err, decoded) => {
     if (err) {
       // Token invalid, continue without authentication
+      return next();
+    }
+
+    // Blacklisted (logged-out) token: treat the caller as a guest rather than
+    // rejecting them, since this middleware is optional by design. Keyed by `jti`
+    // after decoding, for the same reason as in verifyJWT above.
+    if (isTokenBlacklisted(decoded.jti)) {
       return next();
     }
 
