@@ -146,8 +146,14 @@ const ProtectedRoute = ({
       });
       const redirectUrl = location.pathname + location.search;
       if (redirectUrl !== '/login') {
-        const messageKey = getLoginRedirectMessageKey(redirectUrl);
-        authStorage.setRedirectAfterLoginWithMessage(redirectUrl, messageKey);
+        // The return URL is always ours to set. The message is not: a session that
+        // just died mid-session already stored "your session has expired" (see
+        // app/api/apiSlice.js), which explains the bounce better than the generic
+        // "log in to do X" below - so only fill in when nothing is waiting.
+        authStorage.setRedirectAfterLogin(redirectUrl);
+        if (!authStorage.hasLoginRedirectMessage()) {
+          authStorage.setLoginRedirectMessage(getLoginRedirectMessageKey(redirectUrl));
+        }
       }
       navigate('/login', { replace: true, state: { from: redirectUrl } });
       return;

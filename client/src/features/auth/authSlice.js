@@ -11,13 +11,38 @@ const debugLog = (message, data = null) => {
   // Debug logging disabled for production
 };
 
+// Decode a JWT's payload without verifying it - enough to read the claims the UI
+// needs. Handles base64url (`-`/`_`), which raw atob() rejects.
+const decodeTokenPayload = (token) => {
+  try {
+    const segment = token?.split('.')[1];
+    if (!segment) return null;
+
+    const base64 = segment.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')));
+  } catch (error) {
+    return null;
+  }
+};
+
+// Whether a stored token is already past its `exp`. Only a definite answer counts as
+// expired: a token we cannot decode, or one with no `exp` claim, is left for the
+// server to judge, so a parsing quirk here can never sign a valid user out.
+export const isStoredTokenExpired = (token) => {
+  const payload = decodeTokenPayload(token);
+  if (!payload || typeof payload.exp !== 'number') return false;
+
+  return payload.exp * 1000 <= Date.now();
+};
+
 // Helper function to extract user data from token
 const extractUserFromToken = (token) => {
   try {
     if (!token) return null;
-    
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    
+
+    const payload = decodeTokenPayload(token);
+    if (!payload) return null;
+
     // Extract user data from token payload
     if (payload.UserInfo) {
       return {
@@ -46,7 +71,26 @@ const getInitialState = () => {
     tokenLength: authState.token?.length
   });
   
-  // Simply restore token and user from localStorage (tokens last 30 days, no expiration checks needed)
+  // A token past its `exp` will be refused by every protected endpoint, so restoring
+  // it would put the app back in the state this guard exists to prevent: a UI that
+  // shows the user as signed in while every write fails. Drop it up front and let
+  // them log in again, with the same notice the API layer stores on a mid-session
+  // failure (see app/api/apiSlice.js).
+  if (authState.token && isStoredTokenExpired(authState.token)) {
+    debugLog('Stored token is expired, starting signed out');
+    authStorage.setLoggedOut();
+    authStorage.setLoginRedirectMessage('sessionExpiredMessage');
+
+    return {
+      token: null,
+      isLoggedIn: false,
+      user: null,
+      isLoading: false,
+      lastUpdate: Date.now(),
+    };
+  }
+
+  // Restore token and user from localStorage (tokens last 30 days)
   if (authState.token && authState.isLoggedIn) {
     // Extract user data from token if not in storage
     const userData = extractUserFromToken(authState.token) || authState.user;

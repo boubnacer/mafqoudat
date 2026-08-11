@@ -305,6 +305,22 @@ class AuthStorageManager {
   }
 
   /**
+   * Whether a login redirect message is already waiting to be shown.
+   * Lets a caller add its own message only when nothing more specific was stored
+   * first - a session-expiry notice explains the redirect better than the generic
+   * "log in to do X" that ProtectedRoute would otherwise write over it.
+   * @returns {boolean}
+   */
+  static hasLoginRedirectMessage() {
+    try {
+      return !!localStorage.getItem(AUTH_KEYS.LOGIN_REDIRECT_MESSAGE);
+    } catch (error) {
+      console.error('Failed to read login redirect message:', error);
+      return false;
+    }
+  }
+
+  /**
    * Retrieve and clear any stored login redirect message
    * @returns {{messageKey: string, params: Object}|null}
    */
@@ -638,6 +654,7 @@ export const authStorage = {
   setRedirectAfterLogin: AuthStorageManager.setRedirectAfterLogin.bind(AuthStorageManager),
   getAndClearRedirectUrl: AuthStorageManager.getAndClearRedirectUrl.bind(AuthStorageManager),
   setLoginRedirectMessage: AuthStorageManager.setLoginRedirectMessage.bind(AuthStorageManager),
+  hasLoginRedirectMessage: AuthStorageManager.hasLoginRedirectMessage.bind(AuthStorageManager),
   getAndClearLoginRedirectMessage: AuthStorageManager.getAndClearLoginRedirectMessage.bind(AuthStorageManager),
   setRedirectAfterLoginWithMessage: AuthStorageManager.setRedirectAfterLoginWithMessage.bind(AuthStorageManager),
   isAuthenticated: AuthStorageManager.isAuthenticated.bind(AuthStorageManager),
