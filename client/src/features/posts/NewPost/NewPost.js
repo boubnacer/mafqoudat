@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import NewPostForm from "./NewPostForm";
-import { useGetUsersQuery } from "../../userSettings/usersApiSlice";
+import { useGetUserByIdQuery } from "../../userSettings/usersApiSlice";
 import { ErrorState } from "../../../components/LoadingStates";
 import PostFormSkeleton from "../../../components/PostFormSkeleton";
 import useTitle from "../../../hooks/useTitle";
@@ -29,18 +29,32 @@ const NewPost = () => {
 
   const { t, currentLanguage } = useTranslation();
 
+  // Ask for this one account, not the whole list. GET /users is admin-only by
+  // design - it returns every user's email and role - so pulling the poster's own
+  // record out of it worked for an admin and failed with a flat 403 for everyone
+  // else, which surfaced here as "error loading the post form" on a form a normal
+  // user is perfectly entitled to open. GET /users/:id allows self (or admin),
+  // which is what mobile's PostForm already calls.
   const {
-    user,
+    data: userData,
     isError: isUserError,
     error: userError,
     refetch: refetchUser,
-  } = useGetUsersQuery("usersList", {
-    selectFromResult: ({ data, isError, error }) => ({
-      user: data?.entities[usernameId],
-      isError,
-      error,
-    }),
-  });
+  } = useGetUserByIdQuery(usernameId, { skip: !usernameId });
+
+  // Keep the shape NewPostForm expects. The two endpoints differ in one way that
+  // matters: /users leaves `country` as the raw id, /users/:id populates it into a
+  // document. The form treats user.country as an id (seeds Formik with it, looks it
+  // up in `countries`, passes it to fetchCitiesByCountry), so flatten it back.
+  const user = useMemo(() => {
+    if (!userData) return undefined;
+
+    return {
+      ...userData,
+      id: userData._id,
+      country: userData.country?._id || userData.country,
+    };
+  }, [userData]);
 
   const {
     countries,

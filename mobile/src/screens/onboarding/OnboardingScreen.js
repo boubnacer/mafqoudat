@@ -6,24 +6,29 @@
  * Animated + PanResponder only (no reanimated/carousel/swiper lib), per the
  * mobile app's existing dependency footprint.
  *
- * Every interactive field on the slides - the language chips, the light/dark
- * options, the filter pills, the country picker and its list - is a neumorphic
- * face (components/NeumorphicSurface.js, palette in theme/neumorphism.js), the
- * same treatment Home's category and social sections use. That means each one
- * is painted in the screen's own `surfaceBase` tone and reads only from a
- * top-left highlight plus a bottom-right shade: no fill contrast, no border,
+ * The fields on slides 2-5 - the filter pills, the country picker and its list
+ * - are neumorphic faces (components/NeumorphicSurface.js, palette in
+ * theme/neumorphism.js), the same treatment Home's category and social sections
+ * use: painted in the screen's own `surfaceBase` tone and read only from a
+ * top-left highlight plus a bottom-right shade, so no fill contrast, no border,
  * no tinted background. Brand blue survives in icons, text and the footer CTA,
  * never as a face fill - a tinted face would break the one rule the effect
- * rests on. Selected state is the sunken face (`pressed`), which is also what a
- * touch does, hence Pressable with a render-prop child rather than
+ * rests on. Selected/open state is the sunken face (`pressed`), which is also
+ * what a touch does, hence Pressable with a render-prop child rather than
  * TouchableOpacity: the press has to reach the surface, not dim a wrapper.
+ *
+ * Slide 1 is deliberately NOT neumorphic and keeps its flat `surfaceRaised`
+ * chips and its filled segmented theme toggle. It is the only slide whose
+ * controls change the app's language and appearance for real rather than
+ * previewing it, and the extra contrast is wanted there - a face in the page
+ * tone is the quietest thing on screen, which is wrong for the first decision
+ * a first-run user is asked to make.
  *
  * The faces are all siblings, never nested. NeumorphicSurface clips its
  * children (its highlight layer is `overflow: 'hidden'`), so a face inside
  * another face loses part of its own shadow unless the parent's padding is
- * larger than the shadow - fine for Home's social panel, not for a segmented
- * control. The light/dark toggle therefore dropped its track and became two
- * standalone pebbles, matching the language chips right above it.
+ * larger than the shadow - fine for Home's social panel, not for anything
+ * tightly packed.
  */
 
 import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
@@ -122,11 +127,6 @@ const LANGUAGE_CHIPS = [
   { code: 'en', nativeName: 'English' },
   { code: 'fr', nativeName: 'Français' },
   { code: 'ar', nativeName: 'العربية' },
-];
-
-const THEME_OPTIONS = [
-  { mode: 'light', icon: 'sunny', labelKey: 'themeLight' },
-  { mode: 'dark', icon: 'moon', labelKey: 'themeDark' },
 ];
 
 // Non-interactive labels illustrating what the browse filters cover - they get
@@ -412,53 +412,42 @@ const OnboardingScreen = () => {
         {LANGUAGE_CHIPS.map((lang) => {
           const isActive = currentLanguage === lang.code;
           return (
-            <Pressable key={lang.code} onPress={() => handleLanguageSelect(lang.code)}>
-              {({ pressed }) => (
-                <NeumorphicSurface
-                  isDark={isDark}
-                  radius={radiusTokens.md}
-                  // The picked language stays sunken; tapping another one sinks
-                  // it under the finger. Same face, same affordance.
-                  pressed={pressed || isActive}
-                  contentStyle={styles.languageChip}
-                >
-                  <Text style={[styles.languageChipText, isActive && styles.languageChipTextActive]}>
-                    {lang.nativeName}
-                  </Text>
-                </NeumorphicSurface>
-              )}
-            </Pressable>
+            <TouchableOpacity
+              key={lang.code}
+              style={[styles.languageChip, isActive && styles.languageChipActive]}
+              onPress={() => handleLanguageSelect(lang.code)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.languageChipText, isActive && styles.languageChipTextActive]}>
+                {lang.nativeName}
+              </Text>
+            </TouchableOpacity>
           );
         })}
       </View>
 
       <Text style={styles.themeLabel}>{t('onboardingThemeLabel')}</Text>
-      <View style={[styles.themeOptionsRow, mirrorRows && styles.rowReverse]}>
-        {THEME_OPTIONS.map((option) => {
-          const isActive = option.mode === 'dark' ? isDark : !isDark;
-          return (
-            <Pressable key={option.mode} onPress={() => setThemeMode(option.mode)}>
-              {({ pressed }) => (
-                <NeumorphicSurface
-                  isDark={isDark}
-                  radius={radiusTokens.md}
-                  pressed={pressed || isActive}
-                  contentStyle={styles.themeOption}
-                >
-                  <Ionicons
-                    name={option.icon}
-                    size={16}
-                    color={isActive ? BRAND_BLUE : tokens.ink}
-                    style={isActive ? null : styles.mutedIcon}
-                  />
-                  <Text style={[styles.themeOptionText, isActive && styles.themeOptionTextActive]}>
-                    {t(option.labelKey)}
-                  </Text>
-                </NeumorphicSurface>
-              )}
-            </Pressable>
-          );
-        })}
+      <View style={[styles.themeToggleTrack, mirrorRows && styles.rowReverse]}>
+        <TouchableOpacity
+          style={[styles.themeToggleOption, !isDark && styles.themeToggleOptionActive]}
+          onPress={() => setThemeMode('light')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="sunny" size={16} color={!isDark ? '#FFFFFF' : tokens.ink} />
+          <Text style={[styles.themeToggleText, !isDark && styles.themeToggleTextActive]}>
+            {t('themeLight')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.themeToggleOption, isDark && styles.themeToggleOptionActive]}
+          onPress={() => setThemeMode('dark')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="moon" size={16} color={isDark ? '#FFFFFF' : tokens.ink} />
+          <Text style={[styles.themeToggleText, isDark && styles.themeToggleTextActive]}>
+            {t('themeDark')}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -814,25 +803,28 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
     rowReverse: {
       flexDirection: 'row-reverse',
     },
-    // Faces carry padding/alignment only - the fill, radius and both shadows
-    // come from NeumorphicSurface, and a background or border here would undo
-    // the effect rather than add to it.
     languageChip: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 11,
-      paddingHorizontal: 18,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: radiusTokens.md,
+      backgroundColor: tokens.surfaceRaised,
+      borderWidth: 1,
+      borderColor: `${tokens.ink}1A`,
+    },
+    languageChipActive: {
+      borderColor: BRAND_BLUE,
+      backgroundColor: `${BRAND_BLUE}14`,
     },
     languageChipText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 14,
       color: tokens.ink,
-      opacity: 0.65,
     },
     languageChipTextActive: {
       color: BRAND_BLUE,
       fontFamily: fontFamilies.bodySemiBold,
-      opacity: 1,
     },
     themeLabel: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -842,33 +834,37 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
       marginTop: 28,
       marginBottom: 10,
     },
-    themeOptionsRow: {
+    themeToggleTrack: {
       flexDirection: 'row',
-      justifyContent: 'center',
-      gap: 12,
+      backgroundColor: `${tokens.ink}0D`,
+      borderRadius: radiusTokens.md,
+      padding: 4,
+      gap: 4,
     },
-    themeOption: {
+    themeToggleOption: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 7,
-      paddingVertical: 11,
-      paddingHorizontal: 22,
+      gap: 6,
+      paddingVertical: 9,
+      paddingHorizontal: 20,
+      borderRadius: radiusTokens.sm,
     },
-    mutedIcon: {
-      opacity: 0.55,
+    themeToggleOptionActive: {
+      backgroundColor: BRAND_BLUE,
     },
-    themeOptionText: {
+    themeToggleText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 13,
       color: tokens.ink,
-      opacity: 0.65,
     },
-    themeOptionTextActive: {
-      color: BRAND_BLUE,
+    themeToggleTextActive: {
+      color: '#FFFFFF',
       fontFamily: fontFamilies.bodySemiBold,
-      opacity: 1,
     },
+    // Faces carry padding/alignment only - the fill, radius and both shadows
+    // come from NeumorphicSurface, and a background or border here would undo
+    // the effect rather than add to it.
     filterPillsRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
