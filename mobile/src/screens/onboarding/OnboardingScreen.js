@@ -104,12 +104,20 @@ const HORIZONTAL_DOMINANCE = 1.5;
 // 2-5 came up blank white in Arabic.
 //
 // translateX has no such convention. React Native never mirrors transforms, so
-// `translateX: (index - progress) * width` puts slide i in exactly the same
-// physical place in every language, on every platform, laid out either way.
-// `progress` (in slide units) is the single source of truth for both the paging
-// and the per-slide fade, so they cannot drift apart, and the animations look
-// identical in RTL and LTR - which is the intent: only text, icons and control
-// rows follow the language, never the motion.
+// `translateX: (index - progress) * width * motionDir` puts slide i in a place
+// this file decides outright, the same on every platform and laid out either
+// way. `progress` (in slide units) is the single source of truth for both the
+// paging and the per-slide fade, so they cannot drift apart.
+//
+// motionDir is what makes the carousel read in the picked language's direction:
+// +1 in en/fr, so the next slide comes in from the right edge and the current
+// one leaves to the left; -1 in Arabic, so the next slide comes in from the
+// LEFT and the current one leaves to the right - the direction Arabic is read
+// and paged in. It is derived from the picked language, exactly like the CTA
+// arrow glyph, and NOT from the measured layout direction, so it is right
+// immediately on tapping العربية rather than only after a relaunch. Everything
+// that has to agree with the travel direction reads the same value: the drag,
+// the release thresholds and the progress dots.
 const clampIndex = (index) => Math.min(SLIDE_COUNT - 1, Math.max(0, index));
 
 // Same wordmark image LoginScreen/SignUpScreen/AppHeader use in place of a
@@ -171,9 +179,13 @@ const OnboardingScreen = () => {
   const isRTL = currentLanguage === 'ar';
   const mirrorRows = isRTL !== layoutIsRTL;
 
+  // +1 = slides travel leftwards (next enters from the right), -1 = slides
+  // travel rightwards (next enters from the left). See the note above clampIndex.
+  const motionDir = isRTL ? -1 : 1;
+
   const styles = useMemo(
-    () => createStyles(tokens, mirrorRows, layoutIsRTL),
-    [tokens, mirrorRows, layoutIsRTL]
+    () => createStyles(tokens, mirrorRows),
+    [tokens, mirrorRows]
   );
 
   // Position of the carousel measured in slides: 0 is slide 1, 2.5 is halfway
@@ -190,6 +202,10 @@ const OnboardingScreen = () => {
   // exactly one slide.
   const [pagerWidth, setPagerWidth] = useState(SCREEN_WIDTH);
   const pagerWidthRef = useRef(SCREEN_WIDTH);
+  // Read by the pan handlers for the same reason as the two refs above: they
+  // are built once, so they cannot close over a value that changes when the
+  // language does.
+  const motionDirRef = useRef(motionDir);
   // Own, JS-driven Animated.Values for the dot widths - 'width' isn't a style
   // property the native driver supports.
   const dotWidths = useRef(SLIDE_INDICES.map(() => new Animated.Value(8))).current;
@@ -207,6 +223,10 @@ const OnboardingScreen = () => {
     loadCountries();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLanguage]);
+
+  useEffect(() => {
+    motionDirRef.current = motionDir;
+  }, [motionDir]);
 
   useEffect(() => {
     dotWidths.forEach((value, i) => {
@@ -308,17 +328,22 @@ const OnboardingScreen = () => {
           dragStartIndex.current = activeIndexRef.current;
         },
         onPanResponderMove: (_, gesture) => {
-          // Dragging left (negative dx) advances, in every language - the
-          // carousel's motion is deliberately the same in RTL and LTR.
-          const raw = dragStartIndex.current - gesture.dx / pagerWidthRef.current;
+          // The finger has to drag the slides the way they travel: leftwards
+          // advances in en/fr, rightwards advances in Arabic. Folding motionDir
+          // into dx here means the rest of the maths stays direction-agnostic.
+          const raw = dragStartIndex.current - (gesture.dx * motionDirRef.current) / pagerWidthRef.current;
           progress.setValue(Math.min(SLIDE_COUNT - 1, Math.max(0, raw)));
         },
         onPanResponderRelease: (_, gesture) => {
           const threshold = pagerWidthRef.current * SWIPE_DISTANCE_RATIO;
+          // Same fold as above, so a flick advances on whichever side of the
+          // screen it starts from in this language.
+          const dx = gesture.dx * motionDirRef.current;
+          const vx = gesture.vx * motionDirRef.current;
           let target = dragStartIndex.current;
-          if (gesture.dx <= -threshold || gesture.vx <= -SWIPE_VELOCITY) {
+          if (dx <= -threshold || vx <= -SWIPE_VELOCITY) {
             target = dragStartIndex.current + 1;
-          } else if (gesture.dx >= threshold || gesture.vx >= SWIPE_VELOCITY) {
+          } else if (dx >= threshold || vx >= SWIPE_VELOCITY) {
             target = dragStartIndex.current - 1;
           }
           goToIndex(target);
@@ -366,10 +391,11 @@ const OnboardingScreen = () => {
     }
   };
 
-  // Rebuilt only when the carousel's width changes. translateX extrapolates
-  // linearly on purpose, so slide i sits at exactly (i - progress) * width for
-  // every progress value, however far away; the fade clamps instead, so
-  // anything more than one slide out is simply invisible.
+  // Rebuilt only when the carousel's width or travel direction changes.
+  // translateX extrapolates linearly on purpose, so slide i sits at exactly
+  // (i - progress) * width * motionDir for every progress value, however far
+  // away; the fade clamps instead, so anything more than one slide out is
+  // simply invisible.
   const slideAnimatedStyles = useMemo(
     () =>
       SLIDE_INDICES.map((index) => {
@@ -379,9 +405,12 @@ const OnboardingScreen = () => {
           opacity: progress.interpolate({ inputRange, outputRange: [0, 1, 0], extrapolate: 'clamp' }),
           transform: [
             {
+              // The one place the carousel's direction is expressed as
+              // geometry: the not-yet-seen slide waits one width to the right
+              // in en/fr and one width to the left in Arabic.
               translateX: progress.interpolate({
                 inputRange,
-                outputRange: [pagerWidth, 0, -pagerWidth],
+                outputRange: [pagerWidth * motionDir, 0, -pagerWidth * motionDir],
               }),
             },
             {
@@ -390,7 +419,7 @@ const OnboardingScreen = () => {
           ],
         };
       }),
-    [pagerWidth, progress]
+    [pagerWidth, progress, motionDir]
   );
 
   const renderLanguageSlide = () => (
@@ -638,9 +667,11 @@ const OnboardingScreen = () => {
       </View>
 
       <View style={styles.footer}>
-        {/* The dots map to the slides' PHYSICAL order, which is left-to-right in
-            every language because the carousel's translateX is - styles.dotsRow
-            cancels any native mirroring so dot 0 stays on the left with slide 0. */}
+        {/* The dots map to the slides' PHYSICAL order, which now follows the
+            picked language because the carousel's translateX does: dot 0 on the
+            left in en/fr, on the right in Arabic. styles.dotsRow works that out
+            against the measured layout direction, since a plain 'row' is
+            already mirrored once the tree really is RTL. */}
         <View style={styles.dotsRow}>
           {SLIDE_INDICES.map((i) => (
             <Animated.View
@@ -679,8 +710,8 @@ const OnboardingScreen = () => {
                 <Ionicons
                   // Icons are never auto-mirrored, so this follows the PICKED
                   // language's reading direction and flips the moment Arabic is
-                  // tapped - it does not track the carousel, whose motion is the
-                  // same in both directions.
+                  // tapped - the same value the carousel's motionDir comes
+                  // from, so the arrow always points the way the slides go.
                   name={isRTL ? 'arrow-back' : 'arrow-forward'}
                   size={18}
                   color="#FFFFFF"
@@ -695,7 +726,7 @@ const OnboardingScreen = () => {
   );
 };
 
-const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
+const createStyles = (tokens, mirrorRows) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -994,9 +1025,12 @@ const createStyles = (tokens, mirrorRows, layoutIsRTL) =>
       paddingTop: 8,
     },
     dotsRow: {
-      // Cancels native mirroring so the dots read in the same physical order as
-      // the carousel: dot 0 on the left, next to the left, always.
-      flexDirection: layoutIsRTL ? 'row-reverse' : 'row',
+      // Same physical order as the carousel, whichever way it travels: the
+      // active dot has to advance towards the edge the next slide comes from.
+      // 'row' is physically LTR on an LTR tree and mirrored on an RTL one, so
+      // the reversal is needed exactly when the two disagree - the same
+      // mirrorRows test the content rows use.
+      flexDirection: mirrorRows ? 'row-reverse' : 'row',
       justifyContent: 'center',
       alignItems: 'center',
       gap: 6,
