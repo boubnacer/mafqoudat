@@ -8,6 +8,7 @@ import { useTranslation } from "../utils/translations";
 import { useLanguage } from "../utils/languageContext";
 import { languageStorage } from "../utils/authStorage";
 import SeoMeta from "./SeoMeta";
+import DashFooter from "./Footer/DashFooter";
 import LazyCardMedia from "./LazyCardMedia";
 import WorldActivityMap from "./dashboard/WorldActivityMap";
 import SkeletonBlock from "./SkeletonBlock";
@@ -1187,6 +1188,7 @@ const WelcomePage = () => {
           </Box>
         </Box>
       </PageContainer>
+      <DashFooter />
     </>
   );
 };
