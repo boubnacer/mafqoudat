@@ -7,6 +7,7 @@ const Notification = require("../models/Notification");
 const { tokenSet, tokenSimilarity, sharedNumericTokens, normalizeText } = require("../utils/textMatching");
 const { resolveEventDate } = require("../utils/postDates");
 const matchEmailService = require("./matchEmailService");
+const pushNotificationService = require("./pushNotificationService");
 
 /**
  * Lost/found match engine.
@@ -398,7 +399,7 @@ const upsertNotification = async ({ recipientId, ownPostId, otherPostId, match }
  * caller is a fire-and-forget hook on a user-facing write.
  */
 const computeMatchesForPost = async (postId, { notify = true } = {}) => {
-  const result = { scanned: 0, matched: 0, notified: 0, skipped: null };
+  const result = { scanned: 0, matched: 0, notified: 0, pushed: 0, skipped: null };
 
   if (!postId || !mongoose.Types.ObjectId.isValid(String(postId))) {
     result.skipped = 'invalid_post_id';
@@ -440,7 +441,8 @@ const computeMatchesForPost = async (postId, { notify = true } = {}) => {
     stampScan();
     return result;
   }
-  const oppositeId = foundLostMap.byCode[code === 'LOST' ? 'FOUND' : 'LOST'];
+  const oppositeCode = code === 'LOST' ? 'FOUND' : 'LOST';
+  const oppositeId = foundLostMap.byCode[oppositeCode];
 
   const categoryIds = categoryIdsOf(post);
   if (categoryIds.length === 0) {
@@ -498,9 +500,17 @@ const computeMatchesForPost = async (postId, { notify = true } = {}) => {
     ...accepted.map(({ candidate }) => String(candidate.user)),
   ])];
   const owners = await User.find({ _id: { $in: ownerIds } })
-    .select('_id email username notificationPreferences isActive')
+    .select('_id email username notificationPreferences isActive pushTokens')
     .lean();
   const ownersById = new Map(owners.map((owner) => [String(owner._id), owner]));
+
+  // Device pushes are collected across the whole run and sent once per
+  // recipient at the end, rather than inside the loop. One listing in a dense
+  // city/category legitimately produces a burst of strong matches (see
+  // applyCoreMatchFloor), and a phone buzzing ten times in one second is how a
+  // user turns notifications off for good. The inbox can group them after the
+  // fact; a notification tray cannot.
+  const pushQueue = new Map();
 
   for (const { candidate, scored, roles: pairRoles } of accepted) {
     const match = await upsertMatch({ post, candidate, scored, roles: pairRoles });
@@ -508,9 +518,13 @@ const computeMatchesForPost = async (postId, { notify = true } = {}) => {
 
     const dismissedBy = new Set((match.dismissedBy || []).map((id) => String(id)));
 
+    // `ownPostCode` is the side of the recipient's *own* post, which is what
+    // decides the wording of a push ("someone found something like the item you
+    // lost" vs its mirror). The scanned post is on `code`; every candidate is
+    // on the opposite side by construction of the candidate query.
     const recipients = [
-      { recipientId: post.user, ownPostId: post._id, otherPostId: candidate._id },
-      { recipientId: candidate.user, ownPostId: candidate._id, otherPostId: post._id },
+      { recipientId: post.user, ownPostId: post._id, otherPostId: candidate._id, ownPostCode: code },
+      { recipientId: candidate.user, ownPostId: candidate._id, otherPostId: post._id, ownPostCode: oppositeCode },
     ];
 
     for (const recipient of recipients) {
@@ -554,10 +568,53 @@ const computeMatchesForPost = async (postId, { notify = true } = {}) => {
             console.error('Match alert email failed:', error?.message || error);
           });
       }
+
+      // Queued rather than sent, and only for a notification that was actually
+      // created: upsertNotification returns null when it merely re-scored an
+      // existing row, so a rescan of the same pair can never buzz a phone twice
+      // for something the user has already seen.
+      if (preferences.pushAlerts !== false && (owner.pushTokens || []).length > 0) {
+        const queued = pushQueue.get(String(recipient.recipientId)) || {
+          owner,
+          ownPostCode: recipient.ownPostCode,
+          alerts: [],
+        };
+        queued.alerts.push({
+          notificationId: created._id,
+          matchedPostId: recipient.otherPostId,
+        });
+        pushQueue.set(String(recipient.recipientId), queued);
+      }
     }
   }
 
+  result.pushed = await dispatchQueuedPushes(pushQueue);
+
   return result;
+};
+
+/**
+ * Sends the run's collected pushes, one per recipient.
+ *
+ * Awaited rather than fire-and-forget, unlike the email above: the caller is
+ * already detached from the request (scheduleMatchScan defers the whole scan
+ * with setImmediate), so awaiting costs no user-visible latency and buys an
+ * accurate count in the scan result. Individual failures are swallowed inside
+ * pushNotificationService, which never throws.
+ */
+const dispatchQueuedPushes = async (pushQueue) => {
+  let pushed = 0;
+
+  for (const { owner, ownPostCode, alerts } of pushQueue.values()) {
+    const sent = await pushNotificationService.sendMatchAlert({
+      user: owner,
+      ownPostCode,
+      alerts,
+    });
+    if (sent) pushed += 1;
+  }
+
+  return pushed;
 };
 
 /**

@@ -92,6 +92,7 @@ export const API_ENDPOINTS = {
     MARK_ALL_READ: "/notifications/read-all",
     DISMISS: (id) => `/notifications/${id}`,
     PREFERENCES: "/notifications/preferences",
+    PUSH_TOKEN: "/notifications/push-token",
     MATCHES: "/notifications/matches",
     MATCHES_FOR_POST: (postId) => `/notifications/matches/post/${postId}`,
     DISMISS_MATCH: (matchId) => `/notifications/matches/${matchId}/dismiss`,

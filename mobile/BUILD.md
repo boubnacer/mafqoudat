@@ -98,6 +98,12 @@ its presence changes what a plain `expo start` defaults to. Two scripts, two pur
 If you ever need to swap modes mid-session without restarting, press **`s`** in the
 terminal running either command - it toggles between the two.
 
+One feature is not testable in Expo Go at all: **push notifications**. Expo Go dropped
+remote push support on Android in SDK 53, so a match alert only reaches the tray on a
+development or preview build installed on a real device. See `PUSH_NOTIFICATIONS.md`
+for that, and for the Firebase/FCM credentials the feature needs before it works at
+all.
+
 ## Flagged for design (placeholder-quality, do not ship as final)
 
 - **`assets/adaptive-icon.png`** and **`assets/favicon.png`** - programmatically

@@ -19,7 +19,13 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { MaintenanceProvider, useMaintenance } from './src/context/MaintenanceContext';
 import { ReferenceDataProvider } from './src/context/ReferenceDataContext';
 import { OnboardingProvider, useOnboarding } from './src/context/OnboardingContext';
-import { NotificationsProvider } from './src/context/NotificationsContext';
+import { NotificationsProvider, useNotifications } from './src/context/NotificationsContext';
+import {
+  addNotificationResponseListener,
+  getInitialNotificationResponse,
+  resolveNotificationTarget,
+} from './src/utils/pushNotifications';
+import { markNotificationRead } from './src/api/notificationsApi';
 import { lightColors, darkColors } from './src/theme/tokens';
 import { getNavigationTheme } from './src/theme/navigationTheme';
 import { useTranslation } from './src/utils/translations';
@@ -175,6 +181,7 @@ const RootNavigator = () => {
   const { isLoading, isSignedIn, hasCountry } = useAuth();
   const { isActive, message, estimatedReturn } = useMaintenance();
   const { colors, isDark } = useTheme();
+  const { refreshUnreadCount } = useNotifications();
 
   // A country pick (even without signing in) is enough to unlock guest
   // browsing - only a user who has never chosen one gets funneled through
@@ -200,6 +207,13 @@ const RootNavigator = () => {
   // and disproportionate to add SecureStore/AsyncStorage persistence for.
   const showAppShellRef = useRef(showAppShell);
   const [pendingPostId, setPendingPostId] = useState(null);
+  // Same idea for a tapped push notification, which can arrive at exactly the
+  // same awkward moments: from a cold start (before the session has been read
+  // back out of SecureStore, so before either navigator exists) or while the
+  // app is backgrounded. Held as a {screen, params} target rather than a post
+  // id because a notification covering several matches opens the inbox instead
+  // of a listing - see resolveNotificationTarget.
+  const [pendingNotificationTarget, setPendingNotificationTarget] = useState(null);
 
   useEffect(() => {
     showAppShellRef.current = showAppShell;
@@ -233,6 +247,55 @@ const RootNavigator = () => {
     // session (e.g. sign out, then pick a country again).
     setPendingPostId(null);
   }, [showAppShell, pendingPostId]);
+
+  // Push notification taps. Both entry points feed the same queue: the
+  // notification that launched the app from cold, and any tap while it is
+  // already running.
+  useEffect(() => {
+    let isActive = true;
+    // getLastNotificationResponseAsync replays the tap that launched the app,
+    // and on some paths the listener sees the same one - handling it twice
+    // would push a second copy of the listing onto the stack.
+    const handled = new Set();
+
+    const capture = (response) => {
+      const target = resolveNotificationTarget(response);
+      if (!target || !isActive) return;
+
+      const identifier = response?.notification?.request?.identifier;
+      if (identifier) {
+        if (handled.has(identifier)) return;
+        handled.add(identifier);
+      }
+
+      setPendingNotificationTarget(target);
+
+      // Opening the alert is the read receipt, exactly as it is when the row is
+      // tapped in the inbox (NotificationsScreen.handleOpenMatch). Fire and
+      // forget: reaching the listing is what the user asked for, and a failed
+      // receipt must not stand in the way of it - the next poll re-syncs the
+      // badge either way.
+      if (target.notificationId) {
+        markNotificationRead(target.notificationId)
+          .then(() => refreshUnreadCount())
+          .catch(() => {});
+      }
+    };
+
+    getInitialNotificationResponse().then(capture).catch(() => {});
+    const subscription = addNotificationResponseListener(capture);
+
+    return () => {
+      isActive = false;
+      subscription.remove();
+    };
+  }, [refreshUnreadCount]);
+
+  useEffect(() => {
+    if (!showAppShell || !pendingNotificationTarget) return;
+    navigateWhenReady(pendingNotificationTarget.screen, pendingNotificationTarget.params);
+    setPendingNotificationTarget(null);
+  }, [showAppShell, pendingNotificationTarget]);
 
   if (isActive) {
     return <MaintenanceOverlay message={message} estimatedReturn={estimatedReturn} />;

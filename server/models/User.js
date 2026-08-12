@@ -141,6 +141,15 @@ const userSchema = new mongoose.Schema({
       type: Boolean,
       default: false
     },
+    // Device push notifications for the mobile app (services/pushNotificationService.js).
+    // On by default, unlike email: the OS already gatekeeps this one behind its
+    // own permission prompt, so a user who granted that has opted in already,
+    // and a user who denied it never receives anything regardless of this flag.
+    // Subordinate to matchAlerts - turning the master switch off stops pushes too.
+    pushAlerts: {
+      type: Boolean,
+      default: true
+    },
     // Confidence floor, 0-100. Raising it makes alerts rarer and stronger.
     minScore: {
       type: Number,
@@ -148,7 +157,40 @@ const userSchema = new mongoose.Schema({
       min: 0,
       max: 100
     }
-  }
+  },
+  // Expo push tokens for this user's devices, newest last.
+  //
+  // Per-device rather than per-user: one account is routinely signed in on a
+  // phone and a tablet, and a token identifies an app installation, not a
+  // person. `language` is stored alongside because a push is server-initiated -
+  // unlike the inbox, which localizes from the `language` query param of the
+  // request that asked for it, there is no request here to read it from.
+  //
+  // A token can migrate between accounts (shared device, sign out then sign in
+  // as someone else), so registration removes it from every other user first -
+  // see notificationsController.registerPushToken. Dead tokens are pruned by
+  // pushNotificationService when Expo reports DeviceNotRegistered.
+  pushTokens: [{
+    token: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    platform: {
+      type: String,
+      enum: ['android', 'ios'],
+      required: true
+    },
+    language: {
+      type: String,
+      enum: ['en', 'fr', 'ar'],
+      default: 'en'
+    },
+    lastSeenAt: {
+      type: Date,
+      default: Date.now
+    }
+  }]
 }, {
   timestamps: true
 });
@@ -165,6 +207,10 @@ userSchema.index({ facebookId: 1 }, { sparse: true, unique: true });
 // blockedUsers is read on nearly every listing request for a signed-in viewer,
 // and swept once per account deletion ("who blocked this user?").
 userSchema.index({ blockedUsers: 1 });
+// Push token registration looks a token up across all users ("which account is
+// this device signed into?") and pruning a dead token does the same, so the
+// array's token field is the lookup key on both paths.
+userSchema.index({ "pushTokens.token": 1 });
 userSchema.index({ country: 1, isActive: 1 });
 userSchema.index({ role: 1, isActive: 1 });
 userSchema.index({ country: 1, role: 1, isActive: 1 });

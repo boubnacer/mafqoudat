@@ -144,8 +144,29 @@ never in one platform's UI.
   on a phone), and `formatDaysApart` carries Arabic dual/small-plural forms the way
   `utils/relativeTime.js` does — the web copy was given the same forms so both platforms
   word it identically.
-- **Offline check**: `npm run test-matching` in `server/` — no DB needed, covers
-  normalization, date parsing and scoring.
+- **Device push (Android only, mobile)**: the third delivery channel, after the in-app
+  inbox and the opt-in email, and the only one that reaches a user who is not looking at
+  the app. Sent through Expo's push service (one HTTPS POST, no vendor SDK) by
+  [pushNotificationService.js](server/services/pushNotificationService.js); tokens live on
+  `User.pushTokens` (per device, each carrying the language its messages are written in,
+  since a push is composed server-side with no request to read a language from) and are
+  registered/revoked via `POST`/`DELETE /notifications/push-token`. Gated by
+  `notificationPreferences.pushAlerts` *and* the master `matchAlerts` switch *and* the OS
+  permission. **One push per recipient per scan run, never one per pair** — `matchingService`
+  collects them (`pushQueue` → `dispatchQueuedPushes`) precisely because the category+city
+  floor makes bursts normal; the inbox can group after the fact, a notification tray cannot.
+  Only a genuinely new notification row queues one, so a rescan never re-buzzes a seen pair.
+  App side: [pushNotifications.js](mobile/src/utils/pushNotifications.js) (permission, token,
+  the `match-alerts` Android channel whose id is a contract with the server, tap targets),
+  registration in `NotificationsContext`, tap routing in `App.js` (reuses the deferred
+  deep-link machinery — a tap can land before either navigator is mounted), revocation on
+  sign-out in `AuthContext`. iOS is switched off in exactly one place
+  (`SUPPORTED_PLATFORMS`) pending an APNs key; nothing else is platform-specific. Setup,
+  FCM credentials and the Expo Go caveat: [PUSH_NOTIFICATIONS.md](mobile/PUSH_NOTIFICATIONS.md).
+- **Offline checks**: `npm run test-matching` in `server/` — no DB needed, covers
+  normalization, date parsing and scoring. `npm run test-push` — no DB or network, stubs
+  the Expo transport and covers what a recipient actually receives (direction wording,
+  per-device language, burst collapsing, dead-token pruning).
 
 ## Rules for this work
 
