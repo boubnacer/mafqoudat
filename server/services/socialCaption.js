@@ -6,8 +6,8 @@ const Country = require('../models/Country');
 // Matches the badge text in client/src/utils/translations.js (found/lost, ar)
 // exactly - intentionally not FoundLost.labels.ar, which reads differently.
 const STATUS_TEXT = {
-  FOUND: { emoji: '✅', label: 'عثر عليه', dateLabel: 'التاريخ الذي تم العثور فيه على العنصر' },
-  LOST: { emoji: '🔍', label: 'مفقود', dateLabel: 'التاريخ الذي فقد فيه العنصر' },
+  FOUND: { emoji: '✅', label: 'عثر عليه', dateLabel: 'التاريخ الذي تم العثور فيه على الغرض' },
+  LOST: { emoji: '🔍', label: 'مفقود', dateLabel: 'التاريخ الذي فقد فيه الغرض' },
 };
 
 // Matches translations.js noDescriptionProvided (ar) - same fallback the
