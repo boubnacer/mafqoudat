@@ -4,6 +4,7 @@ const PostMatch = require("../models/PostMatch");
 const Post = require("../models/Post");
 const User = require("../models/User");
 const matchingService = require("../services/matchingService");
+const pushNotificationService = require("../services/pushNotificationService");
 const { getBlockedUserIds } = require("../utils/blockedUsers");
 
 /**
@@ -13,7 +14,15 @@ const { getBlockedUserIds } = require("../utils/blockedUsers");
  */
 
 const SUPPORTED_LANGUAGES = ['en', 'fr', 'ar'];
-const DEFAULT_PREFERENCES = { matchAlerts: true, emailAlerts: false, minScore: 50 };
+const DEFAULT_PREFERENCES = { matchAlerts: true, emailAlerts: false, pushAlerts: true, minScore: 50 };
+
+// Push token registration. The cap is per account, not per device: a phone that
+// is reinstalled mints a new token and the old one is only discovered to be
+// dead on the next send, so without a ceiling an account that has been through
+// several installs accumulates tokens indefinitely. Ten is far more devices
+// than a real person signs in on, and the array keeps the newest.
+const MAX_PUSH_TOKENS_PER_USER = 10;
+const PUSH_PLATFORMS = ['android', 'ios'];
 
 const resolveLanguage = (value) => (SUPPORTED_LANGUAGES.includes(value) ? value : 'en');
 
@@ -650,6 +659,9 @@ const updatePreferences = async (req, res) => {
     if (typeof req.body.emailAlerts === 'boolean') {
       updates['notificationPreferences.emailAlerts'] = req.body.emailAlerts;
     }
+    if (typeof req.body.pushAlerts === 'boolean') {
+      updates['notificationPreferences.pushAlerts'] = req.body.pushAlerts;
+    }
     if (req.body.minScore !== undefined) {
       const minScore = Number(req.body.minScore);
       if (!Number.isFinite(minScore) || minScore < 0 || minScore > 100) {
@@ -692,6 +704,87 @@ const updatePreferences = async (req, res) => {
   }
 };
 
+// ---------------------------------------------------------------------------
+// Push tokens
+// ---------------------------------------------------------------------------
+
+// @desc   Register (or refresh) this device's Expo push token for the caller
+// @route  POST /notifications/push-token
+// @access Private
+const registerPushToken = async (req, res) => {
+  try {
+    const token = typeof req.body.token === 'string' ? req.body.token.trim() : '';
+    const platform = String(req.body.platform || '').toLowerCase();
+    const language = resolveLanguage(req.body.language);
+
+    if (!pushNotificationService.isValidPushToken(token)) {
+      return res.status(400).json({ success: false, message: 'A valid Expo push token is required' });
+    }
+    if (!PUSH_PLATFORMS.includes(platform)) {
+      return res.status(400).json({ success: false, message: 'platform must be android or ios' });
+    }
+
+    // A push token identifies an app installation, not a person, so it can
+    // legitimately move between accounts - a shared phone, or one person
+    // signing out and another signing in. Clearing it from every other user
+    // first is what stops the previous account's match alerts from continuing
+    // to arrive on a device that now belongs to someone else.
+    await User.updateMany(
+      { 'pushTokens.token': token, _id: { $ne: req.user } },
+      { $pull: { pushTokens: { token } } }
+    );
+
+    // Pull-then-push rather than a positional update: it doubles as the
+    // "already registered" path (re-registering refreshes language and
+    // lastSeenAt, and moves the entry to the newest slot) and keeps the array
+    // free of duplicates without a second round trip to check.
+    await User.updateOne({ _id: req.user }, { $pull: { pushTokens: { token } } });
+    const updated = await User.updateOne(
+      { _id: req.user },
+      {
+        $push: {
+          pushTokens: {
+            $each: [{ token, platform, language, lastSeenAt: new Date() }],
+            $slice: -MAX_PUSH_TOKENS_PER_USER,
+          },
+        },
+      }
+    );
+
+    if (updated.matchedCount === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error registering push token:', error);
+    return res.status(500).json({ success: false, message: 'Failed to register push token' });
+  }
+};
+
+// @desc   Forget this device's push token
+// @route  DELETE /notifications/push-token
+// @access Private
+//
+// Called on sign out. Skipping it would leave the next person to use the phone
+// receiving alerts for an account they are no longer signed into - which is a
+// privacy leak, not just noise, since the copy states what kind of listing it
+// concerns.
+const unregisterPushToken = async (req, res) => {
+  try {
+    const token = typeof req.body.token === 'string' ? req.body.token.trim() : '';
+    if (!token) {
+      return res.status(400).json({ success: false, message: 'token is required' });
+    }
+
+    await User.updateOne({ _id: req.user }, { $pull: { pushTokens: { token } } });
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error unregistering push token:', error);
+    return res.status(500).json({ success: false, message: 'Failed to unregister push token' });
+  }
+};
+
 module.exports = {
   listNotifications,
   getUnreadCount,
@@ -703,4 +796,6 @@ module.exports = {
   dismissMatch,
   getPreferences,
   updatePreferences,
+  registerPushToken,
+  unregisterPushToken,
 };

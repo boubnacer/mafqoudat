@@ -53,6 +53,11 @@ web-build/
 .env.local
 .env.production
 
+# Firebase config for FCM (push notifications). Per-project, supplied to EAS as
+# the file secret GOOGLE_SERVICES_JSON - see PUSH_NOTIFICATIONS.md.
+google-services.json
+GoogleService-Info.plist
+
 # Temporary files
 *.log
 *.tmp

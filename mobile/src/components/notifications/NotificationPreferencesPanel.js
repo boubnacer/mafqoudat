@@ -2,9 +2,15 @@
  * Match-alert settings, shown inline on the notifications screen.
  * Mirrors: client/src/features/notifications/NotificationPreferences.jsx
  *
- * Saves on every change rather than behind a submit button - there are three
- * controls and no interdependencies, so a save step would only add a way to
+ * Saves on every change rather than behind a submit button - the controls are
+ * few and independent of each other, so a save step would only add a way to
  * lose a change.
+ *
+ * The device-push row is the one control that is not purely an account setting:
+ * the OS permission sits above it, so the row hides itself on a platform this
+ * build does not deliver to, explains itself when the permission has been
+ * denied, and asks for the permission when it is switched on for the first
+ * time.
  *
  * The web version uses a slider for the confidence floor; here it is a row of
  * discrete options instead. That avoids pulling in a slider dependency the app
@@ -15,13 +21,14 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTranslation } from '../../utils/translations';
 import { colorTokens, radiusTokens, fontFamilies } from '../../theme/tokens';
 import { logical, row, needsDirectionFlip } from '../../utils/rtl';
 import { fetchNotificationPreferences, updateNotificationPreferences } from '../../api/notificationsApi';
+import { getPushPermissionStatus, registerForPushNotifications } from '../../utils/pushNotifications';
 
 // Must stay in step with the server's cap (STRONG_MATCH_SCORE, enforced in
 // notificationsController.updatePreferences) - offering a higher option would
@@ -41,6 +48,22 @@ const NotificationPreferencesPanel = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  // 'granted' | 'undetermined' | 'blocked' | 'unsupported'. The account-level
+  // toggle is only half the story for device pushes: the OS permission sits
+  // above it, and a user who denied that (or is on a platform this build does
+  // not deliver to yet) needs to be told so rather than left flipping a switch
+  // that changes nothing they can observe.
+  const [pushPermission, setPushPermission] = useState('unsupported');
+
+  useEffect(() => {
+    let isActive = true;
+    getPushPermissionStatus().then((status) => {
+      if (isActive) setPushPermission(status);
+    });
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -92,8 +115,22 @@ const NotificationPreferencesPanel = () => {
 
   const matchAlerts = preferences.matchAlerts !== false;
   const emailAlerts = preferences.emailAlerts === true;
+  const pushAlerts = preferences.pushAlerts !== false;
   const minScore = typeof preferences.minScore === 'number' ? preferences.minScore : 50;
   const emailDisabled = !hasEmail || !matchAlerts;
+  const pushSupported = pushPermission !== 'unsupported';
+  const pushBlocked = pushPermission === 'blocked';
+  const pushDisabled = !matchAlerts || pushBlocked;
+
+  // Turning the switch back on after the OS permission was never decided is the
+  // natural moment to ask for it - the user has just said, in the app's own
+  // words, that they want these.
+  const handleTogglePush = async (value) => {
+    await save({ pushAlerts: value });
+    if (!value || pushPermission === 'granted') return;
+    await registerForPushNotifications({ language: currentLanguage });
+    setPushPermission(await getPushPermissionStatus());
+  };
 
   return (
     <View>
@@ -113,6 +150,33 @@ const NotificationPreferencesPanel = () => {
           thumbColor={matchAlerts ? tokens.brandPrimary : undefined}
         />
       </View>
+
+      {pushSupported ? (
+        <>
+          <View style={styles.divider} />
+
+          <View style={[styles.settingRow, pushDisabled && styles.settingRowDisabled]}>
+            <View style={styles.settingTextWrap}>
+              <Text style={[styles.settingTitle, textStyle]}>{t('notifPrefPushAlerts')}</Text>
+              <Text style={[styles.settingDescription, textStyle]}>
+                {pushBlocked ? t('notifPrefPushAlertsBlocked') : t('notifPrefPushAlertsDescription')}
+              </Text>
+              {pushBlocked ? (
+                <TouchableOpacity onPress={() => Linking.openSettings()} activeOpacity={0.7}>
+                  <Text style={[styles.linkText, textStyle]}>{t('notifPrefPushOpenSettings')}</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+            <Switch
+              value={pushAlerts && !pushBlocked}
+              disabled={pushDisabled}
+              onValueChange={handleTogglePush}
+              trackColor={{ false: `${tokens.ink}33`, true: `${tokens.brandPrimary}80` }}
+              thumbColor={pushAlerts && !pushBlocked ? tokens.brandPrimary : undefined}
+            />
+          </View>
+        </>
+      ) : null}
 
       <View style={styles.divider} />
 
@@ -230,6 +294,12 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       fontSize: 13,
       color: tokens.status.lost.main,
       marginBottom: 8,
+    },
+    linkText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 12,
+      color: tokens.brandPrimary,
+      marginTop: 4,
     },
     textRTL: {
       textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',

@@ -74,6 +74,27 @@ export const fetchMyMatches = async ({ limit = 20, language = 'en' } = {}) => {
   return response.data?.matches || [];
 };
 
+/**
+ * Binds this device's Expo push token to the signed-in account, so match alerts
+ * can reach it while the app is closed. `language` is stored with the token
+ * because a push is composed server-side, with no request to read a language
+ * from. See utils/pushNotifications.js.
+ */
+export const registerPushToken = async ({ token, platform, language }) => {
+  const response = await apiClient.post(NOTIFICATIONS.PUSH_TOKEN, { token, platform, language });
+  return response.data;
+};
+
+/**
+ * Releases the token on sign out. The token travels in the body rather than the
+ * query string: a query string is what ends up in access logs, and an Expo push
+ * token is enough on its own to send a notification to that device.
+ */
+export const unregisterPushToken = async (token) => {
+  const response = await apiClient.delete(NOTIFICATIONS.PUSH_TOKEN, { data: { token } });
+  return response.data;
+};
+
 /** "Not a match" - hides the pair for the caller only, never for the other owner. */
 export const dismissMatch = async (matchId) => {
   const response = await apiClient.patch(NOTIFICATIONS.DISMISS_MATCH(matchId));

@@ -7,6 +7,7 @@ import { storage } from '../utils/storage';
 import { decodeToken } from '../utils/tokenUtils';
 import { USE_NATIVE_GOOGLE_AUTH } from '../config/api';
 import { setAuthFailureHandler } from '../api/apiService';
+import { unregisterForPushNotifications } from '../utils/pushNotifications';
 import { resetToLogin } from '../navigation/navigationRef';
 
 // Legacy AsyncStorage keys from the old (pre-SecureStore) storage scheme
@@ -432,6 +433,13 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
 
+      // Before the token is cleared - the request that releases this device's
+      // push token is authenticated. Skipping it would leave the next person to
+      // sign in on a shared phone receiving the previous account's match
+      // alerts, and the tray copy states what kind of listing they concern.
+      // Never blocks sign-out: the helper swallows its own failures.
+      await unregisterForPushNotifications();
+
       if (state.token) {
         try {
           await googleAuth.signOut(state.token);
@@ -463,6 +471,11 @@ export const AuthProvider = ({ children }) => {
   // the user lands back on Login inside the guest-browsing stack.
   const signOutLocally = async () => {
     try {
+      // Local clear only: the user row was deleted outright (User.deleteOne in
+      // usersController), taking its push tokens with it, so there is nothing
+      // left to revoke and the request would authenticate against an account
+      // that no longer exists.
+      await unregisterForPushNotifications({ revokeOnServer: false });
       await storage.clearSession();
     } catch (error) {
       console.error('❌ Error clearing session after account deletion:', error);

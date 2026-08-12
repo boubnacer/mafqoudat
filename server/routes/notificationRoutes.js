@@ -51,6 +51,11 @@ router.patch(
 router.get("/preferences", notificationsController.getPreferences);
 router.patch("/preferences", notificationActionLimiter, notificationsController.updatePreferences);
 
+// Device push tokens (mobile app). Declared before the "/:id" routes for the
+// same reason "matches" is: a literal path segment must not be read as an id.
+router.post("/push-token", notificationActionLimiter, notificationsController.registerPushToken);
+router.delete("/push-token", notificationActionLimiter, notificationsController.unregisterPushToken);
+
 // Inbox.
 router.get("/", notificationsController.listNotifications);
 router.patch("/read-all", notificationActionLimiter, notificationsController.markAllAsRead);
