@@ -1,7 +1,6 @@
 const axios = require('axios');
 const { buildListingCaption, resolveListingImage } = require('./socialCaption');
-
-const GRAPH_API_VERSION = 'v26.0';
+const { GRAPH_BASE_URL, describeGraphError } = require('./graphApi');
 
 class InstagramService {
   constructor() {
@@ -9,7 +8,7 @@ class InstagramService {
     // Same System User token as facebookService - it was granted both
     // pages_* and instagram_* scopes, no separate IG token needed.
     this.accessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
-    this.baseURL = `https://graph.facebook.com/${GRAPH_API_VERSION}`;
+    this.baseURL = GRAPH_BASE_URL;
   }
 
   isConfigured() {
@@ -65,9 +64,30 @@ class InstagramService {
   }
 
   /**
+   * The public instagram.com URL of a published media. Only the opaque media
+   * id comes back from media_publish, and an IG permalink cannot be derived
+   * from it, so it has to be asked for.
+   */
+  async resolvePermalink(mediaId) {
+    try {
+      const response = await axios.get(`${this.baseURL}/${mediaId}`, {
+        params: { fields: 'permalink', access_token: this.accessToken },
+        timeout: 10000,
+      });
+      return response.data?.permalink || null;
+    } catch (error) {
+      console.warn(`Instagram permalink lookup failed for ${mediaId}: ${describeGraphError(error)}`);
+      return null;
+    }
+  }
+
+  /**
    * Posts a newly created listing to the configured Instagram Business account.
    * Never throws past this point in a way that should block post creation -
    * callers are expected to fire-and-forget and log/catch.
+   *
+   * Resolves to `{ mediaId, permalink }` (or null when unconfigured) so the
+   * caller can store the handle this listing is reachable by on IG.
    */
   async postNewListing(post) {
     if (!this.isConfigured()) {
@@ -94,7 +114,8 @@ class InstagramService {
     const publishData = await this.publishWithRetry(containerResponse.data.id);
 
     console.log(`✅ Instagram: posted post ${post._id} as IG media ${publishData.id}`);
-    return publishData;
+
+    return { mediaId: publishData.id, permalink: await this.resolvePermalink(publishData.id) };
   }
 }
 

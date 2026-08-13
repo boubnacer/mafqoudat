@@ -40,6 +40,7 @@ import PromotePostSheet from '../components/PromotePostSheet';
 import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
+import { PostReachRow } from '../components/SocialReach';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 import { formatRelativeTime } from '../utils/relativeTime';
@@ -387,6 +388,10 @@ const MyPostsScreen = ({ navigation }) => {
               </View>
             ) : null}
           </View>
+
+          {/* Reach: this is the owner's own listing page, the one place whose
+              whole point is "how is my post doing". */}
+          <PostReachRow post={item} />
 
           <View style={styles.actionsRow}>
             <ActionButton

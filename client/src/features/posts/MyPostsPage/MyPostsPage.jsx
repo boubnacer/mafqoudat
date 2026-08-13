@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { useTranslation } from '../../../utils/translations';
 import { getOptimizedImageUrl } from '../../../utils/cloudinaryUtils';
+import ReachRow from '../../../components/ReachRow';
 import noImageSvg from '../../../img/noimage.svg';
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -338,11 +339,15 @@ const MyPostsPage = () => {
                           }}
                         >
                           <AccessTime sx={{ fontSize: '14px' }} />
-                          {formatDistanceToNow(new Date(post.createdAt), { 
+                          {formatDistanceToNow(new Date(post.createdAt), {
                             addSuffix: true,
                             locale: getLocale()
                           })}
                         </Typography>
+
+                        {/* Reach — this is the author's own listing, the one
+                            page whose whole point is "how is my post doing". */}
+                        <ReachRow post={post} sx={{ pt: 0, mb: 2 }} />
 
                         {/* Actions */}
                         <Box sx={{ 

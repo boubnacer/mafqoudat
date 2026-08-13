@@ -3,6 +3,7 @@ const router = express.Router();
 const postsController = require("../controllers/postsController");
 const { verifyJWT } = require("../middleware/jwtSecurity");
 const optionalAuth = require("../middleware/optionalAuth");
+const trackPostView = require("../middleware/postViewTracker");
 const { dynamicDataCache, paginatedCache, invalidateCache } = require("../middleware/cacheMiddleware");
 const { 
   postsCache, 
@@ -63,11 +64,14 @@ router.route("/user")
     postsController.getUserPosts
   );
 
+// trackPostView sits ahead of the cache on purpose: on a cache hit the
+// controller never runs, so a counter incremented there would miss most views.
 router.route("/:id")
   .get(
     commonValidations.objectId('id'),
     validateRequest,
-    postsCache('post-detail'), 
+    trackPostView,
+    postsCache('post-detail'),
     postsController.getPost
   );
 

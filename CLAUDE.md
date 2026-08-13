@@ -168,6 +168,80 @@ never in one platform's UI.
   the Expo transport and covers what a recipient actually receives (direction wording,
   per-device language, burst collapsing, dead-token pruning).
 
+## Reach: post views + social engagement (web + mobile)
+
+How much attention a listing has had, from two independent sources. Both front
+ends read the same fields off the posts API; the numbers are produced entirely
+server-side.
+
+- **Site views**: `Post.views`/`lastViewedAt` were on the schema and rendered on
+  both platforms long before anything incremented them — every listing reported
+  zero forever. [postViewTracker.js](server/middleware/postViewTracker.js) now
+  counts them, mounted on `GET /posts/:id` **ahead of** `postsCache` — on a cache
+  hit the controller never runs, so a counter incremented inside `getPost` would
+  miss most views. One viewer counts once per `POST_VIEW_DEDUPE_MINUTES` (30),
+  keyed on account id when a token is present and on IP otherwise, and an author
+  viewing their own post is not counted. It reads the token through
+  `readBearerUserInfo` (exported from
+  [optionalAuth.js](server/middleware/optionalAuth.js)) *without* touching
+  `req.user`: the detail cache key includes `req.user`, so populating the request
+  there would hand every signed-in viewer their own copy of an identical
+  response. Consequence: the stored count is always current, the *displayed* one
+  can lag by the detail cache TTL (30 min).
+- **Social engagement**: every post is auto-posted to the Facebook Page and the
+  Instagram account on creation. Those publish responses used to be logged and
+  discarded; `Post.social.{facebook.postId,instagram.mediaId}` + permalinks are
+  now persisted by `createNewPost` (each on its own subpath, so the two
+  concurrent fire-and-forget writes cannot clobber each other), which is what
+  makes it possible to ask Graph anything afterwards. **Posts created before this
+  have no ids and can never get stats** — there is no reliable way to map an old
+  listing back to its Page copy.
+- **Reader**: [socialStatsService.js](server/services/socialStatsService.js) fills
+  `Post.socialStats` (fb: views/reactions/comments/shares, ig: views/likes/
+  comments, plus `fetchedAt` and a per-platform `unavailable`). Never on a
+  request's critical path — controllers call `scheduleRefresh(posts)`
+  fire-and-forget and serve whatever is stored. Reads are batched (`?ids=`, 50
+  max); a batch that fails on an unreadable object is retried one id at a time so
+  one deleted Page post costs one listing's numbers, not the page's. A post whose
+  Page copy is gone is marked `unavailable` and never asked about again.
+  Counts and views are fetched as separate concerns on purpose: counts come off
+  ordinary edges the page token already has, **views need `read_insights` (FB) /
+  `instagram_manage_insights` (IG)** and are simply absent without them.
+  Insight metric names are **probed, not assumed** (Meta replaced `impressions`
+  with `views` on IG in v22 and retired the Page reach/impressions family in
+  June 2026) — first candidate that answers wins and is memoized for the process;
+  a failed probe is remembered for 6h so a missing permission costs one probe,
+  not one per refresh. Every knob is env: `SOCIAL_STATS_TTL_MINUTES` (180),
+  `_BATCH_SIZE` (50), `_MAX_PER_RUN` (50), `_FB_VIEW_METRICS`, `_IG_VIEW_METRICS`,
+  plus shared `GRAPH_API_VERSION`. Graph plumbing common to all three Meta
+  services (version, error predicates) lives in
+  [graphApi.js](server/services/graphApi.js).
+- **Refresh paths**: opportunistic on every listing/detail read (covers anything
+  anyone is looking at), plus `npm run refresh-social-stats` in `server/` for a
+  scheduler to catch listings nobody has opened.
+- **Two numbers, never one.** A page visit here, a Facebook reaction and an
+  impression in someone's feed are different units — site views and social views
+  are never summed, and platforms are never pooled into one total. Same rule as
+  the dashboard stat boxes: don't state a measurement nobody took. Counters are
+  `null` until actually fetched, so "not fetched", "no insights permission" and
+  "genuinely zero" stay distinct; only the last renders.
+- **UI**: shared normalizer in [socialStats.js](client/src/utils/socialStats.js)
+  mirrored 1:1 at [mobile/src/utils/socialStats.js](mobile/src/utils/socialStats.js).
+  Web — [ReachRow.jsx](client/src/components/ReachRow.jsx) on cards (`Post.js`
+  grid *and* list layouts, plus `MyPostsPage.jsx`, which still carries its own
+  pre-redesign card) and [SocialReach.jsx](client/src/features/posts/PostPage/SocialReach.jsx)
+  on the detail page, using the existing eyebrow + icon-and-text vocabulary, no
+  new card treatment. Mobile — `PostReachRow` and `SocialReachSection` in
+  [SocialReach.js](mobile/src/components/SocialReach.js), used by
+  `PostsListScreen`/`MyPostsScreen` cards and `PostDetailScreen`; Phase 9 rules
+  apply and direction goes through `utils/rtl.js`. Facebook/Instagram brand
+  colors are the one documented exception to the token rule — those rows point at
+  Meta, so the palette is not ours to pick.
+- **Offline check**: `npm run test-social-stats` in `server/` — no DB, no network,
+  stubs Graph with a fake that answers in Meta's error envelope; covers batching,
+  the deleted-post fallback, metric probing, permission-less degradation and
+  outage handling.
+
 ## Rules for this work
 
 - Use existing design tokens (`theme.custom.*` from designTokens.js); never hardcode colors or font-families in component styles.
