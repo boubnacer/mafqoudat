@@ -199,13 +199,13 @@ server-side.
 - **Reader**: [socialStatsService.js](server/services/socialStatsService.js) fills
   `Post.socialStats` (fb: views/reactions/comments/shares, ig: views/likes/
   comments, plus `fetchedAt` and a per-platform `unavailable`). Never on a
-  request's critical path — controllers call `scheduleRefresh(posts)`
-  fire-and-forget and serve whatever is stored. Reads are batched (`?ids=`, 50
-  max); a batch that fails on an unreadable object is retried one id at a time so
-  one deleted Page post costs one listing's numbers, not the page's. A post whose
-  Page copy is gone is marked `unavailable` and never asked about again.
-  Counts and views are fetched as separate concerns on purpose: counts come off
-  ordinary edges the page token already has, **views need `read_insights` (FB) /
+  request's critical path — called fire-and-forget via `scheduleRefresh(posts)`
+  and serves whatever is stored. Reads are batched (`?ids=`, 50 max); a batch
+  that fails on an unreadable object is retried one id at a time so one deleted
+  Page post costs one listing's numbers, not the page's. A post whose Page copy
+  is gone is marked `unavailable` and never asked about again. Counts and views
+  are fetched as separate concerns on purpose: counts come off ordinary edges
+  the page token already has, **views need `read_insights` (FB) /
   `instagram_manage_insights` (IG)** and are simply absent without them.
   Insight metric names are **probed, not assumed** (Meta replaced `impressions`
   with `views` on IG in v22 and retired the Page reach/impressions family in
@@ -216,9 +216,31 @@ server-side.
   plus shared `GRAPH_API_VERSION`. Graph plumbing common to all three Meta
   services (version, error predicates) lives in
   [graphApi.js](server/services/graphApi.js).
-- **Refresh paths**: opportunistic on every listing/detail read (covers anything
-  anyone is looking at), plus `npm run refresh-social-stats` in `server/` for a
-  scheduler to catch listings nobody has opened.
+- **These three fields never enter the response cache.** `views`,
+  `social` and `socialStats` are the fastest-changing fields on a post, while
+  `postsCache`/`optimizedPaginatedCache`/`searchResultsCache` (and
+  `getUserPosts`' own inline cache) hold the rest of a post response for
+  10-30 minutes on purpose — the wrong tradeoff for numbers that change on
+  every page view. They first shipped projected straight into the same
+  cached aggregate, which froze a fresh view, a just-stored Facebook/
+  Instagram id, or a newly-fetched engagement count for up to the cache TTL —
+  and because a cache hit skips the controller entirely, the refresh that was
+  supposed to keep them current never even fired during that window.
+  [postStatsOverlay.js](server/middleware/postStatsOverlay.js) fixes this: none
+  of the four read controllers project these fields anymore, and the
+  middleware wraps `res.json` **ahead of every cache layer** on all four
+  routes, so it runs whether the rest of the response came from a cache hit or
+  a fresh aggregate. It reads the three fields fresh (one `findById`/batched
+  `find` by `_id`, cheap since it's an indexed point read with no `$lookup`s),
+  merges them into the outgoing payload, and is now the *only* place that
+  calls `scheduleRefresh` — a listing page's cache hit still triggers a stats
+  refresh, which it could never do before. `npm run test-post-stats-overlay`
+  covers it offline (both response shapes, a deleted post, an empty page, and
+  a DB failure that must not break the response).
+- **Refresh paths**: opportunistic on every listing/detail read regardless of
+  cache state (see above — covers anything anyone is looking at), plus
+  `npm run refresh-social-stats` in `server/` for a scheduler to catch
+  listings nobody has opened.
 - **Two numbers, never one.** A page visit here, a Facebook reaction and an
   impression in someone's feed are different units — site views and social views
   are never summed, and platforms are never pooled into one total. Same rule as
