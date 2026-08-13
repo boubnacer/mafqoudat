@@ -30,6 +30,13 @@ const {
  *    for the life of the process. `post_engaged_users`/`post_clicks` (FB) and
  *    `saved` (IG) are unrelated concepts from views, not alternate names for
  *    it, so each is resolved against its own candidate list.
+ *  - Freshness is two-tier, not one flat TTL. A brand-new post is read again
+ *    every few minutes because its owner is realistically watching it; an
+ *    old settled one is read every few hours because nobody is. Without this,
+ *    the very first read (moments after creation, before anyone off-site
+ *    could have reacted yet) would lock the numbers for the long TTL
+ *    regardless of what happened on the Page in the meantime - the exact
+ *    window an owner is most likely to check.
  */
 
 const readIntEnv = (name, fallback, { min, max }) => {
@@ -43,11 +50,26 @@ const readListEnv = (name, fallback) => {
   return raw.length > 0 ? raw : fallback;
 };
 
-// How long stored numbers are considered fresh. Social counters move slowly
-// and the point of the feature is a sense of reach, not a live ticker, so the
-// default is deliberately generous - it is what keeps a busy listing page from
-// turning into a burst of Graph calls.
+// How long stored numbers are considered fresh, for a post that has settled.
+// Social counters move slowly on an old listing and the point of the feature
+// is a sense of reach, not a live ticker, so this default is deliberately
+// generous - it is what keeps a busy listing page from turning into a burst
+// of Graph calls for numbers nobody is watching closely any more.
 const TTL_MS = readIntEnv('SOCIAL_STATS_TTL_MINUTES', 180, { min: 5, max: 1440 }) * 60 * 1000;
+
+// A much shorter freshness window applies instead for the first
+// YOUNG_POST_HOURS of a post's life - that is exactly when an owner is
+// actually watching for reactions, and it is also the one moment the long TTL
+// used to actively hurt: the very first read (moments after creation, before
+// anyone off-site has had a chance to react) stamped `fetchedAt` and then
+// blocked every re-check for the next three hours regardless of what
+// happened on the Page in between. A young post is cheap to check often -
+// only its own owner is realistically reloading it - so this trades a few
+// more Graph calls on brand-new posts for numbers that catch up in minutes
+// instead of hours. Once a post ages past the window it falls back to the
+// settled-post TTL above, where the volume argument applies again.
+const YOUNG_POST_HOURS = readIntEnv('SOCIAL_STATS_YOUNG_POST_HOURS', 24, { min: 1, max: 168 });
+const YOUNG_TTL_MS = readIntEnv('SOCIAL_STATS_YOUNG_TTL_MINUTES', 10, { min: 1, max: 180 }) * 60 * 1000;
 
 // Graph caps a batched `?ids=` read at 50 objects.
 const BATCH_SIZE = readIntEnv('SOCIAL_STATS_BATCH_SIZE', 50, { min: 1, max: 50 });
@@ -111,11 +133,26 @@ class SocialStatsService {
     return !!(post?.social?.facebook?.postId || post?.social?.instagram?.mediaId);
   }
 
-  /** True when the stored numbers are older than the TTL (or absent). */
+  /**
+   * The freshness window that applies to this post right now: the short one
+   * while it is young enough that its owner is plausibly still watching it,
+   * the long one once it has settled. Falls back to the long TTL when
+   * `createdAt` was not selected on the document passed in - "unknown age"
+   * should never be treated as "definitely young".
+   */
+  static ttlFor(post, now = Date.now()) {
+    const createdAt = post?.createdAt ? new Date(post.createdAt).getTime() : null;
+    if (createdAt && now - createdAt < YOUNG_POST_HOURS * 60 * 60 * 1000) {
+      return YOUNG_TTL_MS;
+    }
+    return TTL_MS;
+  }
+
+  /** True when the stored numbers are older than the applicable TTL (or absent). */
   static isStale(post, now = Date.now()) {
     const fetchedAt = post?.socialStats?.fetchedAt;
     if (!fetchedAt) return true;
-    return now - new Date(fetchedAt).getTime() >= TTL_MS;
+    return now - new Date(fetchedAt).getTime() >= SocialStatsService.ttlFor(post, now);
   }
 
   // ---------------------------------------------------------------- fetching
@@ -410,4 +447,6 @@ class SocialStatsService {
 module.exports = new SocialStatsService();
 module.exports.SocialStatsService = SocialStatsService;
 module.exports.TTL_MS = TTL_MS;
+module.exports.YOUNG_TTL_MS = YOUNG_TTL_MS;
+module.exports.YOUNG_POST_HOURS = YOUNG_POST_HOURS;
 module.exports.MAX_POSTS_PER_RUN = MAX_POSTS_PER_RUN;

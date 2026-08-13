@@ -44,7 +44,10 @@ const run = async () => {
   };
 
   const posts = await Post.find(query)
-    .select('social socialStats')
+    // createdAt is selected so the same young-post/settled-post freshness
+    // split the opportunistic path uses applies here too, not just isStale's
+    // default long TTL for everything.
+    .select('social socialStats createdAt')
     // Oldest stats first, so a run that hits the limit still makes progress on
     // the ones that have been waiting longest.
     .sort({ 'socialStats.fetchedAt': 1 })

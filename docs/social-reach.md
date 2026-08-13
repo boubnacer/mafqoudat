@@ -94,7 +94,9 @@ All optional; defaults in brackets.
 
 | Variable | Meaning |
 | --- | --- |
-| `SOCIAL_STATS_TTL_MINUTES` [180] | How long stored numbers count as fresh before a page view triggers a refetch |
+| `SOCIAL_STATS_TTL_MINUTES` [180] | How long stored numbers count as fresh before a page view triggers a refetch, for a post older than `SOCIAL_STATS_YOUNG_POST_HOURS` |
+| `SOCIAL_STATS_YOUNG_TTL_MINUTES` [10] | The much shorter freshness window that applies instead while a post is younger than `SOCIAL_STATS_YOUNG_POST_HOURS` |
+| `SOCIAL_STATS_YOUNG_POST_HOURS` [24] | How long a post counts as "young" after creation |
 | `SOCIAL_STATS_BATCH_SIZE` [50] | Objects per batched Graph read (Graph's own maximum is 50) |
 | `SOCIAL_STATS_MAX_PER_RUN` [50] | Ceiling on posts refreshed by one pass |
 | `SOCIAL_STATS_FB_VIEW_METRICS` | Facebook view metric candidates, in order |
@@ -108,15 +110,31 @@ All optional; defaults in brackets.
 ## How refreshing works
 
 Numbers are refreshed opportunistically: whenever a listing page or a post
-detail is served, any post on it whose numbers are older than the TTL is queued
-for a background refetch. The visitor is never made to wait — they are served
-the stored numbers, and the refreshed ones appear on a later load.
+detail is served, any post on it whose numbers are older than the applicable
+TTL is queued for a background refetch. The visitor is never made to wait —
+they are served the stored numbers, and the refreshed ones appear on a later
+load.
 
 `middleware/postStatsOverlay.js` reads `views`/`social`/`socialStats` fresh on
 every request (not projected into the long-lived post response cache), so
 this refresh triggers on a cache hit exactly as reliably as on a cache miss —
 a busy listing page keeps its numbers current even if the rest of the page
 response is being served from cache.
+
+**The TTL is two-tier, not one flat number.** The first
+`SOCIAL_STATS_YOUNG_POST_HOURS` (24h) of a post's life use the much shorter
+`SOCIAL_STATS_YOUNG_TTL_MINUTES` (10min) window instead of the settled-post
+one (180min). Without this, the very first read — moments after creation,
+before anyone off-site has had a chance to react yet — stamps `fetchedAt` and
+then blocks every re-check for the next three hours, regardless of what
+happens on the Page in between. That is exactly the window an owner is most
+likely to be checking: post something, go react to it on the Page yourself to
+see it work, come back to the site a few minutes later, and under a flat TTL
+you'd see nothing new for hours. A young post is cheap to check often — only
+its own owner is realistically reloading it — so the tradeoff is a few more
+Graph calls on brand-new posts for numbers that catch up in minutes instead of
+hours. A post with no `createdAt` available falls back to the long TTL, never
+"always young".
 
 That covers everything anyone is actually looking at. For listings nobody has
 opened in a while, run the sweep on a schedule (hourly is plenty):
@@ -135,6 +153,10 @@ cd server && npm run refresh-social-stats -- --limit=500
   to map an old listing back to its copy on the Page.
 - **A post deleted from the Page keeps its last numbers** and is marked
   unavailable — the site stops asking Graph about it and stops linking to it.
+  There is no historical record kept anywhere: this is a poll-based reader,
+  not a webhook subscriber, so any engagement that happened between the last
+  successful read and the deletion is gone for good the moment the Page copy
+  is deleted, even if you saw it happen with your own eyes.
 - Engagement is not attributed: there is no way to tell whether a Facebook
   reaction or click turned into a visit here.
 - Facebook's "engaged users" and "clicks" are Page-post-level metrics, not

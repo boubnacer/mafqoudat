@@ -15,7 +15,7 @@
 
 const axios = require('axios');
 const Post = require('../models/Post');
-const { SocialStatsService } = require('../services/socialStatsService');
+const { SocialStatsService, YOUNG_TTL_MS, YOUNG_POST_HOURS } = require('../services/socialStatsService');
 
 let failures = 0;
 let checks = 0;
@@ -166,8 +166,9 @@ const reset = () => {
 // state by design, and most scenarios need to start from an unprobed one.
 const newService = () => new SocialStatsService();
 
-const post = (id, { fb = null, ig = null, fetchedAt = null, fbGone = false, igGone = false } = {}) => ({
+const post = (id, { fb = null, ig = null, fetchedAt = null, fbGone = false, igGone = false, createdAt = null } = {}) => ({
   _id: id,
+  createdAt,
   social: {
     facebook: { postId: fb },
     instagram: { mediaId: ig },
@@ -195,6 +196,46 @@ const run = async () => {
     !SocialStatsService.hasSocialTargets(post('a')));
   checkThat('an Instagram-only post still has a target',
     SocialStatsService.hasSocialTargets(post('a', { ig: 'i1' })));
+
+  // -------------------------------------------------------------------------
+  console.log('\n--- young posts get a much shorter freshness window ---');
+
+  const MINUTE = 60 * 1000;
+  const postJustCreated = new Date(Date.now() - MINUTE);
+  const postCreatedLongAgo = new Date(Date.now() - (YOUNG_POST_HOURS * 60 + 10) * MINUTE);
+  // Past the short young-post window, but nowhere near the long settled-post
+  // one - the exact zone the old flat TTL got wrong.
+  const fetchedJustPastYoungWindow = new Date(Date.now() - (YOUNG_TTL_MS + 2 * MINUTE));
+  const fetchedWellWithinYoungWindow = new Date(Date.now() - MINUTE);
+
+  checkThat("this is exactly what the reported bug looked like: a post checked once right \
+after creation stays 'fresh' under a flat settled-post TTL even though real engagement \
+happened on the Page minutes later",
+    SocialStatsService.isStale(post('a', { fb: 'f1', createdAt: postJustCreated, fetchedAt: fetchedJustPastYoungWindow })),
+    `fetched ${Math.round((Date.now() - fetchedJustPastYoungWindow.getTime()) / MINUTE)}m ago - stale for a post this young, would have read as fresh under a flat 180m TTL`);
+
+  checkThat('a young post fetched moments ago is still fresh under its own short window',
+    !SocialStatsService.isStale(post('a', { fb: 'f1', createdAt: postJustCreated, fetchedAt: fetchedWellWithinYoungWindow })));
+
+  checkThat('a settled post is judged by the long TTL, not the short one',
+    !SocialStatsService.isStale(post('a', { fb: 'f1', createdAt: postCreatedLongAgo, fetchedAt: fetchedJustPastYoungWindow })),
+    `${Math.round((Date.now() - fetchedJustPastYoungWindow.getTime()) / MINUTE)}m old - stale for a young post, fine for a settled one`);
+
+  checkThat('a post with no createdAt selected falls back to the long TTL, not "always young"',
+    !SocialStatsService.isStale(post('a', { fb: 'f1', fetchedAt: fetchedJustPastYoungWindow })));
+
+  reset();
+  world.facebook.recent = { reactions: 3, comments: 1, shares: 0, views: 10, engagedUsers: 2, clicks: 1 };
+  world.facebook.checkedInLastMinute = { reactions: 5, comments: 0, shares: 0, views: 20, engagedUsers: 3, clicks: 1 };
+  const refreshed = await newService().refreshStale([
+    // Young, last checked before its own short window - due for a recheck,
+    // exactly the case that used to sit stuck for up to three hours.
+    post('young-and-due', { fb: 'recent', createdAt: postJustCreated, fetchedAt: fetchedJustPastYoungWindow }),
+    // Young, but checked moments ago - still within its own short window.
+    post('young-not-due-yet', { fb: 'checkedInLastMinute', createdAt: postJustCreated, fetchedAt: fetchedWellWithinYoungWindow }),
+  ]);
+  check('only the one past its own window is refreshed', refreshed, 1);
+  checkThat('and it is the young-but-overdue one', !!updateFor('young-and-due') && !updateFor('young-not-due-yet'));
 
   // -------------------------------------------------------------------------
   console.log('\n--- reading both platforms, every metric ---');

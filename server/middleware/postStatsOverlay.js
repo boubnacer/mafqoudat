@@ -48,9 +48,11 @@ const applyLiveStats = (post, live) => {
 const mergeLiveStats = async (data) => {
   if (!data) return;
 
-  // getPost: a single flat post object.
+  // getPost: a single flat post object. createdAt is selected but never
+  // merged into the response - it exists only so scheduleRefresh can apply
+  // the shorter freshness window to a post its owner is still watching.
   if (data._id && mongoose.Types.ObjectId.isValid(data._id)) {
-    const live = await Post.findById(data._id).select('views social socialStats').lean();
+    const live = await Post.findById(data._id).select('views social socialStats createdAt').lean();
     if (!live) return;
     applyLiveStats(data, live);
     socialStatsService.scheduleRefresh([live]);
@@ -64,7 +66,7 @@ const mergeLiveStats = async (data) => {
   const ids = posts.map((post) => post._id).filter((id) => mongoose.Types.ObjectId.isValid(id));
   if (ids.length === 0) return;
 
-  const liveDocs = await Post.find({ _id: { $in: ids } }).select('views social socialStats').lean();
+  const liveDocs = await Post.find({ _id: { $in: ids } }).select('views social socialStats createdAt').lean();
   if (liveDocs.length === 0) return;
 
   const liveById = new Map(liveDocs.map((doc) => [String(doc._id), doc]));

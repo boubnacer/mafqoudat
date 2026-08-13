@@ -225,7 +225,28 @@ server-side.
   (50), `_FB_VIEW_METRICS`, `_FB_ENGAGED_METRICS`, `_FB_CLICKS_METRICS`,
   `_IG_VIEW_METRICS`, `_IG_SAVED_METRICS`, plus shared `GRAPH_API_VERSION`.
   Graph plumbing common to all three Meta services (version, error predicates)
-  lives in [graphApi.js](server/services/graphApi.js).
+  lives in [graphApi.js](server/services/graphApi.js). **Freshness is
+  two-tier** (`SocialStatsService.ttlFor`): a post younger than
+  `SOCIAL_STATS_YOUNG_POST_HOURS` (24) uses `SOCIAL_STATS_YOUNG_TTL_MINUTES`
+  (10) instead of the settled-post TTL above. Without this, the very first
+  read — moments after creation, before anyone off-site could have reacted —
+  stamps `fetchedAt` and blocks every re-check for the next three hours
+  regardless of what happens on the Page in between, which is exactly the
+  window an owner is most likely checking (post, go react to it yourself,
+  come back to look). Requires `createdAt` selected on whatever's passed to
+  `isStale`/`refreshStale` — `postStatsOverlay.js` and
+  `scripts/refreshSocialStats.js` both select it purely for this, never
+  expose it. Missing `createdAt` falls back to the long TTL, never "always
+  young". No push/webhook alternative: Instagram doesn't expose a likes
+  webhook at all (comments/mentions only), so even a webhook build wouldn't
+  make IG likes instant, and it would still need its own public endpoint +
+  signature verification + App Review — the two-tier TTL gets most of the
+  practical benefit (minutes, not hours) without that project.
+  **Deletion is not recoverable**: this is a poll-based reader, not a webhook
+  subscriber, so engagement that happened between the last successful read
+  and a Page-side deletion is gone the moment the object disappears — the
+  post is marked `unavailable` with whatever numbers it last had, not
+  whatever activity actually occurred.
 - **These three fields never enter the response cache.** `views`,
   `social` and `socialStats` are the fastest-changing fields on a post, while
   `postsCache`/`optimizedPaginatedCache`/`searchResultsCache` (and
