@@ -23,12 +23,24 @@ const sumKnown = (values) => {
   return known.length > 0 ? known.reduce((total, value) => total + value, 0) : null;
 };
 
-const readPlatform = (stats, links, countKeys) => {
+/**
+ * `countKeys` feed the platform's `interactions` total; `extraKeys` are read
+ * the same way (null until fetched) but kept out of that sum. Facebook's
+ * `engagedUsers` is a rollup that already overlaps with reactions/comments/
+ * shares - folding it in would double-count the same activity - and while
+ * `clicks`/`saved` don't overlap, mixing them into a total that already
+ * shipped would silently redefine what that number means for anyone already
+ * looking at it. Each stays its own row instead.
+ */
+const readPlatform = (stats, links, countKeys, extraKeys = []) => {
   const counts = {};
   countKeys.forEach((key) => { counts[key] = asCount(stats?.[key]); });
+  const extras = {};
+  extraKeys.forEach((key) => { extras[key] = asCount(stats?.[key]); });
 
   return {
     ...counts,
+    ...extras,
     views: asCount(stats?.views),
     permalink: links?.permalink || null,
     // Interactions, not views: a reaction and an impression are not the same
@@ -48,12 +60,14 @@ export const summarizeSocialStats = (post) => {
   const facebook = readPlatform(
     post?.socialStats?.facebook,
     post?.social?.facebook,
-    ['reactions', 'comments', 'shares']
+    ['reactions', 'comments', 'shares'],
+    ['engagedUsers', 'clicks']
   );
   const instagram = readPlatform(
     post?.socialStats?.instagram,
     post?.social?.instagram,
-    ['likes', 'comments']
+    ['likes', 'comments'],
+    ['saved']
   );
 
   const interactions = sumKnown([facebook.interactions, instagram.interactions]);
