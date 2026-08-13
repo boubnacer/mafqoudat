@@ -145,6 +145,13 @@ cd server && npm run refresh-social-stats -- --all   # ignore the freshness TTL
 cd server && npm run refresh-social-stats -- --limit=500
 ```
 
+**Optional third path**: a Facebook Page webhook can trigger an immediate,
+TTL-bypassing refresh the moment a specific post gets a reaction, comment or
+share — an accelerant on top of everything above, not a replacement (webhook
+delivery is best-effort, and Instagram likes have no webhook at all, so IG
+stays poll-based regardless). Nothing here does anything until it's
+explicitly set up. See [facebook-webhooks.md](facebook-webhooks.md).
+
 ## Limitations worth knowing
 
 - **Listings created before this feature shipped have no numbers, ever.** The

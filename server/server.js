@@ -151,7 +151,15 @@ app.use(cors(corsOptions));
 // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
 // app.use(generalRateLimit);
 
-app.use(express.json({ limit: '10mb' }));
+// `verify` stashes the raw bytes on req.rawBody before they're gone to JSON
+// parsing - middleware/facebookWebhookSecurity.js needs the exact raw body to
+// verify Meta's HMAC signature (a JSON.stringify of the parsed object is not
+// guaranteed to reproduce the same bytes Meta signed). Cheap for every other
+// route: one extra Buffer reference, discarded with the request.
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, res, buf) => { req.rawBody = buf; },
+}));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(cookieParser());
@@ -193,6 +201,9 @@ app.use("/", require("./routes/sitemapRoutes"));
 // https://www.mafqoudat.com/dash/posts/:id via a user-agent-conditional Vercel
 // rewrite, so the shared URL and the rendered card share one origin.
 app.use("/", require("./routes/ogRoutes"));
+// Reached directly at the Render URL, not through the Vercel frontend at all
+// - Meta calls this URL itself, it is never something a browser visits.
+app.use("/webhooks", require("./routes/facebookWebhookRoutes"));
 app.use("/dashboard", require("./routes/dashRoutes"));
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/auth", require("./routes/googleAuthRoutes"));

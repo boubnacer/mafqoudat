@@ -271,7 +271,23 @@ server-side.
 - **Refresh paths**: opportunistic on every listing/detail read regardless of
   cache state (see above — covers anything anyone is looking at), plus
   `npm run refresh-social-stats` in `server/` for a scheduler to catch
-  listings nobody has opened.
+  listings nobody has opened. A third, optional path:
+  [facebookWebhookRoutes.js](server/routes/facebookWebhookRoutes.js) receives
+  Meta's Page `feed` webhook (reaction/comment/share on a specific post) and
+  calls `scheduleRefreshByFacebookPostIds` — an accelerant on top of the poll,
+  never a replacement (webhook delivery is best-effort per Meta's own docs;
+  the poll is what guarantees eventual correctness). Signature-verified via
+  [facebookWebhookSecurity.js](server/middleware/facebookWebhookSecurity.js)
+  against `req.rawBody`, which `server.js`'s global `express.json({ verify })`
+  stashes before parsing — HMAC has to run over the exact bytes Meta signed.
+  Instagram has no likes webhook at all (comments/mentions only), so IG stays
+  entirely poll-based regardless. Fully optional — nothing here does anything
+  until `FACEBOOK_WEBHOOK_VERIFY_TOKEN` is set and the Page is subscribed via
+  the Meta App Dashboard; setup walkthrough and troubleshooting:
+  [facebook-webhooks.md](docs/facebook-webhooks.md). `npm run
+  test-facebook-webhook` covers the signature check, the verification
+  handshake, and payload parsing offline; the TTL-bypassing refresh path
+  itself is covered in `test-social-stats`.
 - **Two numbers, never one.** A page visit here, a Facebook reaction and an
   impression in someone's feed are different units — site views and social views
   are never summed, and platforms are never pooled into one total. Same rule as

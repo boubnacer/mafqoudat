@@ -153,9 +153,32 @@ Post.bulkWrite = async (operations) => {
   return { modifiedCount: operations.length };
 };
 
+// A thenable stub for Post.find(...).select(...).lean() - just enough of
+// Mongoose's chainable query surface for code that only ever awaits the
+// whole expression. Used by refreshByFacebookPostIds, which looks posts up
+// by their Facebook post id rather than by our own _id.
+const postsByFacebookId = new Map(); // facebookPostId -> post()-shaped object
+
+Post.find = (filter) => {
+  const ids = filter?.['social.facebook.postId']?.$in || [];
+  const matches = ids
+    .map((id) => postsByFacebookId.get(id))
+    .filter(Boolean)
+    // Mirrors the unavailable filter in the real query, so a test doesn't
+    // need to duplicate refreshByFacebookPostIds' own logic to trust it.
+    .filter((doc) => !doc.socialStats?.facebook?.unavailable);
+  const query = {
+    select: () => query,
+    lean: () => query,
+    then: (resolve, reject) => Promise.resolve(matches).then(resolve, reject),
+  };
+  return query;
+};
+
 const reset = () => {
   requests.length = 0;
   writes.length = 0;
+  postsByFacebookId.clear();
   world.facebook = {};
   world.instagram = {};
   world.facebookMetrics = ['post_impressions_unique', 'post_engaged_users', 'post_clicks'];
@@ -410,6 +433,48 @@ happened on the Page minutes later",
   axios.get = workingGet;
   checkThat('a network failure is swallowed, not thrown at the caller', !threw);
   check('and nothing is written', writes.length, 0);
+
+  // -------------------------------------------------------------------------
+  console.log('\n--- webhook-triggered refresh (refreshByFacebookPostIds) ---');
+
+  reset();
+  world.facebook.f1 = { reactions: 40, comments: 5, shares: 1, views: 900, engagedUsers: 20, clicks: 3 };
+  // Fetched moments ago - refreshStale would skip this outright. A webhook
+  // delivery is a stronger signal than "it's been a while", so it must
+  // refresh anyway.
+  const justChecked = post('p1', { fb: 'f1', fetchedAt: new Date() });
+  postsByFacebookId.set('f1', justChecked);
+  const refreshedCount = await newService().refreshByFacebookPostIds(['f1']);
+  check('a just-checked post is still refreshed when a webhook names it', refreshedCount, 1);
+  check('with the new numbers', updateFor('p1')['socialStats.facebook.reactions'], 40);
+
+  reset();
+  world.facebook.f2 = { reactions: 1, comments: 0, shares: 0, views: 10, engagedUsers: 1, clicks: 0 };
+  postsByFacebookId.set('f2', post('p2', { fb: 'f2', fbGone: true }));
+  const skipped = await newService().refreshByFacebookPostIds(['f2']);
+  check('a post already known to be gone is not re-fetched even if named by a webhook', skipped, 0);
+  checkThat('and nothing is written for it', !updateFor('p2'));
+
+  reset();
+  world.facebook.fa = { reactions: 2, comments: 0, shares: 0, views: 20, engagedUsers: 1, clicks: 0 };
+  world.facebook.fb = { reactions: 3, comments: 0, shares: 0, views: 30, engagedUsers: 2, clicks: 1 };
+  postsByFacebookId.set('fa', post('pa', { fb: 'fa' }));
+  postsByFacebookId.set('fb', post('pb', { fb: 'fb' }));
+  const batchUpdated = await newService().refreshByFacebookPostIds(['fa', 'fb']);
+  check('several posts named in one delivery are all refreshed', batchUpdated, 2);
+  check('in a single batched Graph read, not one per post',
+    requests.filter((request) => request.params.ids).length, 1);
+
+  reset();
+  const noneFound = await newService().refreshByFacebookPostIds(['unknown-fb-post-id']);
+  check('a Facebook post id with no matching post in our DB is a silent no-op', noneFound, 0);
+
+  reset();
+  world.facebook.fc = { reactions: 5, comments: 1, shares: 0, views: 50, engagedUsers: 3, clicks: 1 };
+  postsByFacebookId.set('fc', post('pc', { fb: 'fc' }));
+  const emptyList = await newService().refreshByFacebookPostIds([]);
+  check('an empty list of ids never touches Graph or the DB', emptyList, 0);
+  check('no request is made', requests.length, 0);
 };
 
 run()
