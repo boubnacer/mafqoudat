@@ -197,25 +197,35 @@ server-side.
   have no ids and can never get stats** — there is no reliable way to map an old
   listing back to its Page copy.
 - **Reader**: [socialStatsService.js](server/services/socialStatsService.js) fills
-  `Post.socialStats` (fb: views/reactions/comments/shares, ig: views/likes/
-  comments, plus `fetchedAt` and a per-platform `unavailable`). Never on a
-  request's critical path — called fire-and-forget via `scheduleRefresh(posts)`
-  and serves whatever is stored. Reads are batched (`?ids=`, 50 max); a batch
-  that fails on an unreadable object is retried one id at a time so one deleted
-  Page post costs one listing's numbers, not the page's. A post whose Page copy
-  is gone is marked `unavailable` and never asked about again. Counts and views
-  are fetched as separate concerns on purpose: counts come off ordinary edges
-  the page token already has, **views need `read_insights` (FB) /
+  `Post.socialStats` (fb: views/reactions/comments/shares/engagedUsers/clicks,
+  ig: views/likes/comments/saved, plus `fetchedAt` and a per-platform
+  `unavailable`). Never on a request's critical path — called fire-and-forget
+  via `scheduleRefresh(posts)` and serves whatever is stored. Reads are batched
+  (`?ids=`, 50 max); a batch that fails on an unreadable object is retried one
+  id at a time so one deleted Page post costs one listing's numbers, not the
+  page's. A post whose Page copy is gone is marked `unavailable` and never
+  asked about again. Counts and insight metrics are fetched as separate
+  concerns on purpose: counts (reactions/comments/shares/likes) come off
+  ordinary edges the page token already has, while **views, engaged users and
+  clicks (FB) / views and saved (IG) all need `read_insights` (FB) /
   `instagram_manage_insights` (IG)** and are simply absent without them.
-  Insight metric names are **probed, not assumed** (Meta replaced `impressions`
-  with `views` on IG in v22 and retired the Page reach/impressions family in
-  June 2026) — first candidate that answers wins and is memoized for the process;
-  a failed probe is remembered for 6h so a missing permission costs one probe,
-  not one per refresh. Every knob is env: `SOCIAL_STATS_TTL_MINUTES` (180),
-  `_BATCH_SIZE` (50), `_MAX_PER_RUN` (50), `_FB_VIEW_METRICS`, `_IG_VIEW_METRICS`,
-  plus shared `GRAPH_API_VERSION`. Graph plumbing common to all three Meta
-  services (version, error predicates) lives in
-  [graphApi.js](server/services/graphApi.js).
+  Insight metric names are **probed, not assumed — independently per metric,
+  not per platform** (Meta replaced `impressions` with `views` on IG in v22
+  and retired the Page reach/impressions family in June 2026; `engagedUsers`/
+  `clicks`/`saved` are unrelated concepts from views, not alternate names for
+  it) — first candidate that answers wins and is memoized per metric for the
+  process; a failed probe is remembered for 6h so a missing permission costs
+  one probe per metric, not one per refresh, and a rename or missing
+  permission on one metric never costs the others. `engagedUsers` (a rollup
+  that already overlaps reactions/comments/shares) and `clicks`/`saved` (real
+  but separate actions) are deliberately **not** folded into the card-level
+  `interactions` total — each stays its own row on the detail-page breakdown
+  instead of silently redefining a number that already shipped. Every knob is
+  env: `SOCIAL_STATS_TTL_MINUTES` (180), `_BATCH_SIZE` (50), `_MAX_PER_RUN`
+  (50), `_FB_VIEW_METRICS`, `_FB_ENGAGED_METRICS`, `_FB_CLICKS_METRICS`,
+  `_IG_VIEW_METRICS`, `_IG_SAVED_METRICS`, plus shared `GRAPH_API_VERSION`.
+  Graph plumbing common to all three Meta services (version, error predicates)
+  lives in [graphApi.js](server/services/graphApi.js).
 - **These three fields never enter the response cache.** `views`,
   `social` and `socialStats` are the fastest-changing fields on a post, while
   `postsCache`/`optimizedPaginatedCache`/`searchResultsCache` (and

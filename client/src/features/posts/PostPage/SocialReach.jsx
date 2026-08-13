@@ -7,6 +7,9 @@ import {
   FavoriteBorder as LikesIcon,
   ChatBubbleOutline as CommentsIcon,
   ShareOutlined as SharesIcon,
+  GroupsOutlined as EngagedIcon,
+  TouchAppOutlined as ClicksIcon,
+  BookmarkBorderOutlined as SavedIcon,
   OpenInNew as OpenIcon,
 } from "@mui/icons-material";
 import { useTranslation } from "../../../utils/translations";
@@ -114,6 +117,8 @@ const SocialReach = ({ post }) => {
           <Metric icon={ReactionsIcon} value={facebook.reactions} label={t('reactions')} />
           <Metric icon={CommentsIcon} value={facebook.comments} label={t('comments')} />
           <Metric icon={SharesIcon} value={facebook.shares} label={t('shares')} />
+          <Metric icon={EngagedIcon} value={facebook.engagedUsers} label={t('engagedUsers')} />
+          <Metric icon={ClicksIcon} value={facebook.clicks} label={t('clicks')} />
         </PlatformRow>
       )}
 
@@ -128,6 +133,7 @@ const SocialReach = ({ post }) => {
           <Metric icon={ViewsIcon} value={instagram.views} label={t('views')} />
           <Metric icon={LikesIcon} value={instagram.likes} label={t('likes')} />
           <Metric icon={CommentsIcon} value={instagram.comments} label={t('comments')} />
+          <Metric icon={SavedIcon} value={instagram.saved} label={t('saved')} />
         </PlatformRow>
       )}
     </Box>

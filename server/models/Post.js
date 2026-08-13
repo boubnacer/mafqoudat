@@ -157,6 +157,11 @@ const postSchema = new mongoose.Schema(
         reactions: { type: Number, default: null },
         comments: { type: Number, default: null },
         shares: { type: Number, default: null },
+        // Unique people who did something with the post, not just saw it -
+        // a stronger reach signal than views.
+        engagedUsers: { type: Number, default: null },
+        // Link/photo clicks specifically.
+        clicks: { type: Number, default: null },
         // Post deleted from the Page (or hidden from our token). Retrying
         // never recovers it, so the refresh sweep skips these permanently.
         unavailable: { type: Boolean, default: false },
@@ -165,6 +170,9 @@ const postSchema = new mongoose.Schema(
         views: { type: Number, default: null },
         likes: { type: Number, default: null },
         comments: { type: Number, default: null },
+        // Bookmark count - often a better "genuine interest" signal than a
+        // like, since saving takes more intent than a tap while scrolling.
+        saved: { type: Number, default: null },
         unavailable: { type: Boolean, default: false },
       },
       fetchedAt: { type: Date, default: null },

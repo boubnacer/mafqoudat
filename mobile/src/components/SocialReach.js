@@ -155,6 +155,8 @@ export const SocialReachSection = ({ post }) => {
           <Metric styles={styles} tokens={tokens} icon="thumbs-up-outline" value={facebook.reactions} label={t('reactions')} />
           <Metric styles={styles} tokens={tokens} icon="chatbubble-outline" value={facebook.comments} label={t('comments')} />
           <Metric styles={styles} tokens={tokens} icon="share-social-outline" value={facebook.shares} label={t('shares')} />
+          <Metric styles={styles} tokens={tokens} icon="people-outline" value={facebook.engagedUsers} label={t('engagedUsers')} />
+          <Metric styles={styles} tokens={tokens} icon="link-outline" value={facebook.clicks} label={t('clicks')} />
         </PlatformBlock>
       ) : null}
 
@@ -171,6 +173,7 @@ export const SocialReachSection = ({ post }) => {
           <Metric styles={styles} tokens={tokens} icon="eye-outline" value={instagram.views} label={t('viewsLabel')} />
           <Metric styles={styles} tokens={tokens} icon="heart-outline" value={instagram.likes} label={t('likes')} />
           <Metric styles={styles} tokens={tokens} icon="chatbubble-outline" value={instagram.comments} label={t('comments')} />
+          <Metric styles={styles} tokens={tokens} icon="bookmark-outline" value={instagram.saved} label={t('saved')} />
         </PlatformBlock>
       ) : null}
     </View>
