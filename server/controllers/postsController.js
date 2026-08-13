@@ -11,7 +11,6 @@ const TranslationService = require("../services/translationService");
 const facebookService = require("../services/facebookService");
 const instagramService = require("../services/instagramService");
 const matchingService = require("../services/matchingService");
-const socialStatsService = require("../services/socialStatsService");
 const { cacheService } = require("../config/cache");
 const { escapeRegex } = require("../utils/regexUtils");
 const {
@@ -355,19 +354,16 @@ const getAllPosts = async (req, res) => {
         description: 1,
         contactPreferences: 1,
         Floptions: 1,
-        views: 1,
-        social: 1,
-        socialStats: 1,
       },
     },
   ];
 
+  // views/social/socialStats are deliberately not projected above and not
+  // cached with the rest of this response - middleware/postStatsOverlay.js
+  // merges them in fresh on every request, cache hit or miss, and is what
+  // triggers a stats refresh. Baking them into this aggregate would freeze
+  // them for the lifetime of optimizedPaginatedCache's TTL.
   const postsWithUser = await Post.aggregate(pipeline);
-
-  // Pull fresh Facebook/Instagram numbers for whatever on this page has gone
-  // stale. Deferred and capped inside the service - the visitor is served the
-  // stored numbers now and sees the refreshed ones on a later load.
-  socialStatsService.scheduleRefresh(postsWithUser);
 
 
   // Get total count for pagination - optimized single query
@@ -583,9 +579,6 @@ const getPost = async (req, res) => {
           contactPreferences: 1,
           mainDate: 1,
           status: 1,
-          views: 1,
-          social: 1,
-          socialStats: 1,
         },
       },
     ]);
@@ -594,8 +587,9 @@ const getPost = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    socialStatsService.scheduleRefresh(post);
-
+    // views/social/socialStats are merged in fresh by
+    // middleware/postStatsOverlay.js, not projected here - see the comment
+    // on getAllPosts' pipeline for why.
     res.status(200).json(post[0]);
   } catch (error) {
     console.error('Error fetching post:', error);
@@ -867,9 +861,6 @@ const getFilteredPosts = async (req, res) => {
           foundLost: 1,
           description: 1,
           contactPreferences: 1,
-          views: 1,
-          social: 1,
-          socialStats: 1,
         },
       },
       {
@@ -885,9 +876,10 @@ const getFilteredPosts = async (req, res) => {
       },
     ];
 
+    // views/social/socialStats are merged in fresh by
+    // middleware/postStatsOverlay.js, not projected here - see the comment
+    // on getAllPosts' pipeline for why.
     const postsWithUser = await Post.aggregate(pipeline);
-
-    socialStatsService.scheduleRefresh(postsWithUser);
 
     // If no posts
     if (!postsWithUser?.length) {
@@ -1091,20 +1083,17 @@ const getUserPosts = async (req, res) => {
               then: { $ifNull: ["$City.code", "UNKNOWN"] },
               else: "UNKNOWN"
             }
-          },
-          views: 1,
-          social: 1,
-          socialStats: 1
+          }
         }
       }
     ];
 
+    // views/social/socialStats are merged in fresh by
+    // middleware/postStatsOverlay.js, not projected here - see the comment
+    // on getAllPosts' pipeline for why.
     let userPosts;
     try {
       userPosts = await Post.aggregate(pipeline);
-      // The owner's own listing is where reach matters most - it is the one
-      // page whose whole point is "how is my post doing".
-      socialStatsService.scheduleRefresh(userPosts);
     } catch (aggregationError) {
       console.error('❌ [getUserPosts] Aggregation Error:', {
         message: aggregationError.message,

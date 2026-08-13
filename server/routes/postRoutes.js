@@ -4,6 +4,7 @@ const postsController = require("../controllers/postsController");
 const { verifyJWT } = require("../middleware/jwtSecurity");
 const optionalAuth = require("../middleware/optionalAuth");
 const trackPostView = require("../middleware/postViewTracker");
+const attachLivePostStats = require("../middleware/postStatsOverlay");
 const { dynamicDataCache, paginatedCache, invalidateCache } = require("../middleware/cacheMiddleware");
 const { 
   postsCache, 
@@ -35,12 +36,18 @@ const conditionalImageUploadLimit = (req, res, next) => {
 // It has to run BEFORE the cache middleware: those key on the viewer, and a key
 // computed before the token is read would serve one viewer's filtered listing to
 // everyone else.
+// attachLivePostStats sits ahead of every cache layer below (the shared
+// optimizedPaginatedCache/searchResultsCache middleware, and getUserPosts'
+// own inline cache) on purpose: it wraps res.json before a cache hit can
+// short-circuit past the controller, so views/social/socialStats are always
+// merged in fresh regardless of which path produced the rest of the response.
 router.route("/")
   .get(
     // searchRateLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
     optionalAuth,
     commonValidations.pagination(),
     validateRequest,
+    attachLivePostStats,
     optimizedPaginatedCache('posts'),
     postsController.getAllPosts
   );
@@ -51,6 +58,7 @@ router.route("/filtered")
     optionalAuth,
     commonValidations.pagination(),
     validateRequest,
+    attachLivePostStats,
     searchResultsCache('posts-filtered'),
     postsController.getFilteredPosts
   );
@@ -61,6 +69,7 @@ router.route("/user")
     // searchRateLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
     commonValidations.pagination(),
     validateRequest,
+    attachLivePostStats,
     postsController.getUserPosts
   );
 
@@ -71,6 +80,7 @@ router.route("/:id")
     commonValidations.objectId('id'),
     validateRequest,
     trackPostView,
+    attachLivePostStats,
     postsCache('post-detail'),
     postsController.getPost
   );

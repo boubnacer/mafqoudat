@@ -13,6 +13,7 @@
     "test-matching": "node scripts/testMatchingScorer.js",
     "test-push": "node scripts/testPushNotifications.js",
     "test-social-stats": "node scripts/testSocialStats.js",
+    "test-post-stats-overlay": "node scripts/testPostStatsOverlay.js",
     "refresh-social-stats": "node scripts/refreshSocialStats.js",
     "test-email": "node test-email-config.js",
     "create-indexes": "node scripts/create-indexes.js",
