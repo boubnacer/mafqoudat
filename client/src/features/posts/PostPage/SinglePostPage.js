@@ -47,6 +47,7 @@ import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
 import PromotionDialog from "../../../components/PromotionDialog";
 import ClaimItemDialog from "../../../components/ClaimItemDialog";
 import PostMatchesPanel from "../../notifications/PostMatchesPanel";
+import SocialReach from "./SocialReach";
 
 // Solid-fill tag, same signature as the post card DNA (Post.js/TrendingItem):
 // this is the single most load-bearing fact on the page, so it lives on the image,
@@ -179,6 +180,9 @@ const SinglePostPage = ({
   mainDate,
   views,
   lastViewedAt,
+  // Where this listing was auto-posted, and what it has collected there.
+  social,
+  socialStats,
   status,
   returned,
   resolvedAt,
@@ -857,7 +861,7 @@ const SinglePostPage = ({
                   <Divider sx={{ mb: 2, borderColor: theme.palette.divider }} />
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
                     {views !== undefined && (
-                      <FactItem icon={ViewIcon}>{views} {t('views')}</FactItem>
+                      <FactItem icon={ViewIcon}>{t('postViews', { count: views })}</FactItem>
                     )}
                     {tags && tags.length > 0 && tags.map((tag, index) => (
                       <Chip
@@ -875,6 +879,14 @@ const SinglePostPage = ({
                     ))}
                   </Box>
                 </>
+              )}
+
+              {/* Reach on the Pages this listing was mirrored to. Renders
+                  nothing until those numbers have actually been read back. */}
+              {(social || socialStats) && (
+                <Box sx={{ mt: 2 }}>
+                  <SocialReach post={{ social, socialStats }} />
+                </Box>
               )}
             </Box>
           </Paper>

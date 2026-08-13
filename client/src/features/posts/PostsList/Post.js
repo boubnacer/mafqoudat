@@ -40,6 +40,7 @@ import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
 import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
 import LazyCardMedia from "../../../components/LazyCardMedia";
+import ReachRow from "../../../components/ReachRow";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
@@ -778,6 +779,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               </Box>
             </Box>
 
+            <ReachRow post={post} />
           </Box>
         </Box>
       </Paper>
@@ -936,6 +938,8 @@ const Post = ({ post, viewMode = "grid" }) => {
             {post.exactLocation}
           </Typography>
         )}
+
+        <ReachRow post={post} sx={{ mt: 'auto' }} />
       </CardContent>
     </PostCardRoot>
   );

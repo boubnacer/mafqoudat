@@ -11,6 +11,7 @@ const TranslationService = require("../services/translationService");
 const facebookService = require("../services/facebookService");
 const instagramService = require("../services/instagramService");
 const matchingService = require("../services/matchingService");
+const socialStatsService = require("../services/socialStatsService");
 const { cacheService } = require("../config/cache");
 const { escapeRegex } = require("../utils/regexUtils");
 const {
@@ -354,12 +355,20 @@ const getAllPosts = async (req, res) => {
         description: 1,
         contactPreferences: 1,
         Floptions: 1,
+        views: 1,
+        social: 1,
+        socialStats: 1,
       },
     },
   ];
 
   const postsWithUser = await Post.aggregate(pipeline);
-  
+
+  // Pull fresh Facebook/Instagram numbers for whatever on this page has gone
+  // stale. Deferred and capped inside the service - the visitor is served the
+  // stored numbers now and sees the refreshed ones on a later load.
+  socialStatsService.scheduleRefresh(postsWithUser);
+
 
   // Get total count for pagination - optimized single query
   totalPosts = await Post.countDocuments({
@@ -575,6 +584,8 @@ const getPost = async (req, res) => {
           mainDate: 1,
           status: 1,
           views: 1,
+          social: 1,
+          socialStats: 1,
         },
       },
     ]);
@@ -582,6 +593,8 @@ const getPost = async (req, res) => {
     if (!post || post.length === 0) {
       return res.status(404).json({ message: "Post not found" });
     }
+
+    socialStatsService.scheduleRefresh(post);
 
     res.status(200).json(post[0]);
   } catch (error) {
@@ -854,6 +867,9 @@ const getFilteredPosts = async (req, res) => {
           foundLost: 1,
           description: 1,
           contactPreferences: 1,
+          views: 1,
+          social: 1,
+          socialStats: 1,
         },
       },
       {
@@ -870,8 +886,8 @@ const getFilteredPosts = async (req, res) => {
     ];
 
     const postsWithUser = await Post.aggregate(pipeline);
-    
-    // Debug: Log city information for posts
+
+    socialStatsService.scheduleRefresh(postsWithUser);
 
     // If no posts
     if (!postsWithUser?.length) {
@@ -1075,7 +1091,10 @@ const getUserPosts = async (req, res) => {
               then: { $ifNull: ["$City.code", "UNKNOWN"] },
               else: "UNKNOWN"
             }
-          }
+          },
+          views: 1,
+          social: 1,
+          socialStats: 1
         }
       }
     ];
@@ -1083,6 +1102,9 @@ const getUserPosts = async (req, res) => {
     let userPosts;
     try {
       userPosts = await Post.aggregate(pipeline);
+      // The owner's own listing is where reach matters most - it is the one
+      // page whose whole point is "how is my post doing".
+      socialStatsService.scheduleRefresh(userPosts);
     } catch (aggregationError) {
       console.error('❌ [getUserPosts] Aggregation Error:', {
         message: aggregationError.message,
@@ -1462,11 +1484,33 @@ const createNewPost = async (req, res) => {
       await cacheService.invalidatePattern('posts:*');
       await cacheService.invalidatePattern('dashboard:*');
 
-      // Fire-and-forget: never block or fail post creation on a social posting error
-      facebookService.postNewListing(post).catch((socialError) => {
+      // Fire-and-forget: never block or fail post creation on a social posting
+      // error. The ids that come back are stored (each on its own subpath, so
+      // the two concurrent writes cannot clobber each other) - they are the
+      // only handle on the Page/IG copies, and socialStatsService needs them
+      // to read back how the listing is doing there.
+      facebookService.postNewListing(post).then(async (result) => {
+        if (!result?.postId) return;
+        await Post.updateOne({ _id: post._id }, {
+          $set: {
+            'social.facebook.postId': result.postId,
+            'social.facebook.permalink': result.permalink || null,
+            'social.facebook.postedAt': new Date(),
+          }
+        });
+      }).catch((socialError) => {
         console.error(`Facebook auto-post failed for post ${post._id}:`, socialError.response?.data || socialError.message);
       });
-      instagramService.postNewListing(post).catch((socialError) => {
+      instagramService.postNewListing(post).then(async (result) => {
+        if (!result?.mediaId) return;
+        await Post.updateOne({ _id: post._id }, {
+          $set: {
+            'social.instagram.mediaId': result.mediaId,
+            'social.instagram.permalink': result.permalink || null,
+            'social.instagram.postedAt': new Date(),
+          }
+        });
+      }).catch((socialError) => {
         console.error(`Instagram auto-post failed for post ${post._id}:`, socialError.response?.data || socialError.message);
       });
 

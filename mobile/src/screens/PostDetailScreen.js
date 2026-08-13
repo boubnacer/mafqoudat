@@ -37,6 +37,7 @@ import ReportPostSheet from '../components/ReportPostSheet';
 import PromotePostSheet from '../components/PromotePostSheet';
 import PostActionsSheet from '../components/PostActionsSheet';
 import PostMatchesSection from '../components/notifications/PostMatchesSection';
+import { SocialReachSection } from '../components/SocialReach';
 import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
@@ -534,6 +535,10 @@ const PostDetailScreen = ({ navigation, route }) => {
               </View>
             ) : null}
           </View>
+
+          {/* What the auto-posted copies of this listing are doing on the
+              Facebook Page and the Instagram account. */}
+          <SocialReachSection post={post} />
 
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>{t('contactSeller')}</Text>

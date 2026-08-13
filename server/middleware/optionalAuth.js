@@ -15,24 +15,39 @@ const jwt = require("jsonwebtoken");
  * worst case of an unreadable token is that the viewer sees the unfiltered
  * listing, which is what they would have seen signed out anyway.
  */
-const optionalAuth = (req, res, next) => {
+/**
+ * The token's UserInfo payload, or null - without touching the request.
+ *
+ * Exported separately for the places that need to know who is asking but must
+ * not let it change the request: middleware/postViewTracker.js runs ahead of a
+ * response cache whose key includes req.user, so populating the request there
+ * would hand every signed-in viewer their own copy of an identical post detail
+ * response.
+ */
+const readBearerUserInfo = (req) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (!authHeader?.startsWith("Bearer ")) return null;
 
-  if (!authHeader?.startsWith("Bearer ")) {
-    return next();
+  try {
+    const decoded = jwt.verify(authHeader.split(" ")[1], process.env.JWT_SECRET);
+    return decoded?.UserInfo?.usernameId ? decoded.UserInfo : null;
+  } catch (err) {
+    return null;
+  }
+};
+
+const optionalAuth = (req, res, next) => {
+  const userInfo = readBearerUserInfo(req);
+
+  if (userInfo) {
+    req.user = userInfo.usernameId;
+    req.username = userInfo.username;
+    req.country = userInfo.country;
+    req.role = userInfo.role;
   }
 
-  const token = authHeader.split(" ")[1];
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (!err && decoded?.UserInfo?.usernameId) {
-      req.user = decoded.UserInfo.usernameId;
-      req.username = decoded.UserInfo.username;
-      req.country = decoded.UserInfo.country;
-      req.role = decoded.UserInfo.role;
-    }
-    next();
-  });
+  next();
 };
 
 module.exports = optionalAuth;
+module.exports.readBearerUserInfo = readBearerUserInfo;

@@ -129,6 +129,46 @@ const postSchema = new mongoose.Schema(
       type: String,
       trim: true
     }],
+    // Where this listing was mirrored to, set by services/facebookService.js
+    // and services/instagramService.js once the auto-post succeeds. The
+    // publish responses used to be logged and discarded; without the ids
+    // there is nothing to ask the Graph API about afterwards, so the reach a
+    // listing gets on the Pages was invisible to the site.
+    social: {
+      facebook: {
+        postId: { type: String, default: null },
+        permalink: { type: String, default: null },
+        postedAt: { type: Date, default: null },
+      },
+      instagram: {
+        mediaId: { type: String, default: null },
+        permalink: { type: String, default: null },
+        postedAt: { type: Date, default: null },
+      },
+    },
+    // Counters mirrored back from the Pages by services/socialStatsService.js.
+    // Every number defaults to null rather than 0 so the UI can tell "never
+    // fetched" (hide the row) from "genuinely zero" (show it) - a listing that
+    // truly has no reactions yet is a different statement from one whose
+    // numbers we simply do not have.
+    socialStats: {
+      facebook: {
+        views: { type: Number, default: null },
+        reactions: { type: Number, default: null },
+        comments: { type: Number, default: null },
+        shares: { type: Number, default: null },
+        // Post deleted from the Page (or hidden from our token). Retrying
+        // never recovers it, so the refresh sweep skips these permanently.
+        unavailable: { type: Boolean, default: false },
+      },
+      instagram: {
+        views: { type: Number, default: null },
+        likes: { type: Number, default: null },
+        comments: { type: Number, default: null },
+        unavailable: { type: Boolean, default: false },
+      },
+      fetchedAt: { type: Date, default: null },
+    },
     // Last time services/matchingService.js scored this post against the
     // opposite side. Read by the on-demand path so opening a post's "possible
     // matches" panel cannot re-run a full scan on every page view - including
@@ -183,7 +223,11 @@ postSchema.index(
   }
 );
 
-// 9. Search optimization: Country + Status + Text search
+// 9. Social stats refresh sweep: scripts/refreshSocialStats.js walks mirrored
+// posts oldest-stats-first, so the sort has to be served by an index.
+postSchema.index({ "socialStats.fetchedAt": 1 }, { name: "social_stats_refresh" });
+
+// 10. Search optimization: Country + Status + Text search
 postSchema.index(
   { country: 1, status: 1, exactLocation: "text", description: "text" },
   { name: "country_status_text_search_optimized" }
