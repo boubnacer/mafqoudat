@@ -665,6 +665,11 @@ const PostDetailScreen = ({ navigation, route }) => {
             </View>
           ) : null}
 
+          {/* Comment thread - the app's own comments merged with the ones
+              left on the Facebook/Instagram copies. Public to read. Placed
+              right after SocialReachSection above, ahead of Possible matches. */}
+          <CommentsSection postId={post._id} />
+
           {/* Possible matches - renders nothing for anyone but this post's
               owner, and nothing once the item is marked returned. */}
           <PostMatchesSection
@@ -673,10 +678,6 @@ const PostDetailScreen = ({ navigation, route }) => {
             postReturned={post.returned === true}
             onOpenPost={(matchedPostId) => navigation.push('PostDetailScreen', { id: matchedPostId })}
           />
-
-          {/* Comment thread - the app's own comments merged with the ones
-              left on the Facebook/Instagram copies. Public to read. */}
-          <CommentsSection postId={post._id} />
         </Animated.View>
       </ScrollView>
 

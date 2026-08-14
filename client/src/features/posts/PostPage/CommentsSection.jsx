@@ -13,6 +13,7 @@ import {
   CircularProgress,
   Alert,
   useTheme,
+  useMediaQuery,
   alpha,
 } from "@mui/material";
 import {
@@ -209,6 +210,7 @@ const CommentItem = ({ comment, postId, onError }) => {
 
 const CommentsSection = ({ postId }) => {
   const theme = useTheme();
+  const isXs = useMediaQuery(theme.breakpoints.down("sm"));
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
 
@@ -266,7 +268,11 @@ const CommentsSection = ({ postId }) => {
       )}
 
       {isAuthenticated ? (
-        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1, alignItems: { xs: "stretch", sm: "flex-start" } }}
+        >
           <TextField
             fullWidth
             multiline
@@ -281,6 +287,7 @@ const CommentsSection = ({ postId }) => {
           <Button
             type="submit"
             variant="contained"
+            fullWidth={isXs}
             disabled={!text.trim() || isPosting}
             startIcon={isPosting ? <CircularProgress size={14} color="inherit" /> : <SendIcon sx={{ fontSize: 16 }} />}
             sx={{

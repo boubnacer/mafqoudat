@@ -223,11 +223,14 @@ export default {
         "expo-notifications",
         {
           // Android draws a notification's small icon from its alpha channel
-          // alone, so the monochrome adaptive-icon layer is the right asset:
-          // it is already a transparent-background silhouette of the brand
-          // mark. Pointing at the full-colour icon instead is what produces
-          // the familiar white square in the status bar.
-          icon: "./assets/adaptive-icon-monochrome.png",
+          // alone, so a transparent-background silhouette of the brand mark is
+          // the right shape. Not adaptive-icon-monochrome directly though: that
+          // asset reserves adaptive-icon mask safe-zone padding (glyph fills only
+          // the center ~55% of its 1024x1024 canvas), which made the status-bar
+          // icon render tiny. This is the same silhouette re-cropped tight to its
+          // glyph bbox with a small uniform margin, so it fills the notification
+          // icon's own bounds instead.
+          icon: "./assets/notification-icon.png",
           // Tint applied behind that silhouette - brandPrimary, matching
           // colorTokens.light.brandPrimary in src/theme/tokens.js. Hardcoded
           // because this file is build config, evaluated long before any theme

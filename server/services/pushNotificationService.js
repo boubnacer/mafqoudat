@@ -1,5 +1,8 @@
 const axios = require('axios');
+const mongoose = require('mongoose');
 const User = require('../models/User');
+const Post = require('../models/Post');
+const Category = require('../models/Category');
 
 /**
  * Device push notifications for the mobile app.
@@ -84,10 +87,9 @@ const chunk = (items, size) => {
 // ---------------------------------------------------------------------------
 
 /**
- * Tray copy, per language. Deliberately about the *situation* rather than the
- * item: rendering "a black leather wallet in Casablanca" here would need the
- * category and city labels resolved per recipient, and the notification is
- * legible without them. The listing itself is one tap away.
+ * Tray copy, per language. Names the matched post's category when resolved
+ * ("...losing a Bag that looks like...") and falls back to the generic "item"/
+ * "objet"/"غرض" wording when it isn't (category deleted, lookup failed).
  *
  * `singleLost` is what the owner of a LOST post reads (someone found something
  * like it); `singleFound` is its mirror for the owner of a FOUND post.
@@ -95,25 +97,68 @@ const chunk = (items, size) => {
 const COPY = {
   en: {
     singleTitle: 'Possible match found',
-    singleLost: 'Someone posted a found item that looks like the one you reported lost.',
-    singleFound: 'Someone reported losing an item that looks like the one you found.',
+    singleLost: (category) => `Someone posted a found ${category || 'item'} that looks like the one you reported lost.`,
+    singleFound: (category) => `Someone reported losing ${category ? `a ${category}` : 'an item'} that looks like the one you found.`,
     multiTitle: (count) => `${count} possible matches`,
     multiBody: 'New listings look like ones you posted. Tap to review them.',
   },
   fr: {
     singleTitle: 'Correspondance possible',
-    singleLost: "Quelqu'un a publié un objet trouvé qui ressemble à celui que vous avez perdu.",
-    singleFound: "Quelqu'un a signalé la perte d'un objet qui ressemble à celui que vous avez trouvé.",
+    singleLost: (category) => `Quelqu'un a publié un ${category || 'objet'} trouvé qui ressemble à celui que vous avez perdu.`,
+    singleFound: (category) => `Quelqu'un a signalé la perte d'un ${category || 'objet'} qui ressemble à celui que vous avez trouvé.`,
     multiTitle: (count) => `${count} correspondances possibles`,
     multiBody: 'De nouvelles annonces ressemblent aux vôtres. Appuyez pour les consulter.',
   },
   ar: {
     singleTitle: 'تطابق محتمل',
-    singleLost: 'نشر أحدهم غرضًا وجده يشبه الغرض الذي أعلنت عن فقدانه.',
-    singleFound: 'أعلن أحدهم عن فقدان غرض يشبه الغرض الذي عثرت عليه.',
+    singleLost: (category) => `نشر أحدهم ${category || 'غرضًا'} وجده يشبه الغرض الذي أعلنت عن فقدانه.`,
+    singleFound: (category) => `أعلن أحدهم عن فقدان ${category || 'غرض'} يشبه الغرض الذي عثرت عليه.`,
     multiTitle: (count) => `${count} تطابقات محتملة`,
     multiBody: 'هناك إعلانات جديدة تشبه إعلاناتك. اضغط لمراجعتها.',
   },
+};
+
+/**
+ * Category label(s) of the matched post, per language - not the recipient's own
+ * post. Both single-match wordings above describe what the *other* side posted,
+ * so the label always comes from the counterpart, regardless of which side the
+ * recipient owns. Returns null per language when the post/category can't be
+ * resolved, so callers fall back to the generic wording rather than rendering
+ * an empty name.
+ */
+const loadMatchedCategoryLabels = async (postId) => {
+  // Mongoose buffers queries against a down connection until bufferTimeoutMS
+  // expires rather than failing fast - skip the round trip instead of stalling
+  // every single-match push (and the offline test suite, which runs with no
+  // DB at all) behind that timeout.
+  if (mongoose.connection.readyState !== 1) return null;
+
+  try {
+    const post = await Post.findById(postId).select('categories category').lean();
+    if (!post) return null;
+
+    const categoryIds = (Array.isArray(post.categories) && post.categories.length > 0)
+      ? post.categories
+      : [post.category].filter(Boolean);
+    if (categoryIds.length === 0) return null;
+
+    const categories = await Category.find({ _id: { $in: categoryIds } }).select('labels').lean();
+    if (categories.length === 0) return null;
+
+    const labelsFor = (language) => categories
+      .map((category) => category.labels?.[language] || category.labels?.en)
+      .filter(Boolean)
+      .join(', ') || null;
+
+    return {
+      en: labelsFor('en'),
+      fr: labelsFor('fr'),
+      ar: labelsFor('ar'),
+    };
+  } catch (error) {
+    console.error('[push] failed to resolve match category:', error?.message || error);
+    return null;
+  }
 };
 
 // ---------------------------------------------------------------------------
@@ -255,6 +300,10 @@ const sendMatchAlert = async ({ user, ownPostCode, alerts }) => {
 
   const count = alerts.length;
 
+  // Category name only matters for the single-match wording below; skip the
+  // lookup entirely for a multi-match push (generic copy, no category slot).
+  const categoryLabels = count === 1 ? await loadMatchedCategoryLabels(alerts[0].matchedPostId) : null;
+
   // A single match opens the counterpart listing directly - the same
   // destination tapping that row in the inbox reaches, and the actionable one.
   // Several open the inbox instead, which is the only screen that can show them
@@ -278,7 +327,7 @@ const sendMatchAlert = async ({ user, ownPostCode, alerts }) => {
       to: entry.token,
       title: count === 1 ? copy.singleTitle : copy.multiTitle(count),
       body: count === 1
-        ? (ownPostCode === 'LOST' ? copy.singleLost : copy.singleFound)
+        ? (ownPostCode === 'LOST' ? copy.singleLost : copy.singleFound)(categoryLabels?.[language])
         : copy.multiBody,
       data,
       sound: 'default',
