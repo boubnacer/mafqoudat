@@ -64,7 +64,7 @@ const getElevation = (isDark, level) => ({
   elevation: level,
 });
 
-const CommentRow = ({ comment, styles, tokens, t, currentLanguage, onDelete, onReport }) => {
+const CommentRow = ({ comment, styles, tokens, t, currentLanguage, onDelete, onReport, isFirst }) => {
   const source = SOURCE_META[comment.source];
   // A borrowed comment with no readable author name still says something
   // worth showing - it just cannot say who said it.
@@ -87,7 +87,7 @@ const CommentRow = ({ comment, styles, tokens, t, currentLanguage, onDelete, onR
   };
 
   return (
-    <View style={styles.commentRow}>
+    <View style={[styles.commentRow, !isFirst && styles.commentRowDivider]}>
       <View
         style={[
           styles.avatar,
@@ -210,92 +210,95 @@ const CommentsSection = ({ postId }) => {
 
   return (
     <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Ionicons name="chatbubble-outline" size={18} color={tokens.ink} />
-        <Text style={[styles.sectionTitle, isRTL && styles.textRTL]}>{t('commentsTitle')}</Text>
-        {total > 0 ? (
-          <Text style={styles.sectionCount}>{t('commentsCount', { count: total })}</Text>
-        ) : null}
-      </View>
-
-      {isSignedIn ? (
-        /* Field on its own row, action beneath it: a square send button
-           squeezed beside a multiline field left the input too narrow for the
-           placeholder to fit and gave the primary action of the section no
-           label. Stacked, the field gets the full width and the button gets
-           its words back. */
-        <View style={styles.composer}>
-          <TextInput
-            style={[styles.input, isRTL && styles.textRTL]}
-            value={text}
-            onChangeText={setText}
-            placeholder={t('commentPlaceholder')}
-            placeholderTextColor={`${tokens.ink}66`}
-            multiline
-            maxLength={MAX_COMMENT_LENGTH}
-          />
-          <View style={styles.composerFooter}>
-            <Text style={styles.counter}>
-              {text.length > 0 ? `${text.length}/${MAX_COMMENT_LENGTH}` : ''}
-            </Text>
-            <TouchableOpacity
-              style={[styles.sendButton, (!text.trim() || isPosting) && styles.sendButtonDisabled]}
-              onPress={handleSubmit}
-              disabled={!text.trim() || isPosting}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel={t('postComment')}
-            >
-              {isPosting ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <>
-                  <Ionicons name="send" size={15} color="#FFFFFF" />
-                  <Text style={styles.sendButtonText}>{t('postComment')}</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      ) : (
-        <Text style={[styles.signInNote, isRTL && styles.textRTL]}>{t('signInToComment')}</Text>
-      )}
-
-      {isLoading ? (
-        <ActivityIndicator size="small" color={tokens.brandPrimary} style={styles.loader} />
-      ) : hasFailed ? (
-        <Text style={[styles.emptyText, isRTL && styles.textRTL]}>{t('commentFailed')}</Text>
-      ) : comments.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={[styles.emptyTitle, isRTL && styles.textRTL]}>{t('noCommentsYet')}</Text>
-          <Text style={[styles.emptyText, isRTL && styles.textRTL]}>{t('beFirstToComment')}</Text>
-        </View>
-      ) : (
-        <>
-          {comments.map((comment) => (
-            <CommentRow
-              key={comment.id}
-              comment={comment}
-              styles={styles}
-              tokens={tokens}
-              t={t}
-              currentLanguage={currentLanguage}
-              onDelete={handleDelete}
-              onReport={handleReport}
-            />
-          ))}
-
-          {comments.length < total ? (
-            <TouchableOpacity
-              onPress={() => setVisibleCount((current) => current + PAGE_STEP)}
-              style={styles.loadMore}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.loadMoreText}>{t('loadMoreComments')}</Text>
-            </TouchableOpacity>
+      <View style={styles.panel}>
+        <View style={styles.sectionHeader}>
+          <Ionicons name="chatbubble-outline" size={18} color={tokens.ink} />
+          <Text style={[styles.sectionTitle, isRTL && styles.textRTL]}>{t('commentsTitle')}</Text>
+          {total > 0 ? (
+            <Text style={styles.sectionCount}>{t('commentsCount', { count: total })}</Text>
           ) : null}
-        </>
-      )}
+        </View>
+
+        {isSignedIn ? (
+          /* Field on its own row, action beneath it: a square send button
+             squeezed beside a multiline field left the input too narrow for the
+             placeholder to fit and gave the primary action of the section no
+             label. Stacked, the field gets the full width and the button gets
+             its words back. */
+          <View style={styles.composer}>
+            <TextInput
+              style={[styles.input, isRTL && styles.textRTL]}
+              value={text}
+              onChangeText={setText}
+              placeholder={t('commentPlaceholder')}
+              placeholderTextColor={`${tokens.ink}66`}
+              multiline
+              maxLength={MAX_COMMENT_LENGTH}
+            />
+            <View style={styles.composerFooter}>
+              <Text style={styles.counter}>
+                {text.length > 0 ? `${text.length}/${MAX_COMMENT_LENGTH}` : ''}
+              </Text>
+              <TouchableOpacity
+                style={[styles.sendButton, (!text.trim() || isPosting) && styles.sendButtonDisabled]}
+                onPress={handleSubmit}
+                disabled={!text.trim() || isPosting}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={t('postComment')}
+              >
+                {isPosting ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Ionicons name="send" size={15} color="#FFFFFF" />
+                    <Text style={styles.sendButtonText}>{t('postComment')}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <Text style={[styles.signInNote, isRTL && styles.textRTL]}>{t('signInToComment')}</Text>
+        )}
+
+        {isLoading ? (
+          <ActivityIndicator size="small" color={tokens.brandPrimary} style={styles.loader} />
+        ) : hasFailed ? (
+          <Text style={[styles.emptyText, isRTL && styles.textRTL]}>{t('commentFailed')}</Text>
+        ) : comments.length === 0 ? (
+          <View style={styles.empty}>
+            <Text style={[styles.emptyTitle, isRTL && styles.textRTL]}>{t('noCommentsYet')}</Text>
+            <Text style={[styles.emptyText, isRTL && styles.textRTL]}>{t('beFirstToComment')}</Text>
+          </View>
+        ) : (
+          <>
+            {comments.map((comment, index) => (
+              <CommentRow
+                key={comment.id}
+                comment={comment}
+                styles={styles}
+                tokens={tokens}
+                t={t}
+                currentLanguage={currentLanguage}
+                onDelete={handleDelete}
+                onReport={handleReport}
+                isFirst={index === 0}
+              />
+            ))}
+
+            {comments.length < total ? (
+              <TouchableOpacity
+                onPress={() => setVisibleCount((current) => current + PAGE_STEP)}
+                style={styles.loadMore}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.loadMoreText}>{t('loadMoreComments')}</Text>
+              </TouchableOpacity>
+            ) : null}
+          </>
+        )}
+      </View>
     </View>
   );
 };
@@ -303,6 +306,14 @@ const CommentsSection = ({ postId }) => {
 const createStyles = ({ tokens, isDark, isRTL }) => StyleSheet.create({
   section: {
     marginTop: 20,
+  },
+  // Everything - header, composer, comment list - shares this one background so
+  // the section reads as a single panel instead of a composer box floating
+  // above bare comment rows.
+  panel: {
+    padding: 14,
+    borderRadius: radiusTokens.lg,
+    backgroundColor: `${tokens.ink}0A`,
   },
   sectionHeader: {
     flexDirection: row(isRTL),
@@ -321,9 +332,6 @@ const createStyles = ({ tokens, isDark, isRTL }) => StyleSheet.create({
     color: `${tokens.ink}99`,
   },
   composer: {
-    padding: 12,
-    borderRadius: radiusTokens.md,
-    backgroundColor: `${tokens.ink}0A`,
     marginBottom: 8,
   },
   input: {
@@ -403,6 +411,10 @@ const createStyles = ({ tokens, isDark, isRTL }) => StyleSheet.create({
     flexDirection: row(isRTL),
     gap: 10,
     paddingVertical: 12,
+  },
+  commentRowDivider: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
   },
   avatar: {
     width: 32,

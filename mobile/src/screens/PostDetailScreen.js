@@ -306,9 +306,9 @@ const PostDetailScreen = ({ navigation, route }) => {
   const countryLabel =
     getLocalizedLabel({ names: post.countryLabels, code: post.countryname }, currentLanguage) || null;
 
-  // Screenshot's card-style header uses the city as the headline; exactLocation (the
-  // finer-grained address) only gets its own meta row when it's more specific than that.
-  const titleLabel = cityLabel || post.exactLocation || badgeLabel;
+  // City has its own InfoTile in the grid now, so it no longer doubles as the
+  // big headline here - falls straight to exactLocation, then status.
+  const titleLabel = post.exactLocation || badgeLabel;
   const metaLocationLabel = post.exactLocation && post.exactLocation !== cityLabel ? post.exactLocation : null;
 
   const description = post.description && post.description.trim() ? post.description.trim() : t('noDescriptionProvided');
@@ -555,6 +555,16 @@ const PostDetailScreen = ({ navigation, route }) => {
                 fullWidth
               />
             ) : null}
+            {cityLabel ? (
+              <InfoTile
+                styles={styles}
+                tokens={tokens}
+                icon="map-outline"
+                label={t('city')}
+                value={cityLabel}
+                isRTL={isRTL}
+              />
+            ) : null}
             <InfoTile
               styles={styles}
               tokens={tokens}
@@ -589,8 +599,13 @@ const PostDetailScreen = ({ navigation, route }) => {
           </View>
 
           <View style={styles.section}>
-            <SectionHeader styles={styles} tokens={tokens} icon="document-text-outline" title={t('description')} isRTL={isRTL} />
-            <Text style={[styles.description, isRTL && styles.textRTL]}>{description}</Text>
+            <View style={styles.descriptionBox}>
+              <View style={styles.descriptionHeader}>
+                <Ionicons name="document-text-outline" size={18} color={tokens.ink} />
+                <Text style={[styles.sectionTitle, isRTL && styles.textRTL]}>{t('description')}</Text>
+              </View>
+              <Text style={[styles.description, isRTL && styles.textRTL]}>{description}</Text>
+            </View>
           </View>
 
           {/* What the auto-posted copies of this listing are doing on the
@@ -977,6 +992,17 @@ const createStyles = (tokens, isRTL, isDark) =>
       lineHeight: 18,
       color: tokens.ink,
       marginTop: 2,
+    },
+    descriptionBox: {
+      padding: 14,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.ink}0A`,
+    },
+    descriptionHeader: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 10,
     },
     description: {
       fontFamily: fontFamilies.body,
