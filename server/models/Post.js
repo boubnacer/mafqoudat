@@ -235,7 +235,15 @@ postSchema.index(
 // posts oldest-stats-first, so the sort has to be served by an index.
 postSchema.index({ "socialStats.fetchedAt": 1 }, { name: "social_stats_refresh" });
 
-// 10. Search optimization: Country + Status + Text search
+// 10. Facebook webhook receiver (routes/facebookWebhookRoutes.js): a reaction/
+// comment event names the Facebook post id, and this is the lookup back to
+// our post. Sparse - most posts have no Facebook mirror at all.
+postSchema.index(
+  { "social.facebook.postId": 1 },
+  { name: "social_facebook_postid", sparse: true }
+);
+
+// 11. Search optimization: Country + Status + Text search
 postSchema.index(
   { country: 1, status: 1, exactLocation: "text", description: "text" },
   { name: "country_status_text_search_optimized" }

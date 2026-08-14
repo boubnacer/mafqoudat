@@ -442,6 +442,53 @@ class SocialStatsService {
       });
     });
   }
+
+  /**
+   * Looks up posts by their Facebook post id and refreshes them immediately,
+   * ignoring the freshness TTL entirely. Used by routes/facebookWebhookRoutes.js:
+   * a webhook delivery means Meta itself just told us this specific post
+   * changed, which is a stronger, more specific signal than "it's been a
+   * while since we last checked" - staleness doesn't apply to being told
+   * something happened.
+   *
+   * Shares the same `inFlight` guard as the opportunistic path, so a burst of
+   * webhook deliveries for one popular post (several reactions arriving as
+   * separate HTTP calls) collapses into whichever refresh is already running
+   * rather than racing several Graph reads for the same post.
+   */
+  async refreshByFacebookPostIds(facebookPostIds) {
+    if (!this.isConfigured() || facebookPostIds.length === 0) return 0;
+
+    const posts = await Post.find({
+      'social.facebook.postId': { $in: facebookPostIds },
+      'socialStats.facebook.unavailable': { $ne: true },
+    }).select('_id social socialStats createdAt').lean();
+
+    const due = posts.filter((post) => !this.inFlight.has(String(post._id)));
+    if (due.length === 0) return 0;
+
+    due.forEach((post) => this.inFlight.add(String(post._id)));
+    try {
+      return await this.refreshPosts(due);
+    } finally {
+      due.forEach((post) => this.inFlight.delete(String(post._id)));
+    }
+  }
+
+  /**
+   * Fire-and-forget entry point for the webhook route. A webhook handler has
+   * to answer Meta quickly or Meta starts retrying the delivery, so the
+   * actual Graph re-fetch happens after the response is already sent - same
+   * deferral as scheduleRefresh, for the same reason.
+   */
+  scheduleRefreshByFacebookPostIds(facebookPostIds) {
+    if (!this.isConfigured()) return;
+    setImmediate(() => {
+      this.refreshByFacebookPostIds(facebookPostIds).catch((error) => {
+        console.error('Facebook webhook-triggered refresh failed:', error.message);
+      });
+    });
+  }
 }
 
 module.exports = new SocialStatsService();
