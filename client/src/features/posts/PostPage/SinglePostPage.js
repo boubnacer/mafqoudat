@@ -48,6 +48,7 @@ import PromotionDialog from "../../../components/PromotionDialog";
 import ClaimItemDialog from "../../../components/ClaimItemDialog";
 import PostMatchesPanel from "../../notifications/PostMatchesPanel";
 import SocialReach from "./SocialReach";
+import CommentsSection from "./CommentsSection";
 
 // Solid-fill tag, same signature as the post card DNA (Post.js/TrendingItem):
 // this is the single most load-bearing fact on the page, so it lives on the image,
@@ -1147,6 +1148,21 @@ const SinglePostPage = ({
       {/* Possible matches — owner-only. Renders nothing for anyone else, and
           nothing once the item is marked returned. */}
       <PostMatchesPanel postId={_id} isOwner={isAuthor && isAuthenticated} postReturned={!!returned} />
+
+      {/* Comment thread — the site's own comments merged with the ones left
+          on the Facebook/Instagram copies. Public to read, signed-in to write. */}
+      <Paper
+        elevation={0}
+        sx={{
+          mt: 3,
+          p: { xs: 2, sm: 3 },
+          borderRadius: `${theme.custom.radius.lg}px`,
+          backgroundColor: theme.custom.color.surfaceRaised,
+          boxShadow: theme.custom.elevation.e1,
+        }}
+      >
+        <CommentsSection postId={_id} />
+      </Paper>
 
       {/* Success Message */}
       {showSuccessMessage && (

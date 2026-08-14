@@ -78,6 +78,11 @@ export const API_ENDPOINTS = {
     DELETE: "/posts",
     MARK_RETURNED: (id) => `/posts/${id}/mark-returned`,
     REPORT: "/posts/report",
+    // Comment thread - one list endpoint serves the site's own comments and
+    // the ones mirrored from the Facebook/Instagram copies, already merged.
+    COMMENTS: (id) => `/posts/${id}/comments`,
+    COMMENT: (id, commentId) => `/posts/${id}/comments/${commentId}`,
+    REPORT_COMMENT: (id, commentId) => `/posts/${id}/comments/${commentId}/report`,
   },
   PROMOTION: {
     REQUEST: "/promotion/request",

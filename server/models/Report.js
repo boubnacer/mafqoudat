@@ -7,6 +7,15 @@ const reportSchema = new mongoose.Schema(
       required: true,
       ref: "Post",
     },
+    // Set when what was reported is a comment on that post rather than the
+    // listing itself, so both kinds land in one admin queue instead of two.
+    // Absent on a report about the listing - which is every report predating
+    // comments existing at all.
+    commentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comment",
+      default: null,
+    },
     reportedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const postsController = require("../controllers/postsController");
+const commentsController = require("../controllers/commentsController");
 const { verifyJWT } = require("../middleware/jwtSecurity");
 const optionalAuth = require("../middleware/optionalAuth");
 const trackPostView = require("../middleware/postViewTracker");
@@ -17,7 +18,18 @@ const { generateFieldSelectionDocs, POSTS_SCHEMA } = require("../utils/graphqlFi
 const { upload, uploadWithFields, uploadToCloudinaryMiddleware } = require("../middleware/multer");
 const { validateRequest, validationSets, commonValidations } = require("../middleware/validation");
 const { parseFormData } = require("../middleware/formDataParser");
-const { upload: uploadRateLimit, report: reportRateLimit, search: searchRateLimit, createPost: createPostLimit, imageUpload: imageUploadLimit } = require("../middleware/rateLimiting");
+const { upload: uploadRateLimit, report: reportRateLimit, search: searchRateLimit, createPost: createPostLimit, imageUpload: imageUploadLimit, createRateLimiter } = require("../middleware/rateLimiting");
+
+// Keyed by account rather than IP: everything it guards runs after verifyJWT,
+// and IP keying on this platform's CGNAT-heavy networks would throttle
+// unrelated people together. Generous enough for a real back-and-forth about
+// a lost item, tight enough that one account cannot flood a thread.
+const commentActionLimit = createRateLimiter({
+  windowMs: 5 * 60 * 1000,
+  max: 15,
+  keyGenerator: (req) => (req.user ? `user:${req.user}` : `ip:${req.ip}`),
+  message: "Too many comments, please slow down",
+});
 
 // The image-upload limiter only runs after multer has parsed the multipart body -
 // that's the earliest point req.files is populated, so it's the earliest point we
@@ -83,6 +95,48 @@ router.route("/:id")
     attachLivePostStats,
     postsCache('post-detail'),
     postsController.getPost
+  );
+
+// Comment thread on a listing. Deliberately uncached: a thread whose whole
+// point is "someone may have just told you where your thing is" is the wrong
+// place to serve a 10-minute-old copy, and it is a cheap query.
+//
+// optionalAuth on the read so the response can mark which comments this
+// particular viewer may delete or report, and so blocked authors drop out for
+// a signed-in reader - guests still get the thread, just without those flags.
+router.route("/:id/comments")
+  .get(
+    commonValidations.objectId('id'),
+    validateRequest,
+    optionalAuth,
+    commentsController.getPostComments
+  )
+  .post(
+    verifyJWT,
+    commentActionLimit,
+    commonValidations.objectId('id'),
+    commonValidations.textContent('text', 1000),
+    validateRequest,
+    commentsController.createComment
+  );
+
+router.route("/:id/comments/:commentId")
+  .delete(
+    verifyJWT,
+    commonValidations.objectId('id'),
+    commonValidations.objectId('commentId'),
+    validateRequest,
+    commentsController.deleteComment
+  );
+
+router.route("/:id/comments/:commentId/report")
+  .post(
+    verifyJWT,
+    reportRateLimit,
+    commonValidations.objectId('id'),
+    commonValidations.objectId('commentId'),
+    validateRequest,
+    commentsController.reportComment
   );
 
 // Field selection documentation endpoint

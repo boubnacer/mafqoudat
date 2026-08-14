@@ -152,6 +152,24 @@ delivery is best-effort, and Instagram likes have no webhook at all, so IG
 stays poll-based regardless). Nothing here does anything until it's
 explicitly set up. See [facebook-webhooks.md](facebook-webhooks.md).
 
+## Comment text, not just counts
+
+Alongside the counts above, the newest `SOCIAL_COMMENTS_LIMIT` (25) comments
+from each platform are pulled in as actual text and shown in the post's
+comment thread, interleaved by time with comments written on the site itself.
+Same request as the counts — no extra Graph call.
+
+Reading comment *content* is a broader grant than reading the count, so it can
+be unavailable while the counts work fine. When that happens the thread simply
+shows no borrowed comments (never an error, never a blank placeholder), and
+whatever was cached previously is kept rather than wiped.
+
+Those comments are strictly read-only here: no replying, no deleting, no
+reporting them to us. The only way to post a reply would be through the Page
+token, which would publish it as the Mafqoudat Page itself rather than as the
+user — misattribution plus a moderation liability on your own Page, so it is
+deliberately not built. Anyone wanting to reply uses the permalink.
+
 ## Limitations worth knowing
 
 - **Listings created before this feature shipped have no numbers, ever.** The

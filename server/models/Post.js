@@ -177,6 +177,32 @@ const postSchema = new mongoose.Schema(
       },
       fetchedAt: { type: Date, default: null },
     },
+    // The actual comment text left on the Facebook/Instagram copies, cached
+    // here so the post's comment thread can show them next to the site's own
+    // comments without a Graph call on every page load. Read-only mirrors of
+    // someone else's platform: we can display them, never edit or delete
+    // them, and never reply on a user's behalf (a reply through the Page
+    // token would appear as the Page itself speaking, not the user).
+    //
+    // Capped at SOCIAL_COMMENTS_LIMIT newest per platform - this is context
+    // alongside the site's own thread, not a full mirror of Facebook.
+    socialComments: {
+      facebook: [{
+        _id: false,
+        commentId: { type: String },
+        authorName: { type: String, default: null },
+        text: { type: String, default: '' },
+        createdAt: { type: Date, default: null },
+      }],
+      instagram: [{
+        _id: false,
+        commentId: { type: String },
+        authorName: { type: String, default: null },
+        text: { type: String, default: '' },
+        createdAt: { type: Date, default: null },
+      }],
+      fetchedAt: { type: Date, default: null },
+    },
     // Last time services/matchingService.js scored this post against the
     // opposite side. Read by the on-demand path so opening a post's "possible
     // matches" panel cannot re-run a full scan on every page view - including
