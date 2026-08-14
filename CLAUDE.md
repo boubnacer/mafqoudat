@@ -200,11 +200,16 @@ server-side.
   `Post.socialStats` (fb: views/reactions/comments/shares/engagedUsers/clicks,
   ig: views/likes/comments/saved, plus `fetchedAt` and a per-platform
   `unavailable`). Never on a request's critical path — called fire-and-forget
-  via `scheduleRefresh(posts)` and serves whatever is stored. Reads are batched
-  (`?ids=`, 50 max); a batch that fails on an unreadable object is retried one
-  id at a time so one deleted Page post costs one listing's numbers, not the
-  page's. A post whose Page copy is gone is marked `unavailable` and never
-  asked about again. Counts and insight metrics are fetched as separate
+  via `scheduleRefresh(posts)` and serves whatever is stored. Reads go through
+  **Graph's Batch API** (`POST` with a `batch=[...]` form body, 50 objects
+  max) — *not* `?ids=`, which **Meta deprecated in v26.0**: it answers every
+  such call with `(#100) The ids query parameter is deprecated in v26.0+`, so
+  the whole feature silently fetched nothing until this was changed. A
+  regression check in `test-social-stats` pins that the parameter never comes
+  back. Batch sub-requests each carry their own status code, so one deleted
+  Page post costs exactly its own entry and no retry pass is needed; that post
+  is marked `unavailable` and never asked about again. Counts and insight
+  metrics are fetched as separate
   concerns on purpose: counts (reactions/comments/shares/likes) come off
   ordinary edges the page token already has, while **views, engaged users and
   clicks (FB) / views and saved (IG) all need `read_insights` (FB) /
