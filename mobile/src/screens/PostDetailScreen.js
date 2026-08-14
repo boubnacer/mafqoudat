@@ -38,6 +38,7 @@ import PromotePostSheet from '../components/PromotePostSheet';
 import PostActionsSheet from '../components/PostActionsSheet';
 import PostMatchesSection from '../components/notifications/PostMatchesSection';
 import { SocialReachSection } from '../components/SocialReach';
+import CommentsSection from '../components/CommentsSection';
 import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
@@ -624,6 +625,10 @@ const PostDetailScreen = ({ navigation, route }) => {
             postReturned={post.returned === true}
             onOpenPost={(matchedPostId) => navigation.push('PostDetailScreen', { id: matchedPostId })}
           />
+
+          {/* Comment thread - the app's own comments merged with the ones
+              left on the Facebook/Instagram copies. Public to read. */}
+          <CommentsSection postId={post._id} />
         </Animated.View>
       </ScrollView>
 

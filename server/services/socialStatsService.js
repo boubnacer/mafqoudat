@@ -80,6 +80,14 @@ const MAX_POSTS_PER_RUN = readIntEnv('SOCIAL_STATS_MAX_PER_RUN', 50, { min: 1, m
 
 const REQUEST_TIMEOUT_MS = 10000;
 
+// How many of each platform's newest comments to pull in alongside the
+// counts, for the merged thread on the post page. This is context beside the
+// site's own comments, not a full mirror of the Page - a listing with 200
+// Facebook comments is not something this site should be re-hosting, and the
+// permalink is right there for anyone who wants the rest. Set to 0 to stop
+// fetching comment text entirely while keeping the counts.
+const SOCIAL_COMMENTS_LIMIT = readIntEnv('SOCIAL_COMMENTS_LIMIT', 25, { min: 0, max: 100 });
+
 // Candidates tried in order until one answers, independently per metric.
 // `views` is Meta's current name on both platforms; the older impressions
 // metrics stay in the list for as long as any Graph version still serves
@@ -241,6 +249,31 @@ class SocialStatsService {
   }
 
   /**
+   * Normalizes one platform's comment edge into the shape stored on
+   * Post.socialComments. Returns null (not []) when the edge is absent
+   * entirely, which is how a token without permission to read comment
+   * *content* looks - distinct from a post that genuinely has no comments,
+   * where Graph returns an empty data array. Only the latter should
+   * overwrite whatever was already cached.
+   */
+  static readComments(edge, { textKey, authorFrom }) {
+    if (!edge || !Array.isArray(edge.data)) return null;
+
+    return edge.data
+      .map((comment) => ({
+        commentId: comment.id,
+        // Facebook nests the author under `from`; Instagram puts a bare
+        // `username` on the comment. Either can be missing when the commenter's
+        // privacy settings or our permissions hide it - the comment is still
+        // worth showing, just unattributed.
+        authorName: authorFrom(comment) || null,
+        text: comment[textKey] || '',
+        createdAt: comment.created_time || comment.timestamp || null,
+      }))
+      .filter((comment) => comment.commentId && comment.text);
+  }
+
+  /**
    * Facebook Page posts: reactions/comments/shares off the ordinary edges,
    * views/engaged users/clicks off insights when the token has read_insights
    * - each resolved and requested as its own metric, since a rename or a
@@ -256,7 +289,12 @@ class SocialStatsService {
     const insightMetrics = [viewsMetric, engagedMetric, clicksMetric].filter(Boolean);
     const fields = [
       'reactions.summary(total_count)',
-      'comments.summary(total_count)',
+      // One field expression asks for both the count and the newest few
+      // comments' text, so the merged thread costs no extra request on top of
+      // what the counts already needed.
+      SOCIAL_COMMENTS_LIMIT > 0
+        ? `comments.summary(total_count).limit(${SOCIAL_COMMENTS_LIMIT}){id,from,message,created_time}`
+        : 'comments.summary(total_count)',
       'shares',
       insightMetrics.length > 0 && `insights.metric(${insightMetrics.join(',')})`,
     ].filter(Boolean).join(',');
@@ -268,6 +306,10 @@ class SocialStatsService {
       stats[id] = {
         reactions: data?.reactions?.summary?.total_count ?? null,
         comments: data?.comments?.summary?.total_count ?? null,
+        commentList: SocialStatsService.readComments(data?.comments, {
+          textKey: 'message',
+          authorFrom: (comment) => comment.from?.name,
+        }),
         // `shares` is absent entirely on a post nobody has shared, which is a
         // zero rather than an unknown - unlike the summaries, which are always
         // returned when readable.
@@ -294,6 +336,10 @@ class SocialStatsService {
     const fields = [
       'like_count',
       'comments_count',
+      // Instagram keeps the count and the comments on separate fields (unlike
+      // Facebook's single summary-plus-edge expression), but both still ride
+      // along in the same request.
+      SOCIAL_COMMENTS_LIMIT > 0 && `comments.limit(${SOCIAL_COMMENTS_LIMIT}){id,username,text,timestamp}`,
       insightMetrics.length > 0 && `insights.metric(${insightMetrics.join(',')})`,
     ].filter(Boolean).join(',');
 
@@ -304,6 +350,10 @@ class SocialStatsService {
       stats[id] = {
         likes: typeof data?.like_count === 'number' ? data.like_count : null,
         comments: typeof data?.comments_count === 'number' ? data.comments_count : null,
+        commentList: SocialStatsService.readComments(data?.comments, {
+          textKey: 'text',
+          authorFrom: (comment) => comment.username || comment.from?.username,
+        }),
         views: SocialStatsService.readInsightValue(data?.insights, viewsMetric),
         saved: SocialStatsService.readInsightValue(data?.insights, savedMetric),
       };
@@ -387,12 +437,24 @@ class SocialStatsService {
         if (fb.views !== null) update['socialStats.facebook.views'] = fb.views;
         if (fb.engagedUsers !== null) update['socialStats.facebook.engagedUsers'] = fb.engagedUsers;
         if (fb.clicks !== null) update['socialStats.facebook.clicks'] = fb.clicks;
+        // null means the comment edge was not readable at all (no permission
+        // for comment *content*, which is a different grant from the count) -
+        // keep whatever was cached rather than wiping the thread. An empty
+        // array is a real answer: the post genuinely has no comments now.
+        if (fb.commentList !== null) {
+          update['socialComments.facebook'] = fb.commentList;
+          update['socialComments.fetchedAt'] = fetchedAt;
+        }
       }
       if (ig) {
         update['socialStats.instagram.likes'] = ig.likes;
         update['socialStats.instagram.comments'] = ig.comments;
         if (ig.views !== null) update['socialStats.instagram.views'] = ig.views;
         if (ig.saved !== null) update['socialStats.instagram.saved'] = ig.saved;
+        if (ig.commentList !== null) {
+          update['socialComments.instagram'] = ig.commentList;
+          update['socialComments.fetchedAt'] = fetchedAt;
+        }
       }
       if (fbGone) update['socialStats.facebook.unavailable'] = true;
       if (igGone) update['socialStats.instagram.unavailable'] = true;

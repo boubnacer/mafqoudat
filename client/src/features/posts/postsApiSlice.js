@@ -361,6 +361,42 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         "Notification"
       ],
     }),
+
+    // Comment thread on a post. One list endpoint serves all three sources
+    // (site, Facebook, Instagram) already merged and sorted server-side - see
+    // server/controllers/commentsController.js.
+    getPostComments: builder.query({
+      query: ({ postId, page = 1, pageSize = 20 }) => ({
+        url: `/posts/${postId}/comments`,
+        params: { page, pageSize },
+      }),
+      providesTags: (result, error, arg) => [{ type: "Comment", id: arg.postId }],
+    }),
+
+    addComment: builder.mutation({
+      query: ({ postId, text }) => ({
+        url: `/posts/${postId}/comments`,
+        method: "POST",
+        body: { text },
+      }),
+      invalidatesTags: (result, error, arg) => [{ type: "Comment", id: arg.postId }],
+    }),
+
+    deleteComment: builder.mutation({
+      query: ({ postId, commentId }) => ({
+        url: `/posts/${postId}/comments/${commentId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, arg) => [{ type: "Comment", id: arg.postId }],
+    }),
+
+    reportComment: builder.mutation({
+      query: ({ postId, commentId, reasonType, reason }) => ({
+        url: `/posts/${postId}/comments/${commentId}/report`,
+        method: "POST",
+        body: { reasonType, reason },
+      }),
+    }),
   }),
 });
 
@@ -374,6 +410,10 @@ export const {
   useGetDashboardQuery,
   useRequestPromotionMutation,
   useMarkPostAsReturnedMutation,
+  useGetPostCommentsQuery,
+  useAddCommentMutation,
+  useDeleteCommentMutation,
+  useReportCommentMutation,
 } = postsApiSlice;
 
 // returns the query result object

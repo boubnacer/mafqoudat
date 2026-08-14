@@ -311,6 +311,64 @@ server-side.
   the deleted-post fallback, metric probing, permission-less degradation and
   outage handling.
 
+## Comment threads (web + mobile)
+
+One thread per post, merging two sources that are never allowed to look
+equivalent: comments written on the site, and comments left on the
+auto-posted Facebook/Instagram copies.
+
+- **Model**: [Comment.js](server/models/Comment.js) — site comments only.
+  Social comments are *not* stored here; they're cached on
+  `Post.socialComments.{facebook,instagram}` by `socialStatsService` and
+  merged at read time. Deletion is **soft** (`status: 'removed'`) so a report
+  filed against a comment stays judgeable after the author deletes it.
+- **Reading is public, writing needs an account.** `GET /posts/:id/comments`
+  runs under `optionalAuth` — guests get the thread, a signed-in reader
+  additionally gets per-comment `canDelete`/`canReport` flags and has blocked
+  authors filtered out. `POST`/`DELETE`/report are all behind `verifyJWT`.
+- **Who can delete**: the comment's author, the post's owner (it's their
+  listing), or an admin. Reporting reuses the existing `Report` collection
+  with a new optional `commentId`, so admins keep **one** moderation queue
+  rather than two.
+- **Social comments are read-only, for everyone.** No delete, no report-to-us,
+  no reply — we have no authority over that platform. `canDelete`/`canReport`
+  are hardcoded false and their ids are namespaced (`facebook:<id>`) so they
+  can never collide with a site comment id.
+- **One-way by deliberate decision — never post to Facebook on a user's
+  behalf.** The only mechanism available is the Page token, which would
+  publish the user's words as the *Mafqoudat Page itself*, not as them:
+  misattribution, a moderation liability on your own Page, confusing for
+  Facebook readers, and the kind of bulk automated posting Meta's spam systems
+  flag. Don't add this without re-deciding it explicitly.
+- **The merge is by time, across sources** (`mergeCommentSources`) — someone
+  reading a lost-property thread wants it in the order it happened, not the
+  site's half followed by Facebook's. A social comment with no usable
+  timestamp sorts last, never first. Every entry keeps its `source`, and both
+  UIs keep that badge visible: "a stranger on Facebook said this" and "a
+  registered user here said this" are different claims to a reader judging a
+  lead about their property.
+- **Bounded, not paginated by page number.** The merged list is re-sorted on
+  every request, so a later page isn't stable enough to append to (a new
+  comment shifts everything down by one). Both clients "load more" by growing
+  the first page instead. Site comments cap at `MAX_SITE_COMMENTS` (200),
+  social at `SOCIAL_COMMENTS_LIMIT` (25/platform, env) — this is context
+  beside the site's own thread, not a mirror of the Page.
+- **Comment text rides along with the counts**, in the same batched Graph call
+  that already fetched reactions/comments/shares — no extra request. A `null`
+  comment list means the edge wasn't readable (permission for comment
+  *content* is a separate grant from the count) and keeps whatever was cached;
+  `[]` is a real answer and overwrites.
+- **UI**: [CommentsSection.jsx](client/src/features/posts/PostPage/CommentsSection.jsx)
+  and [CommentsSection.js](mobile/src/components/CommentsSection.js). Meta
+  brand colors on the source badges are the same documented exception as
+  `SocialReach`. Mobile follows Phase 9 (parent borderless/shadowless, badges
+  carry the sub-element shadow) and routes direction through `utils/rtl.js`.
+- **Not built yet**: the post's owner is *not* notified when someone comments —
+  they only see it when they open the listing. That's the obvious next step
+  (the `Notification` model's `type` enum is match-only today).
+- **Offline check**: `npm run test-comments` — no DB, no network; covers the
+  permission flags per viewer and the cross-source time merge.
+
 ## Rules for this work
 
 - Use existing design tokens (`theme.custom.*` from designTokens.js); never hardcode colors or font-families in component styles.
