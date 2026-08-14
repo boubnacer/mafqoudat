@@ -1145,12 +1145,10 @@ const SinglePostPage = ({
         </Grid>
       </Grid>
 
-      {/* Possible matches — owner-only. Renders nothing for anyone else, and
-          nothing once the item is marked returned. */}
-      <PostMatchesPanel postId={_id} isOwner={isAuthor && isAuthenticated} postReturned={!!returned} />
-
       {/* Comment thread — the site's own comments merged with the ones left
-          on the Facebook/Instagram copies. Public to read, signed-in to write. */}
+          on the Facebook/Instagram copies. Public to read, signed-in to write.
+          Placed right after the Reach-on-social-media section above, ahead
+          of Possible matches. */}
       <Paper
         elevation={0}
         sx={{
@@ -1163,6 +1161,10 @@ const SinglePostPage = ({
       >
         <CommentsSection postId={_id} />
       </Paper>
+
+      {/* Possible matches — owner-only. Renders nothing for anyone else, and
+          nothing once the item is marked returned. */}
+      <PostMatchesPanel postId={_id} isOwner={isAuthor && isAuthenticated} postReturned={!!returned} />
 
       {/* Success Message */}
       {showSuccessMessage && (
