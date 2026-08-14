@@ -161,6 +161,33 @@ const loadMatchedCategoryLabels = async (postId) => {
   }
 };
 
+// Tray copy for "someone commented on your post". Reuses the match channel
+// (ANDROID_CHANNEL_ID below) rather than a second one - both are "something
+// happened on your listing" alerts, and a second channel would need its own
+// app-side registration for one more toggle the in-app commentAlerts
+// preference already covers.
+const COMMENT_COPY = {
+  en: {
+    title: 'New comment on your post',
+    body: (name, text) => (name ? `${name} commented: "${text}"` : `Someone commented: "${text}"`),
+  },
+  fr: {
+    title: 'Nouveau commentaire sur votre annonce',
+    body: (name, text) => (name ? `${name} a commenté : « ${text} »` : `Quelqu'un a commenté : « ${text} »`),
+  },
+  ar: {
+    title: 'تعليق جديد على إعلانك',
+    body: (name, text) => (name ? `علّق ${name}: "${text}"` : `علّق أحدهم: "${text}"`),
+  },
+};
+
+const COMMENT_SNIPPET_LENGTH = 60;
+
+const truncate = (text, length) => {
+  const value = String(text || '').trim();
+  return value.length > length ? `${value.slice(0, length).trim()}…` : value;
+};
+
 // ---------------------------------------------------------------------------
 // Token maintenance
 // ---------------------------------------------------------------------------
@@ -348,8 +375,64 @@ const sendMatchAlert = async ({ user, ownPostCode, alerts }) => {
   return accepted > 0;
 };
 
+// ---------------------------------------------------------------------------
+// Comment alerts
+// ---------------------------------------------------------------------------
+
+/**
+ * One push to a post's owner when someone comments on it.
+ *
+ * Unlike sendMatchAlert there is no burst to collapse here - each comment is
+ * its own event, written by a person, and the caller sends one of these per
+ * comment as it happens rather than batching a scan's worth.
+ *
+ * @param {Object} params.user          Lean user doc, with pushTokens.
+ * @param {string} params.postId        The recipient's own post that was commented on.
+ * @param {string} params.commentId     The comment, so the notification can be marked read.
+ * @param {string} params.notificationId The in-app Notification row, same reason.
+ * @param {string} params.text          The comment's text, for the tray preview.
+ * @param {string} [params.commenterName] The commenter's username, when known.
+ * @returns {Promise<boolean>} whether anything was accepted for delivery.
+ */
+const sendCommentAlert = async ({ user, postId, commentId, notificationId, text, commenterName }) => {
+  if (!isEnabled()) return false;
+
+  const tokens = (user?.pushTokens || []).filter((entry) => isValidPushToken(entry?.token));
+  if (tokens.length === 0) return false;
+
+  const snippet = truncate(text, COMMENT_SNIPPET_LENGTH);
+  const data = {
+    type: 'new_comment',
+    notificationId: String(notificationId),
+    postId: String(postId),
+    commentId: String(commentId),
+  };
+
+  const messages = tokens.map((entry) => {
+    const language = resolveLanguage(entry.language);
+    const copy = COMMENT_COPY[language];
+
+    return {
+      to: entry.token,
+      title: copy.title,
+      body: copy.body(commenterName, snippet),
+      data,
+      sound: 'default',
+      priority: 'high',
+      channelId: ANDROID_CHANNEL_ID,
+      // Same reasoning as the match alert's ttl: a comment nobody has seen in
+      // two days is better left undelivered than surfaced long after the fact.
+      ttl: 2 * 24 * 60 * 60,
+    };
+  });
+
+  const accepted = await sendMessages(messages);
+  return accepted > 0;
+};
+
 module.exports = {
   sendMatchAlert,
+  sendCommentAlert,
   isValidPushToken,
   removeToken,
   ANDROID_CHANNEL_ID,

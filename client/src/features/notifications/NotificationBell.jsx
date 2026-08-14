@@ -21,6 +21,7 @@ import {
 } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
 import NotificationGroupPreview from "./NotificationGroupPreview";
+import CommentNotificationItem from "./CommentNotificationItem";
 import {
   useGetUnreadNotificationCountQuery,
   useGetNotificationsQuery,
@@ -97,6 +98,19 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
       }
     }
     navigate(`/dash/posts/${onlyMatch.matchedPost.id}`);
+    onNavigate?.();
+  }, [closePopover, markRead, navigate, onNavigate]);
+
+  const handleOpenComment = useCallback(async (item) => {
+    closePopover();
+    if (!item.isRead) {
+      try {
+        await markRead(item.id).unwrap();
+      } catch (error) {
+        /* non-blocking */
+      }
+    }
+    navigate(`/dash/posts/${item.post.id}`);
     onNavigate?.();
   }, [closePopover, markRead, navigate, onNavigate]);
 
@@ -217,8 +231,12 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
             </Box>
           )}
 
-          {groups.map((group) => (
-            <NotificationGroupPreview key={group.id} group={group} onOpen={handleOpenGroup} />
+          {groups.map((item) => (
+            item.kind === 'comment' ? (
+              <CommentNotificationItem key={item.id} item={item} onOpen={handleOpenComment} />
+            ) : (
+              <NotificationGroupPreview key={item.id} group={item} onOpen={handleOpenGroup} />
+            )
           ))}
         </Box>
 

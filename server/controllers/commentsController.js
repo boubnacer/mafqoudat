@@ -3,6 +3,7 @@ const Comment = require("../models/Comment");
 const Post = require("../models/Post");
 const Report = require("../models/Report");
 const socialStatsService = require("../services/socialStatsService");
+const commentNotificationService = require("../services/commentNotificationService");
 const { getBlockedUserIds } = require("../utils/blockedUsers");
 const { getRequestUserId } = require("../utils/requestUser");
 
@@ -193,7 +194,7 @@ const createComment = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Comment text is required' });
     }
 
-    const post = await Post.findById(postId).select('_id status').lean();
+    const post = await Post.findById(postId).select('_id status user').lean();
     if (!post) {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
@@ -203,6 +204,14 @@ const createComment = async (req, res) => {
       user: new mongoose.Types.ObjectId(viewerId),
       text,
     });
+
+    // Fire-and-forget: telling the post's owner matters, but it must never
+    // slow down or fail the comment write itself.
+    commentNotificationService
+      .notifyPostOwner({ post, comment, commenterId: viewerId, commenterUsername: req.username })
+      .catch((error) => {
+        console.error('Error notifying post owner of comment:', error?.message || error);
+      });
 
     // Echo the stored comment back in the same shape the list returns, so the
     // client can append it without refetching the whole thread.

@@ -156,6 +156,13 @@ const userSchema = new mongoose.Schema({
       default: 50,
       min: 0,
       max: 100
+    },
+    // Master switch for "someone commented on your post" alerts (in-app and
+    // push both - there is no separate email copy of these, unlike matches).
+    // Independent of matchAlerts/pushAlerts, which only ever gate match leads.
+    commentAlerts: {
+      type: Boolean,
+      default: true
     }
   },
   // Expo push tokens for this user's devices, newest last.

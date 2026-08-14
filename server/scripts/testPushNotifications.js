@@ -230,6 +230,44 @@ const runDisabled = async () => {
   check('and makes no request', sent.length, 0);
 };
 
+// ---------------------------------------------------------------------------
+const runComment = async () => {
+  console.log('\n--- a comment alert ---');
+  reset();
+  const delivered = await pushService.sendCommentAlert({
+    user: { pushTokens: [token('a')] },
+    postId: 'post-1',
+    commentId: 'comment-1',
+    notificationId: 'n1',
+    text: 'Is this still available? I think I lost this exact bag last week near the market.',
+    commenterName: 'Yasmine',
+  });
+
+  const [message] = lastMessages();
+  checkThat('reports delivery', delivered === true, '');
+  check('sends one message', lastMessages().length, 1);
+  check('names the commenter', message.title, 'New comment on your post');
+  checkThat('includes the commenter name in the body', message.body.startsWith('Yasmine commented:'), message.body);
+  checkThat('truncates a long comment', message.body.includes('…'), message.body);
+  check(
+    'links straight to the post that was commented on',
+    message.data,
+    { type: 'new_comment', notificationId: 'n1', postId: 'post-1', commentId: 'comment-1' }
+  );
+
+  reset();
+  await pushService.sendCommentAlert({
+    user: { pushTokens: [token('b')] },
+    postId: 'post-1',
+    commentId: 'comment-2',
+    notificationId: 'n2',
+    text: 'Contact me',
+    commenterName: null,
+  });
+  const [anonMessage] = lastMessages();
+  checkThat('falls back to generic wording without a username', anonMessage.body.startsWith('Someone commented:'), anonMessage.body);
+};
+
 (async () => {
   await runSingle();
   await runMirror();
@@ -238,6 +276,7 @@ const runDisabled = async () => {
   await runEmpty();
   await runDeadDevice();
   await runDisabled();
+  await runComment();
 
   console.log(`\n${checks - failures}/${checks} checks passed`);
   process.exit(failures === 0 ? 0 : 1);

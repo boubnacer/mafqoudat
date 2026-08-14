@@ -116,6 +116,7 @@ const NotificationPreferencesPanel = () => {
   const matchAlerts = preferences.matchAlerts !== false;
   const emailAlerts = preferences.emailAlerts === true;
   const pushAlerts = preferences.pushAlerts !== false;
+  const commentAlerts = preferences.commentAlerts !== false;
   const minScore = typeof preferences.minScore === 'number' ? preferences.minScore : 50;
   const emailDisabled = !hasEmail || !matchAlerts;
   const pushSupported = pushPermission !== 'unsupported';
@@ -223,6 +224,23 @@ const NotificationPreferencesPanel = () => {
         <Text style={[styles.settingDescription, textStyle]}>
           {t('notifPrefMinScoreCurrent', { score: minScore })}
         </Text>
+      </View>
+
+      <View style={styles.divider} />
+
+      {/* Independent of matchAlerts above - a comment is not a match lead, and
+          turning off leads should not silently turn off comment replies too. */}
+      <View style={styles.settingRow}>
+        <View style={styles.settingTextWrap}>
+          <Text style={[styles.settingTitle, textStyle]}>{t('notifPrefCommentAlerts')}</Text>
+          <Text style={[styles.settingDescription, textStyle]}>{t('notifPrefCommentAlertsDescription')}</Text>
+        </View>
+        <Switch
+          value={commentAlerts}
+          onValueChange={(value) => save({ commentAlerts: value })}
+          trackColor={{ false: `${tokens.ink}33`, true: `${tokens.brandPrimary}80` }}
+          thumbColor={commentAlerts ? tokens.brandPrimary : undefined}
+        />
       </View>
     </View>
   );

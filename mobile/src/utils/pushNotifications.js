@@ -223,7 +223,7 @@ export const unregisterForPushNotifications = async ({ revokeOnServer = true } =
  */
 export const resolveNotificationTarget = (response) => {
   const data = response?.notification?.request?.content?.data;
-  if (!data || data.type !== 'match_found') return null;
+  if (!data || (data.type !== 'match_found' && data.type !== 'new_comment')) return null;
 
   if (data.postId) {
     return {

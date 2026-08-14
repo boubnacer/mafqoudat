@@ -14,7 +14,25 @@ const { getBlockedUserIds } = require("../utils/blockedUsers");
  */
 
 const SUPPORTED_LANGUAGES = ['en', 'fr', 'ar'];
-const DEFAULT_PREFERENCES = { matchAlerts: true, emailAlerts: false, pushAlerts: true, minScore: 50 };
+const DEFAULT_PREFERENCES = {
+  matchAlerts: true,
+  emailAlerts: false,
+  pushAlerts: true,
+  minScore: 50,
+  commentAlerts: true,
+};
+
+// Bound on how many rows the inbox pulls from each of the two notification
+// types before merging them into one time-sorted list in JS. True DB-level
+// $skip/$limit pagination isn't available once two differently-shaped sources
+// (grouped match leads, flat comment rows) have to interleave by time - so
+// each source is fetched up to this cap, merged, sorted, then sliced for the
+// requested page. `total`/`unreadCount` are exact regardless (separate count
+// aggregations, unaffected by the cap); only the *items themselves* would go
+// missing on a page past this many combined groups+comments for one user,
+// which is not a real scenario at this product's scale (matchesEmailService's
+// MAX_SITE_COMMENTS uses the same bounded-merge reasoning for one thread).
+const MAX_ITEMS_PER_SOURCE = 300;
 
 // Push token registration. The cap is per account, not per device: a phone that
 // is reinstalled mints a new token and the old one is only discovered to be
@@ -154,6 +172,7 @@ const notificationPipeline = (userId, { unreadOnly = false, blockedIds = [] } = 
   {
     $match: {
       user: userId,
+      type: 'match_found',
       isDismissed: false,
       ...(unreadOnly ? { isRead: false } : {}),
     },
@@ -230,6 +249,7 @@ const serializeGroup = (group, language) => {
     .map((entry) => serializeMatchEntry(entry, language));
 
   return {
+    kind: 'match',
     // The reader's own post identifies the group: stable across pages and
     // across new matches arriving later.
     id: String(group._id),
@@ -244,10 +264,207 @@ const serializeGroup = (group, language) => {
 };
 
 // ---------------------------------------------------------------------------
+// Comment notifications
+// ---------------------------------------------------------------------------
+
+/**
+ * Comment alerts, one row per comment - no grouping by post, unlike matches.
+ * A burst of same-category matches is the engine restating one signal several
+ * times, which is what grouping exists to collapse; several people commenting
+ * on one listing are several distinct things worth reading, not a repeat.
+ *
+ * A removed (soft-deleted) comment is dropped, same "still live to be worth
+ * showing" rule LIVE_POSTS_MATCH applies to matches - there is nothing left to
+ * read once the comment is gone.
+ */
+const commentNotificationPipeline = (userId, { unreadOnly = false, blockedIds = [] } = {}) => ([
+  {
+    $match: {
+      user: userId,
+      type: 'new_comment',
+      isDismissed: false,
+      ...(unreadOnly ? { isRead: false } : {}),
+    },
+  },
+  { $sort: { createdAt: -1 } },
+  { $limit: MAX_ITEMS_PER_SOURCE },
+  {
+    $lookup: {
+      from: 'comments',
+      localField: 'comment',
+      foreignField: '_id',
+      as: 'commentDoc',
+    },
+  },
+  { $unwind: '$commentDoc' },
+  { $match: { 'commentDoc.status': 'active' } },
+  ...(blockedIds && blockedIds.length > 0
+    ? [{ $match: { 'commentDoc.user': { $nin: blockedIds } } }]
+    : []),
+  {
+    $lookup: {
+      from: 'users',
+      localField: 'commentDoc.user',
+      foreignField: '_id',
+      as: 'commentAuthor',
+    },
+  },
+  { $unwind: { path: '$commentAuthor', preserveNullAndEmptyArrays: true } },
+  ...postLookupStages('post', 'ownPost'),
+]);
+
+/** Localized, client-ready shape for one comment notification. */
+const serializeCommentNotification = (row, language) => ({
+  kind: 'comment',
+  id: String(row._id),
+  post: serializePost(postProjectionFromDoc(row, 'ownPost'), language),
+  comment: {
+    id: String(row.commentDoc._id),
+    text: row.commentDoc.text,
+    createdAt: row.commentDoc.createdAt,
+    author: {
+      id: row.commentAuthor?._id ? String(row.commentAuthor._id) : null,
+      username: row.commentAuthor?.username || null,
+    },
+  },
+  isRead: !!row.isRead,
+  createdAt: row.createdAt,
+  latestAt: row.createdAt,
+});
+
+/**
+ * `postProjection` is written as an aggregation expression (field paths like
+ * `$ownPost._id`), meant to run inside `$project`. The comment pipeline above
+ * stops before projecting - it needs the raw `commentDoc`/`commentAuthor`
+ * alongside the post - so this re-reads the same shape directly off the plain
+ * JS object those lookup stages produced, field for field.
+ */
+const postProjectionFromDoc = (row, as) => ({
+  id: row[as]?._id,
+  foundLostCode: String(row[`${as}FoundLost`]?.code || '').toUpperCase(),
+  categoryLabels: (row[`${as}Categories`] || []).map((category) => category.labels),
+  cityLabels: row[`${as}City`]?.labels,
+  exactLocation: row[as]?.exactLocation,
+  mainDate: row[as]?.mainDate,
+  image: row[as]?.cloudinaryUrl || row[as]?.image || '',
+  createdAt: row[as]?.createdAt,
+  returned: row[as]?.returned,
+  status: row[as]?.status,
+  ownerId: row[as]?.user,
+});
+
+// ---------------------------------------------------------------------------
 // Handlers
 // ---------------------------------------------------------------------------
 
-// @desc   List the signed-in user's match alerts, grouped by their own listing
+/**
+ * Collapses the per-pair rows into one entry per listing the reader owns.
+ * Runs after LIVE_POSTS_MATCH, so a counterpart that has since been returned
+ * is already gone and never inflates a group's count.
+ */
+const matchGroupStage = {
+  $group: {
+    _id: '$post',
+    post: { $first: postProjection('ownPost') },
+    matchCount: { $sum: 1 },
+    unreadCount: { $sum: { $cond: [{ $eq: ['$isRead', false] }, 1, 0] } },
+    topScore: { $max: '$score' },
+    latestAt: { $max: '$createdAt' },
+    matches: {
+      $push: {
+        notificationId: '$_id',
+        score: '$score',
+        reasons: '$reasons',
+        isRead: '$isRead',
+        createdAt: '$createdAt',
+        match: '$match',
+        daysApart: '$matchDoc.daysApart',
+        matchedPost: postProjection('otherPost'),
+      },
+    },
+  },
+};
+
+/** Match-alert groups and their counts, over the same base pipeline prefix. */
+const loadMatchSource = async (userId, { unreadOnly, blockedIds }) => {
+  const basePipeline = notificationPipeline(userId, { unreadOnly, blockedIds });
+
+  // Groups and totals are two aggregations over the same prefix rather than
+  // one $facet: the group branch needs a $lookup, and $lookup inside $facet
+  // has a patchy history across server versions. Both are cheap - the prefix
+  // is bounded by one user's notifications.
+  const [groups, [counts]] = await Promise.all([
+    Notification.aggregate([
+      ...basePipeline,
+      // daysApart lives on the pair, and it is joined before the grouping so
+      // each match inside a group can carry its own value.
+      {
+        $lookup: {
+          from: 'postmatches',
+          localField: 'match',
+          foreignField: '_id',
+          as: 'matchDoc',
+        },
+      },
+      { $unwind: { path: '$matchDoc', preserveNullAndEmptyArrays: true } },
+      matchGroupStage,
+      { $sort: { latestAt: -1 } },
+      { $limit: MAX_ITEMS_PER_SOURCE },
+    ]),
+    Notification.aggregate([
+      ...basePipeline,
+      {
+        $group: {
+          _id: '$post',
+          unread: { $sum: { $cond: [{ $eq: ['$isRead', false] }, 1, 0] } },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          // Paging is over items, so `total` counts groups here; `unread`
+          // stays a count of individual alerts, matching the bell badge.
+          total: { $sum: 1 },
+          unread: { $sum: '$unread' },
+        },
+      },
+    ]),
+  ]);
+
+  return {
+    groups,
+    total: counts?.total || 0,
+    unread: counts?.unread || 0,
+  };
+};
+
+/** Comment-alert rows and their counts. */
+const loadCommentSource = async (userId, { unreadOnly, blockedIds }) => {
+  const [rows, [counts]] = await Promise.all([
+    Notification.aggregate([
+      ...commentNotificationPipeline(userId, { unreadOnly, blockedIds }),
+      { $limit: MAX_ITEMS_PER_SOURCE },
+    ]),
+    Notification.aggregate([
+      { $match: { user: userId, type: 'new_comment', isDismissed: false, ...(unreadOnly ? { isRead: false } : {}) } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          unread: { $sum: { $cond: [{ $eq: ['$isRead', false] }, 1, 0] } },
+        },
+      },
+    ]),
+  ]);
+
+  return {
+    rows,
+    total: counts?.total || 0,
+    unread: counts?.unread || 0,
+  };
+};
+
+// @desc   List the signed-in user's match alerts and comment alerts, newest first
 // @route  GET /notifications
 // @access Private
 const listNotifications = async (req, res) => {
@@ -259,90 +476,31 @@ const listNotifications = async (req, res) => {
     const pageSize = Math.min(Math.max(parseInt(req.query.pageSize, 10) || 10, 1), 50);
 
     const blockedIds = await getBlockedUserIds(req.user);
-    const basePipeline = notificationPipeline(userId, { unreadOnly, blockedIds });
 
-    // Collapses the per-pair rows into one entry per listing the reader owns.
-    // Runs after LIVE_POSTS_MATCH, so a counterpart that has since been
-    // returned is already gone and never inflates a group's count.
-    const groupStage = {
-      $group: {
-        _id: '$post',
-        post: { $first: postProjection('ownPost') },
-        matchCount: { $sum: 1 },
-        unreadCount: { $sum: { $cond: [{ $eq: ['$isRead', false] }, 1, 0] } },
-        topScore: { $max: '$score' },
-        latestAt: { $max: '$createdAt' },
-        matches: {
-          $push: {
-            notificationId: '$_id',
-            score: '$score',
-            reasons: '$reasons',
-            isRead: '$isRead',
-            createdAt: '$createdAt',
-            match: '$match',
-            daysApart: '$matchDoc.daysApart',
-            matchedPost: postProjection('otherPost'),
-          },
-        },
-      },
-    };
-
-    // Groups and totals are two aggregations over the same prefix rather than
-    // one $facet: the group branch needs a $lookup, and $lookup inside $facet
-    // has a patchy history across server versions. Both are cheap - the prefix
-    // is bounded by one user's notifications.
-    const [groups, [counts]] = await Promise.all([
-      Notification.aggregate([
-        ...basePipeline,
-        // daysApart lives on the pair, and it is joined before the grouping so
-        // each match inside a group can carry its own value.
-        {
-          $lookup: {
-            from: 'postmatches',
-            localField: 'match',
-            foreignField: '_id',
-            as: 'matchDoc',
-          },
-        },
-        { $unwind: { path: '$matchDoc', preserveNullAndEmptyArrays: true } },
-        groupStage,
-        // Newest activity first, so a listing that just picked up a lead rises
-        // to the top even if the listing itself is old.
-        { $sort: { latestAt: -1 } },
-        { $skip: (page - 1) * pageSize },
-        { $limit: pageSize },
-      ]),
-      Notification.aggregate([
-        ...basePipeline,
-        {
-          $group: {
-            _id: '$post',
-            unread: { $sum: { $cond: [{ $eq: ['$isRead', false] }, 1, 0] } },
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            // Paging is over groups, so `total` counts groups; `unread` stays a
-            // count of individual alerts, matching the bell badge exactly.
-            totalGroups: { $sum: 1 },
-            unread: { $sum: '$unread' },
-          },
-        },
-      ]),
+    const [matchSource, commentSource] = await Promise.all([
+      loadMatchSource(userId, { unreadOnly, blockedIds }),
+      loadCommentSource(userId, { unreadOnly, blockedIds }),
     ]);
 
-    const totalGroups = counts?.totalGroups || 0;
-    const unreadCount = counts?.unread || 0;
+    // Two differently-shaped sources (grouped match leads, flat comment rows)
+    // interleaved by their own newest activity - see MAX_ITEMS_PER_SOURCE for
+    // why this happens in JS instead of at the database.
+    const merged = [
+      ...matchSource.groups.map((group) => serializeGroup(group, language)),
+      ...commentSource.rows.map((row) => serializeCommentNotification(row, language)),
+    ].sort((a, b) => new Date(b.latestAt) - new Date(a.latestAt));
+
+    const total = matchSource.total + commentSource.total;
+    const start = (page - 1) * pageSize;
 
     return res.json({
       success: true,
-      groups: groups.map((group) => serializeGroup(group, language)),
+      groups: merged.slice(start, start + pageSize),
       page,
       pageSize,
-      total: totalGroups,
-      totalPages: Math.max(1, Math.ceil(totalGroups / pageSize)),
-      unreadCount,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      unreadCount: matchSource.unread + commentSource.unread,
     });
   } catch (error) {
     console.error('Error listing notifications:', error);
@@ -357,12 +515,22 @@ const getUnreadCount = async (req, res) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.user);
     const blockedIds = await getBlockedUserIds(req.user);
-    const [result] = await Notification.aggregate([
-      ...notificationPipeline(userId, { unreadOnly: true, blockedIds }),
-      { $count: 'value' },
+
+    const [[matchResult], [commentResult]] = await Promise.all([
+      Notification.aggregate([
+        ...notificationPipeline(userId, { unreadOnly: true, blockedIds }),
+        { $count: 'value' },
+      ]),
+      Notification.aggregate([
+        ...commentNotificationPipeline(userId, { unreadOnly: true, blockedIds }),
+        { $count: 'value' },
+      ]),
     ]);
 
-    return res.json({ success: true, unreadCount: result?.value || 0 });
+    return res.json({
+      success: true,
+      unreadCount: (matchResult?.value || 0) + (commentResult?.value || 0),
+    });
   } catch (error) {
     console.error('Error counting unread notifications:', error);
     return res.status(500).json({ success: false, message: 'Failed to load unread count' });
@@ -661,6 +829,9 @@ const updatePreferences = async (req, res) => {
     }
     if (typeof req.body.pushAlerts === 'boolean') {
       updates['notificationPreferences.pushAlerts'] = req.body.pushAlerts;
+    }
+    if (typeof req.body.commentAlerts === 'boolean') {
+      updates['notificationPreferences.commentAlerts'] = req.body.commentAlerts;
     }
     if (req.body.minScore !== undefined) {
       const minScore = Number(req.body.minScore);

@@ -1666,7 +1666,7 @@ export const translations = {
     // `tier`/`reason` codes come from the server (services/matchingService.js);
     // all wording lives here.
     notifications: "Notifications",
-    notifPageSubtitle: "Alerts when a new listing looks like one of yours",
+    notifPageSubtitle: "Alerts when a new listing looks like one of yours, or someone comments on one of your posts",
     notifTabAll: "All",
     notifTabUnread: "Unread",
     notifMarkAllRead: "Mark all as read",
@@ -1701,6 +1701,10 @@ export const translations = {
     notifPrefMinScoreCurrent: "Alerting from {score}% and above",
     notifPreferencesLoadError: "We couldn't load your alert settings.",
     notifPreferencesSaveError: "We couldn't save your alert settings. Please try again.",
+    notifCommentHeadline: "{username} commented on your post",
+    notifCommentHeadlineAnon: "New comment on your post",
+    notifPrefCommentAlerts: "Comment alerts",
+    notifPrefCommentAlertsDescription: "Notify me when someone comments on one of my posts.",
     matchTierStrong: "Strong match",
     matchTierGood: "Likely match",
     matchTierPossible: "Possible match",
@@ -3356,7 +3360,7 @@ export const translations = {
     // `tier`/`reason` codes come from the server (services/matchingService.js);
     // all wording lives here.
     notifications: "Notifications",
-    notifPageSubtitle: "Alertes lorsqu'une nouvelle annonce ressemble à l'une des vôtres",
+    notifPageSubtitle: "Alertes lorsqu'une nouvelle annonce ressemble à l'une des vôtres, ou qu'on commente l'une de vos annonces",
     notifTabAll: "Toutes",
     notifTabUnread: "Non lues",
     notifMarkAllRead: "Tout marquer comme lu",
@@ -3391,6 +3395,10 @@ export const translations = {
     notifPrefMinScoreCurrent: "Alertes à partir de {score}%",
     notifPreferencesLoadError: "Impossible de charger vos paramètres d'alerte.",
     notifPreferencesSaveError: "Impossible d'enregistrer vos paramètres. Veuillez réessayer.",
+    notifCommentHeadline: "{username} a commenté votre annonce",
+    notifCommentHeadlineAnon: "Nouveau commentaire sur votre annonce",
+    notifPrefCommentAlerts: "Alertes de commentaires",
+    notifPrefCommentAlertsDescription: "Me prévenir lorsqu'un commentaire est ajouté à l'une de mes annonces.",
     matchTierStrong: "Correspondance forte",
     matchTierGood: "Correspondance probable",
     matchTierPossible: "Correspondance possible",
@@ -5028,7 +5036,7 @@ export const translations = {
     // `tier`/`reason` codes come from the server (services/matchingService.js);
     // all wording lives here.
     notifications: "الإشعارات",
-    notifPageSubtitle: "تنبيهات عندما يشبه إعلان جديد أحد إعلاناتك",
+    notifPageSubtitle: "تنبيهات عندما يشبه إعلان جديد أحد إعلاناتك، أو عند التعليق على أحد إعلاناتك",
     notifTabAll: "الكل",
     notifTabUnread: "غير المقروءة",
     notifMarkAllRead: "تعليم الكل كمقروء",
@@ -5063,6 +5071,10 @@ export const translations = {
     notifPrefMinScoreCurrent: "التنبيه من {score}% فما فوق",
     notifPreferencesLoadError: "تعذّر تحميل إعدادات التنبيهات.",
     notifPreferencesSaveError: "تعذّر حفظ الإعدادات. حاول مرة أخرى.",
+    notifCommentHeadline: "علّق {username} على إعلانك",
+    notifCommentHeadlineAnon: "تعليق جديد على إعلانك",
+    notifPrefCommentAlerts: "تنبيهات التعليقات",
+    notifPrefCommentAlertsDescription: "أعلِمني عند إضافة تعليق على أحد إعلاناتي.",
     matchTierStrong: "تطابق قوي",
     matchTierGood: "تطابق مرجّح",
     matchTierPossible: "تطابق محتمل",

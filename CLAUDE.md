@@ -380,11 +380,46 @@ auto-posted Facebook/Instagram copies.
   brand colors on the source badges are the same documented exception as
   `SocialReach`. Mobile follows Phase 9 (parent borderless/shadowless, badges
   carry the sub-element shadow) and routes direction through `utils/rtl.js`.
-- **Not built yet**: the post's owner is *not* notified when someone comments —
-  they only see it when they open the listing. That's the obvious next step
-  (the `Notification` model's `type` enum is match-only today).
+- **Comment notifications**: the post's owner gets an in-app alert and,
+  preference permitting, a push, when someone comments on a *site* comment
+  (social comments read back from Facebook/Instagram never notify — the
+  platform's own notifications already cover that, and this app has no
+  authority over that side anyway). Never fires on your own comment.
+  `Notification.type` gained `new_comment` alongside `match_found`
+  ([Notification.js](server/models/Notification.js)); `matchedPost`/`match`/
+  `score` are required only for `match_found`, a new `comment` ref only for
+  `new_comment`, and the old single unique index was split into two
+  `partialFilterExpression`-scoped ones (an unscoped compound unique index
+  would treat every comment row's missing `matchedPost` as an equal `null`
+  and reject the second comment on any post as a duplicate key) — `server.js`
+  runs `Notification.syncIndexes()` on connect so an existing deployment picks
+  up the corrected index rather than keeping the stale one.
+  [commentNotificationService.js](server/services/commentNotificationService.js)
+  writes the row and queues the push, called fire-and-forget from
+  `commentsController.createComment` so a failed alert can never fail the
+  comment write. Push copy/channel:
+  [pushNotificationService.js](server/services/pushNotificationService.js)'s
+  `sendCommentAlert` — same Android channel as match alerts (`match-alerts`),
+  not a second one; the in-app `commentAlerts` preference is what gates the
+  feature, independent of `matchAlerts`/`pushAlerts` which stay match-only.
+  **The inbox merges two differently-shaped sources**: match alerts group by
+  the reader's own post (see above); comment alerts are flat, one row per
+  comment, fetched and paginated separately (bounded at
+  `MAX_ITEMS_PER_SOURCE`, 300, per source) then merged and re-sorted by
+  time in JS in `notificationsController.listNotifications` — not a DB-level
+  `$unionWith`, to stay off the same server-version floor `$sortArray` is
+  avoided for elsewhere in this doc. `getUnreadCount` sums both sources' exact
+  unread counts, so the bell badge and the two list kinds never disagree.
+  Client: web's `CommentNotificationItem.jsx` (a `kind: 'comment'` entry
+  alongside `NotificationGroup`'s `kind: 'match'` in `NotificationsPage.jsx`
+  and the bell popover) and mobile's `CommentNotificationCard.js` (same split
+  in `NotificationsScreen.js`), styled from the existing row/badge vocabulary
+  rather than inventing new card language — no found/lost tag or confidence
+  score, since a comment isn't a counterpart listing to judge.
 - **Offline check**: `npm run test-comments` — no DB, no network; covers the
   permission flags per viewer and the cross-source time merge.
+  `npm run test-push` also covers `sendCommentAlert` (commenter-name wording,
+  the anonymous fallback, truncation).
 
 ## Rules for this work
 

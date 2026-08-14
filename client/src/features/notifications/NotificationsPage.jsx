@@ -27,6 +27,7 @@ import {
 import { useTranslation } from "../../utils/translations";
 import useTitle from "../../hooks/useTitle";
 import NotificationGroup from "./NotificationGroup";
+import CommentNotificationItem from "./CommentNotificationItem";
 import NotificationPreferences from "./NotificationPreferences";
 import {
   useGetNotificationsQuery,
@@ -92,6 +93,25 @@ const NotificationsPage = () => {
   const handleDismissMatch = useCallback(async (match) => {
     try {
       await dismissNotification(match.notificationId).unwrap();
+    } catch (error) {
+      /* the list refetches from the invalidated tag regardless */
+    }
+  }, [dismissNotification]);
+
+  const handleOpenComment = useCallback(async (item) => {
+    if (!item.isRead) {
+      try {
+        await markRead(item.id).unwrap();
+      } catch (error) {
+        /* opening the listing matters more than recording the read receipt */
+      }
+    }
+    navigate(`/dash/posts/${item.post.id}`);
+  }, [markRead, navigate]);
+
+  const handleDismissComment = useCallback(async (item) => {
+    try {
+      await dismissNotification(item.id).unwrap();
     } catch (error) {
       /* the list refetches from the invalidated tag regardless */
     }
@@ -247,14 +267,25 @@ const NotificationsPage = () => {
 
         {!isLoading && groups.length > 0 && (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, opacity: isFetching ? 0.6 : 1, transition: "opacity 0.2s ease" }}>
-            {groups.map((group) => (
-              <NotificationGroup
-                key={group.id}
-                group={group}
-                onOpenMatch={handleOpenMatch}
-                onDismissMatch={handleDismissMatch}
-                isDismissing={isDismissing}
-              />
+            {groups.map((item) => (
+              item.kind === 'comment' ? (
+                <CommentNotificationItem
+                  key={item.id}
+                  item={item}
+                  onOpen={handleOpenComment}
+                  onDismiss={handleDismissComment}
+                  isDismissing={isDismissing}
+                  asCard
+                />
+              ) : (
+                <NotificationGroup
+                  key={item.id}
+                  group={item}
+                  onOpenMatch={handleOpenMatch}
+                  onDismissMatch={handleDismissMatch}
+                  isDismissing={isDismissing}
+                />
+              )
             ))}
           </Box>
         )}

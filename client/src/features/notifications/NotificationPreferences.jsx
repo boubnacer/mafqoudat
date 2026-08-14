@@ -57,6 +57,7 @@ const NotificationPreferences = () => {
   const preferences = data.preferences || {};
   const matchAlerts = preferences.matchAlerts !== false;
   const emailAlerts = preferences.emailAlerts === true;
+  const commentAlerts = preferences.commentAlerts !== false;
   const canEmail = !!data.hasEmail;
 
   const save = (patch) => {
@@ -144,6 +145,22 @@ const NotificationPreferences = () => {
           {t('notifPrefMinScoreCurrent', { score: minScore })}
         </Typography>
       </Box>
+
+      <Divider sx={{ my: 1.5 }} />
+
+      {/* Independent of matchAlerts above - a comment is not a match lead, and
+          turning off leads should not silently turn off comment replies too. */}
+      <FormControlLabel
+        sx={{ display: "flex", marginInlineStart: 0, marginInlineEnd: 0, justifyContent: "space-between", gap: 2 }}
+        labelPlacement="start"
+        control={(
+          <Switch
+            checked={commentAlerts}
+            onChange={(event) => save({ commentAlerts: event.target.checked })}
+          />
+        )}
+        label={rowLabel(t('notifPrefCommentAlerts'), t('notifPrefCommentAlertsDescription'))}
+      />
     </Box>
   );
 };

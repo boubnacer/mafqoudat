@@ -393,6 +393,14 @@ app.use(resilientErrorHandler);
 let server;
 mongoose.connection.once("open", () => {
   console.log("Connected to MongoDB");
+  // The Notification unique indexes were narrowed with partialFilterExpression
+  // when new_comment notifications were added (see models/Notification.js) -
+  // an existing deployment's old unqualified index has to be replaced, or
+  // every comment after a post's first is rejected as a duplicate key. Scoped
+  // to this one model, not a blanket syncIndexes() over every collection.
+  require("./models/Notification").syncIndexes().catch((err) => {
+    console.error("Failed to sync Notification indexes:", err?.message || err);
+  });
   server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
 });
 

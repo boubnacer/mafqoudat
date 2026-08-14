@@ -92,14 +92,26 @@ const SectionHeader = ({ styles, tokens, icon, title, isRTL }) => (
 );
 
 // A single fact in the info grid: tinted square, micro label, value.
-const InfoTile = ({ styles, tokens, icon, label, value, accessibilityLabel, isRTL }) => (
-  <View style={styles.infoTile} accessible accessibilityLabel={accessibilityLabel || `${label}: ${value}`}>
+// fullWidth: takes the whole grid row instead of the ~44% two-up tile, and
+// drops the 2-line value cap - for exact location, whose free-text address
+// can run longer than a date/country/views value.
+const InfoTile = ({ styles, tokens, icon, label, value, accessibilityLabel, isRTL, fullWidth }) => (
+  <View
+    style={[styles.infoTile, fullWidth && styles.infoTileFullWidth]}
+    accessible
+    accessibilityLabel={accessibilityLabel || `${label}: ${value}`}
+  >
     <View style={styles.infoTileIcon}>
       <Ionicons name={icon} size={16} color={tokens.brandPrimary} />
     </View>
     <View style={styles.infoTileBody}>
       <Text style={[styles.infoTileLabel, isRTL && styles.textRTL]} numberOfLines={1}>{label}</Text>
-      <Text style={[styles.infoTileValue, isRTL && styles.textRTL]} numberOfLines={2}>{value}</Text>
+      <Text
+        style={[styles.infoTileValue, isRTL && styles.textRTL]}
+        numberOfLines={fullWidth ? undefined : 2}
+      >
+        {value}
+      </Text>
     </View>
   </View>
 );
@@ -512,12 +524,6 @@ const PostDetailScreen = ({ navigation, route }) => {
           )}
 
           <View style={styles.metaRow}>
-            {metaLocationLabel ? (
-              <View style={styles.metaItem}>
-                <Ionicons name="location-outline" size={14} color={`${tokens.ink}80`} />
-                <Text style={styles.metaText}>{metaLocationLabel}</Text>
-              </View>
-            ) : null}
             {categories.map((cat) => {
               const config = getCategoryConfig(cat.code);
               const label = getLocalizedLabel(cat, currentLanguage);
@@ -538,6 +544,17 @@ const PostDetailScreen = ({ navigation, route }) => {
               description, which is what made the screen read as a list of
               loose lines. They are one tile grid now - same data, one block. */}
           <View style={styles.infoGrid}>
+            {metaLocationLabel ? (
+              <InfoTile
+                styles={styles}
+                tokens={tokens}
+                icon="location-outline"
+                label={t('location')}
+                value={metaLocationLabel}
+                isRTL={isRTL}
+                fullWidth
+              />
+            ) : null}
             <InfoTile
               styles={styles}
               tokens={tokens}
@@ -579,6 +596,11 @@ const PostDetailScreen = ({ navigation, route }) => {
           {/* What the auto-posted copies of this listing are doing on the
               Facebook Page and the Instagram account. */}
           <SocialReachSection post={post} />
+
+          {/* Comment thread - the app's own comments merged with the ones
+              left on the Facebook/Instagram copies. Public to read. Placed
+              right after SocialReachSection above, ahead of Contact. */}
+          <CommentsSection postId={post._id} />
 
           <View style={styles.section}>
             <SectionHeader styles={styles} tokens={tokens} icon="call-outline" title={t('contactSeller')} isRTL={isRTL} />
@@ -664,11 +686,6 @@ const PostDetailScreen = ({ navigation, route }) => {
               </View>
             </View>
           ) : null}
-
-          {/* Comment thread - the app's own comments merged with the ones
-              left on the Facebook/Instagram copies. Public to read. Placed
-              right after SocialReachSection above, ahead of Possible matches. */}
-          <CommentsSection postId={post._id} />
 
           {/* Possible matches - renders nothing for anyone but this post's
               owner, and nothing once the item is marked returned. */}
@@ -931,6 +948,10 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderRadius: radiusTokens.md,
       backgroundColor: `${tokens.ink}0A`,
     },
+    infoTileFullWidth: {
+      flexBasis: '100%',
+      alignItems: 'flex-start',
+    },
     infoTileIcon: {
       width: 32,
       height: 32,
@@ -991,16 +1012,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       gap: 14,
       marginTop: 4,
       marginBottom: 4,
-    },
-    metaItem: {
-      flexDirection: row(isRTL),
-      alignItems: 'center',
-      gap: 5,
-    },
-    metaText: {
-      fontFamily: fontFamilies.body,
-      fontSize: 12,
-      color: `${tokens.ink}80`,
     },
     contactButtonsRow: {
       flexDirection: row(isRTL),

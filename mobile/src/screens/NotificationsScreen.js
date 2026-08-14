@@ -26,6 +26,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AppHeader from '../components/AppHeader';
 import NotificationGroupCard from '../components/notifications/NotificationGroupCard';
+import CommentNotificationCard from '../components/notifications/CommentNotificationCard';
 import NotificationPreferencesPanel from '../components/notifications/NotificationPreferencesPanel';
 import SkeletonBlock from '../components/SkeletonBlock';
 import { useAuth } from '../context/AuthContext';
@@ -183,6 +184,37 @@ const NotificationsScreen = ({ navigation }) => {
     navigation.navigate('PostDetailScreen', { id: match.matchedPost.id });
   };
 
+  const handleOpenComment = async (item) => {
+    if (!item.isRead) {
+      // Same order as handleOpenMatch: update local state and the badge first,
+      // reaching the post matters more than the read receipt succeeding.
+      setGroups((current) =>
+        current.map((entry) => (entry.id === item.id ? { ...entry, isRead: true } : entry))
+      );
+      setUnreadCount((count) => Math.max(0, count - 1));
+      try {
+        await markNotificationRead(item.id);
+      } catch (error) {
+        refreshUnreadCount();
+      }
+    }
+    navigation.navigate('PostDetailScreen', { id: item.post.id });
+  };
+
+  const handleDismissComment = async (item) => {
+    setBusyId(item.id);
+    const previous = groups;
+    setGroups((current) => current.filter((entry) => entry.id !== item.id));
+    try {
+      await dismissNotification(item.id);
+      refreshUnreadCount();
+    } catch (error) {
+      setGroups(previous);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const handleDismissMatch = async (match) => {
     setBusyId(match.notificationId);
     const previous = groups;
@@ -216,11 +248,15 @@ const NotificationsScreen = ({ navigation }) => {
     try {
       await markAllNotificationsRead();
       setGroups((current) =>
-        current.map((group) => ({
-          ...group,
-          unreadCount: 0,
-          matches: group.matches.map((match) => ({ ...match, isRead: true })),
-        }))
+        current.map((group) => (
+          group.kind === 'comment'
+            ? { ...group, isRead: true }
+            : {
+              ...group,
+              unreadCount: 0,
+              matches: group.matches.map((match) => ({ ...match, isRead: true })),
+            }
+        ))
       );
       setUnreadCount(0);
       // "Unread" becomes an empty set the moment this succeeds, so that tab has
@@ -339,12 +375,21 @@ const NotificationsScreen = ({ navigation }) => {
         data={isLoading ? [] : groups}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <NotificationGroupCard
-            group={item}
-            onOpenMatch={handleOpenMatch}
-            onDismissMatch={handleDismissMatch}
-            busyId={busyId}
-          />
+          item.kind === 'comment' ? (
+            <CommentNotificationCard
+              item={item}
+              onOpen={handleOpenComment}
+              onDismiss={handleDismissComment}
+              isBusy={busyId === item.id}
+            />
+          ) : (
+            <NotificationGroupCard
+              group={item}
+              onOpenMatch={handleOpenMatch}
+              onDismissMatch={handleDismissMatch}
+              busyId={busyId}
+            />
+          )
         )}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={listHeader}
