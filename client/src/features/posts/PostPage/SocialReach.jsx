@@ -1,5 +1,6 @@
-import { Box, Typography, Link, useTheme } from "@mui/material";
+import { Box, Typography, useTheme, alpha } from "@mui/material";
 import {
+  StackedBarChartOutlined as ReachIcon,
   Facebook as FacebookIcon,
   Instagram as InstagramIcon,
   VisibilityOutlined as ViewsIcon,
@@ -27,59 +28,104 @@ import { summarizeSocialStats } from "../../../utils/socialStats";
  * Facebook reaction, an Instagram like and a view are three different things
  * and pooling them would state a figure nobody measured.
  *
- * Uses the eyebrow + icon-and-text vocabulary the rest of the page already
- * speaks; no new card treatment.
+ * Card treatment mirrors mobile SocialReach.js's SocialReachSection (Phase
+ * 14): each platform is its own tinted block with its counts as surfaceRaised
+ * chips inside, rather than the eyebrow + loose icon-and-text row this page
+ * used before — two headings and two metric runs stacked on a flat surface
+ * read as one undifferentiated block of text, so the fill is what tells
+ * Facebook's numbers from Instagram's.
  */
 
+// One count, as a chip — up to six per platform, and unseparated they wrap
+// into a paragraph of numbers nobody can scan.
 const Metric = ({ icon: Icon, value, label }) => {
+  const theme = useTheme();
   if (value === null) return null;
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-      <Icon sx={{ fontSize: 15, color: 'text.secondary', flexShrink: 0 }} />
-      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-        {value} {label}
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.625,
+        px: 1.125,
+        py: 0.625,
+        borderRadius: `${theme.custom.radius.sm}px`,
+        backgroundColor: theme.custom.color.surfaceRaised,
+      }}
+    >
+      <Icon sx={{ fontSize: 15, color: alpha(theme.custom.color.ink, 0.6), flexShrink: 0 }} />
+      <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
+        {value}
+      </Typography>
+      <Typography variant="caption" sx={{ color: alpha(theme.custom.color.ink, 0.6) }}>
+        {label}
       </Typography>
     </Box>
   );
 };
 
-const PlatformRow = ({ icon: Icon, name, tint, permalink, linkLabel, children }) => {
+const PlatformBlock = ({ icon: Icon, name, tint, permalink, linkLabel, children }) => {
   const theme = useTheme();
   return (
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', columnGap: 1.5, rowGap: 0.5 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
-        <Icon sx={{ fontSize: 18, color: tint }} />
-        <Typography variant="body2" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
-          {name}
-        </Typography>
-      </Box>
-      {children}
-      {permalink && (
-        <Link
-          href={permalink}
-          target="_blank"
-          rel="noopener noreferrer"
-          underline="hover"
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1.25,
+        p: 1.5,
+        borderRadius: `${theme.custom.radius.md}px`,
+        backgroundColor: alpha(theme.custom.color.ink, 0.04),
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+        <Box
           sx={{
-            display: 'inline-flex',
+            width: 30,
+            height: 30,
+            borderRadius: `${theme.custom.radius.sm}px`,
+            backgroundColor: alpha(tint, 0.12),
+            display: 'flex',
             alignItems: 'center',
-            gap: 0.375,
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            color: theme.custom.color.brandPrimary,
-            marginInlineStart: 'auto',
+            justifyContent: 'center',
+            flexShrink: 0,
           }}
         >
-          {linkLabel}
-          <OpenIcon sx={{ fontSize: 13 }} />
-        </Link>
-      )}
+          <Icon sx={{ fontSize: 16, color: tint }} />
+        </Box>
+        <Typography variant="body2" sx={{ color: theme.custom.color.ink, fontWeight: 700, flexGrow: 1 }}>
+          {name}
+        </Typography>
+        {permalink && (
+          <Box
+            component="a"
+            href={permalink}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={linkLabel}
+            sx={{
+              width: 30,
+              height: 30,
+              borderRadius: `${theme.custom.radius.sm}px`,
+              backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              color: theme.custom.color.brandPrimary,
+            }}
+          >
+            <OpenIcon sx={{ fontSize: 15 }} />
+          </Box>
+        )}
+      </Box>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>{children}</Box>
     </Box>
   );
 };
 
 const SocialReach = ({ post }) => {
   const { t } = useTranslation();
+  const theme = useTheme();
   const { facebook, instagram, hasStats } = summarizeSocialStats(post);
 
   // Nothing has been read back yet - say nothing rather than render a row of
@@ -92,19 +138,22 @@ const SocialReach = ({ post }) => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
       <Box>
-        <Typography
-          variant="overline"
-          sx={{ fontWeight: 600, letterSpacing: 1, color: 'text.secondary', display: 'block', lineHeight: 1.6 }}
-        >
-          {t('socialReach')}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <ReachIcon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: { xs: '1rem', md: '1.1rem' } }}
+          >
+            {t('socialReach')}
+          </Typography>
+        </Box>
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
           {t('socialReachNote')}
         </Typography>
       </Box>
 
       {showFacebook && (
-        <PlatformRow
+        <PlatformBlock
           icon={FacebookIcon}
           name="Facebook"
           // Meta's own brand colors: these rows point at somewhere else, so
@@ -119,11 +168,11 @@ const SocialReach = ({ post }) => {
           <Metric icon={SharesIcon} value={facebook.shares} label={t('shares')} />
           <Metric icon={EngagedIcon} value={facebook.engagedUsers} label={t('engagedUsers')} />
           <Metric icon={ClicksIcon} value={facebook.clicks} label={t('clicks')} />
-        </PlatformRow>
+        </PlatformBlock>
       )}
 
       {showInstagram && (
-        <PlatformRow
+        <PlatformBlock
           icon={InstagramIcon}
           name="Instagram"
           tint="#E1306C"
@@ -134,7 +183,7 @@ const SocialReach = ({ post }) => {
           <Metric icon={LikesIcon} value={instagram.likes} label={t('likes')} />
           <Metric icon={CommentsIcon} value={instagram.comments} label={t('comments')} />
           <Metric icon={SavedIcon} value={instagram.saved} label={t('saved')} />
-        </PlatformRow>
+        </PlatformBlock>
       )}
     </Box>
   );

@@ -8,7 +8,8 @@ import {
   Grid,
   useTheme,
   alpha,
-  Alert
+  Alert,
+  CircularProgress
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
@@ -23,7 +24,8 @@ import {
   Delete as DeleteIcon,
   LocationOn as LocationIcon,
   CalendarToday as CalendarIcon,
-  AccessTime as TimeIcon,
+  MapOutlined as CityIcon,
+  DescriptionOutlined as DescriptionSectionIcon,
   Public as CountryIcon,
   WhatsApp as WhatsAppIcon,
   CheckCircle as CheckCircleIcon,
@@ -141,17 +143,83 @@ const ResolvedRibbon = ({ children }) => {
   );
 };
 
-// One icon + one line of text — the atom the facts strip and the secondary
-// meta row are both built from, so location/time/category/country read as
-// one consistent language instead of a label:value table.
-const FactItem = ({ icon: Icon, children }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
-    {Icon && <Icon sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />}
-    <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0 }}>
-      {children}
-    </Typography>
-  </Box>
-);
+// Icon + display-face title, one treatment for every block on the page
+// (description, reach, comments) — mirrors mobile PostDetailScreen.js's
+// SectionHeader (Phase 14) instead of this page's old plain h6/overline mix.
+const SectionHeading = ({ icon: Icon, children }) => {
+  const theme = useTheme();
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.25 }}>
+      <Icon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
+      <Typography
+        variant="h6"
+        sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: { xs: '1rem', md: '1.1rem' } }}
+      >
+        {children}
+      </Typography>
+    </Box>
+  );
+};
+
+// A single fact as a tinted tile — icon square, micro uppercase label, value.
+// Mirrors mobile PostDetailScreen.js's InfoTile grid (Phase 14), replacing the
+// old label:value fact-strip row for city/date/country/views. fullWidth is
+// for the exact-location tile, whose free-text address can run long.
+const InfoTile = ({ icon: Icon, label, value, fullWidth }) => {
+  const theme = useTheme();
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.25,
+        p: 1.5,
+        borderRadius: `${theme.custom.radius.md}px`,
+        backgroundColor: alpha(theme.custom.color.ink, 0.04),
+        flexBasis: fullWidth ? '100%' : { xs: '44%', sm: '31%', md: '22%' },
+        flexGrow: 1,
+        minWidth: 0,
+      }}
+    >
+      <Box
+        sx={{
+          width: 38,
+          height: 38,
+          borderRadius: `${theme.custom.radius.sm}px`,
+          backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        <Icon sx={{ fontSize: 19, color: theme.custom.color.brandPrimary }} />
+      </Box>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography
+          variant="caption"
+          sx={{
+            display: 'block',
+            fontWeight: 700,
+            letterSpacing: 0.6,
+            textTransform: 'uppercase',
+            fontSize: '0.65rem',
+            color: alpha(theme.custom.color.ink, 0.5),
+          }}
+        >
+          {label}
+        </Typography>
+        <Typography
+          variant="body2"
+          noWrap={!fullWidth}
+          sx={{ fontWeight: 700, color: theme.custom.color.ink, mt: 0.25, wordBreak: 'break-word' }}
+        >
+          {value}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
 
 const SinglePostPage = ({
   _id,
@@ -671,6 +739,15 @@ const SinglePostPage = ({
     || (countryLabels && countryLabels.en)
     || countryname;
 
+  // City now has its own InfoTile below, so it no longer doubles as the page
+  // headline — mirrors mobile PostDetailScreen.js's titleLabel/metaLocationLabel
+  // (Phase 14): headline falls to exactLocation, then the status text, and the
+  // location tile only repeats it when it says something the city tile doesn't.
+  const titleLabel = (exactLocation && exactLocation.trim()) ? exactLocation.trim() : foundLostStatus.statusText;
+  const metaLocationLabel = (exactLocation && exactLocation.trim() && exactLocation.trim() !== displayCityName)
+    ? exactLocation.trim()
+    : null;
+
   return (
     <Box
       sx={{
@@ -811,60 +888,73 @@ const SinglePostPage = ({
                   fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
                 }}
               >
-                {displayCityName}
+                {titleLabel}
               </Typography>
 
-              {/* Facts strip — category, location, recency, and the exact lost/found
-                  date all read as one line of icon+text pairs instead of a label:value
-                  table (title/City/Country previously repeated the same fact 3x). */}
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', rowGap: 1, columnGap: 2, alignItems: 'center', mb: 3 }}>
-                {categories.map((cat, index) => (
-                  <Chip
-                    key={cat.code || index}
-                    label={categoryNames[index]}
-                    size="small"
-                    sx={{
-                      fontSize: '0.75rem',
-                      height: 26,
-                      backgroundColor: categoryStyles[index].background,
-                      color: categoryStyles[index].text,
-                      border: `1px solid ${alpha(categoryStyles[index].main, 0.4)}`,
-                      fontWeight: 600,
-                    }}
-                  />
-                ))}
-                <FactItem icon={LocationIcon}>{displayCityName}</FactItem>
-                <FactItem icon={TimeIcon}>{createdDate}</FactItem>
-                {mainDate && mainDate.trim() && (
-                  <FactItem icon={CalendarIcon}>
-                    {foundLostStatus.isFound ? t('exactDateFound') : t('exactDateLost')}: {mainDate}
-                  </FactItem>
+              {/* Category chips, icon + label like mobile's category pill. */}
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                {categories.map((cat, index) => {
+                  const CatIcon = getCategoryIcon(cat.code);
+                  return (
+                    <Chip
+                      key={cat.code || index}
+                      label={categoryNames[index]}
+                      size="small"
+                      icon={CatIcon ? <CatIcon sx={{ fontSize: '15px !important', color: `${categoryStyles[index].text} !important` }} /> : undefined}
+                      sx={{
+                        fontSize: '0.75rem',
+                        height: 26,
+                        backgroundColor: categoryStyles[index].background,
+                        color: categoryStyles[index].text,
+                        border: `1px solid ${alpha(categoryStyles[index].main, 0.4)}`,
+                        fontWeight: 600,
+                      }}
+                    />
+                  );
+                })}
+              </Box>
+
+              {/* Info grid — the single-value facts (where, when, how many people
+                  looked) as tinted tiles instead of a loose row of icon+text pairs.
+                  Mirrors mobile PostDetailScreen.js's InfoTile grid (Phase 14). */}
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 3 }}>
+                {metaLocationLabel && (
+                  <InfoTile icon={LocationIcon} label={t('location')} value={metaLocationLabel} fullWidth />
                 )}
-                {countryDisplayName && <FactItem icon={CountryIcon}>{countryDisplayName}</FactItem>}
+                <InfoTile icon={CityIcon} label={t('city')} value={displayCityName} />
+                {mainDate && mainDate.trim() && (
+                  <InfoTile
+                    icon={CalendarIcon}
+                    label={t('date')}
+                    value={mainDate}
+                  />
+                )}
+                {countryDisplayName && <InfoTile icon={CountryIcon} label={t('country')} value={countryDisplayName} />}
+                {typeof views === 'number' && <InfoTile icon={ViewIcon} label={t('views')} value={views} />}
               </Box>
 
               {/* Description */}
-              <Typography
-                variant="body1"
+              <Box
                 sx={{
                   mb: 3,
-                  lineHeight: 1.6,
-                  color: theme.palette.text.secondary,
+                  p: { xs: 1.75, md: 2.25 },
+                  borderRadius: `${theme.custom.radius.md}px`,
+                  backgroundColor: alpha(theme.custom.color.ink, 0.04),
                 }}
               >
-                {(descriptionLabels && descriptionLabels[currentLanguage]) || description || t('noDescriptionProvided')}
-              </Typography>
+                <SectionHeading icon={DescriptionSectionIcon}>{t('description')}</SectionHeading>
+                <Typography variant="body1" sx={{ lineHeight: 1.6, color: theme.palette.text.secondary }}>
+                  {(descriptionLabels && descriptionLabels[currentLanguage]) || description || t('noDescriptionProvided')}
+                </Typography>
+              </Box>
 
-              {/* Secondary meta — views/tags are operational, not primary to the reader,
-                  so they sit quiet at the bottom instead of competing with the facts above. */}
-              {((views !== undefined) || (tags && tags.length > 0)) && (
+              {/* Tags — operational, not primary to the reader, so they sit
+                  quiet at the bottom instead of competing with the facts above. */}
+              {tags && tags.length > 0 && (
                 <>
                   <Divider sx={{ mb: 2, borderColor: theme.palette.divider }} />
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
-                    {views !== undefined && (
-                      <FactItem icon={ViewIcon}>{t('postViews', { count: views })}</FactItem>
-                    )}
-                    {tags && tags.length > 0 && tags.map((tag, index) => (
+                    {tags.map((tag, index) => (
                       <Chip
                         key={index}
                         label={tag}
@@ -885,10 +975,18 @@ const SinglePostPage = ({
               {/* Reach on the Pages this listing was mirrored to. Renders
                   nothing until those numbers have actually been read back. */}
               {(social || socialStats) && (
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{ mt: 3 }}>
                   <SocialReach post={{ social, socialStats }} />
                 </Box>
               )}
+
+              {/* Comment thread — the site's own comments merged with the ones
+                  left on the Facebook/Instagram copies. Public to read, signed-in
+                  to write. Right after Reach, ahead of the sidebar (Claim dialog
+                  etc.), mirroring mobile PostDetailScreen.js's section order. */}
+              <Box sx={{ mt: 3 }}>
+                <CommentsSection postId={_id} />
+              </Box>
             </Box>
           </Paper>
         </Grid>
@@ -1097,30 +1195,27 @@ const SinglePostPage = ({
               </Paper>
             )}
 
-            {/* Report — the safety valve, not a peer action to Claim. A quiet
-                text link, not a bordered button, and hidden for the post's own
-                author (reporting your own listing isn't a real action). */}
             {/* Report asks us to act on the post; Block lets the viewer act on
-                the poster themselves, straight away. Both are quiet text links
-                for the same reason - neither is a peer action to Claim. */}
+                the poster themselves, straight away. Neither is a peer action
+                to Claim, so both share one quiet row — mirrors mobile
+                PostDetailScreen.js's Report/Block pair (Phase 14): Report
+                keeps the lost tone so it still reads as the consequential one,
+                Block is a neutral wash. Hidden for the post's own author. */}
             {!isAuthor && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 1,
-                  alignSelf: { xs: 'center', lg: 'flex-start' },
-                }}
-              >
+              <Box sx={{ display: 'flex', gap: 1.25 }}>
                 <Button
                   onClick={handleReport}
                   startIcon={<FlagIcon sx={{ fontSize: 16 }} />}
                   sx={{
+                    flex: 1,
+                    borderRadius: `${theme.custom.radius.md}px`,
                     textTransform: 'none',
-                    fontWeight: 500,
+                    fontWeight: 700,
                     fontSize: '0.8125rem',
-                    color: 'text.secondary',
-                    '&:hover': { color: theme.palette.error.main, backgroundColor: 'transparent' }
+                    py: 1.25,
+                    backgroundColor: theme.custom.status.lost.bg,
+                    color: theme.custom.status.lost.main,
+                    '&:hover': { backgroundColor: theme.custom.status.lost.bg, opacity: 0.85 },
                   }}
                 >
                   {t('reportThisPost')}
@@ -1128,13 +1223,17 @@ const SinglePostPage = ({
                 <Button
                   onClick={handleBlockAuthor}
                   disabled={isBlocking}
-                  startIcon={<BlockIcon sx={{ fontSize: 16 }} />}
+                  startIcon={isBlocking ? <CircularProgress size={14} color="inherit" /> : <BlockIcon sx={{ fontSize: 16 }} />}
                   sx={{
+                    flex: 1,
+                    borderRadius: `${theme.custom.radius.md}px`,
                     textTransform: 'none',
-                    fontWeight: 500,
+                    fontWeight: 700,
                     fontSize: '0.8125rem',
-                    color: 'text.secondary',
-                    '&:hover': { color: theme.palette.error.main, backgroundColor: 'transparent' }
+                    py: 1.25,
+                    backgroundColor: alpha(theme.custom.color.ink, 0.04),
+                    color: alpha(theme.custom.color.ink, 0.6),
+                    '&:hover': { backgroundColor: alpha(theme.custom.color.ink, 0.08) },
                   }}
                 >
                   {t('blockUser')}
@@ -1144,23 +1243,6 @@ const SinglePostPage = ({
           </Box>
         </Grid>
       </Grid>
-
-      {/* Comment thread — the site's own comments merged with the ones left
-          on the Facebook/Instagram copies. Public to read, signed-in to write.
-          Placed right after the Reach-on-social-media section above, ahead
-          of Possible matches. */}
-      <Paper
-        elevation={0}
-        sx={{
-          mt: 3,
-          p: { xs: 2, sm: 3 },
-          borderRadius: `${theme.custom.radius.lg}px`,
-          backgroundColor: theme.custom.color.surfaceRaised,
-          boxShadow: theme.custom.elevation.e1,
-        }}
-      >
-        <CommentsSection postId={_id} />
-      </Paper>
 
       {/* Possible matches — owner-only. Renders nothing for anyone else, and
           nothing once the item is marked returned. */}

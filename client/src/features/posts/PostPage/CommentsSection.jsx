@@ -13,7 +13,6 @@ import {
   CircularProgress,
   Alert,
   useTheme,
-  useMediaQuery,
   alpha,
 } from "@mui/material";
 import {
@@ -210,7 +209,6 @@ const CommentItem = ({ comment, postId, onError }) => {
 
 const CommentsSection = ({ postId }) => {
   const theme = useTheme();
-  const isXs = useMediaQuery(theme.breakpoints.down("sm"));
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
 
@@ -243,11 +241,24 @@ const CommentsSection = ({ postId }) => {
     }
   };
 
+  // Everything below — header, composer, comment list — shares one tinted
+  // panel so the section reads as a single block instead of a composer
+  // floating above bare comment rows. Mirrors mobile CommentsSection.js's
+  // `panel` (Phase 14).
   return (
-    <Box sx={{ mt: 3 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+    <Box
+      sx={{
+        p: { xs: 1.75, md: 2.25 },
+        borderRadius: `${theme.custom.radius.lg}px`,
+        backgroundColor: alpha(theme.custom.color.ink, 0.04),
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
         <CommentsIcon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
-        <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink }}>
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: { xs: "1rem", md: "1.1rem" } }}
+        >
           {t("commentsTitle")}
         </Typography>
         {total > 0 && (
@@ -268,40 +279,50 @@ const CommentsSection = ({ postId }) => {
       )}
 
       {isAuthenticated ? (
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1, alignItems: { xs: "stretch", sm: "flex-start" } }}
-        >
+        // Field on its own row, action + counter beneath it — a side-by-side
+        // field+button squeezed the input too narrow for its own placeholder
+        // and gave the primary action no label. Mirrors mobile's stacked
+        // composer (Phase 14) instead of this page's old inline form.
+        <Box component="form" onSubmit={handleSubmit}>
           <TextField
             fullWidth
             multiline
-            maxRows={5}
-            size="small"
+            minRows={2}
+            maxRows={6}
             value={text}
             onChange={(event) => setText(event.target.value)}
             placeholder={t("commentPlaceholder")}
             inputProps={{ maxLength: 1000 }}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: `${theme.custom.radius.md}px` } }}
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth={isXs}
-            disabled={!text.trim() || isPosting}
-            startIcon={isPosting ? <CircularProgress size={14} color="inherit" /> : <SendIcon sx={{ fontSize: 16 }} />}
             sx={{
-              flexShrink: 0,
-              borderRadius: `${theme.custom.radius.md}px`,
-              backgroundColor: theme.custom.color.brandPrimary,
-              textTransform: "none",
-              fontWeight: 600,
-              px: 2,
-              py: 1,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: `${theme.custom.radius.sm}px`,
+                backgroundColor: theme.custom.color.surfaceRaised,
+              },
+              "& .MuiOutlinedInput-notchedOutline": { border: "none" },
             }}
-          >
-            {isPosting ? t("posting") : t("postComment")}
-          </Button>
+          />
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1.5, mt: 1.25 }}>
+            <Typography variant="caption" sx={{ color: alpha(theme.custom.color.ink, 0.5) }}>
+              {text.length > 0 ? `${text.length}/1000` : ""}
+            </Typography>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={!text.trim() || isPosting}
+              startIcon={isPosting ? <CircularProgress size={14} color="inherit" /> : <SendIcon sx={{ fontSize: 16 }} />}
+              sx={{
+                flexShrink: 0,
+                borderRadius: `${theme.custom.radius.md}px`,
+                backgroundColor: theme.custom.color.brandPrimary,
+                textTransform: "none",
+                fontWeight: 700,
+                fontSize: "0.8125rem",
+                px: 2,
+              }}
+            >
+              {isPosting ? t("posting") : t("postComment")}
+            </Button>
+          </Box>
         </Box>
       ) : (
         <Typography variant="body2" sx={{ color: "text.secondary", fontStyle: "italic" }}>
@@ -309,14 +330,12 @@ const CommentsSection = ({ postId }) => {
         </Typography>
       )}
 
-      <Divider sx={{ mt: 2, borderColor: theme.palette.divider }} />
-
       {isLoading ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
           <CircularProgress size={22} />
         </Box>
       ) : isError ? (
-        <Typography variant="body2" sx={{ color: "text.secondary", py: 2 }}>
+        <Typography variant="body2" sx={{ color: "text.secondary", py: 2, mt: 1 }}>
           {t("commentFailed")}
         </Typography>
       ) : comments.length === 0 ? (
@@ -332,7 +351,7 @@ const CommentsSection = ({ postId }) => {
         <>
           {comments.map((comment, index) => (
             <Box key={comment.id}>
-              {index > 0 && <Divider sx={{ borderColor: alpha(theme.custom.color.ink, 0.06) }} />}
+              {index > 0 && <Divider sx={{ borderColor: alpha(theme.custom.color.ink, 0.08) }} />}
               <CommentItem comment={comment} postId={postId} onError={showNotice} />
             </Box>
           ))}
