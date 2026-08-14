@@ -53,6 +53,9 @@ const SOURCE_META = {
 // comment arrives between two requests.
 const PAGE_STEP = 20;
 
+// Matches the server's own cap on a comment body.
+const MAX_COMMENT_LENGTH = 1000;
+
 const getElevation = (isDark, level) => ({
   shadowColor: '#000000',
   shadowOffset: { width: 0, height: level },
@@ -216,6 +219,11 @@ const CommentsSection = ({ postId }) => {
       </View>
 
       {isSignedIn ? (
+        /* Field on its own row, action beneath it: a square send button
+           squeezed beside a multiline field left the input too narrow for the
+           placeholder to fit and gave the primary action of the section no
+           label. Stacked, the field gets the full width and the button gets
+           its words back. */
         <View style={styles.composer}>
           <TextInput
             style={[styles.input, isRTL && styles.textRTL]}
@@ -224,20 +232,30 @@ const CommentsSection = ({ postId }) => {
             placeholder={t('commentPlaceholder')}
             placeholderTextColor={`${tokens.ink}66`}
             multiline
-            maxLength={1000}
+            maxLength={MAX_COMMENT_LENGTH}
           />
-          <TouchableOpacity
-            style={[styles.sendButton, (!text.trim() || isPosting) && styles.sendButtonDisabled]}
-            onPress={handleSubmit}
-            disabled={!text.trim() || isPosting}
-            activeOpacity={0.85}
-          >
-            {isPosting ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Ionicons name="send" size={16} color="#FFFFFF" />
-            )}
-          </TouchableOpacity>
+          <View style={styles.composerFooter}>
+            <Text style={styles.counter}>
+              {text.length > 0 ? `${text.length}/${MAX_COMMENT_LENGTH}` : ''}
+            </Text>
+            <TouchableOpacity
+              style={[styles.sendButton, (!text.trim() || isPosting) && styles.sendButtonDisabled]}
+              onPress={handleSubmit}
+              disabled={!text.trim() || isPosting}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={t('postComment')}
+            >
+              {isPosting ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <Ionicons name="send" size={15} color="#FFFFFF" />
+                  <Text style={styles.sendButtonText}>{t('postComment')}</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       ) : (
         <Text style={[styles.signInNote, isRTL && styles.textRTL]}>{t('signInToComment')}</Text>
@@ -294,7 +312,7 @@ const createStyles = ({ tokens, isDark, isRTL }) => StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamilies.display,
-    fontSize: 15,
+    fontSize: 16,
     color: tokens.ink,
   },
   sectionCount: {
@@ -303,32 +321,53 @@ const createStyles = ({ tokens, isDark, isRTL }) => StyleSheet.create({
     color: `${tokens.ink}99`,
   },
   composer: {
-    flexDirection: row(isRTL),
-    alignItems: 'flex-end',
-    gap: 8,
+    padding: 12,
+    borderRadius: radiusTokens.md,
+    backgroundColor: `${tokens.ink}0A`,
     marginBottom: 8,
   },
   input: {
-    flex: 1,
-    minHeight: 42,
-    maxHeight: 120,
-    paddingHorizontal: 14,
-    paddingTop: 11,
-    paddingBottom: 11,
-    borderRadius: radiusTokens.md,
-    backgroundColor: tokens.surfaceBase,
+    minHeight: 66,
+    maxHeight: 160,
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderRadius: radiusTokens.sm,
+    backgroundColor: tokens.surfaceRaised,
     fontFamily: fontFamilies.body,
     fontSize: 13,
+    lineHeight: 19,
     color: tokens.ink,
     textAlign: isRTL ? 'right' : 'left',
+    textAlignVertical: 'top',
+  },
+  composerFooter: {
+    flexDirection: row(isRTL),
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 10,
+  },
+  counter: {
+    flexShrink: 1,
+    fontFamily: fontFamilies.body,
+    fontSize: 11,
+    color: `${tokens.ink}66`,
   },
   sendButton: {
-    width: 42,
-    height: 42,
-    borderRadius: radiusTokens.md,
-    backgroundColor: tokens.brandPrimary,
+    flexDirection: row(isRTL),
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 7,
+    minHeight: 40,
+    paddingHorizontal: 16,
+    borderRadius: radiusTokens.md,
+    backgroundColor: tokens.brandPrimary,
+  },
+  sendButtonText: {
+    color: '#FFFFFF',
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: 13,
   },
   sendButtonDisabled: {
     opacity: 0.45,

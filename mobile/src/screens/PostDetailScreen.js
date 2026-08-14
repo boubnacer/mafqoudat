@@ -80,6 +80,30 @@ const PostDetailSkeleton = ({ styles, tokens }) => (
   </View>
 );
 
+// One heading treatment for every block on this screen (description, contact,
+// reach, matches, comments) - icon + display-face title. The reach and comment
+// sections already used it; the screen's own sections used an uppercase micro
+// label instead, so the page read as two different documents stacked.
+const SectionHeader = ({ styles, tokens, icon, title, isRTL }) => (
+  <View style={styles.sectionHeader}>
+    <Ionicons name={icon} size={18} color={tokens.ink} />
+    <Text style={[styles.sectionTitle, isRTL && styles.textRTL]}>{title}</Text>
+  </View>
+);
+
+// A single fact in the info grid: tinted square, micro label, value.
+const InfoTile = ({ styles, tokens, icon, label, value, accessibilityLabel, isRTL }) => (
+  <View style={styles.infoTile} accessible accessibilityLabel={accessibilityLabel || `${label}: ${value}`}>
+    <View style={styles.infoTileIcon}>
+      <Ionicons name={icon} size={16} color={tokens.brandPrimary} />
+    </View>
+    <View style={styles.infoTileBody}>
+      <Text style={[styles.infoTileLabel, isRTL && styles.textRTL]} numberOfLines={1}>{label}</Text>
+      <Text style={[styles.infoTileValue, isRTL && styles.textRTL]} numberOfLines={2}>{value}</Text>
+    </View>
+  </View>
+);
+
 const STATUS_KEYS = {
   active: 'statusActive',
   resolved: 'statusResolved',
@@ -276,6 +300,7 @@ const PostDetailScreen = ({ navigation, route }) => {
   const metaLocationLabel = post.exactLocation && post.exactLocation !== cityLabel ? post.exactLocation : null;
 
   const description = post.description && post.description.trim() ? post.description.trim() : t('noDescriptionProvided');
+  const dateValue = post.mainDate && String(post.mainDate).trim() ? String(post.mainDate) : t('noDateProvided');
 
   const isResolved = post.returned === true || (!!post.status && post.status !== 'active');
   const statusLabel = post.status && STATUS_KEYS[post.status] ? t(STATUS_KEYS[post.status]) : null;
@@ -508,33 +533,47 @@ const PostDetailScreen = ({ navigation, route }) => {
             })}
           </View>
 
-          <View style={styles.infoRow}>
-            <Ionicons name="calendar-outline" size={16} color={`${tokens.ink}80`} />
-            <Text style={[styles.infoRowText, isRTL && styles.textRTL]}>
-              {isLostType ? t('exactDateLost') : t('exactDateFound')}
-              {': '}
-              {post.mainDate && String(post.mainDate).trim() ? String(post.mainDate) : t('noDateProvided')}
-            </Text>
+          {/* The three single-value facts (when, where, how many people looked)
+              used to be three full-width rows plus a stray meta row after the
+              description, which is what made the screen read as a list of
+              loose lines. They are one tile grid now - same data, one block. */}
+          <View style={styles.infoGrid}>
+            <InfoTile
+              styles={styles}
+              tokens={tokens}
+              icon="calendar-outline"
+              label={t('date')}
+              value={dateValue}
+              // The tile label is short so the grid stays readable; the full
+              // "date when the item was lost/found" phrasing survives here.
+              accessibilityLabel={`${isLostType ? t('exactDateLost') : t('exactDateFound')}: ${dateValue}`}
+              isRTL={isRTL}
+            />
+            {countryLabel ? (
+              <InfoTile
+                styles={styles}
+                tokens={tokens}
+                icon="earth-outline"
+                label={t('country')}
+                value={countryLabel}
+                isRTL={isRTL}
+              />
+            ) : null}
+            {typeof post.views === 'number' ? (
+              <InfoTile
+                styles={styles}
+                tokens={tokens}
+                icon="eye-outline"
+                label={t('viewsLabel')}
+                value={String(post.views)}
+                isRTL={isRTL}
+              />
+            ) : null}
           </View>
 
-          {countryLabel ? (
-            <View style={styles.infoRow}>
-              <Ionicons name="earth-outline" size={16} color={`${tokens.ink}80`} />
-              <Text style={[styles.infoRowText, isRTL && styles.textRTL]}>{countryLabel}</Text>
-            </View>
-          ) : null}
-
-          <Text style={[styles.description, isRTL && styles.textRTL]}>{description}</Text>
-
-          <View style={styles.divider} />
-
-          <View style={styles.metaRow}>
-            {typeof post.views === 'number' ? (
-              <View style={styles.metaItem}>
-                <Ionicons name="eye-outline" size={14} color={`${tokens.ink}80`} />
-                <Text style={styles.metaText}>{t('views', { count: post.views })}</Text>
-              </View>
-            ) : null}
+          <View style={styles.section}>
+            <SectionHeader styles={styles} tokens={tokens} icon="document-text-outline" title={t('description')} isRTL={isRTL} />
+            <Text style={[styles.description, isRTL && styles.textRTL]}>{description}</Text>
           </View>
 
           {/* What the auto-posted copies of this listing are doing on the
@@ -542,7 +581,7 @@ const PostDetailScreen = ({ navigation, route }) => {
           <SocialReachSection post={post} />
 
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>{t('contactSeller')}</Text>
+            <SectionHeader styles={styles} tokens={tokens} icon="call-outline" title={t('contactSeller')} isRTL={isRTL} />
             {contactAction.type === 'email' && (
               <TouchableOpacity
                 style={[styles.contactButton, styles.brandButton]}
@@ -556,7 +595,7 @@ const PostDetailScreen = ({ navigation, route }) => {
             {contactAction.type === 'phone' && (
               <View style={styles.contactButtonsRow}>
                 <TouchableOpacity
-                  style={[styles.contactButton, styles.brandButton]}
+                  style={[styles.contactButton, styles.contactButtonHalf, styles.brandButton]}
                   onPress={() => openLink(`tel:${contactAction.contact}`, t)}
                   activeOpacity={0.85}
                 >
@@ -566,7 +605,7 @@ const PostDetailScreen = ({ navigation, route }) => {
                 {/* #25D366 is WhatsApp's own brand color, kept literal rather than
                     tokenized since it identifies the service, not this app's theme. */}
                 <TouchableOpacity
-                  style={[styles.contactButton, styles.whatsappButton]}
+                  style={[styles.contactButton, styles.contactButtonHalf, styles.whatsappButton]}
                   onPress={() => openLink(`https://wa.me/${contactAction.digits}`, t)}
                   activeOpacity={0.85}
                 >
@@ -582,38 +621,47 @@ const PostDetailScreen = ({ navigation, route }) => {
 
           {/* Report asks us to act on this post; Block lets the viewer act on
               the poster themselves, straight away. Google Play's UGC policy
-              wants both, not one standing in for the other. */}
+              wants both, not one standing in for the other.
+
+              Both used to be full-width filled buttons, which made moderation
+              the loudest thing on a screen whose job is to get someone their
+              property back. They share one quiet row now, still with Report
+              ahead of Block - reporting gets bad content taken down for
+              everyone, blocking only changes this viewer's own feed. */}
           {!isOwner ? (
-            <View style={styles.section}>
-              <TouchableOpacity
-                style={[styles.contactButton, styles.reportButton]}
-                onPress={openReportSheet}
-                activeOpacity={0.85}
-                accessibilityRole="button"
-                accessibilityLabel={t('reportThisPost')}
-              >
-                <Ionicons name="flag-outline" size={16} color="#FFFFFF" />
-                <Text style={styles.contactButtonText}>{t('reportThisPost')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.contactButton, styles.blockButton]}
-                onPress={handleBlockUser}
-                activeOpacity={0.85}
-                disabled={isBlocking}
-                accessibilityRole="button"
-                accessibilityLabel={t('blockUser')}
-              >
-                {isBlocking ? (
-                  <ActivityIndicator size="small" color={tokens.status.lost.main} />
-                ) : (
-                  <>
-                    <Ionicons name="ban-outline" size={16} color={tokens.status.lost.main} />
-                    <Text style={[styles.contactButtonText, styles.blockButtonText]}>
-                      {t('blockUser')}
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
+            <View style={styles.moderationSection}>
+              <View style={styles.divider} />
+              <View style={styles.moderationRow}>
+                <TouchableOpacity
+                  style={[styles.quietButton, styles.reportButton]}
+                  onPress={openReportSheet}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('reportThisPost')}
+                >
+                  <Ionicons name="flag-outline" size={15} color={tokens.status.lost.main} />
+                  <Text style={[styles.quietButtonText, styles.reportButtonText]} numberOfLines={2}>
+                    {t('reportThisPost')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.quietButton, styles.blockButton]}
+                  onPress={handleBlockUser}
+                  activeOpacity={0.85}
+                  disabled={isBlocking}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('blockUser')}
+                >
+                  {isBlocking ? (
+                    <ActivityIndicator size="small" color={`${tokens.ink}99`} />
+                  ) : (
+                    <>
+                      <Ionicons name="ban-outline" size={15} color={`${tokens.ink}99`} />
+                      <Text style={styles.quietButtonText} numberOfLines={2}>{t('blockUser')}</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           ) : null}
 
@@ -849,35 +897,70 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontSize: 13,
     },
     section: {
-      marginTop: 16,
+      marginTop: 20,
     },
-    sectionLabel: {
-      fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 12,
-      color: `${tokens.ink}99`,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-      marginBottom: 5,
-    },
-    infoRow: {
+    sectionHeader: {
       flexDirection: row(isRTL),
-      alignItems: 'flex-start',
+      alignItems: 'center',
       gap: 8,
-      marginTop: 12,
+      marginBottom: 10,
     },
-    infoRowText: {
-      flex: 1,
-      fontFamily: fontFamilies.body,
-      fontSize: 14,
+    sectionTitle: {
+      fontFamily: fontFamilies.display,
+      fontSize: 16,
       color: tokens.ink,
-      lineHeight: 20,
+    },
+    // Two tiles to a row on a normal phone, one when the value is long enough
+    // to need the width. flexGrow lets a lone third tile take the full row
+    // rather than leaving a half-width gap.
+    infoGrid: {
+      flexDirection: row(isRTL),
+      flexWrap: 'wrap',
+      gap: 10,
+      marginTop: 14,
+    },
+    infoTile: {
+      flexGrow: 1,
+      flexBasis: '44%',
+      minWidth: 140,
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      gap: 10,
+      padding: 12,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.ink}0A`,
+    },
+    infoTileIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: radiusTokens.sm,
+      backgroundColor: `${tokens.brandPrimary}1F`,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    infoTileBody: {
+      flex: 1,
+      minWidth: 0,
+    },
+    infoTileLabel: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 10,
+      letterSpacing: 0.6,
+      textTransform: 'uppercase',
+      color: `${tokens.ink}80`,
+    },
+    infoTileValue: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 13,
+      lineHeight: 18,
+      color: tokens.ink,
+      marginTop: 2,
     },
     description: {
       fontFamily: fontFamilies.body,
       fontSize: 15,
       color: tokens.ink,
       lineHeight: 22,
-      marginTop: 16,
     },
     divider: {
       height: 1,
@@ -919,7 +1002,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       color: `${tokens.ink}80`,
     },
     contactButtonsRow: {
-      flexDirection: 'row',
+      flexDirection: row(isRTL),
       gap: 12,
     },
     contactButton: {
@@ -927,10 +1010,15 @@ const createStyles = (tokens, isRTL, isDark) =>
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      paddingVertical: 13,
+      paddingVertical: 14,
       paddingHorizontal: 20,
       borderRadius: radiusTokens.md,
-      marginTop: 4,
+    },
+    // Call and WhatsApp split the row evenly instead of each hugging its own
+    // label, so the pair reads as one control strip.
+    contactButtonHalf: {
+      flex: 1,
+      paddingHorizontal: 12,
     },
     brandButton: {
       backgroundColor: tokens.brandPrimary,
@@ -938,25 +1026,47 @@ const createStyles = (tokens, isRTL, isDark) =>
     whatsappButton: {
       backgroundColor: '#25D366',
     },
-    reportButton: {
-      backgroundColor: tokens.status.lost.main,
-    },
-    // Outlined rather than filled, so Report stays the primary of the two:
-    // reporting is what gets bad content taken down for everyone, blocking only
-    // changes this viewer's own feed.
-    blockButton: {
-      backgroundColor: 'transparent',
-      borderWidth: 1,
-      borderColor: tokens.status.lost.main,
-      marginTop: 10,
-    },
-    blockButtonText: {
-      color: tokens.status.lost.main,
-    },
     contactButtonText: {
       color: '#FFFFFF',
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 15,
+    },
+    moderationSection: {
+      marginTop: 4,
+    },
+    moderationRow: {
+      flexDirection: row(isRTL),
+      gap: 10,
+      marginTop: 4,
+    },
+    quietButton: {
+      flex: 1,
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 7,
+      minHeight: 46,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: radiusTokens.md,
+    },
+    // Report keeps the lost tone so it still reads as the consequential one of
+    // the pair; block is a neutral wash.
+    reportButton: {
+      backgroundColor: tokens.status.lost.bg,
+    },
+    reportButtonText: {
+      color: tokens.status.lost.main,
+    },
+    blockButton: {
+      backgroundColor: `${tokens.ink}0A`,
+    },
+    quietButtonText: {
+      flexShrink: 1,
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 13,
+      color: `${tokens.ink}99`,
+      textAlign: 'center',
     },
     modalOverlay: {
       flex: 1,

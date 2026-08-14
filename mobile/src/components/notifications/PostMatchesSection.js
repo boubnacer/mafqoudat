@@ -207,7 +207,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     headerTitle: {
       flexShrink: 1,
       fontFamily: fontFamilies.display,
-      fontSize: 18,
+      fontSize: 16,
       color: tokens.ink,
     },
     headerSubtitle: {

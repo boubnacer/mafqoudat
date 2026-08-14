@@ -14,8 +14,10 @@
  * reaction and an impression in someone's feed are three different units, and
  * one merged total would state a measurement nobody took.
  *
- * Phase 9 applies - the badge-sized elements carry the small sub-element
- * shadow, and nothing here draws a border.
+ * Nothing here draws a border. The per-platform blocks are tinted cards with
+ * their counts as chips inside; like Phase 10's stats panel, the sub-elements
+ * go flat once a filled parent is carrying the separation, so no shadow is
+ * used on this screen's reach section at all.
  */
 
 import React from 'react';
@@ -33,17 +35,6 @@ import { summarizeSocialStats, readSiteViews } from '../utils/socialStats';
 const FACEBOOK_TINT = '#1877F2';
 const INSTAGRAM_TINT = '#E1306C';
 
-const getElevation = (isDark, level) => {
-  const opacity = isDark ? 0.4 : 0.08;
-  return {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: level },
-    shadowOpacity: opacity,
-    shadowRadius: level * 2,
-    elevation: level,
-  };
-};
-
 /**
  * The compact pair shown on a post card: visits to this listing in the app,
  * and how many interactions its social copies picked up.
@@ -57,7 +48,7 @@ export const PostReachRow = ({ post }) => {
   const { t } = useTranslation();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const isRTL = currentLanguage === 'ar';
-  const styles = createStyles({ tokens, isDark, isRTL });
+  const styles = createStyles({ tokens, isRTL });
 
   const siteViews = readSiteViews(post);
   const { interactions } = summarizeSocialStats(post);
@@ -84,12 +75,16 @@ export const PostReachRow = ({ post }) => {
   );
 };
 
+// One count, as a chip. Chips rather than a loose run of icon+text: the
+// detail page shows up to six of them per platform, and unseparated they
+// wrapped into a paragraph of numbers nobody could scan.
 const Metric = ({ styles, tokens, icon, value, label }) => {
   if (value === null) return null;
   return (
     <View style={styles.metric}>
       <Ionicons name={icon} size={13} color={`${tokens.ink}99`} />
-      <Text style={styles.metricText}>{`${value} ${label}`}</Text>
+      <Text style={styles.metricValue}>{value}</Text>
+      <Text style={styles.metricText}>{label}</Text>
     </View>
   );
 };
@@ -106,9 +101,11 @@ const PlatformBlock = ({ styles, tokens, icon, tint, name, permalink, linkLabel,
           style={styles.platformLink}
           onPress={() => Linking.openURL(permalink).catch(() => {})}
           activeOpacity={0.7}
+          accessibilityRole="link"
+          accessibilityLabel={linkLabel}
+          hitSlop={6}
         >
-          <Text style={styles.platformLinkText} numberOfLines={1}>{linkLabel}</Text>
-          <Ionicons name="open-outline" size={12} color={tokens.brandPrimary} />
+          <Ionicons name="open-outline" size={13} color={tokens.brandPrimary} />
         </TouchableOpacity>
       ) : null}
     </View>
@@ -125,7 +122,7 @@ export const SocialReachSection = ({ post }) => {
   const { t } = useTranslation();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const isRTL = currentLanguage === 'ar';
-  const styles = createStyles({ tokens, isDark, isRTL });
+  const styles = createStyles({ tokens, isRTL });
 
   const { facebook, instagram, hasStats } = summarizeSocialStats(post);
 
@@ -138,7 +135,10 @@ export const SocialReachSection = ({ post }) => {
 
   return (
     <View style={styles.section}>
-      <Text style={[styles.sectionLabel, isRTL && styles.textRTL]}>{t('socialReach')}</Text>
+      <View style={styles.sectionHeader}>
+        <Ionicons name="stats-chart-outline" size={18} color={tokens.ink} />
+        <Text style={[styles.sectionLabel, isRTL && styles.textRTL]}>{t('socialReach')}</Text>
+      </View>
       <Text style={[styles.sectionNote, isRTL && styles.textRTL]}>{t('socialReachNote')}</Text>
 
       {showFacebook ? (
@@ -180,7 +180,7 @@ export const SocialReachSection = ({ post }) => {
   );
 };
 
-const createStyles = ({ tokens, isDark, isRTL }) => StyleSheet.create({
+const createStyles = ({ tokens, isRTL }) => StyleSheet.create({
   reachRow: {
     flexDirection: row(isRTL),
     alignItems: 'center',
@@ -203,11 +203,16 @@ const createStyles = ({ tokens, isDark, isRTL }) => StyleSheet.create({
 
   section: {
     marginTop: 20,
-    gap: 6,
+  },
+  sectionHeader: {
+    flexDirection: row(isRTL),
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
   },
   sectionLabel: {
     fontFamily: fontFamilies.display,
-    fontSize: 15,
+    fontSize: 16,
     color: tokens.ink,
     textAlign: isRTL ? 'right' : 'left',
   },
@@ -217,11 +222,17 @@ const createStyles = ({ tokens, isDark, isRTL }) => StyleSheet.create({
     lineHeight: 18,
     color: `${tokens.ink}99`,
     textAlign: isRTL ? 'right' : 'left',
-    marginBottom: 4,
   },
+  // Each platform is its own tinted card now. Two headings and two loose
+  // metric runs stacked on a flat surface read as one undifferentiated block
+  // of text; the fill is what tells Facebook's numbers from Instagram's.
+  // Phase 9 still holds - fill only, no border and no shadow on the card.
   platformBlock: {
-    gap: 8,
-    marginTop: 8,
+    gap: 10,
+    marginTop: 10,
+    padding: 12,
+    borderRadius: radiusTokens.md,
+    backgroundColor: `${tokens.ink}0A`,
   },
   platformHeader: {
     flexDirection: row(isRTL),
@@ -229,12 +240,11 @@ const createStyles = ({ tokens, isDark, isRTL }) => StyleSheet.create({
     gap: 8,
   },
   platformIcon: {
-    width: 26,
-    height: 26,
+    width: 28,
+    height: 28,
     borderRadius: radiusTokens.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    ...getElevation(isDark, 1),
   },
   platformName: {
     fontFamily: fontFamilies.bodySemiBold,
@@ -242,29 +252,37 @@ const createStyles = ({ tokens, isDark, isRTL }) => StyleSheet.create({
     color: tokens.ink,
     flexGrow: 1,
   },
+  // Icon-only: the platform it opens is named on the same row, and the full
+  // "View on Facebook/Instagram" wording is on the accessibility label.
   platformLink: {
-    flexDirection: row(isRTL),
+    width: 28,
+    height: 28,
+    borderRadius: radiusTokens.sm,
+    backgroundColor: `${tokens.brandPrimary}1F`,
     alignItems: 'center',
-    gap: 4,
-    flexShrink: 1,
-  },
-  platformLinkText: {
-    fontFamily: fontFamilies.bodySemiBold,
-    fontSize: 12,
-    color: tokens.brandPrimary,
+    justifyContent: 'center',
   },
   metricsRow: {
     flexDirection: row(isRTL),
     flexWrap: 'wrap',
     alignItems: 'center',
     alignSelf: alignStart(isRTL),
-    columnGap: 14,
-    rowGap: 6,
+    columnGap: 8,
+    rowGap: 8,
   },
   metric: {
     flexDirection: row(isRTL),
     alignItems: 'center',
     gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: radiusTokens.sm,
+    backgroundColor: tokens.surfaceRaised,
+  },
+  metricValue: {
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: 12,
+    color: tokens.ink,
   },
   metricText: {
     fontFamily: fontFamilies.body,
