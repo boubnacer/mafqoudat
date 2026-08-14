@@ -81,6 +81,11 @@ const world = {
   // candidate for every concept, so a fresh scenario resolves on the first try.
   facebookMetrics: ['post_impressions_unique', 'post_engaged_users', 'post_clicks'],
   instagramMetrics: ['views', 'saved'],
+  // Whether this token may read comment *text* (a broader grant than the
+  // count: pages_read_user_content / instagram_manage_comments). When false,
+  // Graph refuses the whole object rather than just omitting that field -
+  // which is what made a missing permission take the counts down with it.
+  commentTextReadable: true,
 };
 
 const requests = [];
@@ -172,6 +177,23 @@ axios.post = async (url, body) => {
         };
       }
 
+      // Asking for comment text without the permission fails the whole
+      // object, not just that field - the behaviour that made a nice-to-have
+      // take the core counts down with it.
+      const asksForCommentText = /comments[^,]*\{/.test(fields);
+      if (asksForCommentText && !world.commentTextReadable) {
+        return {
+          code: 403,
+          body: JSON.stringify({
+            error: {
+              code: 10,
+              message: "(#10) This endpoint requires the 'pages_read_user_content' permission",
+              type: 'OAuthException',
+            },
+          }),
+        };
+      }
+
       return { code: 200, body: JSON.stringify(buildObjectPayload(id, fields)) };
     }),
   };
@@ -212,6 +234,7 @@ const reset = () => {
   world.instagram = {};
   world.facebookMetrics = ['post_impressions_unique', 'post_engaged_users', 'post_clicks'];
   world.instagramMetrics = ['views', 'saved'];
+  world.commentTextReadable = true;
 };
 
 // A fresh service per scenario: the resolved-metric memo is process-lifetime
@@ -442,6 +465,48 @@ happened on the Page minutes later",
   check('all three facebook concepts are probed once each for the first post', probesForFirstPost, 3);
   await probingService.refreshPosts([post('p2', { fb: 'f2' })]);
   check('none of the three are re-probed for the next post', countProbes(), probesForFirstPost);
+
+  // -------------------------------------------------------------------------
+  console.log('\n--- comment text without the permission for it ---');
+
+  reset();
+  // The reported production case: the token can read reactions/shares fine,
+  // but not comment *content*. Graph refuses the entire object when the
+  // request carries a field it will not serve, so asking for comment text
+  // used to take the counts down with it and leave the listing blank.
+  world.commentTextReadable = false;
+  world.facebook.f1 = { reactions: 9, comments: 4, shares: 2, views: 80, engagedUsers: 6, clicks: 2 };
+  await newService().refreshPosts([post('p1', { fb: 'f1' })]);
+
+  check('the counts still land when comment text is refused', [
+    updateFor('p1')['socialStats.facebook.reactions'],
+    updateFor('p1')['socialStats.facebook.comments'],
+    updateFor('p1')['socialStats.facebook.shares'],
+  ], [9, 4, 2]);
+  check('and so do the insight metrics', updateFor('p1')['socialStats.facebook.views'], 80);
+  checkThat('no comment text is invented, and whatever was cached is left alone',
+    updateFor('p1')['socialComments.facebook'] === undefined);
+
+  reset();
+  world.commentTextReadable = false;
+  world.facebook.f1 = { reactions: 1, comments: 0, shares: 0, views: 5, engagedUsers: 1, clicks: 0 };
+  world.facebook.f2 = { reactions: 2, comments: 0, shares: 0, views: 6, engagedUsers: 1, clicks: 0 };
+  const refusedOnce = newService();
+  await refusedOnce.refreshPosts([post('p1', { fb: 'f1' })]);
+  const requestsAfterFirst = requests.filter((request) => request.batch).length;
+  check('the first refusal costs one extra request to discover', requestsAfterFirst, 2);
+  await refusedOnce.refreshPosts([post('p2', { fb: 'f2' })]);
+  check('after which the refusal is remembered and never retried',
+    requests.filter((request) => request.batch).length, requestsAfterFirst + 1);
+
+  reset();
+  // Instagram's permission for comment text is separate from Facebook's, so
+  // one being refused must not stop the other from being asked.
+  world.instagram.i1 = { likes: 3, comments: 1, views: 40, saved: 2 };
+  world.instagram.i1.commentList = [];
+  await newService().refreshPosts([post('p1', { ig: 'i1' })]);
+  check('an Instagram post whose comment text IS readable still gets its counts',
+    updateFor('p1')['socialStats.instagram.likes'], 3);
 
   // -------------------------------------------------------------------------
   console.log('\n--- refreshStale ---');

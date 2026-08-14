@@ -159,10 +159,37 @@ from each platform are pulled in as actual text and shown in the post's
 comment thread, interleaved by time with comments written on the site itself.
 Same request as the counts — no extra Graph call.
 
-Reading comment *content* is a broader grant than reading the count, so it can
-be unavailable while the counts work fine. When that happens the thread simply
-shows no borrowed comments (never an error, never a blank placeholder), and
-whatever was cached previously is kept rather than wiped.
+Reading comment *content* is a broader grant than reading the count:
+
+| Numbers | Permission needed |
+| --- | --- |
+| Facebook comment **count** | `pages_read_engagement` (already required for posting) |
+| Facebook comment **text** | `pages_read_user_content` |
+| Instagram comment **count** | `instagram_business_basic` |
+| Instagram comment **text** | `instagram_manage_comments` |
+
+So comment text can be unavailable while everything else works fine. When that
+happens the thread simply shows no borrowed comments (never an error, never a
+blank placeholder), and whatever was cached previously is kept rather than
+wiped.
+
+**This one needs care, because Graph fails loudly here.** Asking for a field
+the token may not read does not omit that field — it rejects the *entire*
+object, taking the reactions, shares and insights down with it. Requesting
+comment text without `pages_read_user_content` therefore left listings showing
+nothing at all rather than "everything except comments". The service now
+detects that refusal, drops the comment-text field, and re-reads; the refusal
+is remembered for six hours, so a token that lacks the permission costs one
+wasted request twice a day rather than one on every refresh — and picks the
+comments up by itself if the permission is granted later.
+
+The log line to look for is:
+
+```
+Social stats: facebook comment text is not readable with this token
+  (needs pages_read_user_content / instagram_manage_comments)
+  - falling back to counts only.
+```
 
 Those comments are strictly read-only here: no replying, no deleting, no
 reporting them to us. The only way to post a reply would be through the Page

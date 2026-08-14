@@ -360,9 +360,19 @@ auto-posted Facebook/Instagram copies.
   beside the site's own thread, not a mirror of the Page.
 - **Comment text rides along with the counts**, in the same batched Graph call
   that already fetched reactions/comments/shares — no extra request. A `null`
-  comment list means the edge wasn't readable (permission for comment
-  *content* is a separate grant from the count) and keeps whatever was cached;
+  comment list means the edge wasn't readable and keeps whatever was cached;
   `[]` is a real answer and overwrites.
+- **Comment text is a separate, stronger permission** — `pages_read_user_content`
+  (FB) / `instagram_manage_comments` (IG), distinct from the grant that reads
+  the *count*. And Graph does not politely omit a field it won't serve: it
+  **rejects the whole object**, so asking for comment text without the
+  permission took reactions, shares and insights down with it and left
+  listings blank. `readWithFallback` catches that refusal, drops the
+  comment-text field and re-reads, then remembers the refusal for 6h (same
+  memo shape as `resolvedMetrics`) so it costs one wasted request twice a day,
+  not one per refresh — and picks comments up by itself if granted later.
+  Covered in `test-social-stats`; the general rule is that an optional field
+  must never be able to cost a required one.
 - **UI**: [CommentsSection.jsx](client/src/features/posts/PostPage/CommentsSection.jsx)
   and [CommentsSection.js](mobile/src/components/CommentsSection.js). Meta
   brand colors on the source badges are the same documented exception as

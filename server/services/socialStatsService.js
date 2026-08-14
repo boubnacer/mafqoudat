@@ -126,6 +126,10 @@ class SocialStatsService {
     // Post ids currently being refreshed, so overlapping requests for the same
     // listing page do not each start their own pass over the same posts.
     this.inFlight = new Set();
+    // platform -> timestamp of the last refusal to serve comment *text*.
+    // Same shape of memo as resolvedMetrics: remember the "no" so a missing
+    // permission costs one wasted request every six hours, not one per run.
+    this.commentTextDenied = new Map();
   }
 
   get accessToken() {
@@ -182,7 +186,7 @@ class SocialStatsService {
    * nothing else - no retry pass needed.
    */
   async readBatch(ids, fields) {
-    if (ids.length === 0) return { values: {}, missing: [] };
+    if (ids.length === 0) return { values: {}, missing: [], deniedCount: 0 };
 
     const batch = ids.map((id) => ({
       method: 'GET',
@@ -200,6 +204,10 @@ class SocialStatsService {
     const results = Array.isArray(response.data) ? response.data : [];
     const values = {};
     const missing = [];
+    // Entries refused for lack of a permission, as opposed to entries whose
+    // object is gone. The caller uses this to work out whether an optional
+    // field it asked for is the thing being refused - see readWithFallback.
+    let deniedCount = 0;
 
     results.forEach((result, index) => {
       const id = ids[index];
@@ -223,12 +231,57 @@ class SocialStatsService {
       const subRequestError = { response: { data: parsed } };
       if (isMissingObjectError(subRequestError)) {
         missing.push(id);
+      } else if (isPermissionError(subRequestError)) {
+        deniedCount += 1;
       } else {
         console.warn(`Social stats: batch entry for ${id} failed - ${describeGraphError(subRequestError)}`);
       }
     });
 
-    return { values, missing };
+    return { values, missing, deniedCount };
+  }
+
+  /**
+   * True when comment *text* is still worth asking this platform for.
+   *
+   * Reading comment content is a broader grant than reading the count
+   * (`pages_read_user_content` on Facebook, `instagram_manage_comments` on
+   * Instagram), and an account can easily have one without the other.
+   */
+  wantsCommentText(platform) {
+    if (SOCIAL_COMMENTS_LIMIT === 0) return false;
+    const denial = this.commentTextDenied.get(platform);
+    if (!denial) return true;
+    // Re-ask occasionally: the permission may have been granted since.
+    return Date.now() - denial >= METRIC_PROBE_RETRY_MS;
+  }
+
+  /**
+   * Reads a batch, and if the request was refused *and* it carried the
+   * optional comment-text field, drops that field and reads again.
+   *
+   * This exists because Graph rejects the whole object when any single
+   * requested field is not permitted - so asking for comment text without
+   * `pages_read_user_content` did not merely return no comments, it took the
+   * reactions, shares and insights down with it and left the listing showing
+   * nothing at all. Comment text is a nice-to-have; the counts are the
+   * feature. The refusal is remembered so this costs one wasted request every
+   * six hours rather than one on every refresh.
+   */
+  async readWithFallback(ids, platform, buildFields) {
+    const withComments = this.wantsCommentText(platform);
+    const result = await this.readBatch(ids, buildFields(withComments));
+
+    if (!withComments || result.deniedCount === 0) return result;
+
+    console.warn(
+      `Social stats: ${platform} comment text is not readable with this token `
+      + '(needs pages_read_user_content / instagram_manage_comments) - '
+      + 'falling back to counts only.'
+    );
+    this.commentTextDenied.set(platform, Date.now());
+
+    return this.readBatch(ids, buildFields(false));
   }
 
   /**
@@ -318,19 +371,19 @@ class SocialStatsService {
     ]);
 
     const insightMetrics = [viewsMetric, engagedMetric, clicksMetric].filter(Boolean);
-    const fields = [
+    const buildFields = (withCommentText) => [
       'reactions.summary(total_count)',
-      // One field expression asks for both the count and the newest few
-      // comments' text, so the merged thread costs no extra request on top of
-      // what the counts already needed.
-      SOCIAL_COMMENTS_LIMIT > 0
+      // When comment text is readable, one field expression asks for both the
+      // count and the newest few comments, so the merged thread costs no
+      // extra request on top of what the counts already needed.
+      withCommentText
         ? `comments.summary(total_count).limit(${SOCIAL_COMMENTS_LIMIT}){id,from,message,created_time}`
         : 'comments.summary(total_count)',
       'shares',
       insightMetrics.length > 0 && `insights.metric(${insightMetrics.join(',')})`,
     ].filter(Boolean).join(',');
 
-    const { values, missing } = await this.readBatch(ids, fields);
+    const { values, missing } = await this.readWithFallback(ids, 'facebook', buildFields);
 
     const stats = {};
     for (const [id, data] of Object.entries(values)) {
@@ -364,17 +417,17 @@ class SocialStatsService {
     ]);
 
     const insightMetrics = [viewsMetric, savedMetric].filter(Boolean);
-    const fields = [
+    const buildFields = (withCommentText) => [
       'like_count',
       'comments_count',
       // Instagram keeps the count and the comments on separate fields (unlike
       // Facebook's single summary-plus-edge expression), but both still ride
       // along in the same request.
-      SOCIAL_COMMENTS_LIMIT > 0 && `comments.limit(${SOCIAL_COMMENTS_LIMIT}){id,username,text,timestamp}`,
+      withCommentText && `comments.limit(${SOCIAL_COMMENTS_LIMIT}){id,username,text,timestamp}`,
       insightMetrics.length > 0 && `insights.metric(${insightMetrics.join(',')})`,
     ].filter(Boolean).join(',');
 
-    const { values, missing } = await this.readBatch(ids, fields);
+    const { values, missing } = await this.readWithFallback(ids, 'instagram', buildFields);
 
     const stats = {};
     for (const [id, data] of Object.entries(values)) {
