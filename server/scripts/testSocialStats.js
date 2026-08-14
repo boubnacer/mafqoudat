@@ -100,6 +100,7 @@ const objectFor = (id) => world.facebook[id] || world.instagram[id] || null;
 const metricsFor = (id) => (isFacebookId(id) ? world.facebookMetrics : world.instagramMetrics);
 const conceptsFor = (id) => (isFacebookId(id) ? FB_METRIC_CONCEPTS : IG_METRIC_CONCEPTS);
 
+// Single-object reads: only the insights metric probe uses these.
 axios.get = async (url, config = {}) => {
   const params = config.params || {};
   requests.push({ url, params });
@@ -115,37 +116,65 @@ axios.get = async (url, config = {}) => {
     return { data: { data: [{ name: params.metric, values: [{ value: object[concept] }] }] } };
   }
 
-  // Batched ?ids= read. `fields` carries the resolved metric names to request
-  // together, e.g. insights.metric(post_impressions_unique,post_clicks).
-  const ids = String(params.ids || '').split(',').filter(Boolean);
-  const insightsFieldMatch = (params.fields || '').match(/insights\.metric\(([^)]*)\)/);
+  throw new Error(`Unexpected GET in the fake Graph: ${url}`);
+};
+
+/** The payload for one object inside a successful batch entry. */
+const buildObjectPayload = (id, fields) => {
+  const object = objectFor(id);
+  const insightsFieldMatch = fields.match(/insights\.metric\(([^)]*)\)/);
   const requestedMetrics = insightsFieldMatch ? insightsFieldMatch[1].split(',').filter(Boolean) : [];
 
-  const values = {};
-  for (const id of ids) {
-    const object = objectFor(id);
-    // Graph fails the whole batch when a single id is unreadable.
-    if (!object) throw missingObject();
-
-    const entry = { id };
-    if (isFacebookId(id)) {
-      entry.reactions = { summary: { total_count: object.reactions } };
-      entry.comments = { summary: { total_count: object.comments } };
-      if (object.shares !== undefined) entry.shares = { count: object.shares };
-    } else {
-      entry.like_count = object.likes;
-      entry.comments_count = object.comments;
-    }
-    if (requestedMetrics.length > 0) {
-      const concepts = conceptsFor(id);
-      entry.insights = {
-        data: requestedMetrics.map((name) => ({ name, values: [{ value: object[concepts[name]] }] })),
-      };
-    }
-    values[id] = entry;
+  const entry = { id };
+  if (isFacebookId(id)) {
+    entry.reactions = { summary: { total_count: object.reactions } };
+    entry.comments = { summary: { total_count: object.comments } };
+    if (object.shares !== undefined) entry.shares = { count: object.shares };
+  } else {
+    entry.like_count = object.likes;
+    entry.comments_count = object.comments;
   }
+  if (requestedMetrics.length > 0) {
+    const concepts = conceptsFor(id);
+    entry.insights = {
+      data: requestedMetrics.map((name) => ({ name, values: [{ value: object[concepts[name]] }] })),
+    };
+  }
+  return entry;
+};
 
-  return { data: values };
+// Graph's Batch API - the supported replacement for the `?ids=` parameter
+// Meta deprecated in v26.0. Each sub-request carries its own status code, so
+// one unreadable object no longer takes the whole batch down with it.
+axios.post = async (url, body) => {
+  const params = body instanceof URLSearchParams
+    ? Object.fromEntries(body.entries())
+    : (body || {});
+  const batch = JSON.parse(params.batch || '[]');
+  requests.push({ url, batch, params });
+
+  return {
+    data: batch.map((subRequest) => {
+      const [id, query] = subRequest.relative_url.split('?');
+      const fields = decodeURIComponent(new URLSearchParams(query).get('fields') || '');
+
+      if (!objectFor(id)) {
+        return {
+          code: 404,
+          body: JSON.stringify({
+            error: {
+              code: 100,
+              error_subcode: 33,
+              message: 'Unsupported get request. Object does not exist',
+              type: 'GraphMethodException',
+            },
+          }),
+        };
+      }
+
+      return { code: 200, body: JSON.stringify(buildObjectPayload(id, fields)) };
+    }),
+  };
 };
 
 Post.bulkWrite = async (operations) => {
@@ -284,10 +313,11 @@ happened on the Page minutes later",
   ], [20, 4, 512, 9]);
   checkThat('fetchedAt is stamped', !!updateFor('p1')['socialStats.fetchedAt']);
 
-  const insightsRequest = requests.find((request) => request.params.ids);
+  const batchedRead = requests.find((request) => request.batch);
+  const requestedFields = decodeURIComponent(batchedRead.batch[0].relative_url);
   checkThat('facebook insight metrics are requested together, in one field',
-    /insights\.metric\(post_impressions_unique,post_engaged_users,post_clicks\)/.test(insightsRequest.params.fields),
-    insightsRequest.params.fields);
+    /insights\.metric\(post_impressions_unique,post_engaged_users,post_clicks\)/.test(requestedFields),
+    requestedFields);
 
   // -------------------------------------------------------------------------
   console.log('\n--- a post nobody shared ---');
@@ -307,11 +337,21 @@ happened on the Page minutes later",
   }
   await newService().refreshPosts([1, 2, 3, 4].map((i) => post(`p${i}`, { fb: `f${i}` })));
 
-  check('four posts are read in one batched request', requests.filter((request) => request.params.ids).length, 1);
+  check('four posts are read in one batched request', requests.filter((request) => request.batch).length, 1);
+  check('as four sub-requests inside it', requests.find((request) => request.batch).batch.length, 4);
   check('every post got its own stored numbers',
     [1, 2, 3, 4].map((i) => updateFor(`p${i}`)['socialStats.facebook.reactions']), [1, 2, 3, 4]);
   check('including its own engaged-users number',
     [1, 2, 3, 4].map((i) => updateFor(`p${i}`)['socialStats.facebook.engagedUsers']), [1, 2, 3, 4]);
+
+  // Regression guard. This shipped using `?ids=a,b,c`, which Meta deprecated
+  // in v26.0 - Graph answered every single call with "(#100) The ids query
+  // parameter is deprecated in v26.0+", so no listing ever showed a number
+  // and nothing in the app looked broken enough to notice. Nothing may go
+  // back to that parameter.
+  checkThat('reads never use the ids query parameter Meta retired in v26.0',
+    !requests.some((request) => request.params?.ids !== undefined),
+    requests.map((request) => JSON.stringify(request.params)).join(' | '));
 
   // -------------------------------------------------------------------------
   console.log('\n--- one deleted Page post must not cost the whole page ---');
@@ -337,8 +377,8 @@ happened on the Page minutes later",
   world.facebook.f1 = { reactions: 5, comments: 1, shares: 0, views: 50, engagedUsers: 3, clicks: 1 };
   await newService().refreshPosts([post('p1', { fb: 'f1' }), post('p2', { fb: 'f2', fbGone: true })]);
   checkThat('a post already known to be gone is never asked about again',
-    !requests.some((request) => String(request.params.ids || '').includes('f2')),
-    requests.map((request) => request.params.ids).filter(Boolean).join(' | '));
+    !requests.some((request) => JSON.stringify(request.batch || []).includes('f2')),
+    requests.filter((request) => request.batch).map((request) => JSON.stringify(request.batch)).join(' | '));
 
   // -------------------------------------------------------------------------
   console.log('\n--- insight metric probing ---');
@@ -422,15 +462,15 @@ happened on the Page minutes later",
 
   reset();
   world.facebook.f1 = { reactions: 3, comments: 0, shares: 0, views: 30, engagedUsers: 1, clicks: 0 };
-  const workingGet = axios.get;
-  axios.get = async () => { throw new Error('socket hang up'); };
+  const workingPost = axios.post;
+  axios.post = async () => { throw new Error('socket hang up'); };
   let threw = false;
   try {
     await newService().refreshPosts([post('p1', { fb: 'f1' })]);
   } catch (error) {
     threw = true;
   }
-  axios.get = workingGet;
+  axios.post = workingPost;
   checkThat('a network failure is swallowed, not thrown at the caller', !threw);
   check('and nothing is written', writes.length, 0);
 
@@ -463,7 +503,7 @@ happened on the Page minutes later",
   const batchUpdated = await newService().refreshByFacebookPostIds(['fa', 'fb']);
   check('several posts named in one delivery are all refreshed', batchUpdated, 2);
   check('in a single batched Graph read, not one per post',
-    requests.filter((request) => request.params.ids).length, 1);
+    requests.filter((request) => request.batch).length, 1);
 
   reset();
   const noneFound = await newService().refreshByFacebookPostIds(['unknown-fb-post-id']);

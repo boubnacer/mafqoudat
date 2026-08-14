@@ -166,37 +166,68 @@ class SocialStatsService {
   // ---------------------------------------------------------------- fetching
 
   /**
-   * One batched `?ids=` read. Graph fails the whole batch when a single id is
-   * unreadable, so a failed batch of more than one is retried per id - that
-   * turns "one deleted Page post" from "no numbers for this page of listings"
-   * into "no numbers for that one listing".
+   * Reads many objects in one HTTP call via Graph's Batch API.
+   *
+   * This used to use `?ids=a,b,c`, which Meta **deprecated in v26.0** - it
+   * answers every such request with "(#100) The ids query parameter is
+   * deprecated in v26.0+", so every stats fetch failed and no listing ever
+   * showed a single number. The Batch API is the supported replacement and
+   * keeps the property that motivated the original design: up to 50 objects
+   * per HTTP round trip rather than one request each.
+   *
+   * It also isolates failures for free. `?ids=` failed the whole batch when
+   * any single id was unreadable, which is why this used to fall back to
+   * re-asking one id at a time; a batch sub-request carries its own status
+   * code, so one deleted Page post now costs exactly its own entry and
+   * nothing else - no retry pass needed.
    */
   async readBatch(ids, fields) {
     if (ids.length === 0) return { values: {}, missing: [] };
 
-    try {
-      const response = await axios.get(GRAPH_BASE_URL, {
-        params: { ids: ids.join(','), fields, access_token: this.accessToken },
-        timeout: REQUEST_TIMEOUT_MS,
-      });
-      return { values: response.data || {}, missing: [] };
-    } catch (error) {
-      if (ids.length === 1) {
-        if (isMissingObjectError(error)) return { values: {}, missing: [ids[0]] };
-        throw error;
-      }
-      // Only an unreadable object is worth re-asking one id at a time. A
-      // network error or a bad token would fail identically N more times.
-      if (!isMissingObjectError(error)) throw error;
-    }
+    const batch = ids.map((id) => ({
+      method: 'GET',
+      relative_url: `${id}?fields=${encodeURIComponent(fields)}`,
+    }));
 
+    // Sent as a form body rather than query params: fifty ids' worth of field
+    // expressions is far past what belongs in a URL.
+    const body = new URLSearchParams();
+    body.append('batch', JSON.stringify(batch));
+    body.append('access_token', this.accessToken);
+
+    const response = await axios.post(GRAPH_BASE_URL, body, { timeout: REQUEST_TIMEOUT_MS });
+
+    const results = Array.isArray(response.data) ? response.data : [];
     const values = {};
     const missing = [];
-    for (const id of ids) {
-      const single = await this.readBatch([id], fields);
-      Object.assign(values, single.values);
-      missing.push(...single.missing);
-    }
+
+    results.forEach((result, index) => {
+      const id = ids[index];
+      if (!id || !result) return;
+
+      let parsed;
+      try {
+        parsed = JSON.parse(result.body);
+      } catch (error) {
+        console.warn(`Social stats: unreadable batch entry for ${id}`);
+        return;
+      }
+
+      if (result.code === 200) {
+        values[id] = parsed;
+        return;
+      }
+
+      // A failed sub-request carries Graph's ordinary error envelope in its
+      // body, so the same predicates that read a top-level failure work here.
+      const subRequestError = { response: { data: parsed } };
+      if (isMissingObjectError(subRequestError)) {
+        missing.push(id);
+      } else {
+        console.warn(`Social stats: batch entry for ${id} failed - ${describeGraphError(subRequestError)}`);
+      }
+    });
+
     return { values, missing };
   }
 
