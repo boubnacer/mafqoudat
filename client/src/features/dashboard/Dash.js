@@ -98,7 +98,7 @@ const Dash = () => {
             mb: 2
           }}
         >
-          {t('categories')}
+          {t('browseByCategory')}
         </Typography>
         <Categories />
       </DashRecents>

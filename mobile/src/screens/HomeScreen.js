@@ -34,10 +34,15 @@ const SECTION_COUNT = 6;
 // header's map backdrop can cancel it out and bleed to the screen edges.
 const SCREEN_PADDING = 16;
 
-// Diameters of the two neumorphic circles. Constants because the surface needs
-// the matching corner radius as a prop, not just in a style.
-const CATEGORY_CIRCLE_SIZE = 68;
+// Diameter of the social section's neumorphic circles. A constant because the
+// surface needs the matching corner radius as a prop, not just in a style.
 const SOCIAL_CIRCLE_SIZE = 56;
+
+// Bento category grid: one large "featured" cell (first category) plus small
+// cells, 2 per row. Collapsed view caps at featured + 4 small, matching the
+// count web's Categories.jsx shows before its own "show all" toggle.
+const CATEGORY_COLLAPSED_SMALL_COUNT = 4;
+const CATEGORY_GHOST_ICON_SIZE = 132;
 
 // Same accounts as client/src/components/Footer/DashFooter.js's socialLinks -
 // kept in sync manually since the mobile app has no shared config module yet.
@@ -409,33 +414,110 @@ const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tok
   );
 };
 
-// "Browse by category" chip, neumorphic (see components/NeumorphicSurface.js
-// and theme/neumorphism.js): the circle is painted in the page's own base tone
-// and reads as an extruded pebble, so the category color lives in the icon
-// alone rather than in a tinted fill. Pressing sinks the circle instead of
-// fading it - hence a Pressable with a render-prop child, since the pressed
-// state has to reach the surface rather than just dim a wrapper.
-const CategoryChip = ({ category, currentLanguage, styles, isDark, onPress }) => {
+// "Browse by category" bento cell. Card fill is a translucent tint of the
+// category's own accent color (same `${hex}NN`-suffix alpha convention used
+// elsewhere in this file, e.g. recentEmptyText/emptyCalloutText below) - the
+// same "solid accent, translucent tint of that accent as background" pairing
+// `theme.custom.status` already uses for found/lost, just keyed off
+// CATEGORY_CONFIG instead. `featured` renders the first category full-width
+// and taller, with a large low-opacity ghost icon bleeding off the trailing
+// corner; small cells are the same shape at half width. Icon badge behind the
+// icon is a frosted white/black circle rather than another tint, so it reads
+// against every category color without a per-category badge color to pick.
+const CategoryBentoCard = ({ category, currentLanguage, styles, isDark, isRTL, featured, onPress }) => {
   const config = getCategoryConfig(category.code);
+  const tint = `${config.color}${isDark ? '33' : '1F'}`;
+  const badgeBg = isDark ? 'rgba(0,0,0,0.28)' : 'rgba(255,255,255,0.55)';
+
   return (
-    <Pressable onPress={onPress} style={styles.categoryChip}>
-      {({ pressed }) => (
-        <>
-          <NeumorphicSurface
-            isDark={isDark}
-            radius={CATEGORY_CIRCLE_SIZE / 2}
-            pressed={pressed}
-            style={styles.categoryChipCircle}
-            contentStyle={styles.categoryChipCircleFace}
-          >
-            <Ionicons name={config.icon} size={30} color={config.color} />
-          </NeumorphicSurface>
-          <Text style={styles.categoryChipLabel} numberOfLines={1}>
-            {getLocalizedLabel(category, currentLanguage)}
-          </Text>
-        </>
-      )}
-    </Pressable>
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={onPress}
+      style={[
+        styles.bentoCard,
+        featured ? styles.bentoCardFeatured : styles.bentoCardSmall,
+        { backgroundColor: tint, alignItems: alignStart(isRTL) },
+      ]}
+    >
+      {featured ? (
+        <Ionicons
+          name={config.icon}
+          size={CATEGORY_GHOST_ICON_SIZE}
+          color={config.color}
+          style={[styles.bentoGhostIcon, logical(isRTL, { end: -28, bottom: -22 })]}
+        />
+      ) : null}
+      <View style={[styles.bentoIconBadge, featured && styles.bentoIconBadgeFeatured, { backgroundColor: badgeBg }]}>
+        <Ionicons name={config.icon} size={featured ? 26 : 20} color={config.color} />
+      </View>
+      <Text style={[styles.bentoLabel, featured && styles.bentoLabelFeatured]} numberOfLines={2}>
+        {getLocalizedLabel(category, currentLanguage)}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+
+const chunkPairs = (items) => {
+  const rows = [];
+  for (let i = 0; i < items.length; i += 2) rows.push(items.slice(i, i + 2));
+  return rows;
+};
+
+// Featured card (first category) + a 2-up grid of the rest, collapsed to
+// CATEGORY_COLLAPSED_SMALL_COUNT small cells with a "show all" toggle -
+// mirrors web's Categories.jsx (categories.slice(0, 4) + showAllCategories
+// state) rather than truncating the list into a scroll, since the whole
+// point of the bento shape is a fixed, non-scrolling arrangement.
+const CategoryBentoGrid = ({ categories, currentLanguage, t, styles, tokens, isDark, isRTL, onPressCategory }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!categories || categories.length === 0) return null;
+
+  const [featuredCategory, ...rest] = categories;
+  const hasMore = rest.length > CATEGORY_COLLAPSED_SMALL_COUNT;
+  const visibleSmall = expanded ? rest : rest.slice(0, CATEGORY_COLLAPSED_SMALL_COUNT);
+  const rows = chunkPairs(visibleSmall);
+
+  return (
+    <View>
+      <View style={styles.bentoGrid}>
+        <CategoryBentoCard
+          category={featuredCategory}
+          currentLanguage={currentLanguage}
+          styles={styles}
+          isDark={isDark}
+          isRTL={isRTL}
+          featured
+          onPress={() => onPressCategory(featuredCategory)}
+        />
+        {rows.map((pair) => (
+          <View key={pair[0]._id} style={[styles.bentoRow, { flexDirection: row(isRTL) }]}>
+            {pair.map((cat) => (
+              <CategoryBentoCard
+                key={cat._id}
+                category={cat}
+                currentLanguage={currentLanguage}
+                styles={styles}
+                isDark={isDark}
+                isRTL={isRTL}
+                onPress={() => onPressCategory(cat)}
+              />
+            ))}
+            {pair.length === 1 ? <View style={styles.bentoSpacer} /> : null}
+          </View>
+        ))}
+      </View>
+      {hasMore ? (
+        <TouchableOpacity
+          onPress={() => setExpanded((prev) => !prev)}
+          style={[styles.showMoreButton, { flexDirection: row(isRTL) }]}
+          hitSlop={8}
+        >
+          <Text style={styles.showMoreText}>{expanded ? t('showLess') : t('showAllCategories')}</Text>
+          <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color={tokens.brandPrimary} />
+        </TouchableOpacity>
+      ) : null}
+    </View>
   );
 };
 
@@ -634,18 +716,16 @@ const HomeScreen = ({ navigation }) => {
 
         <Animated.View style={[styles.section, animatedSectionStyle(3)]}>
           <Text style={styles.sectionTitle}>{t('browseByCategory')}</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>
-            {categories.map((cat) => (
-              <CategoryChip
-                key={cat._id}
-                category={cat}
-                currentLanguage={currentLanguage}
-                styles={styles}
-                isDark={isDark}
-                onPress={() => goToPosts({ initialCategoryId: cat._id })}
-              />
-            ))}
-          </ScrollView>
+          <CategoryBentoGrid
+            categories={categories}
+            currentLanguage={currentLanguage}
+            t={t}
+            styles={styles}
+            tokens={tokens}
+            isDark={isDark}
+            isRTL={isRTL}
+            onPressCategory={(cat) => goToPosts({ initialCategoryId: cat._id })}
+          />
         </Animated.View>
 
         <Animated.View style={[styles.section, animatedSectionStyle(4)]}>
@@ -1017,38 +1097,79 @@ const createStyles = (tokens, isRTL, isDark) =>
       textAlign: isRTL ? 'right' : 'left',
     },
 
-    // Categories - neumorphic chips (see CategoryChip above).
-    categoryRow: {
-      flexDirection: row(isRTL),
-      gap: 16,
-      // Vertical room for the circles' highlight/shade, which are drawn
-      // outside the layer's own box and would otherwise be cropped by the
-      // horizontal ScrollView's content height.
-      paddingVertical: 8,
-      ...logical(isRTL, { paddingEnd: 4 }),
+    // Categories - bento grid (see CategoryBentoCard/CategoryBentoGrid
+    // above). No border/shadow on the cells themselves per the platform-wide
+    // no-border rule - separation comes from each cell's own color tint
+    // against the page background, not elevation.
+    bentoGrid: {
+      gap: 12,
     },
-    categoryChip: {
-      alignItems: 'center',
-      width: 88,
+    bentoRow: {
+      gap: 12,
     },
-    // Outer neumorphic layer: margins only. The circle's own size and radius
-    // live on the face below, so the shadow layers wrap it instead of needing
-    // a size of their own (see NeumorphicSurface).
-    categoryChipCircle: {
-      marginBottom: 8,
+    bentoCard: {
+      borderRadius: radiusTokens.xl,
+      padding: 16,
+      overflow: 'hidden',
+      justifyContent: 'space-between',
     },
-    categoryChipCircleFace: {
-      width: CATEGORY_CIRCLE_SIZE,
-      height: CATEGORY_CIRCLE_SIZE,
-      borderRadius: CATEGORY_CIRCLE_SIZE / 2,
+    bentoCardFeatured: {
+      minHeight: 168,
+      width: '100%',
+    },
+    bentoCardSmall: {
+      minHeight: 110,
+      flex: 1,
+    },
+    // Matches an odd-numbered trailing row so the last small cell keeps its
+    // half-width instead of stretching to fill the row alone.
+    bentoSpacer: {
+      flex: 1,
+    },
+    bentoGhostIcon: {
+      position: 'absolute',
+      opacity: 0.14,
+    },
+    bentoIconBadge: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       justifyContent: 'center',
       alignItems: 'center',
     },
-    categoryChipLabel: {
-      fontFamily: fontFamilies.body,
-      fontSize: 12,
+    bentoIconBadgeFeatured: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+    },
+    // Plain `isRTL ? 'right' : 'left'` would be wrong here - see sectionTitle
+    // above for why: RN swaps explicit left/right back once native RTL
+    // mirroring is on, so needsDirectionFlip is what actually lands this on
+    // the right edge in Arabic both mid-session and after a relaunch.
+    bentoLabel: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 14,
       color: tokens.ink,
-      textAlign: 'center',
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
+    },
+    bentoLabelFeatured: {
+      fontFamily: fontFamilies.display,
+      fontSize: 20,
+      color: tokens.ink,
+      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
+    },
+    showMoreButton: {
+      alignSelf: 'center',
+      alignItems: 'center',
+      gap: 6,
+      marginTop: 14,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+    },
+    showMoreText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 13,
+      color: tokens.brandPrimary,
     },
 
     // Empty state callout
