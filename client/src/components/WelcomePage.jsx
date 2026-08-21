@@ -14,6 +14,8 @@ import WorldActivityMap from "./dashboard/WorldActivityMap";
 import SkeletonBlock from "./SkeletonBlock";
 import WelcomePageSkeleton from "./WelcomePageSkeleton";
 import { getCategoryConfig, getCategoryIcon } from "../config/categories";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 import {
   Box,
   Typography,
@@ -46,6 +48,8 @@ import {
   PublicOutlined,
   CategoryOutlined,
 } from "@mui/icons-material";
+
+gsap.registerPlugin(useGSAP);
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
@@ -276,6 +280,23 @@ const WelcomePage = () => {
 
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
+
+  // GSAP trial: hero glass-panel content (logo/headline/subtext/selector/CTA)
+  // feeds in on mount, once. Scoped to this ref so it only ever touches the
+  // panel's own direct children, never the fanned-card entrance (which has
+  // its own CSS-keyframe timer/state already) or anything else on the page.
+  const heroContentRef = useRef(null);
+  useGSAP(() => {
+    if (!heroContentRef.current) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    gsap.from(heroContentRef.current.children, {
+      opacity: 0,
+      y: 24,
+      duration: 0.7,
+      ease: "power3.out",
+      stagger: 0.09,
+    });
+  }, { scope: heroContentRef });
 
   // Get mode from Redux store
   const mode = useSelector((state) => state.global.mode);
@@ -829,7 +850,7 @@ const WelcomePage = () => {
               // section, so the spacer is what pushes that landing point below
               // the panel instead of underneath/behind it.
               <Box sx={{ px: 2, pb: 3, display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
-                <HeroGlassPanel sx={{ p: 2.5 }}>{heroPanelContent}</HeroGlassPanel>
+                <HeroGlassPanel ref={heroContentRef} sx={{ p: 2.5 }}>{heroPanelContent}</HeroGlassPanel>
                 {selectedCountry && (
                   <Box sx={{ textAlign: 'center', mb: -1 }}>
                     <Box
@@ -857,7 +878,7 @@ const WelcomePage = () => {
                   justifyContent: 'flex-start',
                 }}
               >
-                <HeroGlassPanel sx={{ maxWidth: { sm: 440, md: 480 }, width: '100%', p: { sm: 3, md: 3.5 } }}>
+                <HeroGlassPanel ref={heroContentRef} sx={{ maxWidth: { sm: 440, md: 480 }, width: '100%', p: { sm: 3, md: 3.5 } }}>
                   {heroPanelContent}
                 </HeroGlassPanel>
               </Box>
