@@ -281,23 +281,6 @@ const WelcomePage = () => {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
 
-  // GSAP trial: hero glass-panel content (logo/headline/subtext/selector/CTA)
-  // feeds in on mount, once. Scoped to this ref so it only ever touches the
-  // panel's own direct children, never the fanned-card entrance (which has
-  // its own CSS-keyframe timer/state already) or anything else on the page.
-  const heroContentRef = useRef(null);
-  useGSAP(() => {
-    if (!heroContentRef.current) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    gsap.from(heroContentRef.current.children, {
-      opacity: 0,
-      y: 24,
-      duration: 0.7,
-      ease: "power3.out",
-      stagger: 0.09,
-    });
-  }, { scope: heroContentRef });
-
   // Get mode from Redux store
   const mode = useSelector((state) => state.global.mode);
 
@@ -310,6 +293,8 @@ const WelcomePage = () => {
   // match never clobbers a choice the user already made by hand.
   const userSelectedCountryRef = useRef(false);
   const geoAppliedRef = useRef(false);
+  // Hero glass panel, animated by the useGSAP block below the countries query.
+  const heroContentRef = useRef(null);
 
   // Get countries list - Fixed: Use dependenciesApiSlice and proper error handling
   const { data: countriesData, error: countriesError, isLoading: countriesLoading } = useGetCountriesQuery({
@@ -321,6 +306,29 @@ const WelcomePage = () => {
       isLoading
     }),
   });
+
+  // GSAP trial: hero glass-panel content (logo/headline/subtext/selector/CTA)
+  // feeds in once, the first time the panel is actually on screen. Scoped to
+  // this ref so it only ever touches the panel's own direct children, never
+  // the fanned-card entrance (which has its own CSS-keyframe timer/state
+  // already) or anything else on the page.
+  // Keyed on countriesLoading, not mount: the component returns
+  // <WelcomePageSkeleton /> while countries are in flight, so on a cold load
+  // the panel doesn't exist yet when a mount-only hook would run and the ref
+  // is still null. Re-running when that flag flips is what gets the hero its
+  // one pass. Declared after the query for the same reason — the dependency
+  // is read at render time.
+  useGSAP(() => {
+    if (!heroContentRef.current) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    gsap.from(heroContentRef.current.children, {
+      opacity: 0,
+      y: 24,
+      duration: 0.7,
+      ease: "power3.out",
+      stagger: 0.09,
+    });
+  }, { scope: heroContentRef, dependencies: [countriesLoading] });
 
   // Country code to name mapping for fallback
   const countryCodeToName = {
