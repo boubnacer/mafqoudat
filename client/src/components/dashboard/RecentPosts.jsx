@@ -117,6 +117,7 @@ const RecentPosts = ({
 
   return (
     <Box
+      data-reveal-item=""
       role="button"
       tabIndex={0}
       onClick={handleViewDetails}

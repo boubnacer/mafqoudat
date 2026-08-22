@@ -5,9 +5,9 @@ import { getCategoryIcon, getCategoryColor } from "../../config/categories";
 import { useTranslation } from "../../utils/translations";
 import { useLanguage } from "../../utils/languageContext";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { ExpandMore, ExpandLess } from "@mui/icons-material";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { gsap, useGSAP } from "../../utils/gsapSetup";
 
 const CATEGORY_COLLAPSED_SMALL_COUNT = 4;
 
@@ -19,6 +19,25 @@ const Categories = () => {
   const isDark = theme.palette.mode === 'dark';
   const { t } = useTranslation();
   const [showAllCategories, setShowAllCategories] = useState(false);
+  const gridRef = useRef(null);
+
+  // Dash.js's reveal choreography (useDashboardMotion) staggers the cards
+  // that exist when this section first scrolls into view. The ones "show all"
+  // adds afterwards mount too late for it, so they get their own matching
+  // entrance here instead of appearing instantly mid-page.
+  useGSAP(
+    () => {
+      if (!showAllCategories || !gridRef.current) return;
+      const cards = gsap.utils.toArray(gridRef.current.querySelectorAll("[data-reveal-item]"));
+      const added = cards.slice(CATEGORY_COLLAPSED_SMALL_COUNT);
+      if (!added.length) return;
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.from(added, { autoAlpha: 0, y: 20, duration: 0.5, stagger: 0.06 });
+      });
+    },
+    { scope: gridRef, dependencies: [showAllCategories], revertOnUpdate: true }
+  );
   
   const { categories, isLoading, isFetching } = useGetCategoriesQuery({
     language: currentLanguage
@@ -85,12 +104,7 @@ const Categories = () => {
           const label = featuredCategory.labels[currentLanguage] || featuredCategory.labels.en;
 
           return (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{ width: '100%' }}
-            >
+            <Box data-reveal-item="" sx={{ width: '100%' }}>
               <Card
                 onClick={() => handleCategoryClick(featuredCategory._id)}
                 onKeyDown={(e) => {
@@ -186,12 +200,12 @@ const Categories = () => {
                   </Typography>
                 </CardContent>
               </Card>
-            </motion.div>
+            </Box>
           );
         })()}
       
-        <Grid container spacing={2}>
-          {visibleRest.map(({ _id, code, labels }, index) => {
+        <Grid container spacing={2} ref={gridRef}>
+          {visibleRest.map(({ _id, code, labels }) => {
             const IconComponent = getCategoryIcon(code);
             const iconColor = getCategoryColor(code);
             const tint = alpha(iconColor, isDark ? 0.2 : 0.12);
@@ -200,12 +214,7 @@ const Categories = () => {
 
             return (
               <Grid item xs={6} sm={6} md={3} key={_id}>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: Math.min(index + 1, 6) * 0.05 }}
-                  style={{ height: '100%' }}
-                >
+                <Box data-reveal-item="" sx={{ height: '100%' }}>
                   <Card
                     onClick={() => handleCategoryClick(_id)}
                     onKeyDown={(e) => {
@@ -286,7 +295,7 @@ const Categories = () => {
                       </Typography>
                     </CardContent>
                   </Card>
-                </motion.div>
+                </Box>
               </Grid>
             );
           })}

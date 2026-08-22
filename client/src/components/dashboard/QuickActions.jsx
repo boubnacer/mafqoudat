@@ -220,6 +220,7 @@ const QuickActions = () => {
 
   return (
     <Box
+      data-reveal="section"
       sx={{
         mb: 4,
         mx: { xs: 1, sm: 2 },
@@ -305,6 +306,7 @@ const QuickActions = () => {
             return (
               <React.Fragment key={item.key}>
                 <Box
+                  data-reveal-item=""
                   role="button"
                   tabIndex={0}
                   onClick={item.action}
@@ -419,6 +421,7 @@ const QuickActions = () => {
           return (
             <Box
               key={item.key}
+              data-reveal-item=""
               role="button"
               tabIndex={0}
               onClick={item.action}

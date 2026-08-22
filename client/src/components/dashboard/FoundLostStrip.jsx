@@ -141,6 +141,7 @@ const FoundLostStrip = ({
   showLostNotification = false,
   onFoundClick,
   onLostClick,
+  ...rest
 }) => {
   const theme = useTheme();
   const { t, currentLanguage } = useTranslation();
@@ -148,6 +149,7 @@ const FoundLostStrip = ({
 
   return (
     <Box
+      {...rest}
       sx={{
         gridColumn: "1 / -1",
         borderRadius: `${theme.custom.radius.lg}px`,

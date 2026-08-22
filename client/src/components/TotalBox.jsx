@@ -1,15 +1,51 @@
 import { Box, Typography, useTheme } from "@mui/material";
-import React from "react";
+import React, { useRef } from "react";
 import FlexBetween from "./FlexBetween";
 import { useTranslation } from "../utils/translations";
+import { gsap, useGSAP } from "../utils/gsapSetup";
 
-const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, descriptionStyle, iconStyle, sx, hasNotification = false, notificationColor, onClick }) => {
+const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, descriptionStyle, iconStyle, sx, hasNotification = false, notificationColor, onClick, countUp = false, ...rest }) => {
   const theme = useTheme();
   const { t } = useTranslation();
+  const valueRef = useRef(null);
+
+  // Opt-in count-up for the headline figure, matching the one FoundLostStrip
+  // already runs on the Found/Lost totals beside it — without it the stats
+  // panel had two numbers that count and two that simply appear.
+  //
+  // The tween writes textContent directly instead of going through state:
+  // one tween per mount beats ~60 React renders per second, and React still
+  // owns the final value, so any re-render lands on the real number.
+  const numericValue = typeof value === "number" ? value : Number(String(value ?? "").replace(/[^0-9.-]/g, ""));
+  const shouldCount = countUp && Number.isFinite(numericValue) && numericValue > 0;
+
+  useGSAP(
+    () => {
+      if (!shouldCount || !valueRef.current) return;
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const counter = { current: 0 };
+        // useGSAP runs in a layout effect, so this lands before paint — the
+        // final number is never shown and then snapped back to zero.
+        valueRef.current.textContent = "0";
+        gsap.to(counter, {
+          current: numericValue,
+          duration: 1.2,
+          ease: "power2.out",
+          snap: { current: 1 },
+          onUpdate: () => {
+            if (valueRef.current) valueRef.current.textContent = String(counter.current);
+          },
+        });
+      });
+    },
+    { dependencies: [numericValue, shouldCount], revertOnUpdate: true }
+  );
   const defaultNotificationColor = notificationColor || (theme.palette.mode === 'dark' ? '#FF6B6B' : '#EF4444');
   
   return (
     <Box
+      {...rest}
       p="1.5rem"
       borderRadius="16px"
       position="relative"
@@ -147,6 +183,7 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
 
       <Box mt="1rem" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <Typography
+          ref={valueRef}
           fontWeight="600"
           fontSize="2rem"
           sx={valueStyle}

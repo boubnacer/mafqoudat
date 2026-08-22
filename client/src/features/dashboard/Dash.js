@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Box, useMediaQuery, useTheme, Typography, Button, Paper, alpha } from "@mui/material";
@@ -13,6 +13,7 @@ import SeoMeta from "../../components/SeoMeta";
 
 // Custom hook
 import { useDashboard } from "../../hooks/useDashboard";
+import { useDashboardMotion } from "./useDashboardMotion";
 
 // Components
 import LeftSide from "../../components/dashboard/LeftSide";
@@ -50,6 +51,11 @@ const Dash = () => {
     countriesData,
   } = useDashboard();
 
+  // Root of the animated page. The reveal choreography lives in
+  // useDashboardMotion and finds its targets through the data-reveal
+  // attributes below, so nothing in this file has to import GSAP.
+  const pageRef = useRef(null);
+
   // Keyed by ISO2 code (rather than countriesData's default _id keying) so
   // WorldActivityMap can look up a localized country name from the
   // aggregation's { code, count } rows without a linear search.
@@ -61,6 +67,14 @@ const Dash = () => {
     return map;
   }, [countriesData]);
 
+
+  // Keyed on the loading flag: while it is true this component returns
+  // <DashboardSkeleton /> and none of the marked elements exist yet, so a
+  // mount-only hook would find an empty page and never run again.
+  useDashboardMotion(pageRef, {
+    ready: Boolean(currentCountry) && !(isLoading && !data),
+    dependencies: [isMobile],
+  });
 
   const handleCreateNewPost = (type) => {
     if (!user.username) {
@@ -78,7 +92,7 @@ const Dash = () => {
   // instead of the old hardcoded-hex panel. Shared between the empty-state
   // and normal render paths below so the two never drift.
   const categoriesSection = (
-    <Box mb={4}>
+    <Box mb={4} data-reveal="section">
       <DashRecents
         cate="cate"
         sx={{
@@ -204,6 +218,7 @@ const Dash = () => {
     <>
       <SeoMeta pageKey="dash" />
       <Box 
+        ref={pageRef}
         pt={{ xs: "5rem", sm: "4rem" }} 
         width="100%"
         sx={{
@@ -247,7 +262,7 @@ const Dash = () => {
           }}
         >
           {!hasNoData && (
-            <Box sx={{ position: 'absolute', inset: 0 }}>
+            <Box data-reveal="map" sx={{ position: 'absolute', inset: 0 }}>
               <WorldActivityMap
                 worldActivity={data?.worldActivity}
                 cityActivity={data?.cityActivity}
@@ -293,7 +308,7 @@ const Dash = () => {
           }}
         >
           {!hasNoData && (
-            <Box sx={{ position: 'absolute', inset: 0 }}>
+            <Box data-reveal="map" sx={{ position: 'absolute', inset: 0 }}>
               <WorldActivityMap
                 worldActivity={data?.worldActivity}
                 cityActivity={data?.cityActivity}
@@ -321,7 +336,7 @@ const Dash = () => {
 
       {/* Show empty state if no posts, but still show stats above */}
       {hasNoData && (
-        <Box mb={4}>
+        <Box mb={4} data-reveal="section">
           <DashboardEmptyStates.NoPosts 
             country={currentCountry} 
             countriesData={countriesData}
@@ -342,7 +357,7 @@ const Dash = () => {
           </Box>
 
           {/* Help &Support Section - Show when no posts */}
-          <Box mb={4}>
+          <Box mb={4} data-reveal="section">
             <HelpSupportSection />
           </Box>
         </>
@@ -353,6 +368,7 @@ const Dash = () => {
         <>
           {/* Section Divider */}
           <Box 
+            data-reveal="divider"
             mx={{ xs: 2, sm: 3, md: 4 }} 
             mb={4}
             sx={{
@@ -398,6 +414,7 @@ const Dash = () => {
 
           {/* Section Divider */}
           <Box 
+            data-reveal="divider"
             mx={{ xs: 2, sm: 3, md: 4 }} 
             mb={4}
             sx={{
@@ -415,13 +432,15 @@ const Dash = () => {
           {/* Categories Section */}
           {categoriesSection}
 
-          {/* Process Section */}
+          {/* Process Section — deliberately not marked: Process runs its
+              own framer-motion whileInView reveal, and a second one on the
+              same nodes would fight it. */}
           <Box mb={4} mx={{ xs: 1, sm: 2 }}>
             <Process />
           </Box>
 
           {/*  Help &Support Section */}
-          <Box mb={4}>
+          <Box mb={4} data-reveal="section">
             <HelpSupportSection />
           </Box>
         </>

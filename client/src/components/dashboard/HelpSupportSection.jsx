@@ -196,7 +196,7 @@ const HelpSupportSection = () => {
         <Grid container spacing={3}>
           {/* Contact — primary option, real tel:/mailto: links, direct path to a human */}
           <Grid item xs={12} md={4}>
-            <Box sx={surfaceCardSx}>
+            <Box data-reveal-item="" sx={surfaceCardSx}>
               <Box display="flex" alignItems="center" mb={2}>
                 <ContactMail sx={{ marginInlineEnd: 1, color: theme.custom.color.brandPrimary }} />
                 <Typography variant="h6" fontWeight={700} sx={{ color: theme.custom.color.ink }}>
@@ -293,7 +293,7 @@ const HelpSupportSection = () => {
 
           {/* FAQ — self-serve answers */}
           <Grid item xs={12} md={4}>
-            <Box sx={surfaceCardSx}>
+            <Box data-reveal-item="" sx={surfaceCardSx}>
               <Box display="flex" alignItems="center" mb={2}>
                 <Help sx={{ marginInlineEnd: 1, color: theme.custom.color.brandPrimary }} />
                 <Typography variant="h6" fontWeight={700} sx={{ color: theme.custom.color.ink }}>
@@ -330,7 +330,7 @@ const HelpSupportSection = () => {
 
           {/* Guidelines & safety */}
           <Grid item xs={12} md={4}>
-            <Box sx={surfaceCardSx}>
+            <Box data-reveal-item="" sx={surfaceCardSx}>
               <Box display="flex" alignItems="center" mb={2}>
                 <Security sx={{ marginInlineEnd: 1, color: theme.custom.color.brandPrimary }} />
                 <Typography variant="h6" fontWeight={700} sx={{ color: theme.custom.color.ink }}>
