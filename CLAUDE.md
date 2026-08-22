@@ -65,6 +65,57 @@ Reuse these, don't invent new card/panel treatment — now house style:
 
 - Phase 15 — mobile `HomeScreen.js`'s "Browse by category" section replaced neumorphic circle chips with a bento grid: done, deliberately breaking from Phase 12's neumorphic system for this one section (that system stays as-is everywhere else on Home — categories are the one place a per-category accent color is the point). First category (server priority order, same as web's `Categories.jsx` which just takes `categories.slice(0, 4)` unsorted) renders full-width and tall as `CategoryBentoCard`'s `featured` variant, with a large low-opacity ghost icon bleeding off the trailing corner; the rest render as small cells, 2 per row via `chunkPairs` (plain flexbox row-pairs, not RN percentage/wrap math, to sidestep `gap` + `flexWrap` sizing being unreliable across Yoga versions). Card fill is a translucent tint of the category's own `CATEGORY_CONFIG.color` (`${hex}NN` alpha suffix, same convention as the rest of the file, 0x1F light / 0x33 dark since there's no dark-mode `backgroundColor` variant in `config/categories.js` to read instead) — the same "solid accent, translucent tint of that accent as background" pairing `theme.custom.status` uses for found/lost, just keyed off category color. Icon badge is a frosted white/black circle (not another tint) so it reads against every category color without a per-category badge color to pick. Collapses to featured + `CATEGORY_COLLAPSED_SMALL_COUNT` (4) small cells with a "show all" / "show less" toggle text+chevron button below the grid, mirroring web's `Categories.jsx` `showAllCategories` state (`showAllCategories`/`showLess` translation keys added to mobile to match) — chosen over a horizontal scroll (the section's old layout) or a separate "browse all categories" screen (none exists) because the bento shape is a fixed, non-scrolling arrangement by design, and expand-in-place has direct precedent on web. No border/shadow on the cells (Phase 8/9 rule still applies) — separation comes from each cell's own color tint against the page background.
 
+- Phase 16 — motion pass on the dashboard home page (`/dash`): done. See **Motion (GSAP)** below.
+
+## Motion (GSAP)
+
+Web animation is GSAP (`gsap` + `@gsap/react`). Plugins are registered once in
+[gsapSetup.js](client/src/utils/gsapSetup.js) — import `gsap`/`ScrollTrigger`/`useGSAP`
+from there rather than calling `registerPlugin` per component; `gsap.defaults()` there
+carries the house feel (0.7s, `power3.out`). Reference material for writing GSAP lives in
+`.claude/skills/gsap-*` (GreenSock's official agent skills, vendored).
+
+- **The dashboard home page is marked up, not wired up.**
+  [useDashboardMotion.js](client/src/features/dashboard/useDashboardMotion.js) owns the
+  whole choreography and finds its targets through data attributes:
+  `data-reveal="map|hero|section|divider"`, plus `data-reveal-item` on children that should
+  stagger in behind their own section. `Dash.js` keeps reading as layout, and
+  `LeftSide`/`RecentSection`/`RecentPosts`/`QuickActions`/`Categories`/`HelpSupportSection`
+  only carry attributes — none of them imports GSAP. A section that stops being animated
+  loses an attribute, not a hook.
+- **Only `y`, `scale` and opacity are ever animated.** GSAP has no logical-property
+  equivalent of `insetInlineStart`, so RTL-safety here comes from the choice of properties
+  rather than a mirrored variant. Nothing moves along `x`.
+- **Reduced motion is a `gsap.matchMedia("(prefers-reduced-motion: no-preference)")`
+  wrapper around every setup block**, not an early return: those visitors get the page in
+  its final state with no tween created at all, and changing the OS setting mid-session
+  reverts whatever was made.
+- **`/dash/*` does not scroll the window.** DashLayout's `#dash-scroll-container` is the
+  real scroller (it has an explicit height and a non-visible overflow), so every
+  ScrollTrigger here passes `scroller`. Against the default scroller `window.scrollY` never
+  moves, which leaves every below-the-fold section stuck at `autoAlpha: 0` forever —
+  the first version of this shipped exactly that bug. `resolveScroller()` prefers the id,
+  falls back to the nearest scrollable ancestor, then the viewport.
+- **Reveal hooks are keyed on the loading flag, never on mount.** `Dash.js` returns
+  `<DashboardSkeleton />` while its query is in flight, so a `useGSAP` with the default
+  empty dependency array runs against a page whose animated elements do not exist yet and
+  never runs again — the same trap the WelcomePage hero animation fell into.
+- **Failure mode is guarded.** Because the scroll reveal hides elements before revealing
+  them, a setup that throws would leave real content invisible; the hook catches, logs, and
+  `clearProps`-es everything it touched. Losing the animation is acceptable, losing the
+  dashboard is not.
+- **Count-ups**: `FoundLostStrip` keeps its own rAF counter for Found/Lost;
+  [TotalBox.jsx](client/src/components/TotalBox.jsx) takes an opt-in `countUp` prop (GSAP,
+  writing `textContent` so a 1.2s tween doesn't re-render React ~60x/s, with React still
+  owning the final value). Both are enabled from `LeftSide`, so all four stats count
+  rather than two counting and two appearing.
+- **One system per element.** `Process.jsx` stays on framer-motion (`whileInView` — it
+  already reveals on scroll) and its section is deliberately left unmarked so the two
+  libraries never animate the same nodes. `Categories.jsx` moved the other way, off
+  framer-motion: its entrance was mount-based, and the section sits far below the fold, so
+  it always finished playing before anyone scrolled to it. The cards "show all" adds after
+  the reveal has run get a matching local entrance inside `Categories.jsx`.
+
 ## Match notifications (web + mobile)
 
 Lost↔found matching engine + in-app notifications. The engine and API are shared —

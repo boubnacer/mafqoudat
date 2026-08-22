@@ -321,6 +321,7 @@ const LeftSide = ({
 
   return (
     <Box
+      data-reveal="hero"
       sx={{
         // Genuinely translucent on both breakpoints now that this floats
         // over Dash.js's full-bleed world-map backdrop instead of sitting
@@ -341,6 +342,7 @@ const LeftSide = ({
     >
       {/* Title Section */}
       <Box 
+        data-reveal-item=""
         mb={isMobile ? 2 : 3}
         sx={{
           textAlign: 'center',
@@ -371,6 +373,7 @@ const LeftSide = ({
         }}
       >
         <FoundLostStrip
+          data-reveal-item=""
           totalFounds={totalFounds || 0}
           totalLosts={totalLosts || 0}
           foundsToday={foundsToday || 0}
@@ -382,6 +385,8 @@ const LeftSide = ({
         />
 
         <TotalBox
+          data-reveal-item=""
+          countUp
           title={t('totalItems')}
           value={totalPosts || 0}
           description={t('sinceLastMonth')}
@@ -411,6 +416,8 @@ const LeftSide = ({
         />
 
         <TotalBox
+          data-reveal-item=""
+          countUp
           title={t('returnedItems')}
           value={totalReturned?.toString() || "0"}
           description={t('sinceLastMonth')}

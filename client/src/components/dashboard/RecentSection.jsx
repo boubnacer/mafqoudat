@@ -25,6 +25,7 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
 
   return (
     <Box
+      data-reveal="section"
       sx={{
         height: "100%",
         display: "flex",
