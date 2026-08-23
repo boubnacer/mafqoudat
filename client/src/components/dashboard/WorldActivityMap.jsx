@@ -31,6 +31,10 @@ import SkeletonBlock from "../SkeletonBlock";
 //   subdivisions — provinces / wilayas / governorates of the 25, drawn as a
 //                  mesh of internal borders only
 //   lakes        — the region's water bodies, filled in the ocean tone
+//   rivers       — the ones that define a country the way a border does (the
+//                  Nile, the Tigris and Euphrates, the Niger), same tone
+//   urbanAreas   — built-up footprints, as a faint wash showing where people
+//                  are; the city dots say where the posts are
 // The build script explains how the resolution is budgeted; the short version
 // is that this file is smaller than the single-layer countries-50m.json it
 // replaced while giving the country on screen several times its detail.
@@ -110,7 +114,14 @@ const WorldActivityMap = ({
           // Because the country shapes were built as the union of these same
           // provinces, this is the identical arc, not a second line beside it.
           subdivisions: topojsonClient.mesh(topo, topo.objects.subdivisions, (a, b) => a !== b),
-          lakes: topojsonClient.feature(topo, topo.objects.lakes).features,
+          // No filter on the river mesh — every arc is wanted, and mesh is
+          // still the right call over feature() because it emits each shared
+          // arc once and yields a single node instead of a hundred.
+          rivers: topojsonClient.mesh(topo, topo.objects.rivers),
+          // Kept as whole FeatureCollections: d3's geoPath renders one straight
+          // into a single `d`, so each of these layers is one node too.
+          lakes: topojsonClient.feature(topo, topo.objects.lakes),
+          urbanAreas: topojsonClient.feature(topo, topo.objects.urbanAreas),
         });
       }
     );
@@ -202,8 +213,16 @@ const WorldActivityMap = ({
     () => (mapLayers?.subdivisions ? mapPath(mapLayers.subdivisions) : null),
     [mapLayers, mapPath]
   );
-  const lakePaths = useMemo(
-    () => (mapLayers?.lakes || []).map((lake) => mapPath(lake)).filter(Boolean),
+  const riversPath = useMemo(
+    () => (mapLayers?.rivers ? mapPath(mapLayers.rivers) : null),
+    [mapLayers, mapPath]
+  );
+  const lakesPath = useMemo(
+    () => (mapLayers?.lakes ? mapPath(mapLayers.lakes) : null),
+    [mapLayers, mapPath]
+  );
+  const urbanPath = useMemo(
+    () => (mapLayers?.urbanAreas ? mapPath(mapLayers.urbanAreas) : null),
     [mapLayers, mapPath]
   );
 
@@ -253,6 +272,14 @@ const WorldActivityMap = ({
         }
       </Geographies>
 
+      {/* Built-up areas, under everything else that sits on the country fill:
+          a wash, not a shape — it should register as "this part is populated"
+          without ever competing with the city dots, which are the only thing on
+          this map carrying real data. */}
+      {urbanPath && (
+        <path d={urbanPath} fill={alpha(ink, isDark ? 0.18 : 0.12)} pointerEvents="none" />
+      )}
+
       {/* Provinces / wilayas / governorates of the supported countries, as one
           mesh path rather than per-province shapes — the country underneath is
           the interactive unit, and a mesh is a single node with no fill to
@@ -273,15 +300,21 @@ const WorldActivityMap = ({
       {/* Lakes, in the same tone the container paints behind the map for the
           sea (see Dash.js) — so inland water reads as water rather than as a
           hole punched in the country. */}
-      {lakePaths.map((lakePath, index) => (
+      {lakesPath && <path d={lakesPath} fill={sea} stroke="none" pointerEvents="none" />}
+
+      {/* Rivers, in the same tone as the lakes and the sea, stroked rather than
+          filled. Thin enough to read as water rather than as another border. */}
+      {riversPath && (
         <path
-          key={`lake-${index}`}
-          d={lakePath}
-          fill={sea}
-          stroke="none"
+          d={riversPath}
+          fill="none"
+          stroke={sea}
+          strokeWidth={0.6}
+          strokeLinecap="round"
+          strokeLinejoin="round"
           pointerEvents="none"
         />
-      ))}
+      )}
 
       {/* City markers — uniform small dots (see CITY_DOT_RADIUS) layered on
           top of the country fill. Panel-filled with a brand stroke so they

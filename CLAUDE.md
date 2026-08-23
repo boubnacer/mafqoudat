@@ -139,16 +139,37 @@ full-bleed backdrop zoomed to the visitor's country, countries tinted by
   from Natural Earth 10m, the rest of the world from 110m (off-canvas at every
   zoom this map uses), and each layer is simplified with its own tolerance —
   one global tolerance spends the budget on the backdrop. Net result is
-  **466 KB (146 KB gzipped) against countries-50m's 756 KB (230 KB)**, with the
-  focus countries carrying ~2.5x its detail. `countries-10m.json` wholesale
-  would have been 3.6 MB / 921 KB for the same thing.
-- **Three layers.** `countries` (unchanged contract: `feature.id` is still the
+  **700 KB (211 KB gzipped) against countries-50m's 756 KB (230 KB)** — for five
+  layers rather than one, with the focus countries' outlines alone carrying
+  ~2.8x its detail (11,884 points across the 25 against 4,211).
+  `countries-10m.json` wholesale would have been 3.6 MB / 921 KB, and on mobile
+  it is a static import parsed at startup.
+- **Five layers.** `countries` (unchanged contract: `feature.id` is still the
   numeric Natural Earth id the components' `ISO2_TO_NUMERIC` maps to),
-  `subdivisions` — the provinces / wilayas / governorates of the 25 — and
-  `lakes`. Both front ends draw the subdivisions as a **mesh filtered to
-  internal borders** (`mesh(topo, subdivisions, (a, b) => a !== b)`), never as
-  per-province shapes: the country underneath stays the interactive unit, and
-  a mesh is one node with no fill to double up on the fills below it.
+  `subdivisions` (the provinces / wilayas / governorates of the 25), `lakes`,
+  `rivers` and `urbanAreas`. Both front ends draw the subdivisions as a **mesh
+  filtered to internal borders** (`mesh(topo, subdivisions, (a, b) => a !== b)`),
+  never as per-province shapes: the country underneath stays the interactive
+  unit, and a mesh is one node with no fill to double up on the fills below it.
+  Rivers are a mesh too, unfiltered — one node, each shared arc once. Lakes and
+  urban areas stay whole `FeatureCollection`s, which `geoPath` renders into a
+  single `d` apiece. So all four of these layers cost one node each, and the
+  countries layer is the only per-feature one (it has to be — each country is
+  filled by its own activity count).
+- **Scalerank is a world-map question, and this is not a world map.** Natural
+  Earth's rank says at what scale a lake or river belongs on a globe; here the
+  map is always zoomed to one country, so a strict cutoff drops exactly the
+  features a visitor expects. Lakes and rivers both cut at rank 6 — that keeps
+  Lake Nasser (5), Lake Volta (5), Lake Habbaniyah (6), and the Nile, Tigris,
+  Euphrates, Niger, Senegal and Jordan, while leaving out the seasonal wadi
+  network that would read as cracks in the fill. Urban areas ignore scalerank
+  altogether and filter on their own `area_sqkm` (≥ 100), which is what stops
+  it under-selecting in these countries: 14 footprints in Morocco, 13 in Egypt,
+  32 in Iraq.
+- **Urban areas are a wash, and never a data layer.** They are drawn under the
+  borders in flat `alpha(ink, …)` and say "people live here"; the city dots,
+  which are the only thing on this map carrying real numbers, must always
+  outrank them.
 - **Focus countries are built as the union of their own provinces**
   (`topojson-client`'s `merge`), and the simplification happens *before* the
   merge. That is what lets the mesh work: the country outline is literally made
@@ -174,8 +195,9 @@ full-bleed backdrop zoomed to the visitor's country, countries tinted by
   attribution this design has no chrome for, per-theme restyling, and a native
   module that breaks Expo Go. This map is an activity backdrop, not something
   anyone navigates.
-- **The two Natural Earth sources** (`ne_10m_admin_1_states_provinces`,
-  `ne_10m_lakes`, ~46 MB together) are downloaded on first run into
+- **The four Natural Earth sources** (`ne_10m_admin_1_states_provinces`,
+  `ne_10m_lakes`, `ne_10m_rivers_lake_centerlines`, `ne_10m_urban_areas`,
+  ~81 MB together) are downloaded on first run into
   `client/.cache/naturalearth/`, which is gitignored. Public domain, no key,
   no attribution requirement.
 

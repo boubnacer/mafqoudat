@@ -11,7 +11,8 @@
  * dependency, so it runs fine here). Three layers, same as web: countries
  * (the 25 supported ones and their neighbours at 10m detail, the rest of the
  * world at 110m), the provinces/wilayas/governorates of those 25 drawn as a
- * mesh of internal borders only, and the region's lakes.
+ * mesh of internal borders only, the region's lakes and rivers, and built-up
+ * areas as a faint wash.
  *
  * Deliberately NOT mirrored for RTL, matching web: a real map has to stay
  * geographically accurate regardless of reading direction.
@@ -198,7 +199,14 @@ const WorldActivityMap = ({
         // shapes are the union of these same provinces, so this is the
         // identical arc rather than a second line beside it.
         subdivisions: topojsonMesh(topo, topo.objects.subdivisions, (a, b) => a !== b),
-        lakes: topojsonFeature(topo, topo.objects.lakes).features,
+        // No filter on the river mesh - every arc is wanted, and mesh still
+        // beats feature() because it emits each shared arc once and yields one
+        // node instead of a hundred.
+        rivers: topojsonMesh(topo, topo.objects.rivers),
+        // Kept as whole FeatureCollections: d3's geoPath turns one straight
+        // into a single `d`, so each of these layers is one Path too.
+        lakes: topojsonFeature(topo, topo.objects.lakes),
+        urbanAreas: topojsonFeature(topo, topo.objects.urbanAreas),
       });
     }, 0);
     return () => {
@@ -269,10 +277,18 @@ const WorldActivityMap = ({
     () => (mapLayers && mapLayers.subdivisions ? pathGenerator(mapLayers.subdivisions) : null),
     [mapLayers, pathGenerator]
   );
-  const lakeShapes = useMemo(() => {
-    if (!mapLayers) return [];
-    return mapLayers.lakes.map((lake) => pathGenerator(lake)).filter(Boolean);
-  }, [mapLayers, pathGenerator]);
+  const riversPath = useMemo(
+    () => (mapLayers && mapLayers.rivers ? pathGenerator(mapLayers.rivers) : null),
+    [mapLayers, pathGenerator]
+  );
+  const lakesPath = useMemo(
+    () => (mapLayers && mapLayers.lakes ? pathGenerator(mapLayers.lakes) : null),
+    [mapLayers, pathGenerator]
+  );
+  const urbanPath = useMemo(
+    () => (mapLayers && mapLayers.urbanAreas ? pathGenerator(mapLayers.urbanAreas) : null),
+    [mapLayers, pathGenerator]
+  );
 
   const ink = tokens.ink;
   const panel = tokens.surfaceRaised;
@@ -329,6 +345,11 @@ const WorldActivityMap = ({
                 />
               );
             })}
+            {/* Built-up areas, under everything else that sits on the country
+                fill: a wash, not a shape - it should register as "this part is
+                populated" without competing with the city dots, which are the
+                only thing on this map carrying real data. */}
+            {urbanPath && <Path d={urbanPath} fill={hexToRgba(ink, isDark ? 0.18 : 0.12)} />}
             {/* Provinces / wilayas / governorates of the supported countries, as
                 one mesh path rather than per-province shapes - a single node
                 with no fill to double up on the country fills below it.
@@ -343,9 +364,20 @@ const WorldActivityMap = ({
                 strokeLinejoin="round"
               />
             )}
-            {lakeShapes.map((d, index) => (
-              <Path key={`lake-${index}`} d={d} fill={sea} />
-            ))}
+            {lakesPath && <Path d={lakesPath} fill={sea} />}
+            {/* Rivers, in the same tone as the lakes and the sea, stroked
+                rather than filled. Thin enough to read as water rather than as
+                another border. */}
+            {riversPath && (
+              <Path
+                d={riversPath}
+                fill="none"
+                stroke={sea}
+                strokeWidth={0.6}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            )}
             {cityPoints.map(({ city, x, y, r }, index) => (
               <Circle key={`${city.name}-${index}`} cx={x} cy={y} r={r} fill={panel} stroke={brand} strokeWidth={2} />
             ))}
