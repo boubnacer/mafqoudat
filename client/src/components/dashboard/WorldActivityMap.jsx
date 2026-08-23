@@ -45,6 +45,14 @@ import SkeletonBlock from "../SkeletonBlock";
 // Arabic sites are never horizontally flipped. Only the surrounding chrome
 // (title, legend) follows the usual RTL/logical-property rules.
 //
+// Mobile only shows a slice of the square reference canvas the map is fitted
+// to (the crop in mapCropSx is 271% tall and clipped), so a country fitted to
+// that whole canvas reads smaller on a phone than the fit math suggests.
+// MOBILE_ZOOM pushes past the fit instead of shrinking the padding, so the
+// padding keeps doing its other job — reserving room for city labels and
+// "+N today" badges, which are placed outside the country's own bounds.
+const MOBILE_ZOOM = 1.25;
+
 // Zoom math note: react-simple-maps' projectionConfig only forwards
 // center/scale/rotate/parallels to the underlying d3 projection — it always
 // hardcodes translate to the canvas center (see its makeProjection()), so
@@ -181,8 +189,8 @@ const WorldActivityMap = ({
     const center = [(minLon + maxLon) / 2, (minLat + maxLat) / 2];
     const reference = geoMercator().center(center).translate([MAP_WIDTH / 2, mapHeight / 2]).scale(1);
     const [[x0, y0], [x1, y1]] = geoPath(reference).bounds(currentFeature);
-    const scale = Math.min((MAP_WIDTH - padding * 2) / Math.max(x1 - x0, 0.001), (mapHeight - padding * 2) / Math.max(y1 - y0, 0.001));
-    return { center, scale };
+    const fitScale = Math.min((MAP_WIDTH - padding * 2) / Math.max(x1 - x0, 0.001), (mapHeight - padding * 2) / Math.max(y1 - y0, 0.001));
+    return { center, scale: isMobile ? fitScale * MOBILE_ZOOM : fitScale };
   }, [currentFeature, MAP_WIDTH, mapHeight, isMobile]);
 
   // The projection react-simple-maps builds internally, rebuilt here so the
