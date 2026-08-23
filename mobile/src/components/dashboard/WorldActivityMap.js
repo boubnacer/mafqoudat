@@ -4,10 +4,14 @@
  * an SVG world map (react-native-svg), zoomed to the current country,
  * countries colored by worldActivity ({code, count}) with the current
  * country highlighted, and city markers (uniform small dots) from
- * cityActivity. Uses the same free/no-API-key data web does - world-atlas's
- * countries-50m topojson (Natural Earth, public domain), converted to
+ * cityActivity. Uses the same free/no-API-key data web does - the generated
+ * worldMap.topo.json (Natural Earth, public domain; built by
+ * client/scripts/buildMapData.js, which writes this copy too), converted to
  * GeoJSON via topojson-client, projected with d3-geo (pure JS, no DOM
- * dependency, so it runs fine here).
+ * dependency, so it runs fine here). Three layers, same as web: countries
+ * (the 25 supported ones and their neighbours at 10m detail, the rest of the
+ * world at 110m), the provinces/wilayas/governorates of those 25 drawn as a
+ * mesh of internal borders only, and the region's lakes.
  *
  * Deliberately NOT mirrored for RTL, matching web: a real map has to stay
  * geographically accurate regardless of reading direction.
@@ -27,11 +31,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { geoMercator, geoPath, geoBounds } from 'd3-geo';
-import { feature as topojsonFeature } from 'topojson-client';
-import countriesTopoJson from 'world-atlas/countries-50m.json';
+import { feature as topojsonFeature, mesh as topojsonMesh } from 'topojson-client';
+import worldMapTopoJson from '../../data/worldMap.topo.json';
 
 // Same 25-country roster as the web version - ISO2 (matches Country.code) to
-// the numeric id world-atlas's topojson uses for feature.id.
+// the numeric id Natural Earth (and so the generated topology) uses for
+// feature.id.
 const ISO2_TO_NUMERIC = {
   AE: '784', BH: '048', CF: '140', TD: '148', KM: '174', DZ: '012',
   DJ: '262', EG: '818', IQ: '368', JO: '400', KW: '414', LB: '422',
@@ -168,7 +173,8 @@ const WorldActivityMap = ({
   tokens,
   isDark,
 }) => {
-  const [geoFeatures, setGeoFeatures] = useState(null);
+  const [mapLayers, setMapLayers] = useState(null);
+  const geoFeatures = mapLayers ? mapLayers.countries : null;
   // Actual rendered pixel width of mapBox (square, so height matches). The
   // SVG's viewBox scales its coordinate space - including stroke widths and
   // font sizes - to fit whatever size the box actually renders at (e.g.
@@ -178,13 +184,22 @@ const WorldActivityMap = ({
 
   useEffect(() => {
     let cancelled = false;
-    // world-atlas + topojson-client have no DOM dependency and could run
-    // synchronously, but deferring a tick keeps this off the header's first
-    // paint the same way web's dynamic import does.
+    // topojson-client has no DOM dependency and could run synchronously, but
+    // deferring a tick keeps this off the header's first paint the same way
+    // web's dynamic import does.
     const timer = setTimeout(() => {
       if (cancelled) return;
-      const { features } = topojsonFeature(countriesTopoJson, countriesTopoJson.objects.countries);
-      setGeoFeatures(features);
+      const topo = worldMapTopoJson;
+      setMapLayers({
+        countries: topojsonFeature(topo, topo.objects.countries).features,
+        // Internal borders only: `a !== b` keeps arcs shared by two provinces
+        // and drops the ones with a single neighbour - the coast and the
+        // national outline, already drawn by the countries layer. The country
+        // shapes are the union of these same provinces, so this is the
+        // identical arc rather than a second line beside it.
+        subdivisions: topojsonMesh(topo, topo.objects.subdivisions, (a, b) => a !== b),
+        lakes: topojsonFeature(topo, topo.objects.lakes).features,
+      });
     }, 0);
     return () => {
       cancelled = true;
@@ -247,9 +262,24 @@ const WorldActivityMap = ({
       .filter((shape) => shape.d);
   }, [geoFeatures, pathGenerator]);
 
+  // Projected once alongside the country shapes and for the same reason - the
+  // mesh is a single large path and the lakes are re-projected on every theme
+  // or language change otherwise.
+  const subdivisionsPath = useMemo(
+    () => (mapLayers && mapLayers.subdivisions ? pathGenerator(mapLayers.subdivisions) : null),
+    [mapLayers, pathGenerator]
+  );
+  const lakeShapes = useMemo(() => {
+    if (!mapLayers) return [];
+    return mapLayers.lakes.map((lake) => pathGenerator(lake)).filter(Boolean);
+  }, [mapLayers, pathGenerator]);
+
   const ink = tokens.ink;
   const panel = tokens.surfaceRaised;
   const brand = tokens.brandPrimary;
+  // What the screen behind this map shows for the sea; lakes reuse it so
+  // inland water reads as water rather than a hole punched in the country.
+  const sea = tokens.surfaceBase;
 
   const ready = !isLoading && !!geoFeatures;
   const scale = boxSize && boxSize.width ? boxSize.width / MAP_WIDTH : 1;
@@ -299,6 +329,23 @@ const WorldActivityMap = ({
                 />
               );
             })}
+            {/* Provinces / wilayas / governorates of the supported countries, as
+                one mesh path rather than per-province shapes - a single node
+                with no fill to double up on the country fills below it.
+                Deliberately faint: texture saying the country is a real place
+                with regions in it, not a number anyone is asked to read. */}
+            {subdivisionsPath && (
+              <Path
+                d={subdivisionsPath}
+                fill="none"
+                stroke={hexToRgba(panel, isDark ? 0.35 : 0.7)}
+                strokeWidth={0.4}
+                strokeLinejoin="round"
+              />
+            )}
+            {lakeShapes.map((d, index) => (
+              <Path key={`lake-${index}`} d={d} fill={sea} />
+            ))}
             {cityPoints.map(({ city, x, y, r }, index) => (
               <Circle key={`${city.name}-${index}`} cx={x} cy={y} r={r} fill={panel} stroke={brand} strokeWidth={2} />
             ))}

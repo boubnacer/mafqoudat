@@ -35,12 +35,14 @@
     "react-simple-maps": "^3.0.0",
     "react-spinners": "^0.13.4",
     "swiper": "^11.2.8",
+    "topojson-client": "^3.1.0",
     "world-atlas": "^2.0.2",
     "yup": "^0.32.11"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build-map-data": "node --max-old-space-size=6144 scripts/buildMapData.js",
     "postbuild": "node scripts/postbuild.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -125,6 +127,8 @@
   "devDependencies": {
     "react-snap": "^1.23.0",
     "source-map-explorer": "^2.5.3",
+    "topojson-server": "^3.0.1",
+    "topojson-simplify": "^3.0.3",
     "webpack-bundle-analyzer": "^4.10.2"
   }
 }

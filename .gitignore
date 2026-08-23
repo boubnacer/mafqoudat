@@ -18,3 +18,7 @@ client/verify_hero.js
 client/dbg_initial*.png
 client/shot_*.png
 
+
+# Natural Earth downloads cached by client/scripts/buildMapData.js (~46 MB);
+# the generated client/src/data/worldMap.topo.json is committed instead.
+client/.cache
