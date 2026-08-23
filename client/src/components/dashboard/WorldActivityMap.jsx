@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Box, useTheme, useMediaQuery, alpha } from "@mui/material";
-import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
+import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { geoMercator, geoPath, geoBounds } from "d3-geo";
 import { useTranslation } from "../../utils/translations";
+import { CITY_LABEL_FONT_SIZE, layoutCityLabels } from "../../utils/cityLabelLayout";
 import SkeletonBlock from "../SkeletonBlock";
 
 // A single chrome-less, full-bleed map filling the whole header section
@@ -76,6 +77,17 @@ const ISO2_TO_NUMERIC = {
 // WorldActivityMap.js.
 const CITY_DOT_RADIUS = 4;
 
+// Post-count badge above a city dot ("+12"), for cities that got a new post
+// today — the only per-city number this map shows, now that every dot is the
+// same size. Sized in SVG user units rather than CSS so it scales with the map
+// exactly like the dots and labels do, and its width is approximated from the
+// glyph count because SVG offers no text metrics at render time: 6.2 units per
+// glyph at fontSize 11 bold, plus padding, floored so a single-digit badge
+// still reads as a pill rather than a circle.
+const BADGE_HEIGHT = 18;
+const BADGE_FONT_SIZE = 11;
+const badgeWidth = (label) => Math.max(26, label.length * 6.2 + 12);
+
 const WorldActivityMap = ({
   worldActivity,
   cityActivity,
@@ -146,23 +158,6 @@ const WorldActivityMap = ({
 
   const cities = useMemo(() => (Array.isArray(cityActivity) ? cityActivity : []), [cityActivity]);
 
-  // Cities that got at least one new post today — the only ones that get a
-  // "+N" badge. todayCount comes from the same cityActivity aggregation as
-  // `count`, over the same server-local day window the header's "+N today"
-  // stats use, so the two never disagree. Falls back to no badges at all
-  // (rather than badging totals) when talking to a server that predates the
-  // field, since a total-count badge labelled "+N" would read as "N new".
-  const citiesWithNewToday = useMemo(() => cities.filter((c) => (c.todayCount || 0) > 0), [cities]);
-
-  // Post-count badge above each city dot ("+12"). Sized in SVG user units
-  // rather than CSS, so it scales with the map exactly like the dots and
-  // city labels do. Width is approximated from the label's character count
-  // (no text metrics available at render time in SVG) — 6.2 units per glyph
-  // at fontSize 11 bold, plus horizontal padding, floored so a single-digit
-  // badge still reads as a pill rather than a circle.
-  const BADGE_HEIGHT = 18;
-  const BADGE_FONT_SIZE = 11;
-  const badgeWidth = (label) => Math.max(26, label.length * 6.2 + 12);
   const badgeText = theme.palette.getContrastText(brand);
 
   const currentNumericId = currentCountryCode ? ISO2_TO_NUMERIC[currentCountryCode] : null;
@@ -195,16 +190,56 @@ const WorldActivityMap = ({
   // same coordinate space as <Geography>. Safe to reconstruct rather than
   // guess at: projectionConfig forwards center/scale verbatim and translate is
   // always the canvas centre (see the zoom-math note above).
-  const mapPath = useMemo(
+  const mapProjection = useMemo(
     () =>
-      geoPath(
-        geoMercator()
-          .center(mapView.center)
-          .scale(mapView.scale)
-          .translate([MAP_WIDTH / 2, mapHeight / 2])
-      ),
+      geoMercator()
+        .center(mapView.center)
+        .scale(mapView.scale)
+        .translate([MAP_WIDTH / 2, mapHeight / 2]),
     [mapView, MAP_WIDTH, mapHeight]
   );
+  const mapPath = useMemo(() => geoPath(mapProjection), [mapProjection]);
+
+  // Cities projected once, then laid out: the dots sit exactly on their
+  // coordinates, and only the names move. See cityLabelLayout.js — labels walk
+  // outwards from their dot until they find room, take a leader line back once
+  // they have left its side, and are dropped rather than stacked when the map
+  // is too crowded for them.
+  const cityMarkers = useMemo(() => {
+    const projected = cities
+      .map((city) => {
+        const point = mapProjection([city.lon, city.lat]);
+        return point ? { city, x: point[0], y: point[1] } : null;
+      })
+      .filter(Boolean);
+
+    // The "+N today" badges are placed first and unconditionally — they carry a
+    // number, so they outrank a name — and every label has to route around them.
+    const badges = projected
+      .filter(({ city }) => (city.todayCount || 0) > 0)
+      .map(({ city, x, y }) => {
+        const label = `+${city.todayCount}`;
+        const width = badgeWidth(label);
+        const bottom = y - (CITY_DOT_RADIUS + 1);
+        return { label, width, x, y: bottom - BADGE_HEIGHT / 2 };
+      });
+
+    const placements = layoutCityLabels({
+      points: projected.map(({ city, x, y }) => ({ x, y, name: city.name, weight: city.count || 0 })),
+      width: MAP_WIDTH,
+      height: mapHeight,
+      dotRadius: CITY_DOT_RADIUS,
+      fontSize: CITY_LABEL_FONT_SIZE,
+      obstacles: badges.map((badge) => ({
+        x0: badge.x - badge.width / 2,
+        y0: badge.y - BADGE_HEIGHT / 2,
+        x1: badge.x + badge.width / 2,
+        y1: badge.y + BADGE_HEIGHT / 2,
+      })),
+    });
+
+    return { dots: projected, labels: placements, badges };
+  }, [cities, mapProjection, MAP_WIDTH, mapHeight]);
 
   // Projected once per view, not per render: the subdivision mesh is a single
   // path with tens of thousands of points, and this component re-renders on
@@ -316,18 +351,66 @@ const WorldActivityMap = ({
         />
       )}
 
+      {/* Leader lines first, so a dot and a name both cover their own end of
+          the line rather than the line crossing them. Only labels that had to
+          leave their dot's side get one — see cityLabelLayout.js. */}
+      {cityMarkers.labels.map((placement, index) =>
+        placement.leader ? (
+          <g key={`leader-${index}`} pointerEvents="none">
+            {/* Panel-colored halo under the line, the same trick the names and
+                the badges use: a single thin ink line disappears against a
+                saturated country fill exactly where it matters most. */}
+            <line
+              x1={cityMarkers.dots[index].x}
+              y1={cityMarkers.dots[index].y}
+              x2={placement.leader.x}
+              y2={placement.leader.y}
+              stroke={panel}
+              strokeWidth={2.4}
+              strokeLinecap="round"
+            />
+            <line
+              x1={cityMarkers.dots[index].x}
+              y1={cityMarkers.dots[index].y}
+              x2={placement.leader.x}
+              y2={placement.leader.y}
+              stroke={alpha(ink, isDark ? 0.75 : 0.6)}
+              strokeWidth={0.9}
+              strokeLinecap="round"
+            />
+          </g>
+        ) : null
+      )}
+
       {/* City markers — uniform small dots (see CITY_DOT_RADIUS) layered on
           top of the country fill. Panel-filled with a brand stroke so they
-          read as solid pins regardless of the fill tone beneath them;
-          labels get a panel-colored text outline (paintOrder="stroke") for
-          the same reason, rather than a background pill shape. */}
-      {cities.map((city, index) => (
-        <Marker key={`${city.name}-${index}`} coordinates={[city.lon, city.lat]}>
-          <circle r={CITY_DOT_RADIUS} fill={panel} stroke={brand} strokeWidth={2} />
+          read as solid pins regardless of the fill tone beneath them. */}
+      {cityMarkers.dots.map(({ city, x, y }, index) => (
+        <circle
+          key={`${city.name}-${index}`}
+          cx={x}
+          cy={y}
+          r={CITY_DOT_RADIUS}
+          fill={panel}
+          stroke={brand}
+          strokeWidth={2}
+        />
+      ))}
+
+      {/* City names. Positions come from the layout pass, not from a fixed
+          offset under the dot — the map is always zoomed to one country, so
+          two cities close enough to collide is normal rather than an edge
+          case. A panel-colored text outline (paintOrder="stroke") keeps them
+          legible over a saturated country fill without a plate behind them. */}
+      {cityMarkers.labels.map((placement, index) =>
+        placement.hidden ? null : (
           <text
-            y={CITY_DOT_RADIUS + 12}
+            key={`label-${index}`}
+            x={placement.labelX}
+            y={placement.labelY}
             textAnchor="middle"
-            fontSize={10}
+            dominantBaseline="central"
+            fontSize={CITY_LABEL_FONT_SIZE}
             fontWeight={600}
             fill={ink}
             stroke={panel}
@@ -335,53 +418,42 @@ const WorldActivityMap = ({
             paintOrder="stroke"
             pointerEvents="none"
           >
-            {city.name}
+            {cityMarkers.dots[index].city.name}
           </text>
-        </Marker>
-      ))}
+        )
+      )}
 
-      {/* Today's-new-posts badges, in their own pass after all dots/labels
-          so a badge is never overlapped by a neighbouring city's marker
-          drawn later. Only cities with activity today are badged — now that
-          every dot is the same size, this is the only per-city number the
-          map shows. */}
-      {citiesWithNewToday.map((city, index) => {
-        const label = `+${city.todayCount}`;
-        const width = badgeWidth(label);
-        // Sits just clear of the dot's stroke, close enough to read as part
-        // of the same marker rather than a floating label.
-        const anchorY = -(CITY_DOT_RADIUS + 1);
-        return (
-          <Marker key={`${city.name}-${index}-count`} coordinates={[city.lon, city.lat]}>
-            <g pointerEvents="none">
-              {/* Panel-colored halo, same trick the city label uses: keeps
-                  the pill legible over a saturated country fill without
-                  needing an opaque plate behind it. */}
-              <rect
-                x={-width / 2}
-                y={anchorY - BADGE_HEIGHT}
-                width={width}
-                height={BADGE_HEIGHT}
-                rx={BADGE_HEIGHT / 2}
-                fill={brand}
-                stroke={panel}
-                strokeWidth={2}
-              />
-              <text
-                x={0}
-                y={anchorY - BADGE_HEIGHT / 2}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fontSize={BADGE_FONT_SIZE}
-                fontWeight={700}
-                fill={badgeText}
-              >
-                {label}
-              </text>
-            </g>
-          </Marker>
-        );
-      })}
+      {/* Today's-new-posts badges, last so a badge is never overlapped by a
+          neighbouring city's marker or name. Their positions are fixed above
+          their own dot and the labels route around them, rather than the other
+          way round: a badge carries a number, a name does not. */}
+      {cityMarkers.badges.map((badge, index) => (
+        <g key={`badge-${index}`} pointerEvents="none">
+          {/* Panel-colored halo, same trick the city label uses: keeps the pill
+              legible over a saturated country fill without an opaque plate. */}
+          <rect
+            x={badge.x - badge.width / 2}
+            y={badge.y - BADGE_HEIGHT / 2}
+            width={badge.width}
+            height={BADGE_HEIGHT}
+            rx={BADGE_HEIGHT / 2}
+            fill={brand}
+            stroke={panel}
+            strokeWidth={2}
+          />
+          <text
+            x={badge.x}
+            y={badge.y}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize={BADGE_FONT_SIZE}
+            fontWeight={700}
+            fill={badgeText}
+          >
+            {badge.label}
+          </text>
+        </g>
+      ))}
     </ComposableMap>
   ) : (
     <Box sx={{ width: "100%", height: "100%", backgroundColor: alpha(ink, 0.05) }} />

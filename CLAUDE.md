@@ -166,6 +166,28 @@ full-bleed backdrop zoomed to the visitor's country, countries tinted by
   altogether and filter on their own `area_sqkm` (≥ 100), which is what stops
   it under-selecting in these countries: 14 footprints in Morocco, 13 in Egypt,
   32 in Iraq.
+- **City labels are placed, not offset.** They used to hang at a fixed offset
+  under their dot, which put Casablanca under Mohammedia and Rabat under Salé —
+  the map is always zoomed to one country, so neighbouring cities are the normal
+  case. [cityLabelLayout.js](client/src/utils/cityLabelLayout.js), mirrored 1:1
+  at [mobile/src/utils/cityLabelLayout.js](mobile/src/utils/cityLabelLayout.js),
+  walks each label outwards from its dot — four sides, then diagonals, then
+  rings at 13/26/42 — until it finds a box that hits no dot, no already-placed
+  label and no badge, and hands back a leader line for any label that had to
+  leave its dot's side. Cities are placed in descending activity order, so the
+  quietest city is the one that loses its name. Three consequences worth
+  keeping: **a label that fits nowhere is dropped, not stacked** (the dot still
+  marks the city); **the ring ladder deliberately stops at 42**, because
+  further out a name parks in another city's neighbourhood and reads as
+  belonging to whatever dot it landed beside — a missing name is a gap, a name
+  beside the wrong city is wrong; and **the "+N today" badges are placed first
+  and unconditionally**, with labels routing around them, because a badge
+  carries a number and a name does not. Leader lines get the same panel-colored
+  halo the names and badges use — a hairline in `ink` vanishes against a
+  saturated country fill exactly where it matters. Both platforms estimate text
+  width from the glyph count (SVG has no render-time metrics; RN only reports a
+  width after layout), erring generous: over-estimating reserves space that was
+  not needed, under-estimating puts two names back on top of each other.
 - **Urban areas are a wash, and never a data layer.** They are drawn under the
   borders in flat `alpha(ink, …)` and say "people live here"; the city dots,
   which are the only thing on this map carrying real numbers, must always
