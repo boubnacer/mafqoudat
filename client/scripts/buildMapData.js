@@ -66,8 +66,12 @@ const FOCUS_IDS = new Set(Object.values(FOCUS));
 const REGION_PADDING_DEGREES = 8;
 
 // Natural Earth ranks lakes by the scale they are meant to appear at; anything
-// above this is a pond that would render as a speck.
-const LAKE_MAX_SCALERANK = 3;
+// above this is a pond that would render as a speck. 6 rather than something
+// stricter because the rank is set for a world map, not for a map zoomed to one
+// country: at 3, Lake Nasser (5), Lake Volta (5) and Lake Habbaniyah (6) all
+// drop out, and those are exactly the ones a visitor in Egypt, Ghana's
+// neighbours or Iraq would expect to see.
+const LAKE_MAX_SCALERANK = 6;
 
 // Simplification is per layer, not global — one tolerance over everything
 // spends the whole budget on the backdrop. Each value is the fraction of points
