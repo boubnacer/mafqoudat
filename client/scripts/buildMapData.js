@@ -66,8 +66,25 @@ const FOCUS_IDS = new Set(Object.values(FOCUS));
 const REGION_PADDING_DEGREES = 8;
 
 // Natural Earth ranks lakes by the scale they are meant to appear at; anything
-// above this is a pond that would render as a speck.
-const LAKE_MAX_SCALERANK = 3;
+// above this is a pond that would render as a speck. 6 rather than something
+// stricter because the rank is set for a world map, not for a map zoomed to one
+// country: at 3, Lake Nasser (5), Lake Volta (5) and Lake Habbaniyah (6) all
+// drop out, and those are exactly the ones a visitor in Egypt, Ghana's
+// neighbours or Iraq would expect to see.
+const LAKE_MAX_SCALERANK = 6;
+
+// Rivers are ranked the same way. 6 keeps the ones that define a country the
+// way a border does — the Nile, the Tigris and Euphrates, the Niger, the
+// Senegal, the Jordan — and leaves out the seasonal wadi network, which at this
+// zoom would read as cracks in the fill rather than as water.
+const RIVER_MAX_SCALERANK = 6;
+
+// Urban footprints are filtered by their own area instead of by scalerank:
+// scalerank answers "at what scale should this city appear on a world map",
+// which under-selects in exactly the countries this map serves. 100 km² is
+// about "a city you would name if asked to name cities in this country" — 14 in
+// Morocco, 13 in Egypt, 32 in Iraq.
+const URBAN_MIN_AREA_SQKM = 100;
 
 // Simplification is per layer, not global — one tolerance over everything
 // spends the whole budget on the backdrop. Each value is the fraction of points
@@ -80,6 +97,10 @@ const RETAIN = {
   focus: 0.6,
   neighbours: 0.12,
   lakes: 0.5,
+  rivers: 0.5,
+  // Urban areas are painted as a faint wash showing where people are, never as
+  // a shape anyone reads the outline of, so they are cut to almost nothing.
+  urban: 0.08,
 };
 
 // Coordinate grid for the delta-encoded output. 1e5 is ~0.004 degrees, well
@@ -90,6 +111,8 @@ const NE_BASE = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/
 const SOURCES = {
   admin1: "ne_10m_admin_1_states_provinces.geojson",
   lakes: "ne_10m_lakes.geojson",
+  rivers: "ne_10m_rivers_lake_centerlines.geojson",
+  urban: "ne_10m_urban_areas.geojson",
 };
 const CACHE_DIR = path.join(__dirname, "..", ".cache", "naturalearth");
 const OUTPUTS = [
@@ -165,10 +188,13 @@ const countPoints = (object) => {
 // a collapsed island survives as a two-point sliver (presimplify pins arc
 // endpoints at Infinity, so no arc ever disappears on its own) and renders as a
 // hairline scratch in the sea.
-const thin = (topo, retain) => {
+const thin = (topo, retain, { rings = true } = {}) => {
   const weighted = presimplify(topo);
   const minWeight = quantile(weighted, retain);
-  return simplify(filter(weighted, filterAttachedWeight(weighted, minWeight)), minWeight);
+  // The ring filter only means anything for polygons; a river is a line and has
+  // no area to fall below a threshold.
+  const pruned = rings ? filter(weighted, filterAttachedWeight(weighted, minWeight)) : weighted;
+  return simplify(pruned, minWeight);
 };
 
 const worldAtlasCountries = (file) => {
@@ -179,6 +205,8 @@ const worldAtlasCountries = (file) => {
 const build = async () => {
   const admin1 = await readSource("admin1");
   const lakesSource = await readSource("lakes");
+  const riversSource = await readSource("rivers");
+  const urbanSource = await readSource("urban");
   const detailed = worldAtlasCountries("countries-10m.json");
   const coarse = worldAtlasCountries("countries-110m.json");
 
@@ -258,11 +286,19 @@ const build = async () => {
   const neighbourIds = new Set(neighbours.map((f) => f.id));
   const backdrop = coarse.filter((f) => !FOCUS_IDS.has(f.id) && !neighbourIds.has(f.id));
 
-  const lakes = lakesSource.features.filter((f) => {
-    if ((f.properties.scalerank ?? 99) > LAKE_MAX_SCALERANK) return false;
+  const overlapsRegion = (f) => {
     const [x0, y0, x1, y1] = boundsOf(f.geometry);
     return x0 <= region[2] && x1 >= region[0] && y0 <= region[3] && y1 >= region[1];
-  });
+  };
+  const lakes = lakesSource.features.filter(
+    (f) => (f.properties.scalerank ?? 99) <= LAKE_MAX_SCALERANK && overlapsRegion(f)
+  );
+  const rivers = riversSource.features.filter(
+    (f) => (f.properties.scalerank ?? 99) <= RIVER_MAX_SCALERANK && overlapsRegion(f)
+  );
+  const urban = urbanSource.features.filter(
+    (f) => (f.properties.area_sqkm || 0) >= URBAN_MIN_AREA_SQKM && overlapsRegion(f)
+  );
 
   // --- one topology, so every shared border is one arc ----------------------
   // Built unquantized on purpose: topojson-simplify measures triangle areas in
@@ -277,6 +313,16 @@ const build = async () => {
   const thinnedLakes = feature(
     thin(topology({ lakes: { type: "FeatureCollection", features: lakes } }), RETAIN.lakes),
     "lakes"
+  ).features;
+  const thinnedRivers = feature(
+    thin(topology({ rivers: { type: "FeatureCollection", features: rivers } }), RETAIN.rivers, {
+      rings: false,
+    }),
+    "rivers"
+  ).features;
+  const thinnedUrban = feature(
+    thin(topology({ urban: { type: "FeatureCollection", features: urban } }), RETAIN.urban),
+    "urban"
   ).features;
 
   const bare = (f) => ({ type: "Feature", id: f.id, properties: {}, geometry: f.geometry });
@@ -295,6 +341,8 @@ const build = async () => {
         })),
       },
       lakes: { type: "FeatureCollection", features: thinnedLakes.map(bare) },
+      rivers: { type: "FeatureCollection", features: thinnedRivers.map(bare) },
+      urbanAreas: { type: "FeatureCollection", features: thinnedUrban.map(bare) },
     }),
     QUANTIZATION
   );
@@ -312,6 +360,8 @@ const build = async () => {
         `${neighbours.length} neighbours at 10m, ${backdrop.length} at 110m`,
       `provinces : ${provinces.length}`,
       `lakes     : ${lakes.length}`,
+      `rivers    : ${rivers.length}`,
+      `urban     : ${urban.length}`,
       `points    : ${countPoints(simplified)}`,
       `written   : ${(output.length / 1024).toFixed(0)} KB to`,
       ...OUTPUTS.map((o) => `            ${path.relative(path.join(__dirname, "..", ".."), o)}`),
