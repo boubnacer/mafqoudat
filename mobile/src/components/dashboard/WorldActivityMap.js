@@ -30,10 +30,11 @@
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { geoMercator, geoPath, geoBounds } from 'd3-geo';
 import { feature as topojsonFeature, mesh as topojsonMesh } from 'topojson-client';
 import worldMapTopoJson from '../../data/worldMap.topo.json';
+import { CITY_LABEL_FONT_SIZE, layoutCityLabels } from '../../utils/cityLabelLayout';
 
 // Same 25-country roster as the web version - ISO2 (matches Country.code) to
 // the numeric id Natural Earth (and so the generated topology) uses for
@@ -63,7 +64,6 @@ const hexToRgba = (hex, alpha) => {
   return `rgba(${r},${g},${b},${alpha})`;
 };
 
-const CITY_LABEL_FONT_SIZE = 10;
 // 8-direction offset duplicates instead of a single textShadow: RN's
 // textShadow* props render as one soft-blurred shadow (and historically had
 // inconsistent Android support), which can't reproduce a crisp stroke-style
@@ -130,9 +130,16 @@ const CityLabel = ({ x, y, text, ink, panel, scale }) => {
         transform: [{ translateX: x * scale }, { translateY: y * scale }],
       }}
     >
+      {/* Centred on the layout's chosen point in both axes (web's <text> uses
+          textAnchor="middle" + dominantBaseline="central" for the same reason):
+          the placement returned by cityLabelLayout.js is the centre of the
+          label's box, not a baseline or a corner. */}
       <View
         onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-        style={{ transform: [{ translateX: -width / 2 }], opacity: width ? 1 : 0 }}
+        style={{
+          transform: [{ translateX: -width / 2 }, { translateY: -fontSize * 0.6 }],
+          opacity: width ? 1 : 0,
+        }}
       >
         {CITY_LABEL_HALO_OFFSETS.map(([dx, dy], i) => (
           <Text
@@ -311,6 +318,25 @@ const WorldActivityMap = ({
         .filter(Boolean)
     : [];
 
+  // The dots stay exactly on their coordinates; only the names move. See
+  // utils/cityLabelLayout.js (mirrored from web) - labels walk outwards from
+  // their dot until they find room, take a leader line back once they have left
+  // its side, and are dropped rather than stacked when the map is too crowded.
+  // Mobile has no "+N today" badges, so there are no obstacles to route around
+  // beyond the dots and the other labels.
+  const cityLabels = layoutCityLabels({
+    points: cityPoints.map(({ city, x, y }) => ({
+      x,
+      y,
+      name: city.name,
+      weight: city.count || 0,
+    })),
+    width: MAP_WIDTH,
+    height: MAP_HEIGHT,
+    dotRadius: CITY_DOT_RADIUS,
+    fontSize: CITY_LABEL_FONT_SIZE,
+  });
+
   // Always the same outer node (loading placeholder and loaded content are
   // both children of it) so `onLayout` reliably fires on first mount and
   // `boxSize` gets measured - previously the loading state returned a whole
@@ -378,6 +404,36 @@ const WorldActivityMap = ({
                 strokeLinejoin="round"
               />
             )}
+            {/* Leader lines before the dots, so a dot covers its own end of
+                the line instead of the line crossing it. Only labels that had
+                to leave their dot's side get one. */}
+            {cityLabels.map((placement, index) =>
+              placement.leader ? (
+                <React.Fragment key={`leader-${index}`}>
+                  {/* Panel-colored halo under the line, the same trick the city
+                      names use: a single thin ink line disappears against a
+                      saturated country fill exactly where it matters most. */}
+                  <Line
+                    x1={cityPoints[index].x}
+                    y1={cityPoints[index].y}
+                    x2={placement.leader.x}
+                    y2={placement.leader.y}
+                    stroke={panel}
+                    strokeWidth={2.4}
+                    strokeLinecap="round"
+                  />
+                  <Line
+                    x1={cityPoints[index].x}
+                    y1={cityPoints[index].y}
+                    x2={placement.leader.x}
+                    y2={placement.leader.y}
+                    stroke={hexToRgba(ink, isDark ? 0.75 : 0.6)}
+                    strokeWidth={0.9}
+                    strokeLinecap="round"
+                  />
+                </React.Fragment>
+              ) : null
+            )}
             {cityPoints.map(({ city, x, y, r }, index) => (
               <Circle key={`${city.name}-${index}`} cx={x} cy={y} r={r} fill={panel} stroke={brand} strokeWidth={2} />
             ))}
@@ -389,17 +445,19 @@ const WorldActivityMap = ({
               markers above; not mirrored for RTL, matching the map itself
               (see file header). */}
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            {cityPoints.map(({ city, x, y, r }, index) => (
-              <CityLabel
-                key={`${city.name}-${index}`}
-                x={x}
-                y={y + r + 4}
-                text={city.name}
-                ink={ink}
-                panel={panel}
-                scale={scale}
-              />
-            ))}
+            {cityLabels.map((placement, index) =>
+              placement.hidden ? null : (
+                <CityLabel
+                  key={`${cityPoints[index].city.name}-${index}`}
+                  x={placement.labelX}
+                  y={placement.labelY}
+                  text={cityPoints[index].city.name}
+                  ink={ink}
+                  panel={panel}
+                  scale={scale}
+                />
+              )
+            )}
           </View>
         </>
       )}
