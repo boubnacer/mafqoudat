@@ -116,6 +116,69 @@ carries the house feel (0.7s, `power3.out`). Reference material for writing GSAP
   it always finished playing before anyone scrolled to it. The cards "show all" adds after
   the reveal has run get a matching local entrance inside `Categories.jsx`.
 
+## World activity map (web + mobile)
+
+The dashboard header and the welcome hero render the same map — a chrome-less,
+full-bleed backdrop zoomed to the visitor's country, countries tinted by
+`worldActivity`, city dots from `cityActivity`. Web:
+[WorldActivityMap.jsx](client/src/components/dashboard/WorldActivityMap.jsx)
+(`react-simple-maps` + `d3-geo`), mobile:
+[WorldActivityMap.js](mobile/src/components/dashboard/WorldActivityMap.js)
+(`react-native-svg` + `d3-geo`, projecting by hand).
+
+- **The geometry is generated, not a package file.**
+  [buildMapData.js](client/scripts/buildMapData.js) (`npm run build-map-data`
+  in `client/`) writes `client/src/data/worldMap.topo.json` and copies it to
+  `mobile/src/data/`. It replaced a direct `world-atlas/countries-50m.json`
+  import on both platforms. The output is committed; an install or a deploy
+  never needs the network, and neither does the app at runtime.
+- **Resolution is budgeted, because the map is always zoomed to one country.**
+  A world file spends its whole size on countries nobody is looking at while
+  leaving the one filling the canvas coarse — countries-50m gave the whole of
+  Morocco 369 points. So: the 25 supported countries and their neighbours come
+  from Natural Earth 10m, the rest of the world from 110m (off-canvas at every
+  zoom this map uses), and each layer is simplified with its own tolerance —
+  one global tolerance spends the budget on the backdrop. Net result is
+  **466 KB (146 KB gzipped) against countries-50m's 756 KB (230 KB)**, with the
+  focus countries carrying ~2.5x its detail. `countries-10m.json` wholesale
+  would have been 3.6 MB / 921 KB for the same thing.
+- **Three layers.** `countries` (unchanged contract: `feature.id` is still the
+  numeric Natural Earth id the components' `ISO2_TO_NUMERIC` maps to),
+  `subdivisions` — the provinces / wilayas / governorates of the 25 — and
+  `lakes`. Both front ends draw the subdivisions as a **mesh filtered to
+  internal borders** (`mesh(topo, subdivisions, (a, b) => a !== b)`), never as
+  per-province shapes: the country underneath stays the interactive unit, and
+  a mesh is one node with no fill to double up on the fills below it.
+- **Focus countries are built as the union of their own provinces**
+  (`topojson-client`'s `merge`), and the simplification happens *before* the
+  merge. That is what lets the mesh work: the country outline is literally made
+  of the same arcs as the province boundaries, so the internal-border filter
+  drops the coast exactly, with no fringe of one line beside another.
+- **The map is decorative, so lakes are filled in the container's sea tone**
+  (`surfaceBase`, what `Dash.js`/`WelcomePage.jsx` paint behind the map) rather
+  than a blue of their own — inland water reads as water, not as a hole in the
+  country.
+- **The two "Unrecognized" provinces are kept.** Natural Earth flags
+  Laâyoune-Boujdour-Sakia El Hamra and Oued el Dahab `FCLASS_ISO:
+  "Unrecognized"`; they are the only such features in this set. They stay in,
+  because Natural Earth's admin-0 layer (which world-atlas is a build of, and
+  so what this map drew before) already includes them in Morocco and leaves the
+  remaining Western Sahara as its own shape — still drawn, from the neighbours
+  layer. Filtering them would redraw a disputed border, which is a decision to
+  take deliberately, not a side effect of a resolution change. Every other
+  supported country's outline matches the previous file to within 2% of area;
+  Bahrain differs by 17% because Natural Earth's admin-1 archipelago is a
+  different (and closer to correct) geometry than its admin-0 one.
+- **Not tiles.** MapLibre/OSM/MapTiler would bring streets and labels, and with
+  them a runtime network dependency, an API key or a usage policy, a mandatory
+  attribution this design has no chrome for, per-theme restyling, and a native
+  module that breaks Expo Go. This map is an activity backdrop, not something
+  anyone navigates.
+- **The two Natural Earth sources** (`ne_10m_admin_1_states_provinces`,
+  `ne_10m_lakes`, ~46 MB together) are downloaded on first run into
+  `client/.cache/naturalearth/`, which is gitignored. Public domain, no key,
+  no attribution requirement.
+
 ## Match notifications (web + mobile)
 
 Lost↔found matching engine + in-app notifications. The engine and API are shared —
