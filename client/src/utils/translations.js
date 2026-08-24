@@ -28,10 +28,6 @@ export const translations = {
     haveYouLostOrFoundSomething: "Have you lost or found something?",
     whatsappOptionalMessage: "This is optional - you can provide your WhatsApp number if you prefer to be contacted via WhatsApp.",
     viewDetails: "View Details",
-    // Posts-list card: the control that steps the card through its three
-    // densities (features/posts/PostsList/AutoLayoutCard.jsx).
-    expandPreview: "Expand preview",
-    collapsePreview: "Collapse preview",
     report: "Report",
     view: "View",
     views: "views",
@@ -1749,8 +1745,6 @@ export const translations = {
     haveYouLostOrFoundSomething: "Avez-vous perdu ou trouvé quelque chose ?",
     whatsappOptionalMessage: "Ceci est optionnel - vous pouvez fournir votre numéro WhatsApp si vous préférez être contacté via WhatsApp.",
     viewDetails: "Voir les détails",
-    expandPreview: "Agrandir l'aperçu",
-    collapsePreview: "Réduire l'aperçu",
     report: "Signaler",
     view: "Voir",
     views: "vues",
@@ -3445,8 +3439,6 @@ export const translations = {
     haveYouLostOrFoundSomething: "هل فقدت شيئاً أم وجدته ؟",
     whatsappOptionalMessage: "هذا اختياري - يمكنك تقديم رقم الواتساب الخاص بك إذا كنت تفضل التواصل عبر الواتساب.",
     viewDetails: "عرض التفاصيل",
-    expandPreview: "توسيع المعاينة",
-    collapsePreview: "تصغير المعاينة",
     report: "إبلاغ",
     view: "عرض",
     views: "مشاهدة",
