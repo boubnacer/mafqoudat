@@ -60,6 +60,20 @@ export const elevationTokens = {
   },
 };
 
+// Neumorphic ("soft UI") inset shadow, web-only — used solely by the
+// dashboard Statistics section (LeftSide.jsx's FoundLostStrip + TotalBox
+// cards). Two inset shadows read as one dip: a dark one cast into the
+// bottom-right inner wall by a light source fixed at the top-left, and a
+// light one uncovering the opposite inner wall — the CSS analog of mobile's
+// three-layer NeumorphicSurface stack (theme/neumorphism.js, Phase 12),
+// which needs the extra layers only because React Native has no multi-shadow
+// style. Own token set rather than shared with mobile since the two
+// platforms' shadow primitives don't line up.
+export const neumorphicInsetTokens = {
+  light: 'inset 4px 4px 10px rgba(163, 170, 191, 0.35), inset -4px -4px 10px rgba(255, 255, 255, 0.9)',
+  dark: 'inset 4px 4px 10px rgba(0, 0, 0, 0.55), inset -4px -4px 10px rgba(255, 255, 255, 0.04)',
+};
+
 export const resolveDesignTokens = (mode) => {
   const m = mode === 'dark' ? 'dark' : 'light';
   return {
@@ -76,6 +90,7 @@ export const resolveDesignTokens = (mode) => {
     },
     radius: radiusTokens,
     elevation: elevationTokens[m],
+    neumorphicInset: neumorphicInsetTokens[m],
     font: fontFamilies,
   };
 };

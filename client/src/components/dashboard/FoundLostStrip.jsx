@@ -154,7 +154,9 @@ const FoundLostStrip = ({
         gridColumn: "1 / -1",
         borderRadius: `${theme.custom.radius.lg}px`,
         backgroundColor: theme.custom.color.surfaceRaised,
-        boxShadow: 'none',
+        // Neumorphic inset — the strip reads as pressed into the panel
+        // behind it rather than sitting on top of it.
+        boxShadow: theme.custom.neumorphicInset,
         overflow: "hidden",
       }}
     >
