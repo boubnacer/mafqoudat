@@ -15,6 +15,7 @@ import {
   useMediaQuery,
   Paper,
   alpha,
+  lighten,
 } from "@mui/material";
 import {
   LocationOn as LocationIcon,
@@ -30,6 +31,7 @@ import {
   SearchOffOutlined,
   Facebook as FacebookIcon,
   Instagram as InstagramIcon,
+  NorthEast as NorthEastIcon,
 } from "@mui/icons-material";
 import FlexBetween from "../../../components/FlexBetween";
 import { useTranslation } from "../../../utils/translations";
@@ -60,6 +62,20 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 // behind this card (PostsList.js's root Box) uses postsListBackdrop rather than
 // plain surfaceBase specifically so this plain-white card stands out from it.
 
+// index.css ships two global RTL rules - `body[dir="rtl"] * { text-align:
+// inherit }` and `body[dir="rtl"] .MuiTypography-root { direction: rtl }` -
+// and both outrank a single Emotion class. This card centres its own copy and
+// keeps Latin text in Latin order, so it has to say so at a specificity those
+// rules cannot override. Scoped to this card on purpose: the globals are older
+// than the card and fixing them belongs to a pass of its own.
+const centeredText = (direction) => ({
+  '&&&': { textAlign: 'center', ...(direction ? { direction } : {}) },
+});
+
+// Found / Lost, as the first thing the card says. Same solid-fill status tag
+// language as before, but sitting in the card's header row rather than floating
+// over the photo: the media frame is inset now, and the card leads with what
+// kind of listing this is.
 const StatusTag = ({ isFound, label }) => {
   const theme = useTheme();
   const tone = isFound ? theme.custom.status.found : theme.custom.status.lost;
@@ -67,23 +83,24 @@ const StatusTag = ({ isFound, label }) => {
   return (
     <Box
       sx={{
-        position: "absolute",
-        top: 12,
-        insetInlineStart: 12,
-        zIndex: 11,
         display: "inline-flex",
         alignItems: "center",
         gap: 0.5,
-        px: 1,
-        py: 0.375,
+        px: 1.25,
+        py: 0.625,
         borderRadius: `${theme.custom.radius.sm}px`,
         backgroundColor: tone.main,
       }}
     >
-      <Icon sx={{ fontSize: 14, color: theme.palette.getContrastText(tone.main) }} />
+      <Icon sx={{ fontSize: 16, color: theme.palette.getContrastText(tone.main) }} />
       <Typography
         variant="caption"
-        sx={{ fontWeight: 700, letterSpacing: 0.3, color: theme.palette.getContrastText(tone.main), lineHeight: 1 }}
+        sx={{
+          fontWeight: 700,
+          letterSpacing: 0.3,
+          color: theme.palette.getContrastText(tone.main),
+          lineHeight: 1,
+        }}
       >
         {label}
       </Typography>
@@ -91,25 +108,37 @@ const StatusTag = ({ isFound, label }) => {
   );
 };
 
-const DateBadge = ({ children }) => {
+// The card's open action: a filled brand circle in the header row's trailing
+// corner. The card itself still opens the listing on click - this is the
+// affordance that says so, and the one thing on the card allowed to be loud.
+// The arrow points away from the reader, so it mirrors with the document.
+const OpenAction = ({ onClick, label }) => {
   const theme = useTheme();
+  const { currentLanguage } = useTranslation();
   return (
-    <Box
-      sx={{
-        position: "absolute",
-        top: 12,
-        insetInlineEnd: 12,
-        zIndex: 11,
-        px: 1,
-        py: 0.375,
-        borderRadius: `${theme.custom.radius.sm}px`,
-        backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.85),
-      }}
-    >
-      <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 600, lineHeight: 1 }}>
-        {children}
-      </Typography>
-    </Box>
+    <Tooltip title={label}>
+      <IconButton
+        onClick={onClick}
+        aria-label={label}
+        sx={{
+          width: 44,
+          height: 44,
+          backgroundColor: theme.custom.color.brandPrimary,
+          color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+          "&:hover": {
+            backgroundColor: theme.custom.color.brandPrimary,
+            filter: "brightness(0.94)",
+          },
+        }}
+      >
+        <NorthEastIcon
+          sx={{
+            fontSize: 20,
+            transform: currentLanguage === "ar" ? "scaleX(-1)" : "none",
+          }}
+        />
+      </IconButton>
+    </Tooltip>
   );
 };
 
@@ -835,13 +864,12 @@ const Post = ({ post, viewMode = "grid" }) => {
     );
   }
 
-  // Grid view layout - the Phase 3 post card DNA (surfaceRaised, radius.lg,
-  // elevation.e1 -> e2 hover-lift, solid-fill StatusTag + translucent
-  // DateBadge), now reflowing through the three auto-layout steps defined in
-  // AutoLayoutCard.jsx. Step 1 is the card exactly as it shipped; step 2 gives
-  // it two grid columns and turns the meta block into a row; step 3 gives it
-  // the whole row, puts the media beside the content, and is the only step
-  // that spends space on the description and the per-platform reach.
+  // Grid view layout - a single centered stack: status badge and open action,
+  // the city as a display-type title, the photo inset inside the card, then the
+  // copy. It reflows through the three auto-layout steps in AutoLayoutCard.jsx,
+  // which give the same stack more room and more to say (step 3 adds the
+  // description in full, the per-platform reach and an explicit View Details);
+  // the stack never reorders, so nothing about the card moves under the reader.
   const tone = foundLostStatus.isFound ? theme.custom.status.found : theme.custom.status.lost;
 
   return (
@@ -850,191 +878,253 @@ const Post = ({ post, viewMode = "grid" }) => {
       onClick={handleViewDetails}
       sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
     >
+      {/* Header row: what kind of listing this is, and how to open it. */}
       <MotionBox
         layout={animateLayout}
         transition={layoutTransition}
         sx={{
-          position: 'relative',
-          overflow: 'hidden',
-          flexShrink: 0,
-          width: stepStyle.mediaBasis,
-          height: stepStyle.mediaHeight,
-          backgroundColor: post?.image ? 'transparent' : alpha(tone.main, 0.06),
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 1,
+          px: 2.5,
+          pt: 2.5,
         }}
       >
-        {post?.image && imageUrl ? (
-          <LazyCardMedia
-            component="img"
-            sx={{ height: '100%', width: '100%', objectFit: 'cover', objectPosition: 'center' }}
-            image={imageUrl}
-            alt={categoryName || 'Item Image'}
-            fallback={noImageSvg}
-            onError={handleImageError}
-          />
-        ) : categoryIconsData.length > 0 ? (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1,
-              padding: 2,
-              width: '100%',
-              height: '100%',
-            }}
-          >
-            {categoryIconsData.length === 1 ? (() => {
-              const IconComponent = categoryIconsData[0].IconComponent;
-              return (
-                <IconComponent
-                  sx={{
-                    fontSize: { xs: '80px', sm: '100px' },
-                    color: categoryIconsData[0].style?.main || theme.palette.text.secondary,
-                    opacity: 0.85,
-                  }}
-                />
-              );
-            })() : (
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: { xs: 2.5, sm: 3 },
-                  flexWrap: 'wrap',
-                  paddingTop: { xs: 1.5, sm: 2 },
-                }}
-              >
-                {categoryIconsData.slice(0, 4).map((iconData, idx) => {
-                  const IconComponent = iconData.IconComponent;
-                  return (
-                    <IconComponent
-                      key={iconData.code || idx}
-                      sx={{
-                        fontSize: { xs: '48px', sm: '56px' },
-                        color: iconData.style?.main || theme.palette.text.secondary,
-                        opacity: 0.85,
-                      }}
-                    />
-                  );
-                })}
-              </Box>
-            )}
-          </Box>
-        ) : null}
-
         <StatusTag isFound={foundLostStatus.isFound} label={foundLostStatus.statusText} />
-        <DateBadge>{created}</DateBadge>
-        {post?.returned && <ResolvedBadge label={t('returned')} />}
-        <StepToggle step={step} onClick={nextStep} />
-
-        {post?.image && imageUrl && (
-          <Box
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
-              pointerEvents: 'none',
-            }}
-          />
-        )}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <StepToggle step={step} onClick={nextStep} />
+          <OpenAction onClick={handleViewDetails} label={t('viewDetails')} />
+        </Box>
       </MotionBox>
 
+      {/* The city, as the card's headline. It is the field every listing has
+          and the one a searcher scans for; the category rides below as a chip. */}
+      <MotionBox
+        layout={animateLayout}
+        transition={layoutTransition}
+        sx={{ px: 2.5, pt: 2, pb: 1 }}
+      >
+        <Typography
+          component="h3"
+          sx={{
+            fontFamily: theme.custom.font.display,
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            ...centeredText(),
+            fontSize: stepStyle.titleSize,
+            lineHeight: 1.1,
+            letterSpacing: currentLanguage === 'ar' ? 0 : '-0.02em',
+            // The one gradient in the app, and it is built from the brand
+            // token rather than a picked pair of hex values, so it follows
+            // brandPrimary into dark mode with it.
+            backgroundImage: `linear-gradient(135deg, ${theme.custom.color.brandPrimary} 0%, ${lighten(theme.custom.color.brandPrimary, 0.45)} 100%)`,
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            overflowWrap: 'anywhere',
+          }}
+        >
+          {cityName}
+        </Typography>
+      </MotionBox>
+
+      {/* Media, inset inside the card rather than bleeding to its edges. */}
+      <MotionBox
+        layout={animateLayout}
+        transition={layoutTransition}
+        sx={{ px: 2.5 }}
+      >
+        <Box
+          sx={{
+            position: 'relative',
+            width: '100%',
+            height: stepStyle.mediaHeight,
+            borderRadius: `${theme.custom.radius.lg}px`,
+            overflow: 'hidden',
+            backgroundColor: post?.image ? 'transparent' : alpha(tone.main, 0.06),
+          }}
+        >
+          {post?.image && imageUrl ? (
+            <LazyCardMedia
+              component="img"
+              sx={{ height: '100%', width: '100%', objectFit: 'cover', objectPosition: 'center' }}
+              image={imageUrl}
+              alt={categoryName || 'Item Image'}
+              fallback={noImageSvg}
+              onError={handleImageError}
+            />
+          ) : categoryIconsData.length > 0 ? (
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                padding: 2,
+                width: '100%',
+                height: '100%',
+              }}
+            >
+              {categoryIconsData.length === 1 ? (() => {
+                const IconComponent = categoryIconsData[0].IconComponent;
+                return (
+                  <IconComponent
+                    sx={{
+                      fontSize: { xs: '72px', sm: '88px' },
+                      color: categoryIconsData[0].style?.main || theme.palette.text.secondary,
+                      opacity: 0.85,
+                    }}
+                  />
+                );
+              })() : (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: { xs: 2.5, sm: 3 },
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  {categoryIconsData.slice(0, 4).map((iconData, idx) => {
+                    const IconComponent = iconData.IconComponent;
+                    return (
+                      <IconComponent
+                        key={iconData.code || idx}
+                        sx={{
+                          fontSize: { xs: '44px', sm: '52px' },
+                          color: iconData.style?.main || theme.palette.text.secondary,
+                          opacity: 0.85,
+                        }}
+                      />
+                    );
+                  })}
+                </Box>
+              )}
+            </Box>
+          ) : null}
+
+          {post?.returned && <ResolvedBadge label={t('returned')} />}
+        </Box>
+      </MotionBox>
+
+      {/* Copy: the listing's own words when it has any, its exact location
+          when it does not, then the facts that place it in time. */}
       <MotionBox
         layout={animateLayout}
         transition={layoutTransition}
         sx={{
-          flexGrow: 1,
-          minWidth: 0,
           display: 'flex',
           flexDirection: 'column',
-          gap: 1,
-          p: 2.5,
+          alignItems: 'center',
+          gap: 1.25,
+          px: 2.5,
+          pt: 2.5,
+          pb: 2.5,
+          flexGrow: 1,
         }}
       >
-        {/* Categories and the two facts (main date, city) sit stacked in the
-            compact step and side by side once the card has the width for it. */}
-        <MotionBox
-          layout={animateLayout}
-          transition={layoutTransition}
-          sx={{
-            display: 'flex',
-            flexDirection: stepStyle.metaDirection,
-            alignItems: stepStyle.metaAlign,
-            justifyContent: stepStyle.metaJustify,
-            width: stepStyle.metaWidth,
-            gap: 1,
-          }}
-        >
-          {/* Category Badges - Multiple categories support */}
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center', minWidth: 0 }}>
-            {categories.map((cat, index) => {
-              const catStyle = categoryStyles[index];
-              const catName = categoryNames[index];
-              return (
-                <Box
-                  key={cat.code || index}
-                  sx={{
-                    backgroundColor: catStyle.background,
-                    padding: '4px 8px',
-                    borderRadius: `${theme.custom.radius.sm}px`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5,
-                    border: `1px solid ${catStyle.main}`,
-                  }}
-                >
-                  <RenderIcon
-                    name={`${cat.code?.toLowerCase() || 'other'}cate`}
-                    sx={{ fontSize: '12px', color: catStyle.text }}
-                  />
-                  <Typography sx={{ color: catStyle.text, fontSize: '11px', fontWeight: 700 }}>
-                    {catName}
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Box>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
-            {/* Main Date with Event Icon */}
-            {post?.mainDate && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
-                <EventIcon sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />
-                <Typography variant="body2" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
-                  {post.mainDate}
-                </Typography>
-              </Box>
-            )}
-
-            {/* City with Location Icon */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
-              <LocationIcon sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />
-              <Typography variant="body2" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
-                {cityName}
-              </Typography>
-            </Box>
-          </Box>
-        </MotionBox>
-
-        {/* Exact Location - one line while the card is compact, wrapped once
-            it has the room, because that is the line that says where. */}
-        {post?.exactLocation && (
+        {post?.description ? (
           <Typography
-            variant="caption"
-            color="text.secondary"
+            variant="body2"
             sx={{
+              color: alpha(theme.custom.color.ink, 0.72),
+              display: '-webkit-box',
+              WebkitLineClamp: stepStyle.descriptionLines,
+              WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: stepStyle.showDetails ? 'normal' : 'nowrap',
-              direction: isArabicText(post.exactLocation) ? 'rtl' : 'ltr',
-              textAlign: isArabicText(post.exactLocation) ? 'right' : 'left',
+              ...centeredText(isArabicText(post.description) ? 'rtl' : 'ltr'),
+            }}
+          >
+            {post.description}
+          </Typography>
+        ) : post?.exactLocation ? (
+          <Typography
+            variant="body2"
+            sx={{
+              color: alpha(theme.custom.color.ink, 0.72),
+              display: '-webkit-box',
+              WebkitLineClamp: stepStyle.descriptionLines,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              ...centeredText(isArabicText(post.exactLocation) ? 'rtl' : 'ltr'),
             }}
           >
             {post.exactLocation}
           </Typography>
-        )}
+        ) : null}
+
+        {/* Category Badges - Multiple categories support */}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, justifyContent: 'center' }}>
+          {categories.map((cat, index) => {
+            const catStyle = categoryStyles[index];
+            const catName = categoryNames[index];
+            return (
+              <Box
+                key={cat.code || index}
+                sx={{
+                  // config/categories.js only carries a light-mode
+                  // backgroundColor, which renders as a white pill on a dark
+                  // card. A translucent wash of the category's own color works
+                  // in both modes and keeps the per-category accent.
+                  backgroundColor: alpha(catStyle.main, isDarkMode ? 0.2 : 0.12),
+                  padding: '4px 8px',
+                  borderRadius: `${theme.custom.radius.sm}px`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  border: `1px solid ${alpha(catStyle.main, 0.6)}`,
+                }}
+              >
+                <RenderIcon
+                  name={`${cat.code?.toLowerCase() || 'other'}cate`}
+                  sx={{ fontSize: '12px', color: isDarkMode ? catStyle.main : catStyle.text }}
+                />
+                <Typography
+                  sx={{
+                    color: isDarkMode ? catStyle.main : catStyle.text,
+                    fontSize: '11px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {catName}
+                </Typography>
+              </Box>
+            );
+          })}
+        </Box>
+
+        {/* When the item was lost or found, and when the listing went up. */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 1.5,
+          }}
+        >
+          {post?.mainDate && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <EventIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
+              <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
+                {post.mainDate}
+              </Typography>
+            </Box>
+          )}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <TimeIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {created}
+            </Typography>
+          </Box>
+        </Box>
 
         {/* Widest step only: what the compact card had no room to say. */}
         <AnimatePresence initial={false}>
@@ -1046,23 +1136,30 @@ const Post = ({ post, viewMode = "grid" }) => {
               initial={animateLayout ? { opacity: 0, y: 12 } : false}
               animate={{ opacity: 1, y: 0 }}
               exit={animateLayout ? { opacity: 0, y: 12 } : undefined}
-              sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, minWidth: 0 }}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 1.25,
+                width: '100%',
+                minWidth: 0,
+              }}
             >
-              {post?.description && (
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    direction: isArabicText(post.description) ? 'rtl' : 'ltr',
-                    textAlign: isArabicText(post.description) ? 'right' : 'left',
-                  }}
-                >
-                  {post.description}
-                </Typography>
+              {/* The description has already been shown above; what the widest
+                  step adds is where exactly, and how the listing is doing. */}
+              {post?.description && post?.exactLocation && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, maxWidth: '100%' }}>
+                  <LocationIcon sx={{ fontSize: 15, color: 'text.secondary', flexShrink: 0 }} />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                      ...centeredText(isArabicText(post.exactLocation) ? 'rtl' : 'ltr'),
+                    }}
+                  >
+                    {post.exactLocation}
+                  </Typography>
+                </Box>
               )}
 
               <ReachDetail post={post} />
@@ -1073,7 +1170,6 @@ const Post = ({ post, viewMode = "grid" }) => {
                 endIcon={<ArrowIcon sx={{ transform: isRTLMode() ? 'scaleX(-1)' : 'none' }} />}
                 onClick={handleViewDetails}
                 sx={{
-                  alignSelf: 'flex-start',
                   textTransform: 'none',
                   fontWeight: 700,
                   borderRadius: `${theme.custom.radius.md}px`,
@@ -1092,7 +1188,7 @@ const Post = ({ post, viewMode = "grid" }) => {
           )}
         </AnimatePresence>
 
-        <ReachRow post={post} sx={{ mt: 'auto' }} />
+        <ReachRow post={post} sx={{ mt: 'auto', justifyContent: 'center' }} />
       </MotionBox>
     </AutoLayoutCardShell>
   );
