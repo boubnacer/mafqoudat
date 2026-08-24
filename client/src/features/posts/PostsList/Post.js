@@ -868,7 +868,7 @@ const Post = ({ post, viewMode = "grid" }) => {
   // the city as a display-type title, the photo inset inside the card, then the
   // copy. It reflows through the three auto-layout steps in AutoLayoutCard.jsx,
   // which give the same stack more room and more to say (step 3 adds the
-  // description in full, the per-platform reach and an explicit View Details);
+  // per-platform reach and an explicit View Details);
   // the stack never reorders, so nothing about the card moves under the reader.
   const tone = foundLostStatus.isFound ? theme.custom.status.found : theme.custom.status.lost;
 
@@ -1030,27 +1030,16 @@ const Post = ({ post, viewMode = "grid" }) => {
           flexGrow: 1,
         }}
       >
-        {post?.description ? (
+        {/* Where it was lost or found, in the words whoever posted it used.
+            The city is already the headline, so the line under the photo is
+            the one that narrows it down to a street or a landmark. */}
+        {post?.exactLocation && (
           <Typography
             variant="body2"
             sx={{
               color: alpha(theme.custom.color.ink, 0.72),
               display: '-webkit-box',
-              WebkitLineClamp: stepStyle.descriptionLines,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              ...centeredText(isArabicText(post.description) ? 'rtl' : 'ltr'),
-            }}
-          >
-            {post.description}
-          </Typography>
-        ) : post?.exactLocation ? (
-          <Typography
-            variant="body2"
-            sx={{
-              color: alpha(theme.custom.color.ink, 0.72),
-              display: '-webkit-box',
-              WebkitLineClamp: stepStyle.descriptionLines,
+              WebkitLineClamp: stepStyle.copyLines,
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
               ...centeredText(isArabicText(post.exactLocation) ? 'rtl' : 'ltr'),
@@ -1058,7 +1047,7 @@ const Post = ({ post, viewMode = "grid" }) => {
           >
             {post.exactLocation}
           </Typography>
-        ) : null}
+        )}
 
         {/* Category Badges - Multiple categories support */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, justifyContent: 'center' }}>
@@ -1145,23 +1134,6 @@ const Post = ({ post, viewMode = "grid" }) => {
                 minWidth: 0,
               }}
             >
-              {/* The description has already been shown above; what the widest
-                  step adds is where exactly, and how the listing is doing. */}
-              {post?.description && post?.exactLocation && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, maxWidth: '100%' }}>
-                  <LocationIcon sx={{ fontSize: 15, color: 'text.secondary', flexShrink: 0 }} />
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: 'text.secondary',
-                      ...centeredText(isArabicText(post.exactLocation) ? 'rtl' : 'ltr'),
-                    }}
-                  >
-                    {post.exactLocation}
-                  </Typography>
-                </Box>
-              )}
-
               <ReachDetail post={post} />
 
               <Button

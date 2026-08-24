@@ -51,7 +51,7 @@ export const stepStyles = {
     mediaHeight: { xs: 200, sm: 190 },
     contentMaxWidth: "none",
     titleSize: { xs: "2rem", sm: "1.9rem" },
-    descriptionLines: 2,
+    copyLines: 2,
     showDetails: false,
   },
   2: {
@@ -59,7 +59,7 @@ export const stepStyles = {
     mediaHeight: { xs: 220, sm: 280 },
     contentMaxWidth: "none",
     titleSize: { xs: "2.2rem", sm: "2.6rem" },
-    descriptionLines: 3,
+    copyLines: 3,
     showDetails: false,
   },
   3: {
@@ -70,7 +70,7 @@ export const stepStyles = {
     // stays a column and centres.
     contentMaxWidth: 860,
     titleSize: { xs: "2.4rem", sm: "3.2rem" },
-    descriptionLines: 4,
+    copyLines: 4,
     showDetails: true,
   },
 };

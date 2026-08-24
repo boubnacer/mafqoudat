@@ -84,6 +84,11 @@ Reuse these, don't invent new card/panel treatment — now house style:
     and the one a searcher scans; it is the only gradient in the app, and that gradient is
     built from `brandPrimary` + `lighten()` rather than a picked pair of hex values, so it
     follows the token into dark mode.
+  - **The copy line is the exact location, not the description.** The city is already the
+    headline, so the line under the photo is the one that narrows it down to a street or a
+    landmark — a listing's free text is the least reliable part of it (same reasoning the
+    matching engine's signal weights carry), and on a card there is only room for one line.
+    The description does not appear on the card at any step.
   - **Clicking the card still opens the listing** (the reference component this was ported
     from cycled steps on the card's own click — on a classifieds list the click that reaches
     a post cannot become a layout toggle). The blue circular arrow is the affordance that
@@ -110,6 +115,33 @@ Reuse these, don't invent new card/panel treatment — now house style:
   because framer writes `transform` inline while animating layout and an inline transform beats
   a stylesheet one — as CSS the lift silently stopped working the moment the card became a
   motion element.
+
+- Phase 18 — the same card design on mobile's browse listing
+  ([PostsListScreen.js](mobile/src/screens/PostsListScreen.js)): done. Same stack as web —
+  status pill + circular open action on one header row, the city as a gradient headline, the
+  photo inset with `radius.lg` inside a `radius.xl` card, then the exact location, the
+  category pill and the date facts, all centred. Phases 8/9 still hold: the card is
+  borderless and shadowless and the pills/action circle inside it carry the depth. The
+  screen's skeleton was reshaped to match, so the load-in doesn't jump.
+  - **`MyPostsScreen.js` is deliberately not part of this**, exactly as on web, where
+    `MyPostsPage.jsx` kept its own pre-redesign card. That screen is an owner's management
+    view — lifecycle badge, edit/return/promote/delete actions — not a browse listing, and
+    forcing a centred one-column card on it would cost it the row it needs.
+  - **The gradient headline is masked text, not SVG text**
+    ([GradientHeading.js](mobile/src/components/GradientHeading.js)): a `LinearGradient`
+    clipped to real RN text by `@react-native-masked-view/masked-view` (new dependency,
+    bundled in Expo Go). Drawing it as `react-native-svg` text would have avoided the
+    dependency but given up platform text shaping — Arabic joining, `numberOfLines`,
+    the expo-font Cairo family. The native module is `require`d in a `try`/`catch` and the
+    heading falls back to solid `brandPrimary` when it is missing: a heading in the brand
+    color is a smaller loss than a screen that will not render. The two gradient stops are
+    derived from `brandPrimary` by a local `lighten()` mirroring MUI's, so mobile and web
+    read the same in both modes rather than carrying two hand-picked palettes.
+  - **The category pill washes the category's own color** for the same reason as web:
+    `config/categories.js`'s `backgroundColor` is light-mode-only and rendered as a
+    near-white pill on a dark card.
+  - No steps here. The auto-layout densities on web come from a card spanning more grid
+    columns; a phone list is one column, so there is nothing for a step to widen into.
 
 ## Motion (GSAP)
 
