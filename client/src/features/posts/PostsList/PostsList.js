@@ -8,6 +8,7 @@ import PostsListSkeleton from "./PostsListSkeleton";
 import SeoMeta from "../../../components/SeoMeta";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { LayoutGroup } from "framer-motion";
 import { store } from "../../../app/store";
 import { 
   Search, 
@@ -1236,13 +1237,20 @@ const PostsList = () => {
                   overflow: 'hidden'
                 }}
               >
-                {filteredPosts.map((post) => (
-                  <Post 
-                    key={post._id} 
-                    post={post} 
-                    viewMode={viewMode}
-                  />
-                ))}
+                {/* LayoutGroup so that when one grid card steps up a density
+                    (see AutoLayoutCard.jsx) the cards it pushes around animate
+                    to their new places instead of jumping there: framer-motion
+                    only re-measures a `layout` element when it renders, and a
+                    neighbour that did not re-render never would. */}
+                <LayoutGroup>
+                  {filteredPosts.map((post) => (
+                    <Post
+                      key={post._id}
+                      post={post}
+                      viewMode={viewMode}
+                    />
+                  ))}
+                </LayoutGroup>
               </Box>
             </Box>
 

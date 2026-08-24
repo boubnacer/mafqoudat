@@ -1,12 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { memo, useState, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import React from "react";
+import { AnimatePresence } from "framer-motion";
 import noImageSvg from "../../../img/noimage.svg";
 import {
   Button,
-  Card,
   CardActions,
-  CardContent,
   Typography,
   useTheme,
   Box,
@@ -16,7 +15,6 @@ import {
   useMediaQuery,
   Paper,
   alpha,
-  styled,
 } from "@mui/material";
 import {
   LocationOn as LocationIcon,
@@ -30,6 +28,8 @@ import {
   CheckCircle as CheckCircleIcon,
   TaskAltOutlined,
   SearchOffOutlined,
+  Facebook as FacebookIcon,
+  Instagram as InstagramIcon,
 } from "@mui/icons-material";
 import FlexBetween from "../../../components/FlexBetween";
 import { useTranslation } from "../../../utils/translations";
@@ -41,35 +41,24 @@ import RenderIcon from "../../../components/RenderIcon";
 import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
 import LazyCardMedia from "../../../components/LazyCardMedia";
 import ReachRow from "../../../components/ReachRow";
+import { summarizeSocialStats } from "../../../utils/socialStats";
+import {
+  AutoLayoutCardShell,
+  MotionBox,
+  StepToggle,
+  useAutoLayoutMotion,
+  useAutoLayoutStep,
+} from "./AutoLayoutCard";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
-// Post card DNA — canonical here, mirrored by TrendingItem.jsx:
-// surfaceRaised + radius.lg + elevation.e1->e2 hover-lift. The page behind
-// this card (PostsList.js's root Box) uses postsListBackdrop rather than
+// Post card DNA - canonical here, mirrored by TrendingItem.jsx: surfaceRaised,
+// radius.lg, elevation.e1 -> e2 hover-lift. The card shell and the media frame
+// that carry it now live in AutoLayoutCard.jsx, because the grid card reflows
+// through three densities and both of them have to be step-aware. The page
+// behind this card (PostsList.js's root Box) uses postsListBackdrop rather than
 // plain surfaceBase specifically so this plain-white card stands out from it.
-const PostCardRoot = styled(Card)(({ theme }) => ({
-  height: "100%",
-  display: "flex",
-  flexDirection: "column",
-  backgroundColor: theme.custom.color.surfaceRaised,
-  borderRadius: `${theme.custom.radius.lg}px`,
-  boxShadow: theme.custom.elevation.e1,
-  overflow: "hidden",
-  cursor: "pointer",
-  transition: "transform 0.2s ease, box-shadow 0.2s ease",
-  "&:hover": {
-    transform: "translateY(-4px)",
-    boxShadow: theme.custom.elevation.e2,
-  },
-}));
-
-const MediaFrame = styled(Box)(({ theme }) => ({
-  position: "relative",
-  width: "100%",
-  overflow: "hidden",
-}));
 
 const StatusTag = ({ isFound, label }) => {
   const theme = useTheme();
@@ -157,11 +146,71 @@ const ResolvedBadge = ({ label }) => {
   );
 };
 
+// The per-platform split of a listing's reach, for the widest step only.
+// ReachRow's two numbers (site views, total interactions) are what a compact
+// card can spare; once the card is a full row there is space to say which
+// platform those interactions happened on. Same rules as everywhere else here:
+// a counter that was never fetched is null and renders nothing, and social
+// views are never added to site views.
+const ReachDetail = ({ post }) => {
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const { facebook, instagram } = summarizeSocialStats(post);
+
+  // Meta's own brand colors, the same documented exception SocialReach.jsx
+  // makes: these rows point at somewhere that is not us.
+  const platforms = [
+    { key: 'facebook', icon: FacebookIcon, name: 'Facebook', tint: '#1877F2', stats: facebook },
+    { key: 'instagram', icon: InstagramIcon, name: 'Instagram', tint: '#E1306C', stats: instagram },
+  ].filter(({ stats }) => stats.interactions !== null || stats.views !== null);
+
+  if (platforms.length === 0) return null;
+
+  return (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+      {platforms.map(({ key, icon: Icon, name, tint, stats }) => (
+        <Box
+          key={key}
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.75,
+            px: 1,
+            py: 0.5,
+            borderRadius: `${theme.custom.radius.sm}px`,
+            backgroundColor: alpha(tint, 0.1),
+          }}
+        >
+          <Icon sx={{ fontSize: 15, color: tint }} />
+          <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
+            {name}
+          </Typography>
+          {stats.interactions !== null && (
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {t('socialInteractions', { count: stats.interactions })}
+            </Typography>
+          )}
+          {stats.views !== null && (
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {t('postViews', { count: stats.views })}
+            </Typography>
+          )}
+        </Box>
+      ))}
+    </Box>
+  );
+};
+
 const Post = ({ post, viewMode = "grid" }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:768px)");
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
+
+  // Auto-layout step for the grid card. Declared with the rest of the hooks
+  // because the list-view branch below returns early.
+  const { step, stepStyle, nextStep } = useAutoLayoutStep();
+  const { animateLayout, layoutTransition } = useAutoLayoutMotion();
 
 
   // Memoized computed values - ALL HOOKS MUST BE AT TOP LEVEL
@@ -786,15 +835,33 @@ const Post = ({ post, viewMode = "grid" }) => {
     );
   }
 
-  // Grid view layout — reuses the Phase 3 post card DNA (surfaceRaised,
-  // radius.lg, elevation.e1->e2 hover-lift, borderInlineStart status accent,
-  // solid-fill StatusTag + translucent DateBadge) rather than the ad hoc
-  // hardcoded-color card this page had before.
+  // Grid view layout - the Phase 3 post card DNA (surfaceRaised, radius.lg,
+  // elevation.e1 -> e2 hover-lift, solid-fill StatusTag + translucent
+  // DateBadge), now reflowing through the three auto-layout steps defined in
+  // AutoLayoutCard.jsx. Step 1 is the card exactly as it shipped; step 2 gives
+  // it two grid columns and turns the meta block into a row; step 3 gives it
+  // the whole row, puts the media beside the content, and is the only step
+  // that spends space on the description and the per-platform reach.
   const tone = foundLostStatus.isFound ? theme.custom.status.found : theme.custom.status.lost;
 
   return (
-    <PostCardRoot onClick={handleViewDetails} sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}>
-      <MediaFrame sx={{ height: { xs: '260px', sm: '200px' }, backgroundColor: post?.image ? 'transparent' : alpha(tone.main, 0.06) }}>
+    <AutoLayoutCardShell
+      step={step}
+      onClick={handleViewDetails}
+      sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+    >
+      <MotionBox
+        layout={animateLayout}
+        transition={layoutTransition}
+        sx={{
+          position: 'relative',
+          overflow: 'hidden',
+          flexShrink: 0,
+          width: stepStyle.mediaBasis,
+          height: stepStyle.mediaHeight,
+          backgroundColor: post?.image ? 'transparent' : alpha(tone.main, 0.06),
+        }}
+      >
         {post?.image && imageUrl ? (
           <LazyCardMedia
             component="img"
@@ -860,6 +927,7 @@ const Post = ({ post, viewMode = "grid" }) => {
         <StatusTag isFound={foundLostStatus.isFound} label={foundLostStatus.statusText} />
         <DateBadge>{created}</DateBadge>
         {post?.returned && <ResolvedBadge label={t('returned')} />}
+        <StepToggle step={step} onClick={nextStep} />
 
         {post?.image && imageUrl && (
           <Box
@@ -871,58 +939,87 @@ const Post = ({ post, viewMode = "grid" }) => {
             }}
           />
         )}
-      </MediaFrame>
+      </MotionBox>
 
-      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, p: 2.5 }}>
-        {/* Category Badges - Multiple categories support */}
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center', mb: 0.5 }}>
-          {categories.map((cat, index) => {
-            const catStyle = categoryStyles[index];
-            const catName = categoryNames[index];
-            return (
-              <Box
-                key={cat.code || index}
-                sx={{
-                  backgroundColor: catStyle.background,
-                  padding: '4px 8px',
-                  borderRadius: `${theme.custom.radius.sm}px`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  border: `1px solid ${catStyle.main}`,
-                }}
-              >
-                <RenderIcon
-                  name={`${cat.code?.toLowerCase() || 'other'}cate`}
-                  sx={{ fontSize: '12px', color: catStyle.text }}
-                />
-                <Typography sx={{ color: catStyle.text, fontSize: '11px', fontWeight: 700 }}>
-                  {catName}
+      <MotionBox
+        layout={animateLayout}
+        transition={layoutTransition}
+        sx={{
+          flexGrow: 1,
+          minWidth: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+          p: 2.5,
+        }}
+      >
+        {/* Categories and the two facts (main date, city) sit stacked in the
+            compact step and side by side once the card has the width for it. */}
+        <MotionBox
+          layout={animateLayout}
+          transition={layoutTransition}
+          sx={{
+            display: 'flex',
+            flexDirection: stepStyle.metaDirection,
+            alignItems: stepStyle.metaAlign,
+            justifyContent: stepStyle.metaJustify,
+            width: stepStyle.metaWidth,
+            gap: 1,
+          }}
+        >
+          {/* Category Badges - Multiple categories support */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center', minWidth: 0 }}>
+            {categories.map((cat, index) => {
+              const catStyle = categoryStyles[index];
+              const catName = categoryNames[index];
+              return (
+                <Box
+                  key={cat.code || index}
+                  sx={{
+                    backgroundColor: catStyle.background,
+                    padding: '4px 8px',
+                    borderRadius: `${theme.custom.radius.sm}px`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    border: `1px solid ${catStyle.main}`,
+                  }}
+                >
+                  <RenderIcon
+                    name={`${cat.code?.toLowerCase() || 'other'}cate`}
+                    sx={{ fontSize: '12px', color: catStyle.text }}
+                  />
+                  <Typography sx={{ color: catStyle.text, fontSize: '11px', fontWeight: 700 }}>
+                    {catName}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+            {/* Main Date with Event Icon */}
+            {post?.mainDate && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+                <EventIcon sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />
+                <Typography variant="body2" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
+                  {post.mainDate}
                 </Typography>
               </Box>
-            );
-          })}
-        </Box>
+            )}
 
-        {/* Main Date with Event Icon */}
-        {post?.mainDate && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
-            <EventIcon sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />
-            <Typography variant="body2" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
-              {post.mainDate}
-            </Typography>
+            {/* City with Location Icon */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+              <LocationIcon sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />
+              <Typography variant="body2" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
+                {cityName}
+              </Typography>
+            </Box>
           </Box>
-        )}
+        </MotionBox>
 
-        {/* City with Location Icon */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
-          <LocationIcon sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />
-          <Typography variant="body2" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
-            {cityName}
-          </Typography>
-        </Box>
-
-        {/* Exact Location */}
+        {/* Exact Location - one line while the card is compact, wrapped once
+            it has the room, because that is the line that says where. */}
         {post?.exactLocation && (
           <Typography
             variant="caption"
@@ -930,7 +1027,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             sx={{
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
+              whiteSpace: stepStyle.showDetails ? 'normal' : 'nowrap',
               direction: isArabicText(post.exactLocation) ? 'rtl' : 'ltr',
               textAlign: isArabicText(post.exactLocation) ? 'right' : 'left',
             }}
@@ -939,11 +1036,68 @@ const Post = ({ post, viewMode = "grid" }) => {
           </Typography>
         )}
 
+        {/* Widest step only: what the compact card had no room to say. */}
+        <AnimatePresence initial={false}>
+          {stepStyle.showDetails && (
+            <MotionBox
+              key="post-card-details"
+              layout={animateLayout}
+              transition={layoutTransition}
+              initial={animateLayout ? { opacity: 0, y: 12 } : false}
+              animate={{ opacity: 1, y: 0 }}
+              exit={animateLayout ? { opacity: 0, y: 12 } : undefined}
+              sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, minWidth: 0 }}
+            >
+              {post?.description && (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    direction: isArabicText(post.description) ? 'rtl' : 'ltr',
+                    textAlign: isArabicText(post.description) ? 'right' : 'left',
+                  }}
+                >
+                  {post.description}
+                </Typography>
+              )}
+
+              <ReachDetail post={post} />
+
+              <Button
+                variant="contained"
+                size="small"
+                endIcon={<ArrowIcon sx={{ transform: isRTLMode() ? 'scaleX(-1)' : 'none' }} />}
+                onClick={handleViewDetails}
+                sx={{
+                  alignSelf: 'flex-start',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  borderRadius: `${theme.custom.radius.md}px`,
+                  boxShadow: 'none',
+                  backgroundColor: theme.custom.color.brandPrimary,
+                  '&:hover': {
+                    boxShadow: 'none',
+                    backgroundColor: theme.custom.color.brandPrimary,
+                    filter: 'brightness(0.94)',
+                  },
+                }}
+              >
+                {t('viewDetails')}
+              </Button>
+            </MotionBox>
+          )}
+        </AnimatePresence>
+
         <ReachRow post={post} sx={{ mt: 'auto' }} />
-      </CardContent>
-    </PostCardRoot>
+      </MotionBox>
+    </AutoLayoutCardShell>
   );
 };
+
 
 const memoizedPost = memo(Post);
 
