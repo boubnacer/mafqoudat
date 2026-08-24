@@ -394,6 +394,10 @@ const LeftSide = ({
           sx={{
             backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.14 : 0.08),
             padding: isMobile ? '1.25rem' : '1.5rem',
+            // Neumorphic inset — reads as pressed into the panel, so it
+            // shouldn't also lift on hover the way a raised card would.
+            boxShadow: theme.custom.neumorphicInset,
+            '&:hover': { transform: 'none', boxShadow: theme.custom.neumorphicInset },
           }}
           titleStyle={{
             color: theme.custom.color.ink,
@@ -426,6 +430,8 @@ const LeftSide = ({
           sx={{
             backgroundColor: theme.custom.color.surfaceRaised,
             padding: isMobile ? '1.25rem' : '1.5rem',
+            boxShadow: theme.custom.neumorphicInset,
+            '&:hover': { transform: 'none', boxShadow: theme.custom.neumorphicInset },
           }}
           titleStyle={{
             color: theme.custom.color.ink,
