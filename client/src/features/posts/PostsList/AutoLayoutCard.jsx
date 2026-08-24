@@ -39,43 +39,38 @@ import { useTranslation } from "../../../utils/translations";
 export const AUTO_LAYOUT_STEP_COUNT = 3;
 
 /**
- * One entry per step. Everything here is layout - direction, span, size - and
- * nothing here is color: the card's surface, radius and elevation are the same
- * at every step, because a step is the same card at another density, not
- * another card.
+ * One entry per step. Everything here is size and span, and nothing here is
+ * color: the card's surface, radius and elevation are the same at every step,
+ * because a step is the same card at another density, not another card. The
+ * stack itself (badge row, title, media, copy) never reorders either - a step
+ * gives it more room and more to say, it does not rearrange it.
  */
 export const stepStyles = {
   1: {
     gridColumn: "span 1",
-    contentDirection: "column",
-    mediaBasis: "100%",
-    mediaHeight: { xs: 260, sm: 200 },
-    metaDirection: "column",
-    metaAlign: "flex-start",
-    metaJustify: "flex-start",
-    metaWidth: "100%",
+    mediaHeight: { xs: 200, sm: 190 },
+    contentMaxWidth: "none",
+    titleSize: { xs: "2rem", sm: "1.9rem" },
+    descriptionLines: 2,
     showDetails: false,
   },
   2: {
     gridColumn: { xs: "span 1", sm: "span 2" },
-    contentDirection: "column",
-    mediaBasis: "100%",
-    mediaHeight: { xs: 260, sm: 240 },
-    metaDirection: { xs: "column", sm: "row" },
-    metaAlign: { xs: "flex-start", sm: "center" },
-    metaJustify: "space-between",
-    metaWidth: "100%",
+    mediaHeight: { xs: 220, sm: 280 },
+    contentMaxWidth: "none",
+    titleSize: { xs: "2.2rem", sm: "2.6rem" },
+    descriptionLines: 3,
     showDetails: false,
   },
   3: {
     gridColumn: { xs: "span 1", sm: "1 / -1" },
-    contentDirection: { xs: "column", md: "row" },
-    mediaBasis: { xs: "100%", md: "40%" },
-    mediaHeight: { xs: 260, md: 340 },
-    metaDirection: { xs: "column", sm: "row" },
-    metaAlign: { xs: "flex-start", sm: "center" },
-    metaJustify: "space-between",
-    metaWidth: "100%",
+    mediaHeight: { xs: 240, sm: 340 },
+    // The card takes the whole row at this step, but a line of copy running the
+    // full width of a four-column grid is unreadable, so the stack inside it
+    // stays a column and centres.
+    contentMaxWidth: 860,
+    titleSize: { xs: "2.4rem", sm: "3.2rem" },
+    descriptionLines: 4,
     showDetails: true,
   },
 };
@@ -136,9 +131,9 @@ export const AutoLayoutCardShell = ({ step, onClick, children, sx }) => {
         sx={{
           height: "100%",
           display: "flex",
-          flexDirection: currentStyle.contentDirection,
+          flexDirection: "column",
           backgroundColor: theme.custom.color.surfaceRaised,
-          borderRadius: `${theme.custom.radius.lg}px`,
+          borderRadius: `${theme.custom.radius.xl}px`,
           boxShadow: theme.custom.elevation.e1,
           overflow: "hidden",
           cursor: "pointer",
@@ -147,15 +142,27 @@ export const AutoLayoutCardShell = ({ step, onClick, children, sx }) => {
           ...sx,
         }}
       >
-        {children}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            flexGrow: 1,
+            width: "100%",
+            maxWidth: currentStyle.contentMaxWidth,
+            mx: "auto",
+          }}
+        >
+          {children}
+        </Box>
       </Card>
     </MotionBox>
   );
 };
 
 /**
- * The step control. Uses the same translucent-surface badge language as the
- * card's date badge rather than introducing a new pill.
+ * The step control, sitting in the card's header row beside the open action.
+ * Quiet on purpose: it changes how much of a listing you see, which should
+ * never compete with the action that opens the listing itself.
  */
 export const StepToggle = ({ step, onClick }) => {
   const theme = useTheme();
@@ -172,18 +179,15 @@ export const StepToggle = ({ step, onClick }) => {
         aria-expanded={step > 1}
         size="small"
         sx={{
-          position: "absolute",
-          bottom: 12,
-          insetInlineStart: 12,
-          zIndex: 11,
-          padding: 0.5,
-          borderRadius: `${theme.custom.radius.sm}px`,
-          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.85),
-          color: theme.custom.color.ink,
-          "&:hover": { backgroundColor: theme.custom.color.surfaceRaised },
+          width: 36,
+          height: 36,
+          borderRadius: "50%",
+          backgroundColor: alpha(theme.custom.color.ink, 0.06),
+          color: alpha(theme.custom.color.ink, 0.7),
+          "&:hover": { backgroundColor: alpha(theme.custom.color.ink, 0.12) },
         }}
       >
-        <Icon sx={{ fontSize: 16 }} />
+        <Icon sx={{ fontSize: 18 }} />
       </IconButton>
     </Tooltip>
   );

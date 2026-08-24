@@ -67,29 +67,39 @@ Reuse these, don't invent new card/panel treatment — now house style:
 
 - Phase 16 — motion pass on the dashboard home page (`/dash`): done. See **Motion (GSAP)** below.
 
-- Phase 17 — auto-layout post cards on the web posts list (`/dash/posts`, grid view only): done.
-  The card reflows through three densities instead of being one fixed shape —
+- Phase 17 — the web posts-list card (`/dash/posts`, grid view only): done. Mobile untouched.
+  The card is one centred stack — status badge + open action, the **city** as a display-type
+  gradient headline, the photo inset inside the card (not bleeding to its edges), then the
+  copy — and it reflows through three densities rather than being one fixed shape.
   [AutoLayoutCard.jsx](client/src/features/posts/PostsList/AutoLayoutCard.jsx) owns the step
   table (`stepStyles`), the `useAutoLayoutStep` cycle, the card shell and the step control;
   [Post.js](client/src/features/posts/PostsList/Post.js) supplies the content per step, and
-  `PostsList.js` wraps the grid in framer-motion's `LayoutGroup`. Mobile is untouched — this
-  is a web-only pass. Ported from a Tailwind/shadcn reference component, with three things
-  deliberately not carried over:
+  `PostsList.js` wraps the grid in framer-motion's `LayoutGroup`. Decisions worth keeping:
+  - **The stack never reorders.** A step gives it more room (span 1 → `span 2` at `sm` →
+    `1 / -1`) and more to say (step 3 adds the exact location, the per-platform reach split
+    and an explicit View Details); it does not rearrange the card under the reader. At the
+    full-row step the stack stays a column capped at `contentMaxWidth` — a line of copy
+    running the width of a four-column grid is unreadable.
+  - **The city is the headline, the category is a chip.** City is the field every listing has
+    and the one a searcher scans; it is the only gradient in the app, and that gradient is
+    built from `brandPrimary` + `lighten()` rather than a picked pair of hex values, so it
+    follows the token into dark mode.
+  - **Clicking the card still opens the listing** (the reference component this was ported
+    from cycled steps on the card's own click — on a classifieds list the click that reaches
+    a post cannot become a layout toggle). The blue circular arrow is the affordance that
+    says so, the step control is a separate quiet button beside it, and the arrow mirrors
+    with the document direction.
   - **No Tailwind, no shadcn, no TypeScript.** `client/` is CRA + MUI v5 + Emotion in JS, so
     the port is MUI + `theme.custom` throughout. Adding Tailwind would put a second styling
     system beside the design tokens every other surface reads from.
-  - **A step widens the card by spanning more grid columns, not by setting a pixel width**
-    (the reference cycled 400 → 550 → 700px). A card in a responsive CSS grid does not own
-    its width; step 2 takes `span 2` from `sm` up, step 3 takes `1 / -1`.
-  - **Clicking the card still opens the listing.** The reference used the card's own click to
-    cycle steps; on a classifieds list the click that reaches a post is the one thing that
-    cannot become a layout toggle, so the step control is its own button (`StepToggle`, in the
-    media frame's bottom-inline-start corner, using the DateBadge's translucent-surface
-    language rather than a new pill). The reference's fanned three-photo strip at the largest
-    step has no data behind it either — a post carries one `image` — so step 3 spends its room
-    on the description, the wrapped exact location, and the per-platform reach split
-    (`ReachDetail`, the Facebook/Instagram half of what `SocialReach.jsx` shows on the detail
-    page) plus an explicit View Details button.
+  - **Two local departures, both documented in the file.** `index.css`'s global
+    `body[dir="rtl"] * { text-align: inherit }` and `body[dir="rtl"] .MuiTypography-root
+    { direction: rtl }` outrank a single Emotion class, so a centred card in Arabic silently
+    rendered right-aligned; `centeredText()` in `Post.js` restates alignment at `&&&`
+    specificity, scoped to this card (fixing the globals is a pass of its own). And the
+    category chip reads its wash from `alpha(catStyle.main, …)` instead of
+    `config/categories.js`'s `backgroundColor`, which is light-mode-only and rendered as a
+    white pill on a dark card.
   Motion is framer-motion `layout` (not GSAP): the choreography here is "measure the box before
   and after a reflow", which is what `layout` does and what GSAP would need Flip for — and the
   posts list carries none of the `data-reveal` attributes `useDashboardMotion` looks for, so the
