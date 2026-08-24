@@ -40,8 +40,9 @@ import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
 import { PostReachRow } from '../components/SocialReach';
+import GradientHeading from '../components/GradientHeading';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
-import { logical, row, needsDirectionFlip, alignStart } from '../utils/rtl';
+import { logical, row, needsDirectionFlip } from '../utils/rtl';
 import { formatRelativeTime } from '../utils/relativeTime';
 
 const SEARCH_DEBOUNCE_MS = 400;
@@ -49,17 +50,21 @@ const PAGE_SIZE = 5;
 const SECTION_COUNT = 2;
 const SKELETON_CARD_COUNT = 3;
 
-// Shaped like the real postCard below (media block, borderStart accent bar,
-// title/description/meta lines) but with a neutral (non Found/Lost) accent
-// tint since the skeleton doesn't know the post type yet.
+// Shaped like the real postCard below - header row, headline, inset media,
+// then the copy lines - but with neutral blocks, since the skeleton doesn't
+// know the post type (or its city) yet.
 const PostsListSkeleton = ({ styles, tokens }) => (
   <View style={styles.skeletonWrap}>
     <SkeletonBlock tokens={tokens} style={styles.searchSkeleton} />
     {Array.from({ length: SKELETON_CARD_COUNT }).map((_, i) => (
       <View key={i} style={styles.postCardSkeleton}>
+        <View style={styles.headerRowSkeleton}>
+          <SkeletonBlock tokens={tokens} style={styles.statusTagSkeleton} />
+          <SkeletonBlock tokens={tokens} style={styles.openActionSkeleton} />
+        </View>
+        <SkeletonBlock tokens={tokens} style={styles.titleLineSkeleton} />
         <SkeletonBlock tokens={tokens} style={styles.postMediaSkeleton} />
-        <View style={styles.postContent}>
-          <SkeletonBlock tokens={tokens} style={styles.titleLineSkeleton} />
+        <View style={styles.postContentSkeleton}>
           <SkeletonBlock tokens={tokens} style={styles.bodyLineSkeleton} />
           <SkeletonBlock tokens={tokens} style={styles.bodyLineShortSkeleton} />
         </View>
@@ -498,60 +503,75 @@ const PostsListScreen = ({ navigation, route }) => {
         activeOpacity={0.9}
         onPress={() => navigation.navigate('PostDetailScreen', { id: item?._id || item?.id })}
       >
-        <View style={styles.postMedia}>
-          {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
-          ) : (
-            <View style={[styles.postImagePlaceholder, { backgroundColor: categoryConfig.backgroundColor }]}>
-              <Ionicons name={categoryConfig.icon} size={44} color={categoryConfig.color} />
-            </View>
-          )}
+        {/* Header row: what kind of listing this is, and how to open it. */}
+        <View style={styles.cardHeaderRow}>
           <View style={[styles.statusTag, { backgroundColor: tone.main }]}>
             <Ionicons name={found ? 'checkmark-circle' : 'search'} size={13} color="#FFFFFF" />
             <Text style={styles.statusTagText}>{found ? t('found') : t('lost')}</Text>
           </View>
-          <View style={styles.dateBadge}>
-            <Text style={styles.dateBadgeText}>{formatRelativeTime(item.createdAt, t, currentLanguage)}</Text>
+          <View style={styles.openAction}>
+            <Ionicons
+              name="arrow-forward"
+              size={18}
+              color="#FFFFFF"
+              style={needsDirectionFlip(isRTL) ? styles.openActionIconRTL : styles.openActionIcon}
+            />
           </View>
         </View>
+
+        {/* The city, as the card's headline. */}
+        {cityLabel ? <GradientHeading text={cityLabel} fontSize={26} style={styles.cardTitle} /> : null}
+
+        {/* Media, inset inside the card rather than bleeding to its edges. */}
+        <View style={styles.postMedia}>
+          {imageUri ? (
+            <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
+          ) : (
+            <View style={[styles.postImagePlaceholder, { backgroundColor: `${categoryConfig.color}1F` }]}>
+              <Ionicons name={categoryConfig.icon} size={44} color={categoryConfig.color} />
+            </View>
+          )}
+        </View>
+
         <View style={styles.postContent}>
+          {/* Where it was lost or found - the city is already the headline, so
+              this is the line that narrows it down to a street or a landmark. */}
+          {item.exactLocation ? (
+            <Text style={styles.exactLocationText} numberOfLines={2}>
+              {item.exactLocation}
+            </Text>
+          ) : null}
+
           {categoryLabel ? (
-            <View
-              style={[
-                styles.categoryPill,
-                { alignSelf: alignStart(isRTL), backgroundColor: categoryConfig.backgroundColor },
-              ]}
-            >
+            <View style={[styles.categoryPill, { backgroundColor: `${categoryConfig.color}${isDark ? '33' : '1F'}` }]}>
               <Ionicons name={categoryConfig.icon} size={13} color={categoryConfig.color} />
               <Text style={[styles.categoryPillText, { color: categoryConfig.color }]} numberOfLines={1}>
                 {categoryLabel}
               </Text>
             </View>
           ) : null}
-          <View style={styles.postInfoRows}>
+
+          {/* When the item was lost or found, and when the listing went up. */}
+          <View style={styles.factsRow}>
             {item.mainDate && String(item.mainDate).trim() ? (
               <View style={styles.infoRow}>
                 <Ionicons name="calendar-outline" size={14} color={`${tokens.ink}99`} />
-                <Text style={[styles.infoRowText, isRTL && styles.textRTL]} numberOfLines={1}>
+                <Text style={styles.infoRowText} numberOfLines={1}>
                   {item.mainDate}
                 </Text>
               </View>
             ) : null}
-            {cityLabel ? (
-              <View style={styles.infoRow}>
-                <Ionicons name="location-outline" size={14} color={`${tokens.ink}99`} />
-                <Text style={[styles.infoRowText, isRTL && styles.textRTL]} numberOfLines={1}>
-                  {cityLabel}
-                </Text>
-              </View>
-            ) : null}
-            {item.exactLocation ? (
-              <Text style={[styles.exactLocationText, isRTL && styles.textRTL]} numberOfLines={1}>
-                {item.exactLocation}
+            <View style={styles.infoRow}>
+              <Ionicons name="time-outline" size={14} color={`${tokens.ink}99`} />
+              <Text style={styles.infoRowText} numberOfLines={1}>
+                {formatRelativeTime(item.createdAt, t, currentLanguage)}
               </Text>
-            ) : null}
+            </View>
           </View>
-          <PostReachRow post={item} />
+
+          <View style={styles.reachWrap}>
+            <PostReachRow post={item} />
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -915,42 +935,104 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     postCardSkeleton: {
       backgroundColor: tokens.surfaceRaised,
-      borderRadius: radiusTokens.lg,
+      borderRadius: radiusTokens.xl,
       marginBottom: 16,
+      paddingBottom: 14,
       overflow: 'hidden',
     },
-    postMediaSkeleton: {
-      width: '100%',
-      height: 260,
-      borderRadius: 0,
+    headerRowSkeleton: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 14,
+      paddingTop: 14,
+    },
+    statusTagSkeleton: {
+      width: 78,
+      height: 26,
+      borderRadius: radiusTokens.sm,
+    },
+    openActionSkeleton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
     },
     titleLineSkeleton: {
-      height: 17,
-      width: '70%',
-      marginBottom: 10,
+      height: 26,
+      width: '55%',
+      alignSelf: 'center',
+      marginTop: 14,
+      marginBottom: 12,
+    },
+    postMediaSkeleton: {
+      marginHorizontal: 14,
+      height: 200,
+      borderRadius: radiusTokens.lg,
+    },
+    postContentSkeleton: {
+      paddingHorizontal: 14,
+      paddingTop: 14,
+      alignItems: 'center',
+      gap: 10,
     },
     bodyLineSkeleton: {
       height: 13,
-      width: '100%',
-      marginBottom: 8,
+      width: '80%',
     },
     bodyLineShortSkeleton: {
       height: 13,
-      width: '55%',
+      width: '45%',
     },
 
-    // Post card - mirrors the web post card DNA: surfaceRaised, radius.lg,
-    // elevation e1. The screen behind it uses postsListBackdrop (not plain
-    // surfaceBase) specifically so this plain-white card stands out from it.
+    // Post card - mirrors the redesigned web card in
+    // client/src/features/posts/PostsList/Post.js: one centred stack of status
+    // badge + open action, the city as a gradient headline, the photo inset
+    // inside the card, then the copy. Phase 8/9 still hold - the card itself is
+    // borderless and shadowless, and the badges/pills inside it are what carry
+    // depth. The screen behind it uses postsListBackdrop (not plain
+    // surfaceBase) so this plain-white card stands out from it.
     postCard: {
       backgroundColor: tokens.surfaceRaised,
-      borderRadius: radiusTokens.lg,
+      borderRadius: radiusTokens.xl,
       marginBottom: 16,
+      paddingBottom: 14,
       overflow: 'hidden',
     },
+    cardHeaderRow: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 14,
+      paddingTop: 14,
+    },
+    cardTitle: {
+      marginTop: 14,
+      marginBottom: 12,
+      paddingHorizontal: 14,
+    },
+    // The open action: the card opens on press anyway, this is the affordance
+    // that says so. Ionicons has no north-east arrow, so the forward arrow is
+    // rotated - and mirrored with the direction, like the web card's.
+    openAction: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: tokens.brandPrimary,
+      ...getElevation(isDark, 1),
+    },
+    openActionIcon: {
+      transform: [{ rotate: '-45deg' }],
+    },
+    openActionIconRTL: {
+      transform: [{ rotate: '45deg' }, { scaleX: -1 }],
+    },
     postMedia: {
-      width: '100%',
-      height: 260,
+      marginHorizontal: 14,
+      height: 200,
+      borderRadius: radiusTokens.lg,
+      overflow: 'hidden',
       backgroundColor: tokens.surfaceBase,
     },
     postImage: {
@@ -964,14 +1046,11 @@ const createStyles = (tokens, isRTL, isDark) =>
       alignItems: 'center',
     },
     statusTag: {
-      position: 'absolute',
-      top: 10,
-      ...logical(isRTL, { start: 10 }),
       flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 4,
-      paddingHorizontal: 9,
-      paddingVertical: 5,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
       borderRadius: radiusTokens.sm,
       ...getElevation(isDark, 1),
     },
@@ -981,24 +1060,15 @@ const createStyles = (tokens, isRTL, isDark) =>
       color: '#FFFFFF',
       textTransform: 'uppercase',
     },
-    dateBadge: {
-      position: 'absolute',
-      top: 10,
-      ...logical(isRTL, { end: 10 }),
-      backgroundColor: `${tokens.surfaceRaised}D9`,
-      paddingHorizontal: 9,
-      paddingVertical: 5,
-      borderRadius: radiusTokens.sm,
-      ...getElevation(isDark, 1),
-    },
-    dateBadgeText: {
-      fontFamily: fontFamilies.bodyMedium,
-      fontSize: 11,
-      color: tokens.ink,
-    },
     postContent: {
-      padding: 14,
+      paddingHorizontal: 14,
+      paddingTop: 14,
+      alignItems: 'center',
+      gap: 10,
     },
+    // config/categories.js only carries a light-mode backgroundColor, which
+    // reads as a near-white pill on a dark card, so the pill washes the
+    // category's own color instead (same fix as the web card).
     categoryPill: {
       flexDirection: row(isRTL),
       alignItems: 'center',
@@ -1006,20 +1076,25 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingHorizontal: 12,
       paddingVertical: 7,
       borderRadius: radiusTokens.md,
-      marginBottom: 12,
       ...getElevation(isDark, 1),
     },
     categoryPillText: {
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 12,
     },
-    postInfoRows: {
-      gap: 8,
-    },
     exactLocationText: {
       fontFamily: fontFamilies.body,
-      fontSize: 12,
-      color: `${tokens.ink}99`,
+      fontSize: 13,
+      lineHeight: 19,
+      color: `${tokens.ink}B8`,
+      textAlign: 'center',
+    },
+    factsRow: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+      gap: 14,
     },
     infoRow: {
       flexDirection: row(isRTL),
@@ -1032,6 +1107,9 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontSize: 12,
       color: `${tokens.ink}99`,
       flexShrink: 1,
+    },
+    reachWrap: {
+      alignItems: 'center',
     },
 
     errorContainer: {

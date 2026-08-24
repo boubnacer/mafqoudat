@@ -67,28 +67,28 @@ Reuse these, don't invent new card/panel treatment — now house style:
 
 - Phase 16 — motion pass on the dashboard home page (`/dash`): done. See **Motion (GSAP)** below.
 
-- Phase 17 — the web posts-list card (`/dash/posts`, grid view only): done. Mobile untouched.
-  The card is one centred stack — status badge + open action, the **city** as a display-type
-  gradient headline, the photo inset inside the card (not bleeding to its edges), then the
-  copy — and it reflows through three densities rather than being one fixed shape.
-  [AutoLayoutCard.jsx](client/src/features/posts/PostsList/AutoLayoutCard.jsx) owns the step
-  table (`stepStyles`), the `useAutoLayoutStep` cycle, the card shell and the step control;
-  [Post.js](client/src/features/posts/PostsList/Post.js) supplies the content per step, and
-  `PostsList.js` wraps the grid in framer-motion's `LayoutGroup`. Decisions worth keeping:
-  - **The stack never reorders.** A step gives it more room (span 1 → `span 2` at `sm` →
-    `1 / -1`) and more to say (step 3 adds the exact location, the per-platform reach split
-    and an explicit View Details); it does not rearrange the card under the reader. At the
-    full-row step the stack stays a column capped at `contentMaxWidth` — a line of copy
-    running the width of a four-column grid is unreadable.
+- Phase 17 — the web posts-list card (`/dash/posts`, grid view only): done. Mobile got the
+  same design in Phase 18. The card is one centred stack — status badge + open action, the
+  **city** as a display-type gradient headline, the photo inset inside the card (not bleeding
+  to its edges), then the exact location, the category chip and the date facts —
+  in [Post.js](client/src/features/posts/PostsList/Post.js). Decisions worth keeping:
+  - **One fixed density.** The card shipped with a control that cycled it through three
+    widths (spanning more grid columns, framer-motion `layout` animating the reflow), ported
+    from the reference component this design came from. That control was removed on request,
+    and the machinery went with it rather than being left unreachable: no `AutoLayoutCard.jsx`,
+    no `LayoutGroup` in `PostsList.js`, no framer-motion on this page at all, and the hover
+    lift is a plain CSS `transform` again. If steps ever come back, they come back whole.
   - **The city is the headline, the category is a chip.** City is the field every listing has
     and the one a searcher scans; it is the only gradient in the app, and that gradient is
     built from `brandPrimary` + `lighten()` rather than a picked pair of hex values, so it
     follows the token into dark mode.
-  - **Clicking the card still opens the listing** (the reference component this was ported
-    from cycled steps on the card's own click — on a classifieds list the click that reaches
-    a post cannot become a layout toggle). The blue circular arrow is the affordance that
-    says so, the step control is a separate quiet button beside it, and the arrow mirrors
-    with the document direction.
+  - **The copy line is the exact location, not the description.** The city is already the
+    headline, so the line under the photo is the one that narrows it down to a street or a
+    landmark — a listing's free text is the least reliable part of it (same reasoning the
+    matching engine's signal weights carry), and on a card there is only room for one line.
+    The description does not appear on the card.
+  - **Clicking the card opens the listing**, and the blue circular arrow is the affordance
+    that says so; it mirrors with the document direction.
   - **No Tailwind, no shadcn, no TypeScript.** `client/` is CRA + MUI v5 + Emotion in JS, so
     the port is MUI + `theme.custom` throughout. Adding Tailwind would put a second styling
     system beside the design tokens every other surface reads from.
@@ -100,16 +100,31 @@ Reuse these, don't invent new card/panel treatment — now house style:
     category chip reads its wash from `alpha(catStyle.main, …)` instead of
     `config/categories.js`'s `backgroundColor`, which is light-mode-only and rendered as a
     white pill on a dark card.
-  Motion is framer-motion `layout` (not GSAP): the choreography here is "measure the box before
-  and after a reflow", which is what `layout` does and what GSAP would need Flip for — and the
-  posts list carries none of the `data-reveal` attributes `useDashboardMotion` looks for, so the
-  two systems still never touch the same nodes. That measurement is also what makes this
-  RTL-safe with no mirrored variant: nothing is animated along a hardcoded axis. Reduced motion
-  drops to `layout={false}` with a zero-duration transition, so those visitors get the same
-  steps with no tween. The hover lift moved from a CSS `transform` to framer's `whileHover`,
-  because framer writes `transform` inline while animating layout and an inline transform beats
-  a stylesheet one — as CSS the lift silently stopped working the moment the card became a
-  motion element.
+
+- Phase 18 — the same card design on mobile's browse listing
+  ([PostsListScreen.js](mobile/src/screens/PostsListScreen.js)): done. Same stack as web —
+  status pill + circular open action on one header row, the city as a gradient headline, the
+  photo inset with `radius.lg` inside a `radius.xl` card, then the exact location, the
+  category pill and the date facts, all centred. Phases 8/9 still hold: the card is
+  borderless and shadowless and the pills/action circle inside it carry the depth. The
+  screen's skeleton was reshaped to match, so the load-in doesn't jump.
+  - **`MyPostsScreen.js` is deliberately not part of this**, exactly as on web, where
+    `MyPostsPage.jsx` kept its own pre-redesign card. That screen is an owner's management
+    view — lifecycle badge, edit/return/promote/delete actions — not a browse listing, and
+    forcing a centred one-column card on it would cost it the row it needs.
+  - **The gradient headline is masked text, not SVG text**
+    ([GradientHeading.js](mobile/src/components/GradientHeading.js)): a `LinearGradient`
+    clipped to real RN text by `@react-native-masked-view/masked-view` (new dependency,
+    bundled in Expo Go). Drawing it as `react-native-svg` text would have avoided the
+    dependency but given up platform text shaping — Arabic joining, `numberOfLines`,
+    the expo-font Cairo family. The native module is `require`d in a `try`/`catch` and the
+    heading falls back to solid `brandPrimary` when it is missing: a heading in the brand
+    color is a smaller loss than a screen that will not render. The two gradient stops are
+    derived from `brandPrimary` by a local `lighten()` mirroring MUI's, so mobile and web
+    read the same in both modes rather than carrying two hand-picked palettes.
+  - **The category pill washes the category's own color** for the same reason as web:
+    `config/categories.js`'s `backgroundColor` is light-mode-only and rendered as a
+    near-white pill on a dark card.
 
 ## Motion (GSAP)
 

@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { memo, useCallback, useMemo } from "react";
 import React from "react";
-import { AnimatePresence } from "framer-motion";
 import noImageSvg from "../../../img/noimage.svg";
 import {
   Button,
+  Card,
   CardActions,
   Typography,
   useTheme,
@@ -16,6 +16,7 @@ import {
   Paper,
   alpha,
   lighten,
+  styled,
 } from "@mui/material";
 import {
   LocationOn as LocationIcon,
@@ -43,24 +44,32 @@ import RenderIcon from "../../../components/RenderIcon";
 import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
 import LazyCardMedia from "../../../components/LazyCardMedia";
 import ReachRow from "../../../components/ReachRow";
-import { summarizeSocialStats } from "../../../utils/socialStats";
-import {
-  AutoLayoutCardShell,
-  MotionBox,
-  StepToggle,
-  useAutoLayoutMotion,
-  useAutoLayoutStep,
-} from "./AutoLayoutCard";
+
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
 // Post card DNA - canonical here, mirrored by TrendingItem.jsx: surfaceRaised,
-// radius.lg, elevation.e1 -> e2 hover-lift. The card shell and the media frame
-// that carry it now live in AutoLayoutCard.jsx, because the grid card reflows
-// through three densities and both of them have to be step-aware. The page
+// radius (xl on this card), elevation.e1 -> e2 hover-lift, no border. The page
 // behind this card (PostsList.js's root Box) uses postsListBackdrop rather than
 // plain surfaceBase specifically so this plain-white card stands out from it.
+const PostCardRoot = styled(Card)(({ theme }) => ({
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  paddingBottom: theme.spacing(1),
+  backgroundColor: theme.custom.color.surfaceRaised,
+  borderRadius: `${theme.custom.radius.xl}px`,
+  boxShadow: theme.custom.elevation.e1,
+  overflow: "hidden",
+  cursor: "pointer",
+  transition: "transform 0.2s ease, box-shadow 0.2s ease",
+  "&:hover": {
+    transform: "translateY(-4px)",
+    boxShadow: theme.custom.elevation.e2,
+  },
+}));
+
 
 // index.css ships two global RTL rules - `body[dir="rtl"] * { text-align:
 // inherit }` and `body[dir="rtl"] .MuiTypography-root { direction: rtl }` -
@@ -175,71 +184,11 @@ const ResolvedBadge = ({ label }) => {
   );
 };
 
-// The per-platform split of a listing's reach, for the widest step only.
-// ReachRow's two numbers (site views, total interactions) are what a compact
-// card can spare; once the card is a full row there is space to say which
-// platform those interactions happened on. Same rules as everywhere else here:
-// a counter that was never fetched is null and renders nothing, and social
-// views are never added to site views.
-const ReachDetail = ({ post }) => {
-  const theme = useTheme();
-  const { t } = useTranslation();
-  const { facebook, instagram } = summarizeSocialStats(post);
-
-  // Meta's own brand colors, the same documented exception SocialReach.jsx
-  // makes: these rows point at somewhere that is not us.
-  const platforms = [
-    { key: 'facebook', icon: FacebookIcon, name: 'Facebook', tint: '#1877F2', stats: facebook },
-    { key: 'instagram', icon: InstagramIcon, name: 'Instagram', tint: '#E1306C', stats: instagram },
-  ].filter(({ stats }) => stats.interactions !== null || stats.views !== null);
-
-  if (platforms.length === 0) return null;
-
-  return (
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-      {platforms.map(({ key, icon: Icon, name, tint, stats }) => (
-        <Box
-          key={key}
-          sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 0.75,
-            px: 1,
-            py: 0.5,
-            borderRadius: `${theme.custom.radius.sm}px`,
-            backgroundColor: alpha(tint, 0.1),
-          }}
-        >
-          <Icon sx={{ fontSize: 15, color: tint }} />
-          <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
-            {name}
-          </Typography>
-          {stats.interactions !== null && (
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              {t('socialInteractions', { count: stats.interactions })}
-            </Typography>
-          )}
-          {stats.views !== null && (
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              {t('postViews', { count: stats.views })}
-            </Typography>
-          )}
-        </Box>
-      ))}
-    </Box>
-  );
-};
-
 const Post = ({ post, viewMode = "grid" }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:768px)");
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
-
-  // Auto-layout step for the grid card. Declared with the rest of the hooks
-  // because the list-view branch below returns early.
-  const { step, stepStyle, nextStep } = useAutoLayoutStep();
-  const { animateLayout, layoutTransition } = useAutoLayoutMotion();
 
 
   // Memoized computed values - ALL HOOKS MUST BE AT TOP LEVEL
@@ -864,24 +813,21 @@ const Post = ({ post, viewMode = "grid" }) => {
     );
   }
 
-  // Grid view layout - a single centered stack: status badge and open action,
-  // the city as a display-type title, the photo inset inside the card, then the
-  // copy. It reflows through the three auto-layout steps in AutoLayoutCard.jsx,
-  // which give the same stack more room and more to say (step 3 adds the
-  // description in full, the per-platform reach and an explicit View Details);
-  // the stack never reorders, so nothing about the card moves under the reader.
+  // Grid view layout - a single centred stack: status badge and open action,
+  // the city as a display-type gradient headline, the photo inset inside the
+  // card, then the exact location, the category chip and the date facts. One
+  // fixed density: the card carried a control that cycled it through three
+  // widths, and that control is gone, so the layout that reads best in a grid
+  // cell is the only one it renders.
   const tone = foundLostStatus.isFound ? theme.custom.status.found : theme.custom.status.lost;
 
   return (
-    <AutoLayoutCardShell
-      step={step}
+    <PostCardRoot
       onClick={handleViewDetails}
       sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
     >
       {/* Header row: what kind of listing this is, and how to open it. */}
-      <MotionBox
-        layout={animateLayout}
-        transition={layoutTransition}
+      <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
@@ -892,17 +838,12 @@ const Post = ({ post, viewMode = "grid" }) => {
         }}
       >
         <StatusTag isFound={foundLostStatus.isFound} label={foundLostStatus.statusText} />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <StepToggle step={step} onClick={nextStep} />
-          <OpenAction onClick={handleViewDetails} label={t('viewDetails')} />
-        </Box>
-      </MotionBox>
+        <OpenAction onClick={handleViewDetails} label={t('viewDetails')} />
+      </Box>
 
       {/* The city, as the card's headline. It is the field every listing has
           and the one a searcher scans for; the category rides below as a chip. */}
-      <MotionBox
-        layout={animateLayout}
-        transition={layoutTransition}
+      <Box
         sx={{ px: 2.5, pt: 2, pb: 1 }}
       >
         <Typography
@@ -912,7 +853,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             fontWeight: 800,
             textTransform: 'uppercase',
             ...centeredText(),
-            fontSize: stepStyle.titleSize,
+            fontSize: { xs: '2rem', sm: '1.9rem' },
             lineHeight: 1.1,
             letterSpacing: currentLanguage === 'ar' ? 0 : '-0.02em',
             // The one gradient in the app, and it is built from the brand
@@ -931,19 +872,17 @@ const Post = ({ post, viewMode = "grid" }) => {
         >
           {cityName}
         </Typography>
-      </MotionBox>
+      </Box>
 
       {/* Media, inset inside the card rather than bleeding to its edges. */}
-      <MotionBox
-        layout={animateLayout}
-        transition={layoutTransition}
+      <Box
         sx={{ px: 2.5 }}
       >
         <Box
           sx={{
             position: 'relative',
             width: '100%',
-            height: stepStyle.mediaHeight,
+            height: { xs: 200, sm: 190 },
             borderRadius: `${theme.custom.radius.lg}px`,
             overflow: 'hidden',
             backgroundColor: post?.image ? 'transparent' : alpha(tone.main, 0.06),
@@ -1012,13 +951,11 @@ const Post = ({ post, viewMode = "grid" }) => {
 
           {post?.returned && <ResolvedBadge label={t('returned')} />}
         </Box>
-      </MotionBox>
+      </Box>
 
       {/* Copy: the listing's own words when it has any, its exact location
           when it does not, then the facts that place it in time. */}
-      <MotionBox
-        layout={animateLayout}
-        transition={layoutTransition}
+      <Box
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -1030,27 +967,16 @@ const Post = ({ post, viewMode = "grid" }) => {
           flexGrow: 1,
         }}
       >
-        {post?.description ? (
+        {/* Where it was lost or found, in the words whoever posted it used.
+            The city is already the headline, so the line under the photo is
+            the one that narrows it down to a street or a landmark. */}
+        {post?.exactLocation && (
           <Typography
             variant="body2"
             sx={{
               color: alpha(theme.custom.color.ink, 0.72),
               display: '-webkit-box',
-              WebkitLineClamp: stepStyle.descriptionLines,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              ...centeredText(isArabicText(post.description) ? 'rtl' : 'ltr'),
-            }}
-          >
-            {post.description}
-          </Typography>
-        ) : post?.exactLocation ? (
-          <Typography
-            variant="body2"
-            sx={{
-              color: alpha(theme.custom.color.ink, 0.72),
-              display: '-webkit-box',
-              WebkitLineClamp: stepStyle.descriptionLines,
+              WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
               ...centeredText(isArabicText(post.exactLocation) ? 'rtl' : 'ltr'),
@@ -1058,7 +984,7 @@ const Post = ({ post, viewMode = "grid" }) => {
           >
             {post.exactLocation}
           </Typography>
-        ) : null}
+        )}
 
         {/* Category Badges - Multiple categories support */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, justifyContent: 'center' }}>
@@ -1126,71 +1052,9 @@ const Post = ({ post, viewMode = "grid" }) => {
           </Box>
         </Box>
 
-        {/* Widest step only: what the compact card had no room to say. */}
-        <AnimatePresence initial={false}>
-          {stepStyle.showDetails && (
-            <MotionBox
-              key="post-card-details"
-              layout={animateLayout}
-              transition={layoutTransition}
-              initial={animateLayout ? { opacity: 0, y: 12 } : false}
-              animate={{ opacity: 1, y: 0 }}
-              exit={animateLayout ? { opacity: 0, y: 12 } : undefined}
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 1.25,
-                width: '100%',
-                minWidth: 0,
-              }}
-            >
-              {/* The description has already been shown above; what the widest
-                  step adds is where exactly, and how the listing is doing. */}
-              {post?.description && post?.exactLocation && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, maxWidth: '100%' }}>
-                  <LocationIcon sx={{ fontSize: 15, color: 'text.secondary', flexShrink: 0 }} />
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: 'text.secondary',
-                      ...centeredText(isArabicText(post.exactLocation) ? 'rtl' : 'ltr'),
-                    }}
-                  >
-                    {post.exactLocation}
-                  </Typography>
-                </Box>
-              )}
-
-              <ReachDetail post={post} />
-
-              <Button
-                variant="contained"
-                size="small"
-                endIcon={<ArrowIcon sx={{ transform: isRTLMode() ? 'scaleX(-1)' : 'none' }} />}
-                onClick={handleViewDetails}
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  borderRadius: `${theme.custom.radius.md}px`,
-                  boxShadow: 'none',
-                  backgroundColor: theme.custom.color.brandPrimary,
-                  '&:hover': {
-                    boxShadow: 'none',
-                    backgroundColor: theme.custom.color.brandPrimary,
-                    filter: 'brightness(0.94)',
-                  },
-                }}
-              >
-                {t('viewDetails')}
-              </Button>
-            </MotionBox>
-          )}
-        </AnimatePresence>
-
         <ReachRow post={post} sx={{ mt: 'auto', justifyContent: 'center' }} />
-      </MotionBox>
-    </AutoLayoutCardShell>
+      </Box>
+    </PostCardRoot>
   );
 };
 
