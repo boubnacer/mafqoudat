@@ -67,6 +67,40 @@ Reuse these, don't invent new card/panel treatment — now house style:
 
 - Phase 16 — motion pass on the dashboard home page (`/dash`): done. See **Motion (GSAP)** below.
 
+- Phase 17 — auto-layout post cards on the web posts list (`/dash/posts`, grid view only): done.
+  The card reflows through three densities instead of being one fixed shape —
+  [AutoLayoutCard.jsx](client/src/features/posts/PostsList/AutoLayoutCard.jsx) owns the step
+  table (`stepStyles`), the `useAutoLayoutStep` cycle, the card shell and the step control;
+  [Post.js](client/src/features/posts/PostsList/Post.js) supplies the content per step, and
+  `PostsList.js` wraps the grid in framer-motion's `LayoutGroup`. Mobile is untouched — this
+  is a web-only pass. Ported from a Tailwind/shadcn reference component, with three things
+  deliberately not carried over:
+  - **No Tailwind, no shadcn, no TypeScript.** `client/` is CRA + MUI v5 + Emotion in JS, so
+    the port is MUI + `theme.custom` throughout. Adding Tailwind would put a second styling
+    system beside the design tokens every other surface reads from.
+  - **A step widens the card by spanning more grid columns, not by setting a pixel width**
+    (the reference cycled 400 → 550 → 700px). A card in a responsive CSS grid does not own
+    its width; step 2 takes `span 2` from `sm` up, step 3 takes `1 / -1`.
+  - **Clicking the card still opens the listing.** The reference used the card's own click to
+    cycle steps; on a classifieds list the click that reaches a post is the one thing that
+    cannot become a layout toggle, so the step control is its own button (`StepToggle`, in the
+    media frame's bottom-inline-start corner, using the DateBadge's translucent-surface
+    language rather than a new pill). The reference's fanned three-photo strip at the largest
+    step has no data behind it either — a post carries one `image` — so step 3 spends its room
+    on the description, the wrapped exact location, and the per-platform reach split
+    (`ReachDetail`, the Facebook/Instagram half of what `SocialReach.jsx` shows on the detail
+    page) plus an explicit View Details button.
+  Motion is framer-motion `layout` (not GSAP): the choreography here is "measure the box before
+  and after a reflow", which is what `layout` does and what GSAP would need Flip for — and the
+  posts list carries none of the `data-reveal` attributes `useDashboardMotion` looks for, so the
+  two systems still never touch the same nodes. That measurement is also what makes this
+  RTL-safe with no mirrored variant: nothing is animated along a hardcoded axis. Reduced motion
+  drops to `layout={false}` with a zero-duration transition, so those visitors get the same
+  steps with no tween. The hover lift moved from a CSS `transform` to framer's `whileHover`,
+  because framer writes `transform` inline while animating layout and an inline transform beats
+  a stylesheet one — as CSS the lift silently stopped working the moment the card became a
+  motion element.
+
 ## Motion (GSAP)
 
 Web animation is GSAP (`gsap` + `@gsap/react`). Plugins are registered once in
