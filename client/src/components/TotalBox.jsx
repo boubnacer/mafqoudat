@@ -127,6 +127,10 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
           alignItems: 'center',
           justifyContent: 'center',
           transition: 'all 0.3s ease',
+          // A small raised chip against the card's sunken inset gives the
+          // neumorphic treatment somewhere to contrast against, instead of
+          // the whole card reading as one flat dip.
+          boxShadow: theme.custom.elevation.e1,
           width: '40px', // Fixed width for uniform sizing
           height: '40px', // Fixed height for uniform sizing
           minWidth: '40px', // Ensure minimum width
