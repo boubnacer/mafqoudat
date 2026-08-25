@@ -120,13 +120,19 @@ const WorldActivityMap = ({
   const sea = theme.custom.color.surfaceBase;
   const isDark = theme.palette.mode === "dark";
 
-  // Activity fill is a real two-stop color gradient (panel -> brand) rather
-  // than one hue at varying opacity: an alpha-only ramp goes muddy at the
-  // high end (it's really "brand over whatever's behind it," and this map
-  // has urban wash / subdivision lines / dots sitting on top), and it's the
-  // same flat blue at every level until the very top of the scale. Mixing
-  // toward panel keeps every step opaque and gives low-activity countries a
-  // paler, more legible step instead of a near-invisible tint.
+  // Activity fill is a three-stop color gradient (pale panel tint -> brand
+  // -> a darkened brand peak) rather than one hue at varying opacity: an
+  // alpha-only ramp goes muddy at the high end (it's really "brand over
+  // whatever's behind it," and this map has urban wash / subdivision lines
+  // / dots sitting on top of it) and is nearly flat everywhere else. Two
+  // things widen the visible range here versus a plain panel->brand mix:
+  // starting well below brand (6%, not a token — panel and brand share the
+  // same blue channel in light mode, 0xFF, so a paler start is what actually
+  // separates low activity from the page instead of reading identical to
+  // it) and shading the peak toward black rather than capping at flat
+  // brand, which is the only way to add a step above brand itself in both
+  // light AND dark mode (mixing toward `ink` would brighten in dark mode,
+  // since ink flips to a near-white text color there).
   const lerpColor = (hexA, hexB, t) => {
     const a = parseInt(hexA.replace("#", ""), 16);
     const b = parseInt(hexB.replace("#", ""), 16);
@@ -137,8 +143,14 @@ const WorldActivityMap = ({
     };
     return `rgb(${mix(16)}, ${mix(8)}, ${mix(0)})`;
   };
-  const activityLowStop = lerpColor(panel, brand, 0.16);
-  const activityFill = (t) => lerpColor(activityLowStop, brand, Math.min(1, Math.max(0, t)));
+  const activityLowStop = lerpColor(panel, brand, 0.06);
+  const activityPeakStop = lerpColor(brand, "#000000", 0.14);
+  const activityFill = (t) => {
+    const clamped = Math.min(1, Math.max(0, t));
+    return clamped <= 0.55
+      ? lerpColor(activityLowStop, brand, clamped / 0.55)
+      : lerpColor(brand, activityPeakStop, (clamped - 0.55) / 0.45);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -352,8 +364,8 @@ const WorldActivityMap = ({
         <path
           d={subdivisionsPath}
           fill="none"
-          stroke={alpha(panel, isDark ? 0.16 : 0.3)}
-          strokeWidth={0.35}
+          stroke={alpha(panel, isDark ? 0.07 : 0.14)}
+          strokeWidth={0.3}
           strokeLinejoin="round"
           pointerEvents="none"
         />
