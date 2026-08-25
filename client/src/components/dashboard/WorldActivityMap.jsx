@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Box, useTheme, useMediaQuery, alpha } from "@mui/material";
+import { Box, useTheme, useMediaQuery, alpha, getContrastRatio } from "@mui/material";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { geoMercator, geoPath, geoBounds } from "d3-geo";
 import { gsap, useGSAP } from "../../utils/gsapSetup";
@@ -138,7 +138,14 @@ const WorldActivityMap = ({
 
   const ink = theme.custom.color.ink;
   const panel = theme.custom.color.surfaceRaised;
-  const brand = theme.custom.color.brandPrimary;
+  // The map's accent is the logo's own blue, not brandPrimary. Every other
+  // surface renders the brand as a control — a button, a chip, a 6px accent
+  // bar — where a deep, high-contrast blue is right. This one renders it as a
+  // large field of color: whole countries filled at up to 90% opacity, with
+  // city names and a badge sitting on top of them. brandPrimary at that size
+  // reads as a block of ink rather than as the brand, and the logo blue is the
+  // brand at poster scale, which is what a backdrop is.
+  const brand = theme.custom.color.brandLogo;
   // What the containers behind this map paint for the sea (Dash.js and
   // WelcomePage both use surfaceBase); lakes reuse it so inland water matches.
   const sea = theme.custom.color.surfaceBase;
@@ -202,7 +209,15 @@ const WorldActivityMap = ({
 
   const cities = useMemo(() => (Array.isArray(cityActivity) ? cityActivity : []), [cityActivity]);
 
-  const badgeText = theme.palette.getContrastText(brand);
+  // Not getContrastText: MUI's default contrastThreshold is 3, and white on the
+  // logo blue clears that at 3.15:1 — enough to win the check, not enough for an
+  // 11px number that is the only per-city figure the map states. Picking between
+  // the two surface tokens by actual ratio instead lands on ink in light mode
+  // (5.9:1) and on the panel tone in dark (5.5:1). Same problem the status
+  // colors solved by deepening their light-mode `main` (see designTokens.js);
+  // deepening is not an option here, since the whole point is that this is the
+  // logo's blue.
+  const badgeText = getContrastRatio(brand, panel) >= 4.5 ? panel : ink;
 
   const currentNumericId = currentCountryCode ? ISO2_TO_NUMERIC[currentCountryCode] : null;
 

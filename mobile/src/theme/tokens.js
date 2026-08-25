@@ -81,6 +81,11 @@ export const fontSizes = {
 export const colorTokens = {
   light: {
     brandPrimary: '#1B4DFF',
+    // The blue the logo is drawn in, which is also this file's own legacy
+    // `primary` above. Same value in both modes. Used by the world activity
+    // map — the one surface that renders the brand as a large field of color
+    // rather than as a control.
+    brandLogo: '#3498DB',
     ink: '#0B1220',
     surfaceBase: '#F7F8FB',
     surfaceRaised: '#FFFFFF',
@@ -97,6 +102,8 @@ export const colorTokens = {
   },
   dark: {
     brandPrimary: '#5B7FFF',
+    // Identical to the light-mode value on purpose — see there.
+    brandLogo: '#3498DB',
     ink: '#EDEFF5',
     surfaceBase: '#0E1116',
     surfaceRaised: '#171B22',

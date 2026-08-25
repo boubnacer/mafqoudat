@@ -299,7 +299,11 @@ const WorldActivityMap = ({
 
   const ink = tokens.ink;
   const panel = tokens.surfaceRaised;
-  const brand = tokens.brandPrimary;
+  // The logo's own blue rather than brandPrimary, matching web's map: this is
+  // the one surface that renders the brand as a large field of color (whole
+  // countries filled at up to 90% opacity) instead of as a control, and
+  // brandPrimary at that size reads as a block of ink rather than as the brand.
+  const brand = tokens.brandLogo;
   // What the screen behind this map shows for the sea; lakes reuse it so
   // inland water reads as water rather than a hole punched in the country.
   const sea = tokens.surfaceBase;

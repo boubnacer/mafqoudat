@@ -8,6 +8,12 @@ Source of truth: [client/src/designTokens.js](client/src/designTokens.js), resol
 
 **Palette** (`colorTokens`, light / dark):
 - `brandPrimary`: `#1B4DFF` / `#5B7FFF` — brand accent
+- `brandLogo`: `#3498DB` / `#3498DB` — the blue the logo itself is drawn in
+  (`public/maflogoSVG.svg`, `public/maficonSVG.svg`), and the same value as the
+  pre-Phase-1 `palette.secondary.main` still in `theme.js` and mobile's legacy
+  `primary`. Identical in both modes, unlike `brandPrimary`, which needs a
+  lightened dark-mode twin. Used by the world activity map only — see that
+  section for why that one surface takes it over `brandPrimary`.
 - `ink`: `#0B1220` / `#EDEFF5` — primary text
 - `surfaceBase`: `#F7F8FB` / `#0E1116` — page background
 - `surfaceRaised`: `#FFFFFF` / `#171B22` — card/paper background
@@ -247,6 +253,18 @@ full-bleed backdrop zoomed to the visitor's country, countries tinted by
   width from the glyph count (SVG has no render-time metrics; RN only reports a
   width after layout), erring generous: over-estimating reserves space that was
   not needed, under-estimating puts two names back on top of each other.
+- **The map's accent is `brandLogo`, not `brandPrimary` (web + mobile).** Every
+  other surface renders the brand as a control — a button, a chip, a 6px accent
+  bar — where a deep, high-contrast blue is right. This one renders it as a large
+  field of color: whole countries filled at up to 90% opacity, with city names
+  and a badge on top of them. `brandPrimary` at that size reads as a block of
+  ink rather than as the brand. One consequence: the "+N today" badge can no
+  longer take `getContrastText`, which answers white — MUI's default
+  `contrastThreshold` is 3 and white on the logo blue is 3.15:1, enough to win
+  that check and not enough for an 11px number. It picks between the two surface
+  tokens by measured ratio instead (ink at 5.9:1 light, the panel tone at 5.5:1
+  dark). Deepening the color the way `status.lost`/`status.found` did is not
+  available here: being the logo's exact blue is the point.
 - **Depth, not a different palette (web only).** The map read as flat, and the
   activity fill ramp had already been re-tuned twice and reverted both times, so
   the fix is light rather than color: the focus country gets a blurred brand halo
