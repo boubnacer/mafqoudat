@@ -247,6 +247,33 @@ full-bleed backdrop zoomed to the visitor's country, countries tinted by
   width from the glyph count (SVG has no render-time metrics; RN only reports a
   width after layout), erring generous: over-estimating reserves space that was
   not needed, under-estimating puts two names back on top of each other.
+- **Depth, not a different palette (web only).** The map read as flat, and the
+  activity fill ramp had already been re-tuned twice and reverted both times, so
+  the fix is light rather than color: the focus country gets a blurred brand halo
+  **masked out of its own shape** (unmasked, the silhouette sits under the
+  country's translucent activity fill and doubles its saturation — which would
+  quietly re-tune the ramp), the city dots and "+N today" badges share **one**
+  `feDropShadow` group each, and the four edges dissolve into the container's
+  `surfaceBase` via a two-axis linear-gradient overlay. The shadow filter is
+  deliberately kept off the countries group: that group re-renders on hover, and
+  a filter over the whole world's geometry re-rasterizes all of it on every
+  pointer move. The edge fade is an overlay on the visible window, not a CSS mask
+  on the map layer — that layer is oversized and offset (165% wide / 271% tall),
+  so a fade in its own coordinate space lands mostly off-screen; and it is two
+  per-axis gradients rather than one radial, because the desktop crop lands the
+  country ~75% across, where a centred vignette would dim the subject. SVG filter
+  ids are `useId`-suffixed (`:` stripped — React's id is not a legal selector)
+  since the hero and a Dash header can both be mounted. Not mirrored to mobile:
+  `react-native-svg` has no filter support.
+- **Cities with a post today pulse a ring**, and only those — the same condition
+  the "+N today" badge uses, so the motion carries data the map already shows
+  instead of giving every dot a heartbeat it has not earned. Local GSAP in the
+  component rather than a `data-reveal` attribute for `useDashboardMotion` to
+  find, because `WelcomePage` mounts this map too and never runs that hook.
+  Reduced motion is the usual `gsap.matchMedia("(prefers-reduced-motion:
+  no-preference)")` wrapper, and the ring's resting state is `opacity="0"` as a
+  presentation attribute, so a visitor for whom no tween is ever created sees
+  nothing rather than a ring frozen around a dot.
 - **Urban areas are a wash, and never a data layer.** They are drawn under the
   borders in flat `alpha(ink, …)` and say "people live here"; the city dots,
   which are the only thing on this map carrying real numbers, must always
