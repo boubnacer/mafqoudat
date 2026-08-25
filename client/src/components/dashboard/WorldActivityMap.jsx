@@ -120,6 +120,26 @@ const WorldActivityMap = ({
   const sea = theme.custom.color.surfaceBase;
   const isDark = theme.palette.mode === "dark";
 
+  // Activity fill is a real two-stop color gradient (panel -> brand) rather
+  // than one hue at varying opacity: an alpha-only ramp goes muddy at the
+  // high end (it's really "brand over whatever's behind it," and this map
+  // has urban wash / subdivision lines / dots sitting on top), and it's the
+  // same flat blue at every level until the very top of the scale. Mixing
+  // toward panel keeps every step opaque and gives low-activity countries a
+  // paler, more legible step instead of a near-invisible tint.
+  const lerpColor = (hexA, hexB, t) => {
+    const a = parseInt(hexA.replace("#", ""), 16);
+    const b = parseInt(hexB.replace("#", ""), 16);
+    const mix = (shift) => {
+      const av = (a >> shift) & 255;
+      const bv = (b >> shift) & 255;
+      return Math.round(av + (bv - av) * t);
+    };
+    return `rgb(${mix(16)}, ${mix(8)}, ${mix(0)})`;
+  };
+  const activityLowStop = lerpColor(panel, brand, 0.16);
+  const activityFill = (t) => lerpColor(activityLowStop, brand, Math.min(1, Math.max(0, t)));
+
   useEffect(() => {
     let cancelled = false;
     Promise.all([import("../../data/worldMap.topo.json"), import("topojson-client")]).then(
@@ -286,9 +306,8 @@ const WorldActivityMap = ({
           geographies.map((geo) => {
             const entry = activityByNumericId.get(geo.id);
             const isCurrent = geo.id === currentNumericId;
-            const baseFill = entry
-              ? alpha(brand, 0.22 + (entry.count / maxCount) * 0.68)
-              : alpha(ink, isDark ? 0.14 : 0.08);
+            const activityRatio = entry ? entry.count / maxCount : 0;
+            const baseFill = entry ? activityFill(activityRatio) : alpha(ink, isDark ? 0.14 : 0.08);
             return (
               <Geography
                 key={geo.rsmKey}
@@ -301,7 +320,7 @@ const WorldActivityMap = ({
                     outline: "none",
                   },
                   hover: {
-                    fill: entry ? alpha(brand, 0.9) : alpha(ink, isDark ? 0.22 : 0.16),
+                    fill: entry ? activityFill(Math.min(1, activityRatio + 0.25)) : alpha(ink, isDark ? 0.22 : 0.16),
                     stroke: isCurrent ? brand : alpha(panel, isDark ? 0.4 : 0.8),
                     strokeWidth: isCurrent ? 1.6 : 0.5,
                     outline: "none",
@@ -333,8 +352,8 @@ const WorldActivityMap = ({
         <path
           d={subdivisionsPath}
           fill="none"
-          stroke={alpha(panel, isDark ? 0.35 : 0.7)}
-          strokeWidth={0.4}
+          stroke={alpha(panel, isDark ? 0.16 : 0.3)}
+          strokeWidth={0.35}
           strokeLinejoin="round"
           pointerEvents="none"
         />
