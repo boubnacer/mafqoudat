@@ -11,6 +11,16 @@ export const fontFamilies = {
 
 export const colorTokens = {
   brandPrimary: { light: '#1B4DFF', dark: '#5B7FFF' },
+  // The blue the logo itself is drawn in (public/maflogoSVG.svg,
+  // public/maficonSVG.svg), which is also the pre-Phase-1 palette.secondary.main
+  // still sitting in theme.js and mobile's legacy `primary`. Same value in both
+  // modes, exactly as those are: it is light enough to read on the dark surfaces
+  // and saturated enough to read on the light ones, so unlike brandPrimary it
+  // needs no lightened dark-mode twin. Used by the world activity map, which is
+  // the one surface that renders the brand as a large field of color rather than
+  // as a control — see WorldActivityMap.jsx for why it takes this over
+  // brandPrimary.
+  brandLogo: { light: '#3498DB', dark: '#3498DB' },
   ink: { light: '#0B1220', dark: '#EDEFF5' },
   surfaceBase: { light: '#F7F8FB', dark: '#0E1116' },
   surfaceRaised: { light: '#FFFFFF', dark: '#171B22' },
@@ -65,6 +75,7 @@ export const resolveDesignTokens = (mode) => {
   return {
     color: {
       brandPrimary: colorTokens.brandPrimary[m],
+      brandLogo: colorTokens.brandLogo[m],
       ink: colorTokens.ink[m],
       surfaceBase: colorTokens.surfaceBase[m],
       surfaceRaised: colorTokens.surfaceRaised[m],
