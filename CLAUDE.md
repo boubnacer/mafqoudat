@@ -267,25 +267,30 @@ full-bleed backdrop zoomed to the visitor's country, countries tinted by
   available here: being the logo's exact blue is the point.
 - **Depth, not a different palette (web only).** The map read as flat, and the
   activity fill ramp had already been re-tuned twice and reverted both times, so
-  the fix is light rather than color: the focus country gets a blurred brand halo
-  **masked out of its own shape** (unmasked, the silhouette sits under the
-  country's translucent activity fill and doubles its saturation — which would
-  quietly re-tune the ramp), the city dots and "+N today" badges share **one**
-  `feDropShadow` group each, and the four edges dissolve into the container's
-  `surfaceBase` via a two-axis linear-gradient overlay. The shadow filter is
-  deliberately kept off the countries group: that group re-renders on hover, and
-  a filter over the whole world's geometry re-rasterizes all of it on every
-  pointer move. The edge fade is an overlay on the visible window, not a CSS mask
-  on the map layer — that layer is oversized and offset (165% wide / 271% tall),
-  so a fade in its own coordinate space lands mostly off-screen; and it is two
-  per-axis gradients rather than one radial, because the desktop crop lands the
-  country ~75% across, where a centred vignette would dim the subject. SVG filter
-  ids are `useId`-suffixed (`:` stripped — React's id is not a legal selector)
-  since the hero and a Dash header can both be mounted. Not mirrored to mobile:
-  `react-native-svg` has no filter support.
+  the fix is light rather than color: the city dots and "+N today" badges share
+  **one** `feDropShadow` group each, and the four edges dissolve into the
+  container's `surfaceBase` via a two-axis linear-gradient overlay. The shadow
+  filter is deliberately kept off the countries group: that group re-renders on
+  hover, and a filter over the whole world's geometry re-rasterizes all of it on
+  every pointer move. The edge fade is an overlay on the visible window, not a
+  CSS mask on the map layer — that layer is oversized and offset (165% wide /
+  271% tall), so a fade in its own coordinate space lands mostly off-screen; and
+  it is two per-axis gradients rather than one radial, because the desktop crop
+  lands the country ~75% across, where a centred vignette would dim the subject.
+  The SVG filter id is `useId`-suffixed (`:` stripped — React's id is not a
+  legal selector) since the hero and a Dash header can both be mounted. Not
+  mirrored to mobile: `react-native-svg` has no filter support. An earlier
+  version of this pass also gave the focus country a blurred brand halo, masked
+  out of its own shape; it read as an extra wash of the already-bold logo blue
+  on top of the country's own fill and was dropped rather than tuned down.
 - **Cities with a post today pulse a ring**, and only those — the same condition
   the "+N today" badge uses, so the motion carries data the map already shows
-  instead of giving every dot a heartbeat it has not earned. Local GSAP in the
+  instead of giving every dot a heartbeat it has not earned. Stroked in `ink`
+  rather than `brandLogo` — the ring crosses whatever the activity fill happens
+  to be at that point, from a pale wash to the deep end of the ramp, and `ink`
+  is the one tone the map already relies on to stay legible over the whole
+  range (near-black in light mode, near-white in dark) rather than one more
+  blue that can disappear into a same-toned country. Local GSAP in the
   component rather than a `data-reveal` attribute for `useDashboardMotion` to
   find, because `WelcomePage` mounts this map too and never runs that hook.
   Reduced motion is the usual `gsap.matchMedia("(prefers-reduced-motion:

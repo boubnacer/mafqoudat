@@ -101,18 +101,18 @@ const badgeWidth = (label) => Math.max(26, label.length * 6.2 + 12);
 // no activity ramp, no stroke tone and no geometry changed, deliberately: the
 // fill ramp has been re-tuned twice before and reverted both times, so the
 // thing that made this map read as flat is addressed with light and depth
-// instead of by re-picking its colors.
+// instead of by re-picking its colors. (An earlier version of this pass also
+// gave the focus country a blurred brand halo; it read as an extra wash of the
+// already-bold logo blue on top of the country's own fill, so it was dropped
+// rather than tuned down — one bold blue on the map is enough.)
 //
-// Four additions, in the order the eye meets them:
-//   1. the focus country sits on a soft brand halo, so the country the visitor
-//      actually came to look at is the subject rather than one shape among 200
-//      distinguished only by a 1.6px stroke;
-//   2. dots and "+N today" badges cast a small shadow, so they float above the
+// Three additions, in the order the eye meets them:
+//   1. dots and "+N today" badges cast a small shadow, so they float above the
 //      country fill instead of being painted onto it;
-//   3. cities that got a post today pulse a slow ring out of their dot — this
+//   2. cities that got a post today pulse a slow ring out of their dot — this
 //      map's whole job is to say the platform is live right now, and a static
 //      dot cannot;
-//   4. the four edges dissolve into the container's own sea tone, so a
+//   3. the four edges dissolve into the container's own sea tone, so a
 //      full-bleed backdrop stops ending on a hard rectangular cut.
 
 // Radius the today-pulse ring travels to, and how long it takes.
@@ -151,14 +151,12 @@ const WorldActivityMap = ({
   const sea = theme.custom.color.surfaceBase;
   const isDark = theme.palette.mode === "dark";
 
-  // SVG filter ids and the pulse class are referenced by url(#…) and by a
+  // SVG filter id and the pulse class are referenced by url(#…) and by a
   // selector, and both are global to the document — WelcomePage's hero and a
   // Dash header could have a map mounted at once, and then one instance's
   // markers would resolve against the other's filter. React's useId is unique
   // per instance but returns ":r0:", which is not a legal CSS selector.
   const uid = useId().replace(/:/g, "");
-  const focusGlowId = `world-map-focus-glow-${uid}`;
-  const focusMaskId = `world-map-focus-mask-${uid}`;
   const markerShadowId = `world-map-marker-shadow-${uid}`;
   const pulseClass = `world-map-city-pulse-${uid}`;
   const containerRef = useRef(null);
@@ -319,13 +317,6 @@ const WorldActivityMap = ({
     () => (mapLayers?.urbanAreas ? mapPath(mapLayers.urbanAreas) : null),
     [mapLayers, mapPath]
   );
-  // The focus country again, as its own path: the countries layer already draws
-  // it, but the halo underneath has to be a separate node to be blurred without
-  // taking the fills and the strokes with it.
-  const focusPath = useMemo(
-    () => (currentFeature ? mapPath(currentFeature) : null),
-    [currentFeature, mapPath]
-  );
 
   // The today-pulse. Local GSAP rather than a data-attribute for
   // useDashboardMotion to find (the pattern the rest of /dash follows), because
@@ -378,27 +369,6 @@ const WorldActivityMap = ({
       style={{ width: "100%", height: "100%" }}
     >
       <defs>
-        {/* Halo behind the focus country. Blur only — the shape it blurs
-            carries the color, so one filter serves both modes. */}
-        <filter id={focusGlowId} x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation={isMobile ? 6 : 8} />
-        </filter>
-        {/* Punches the focus country out of its own halo, so the glow only ever
-            shows OUTSIDE the coastline. Without this the blurred silhouette
-            sits under the country's translucent activity fill and doubles its
-            saturation — which would quietly re-tune the activity ramp, the one
-            thing this pass is not touching. */}
-        <mask
-          id={focusMaskId}
-          maskUnits="userSpaceOnUse"
-          x="0"
-          y="0"
-          width={MAP_WIDTH}
-          height={mapHeight}
-        >
-          <rect x="0" y="0" width={MAP_WIDTH} height={mapHeight} fill="#fff" />
-          {focusPath && <path d={focusPath} fill="#000" />}
-        </mask>
         {/* One shadow shared by every marker that floats above the country
             fill. Kept off the countries group on purpose: that group re-renders
             on hover, and a filter over the whole world's geometry would make
@@ -413,27 +383,6 @@ const WorldActivityMap = ({
           />
         </filter>
       </defs>
-
-      {/* The focus country's own silhouette, blurred and then masked back out
-          of itself, under everything: what is left is a soft brand halo hugging
-          the outside of its coastline, so the country the visitor came to look
-          at reads as the subject of the map rather than as one shape among 200
-          distinguished only by a slightly thicker outline. Both properties on
-          one node — SVG applies the filter first and the mask second, which is
-          the order this needs. The neighbours drawn on top of the halo are
-          translucent fills, so it carries under them the way light carries
-          through paper. */}
-      {focusPath && (
-        <g pointerEvents="none" filter={`url(#${focusGlowId})`} mask={`url(#${focusMaskId})`}>
-          <path
-            d={focusPath}
-            fill={alpha(brand, isDark ? 0.7 : 0.55)}
-            stroke={alpha(brand, isDark ? 0.7 : 0.55)}
-            strokeWidth={6}
-            strokeLinejoin="round"
-          />
-        </g>
-      )}
 
       <Geographies geography={geoFeatures}>
         {({ geographies }) =>
@@ -547,10 +496,17 @@ const WorldActivityMap = ({
       {/* Rings pulsing out from under the dots of cities that got a post
           today — same condition as the "+N today" badge, so the motion is
           carrying data this map already shows rather than decorating every dot
-          with a heartbeat it hasn't earned. Rendered before the dots so the
-          ring emanates from beneath the pin, and started at opacity 0 so a
-          reduced-motion visitor (for whom no tween is ever created) sees
-          nothing at all rather than a stalled ring frozen around a dot. */}
+          with a heartbeat it hasn't earned. Stroked in ink rather than brand —
+          the same tone the marker shadow uses — because the ring crosses
+          whatever the country fill happens to be at that point (anywhere from
+          a pale wash to the deep end of the activity ramp), and ink is the one
+          tone this map already relies on to stay legible over both: near-black
+          in light mode, near-white in dark, so it reads against the fill
+          either way instead of a fixed blue disappearing into a same-toned
+          country. Rendered before the dots so the ring emanates from beneath
+          the pin, and started at opacity 0 so a reduced-motion visitor (for
+          whom no tween is ever created) sees nothing at all rather than a
+          stalled ring frozen around a dot. */}
       {cityMarkers.dots.map(({ city, x, y }, index) =>
         (city.todayCount || 0) > 0 ? (
           <circle
@@ -560,7 +516,7 @@ const WorldActivityMap = ({
             cy={y}
             r={CITY_DOT_RADIUS}
             fill="none"
-            stroke={brand}
+            stroke={ink}
             strokeWidth={1.5}
             opacity={0}
             pointerEvents="none"
