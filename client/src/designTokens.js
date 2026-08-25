@@ -60,26 +60,6 @@ export const elevationTokens = {
   },
 };
 
-// Neumorphic ("soft UI") inset shadow, web-only — used solely by the
-// dashboard Statistics section's Total/Returned stat cards (LeftSide.jsx's
-// TotalBox instances; the Found/Lost strip stayed on its plain elevation-
-// less treatment). Four inset shadows read as one dip: a wide soft pair
-// (dark bottom-right, light top-left) carries the overall bowl, and a
-// tighter, crisper pair right at the inner edge gives it a defined lip
-// instead of a uniform blur — the CSS analog of mobile's three-layer
-// NeumorphicSurface stack (theme/neumorphism.js, Phase 12), which needs
-// the extra layers only because React Native has no multi-shadow style.
-// Own token set rather than shared with mobile since the two platforms'
-// shadow primitives don't line up.
-export const neumorphicInsetTokens = {
-  light:
-    'inset 6px 6px 14px rgba(163, 170, 191, 0.45), inset -6px -6px 14px rgba(255, 255, 255, 0.95), ' +
-    'inset 2px 2px 4px rgba(163, 170, 191, 0.3), inset -2px -2px 4px rgba(255, 255, 255, 0.7)',
-  dark:
-    'inset 6px 6px 14px rgba(0, 0, 0, 0.65), inset -6px -6px 14px rgba(255, 255, 255, 0.05), ' +
-    'inset 2px 2px 4px rgba(0, 0, 0, 0.45), inset -2px -2px 4px rgba(255, 255, 255, 0.03)',
-};
-
 export const resolveDesignTokens = (mode) => {
   const m = mode === 'dark' ? 'dark' : 'light';
   return {
@@ -96,7 +76,6 @@ export const resolveDesignTokens = (mode) => {
     },
     radius: radiusTokens,
     elevation: elevationTokens[m],
-    neumorphicInset: neumorphicInsetTokens[m],
     font: fontFamilies,
   };
 };
