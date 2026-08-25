@@ -120,38 +120,6 @@ const WorldActivityMap = ({
   const sea = theme.custom.color.surfaceBase;
   const isDark = theme.palette.mode === "dark";
 
-  // Activity fill is a three-stop color gradient (pale panel tint -> brand
-  // -> a darkened brand peak) rather than one hue at varying opacity: an
-  // alpha-only ramp goes muddy at the high end (it's really "brand over
-  // whatever's behind it," and this map has urban wash / subdivision lines
-  // / dots sitting on top of it) and is nearly flat everywhere else. Two
-  // things widen the visible range here versus a plain panel->brand mix:
-  // starting well below brand (6%, not a token — panel and brand share the
-  // same blue channel in light mode, 0xFF, so a paler start is what actually
-  // separates low activity from the page instead of reading identical to
-  // it) and shading the peak toward black rather than capping at flat
-  // brand, which is the only way to add a step above brand itself in both
-  // light AND dark mode (mixing toward `ink` would brighten in dark mode,
-  // since ink flips to a near-white text color there).
-  const lerpColor = (hexA, hexB, t) => {
-    const a = parseInt(hexA.replace("#", ""), 16);
-    const b = parseInt(hexB.replace("#", ""), 16);
-    const mix = (shift) => {
-      const av = (a >> shift) & 255;
-      const bv = (b >> shift) & 255;
-      return Math.round(av + (bv - av) * t);
-    };
-    return `rgb(${mix(16)}, ${mix(8)}, ${mix(0)})`;
-  };
-  const activityLowStop = lerpColor(panel, brand, 0.06);
-  const activityPeakStop = lerpColor(brand, "#000000", 0.14);
-  const activityFill = (t) => {
-    const clamped = Math.min(1, Math.max(0, t));
-    return clamped <= 0.55
-      ? lerpColor(activityLowStop, brand, clamped / 0.55)
-      : lerpColor(brand, activityPeakStop, (clamped - 0.55) / 0.45);
-  };
-
   useEffect(() => {
     let cancelled = false;
     Promise.all([import("../../data/worldMap.topo.json"), import("topojson-client")]).then(
@@ -318,8 +286,9 @@ const WorldActivityMap = ({
           geographies.map((geo) => {
             const entry = activityByNumericId.get(geo.id);
             const isCurrent = geo.id === currentNumericId;
-            const activityRatio = entry ? entry.count / maxCount : 0;
-            const baseFill = entry ? activityFill(activityRatio) : alpha(ink, isDark ? 0.14 : 0.08);
+            const baseFill = entry
+              ? alpha(brand, 0.22 + (entry.count / maxCount) * 0.68)
+              : alpha(ink, isDark ? 0.14 : 0.08);
             return (
               <Geography
                 key={geo.rsmKey}
@@ -332,7 +301,7 @@ const WorldActivityMap = ({
                     outline: "none",
                   },
                   hover: {
-                    fill: entry ? activityFill(Math.min(1, activityRatio + 0.25)) : alpha(ink, isDark ? 0.22 : 0.16),
+                    fill: entry ? alpha(brand, 0.9) : alpha(ink, isDark ? 0.22 : 0.16),
                     stroke: isCurrent ? brand : alpha(panel, isDark ? 0.4 : 0.8),
                     strokeWidth: isCurrent ? 1.6 : 0.5,
                     outline: "none",
@@ -364,8 +333,8 @@ const WorldActivityMap = ({
         <path
           d={subdivisionsPath}
           fill="none"
-          stroke={alpha(panel, isDark ? 0.07 : 0.14)}
-          strokeWidth={0.3}
+          stroke={alpha(panel, isDark ? 0.35 : 0.7)}
+          strokeWidth={0.4}
           strokeLinejoin="round"
           pointerEvents="none"
         />
