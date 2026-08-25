@@ -272,7 +272,7 @@ const Dash = () => {
               />
             </Box>
           )}
-          <Box sx={{ position: 'relative', p: 2, display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+          <Box sx={{ position: 'relative', p: 2, display: 'grid', gridTemplateColumns: '1fr', gap: '36px' }}>
             <LeftSide
               totalFounds={data?.totalFounds}
               totalLosts={data?.totalLosts}
@@ -286,7 +286,12 @@ const Dash = () => {
                 renders behind this (and behind LeftSide) via the
                 absolutely-positioned layer above, panned/cropped to land
                 the country back in roughly this spot (see
-                WorldActivityMap's mobile crop math). */}
+                WorldActivityMap's mobile crop math). The grid gap above
+                (36px, up from 20px) is the breathing room between the
+                stats panel and the map beneath it — since the map is a
+                full-bleed backdrop stretched to the whole header's height,
+                widening this gap grows that height and pushes the map's
+                fixed-% crop further down relative to LeftSide. */}
             {!hasNoData && <Box sx={{ width: '100%', aspectRatio: '1 / 1', minHeight: 300 }} />}
           </Box>
         </Box>
