@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
+import { Box, Typography, useTheme, useMediaQuery, alpha, lighten } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../../utils/translations";
 import { useSelector } from "react-redux";
@@ -227,7 +227,7 @@ const QuickActions = () => {
         background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
         backdropFilter: 'blur(10px)',
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
-        boxShadow: 'none',
+        boxShadow: theme.custom.elevation.e2,
         padding: isMobile ? '1.5rem' : '2rem',
       }}
     >
@@ -268,7 +268,7 @@ const QuickActions = () => {
           gap: 1,
           borderRadius: `${theme.custom.radius.md}px`,
           backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.1 : 0.06),
-          boxShadow: 'none',
+          boxShadow: theme.custom.elevation.e1,
           p: { xs: 1.25, sm: 1.5 },
           mb: { xs: 2, sm: 2.5 },
         }}
@@ -287,123 +287,116 @@ const QuickActions = () => {
         </Typography>
       </Box>
 
-      {/* Primary pair — Report Lost / Report Found, one connected shape */}
+      {/* Primary pair — Report Lost / Report Found. Each is its own elevated
+          card (Post card DNA: surfaceRaised + borderInlineStart accent bar +
+          e1 -> e2 hover lift) rather than two tinted zones sharing one flat
+          strip, so the pair reads as the section's premium centerpiece. */}
       <Box
         sx={{
-          borderRadius: `${theme.custom.radius.lg}px`,
-          overflow: 'hidden',
-          boxShadow: 'none',
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: isRTLMode ? 'row-reverse' : 'row' },
+          gap: { xs: 1.5, sm: 2 },
         }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: isRTLMode ? 'row-reverse' : 'row' },
-          }}
-        >
-          {primaryActions.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <React.Fragment key={item.key}>
-                <Box
-                  data-reveal-item=""
-                  role="button"
-                  tabIndex={0}
-                  onClick={item.action}
-                  onKeyDown={(e) => handleKeyActivate(e, item.action)}
-                  onTouchStart={handleTouchStart}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    handleTouchEnd(e, item.action);
-                  }}
+        {primaryActions.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Box
+              key={item.key}
+              data-reveal-item=""
+              role="button"
+              tabIndex={0}
+              onClick={item.action}
+              onKeyDown={(e) => handleKeyActivate(e, item.action)}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                handleTouchEnd(e, item.action);
+              }}
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: { xs: 1.5, sm: 2 },
+                p: { xs: 2.5, sm: 3 },
+                cursor: 'pointer',
+                outline: 'none',
+                borderRadius: `${theme.custom.radius.lg}px`,
+                backgroundColor: theme.custom.color.surfaceRaised,
+                borderInlineStart: `6px solid ${item.tone.main}`,
+                boxShadow: theme.custom.elevation.e1,
+                transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+                '&:hover': {
+                  boxShadow: theme.custom.elevation.e2,
+                  transform: 'translateY(-4px)',
+                  '& .quick-action-arrow': {
+                    transform: isRTLMode ? 'translateX(-4px) scaleX(-1)' : 'translateX(4px)',
+                    opacity: 1,
+                  },
+                },
+                '&:focus-visible': {
+                  boxShadow: `${theme.custom.elevation.e2}, inset 0 0 0 2px ${alpha(item.tone.main, 0.6)}`,
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  flexShrink: 0,
+                  width: { xs: 52, sm: 60 },
+                  height: { xs: 52, sm: 60 },
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: `linear-gradient(135deg, ${item.tone.main} 0%, ${lighten(item.tone.main, 0.35)} 100%)`,
+                  boxShadow: theme.custom.elevation.e1,
+                }}
+              >
+                <Icon sx={{ fontSize: { xs: 26, sm: 30 }, color: theme.palette.getContrastText(item.tone.main) }} />
+              </Box>
+
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography
+                  variant="h6"
+                  fontWeight={700}
                   sx={{
-                    flex: 1,
-                    minWidth: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: { xs: 1.5, sm: 2 },
-                    p: { xs: 2.5, sm: 3 },
-                    cursor: 'pointer',
-                    outline: 'none',
-                    backgroundColor: alpha(item.tone.main, theme.palette.mode === 'dark' ? 0.07 : 0.045),
-                    transition: 'background-color 0.2s ease',
-                    '&:hover': {
-                      backgroundColor: alpha(item.tone.main, theme.palette.mode === 'dark' ? 0.16 : 0.09),
-                    },
-                    '&:focus-visible': {
-                      boxShadow: `inset 0 0 0 2px ${item.tone.main}`,
-                    },
+                    fontFamily: theme.custom.font.display,
+                    color: theme.custom.color.ink,
+                    fontSize: { xs: '1.05rem', sm: '1.15rem' },
+                    lineHeight: 1.3,
                   }}
                 >
-                  <Box
-                    sx={{
-                      flexShrink: 0,
-                      width: { xs: 52, sm: 60 },
-                      height: { xs: 52, sm: 60 },
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: item.tone.bg,
-                      border: `2px solid ${alpha(item.tone.main, 0.35)}`,
-                    }}
-                  >
-                    <Icon sx={{ fontSize: { xs: 26, sm: 30 }, color: item.tone.main }} />
-                  </Box>
+                  {item.title}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontFamily: theme.custom.font.body,
+                    color: alpha(theme.custom.color.ink, 0.65),
+                    fontSize: { xs: '0.82rem', sm: '0.88rem' },
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {item.description}
+                </Typography>
+              </Box>
 
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Typography
-                      variant="h6"
-                      fontWeight={700}
-                      sx={{
-                        fontFamily: theme.custom.font.display,
-                        color: theme.custom.color.ink,
-                        fontSize: { xs: '1.05rem', sm: '1.15rem' },
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {item.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontFamily: theme.custom.font.body,
-                        color: alpha(theme.custom.color.ink, 0.65),
-                        fontSize: { xs: '0.82rem', sm: '0.88rem' },
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {item.description}
-                    </Typography>
-                  </Box>
-
-                  <ArrowForwardIosRounded
-                    sx={{
-                      flexShrink: 0,
-                      fontSize: 16,
-                      color: item.tone.main,
-                      opacity: 0.55,
-                      transform: isRTLMode ? 'scaleX(-1)' : 'none',
-                    }}
-                  />
-                </Box>
-
-                {index === 0 && (
-                  <Box
-                    sx={{
-                      alignSelf: 'stretch',
-                      width: { xs: '100%', sm: '1px' },
-                      height: { xs: '1px', sm: 'auto' },
-                      backgroundColor: alpha(theme.custom.color.ink, 0.08),
-                      flexShrink: 0,
-                    }}
-                  />
-                )}
-              </React.Fragment>
-            );
-          })}
-        </Box>
+              <ArrowForwardIosRounded
+                className="quick-action-arrow"
+                sx={{
+                  flexShrink: 0,
+                  fontSize: 16,
+                  color: item.tone.main,
+                  opacity: 0.55,
+                  transform: isRTLMode ? 'scaleX(-1)' : 'none',
+                  transition: 'transform 0.25s ease, opacity 0.25s ease',
+                }}
+              />
+            </Box>
+          );
+        })}
       </Box>
 
       {/* Secondary actions — lighter weight, pill treatment */}
@@ -443,13 +436,16 @@ const QuickActions = () => {
                 outline: 'none',
                 border: `1.5px solid ${alpha(theme.custom.color.brandPrimary, 0.3)}`,
                 backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.1 : 0.05),
-                transition: 'all 0.2s ease',
+                boxShadow: theme.custom.elevation.e1,
+                transition: 'background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.25s ease, transform 0.25s ease',
                 '&:hover': {
                   backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.2 : 0.12),
                   borderColor: theme.custom.color.brandPrimary,
+                  boxShadow: theme.custom.elevation.e2,
+                  transform: 'translateY(-2px)',
                 },
                 '&:focus-visible': {
-                  boxShadow: `0 0 0 2px ${alpha(theme.custom.color.brandPrimary, 0.45)}`,
+                  boxShadow: `${theme.custom.elevation.e2}, 0 0 0 2px ${alpha(theme.custom.color.brandPrimary, 0.45)}`,
                 },
               }}
             >
