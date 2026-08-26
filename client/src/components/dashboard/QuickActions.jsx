@@ -27,6 +27,34 @@ const QuickActions = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isRTLMode = isRTL();
+  const isDark = theme.palette.mode === 'dark';
+
+  // Glassmorphism deviation, requested for this section only: frosted
+  // translucent panels over the colorful brand/status gradient below need a
+  // hairline light border + top highlight to read as glass, which is why
+  // this component (unlike the rest of the app) keeps borders on its
+  // containers — Phase 8's border removal doesn't apply here by request.
+  const white = theme.palette.common.white;
+  // Frosted glass tint/border/shadow shared by every panel in this section.
+  const glassPanel = (radius) => ({
+    position: 'relative',
+    backgroundColor: alpha(white, isDark ? 0.08 : 0.22),
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: `1px solid ${alpha(white, isDark ? 0.16 : 0.4)}`,
+    borderRadius: `${radius}px`,
+    boxShadow: theme.custom.elevation.e2,
+    overflow: 'hidden',
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      insetInlineStart: 0,
+      insetInlineEnd: 0,
+      top: 0,
+      height: '1px',
+      background: `linear-gradient(90deg, transparent, ${alpha(white, 0.85)}, transparent)`,
+    },
+  });
 
   // Touch handling state — distinguishes a tap from a scroll gesture so
   // scrolling past this section on mobile doesn't accidentally fire a
@@ -224,10 +252,9 @@ const QuickActions = () => {
       sx={{
         mb: 4,
         mx: { xs: 1, sm: 2 },
-        background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
-        backdropFilter: 'blur(10px)',
+        background: `linear-gradient(135deg, ${alpha(theme.custom.color.brandPrimary, isDark ? 0.85 : 0.92)} 0%, ${alpha(theme.custom.status.found.main, isDark ? 0.8 : 0.85)} 50%, ${alpha(theme.custom.status.lost.main, isDark ? 0.8 : 0.85)} 100%)`,
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
-        boxShadow: 'none',
+        boxShadow: theme.custom.elevation.e3,
         padding: isMobile ? '1.5rem' : '2rem',
       }}
     >
@@ -239,7 +266,8 @@ const QuickActions = () => {
           sx={{
             fontFamily: theme.custom.font.display,
             fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
-            color: theme.custom.color.ink,
+            color: white,
+            textShadow: `0 1px 12px ${alpha('#000000', 0.25)}`,
             mb: 1,
           }}
         >
@@ -249,7 +277,7 @@ const QuickActions = () => {
           variant="body1"
           sx={{
             fontFamily: theme.custom.font.body,
-            color: alpha(theme.custom.color.ink, 0.65),
+            color: alpha(white, 0.85),
             fontSize: { xs: '0.9rem', sm: '1rem' },
             maxWidth: 520,
             mx: 'auto',
@@ -263,22 +291,20 @@ const QuickActions = () => {
           same item by another user */}
       <Box
         sx={{
+          ...glassPanel(theme.custom.radius.md),
           display: 'flex',
           alignItems: 'flex-start',
           gap: 1,
-          borderRadius: `${theme.custom.radius.md}px`,
-          backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.1 : 0.06),
-          boxShadow: 'none',
           p: { xs: 1.25, sm: 1.5 },
           mb: { xs: 2, sm: 2.5 },
         }}
       >
-        <InfoOutlined sx={{ fontSize: 20, color: theme.custom.color.brandPrimary, flexShrink: 0, mt: '1px' }} />
+        <InfoOutlined sx={{ fontSize: 20, color: white, flexShrink: 0, mt: '1px' }} />
         <Typography
           variant="body2"
           sx={{
             fontFamily: theme.custom.font.body,
-            color: alpha(theme.custom.color.ink, 0.8),
+            color: alpha(white, 0.9),
             fontSize: { xs: '0.82rem', sm: '0.88rem' },
             lineHeight: 1.4,
           }}
@@ -288,13 +314,7 @@ const QuickActions = () => {
       </Box>
 
       {/* Primary pair — Report Lost / Report Found, one connected shape */}
-      <Box
-        sx={{
-          borderRadius: `${theme.custom.radius.lg}px`,
-          overflow: 'hidden',
-          boxShadow: 'none',
-        }}
-      >
+      <Box sx={glassPanel(theme.custom.radius.lg)}>
         <Box
           sx={{
             display: 'flex',
@@ -326,13 +346,13 @@ const QuickActions = () => {
                     p: { xs: 2.5, sm: 3 },
                     cursor: 'pointer',
                     outline: 'none',
-                    backgroundColor: alpha(item.tone.main, theme.palette.mode === 'dark' ? 0.07 : 0.045),
+                    backgroundColor: 'transparent',
                     transition: 'background-color 0.2s ease',
                     '&:hover': {
-                      backgroundColor: alpha(item.tone.main, theme.palette.mode === 'dark' ? 0.16 : 0.09),
+                      backgroundColor: alpha(white, isDark ? 0.06 : 0.14),
                     },
                     '&:focus-visible': {
-                      boxShadow: `inset 0 0 0 2px ${item.tone.main}`,
+                      boxShadow: `inset 0 0 0 2px ${alpha(white, 0.7)}`,
                     },
                   }}
                 >
@@ -358,7 +378,7 @@ const QuickActions = () => {
                       fontWeight={700}
                       sx={{
                         fontFamily: theme.custom.font.display,
-                        color: theme.custom.color.ink,
+                        color: white,
                         fontSize: { xs: '1.05rem', sm: '1.15rem' },
                         lineHeight: 1.3,
                       }}
@@ -369,7 +389,7 @@ const QuickActions = () => {
                       variant="body2"
                       sx={{
                         fontFamily: theme.custom.font.body,
-                        color: alpha(theme.custom.color.ink, 0.65),
+                        color: alpha(white, 0.8),
                         fontSize: { xs: '0.82rem', sm: '0.88rem' },
                         lineHeight: 1.4,
                       }}
@@ -382,8 +402,8 @@ const QuickActions = () => {
                     sx={{
                       flexShrink: 0,
                       fontSize: 16,
-                      color: item.tone.main,
-                      opacity: 0.55,
+                      color: white,
+                      opacity: 0.75,
                       transform: isRTLMode ? 'scaleX(-1)' : 'none',
                     }}
                   />
@@ -395,7 +415,7 @@ const QuickActions = () => {
                       alignSelf: 'stretch',
                       width: { xs: '100%', sm: '1px' },
                       height: { xs: '1px', sm: 'auto' },
-                      backgroundColor: alpha(theme.custom.color.ink, 0.08),
+                      backgroundColor: alpha(white, 0.25),
                       flexShrink: 0,
                     }}
                   />
@@ -433,33 +453,32 @@ const QuickActions = () => {
                 handleTouchEnd(e, item.action);
               }}
               sx={{
+                ...glassPanel(999),
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 1,
                 px: { xs: 2, sm: 2.5 },
                 py: { xs: 1, sm: 1.15 },
-                borderRadius: '999px',
                 cursor: 'pointer',
                 outline: 'none',
-                border: `1.5px solid ${alpha(theme.custom.color.brandPrimary, 0.3)}`,
-                backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.1 : 0.05),
+                boxShadow: theme.custom.elevation.e1,
                 transition: 'all 0.2s ease',
                 '&:hover': {
-                  backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.2 : 0.12),
-                  borderColor: theme.custom.color.brandPrimary,
+                  backgroundColor: alpha(white, isDark ? 0.14 : 0.32),
+                  boxShadow: theme.custom.elevation.e2,
                 },
                 '&:focus-visible': {
-                  boxShadow: `0 0 0 2px ${alpha(theme.custom.color.brandPrimary, 0.45)}`,
+                  boxShadow: `0 0 0 2px ${alpha(white, 0.7)}`,
                 },
               }}
             >
-              <Icon sx={{ fontSize: 18, color: theme.custom.color.brandPrimary }} />
+              <Icon sx={{ fontSize: 18, color: white }} />
               <Typography
                 sx={{
                   fontFamily: theme.custom.font.body,
                   fontWeight: 600,
                   fontSize: { xs: '0.85rem', sm: '0.9rem' },
-                  color: theme.custom.color.brandPrimary,
+                  color: white,
                   whiteSpace: 'nowrap',
                 }}
               >
