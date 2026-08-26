@@ -319,6 +319,23 @@ const LeftSide = ({
     navigate('/dash/posts?status=returned');
   };
 
+  // Same glass-blob family as QuickActions/Categories, at a fraction of
+  // their strength — this panel is already only 14%-opaque so the map shows
+  // through it, so a single very faint brandPrimary blob is enough to tie it
+  // into the family without competing with the map's own colors underneath
+  // or the stat numbers' legibility on top.
+  const statsBlob = {
+    position: 'absolute',
+    width: 240,
+    height: 240,
+    borderRadius: '50%',
+    background: `radial-gradient(circle, ${alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.14 : 0.1)} 0%, ${alpha(theme.custom.color.brandPrimary, 0)} 70%)`,
+    filter: 'blur(20px)',
+    pointerEvents: 'none',
+    top: -90,
+    insetInlineStart: -70,
+  };
+
   return (
     <Box
       data-reveal="hero"
@@ -329,6 +346,8 @@ const LeftSide = ({
         // actually shows through, with a heavier blur (10px -> 18px) so the
         // busier map detail behind it doesn't fight with the stat numbers'
         // legibility.
+        position: 'relative',
+        overflow: 'hidden',
         background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.14)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.14)} 100%)`,
         backdropFilter: 'blur(18px)',
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
@@ -340,11 +359,15 @@ const LeftSide = ({
         minWidth: 0, // Allow shrinking if needed
       }}
     >
+      <Box sx={statsBlob} />
+
       {/* Title Section */}
-      <Box 
+      <Box
         data-reveal-item=""
         mb={isMobile ? 2 : 3}
         sx={{
+          position: 'relative',
+          zIndex: 1,
           textAlign: 'center',
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
         }}
@@ -367,6 +390,8 @@ const LeftSide = ({
       <Box
         gap={isMobile ? "1rem" : "1.5rem"}
         sx={{
+          position: 'relative',
+          zIndex: 1,
           display: "grid",
           gridTemplateColumns: "repeat(2, 1fr)",
           alignItems: "stretch",
