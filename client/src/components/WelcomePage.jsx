@@ -108,22 +108,13 @@ const SurfaceCard = styled(Box)(({ theme }) => ({
 // treatment in Dash.js). Lower opacity than a plain SurfaceCard so the map
 // actually reads through behind it — the heavy blur (18px) smooths the
 // busy multi-colored map into a soft wash first, which is what keeps the
-// headline/paragraph/input stack legible even at this opacity. Full frosted-
-// glass recipe (hairline border + inset top-edge highlight, both in white
-// rather than `ink` since they're standing in for light catching a glass
-// edge, not a themed UI border) layered on top of the existing blur/shadow —
-// a deliberate, scoped exception to the platform's no-border-on-containers
-// rule, since a border is load-bearing for the glass effect itself here.
-const HeroGlassPanel = styled(Box)(({ theme }) => {
-  const isDark = theme.palette.mode === "dark";
-  return {
-    background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.3)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.3)} 100%)`,
-    backdropFilter: "blur(18px)",
-    borderRadius: theme.custom.radius.xl,
-    border: `1px solid ${alpha("#fff", isDark ? 0.14 : 0.45)}`,
-    boxShadow: `inset 0 1px 0 ${alpha("#fff", isDark ? 0.18 : 0.6)}, ${theme.custom.elevation.e2}`,
-  };
-});
+// headline/paragraph/input stack legible even at this opacity.
+const HeroGlassPanel = styled(Box)(({ theme }) => ({
+  background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.3)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.3)} 100%)`,
+  backdropFilter: "blur(18px)",
+  borderRadius: theme.custom.radius.xl,
+  boxShadow: theme.custom.elevation.e2,
+}));
 
 // A fanned "hand of cards" stack — each card tilted outward from the center
 // card by getFanGeometry() below. Deliberately not a new bespoke card DNA:
