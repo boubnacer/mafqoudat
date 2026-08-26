@@ -10,15 +10,16 @@ import {
   TaskAltOutlined,
   SearchOffOutlined,
   Search,
-  HelpOutline,
   ArrowForwardIosRounded,
   InfoOutlined,
 } from "@mui/icons-material";
 
 // Report Lost / Report Found render as two independent buttons (own
 // fill/border/elevation each, status-toned) rather than one merged panel —
-// they need to read as pressable buttons, not a list row. Search/Help are
-// secondary, lower-weight actions and sit below as pills.
+// they need to read as pressable buttons, not a list row. Search Items is
+// folded into the "browse before you post" nudge above them, since that's
+// the action the nudge is asking for; Get Help was dropped from this
+// section entirely.
 const QuickActions = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -133,108 +134,6 @@ const QuickActions = () => {
     }
   };
 
-  const scrollToHelpSection = () => {
-    const helpSection = document.querySelector('[data-section="help"]');
-
-    if (helpSection) {
-      if (isMobile) {
-        const navbar = document.querySelector('.MuiAppBar-root');
-        const navbarHeight = navbar ? navbar.offsetHeight : 0;
-        const elementRect = helpSection.getBoundingClientRect();
-        const absoluteElementTop = elementRect.top + window.pageYOffset;
-        const scrollPosition = absoluteElementTop - navbarHeight - 20;
-        const finalScrollPosition = Math.max(0, scrollPosition);
-        const isRealMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-        if (isRealMobile) {
-          try {
-            helpSection.focus();
-          } catch (e) {
-            // ignore focus failures on unsupported elements
-          }
-
-          try {
-            window.scrollTo(0, finalScrollPosition);
-            document.documentElement.scrollTop = finalScrollPosition;
-            document.body.scrollTop = finalScrollPosition;
-            const mainContainer = document.querySelector('main');
-            if (mainContainer) mainContainer.scrollTop = finalScrollPosition;
-            helpSection.scrollIntoView({ behavior: 'instant', block: 'start', inline: 'nearest' });
-          } catch (error) {
-            // ignore, best-effort scroll
-          }
-        } else {
-          try {
-            helpSection.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-            setTimeout(() => {
-              const currentScroll = window.pageYOffset;
-              if (Math.abs(currentScroll - finalScrollPosition) > 100) {
-                const startPosition = window.pageYOffset;
-                const distance = finalScrollPosition - startPosition;
-                const duration = 500;
-                let startTime = null;
-                const animateScroll = (currentTime) => {
-                  if (startTime === null) startTime = currentTime;
-                  const timeElapsed = currentTime - startTime;
-                  const progress = Math.min(timeElapsed / duration, 1);
-                  const easeOut = 1 - Math.pow(1 - progress, 3);
-                  const currentPosition = startPosition + (distance * easeOut);
-                  window.scrollTo(0, currentPosition);
-                  document.documentElement.scrollTop = currentPosition;
-                  document.body.scrollTop = currentPosition;
-                  if (progress < 1) requestAnimationFrame(animateScroll);
-                };
-                requestAnimationFrame(animateScroll);
-              }
-            }, 300);
-          } catch (error) {
-            window.scrollTo(0, finalScrollPosition);
-            document.documentElement.scrollTop = finalScrollPosition;
-            document.body.scrollTop = finalScrollPosition;
-          }
-        }
-      } else {
-        helpSection.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-      }
-    } else {
-      const helpElements = document.querySelectorAll('*');
-      let foundElement = null;
-      for (let element of helpElements) {
-        if (element.textContent && element.textContent.includes('Help & Support')) {
-          foundElement = element;
-          break;
-        }
-      }
-      if (foundElement) {
-        if (isMobile) {
-          const navbar = document.querySelector('.MuiAppBar-root');
-          const navbarHeight = navbar ? navbar.offsetHeight : 0;
-          const elementRect = foundElement.getBoundingClientRect();
-          const absoluteElementTop = elementRect.top + window.pageYOffset;
-          const scrollPosition = absoluteElementTop - navbarHeight - 20;
-          const finalScrollPosition = Math.max(0, scrollPosition);
-          try {
-            window.scrollTo({ top: finalScrollPosition, behavior: 'smooth' });
-            setTimeout(() => {
-              if (Math.abs(window.pageYOffset - finalScrollPosition) > 50) {
-                window.scrollTo(0, finalScrollPosition);
-              }
-            }, 100);
-            setTimeout(() => {
-              if (Math.abs(window.pageYOffset - finalScrollPosition) > 50) {
-                document.documentElement.scrollTop = finalScrollPosition;
-              }
-            }, 200);
-          } catch (error) {
-            window.scrollTo(0, finalScrollPosition);
-          }
-        } else {
-          foundElement.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-        }
-      }
-    }
-  };
-
   const primaryActions = [
     {
       key: 'lost',
@@ -254,20 +153,7 @@ const QuickActions = () => {
     },
   ];
 
-  const secondaryActions = [
-    {
-      key: 'search',
-      title: t('searchItems'),
-      icon: Search,
-      action: () => navigate('/dash/posts'),
-    },
-    {
-      key: 'help',
-      title: t('getHelp'),
-      icon: HelpOutline,
-      action: scrollToHelpSection,
-    },
-  ];
+  const goToSearch = () => navigate('/dash/posts');
 
   return (
     <Box
@@ -317,29 +203,83 @@ const QuickActions = () => {
         </Box>
 
         {/* Nudge to search before posting — avoids duplicate reports of the
-            same item by another user */}
+            same item by another user. Search Items sits right beside the
+            nudge it acts on, instead of as a separate pill below the primary
+            buttons. */}
         <Box
           sx={{
             ...glassPanel(theme.custom.radius.md),
             display: 'flex',
-            alignItems: 'flex-start',
-            gap: 1,
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: { xs: 1.25, sm: 1.5 },
             p: { xs: 1.25, sm: 1.5 },
             mb: { xs: 2, sm: 2.5 },
           }}
         >
-          <InfoOutlined sx={{ fontSize: 20, color: brandPrimary, flexShrink: 0, mt: '1px' }} />
-          <Typography
-            variant="body2"
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, flex: '1 1 220px', minWidth: 0 }}>
+            <InfoOutlined sx={{ fontSize: 20, color: brandPrimary, flexShrink: 0, mt: '1px' }} />
+            <Typography
+              variant="body2"
+              sx={{
+                fontFamily: theme.custom.font.body,
+                color: alpha(ink, 0.8),
+                fontSize: { xs: '0.82rem', sm: '0.88rem' },
+                lineHeight: 1.4,
+              }}
+            >
+              {t('browseBeforePostTip')}
+            </Typography>
+          </Box>
+
+          <Box
+            data-reveal-item=""
+            role="button"
+            tabIndex={0}
+            onClick={goToSearch}
+            onKeyDown={(e) => handleKeyActivate(e, goToSearch)}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              handleTouchEnd(e, goToSearch);
+            }}
             sx={{
-              fontFamily: theme.custom.font.body,
-              color: alpha(ink, 0.8),
-              fontSize: { xs: '0.82rem', sm: '0.88rem' },
-              lineHeight: 1.4,
+              flexShrink: 0,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.75,
+              px: { xs: 1.75, sm: 2 },
+              py: { xs: 0.75, sm: 0.85 },
+              borderRadius: '999px',
+              backgroundColor: brandPrimary,
+              cursor: 'pointer',
+              outline: 'none',
+              boxShadow: theme.custom.elevation.e1,
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              '&:hover': {
+                boxShadow: theme.custom.elevation.e2,
+                transform: 'translateY(-2px)',
+              },
+              '&:focus-visible': {
+                boxShadow: `0 0 0 2px ${alpha(white, 0.6)}`,
+              },
             }}
           >
-            {t('browseBeforePostTip')}
-          </Typography>
+            <Search sx={{ fontSize: 18, color: white }} />
+            <Typography
+              sx={{
+                fontFamily: theme.custom.font.body,
+                fontWeight: 600,
+                fontSize: { xs: '0.8rem', sm: '0.85rem' },
+                color: white,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {t('searchItems')}
+            </Typography>
+          </Box>
         </Box>
 
         {/* Primary pair — Report Lost / Report Found, split into two
@@ -444,68 +384,6 @@ const QuickActions = () => {
                     transform: isRTLMode ? 'scaleX(-1)' : 'none',
                   }}
                 />
-              </Box>
-            );
-          })}
-        </Box>
-
-        {/* Secondary actions — lighter weight, pill treatment */}
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            gap: { xs: 1.25, sm: 1.5 },
-            mt: { xs: 2.5, sm: 3 },
-          }}
-        >
-          {secondaryActions.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Box
-                key={item.key}
-                data-reveal-item=""
-                role="button"
-                tabIndex={0}
-                onClick={item.action}
-                onKeyDown={(e) => handleKeyActivate(e, item.action)}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  handleTouchEnd(e, item.action);
-                }}
-                sx={{
-                  ...glassPanel(999),
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: { xs: 2, sm: 2.5 },
-                  py: { xs: 1, sm: 1.15 },
-                  cursor: 'pointer',
-                  outline: 'none',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    backgroundColor: alpha(brandPrimary, isDark ? 0.22 : 0.12),
-                    boxShadow: theme.custom.elevation.e2,
-                  },
-                  '&:focus-visible': {
-                    boxShadow: `0 0 0 2px ${alpha(brandPrimary, 0.5)}`,
-                  },
-                }}
-              >
-                <Icon sx={{ fontSize: 18, color: brandPrimary }} />
-                <Typography
-                  sx={{
-                    fontFamily: theme.custom.font.body,
-                    fontWeight: 600,
-                    fontSize: { xs: '0.85rem', sm: '0.9rem' },
-                    color: brandPrimary,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {item.title}
-                </Typography>
               </Box>
             );
           })}
