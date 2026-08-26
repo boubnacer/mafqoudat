@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, useTheme, useMediaQuery, alpha, lighten } from "@mui/material";
+import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../../utils/translations";
 import { useSelector } from "react-redux";
@@ -28,22 +28,31 @@ const QuickActions = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isRTLMode = isRTL();
   const isDark = theme.palette.mode === 'dark';
-
-  // Glassmorphism deviation, requested for this section only: frosted
-  // translucent panels over the colorful brand/status gradient below need a
-  // hairline light border + top highlight to read as glass, which is why
-  // this component (unlike the rest of the app) keeps borders on its
-  // containers — Phase 8's border removal doesn't apply here by request.
+  const { surfaceRaised, ink, brandPrimary, brandLogo } = theme.custom.color;
   const white = theme.palette.common.white;
-  // Frosted glass tint/border/shadow shared by every panel in this section.
+
+  // Glassmorphism, requested for this section only: the outer shell keeps
+  // the same alpha(surfaceRaised, 0.95) + blur(10px) wash every other
+  // dashboard panel uses (RecentSection/Process/HelpSupportSection/LeftSide)
+  // so it still reads as "one of this page's panels" rather than a
+  // differently-colored block — the earlier version painted the whole
+  // section in a solid brand-blue gradient instead, which is what stood out
+  // against its neutral siblings. The "colorful background" the glass
+  // panels float over is now two soft, blurred brand-color blobs tucked
+  // behind the content (contained by the shell's own rounded corners), and
+  // the frosted panels themselves tint off surfaceRaised/brandPrimary
+  // rather than raw white, so their text stays the site's normal ink color
+  // instead of the white needed against the old vivid backdrop. Phase 8's
+  // border removal still doesn't apply to these panels — a hairline edge is
+  // what makes them read as glass.
   const glassPanel = (radius) => ({
     position: 'relative',
-    backgroundColor: alpha(white, isDark ? 0.08 : 0.22),
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
-    border: `1px solid ${alpha(white, isDark ? 0.16 : 0.4)}`,
+    backgroundColor: alpha(surfaceRaised, isDark ? 0.55 : 0.7),
+    backdropFilter: 'blur(14px)',
+    WebkitBackdropFilter: 'blur(14px)',
+    border: `1px solid ${alpha(brandPrimary, isDark ? 0.28 : 0.18)}`,
     borderRadius: `${radius}px`,
-    boxShadow: theme.custom.elevation.e2,
+    boxShadow: theme.custom.elevation.e1,
     overflow: 'hidden',
     '&::before': {
       content: '""',
@@ -52,8 +61,23 @@ const QuickActions = () => {
       insetInlineEnd: 0,
       top: 0,
       height: '1px',
-      background: `linear-gradient(90deg, transparent, ${alpha(white, 0.85)}, transparent)`,
+      background: `linear-gradient(90deg, transparent, ${alpha(white, isDark ? 0.3 : 0.75)}, transparent)`,
     },
+  });
+
+  // Soft blurred color blobs behind the glass panels — the "colorful
+  // background" the frosted look needs, kept low-opacity and clipped to the
+  // section's own rounded corners so it reads as a subtle accent, not a
+  // loud block that clashes with the neutral panels around it.
+  const blob = (color, position) => ({
+    position: 'absolute',
+    width: 280,
+    height: 280,
+    borderRadius: '50%',
+    background: `radial-gradient(circle, ${alpha(color, isDark ? 0.3 : 0.22)} 0%, ${alpha(color, 0)} 70%)`,
+    filter: 'blur(20px)',
+    pointerEvents: 'none',
+    ...position,
   });
 
   // Touch handling state — distinguishes a tap from a scroll gesture so
@@ -250,248 +274,249 @@ const QuickActions = () => {
     <Box
       data-reveal="section"
       sx={{
+        position: 'relative',
+        overflow: 'hidden',
         mb: 4,
         mx: { xs: 1, sm: 2 },
-        // Brand-blue gradient — the app's own primary + the logo's exact
-        // blue (brandLogo, same value used by WorldActivityMap for the same
-        // reason: it's the one color that IS the brand rather than a status
-        // tone) — instead of mixing in the found/lost status colors, which
-        // read as a random clash rather than "this site's" gradient.
-        background: `linear-gradient(135deg, ${alpha(theme.custom.color.brandPrimary, isDark ? 0.92 : 0.95)} 0%, ${alpha(lighten(theme.custom.color.brandLogo, 0.12), isDark ? 0.85 : 0.9)} 55%, ${alpha(theme.custom.color.brandLogo, isDark ? 0.88 : 0.92)} 100%)`,
+        background: `linear-gradient(135deg, ${alpha(surfaceRaised, 0.95)} 0%, ${alpha(surfaceRaised, 0.95)} 100%)`,
+        backdropFilter: 'blur(10px)',
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
-        boxShadow: theme.custom.elevation.e3,
+        boxShadow: 'none',
         padding: isMobile ? '1.5rem' : '2rem',
       }}
     >
-      {/* Section title */}
-      <Box sx={{ textAlign: 'center', mb: isMobile ? 2.5 : 3 }}>
-        <Typography
-          variant="h5"
-          fontWeight={700}
-          sx={{
-            fontFamily: theme.custom.font.display,
-            fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
-            color: white,
-            textShadow: `0 1px 12px ${alpha('#000000', 0.25)}`,
-            mb: 1,
-          }}
-        >
-          {t('quickActions')}
-        </Typography>
-        <Typography
-          variant="body1"
-          sx={{
-            fontFamily: theme.custom.font.body,
-            color: alpha(white, 0.85),
-            fontSize: { xs: '0.9rem', sm: '1rem' },
-            maxWidth: 520,
-            mx: 'auto',
-          }}
-        >
-          {t('quickActionsDesc')}
-        </Typography>
-      </Box>
+      <Box sx={blob(brandPrimary, { top: -90, insetInlineStart: -70 })} />
+      <Box sx={blob(brandLogo, { bottom: -110, insetInlineEnd: -70 })} />
 
-      {/* Nudge to search before posting — avoids duplicate reports of the
-          same item by another user */}
-      <Box
-        sx={{
-          ...glassPanel(theme.custom.radius.md),
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: 1,
-          p: { xs: 1.25, sm: 1.5 },
-          mb: { xs: 2, sm: 2.5 },
-        }}
-      >
-        <InfoOutlined sx={{ fontSize: 20, color: white, flexShrink: 0, mt: '1px' }} />
-        <Typography
-          variant="body2"
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
+        {/* Section title */}
+        <Box sx={{ textAlign: 'center', mb: isMobile ? 2.5 : 3 }}>
+          <Typography
+            variant="h5"
+            fontWeight={700}
+            sx={{
+              fontFamily: theme.custom.font.display,
+              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
+              color: ink,
+              mb: 1,
+            }}
+          >
+            {t('quickActions')}
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              fontFamily: theme.custom.font.body,
+              color: alpha(ink, 0.65),
+              fontSize: { xs: '0.9rem', sm: '1rem' },
+              maxWidth: 520,
+              mx: 'auto',
+            }}
+          >
+            {t('quickActionsDesc')}
+          </Typography>
+        </Box>
+
+        {/* Nudge to search before posting — avoids duplicate reports of the
+            same item by another user */}
+        <Box
           sx={{
-            fontFamily: theme.custom.font.body,
-            color: alpha(white, 0.9),
-            fontSize: { xs: '0.82rem', sm: '0.88rem' },
-            lineHeight: 1.4,
+            ...glassPanel(theme.custom.radius.md),
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 1,
+            p: { xs: 1.25, sm: 1.5 },
+            mb: { xs: 2, sm: 2.5 },
           }}
         >
-          {t('browseBeforePostTip')}
-        </Typography>
-      </Box>
+          <InfoOutlined sx={{ fontSize: 20, color: brandPrimary, flexShrink: 0, mt: '1px' }} />
+          <Typography
+            variant="body2"
+            sx={{
+              fontFamily: theme.custom.font.body,
+              color: alpha(ink, 0.8),
+              fontSize: { xs: '0.82rem', sm: '0.88rem' },
+              lineHeight: 1.4,
+            }}
+          >
+            {t('browseBeforePostTip')}
+          </Typography>
+        </Box>
 
-      {/* Primary pair — Report Lost / Report Found, one connected shape */}
-      <Box sx={glassPanel(theme.custom.radius.lg)}>
+        {/* Primary pair — Report Lost / Report Found, one connected shape */}
+        <Box sx={glassPanel(theme.custom.radius.lg)}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: isRTLMode ? 'row-reverse' : 'row' },
+            }}
+          >
+            {primaryActions.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <React.Fragment key={item.key}>
+                  <Box
+                    data-reveal-item=""
+                    role="button"
+                    tabIndex={0}
+                    onClick={item.action}
+                    onKeyDown={(e) => handleKeyActivate(e, item.action)}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      handleTouchEnd(e, item.action);
+                    }}
+                    sx={{
+                      flex: 1,
+                      minWidth: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: { xs: 1.5, sm: 2 },
+                      p: { xs: 2.5, sm: 3 },
+                      cursor: 'pointer',
+                      outline: 'none',
+                      backgroundColor: 'transparent',
+                      transition: 'background-color 0.2s ease',
+                      '&:hover': {
+                        backgroundColor: alpha(item.tone.main, isDark ? 0.14 : 0.08),
+                      },
+                      '&:focus-visible': {
+                        boxShadow: `inset 0 0 0 2px ${item.tone.main}`,
+                      },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        flexShrink: 0,
+                        width: { xs: 52, sm: 60 },
+                        height: { xs: 52, sm: 60 },
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: item.tone.bg,
+                        border: `2px solid ${alpha(item.tone.main, 0.35)}`,
+                      }}
+                    >
+                      <Icon sx={{ fontSize: { xs: 26, sm: 30 }, color: item.tone.main }} />
+                    </Box>
+
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography
+                        variant="h6"
+                        fontWeight={700}
+                        sx={{
+                          fontFamily: theme.custom.font.display,
+                          color: ink,
+                          fontSize: { xs: '1.05rem', sm: '1.15rem' },
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {item.title}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontFamily: theme.custom.font.body,
+                          color: alpha(ink, 0.65),
+                          fontSize: { xs: '0.82rem', sm: '0.88rem' },
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {item.description}
+                      </Typography>
+                    </Box>
+
+                    <ArrowForwardIosRounded
+                      sx={{
+                        flexShrink: 0,
+                        fontSize: 16,
+                        color: item.tone.main,
+                        opacity: 0.8,
+                        transform: isRTLMode ? 'scaleX(-1)' : 'none',
+                      }}
+                    />
+                  </Box>
+
+                  {index === 0 && (
+                    <Box
+                      sx={{
+                        alignSelf: 'stretch',
+                        width: { xs: '100%', sm: '1px' },
+                        height: { xs: '1px', sm: 'auto' },
+                        backgroundColor: alpha(ink, 0.08),
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </Box>
+        </Box>
+
+        {/* Secondary actions — lighter weight, pill treatment */}
         <Box
           sx={{
             display: 'flex',
-            flexDirection: { xs: 'column', sm: isRTLMode ? 'row-reverse' : 'row' },
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: { xs: 1.25, sm: 1.5 },
+            mt: { xs: 2.5, sm: 3 },
           }}
         >
-          {primaryActions.map((item, index) => {
+          {secondaryActions.map((item) => {
             const Icon = item.icon;
             return (
-              <React.Fragment key={item.key}>
-                <Box
-                  data-reveal-item=""
-                  role="button"
-                  tabIndex={0}
-                  onClick={item.action}
-                  onKeyDown={(e) => handleKeyActivate(e, item.action)}
-                  onTouchStart={handleTouchStart}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    handleTouchEnd(e, item.action);
-                  }}
+              <Box
+                key={item.key}
+                data-reveal-item=""
+                role="button"
+                tabIndex={0}
+                onClick={item.action}
+                onKeyDown={(e) => handleKeyActivate(e, item.action)}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  handleTouchEnd(e, item.action);
+                }}
+                sx={{
+                  ...glassPanel(999),
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: { xs: 2, sm: 2.5 },
+                  py: { xs: 1, sm: 1.15 },
+                  cursor: 'pointer',
+                  outline: 'none',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    backgroundColor: alpha(brandPrimary, isDark ? 0.22 : 0.12),
+                    boxShadow: theme.custom.elevation.e2,
+                  },
+                  '&:focus-visible': {
+                    boxShadow: `0 0 0 2px ${alpha(brandPrimary, 0.5)}`,
+                  },
+                }}
+              >
+                <Icon sx={{ fontSize: 18, color: brandPrimary }} />
+                <Typography
                   sx={{
-                    flex: 1,
-                    minWidth: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: { xs: 1.5, sm: 2 },
-                    p: { xs: 2.5, sm: 3 },
-                    cursor: 'pointer',
-                    outline: 'none',
-                    backgroundColor: 'transparent',
-                    transition: 'background-color 0.2s ease',
-                    '&:hover': {
-                      backgroundColor: alpha(white, isDark ? 0.06 : 0.14),
-                    },
-                    '&:focus-visible': {
-                      boxShadow: `inset 0 0 0 2px ${alpha(white, 0.7)}`,
-                    },
+                    fontFamily: theme.custom.font.body,
+                    fontWeight: 600,
+                    fontSize: { xs: '0.85rem', sm: '0.9rem' },
+                    color: brandPrimary,
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  <Box
-                    sx={{
-                      flexShrink: 0,
-                      width: { xs: 52, sm: 60 },
-                      height: { xs: 52, sm: 60 },
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: item.tone.bg,
-                      border: `2px solid ${alpha(item.tone.main, 0.35)}`,
-                    }}
-                  >
-                    <Icon sx={{ fontSize: { xs: 26, sm: 30 }, color: item.tone.main }} />
-                  </Box>
-
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Typography
-                      variant="h6"
-                      fontWeight={700}
-                      sx={{
-                        fontFamily: theme.custom.font.display,
-                        color: white,
-                        fontSize: { xs: '1.05rem', sm: '1.15rem' },
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {item.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontFamily: theme.custom.font.body,
-                        color: alpha(white, 0.8),
-                        fontSize: { xs: '0.82rem', sm: '0.88rem' },
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {item.description}
-                    </Typography>
-                  </Box>
-
-                  <ArrowForwardIosRounded
-                    sx={{
-                      flexShrink: 0,
-                      fontSize: 16,
-                      color: white,
-                      opacity: 0.75,
-                      transform: isRTLMode ? 'scaleX(-1)' : 'none',
-                    }}
-                  />
-                </Box>
-
-                {index === 0 && (
-                  <Box
-                    sx={{
-                      alignSelf: 'stretch',
-                      width: { xs: '100%', sm: '1px' },
-                      height: { xs: '1px', sm: 'auto' },
-                      backgroundColor: alpha(white, 0.25),
-                      flexShrink: 0,
-                    }}
-                  />
-                )}
-              </React.Fragment>
+                  {item.title}
+                </Typography>
+              </Box>
             );
           })}
         </Box>
-      </Box>
-
-      {/* Secondary actions — lighter weight, pill treatment */}
-      <Box
-        sx={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          gap: { xs: 1.25, sm: 1.5 },
-          mt: { xs: 2.5, sm: 3 },
-        }}
-      >
-        {secondaryActions.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Box
-              key={item.key}
-              data-reveal-item=""
-              role="button"
-              tabIndex={0}
-              onClick={item.action}
-              onKeyDown={(e) => handleKeyActivate(e, item.action)}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                handleTouchEnd(e, item.action);
-              }}
-              sx={{
-                ...glassPanel(999),
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 1,
-                px: { xs: 2, sm: 2.5 },
-                py: { xs: 1, sm: 1.15 },
-                cursor: 'pointer',
-                outline: 'none',
-                boxShadow: theme.custom.elevation.e1,
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  backgroundColor: alpha(white, isDark ? 0.14 : 0.32),
-                  boxShadow: theme.custom.elevation.e2,
-                },
-                '&:focus-visible': {
-                  boxShadow: `0 0 0 2px ${alpha(white, 0.7)}`,
-                },
-              }}
-            >
-              <Icon sx={{ fontSize: 18, color: white }} />
-              <Typography
-                sx={{
-                  fontFamily: theme.custom.font.body,
-                  fontWeight: 600,
-                  fontSize: { xs: '0.85rem', sm: '0.9rem' },
-                  color: white,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {item.title}
-              </Typography>
-            </Box>
-          );
-        })}
       </Box>
     </Box>
   );
