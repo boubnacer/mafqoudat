@@ -15,11 +15,10 @@ import {
   InfoOutlined,
 } from "@mui/icons-material";
 
-// Reporting a Lost or Found item is the same duality FoundLostStrip and
-// RecentSection already render elsewhere on this page (one connected shape,
-// not two independent boxes) — here it's the action version of that pair,
-// so it reuses the same status tones/icons rather than inventing new ones.
-// Search/Help are secondary, lower-weight actions and sit below as pills.
+// Report Lost / Report Found render as two independent buttons (own
+// fill/border/elevation each, status-toned) rather than one merged panel —
+// they need to read as pressable buttons, not a list row. Search/Help are
+// secondary, lower-weight actions and sit below as pills.
 const QuickActions = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -343,117 +342,111 @@ const QuickActions = () => {
           </Typography>
         </Box>
 
-        {/* Primary pair — Report Lost / Report Found, one connected shape */}
-        <Box sx={glassPanel(theme.custom.radius.lg)}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: isRTLMode ? 'row-reverse' : 'row' },
-            }}
-          >
-            {primaryActions.map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <React.Fragment key={item.key}>
-                  <Box
-                    data-reveal-item=""
-                    role="button"
-                    tabIndex={0}
-                    onClick={item.action}
-                    onKeyDown={(e) => handleKeyActivate(e, item.action)}
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      handleTouchEnd(e, item.action);
-                    }}
+        {/* Primary pair — Report Lost / Report Found, split into two
+            independent buttons (each own fill/border/elevation) rather than
+            one merged panel row, so they read as pressable buttons instead
+            of a plain list. */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: isRTLMode ? 'row-reverse' : 'row' },
+            gap: { xs: 1.5, sm: 2 },
+          }}
+        >
+          {primaryActions.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Box
+                key={item.key}
+                data-reveal-item=""
+                role="button"
+                tabIndex={0}
+                onClick={item.action}
+                onKeyDown={(e) => handleKeyActivate(e, item.action)}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  handleTouchEnd(e, item.action);
+                }}
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: { xs: 1.5, sm: 2 },
+                  p: { xs: 2.5, sm: 3 },
+                  cursor: 'pointer',
+                  outline: 'none',
+                  borderRadius: `${theme.custom.radius.lg}px`,
+                  backgroundColor: alpha(item.tone.main, isDark ? 0.16 : 0.08),
+                  border: `1px solid ${alpha(item.tone.main, isDark ? 0.4 : 0.3)}`,
+                  boxShadow: theme.custom.elevation.e1,
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease',
+                  '&:hover': {
+                    backgroundColor: alpha(item.tone.main, isDark ? 0.24 : 0.14),
+                    boxShadow: theme.custom.elevation.e2,
+                    transform: 'translateY(-4px)',
+                  },
+                  '&:focus-visible': {
+                    boxShadow: `${theme.custom.elevation.e2}, inset 0 0 0 2px ${item.tone.main}`,
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    flexShrink: 0,
+                    width: { xs: 52, sm: 60 },
+                    height: { xs: 52, sm: 60 },
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: item.tone.bg,
+                    border: `2px solid ${alpha(item.tone.main, 0.35)}`,
+                  }}
+                >
+                  <Icon sx={{ fontSize: { xs: 26, sm: 30 }, color: item.tone.main }} />
+                </Box>
+
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography
+                    variant="h6"
+                    fontWeight={700}
                     sx={{
-                      flex: 1,
-                      minWidth: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: { xs: 1.5, sm: 2 },
-                      p: { xs: 2.5, sm: 3 },
-                      cursor: 'pointer',
-                      outline: 'none',
-                      backgroundColor: 'transparent',
-                      transition: 'background-color 0.2s ease',
-                      '&:hover': {
-                        backgroundColor: alpha(item.tone.main, isDark ? 0.14 : 0.08),
-                      },
-                      '&:focus-visible': {
-                        boxShadow: `inset 0 0 0 2px ${item.tone.main}`,
-                      },
+                      fontFamily: theme.custom.font.display,
+                      color: ink,
+                      fontSize: { xs: '1.05rem', sm: '1.15rem' },
+                      lineHeight: 1.3,
                     }}
                   >
-                    <Box
-                      sx={{
-                        flexShrink: 0,
-                        width: { xs: 52, sm: 60 },
-                        height: { xs: 52, sm: 60 },
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: item.tone.bg,
-                        border: `2px solid ${alpha(item.tone.main, 0.35)}`,
-                      }}
-                    >
-                      <Icon sx={{ fontSize: { xs: 26, sm: 30 }, color: item.tone.main }} />
-                    </Box>
+                    {item.title}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: theme.custom.font.body,
+                      color: alpha(ink, 0.65),
+                      fontSize: { xs: '0.82rem', sm: '0.88rem' },
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {item.description}
+                  </Typography>
+                </Box>
 
-                    <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography
-                        variant="h6"
-                        fontWeight={700}
-                        sx={{
-                          fontFamily: theme.custom.font.display,
-                          color: ink,
-                          fontSize: { xs: '1.05rem', sm: '1.15rem' },
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        {item.title}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontFamily: theme.custom.font.body,
-                          color: alpha(ink, 0.65),
-                          fontSize: { xs: '0.82rem', sm: '0.88rem' },
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        {item.description}
-                      </Typography>
-                    </Box>
-
-                    <ArrowForwardIosRounded
-                      sx={{
-                        flexShrink: 0,
-                        fontSize: 16,
-                        color: item.tone.main,
-                        opacity: 0.8,
-                        transform: isRTLMode ? 'scaleX(-1)' : 'none',
-                      }}
-                    />
-                  </Box>
-
-                  {index === 0 && (
-                    <Box
-                      sx={{
-                        alignSelf: 'stretch',
-                        width: { xs: '100%', sm: '1px' },
-                        height: { xs: '1px', sm: 'auto' },
-                        backgroundColor: alpha(ink, 0.08),
-                        flexShrink: 0,
-                      }}
-                    />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </Box>
+                <ArrowForwardIosRounded
+                  sx={{
+                    flexShrink: 0,
+                    fontSize: 16,
+                    color: item.tone.main,
+                    opacity: 0.8,
+                    transform: isRTLMode ? 'scaleX(-1)' : 'none',
+                  }}
+                />
+              </Box>
+            );
+          })}
         </Box>
 
         {/* Secondary actions — lighter weight, pill treatment */}
