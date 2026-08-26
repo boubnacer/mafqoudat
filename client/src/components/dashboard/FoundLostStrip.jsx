@@ -146,33 +146,16 @@ const FoundLostStrip = ({
   const theme = useTheme();
   const { t, currentLanguage } = useTranslation();
   const isRTL = currentLanguage === "ar";
-  const isDark = theme.palette.mode === "dark";
 
   return (
     <Box
       {...rest}
       sx={{
-        position: "relative",
         gridColumn: "1 / -1",
         borderRadius: `${theme.custom.radius.lg}px`,
-        // Glass, matching the panel this strip sits inside: translucent
-        // surfaceRaised + blur instead of the previous opaque fill, plus
-        // the hairline border/top-highlight/lift-shadow that read as glass.
-        backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.55 : 0.7),
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
-        border: `1px solid ${alpha(theme.custom.color.brandPrimary, isDark ? 0.28 : 0.18)}`,
-        boxShadow: theme.custom.elevation.e1,
+        backgroundColor: theme.custom.color.surfaceRaised,
+        boxShadow: 'none',
         overflow: "hidden",
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          insetInlineStart: 0,
-          insetInlineEnd: 0,
-          top: 0,
-          height: "1px",
-          background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.common.white, isDark ? 0.3 : 0.75)}, transparent)`,
-        },
       }}
     >
       <Box

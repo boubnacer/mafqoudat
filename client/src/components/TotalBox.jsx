@@ -1,4 +1,4 @@
-import { Box, Typography, useTheme, alpha } from "@mui/material";
+import { Box, Typography, useTheme } from "@mui/material";
 import React, { useRef } from "react";
 import FlexBetween from "./FlexBetween";
 import { useTranslation } from "../utils/translations";
@@ -56,27 +56,11 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
           ? 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)'
           : 'linear-gradient(135deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.02) 100%)',
         backdropFilter: 'blur(10px)',
-        // Glass edge + top highlight, matching FoundLostStrip/LeftSide
-        // beside it — a hairline border and a lift shadow (elevation e1,
-        // e2 on hover) instead of 'none' when there's no notification glow
-        // to carry that job instead.
-        border: `1px solid ${alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.28 : 0.18)}`,
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          insetInlineStart: 0,
-          insetInlineEnd: 0,
-          top: 0,
-          height: '1px',
-          borderRadius: '16px 16px 0 0',
-          background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.common.white, theme.palette.mode === 'dark' ? 0.3 : 0.75)}, transparent)`,
-          pointerEvents: 'none',
-        },
         boxShadow: hasNotification
           ? theme.palette.mode === 'dark'
             ? `0 8px 32px 0 ${defaultNotificationColor}30, 0 0 20px 0 ${defaultNotificationColor}20`
             : `0 8px 32px 0 ${defaultNotificationColor}25, 0 0 20px 0 ${defaultNotificationColor}15`
-          : theme.custom.elevation.e1,
+          : 'none',
         transition: 'transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease',
         ...(hasNotification && {
           animation: 'pulseGlow 2s ease-in-out infinite',
@@ -99,7 +83,7 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
             ? theme.palette.mode === 'dark'
               ? `0 12px 48px 0 ${defaultNotificationColor}40, 0 0 30px 0 ${defaultNotificationColor}30`
               : `0 12px 48px 0 ${defaultNotificationColor}35, 0 0 30px 0 ${defaultNotificationColor}25`
-            : theme.custom.elevation.e2,
+            : 'none',
         },
         height: { xs: '240px', sm: 'auto' }, // Increased height for longer text in mobile
         minHeight: { xs: '240px', sm: '180px' }, // Increased minimum height for desktop mode

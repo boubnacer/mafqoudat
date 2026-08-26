@@ -60,7 +60,6 @@ const LeftSide = ({
   const isMobile = useMediaQuery("(max-width:600px)");
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const isDark = theme.palette.mode === 'dark';
 
   // Get found/lost options for navigation
   const { data: flOptionsData } = useGetflOptionsQuery({
@@ -324,43 +323,23 @@ const LeftSide = ({
     <Box
       data-reveal="hero"
       sx={{
-        position: 'relative',
         // Genuinely translucent on both breakpoints now that this floats
         // over Dash.js's full-bleed world-map backdrop instead of sitting
         // next to/above its own boxed card — a much lower fill so the map
         // actually shows through, with a heavier blur (10px -> 18px) so the
         // busier map detail behind it doesn't fight with the stat numbers'
-        // legibility. This panel already had the two hardest parts of
-        // glassmorphism (real translucency + blur over a genuinely colorful
-        // backdrop, the world map, rather than a decorative wash standing
-        // in for one) — what it was missing was the hairline edge + top
-        // highlight + lift shadow that make a translucent panel actually
-        // read as glass instead of just "a blur". Added below; the
-        // FoundLostStrip/TotalBox cards inside pick up the same treatment.
+        // legibility.
         background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.14)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.14)} 100%)`,
         backdropFilter: 'blur(18px)',
-        border: `1px solid ${alpha(theme.custom.color.brandPrimary, isDark ? 0.3 : 0.2)}`,
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
         padding: isMobile ? '1.5rem' : '2rem',
-        boxShadow: theme.custom.elevation.e2,
+        boxShadow: 'none',
         width: isMobile ? '100%' : 'auto', // Full width on mobile
         mx: isMobile ? 0 : 'auto', // Remove horizontal margin on mobile
         maxWidth: '100%', // Prevent overflow
         minWidth: 0, // Allow shrinking if needed
       }}
     >
-      <Box
-        sx={{
-          position: 'absolute',
-          insetInlineStart: 0,
-          insetInlineEnd: 0,
-          top: 0,
-          height: '1px',
-          background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.common.white, isDark ? 0.35 : 0.8)}, transparent)`,
-          pointerEvents: 'none',
-        }}
-      />
-
       {/* Title Section */}
       <Box 
         data-reveal-item=""
