@@ -154,11 +154,29 @@ const HelpSupportSection = () => {
     boxShadow: 'none',
   };
 
+  // Same glass-blob family as QuickActions/Categories, cut down to a single,
+  // faint brandPrimary blob — this section deliberately stays calm/
+  // single-accent (see file header), so it gets the quietest version of the
+  // treatment rather than QuickActions' two-blob brand pair.
+  const helpBlob = {
+    position: 'absolute',
+    width: 240,
+    height: 240,
+    borderRadius: '50%',
+    background: `radial-gradient(circle, ${alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.1)} 0%, ${alpha(theme.custom.color.brandPrimary, 0)} 70%)`,
+    filter: 'blur(20px)',
+    pointerEvents: 'none',
+    top: -90,
+    insetInlineEnd: -70,
+  };
+
   return (
     <>
       <Box
         data-section="help"
         sx={{
+          position: 'relative',
+          overflow: 'hidden',
           mx: { xs: 1, sm: 2 },
           background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
           backdropFilter: 'blur(10px)',
@@ -167,6 +185,9 @@ const HelpSupportSection = () => {
           padding: { xs: '1.5rem', sm: '2.5rem', md: '3rem' },
         }}
       >
+        <Box sx={helpBlob} />
+
+        <Box sx={{ position: 'relative', zIndex: 1 }}>
         {/* Heading — calm and reassuring, not a CTA-driving banner */}
         <Box sx={{ textAlign: 'center', maxWidth: 560, mx: 'auto', mb: { xs: 3, md: 4 } }}>
           <Typography
@@ -387,6 +408,7 @@ const HelpSupportSection = () => {
             </Box>
           </Grid>
         </Grid>
+        </Box>
       </Box>
 
       {/* Help Dialog */}
