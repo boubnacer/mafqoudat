@@ -32,6 +32,7 @@ const foundsId = "68b708a085dd243c40a90825"; // FOUND
 
 const Dash = () => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery("(max-width:600px)");
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -88,6 +89,25 @@ const Dash = () => {
     }
   };
 
+  // Same glass-panel treatment QuickActions uses just below this section on
+  // the page: the surfaceRaised gradient + blur it already had, now with a
+  // pair of soft blurred brand-color blobs tucked behind the content so the
+  // two adjoining sections read as one family instead of one plain panel
+  // sitting next to one "colorful" one. Blob placement is mirrored (not
+  // identical) — top-end/bottom-start here vs QuickActions' top-start/
+  // bottom-end — so the two panels don't look like exact copies stacked
+  // back to back.
+  const categoryBlob = (color, position) => ({
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: '50%',
+    background: `radial-gradient(circle, ${alpha(color, isDark ? 0.28 : 0.2)} 0%, ${alpha(color, 0)} 70%)`,
+    filter: 'blur(20px)',
+    pointerEvents: 'none',
+    ...position,
+  });
+
   // Mirrors LeftSide's panel chrome (theme.custom elevation/radius/ink)
   // instead of the old hardcoded-hex panel. Shared between the empty-state
   // and normal render paths below so the two never drift.
@@ -96,6 +116,8 @@ const Dash = () => {
       <DashRecents
         cate="cate"
         sx={{
+          position: 'relative',
+          overflow: 'hidden',
           background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
           backdropFilter: 'blur(10px)',
           borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
@@ -103,18 +125,23 @@ const Dash = () => {
           mx: { xs: 1, sm: 2 },
         }}
       >
-        <Typography
-          fontWeight="700"
-          sx={{
-            fontSize: { xs: "20px", sm: "24px", md: "26px" },
-            color: theme.custom.color.ink,
-            textAlign: 'center',
-            mb: 2
-          }}
-        >
-          {t('browseByCategory')}
-        </Typography>
-        <Categories />
+        <Box sx={categoryBlob(theme.custom.color.brandLogo, { top: -90, insetInlineEnd: -70 })} />
+        <Box sx={categoryBlob(theme.custom.color.brandPrimary, { bottom: -110, insetInlineStart: -70 })} />
+
+        <Box sx={{ position: 'relative', zIndex: 1 }}>
+          <Typography
+            fontWeight="700"
+            sx={{
+              fontSize: { xs: "20px", sm: "24px", md: "26px" },
+              color: theme.custom.color.ink,
+              textAlign: 'center',
+              mb: 2
+            }}
+          >
+            {t('browseByCategory')}
+          </Typography>
+          <Categories />
+        </Box>
       </DashRecents>
     </Box>
   );
