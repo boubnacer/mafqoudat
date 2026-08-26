@@ -37,9 +37,26 @@ const Process = () => {
   const stepCount = processSteps.length;
   const nodeSize = isMobile ? 56 : 64;
 
+  // Same glass-blob family as QuickActions/Categories, toned down (gentle):
+  // smaller blobs, lower opacity, since this panel already carries its own
+  // motion (the step connectors/cards animate on scroll) and doesn't need a
+  // loud backdrop competing with that.
+  const processBlob = (color, position) => ({
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: '50%',
+    background: `radial-gradient(circle, ${alpha(color, theme.palette.mode === 'dark' ? 0.2 : 0.14)} 0%, ${alpha(color, 0)} 70%)`,
+    filter: 'blur(20px)',
+    pointerEvents: 'none',
+    ...position,
+  });
+
   return (
     <Box
       sx={{
+        position: 'relative',
+        overflow: 'hidden',
         background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
         backdropFilter: 'blur(10px)',
         borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
@@ -47,6 +64,10 @@ const Process = () => {
         padding: { xs: '1.5rem', sm: '2.5rem', md: '3rem' },
       }}
     >
+      <Box sx={processBlob(theme.custom.color.brandPrimary, { top: -80, insetInlineStart: -60 })} />
+      <Box sx={processBlob(theme.custom.color.brandLogo, { bottom: -90, insetInlineEnd: -60 })} />
+
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
       {/* Heading */}
       <Box sx={{ textAlign: 'center', maxWidth: 560, mx: 'auto', mb: { xs: 4, md: 6 } }}>
         <Typography
@@ -258,6 +279,7 @@ const Process = () => {
             <RenderIcon name={social.name} />
           </Link>
         ))}
+      </Box>
       </Box>
     </Box>
   );

@@ -23,10 +23,29 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
 
   const hasItems = !isLoading && items && items.length > 0;
 
+  // Same glass-blob family as QuickActions/Categories, one corner only and
+  // dimmer (gentle) rather than the two-blob QuickActions treatment — this
+  // panel already carries its own accent via `tone`, so the blob reuses that
+  // same found/lost color instead of the generic brand pair, and stays quiet
+  // enough not to compete with the recent-items list underneath it.
+  const recentBlob = {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: '50%',
+    background: `radial-gradient(circle, ${alpha(tone.main, theme.palette.mode === 'dark' ? 0.22 : 0.16)} 0%, ${alpha(tone.main, 0)} 70%)`,
+    filter: 'blur(20px)',
+    pointerEvents: 'none',
+    top: -80,
+    insetInlineEnd: -60,
+  };
+
   return (
     <Box
       data-reveal="section"
       sx={{
+        position: 'relative',
+        overflow: 'hidden',
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -37,41 +56,45 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
         boxShadow: 'none',
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 1,
-          mb: isMobile ? 2 : 3,
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
-          <Icon sx={{ color: tone.main, fontSize: { xs: 24, sm: 28 }, flexShrink: 0 }} />
-          <Typography
-            variant="h5"
-            fontWeight="700"
-            sx={{
-              fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.65rem" },
-              color: theme.custom.color.ink,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {title}
-          </Typography>
-        </Box>
-        {hasItems && <SeeAll foundOrlostId={foundOrlostId} totalItems={totalItems} type={type} />}
-      </Box>
+      <Box sx={recentBlob} />
 
-      {isLoading ? (
-        <RecentItemsSkeleton />
-      ) : hasItems ? (
-        <Recent recent={items} type={type} maxItems={2} />
-      ) : (
-        <EmptyStateComponent onCreatePost={onCreatePost} />
-      )}
+      <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1,
+            mb: isMobile ? 2 : 3,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
+            <Icon sx={{ color: tone.main, fontSize: { xs: 24, sm: 28 }, flexShrink: 0 }} />
+            <Typography
+              variant="h5"
+              fontWeight="700"
+              sx={{
+                fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.65rem" },
+                color: theme.custom.color.ink,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {title}
+            </Typography>
+          </Box>
+          {hasItems && <SeeAll foundOrlostId={foundOrlostId} totalItems={totalItems} type={type} />}
+        </Box>
+
+        {isLoading ? (
+          <RecentItemsSkeleton />
+        ) : hasItems ? (
+          <Recent recent={items} type={type} maxItems={2} />
+        ) : (
+          <EmptyStateComponent onCreatePost={onCreatePost} />
+        )}
+      </Box>
     </Box>
   );
 };
