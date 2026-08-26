@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
+import { Box, Typography, useTheme, useMediaQuery, alpha, lighten } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../../utils/translations";
 import { useSelector } from "react-redux";
@@ -252,7 +252,12 @@ const QuickActions = () => {
       sx={{
         mb: 4,
         mx: { xs: 1, sm: 2 },
-        background: `linear-gradient(135deg, ${alpha(theme.custom.color.brandPrimary, isDark ? 0.85 : 0.92)} 0%, ${alpha(theme.custom.status.found.main, isDark ? 0.8 : 0.85)} 50%, ${alpha(theme.custom.status.lost.main, isDark ? 0.8 : 0.85)} 100%)`,
+        // Brand-blue gradient — the app's own primary + the logo's exact
+        // blue (brandLogo, same value used by WorldActivityMap for the same
+        // reason: it's the one color that IS the brand rather than a status
+        // tone) — instead of mixing in the found/lost status colors, which
+        // read as a random clash rather than "this site's" gradient.
+        background: `linear-gradient(135deg, ${alpha(theme.custom.color.brandPrimary, isDark ? 0.92 : 0.95)} 0%, ${alpha(lighten(theme.custom.color.brandLogo, 0.12), isDark ? 0.85 : 0.9)} 55%, ${alpha(theme.custom.color.brandLogo, isDark ? 0.88 : 0.92)} 100%)`,
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
         boxShadow: theme.custom.elevation.e3,
         padding: isMobile ? '1.5rem' : '2rem',
