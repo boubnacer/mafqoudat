@@ -29,7 +29,7 @@ const ITEM_SELECTOR = `[${REVEAL_ITEM_ATTR}]`;
 // leave every below-the-fold section hidden forever, since window.scrollY
 // never moves. Falls back to the nearest scrollable ancestor, and finally to
 // the viewport, so this keeps working if the layout is restructured.
-const resolveScroller = (element) => {
+export const resolveScroller = (element) => {
   const named = document.getElementById("dash-scroll-container");
   if (named && named.contains(element)) return named;
 
