@@ -92,52 +92,32 @@ const centeredText = (direction) => ({
 // kind of listing this is.
 const StatusTag = ({ isFound, label }) => {
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
   const tone = isFound ? theme.custom.status.found : theme.custom.status.lost;
   const Icon = isFound ? TaskAltOutlined : SearchOffOutlined;
   return (
-    <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-      {/* The card's "played-with background" touch, scoped to the one
-          element that already carries this color instead of washing the
-          whole card (which read as a full-width colored band). Sits behind
-          the badge as a soft halo and moves with it - the badge is already
-          at the row's insetInlineStart, so this needs no separate LTR/RTL
-          positioning of its own. */}
-      <Box
+    <Box
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 0.5,
+        px: 1.25,
+        py: 0.625,
+        borderRadius: `${theme.custom.radius.sm}px`,
+        backgroundColor: tone.main,
+      }}
+    >
+      <Icon sx={{ fontSize: 16, color: theme.palette.getContrastText(tone.main) }} />
+      <Typography
+        variant="caption"
         sx={{
-          position: 'absolute',
-          inset: -14,
-          borderRadius: '999px',
-          background: `radial-gradient(circle, ${alpha(tone.main, isDark ? 0.35 : 0.22)} 0%, transparent 72%)`,
-          filter: 'blur(4px)',
-          pointerEvents: 'none',
-        }}
-      />
-      <Box
-        sx={{
-          position: 'relative',
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 0.5,
-          px: 1.25,
-          py: 0.625,
-          borderRadius: `${theme.custom.radius.sm}px`,
-          backgroundColor: tone.main,
+          fontWeight: 700,
+          letterSpacing: 0.3,
+          color: theme.palette.getContrastText(tone.main),
+          lineHeight: 1,
         }}
       >
-        <Icon sx={{ fontSize: 16, color: theme.palette.getContrastText(tone.main) }} />
-        <Typography
-          variant="caption"
-          sx={{
-            fontWeight: 700,
-            letterSpacing: 0.3,
-            color: theme.palette.getContrastText(tone.main),
-            lineHeight: 1,
-          }}
-        >
-          {label}
-        </Typography>
-      </Box>
+        {label}
+      </Typography>
     </Box>
   );
 };
@@ -846,17 +826,38 @@ const Post = ({ post, viewMode = "grid" }) => {
   // cell is the only one it renders.
   const tone = foundLostStatus.isFound ? theme.custom.status.found : theme.custom.status.lost;
 
+  // Same corner-blob language as RecentSection's own panel (the "Recent
+  // Founds/Losts" component on the dashboard home page) - a soft wash
+  // parked in the top corner where that panel's colored accent (its title
+  // icon / See all corner) lives, scaled down to this card's size. Anchored
+  // to StatusTag's own side (insetInlineStart) via a negative offset so it
+  // pokes out from that corner rather than sitting centred, and clipped by
+  // PostCardRoot's own overflow:hidden so it never spans the full card
+  // width the way an earlier, centred attempt did.
+  const cardCornerBlob = {
+    position: 'absolute',
+    top: -50,
+    insetInlineStart: -40,
+    width: 160,
+    height: 160,
+    borderRadius: '50%',
+    background: `radial-gradient(circle, ${alpha(tone.main, isDarkMode ? 0.32 : 0.22)} 0%, transparent 70%)`,
+    filter: 'blur(6px)',
+    pointerEvents: 'none',
+  };
+
   return (
     <PostCardRoot
       onClick={handleViewDetails}
       sx={{
         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-        // Card stays plain surfaceRaised - the found/lost color wash now
-        // lives as a halo behind StatusTag itself (see that component)
-        // rather than a wash across the whole card top.
+        position: 'relative',
         backgroundColor: theme.custom.color.surfaceRaised,
       }}
     >
+      <Box sx={cardCornerBlob} />
+
+      <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       {/* Header row: what kind of listing this is, and how to open it. */}
       <Box
         sx={{
@@ -1084,6 +1085,7 @@ const Post = ({ post, viewMode = "grid" }) => {
         </Box>
 
         <ReachRow post={post} sx={{ mt: 'auto', justifyContent: 'center' }} />
+      </Box>
       </Box>
     </PostCardRoot>
   );
