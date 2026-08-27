@@ -101,10 +101,11 @@ const Process = () => {
           sx={{
             display: { xs: 'none', md: 'block' },
             position: 'absolute',
-            top: nodeSize / 2,
+            top: nodeSize / 2 - 1,
             insetInlineStart: `calc(100% / ${stepCount * 2})`,
             insetInlineEnd: `calc(100% / ${stepCount * 2})`,
             height: 2,
+            borderRadius: 999,
             background: `linear-gradient(90deg, ${alpha(theme.custom.color.brandPrimary, 0.15)}, ${theme.custom.color.brandPrimary})`,
             transformOrigin: isRTLMode ? '100% 0' : '0% 0',
             zIndex: 0,
@@ -155,10 +156,20 @@ const Process = () => {
                 alignItems: { xs: 'flex-start', md: 'center' },
                 gap: { xs: 2, md: 0 },
                 textAlign: { xs: isRTLMode ? 'right' : 'left', md: 'center' },
+                '&:hover .processNode': {
+                  boxShadow: theme.custom.elevation.e2,
+                  transform: 'translateY(-2px)',
+                },
+                '&:hover .processTextCard': {
+                  boxShadow: theme.custom.elevation.e1,
+                },
               }}
             >
-              {/* Node */}
+              {/* Node — brand-tinted so it reads as the focal shape on a
+                  surfaceRaised card, with a small numbered badge (this is a
+                  sequence, not three independent facts) */}
               <Box
+                className="processNode"
                 sx={{
                   position: 'relative',
                   flexShrink: 0,
@@ -168,20 +179,44 @@ const Process = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: theme.custom.color.surfaceRaised,
-                  boxShadow: 'none',
+                  backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.2 : 0.1),
+                  boxShadow: theme.custom.elevation.e1,
+                  transition: 'box-shadow 0.25s ease, transform 0.25s ease',
                 }}
               >
                 <RenderIcon name={step.icon} />
+                <Box
+                  aria-hidden="true"
+                  sx={{
+                    position: 'absolute',
+                    insetBlockEnd: -2,
+                    insetInlineEnd: -2,
+                    width: 22,
+                    height: 22,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: theme.custom.color.brandPrimary,
+                    color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    boxShadow: theme.custom.elevation.e1,
+                  }}
+                >
+                  {index + 1}
+                </Box>
               </Box>
 
               {/* Text */}
               <Box
+                className="processTextCard"
                 sx={{
                   mt: { xs: 0, md: 2 },
-                  p: { xs: 0, md: 2 },
+                  p: { xs: 1.5, md: 2 },
                   borderRadius: `${theme.custom.radius.lg}px`,
-                  backgroundColor: { xs: 'transparent', md: alpha(theme.custom.color.surfaceRaised, 0.6) },
+                  backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.6),
+                  transition: 'box-shadow 0.25s ease',
                   maxWidth: { md: 240 },
                 }}
               >
@@ -253,32 +288,48 @@ const Process = () => {
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, amount: 0.4 }}
         transition={{ delay: 0.3, duration: 0.5 }}
-        sx={{ mt: { xs: 4, md: 5 }, display: 'flex', justifyContent: 'center', gap: 2 }}
+        sx={{ mt: { xs: 4, md: 5 } }}
       >
-        {socialLinks.map((social) => (
-          <Link
-            key={social.name}
-            href={social.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 48,
-              height: 48,
-              borderRadius: '50%',
-              backgroundColor: theme.custom.color.surfaceRaised,
-              boxShadow: 'none',
-              transition: 'transform 0.2s ease',
-              '&:hover': {
-                transform: 'translateY(-3px)',
-              },
-            }}
-          >
-            <RenderIcon name={social.name} />
-          </Link>
-        ))}
+        <Typography
+          variant="overline"
+          sx={{
+            display: 'block',
+            textAlign: 'center',
+            fontWeight: 600,
+            letterSpacing: 1,
+            color: alpha(theme.custom.color.ink, 0.6),
+            mb: 1.5,
+          }}
+        >
+          {t('followUs')}
+        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+          {socialLinks.map((social) => (
+            <Link
+              key={social.name}
+              href={social.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                backgroundColor: theme.custom.color.surfaceRaised,
+                boxShadow: theme.custom.elevation.e1,
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                '&:hover': {
+                  transform: 'translateY(-3px)',
+                  boxShadow: theme.custom.elevation.e2,
+                },
+              }}
+            >
+              <RenderIcon name={social.name} />
+            </Link>
+          ))}
+        </Box>
       </Box>
       </Box>
     </Box>
