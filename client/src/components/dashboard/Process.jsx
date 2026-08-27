@@ -44,6 +44,9 @@ const Process = () => {
 
   const nodeSize = isMobile ? 56 : 64;
   const iconContrastText = theme.palette.getContrastText(theme.custom.color.brandPrimary);
+  const isDark = theme.palette.mode === 'dark';
+  const { surfaceRaised, brandPrimary } = theme.custom.color;
+  const white = theme.palette.common.white;
 
   // Same glass-blob family as QuickActions/Categories, toned down (gentle):
   // smaller blobs, lower opacity, since the step cards below now carry their
@@ -53,10 +56,34 @@ const Process = () => {
     width: 220,
     height: 220,
     borderRadius: '50%',
-    background: `radial-gradient(circle, ${alpha(color, theme.palette.mode === 'dark' ? 0.2 : 0.14)} 0%, ${alpha(color, 0)} 70%)`,
+    background: `radial-gradient(circle, ${alpha(color, isDark ? 0.2 : 0.14)} 0%, ${alpha(color, 0)} 70%)`,
     filter: 'blur(20px)',
     pointerEvents: 'none',
     ...position,
+  });
+
+  // Same frosted-panel formula as QuickActions' glassPanel: the step cards
+  // and social icons now float over this section's blurred brand-color
+  // blobs as translucent glass, instead of sitting on them as an opaque
+  // surfaceRaised card that hid the blobs entirely behind flat color.
+  const glassPanel = (radius) => ({
+    position: 'relative',
+    backgroundColor: alpha(surfaceRaised, isDark ? 0.55 : 0.7),
+    backdropFilter: 'blur(14px)',
+    WebkitBackdropFilter: 'blur(14px)',
+    border: `1px solid ${alpha(brandPrimary, isDark ? 0.28 : 0.18)}`,
+    borderRadius: radius,
+    boxShadow: theme.custom.elevation.e1,
+    overflow: 'hidden',
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      insetInlineStart: 0,
+      insetInlineEnd: 0,
+      top: 0,
+      height: '1px',
+      background: `linear-gradient(90deg, transparent, ${alpha(white, isDark ? 0.3 : 0.75)}, transparent)`,
+    },
   });
 
   // Local GSAP rather than useDashboardMotion's data-reveal machinery: that
@@ -162,13 +189,16 @@ const Process = () => {
           </Typography>
         </Box>
 
-        {/* Step cards — three elevated, centered surfaceRaised tiles (Post
-            card DNA's e1 -> e2 hover-lift). No step numbers or connecting
-            arrows: reading order alone (which auto-mirrors in RTL, since
-            flexbox's row axis follows inline-start/end) already says "first,
-            second, third" without needing to spell it out, and a number
-            badge or a chevron between cards read as filler rather than
-            information. */}
+        {/* Step cards — three frosted glass tiles (QuickActions' glassPanel
+            formula: translucent surfaceRaised + blur + brandPrimary border +
+            top highlight line), floating over this section's blurred brand
+            blobs instead of hiding them behind an opaque surfaceRaised fill;
+            e1 -> e2 hover-lift kept from the original Post card DNA. No step
+            numbers or connecting arrows: reading order alone (which
+            auto-mirrors in RTL, since flexbox's row axis follows
+            inline-start/end) already says "first, second, third" without
+            needing to spell it out, and a number badge or a chevron between
+            cards read as filler rather than information. */}
         <Box
           sx={{
             display: 'flex',
@@ -184,6 +214,7 @@ const Process = () => {
                 key={step.icon}
                 className="processCard"
                 sx={{
+                  ...glassPanel(`${theme.custom.radius.lg}px`),
                   flex: 1,
                   display: 'flex',
                   flexDirection: 'column',
@@ -191,9 +222,6 @@ const Process = () => {
                   textAlign: 'center',
                   gap: 1.25,
                   p: { xs: 3, md: 3.5 },
-                  borderRadius: `${theme.custom.radius.lg}px`,
-                  backgroundColor: theme.custom.color.surfaceRaised,
-                  boxShadow: theme.custom.elevation.e1,
                   transition: 'box-shadow 0.25s ease, transform 0.25s ease',
                   '&:hover': {
                     boxShadow: theme.custom.elevation.e2,
@@ -317,14 +345,12 @@ const Process = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={{
+                  ...glassPanel('50%'),
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   width: 48,
                   height: 48,
-                  borderRadius: '50%',
-                  backgroundColor: theme.custom.color.surfaceRaised,
-                  boxShadow: theme.custom.elevation.e1,
                   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                   '&:hover': {
                     transform: 'translateY(-3px)',
