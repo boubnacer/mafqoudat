@@ -831,15 +831,16 @@ const Post = ({ post, viewMode = "grid" }) => {
       onClick={handleViewDetails}
       sx={{
         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-        // A gentle version of the dashboard panels' color wash: one radial
-        // highlight in the card's own found/lost tone, centred so it reads
-        // the same in LTR and RTL, fading into the plain surfaceRaised fill
-        // by the time it reaches the photo. No blur/translucency here (see
-        // PostCardRoot above) - just a tint baked into the background. Two
-        // stops rather than a straight fade to transparent, so the color
-        // actually reads instead of dissolving into invisibility on a
-        // near-white card.
-        background: `radial-gradient(circle at top, ${alpha(tone.main, isDarkMode ? 0.32 : 0.2)} 0%, ${alpha(tone.main, isDarkMode ? 0.12 : 0.07)} 35%, transparent 65%), ${theme.custom.color.surfaceRaised}`,
+        // A gentle version of the dashboard panels' color wash: one small
+        // radial blob in the card's own found/lost tone, centred so it
+        // reads the same in LTR and RTL. Needs an explicit radius (`circle
+        // 130px`, not the bare `circle` the first attempt used) - without
+        // one the gradient defaults to `farthest-corner` sizing, which from
+        // a top-center position reaches every edge and reads as a
+        // full-width colored band instead of a soft accent. No blur/
+        // translucency here (see PostCardRoot above) - just a tint baked
+        // into the background.
+        background: `radial-gradient(circle 130px at top, ${alpha(tone.main, isDarkMode ? 0.26 : 0.15)} 0%, transparent 100%), ${theme.custom.color.surfaceRaised}`,
       }}
     >
       {/* Header row: what kind of listing this is, and how to open it. */}
