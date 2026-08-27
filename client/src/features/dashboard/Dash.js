@@ -487,8 +487,8 @@ const Dash = () => {
           {categoriesSection}
 
           {/* Process Section — deliberately not marked: Process runs its
-              own framer-motion whileInView reveal, and a second one on the
-              same nodes would fight it. */}
+              own local GSAP reveal, and a second one on the same nodes
+              would fight it. */}
           <Box mb={4} mx={{ xs: 1, sm: 2 }}>
             <Process />
           </Box>
