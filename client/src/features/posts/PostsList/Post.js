@@ -92,32 +92,52 @@ const centeredText = (direction) => ({
 // kind of listing this is.
 const StatusTag = ({ isFound, label }) => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const tone = isFound ? theme.custom.status.found : theme.custom.status.lost;
   const Icon = isFound ? TaskAltOutlined : SearchOffOutlined;
   return (
-    <Box
-      sx={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 0.5,
-        px: 1.25,
-        py: 0.625,
-        borderRadius: `${theme.custom.radius.sm}px`,
-        backgroundColor: tone.main,
-      }}
-    >
-      <Icon sx={{ fontSize: 16, color: theme.palette.getContrastText(tone.main) }} />
-      <Typography
-        variant="caption"
+    <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+      {/* The card's "played-with background" touch, scoped to the one
+          element that already carries this color instead of washing the
+          whole card (which read as a full-width colored band). Sits behind
+          the badge as a soft halo and moves with it - the badge is already
+          at the row's insetInlineStart, so this needs no separate LTR/RTL
+          positioning of its own. */}
+      <Box
         sx={{
-          fontWeight: 700,
-          letterSpacing: 0.3,
-          color: theme.palette.getContrastText(tone.main),
-          lineHeight: 1,
+          position: 'absolute',
+          inset: -14,
+          borderRadius: '999px',
+          background: `radial-gradient(circle, ${alpha(tone.main, isDark ? 0.35 : 0.22)} 0%, transparent 72%)`,
+          filter: 'blur(4px)',
+          pointerEvents: 'none',
+        }}
+      />
+      <Box
+        sx={{
+          position: 'relative',
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 0.5,
+          px: 1.25,
+          py: 0.625,
+          borderRadius: `${theme.custom.radius.sm}px`,
+          backgroundColor: tone.main,
         }}
       >
-        {label}
-      </Typography>
+        <Icon sx={{ fontSize: 16, color: theme.palette.getContrastText(tone.main) }} />
+        <Typography
+          variant="caption"
+          sx={{
+            fontWeight: 700,
+            letterSpacing: 0.3,
+            color: theme.palette.getContrastText(tone.main),
+            lineHeight: 1,
+          }}
+        >
+          {label}
+        </Typography>
+      </Box>
     </Box>
   );
 };
@@ -831,16 +851,10 @@ const Post = ({ post, viewMode = "grid" }) => {
       onClick={handleViewDetails}
       sx={{
         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-        // A gentle version of the dashboard panels' color wash: one small
-        // radial blob in the card's own found/lost tone, centred so it
-        // reads the same in LTR and RTL. Needs an explicit radius (`circle
-        // 130px`, not the bare `circle` the first attempt used) - without
-        // one the gradient defaults to `farthest-corner` sizing, which from
-        // a top-center position reaches every edge and reads as a
-        // full-width colored band instead of a soft accent. No blur/
-        // translucency here (see PostCardRoot above) - just a tint baked
-        // into the background.
-        background: `radial-gradient(circle 130px at top, ${alpha(tone.main, isDarkMode ? 0.26 : 0.15)} 0%, transparent 100%), ${theme.custom.color.surfaceRaised}`,
+        // Card stays plain surfaceRaised - the found/lost color wash now
+        // lives as a halo behind StatusTag itself (see that component)
+        // rather than a wash across the whole card top.
+        backgroundColor: theme.custom.color.surfaceRaised,
       }}
     >
       {/* Header row: what kind of listing this is, and how to open it. */}
