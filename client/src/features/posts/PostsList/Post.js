@@ -52,13 +52,18 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 // Post card DNA - canonical here, mirrored by TrendingItem.jsx: surfaceRaised,
 // radius (xl on this card), elevation.e1 -> e2 hover-lift, no border. The page
 // behind this card (PostsList.js's root Box) uses postsListBackdrop rather than
-// plain surfaceBase specifically so this plain-white card stands out from it.
+// plain surfaceBase specifically so this plain-white card stands out from it -
+// which rules out the dashboard panels' translucent backdrop-filter treatment
+// here (it would let that backdrop show through and undo the contrast). The
+// background stays fully opaque; the "background" prop below (set per-post,
+// since it needs the found/lost tone) layers one soft radial wash over the
+// solid surfaceRaised fill instead, so the same family of "played-with"
+// background reads on this card without losing the opacity that makes it pop.
 const PostCardRoot = styled(Card)(({ theme }) => ({
   height: "100%",
   display: "flex",
   flexDirection: "column",
   paddingBottom: theme.spacing(1),
-  backgroundColor: theme.custom.color.surfaceRaised,
   borderRadius: `${theme.custom.radius.xl}px`,
   boxShadow: theme.custom.elevation.e1,
   overflow: "hidden",
@@ -824,7 +829,15 @@ const Post = ({ post, viewMode = "grid" }) => {
   return (
     <PostCardRoot
       onClick={handleViewDetails}
-      sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+      sx={{
+        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+        // A gentle version of the dashboard panels' color wash: one radial
+        // highlight in the card's own found/lost tone, centred so it reads
+        // the same in LTR and RTL, fading into the plain surfaceRaised fill
+        // by the time it reaches the photo. No blur/translucency here (see
+        // PostCardRoot above) - just a tint baked into the background.
+        background: `radial-gradient(circle at top, ${alpha(tone.main, isDarkMode ? 0.12 : 0.06)} 0%, transparent 45%), ${theme.custom.color.surfaceRaised}`,
+      }}
     >
       {/* Header row: what kind of listing this is, and how to open it. */}
       <Box
