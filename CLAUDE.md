@@ -135,18 +135,20 @@ Reuse these, don't invent new card/panel treatment — now house style:
 - Phase 19 — [Process.jsx](client/src/components/dashboard/Process.jsx) ("What we do" on
   the web dashboard homepage, `/dash` only — not mobile) redesigned: done. The three steps
   were an icon-above-text column threaded by one continuous connector line; they're now
-  three elevated `surfaceRaised` cards (Post card DNA's `elevation.e1 -> e2` hover-lift,
-  `radius.lg`), each fronted by a solid-`brandPrimary` icon disc (contrast-text icon,
-  bypassing `RenderIcon` the same way `FoundLostStrip`/`TrendingItem` do — see `RenderIcon`'s
-  tokenization debt) and a `01`/`02`/`03` step number. A single line no longer runs behind
-  the cards — it read as crossing card interiors once they gained a fill — so a small
-  brand-tinted arrow sits between consecutive cards instead (mirrored for RTL as a static
-  CSS `scaleX(-1)`, rotated 90° on the stacked mobile layout). The section title now takes
-  Phase 17's brand gradient text (`brandPrimary -> lighten(brandPrimary, 0.45)`) instead of
-  flat `ink`, and the notify step's Lost/Found clarifier lines moved from a bare colored dot
-  into their status token's `bg`/`main` pairing, the same tint-plus-solid-text treatment
-  `theme.custom.status` uses everywhere else. The reveal itself moved off framer-motion onto
-  local GSAP — see **Motion (GSAP)**'s "One system per element" entry.
+  three elevated, centered `surfaceRaised` cards (Post card DNA's `elevation.e1 -> e2`
+  hover-lift, `radius.lg`), each headed by a solid-`brandPrimary` icon disc (contrast-text
+  icon, bypassing `RenderIcon` the same way `FoundLostStrip`/`TrendingItem` do — see
+  `RenderIcon`'s tokenization debt). A first pass added a `01`/`02`/`03` step number on each
+  card and a small arrow between them to spell out the sequence; both were cut on review as
+  filler rather than information — reading order alone (which auto-mirrors in RTL, since
+  flexbox's row axis already follows inline-start/end) already says "first, second, third"
+  without a number or a chevron restating it, and cutting them read as more professional, not
+  less finished. The section title takes Phase 17's brand gradient text (`brandPrimary ->
+  lighten(brandPrimary, 0.45)`) instead of flat `ink`, and the notify step's Lost/Found
+  clarifier lines moved from a bare colored dot into their status token's `bg`/`main`
+  pairing, the same tint-plus-solid-text treatment `theme.custom.status` uses everywhere
+  else. The reveal itself moved off framer-motion onto local GSAP — see **Motion (GSAP)**'s
+  "One system per element" entry.
 
 ## Motion (GSAP)
 
@@ -191,12 +193,12 @@ carries the house feel (0.7s, `power3.out`). Reference material for writing GSAP
   owning the final value). Both are enabled from `LeftSide`, so all four stats count
   rather than two counting and two appearing.
 - **One system per element.** `Process.jsx` moved off framer-motion onto its own local
-  GSAP `useGSAP`/`ScrollTrigger` reveal (own step-card redesign, own sequencing — cards and
-  the arrows between them stagger in together in DOM order, then each icon disc pops with
-  `back.out` on top of its card, then the social row) and its section stays deliberately
-  unmarked so `useDashboardMotion`'s shared reveal never runs a second animation on the same
-  nodes. It reuses `useDashboardMotion`'s exported `resolveScroller` rather than
-  re-deriving the `#dash-scroll-container` lookup. `Categories.jsx` moved the same
+  GSAP `useGSAP`/`ScrollTrigger` reveal (own step-card redesign, own sequencing — the three
+  cards stagger in together in DOM order, then each icon disc pops with `back.out` on top of
+  its card, then the social row) and its section stays deliberately unmarked so
+  `useDashboardMotion`'s shared reveal never runs a second animation on the same nodes. It
+  reuses `useDashboardMotion`'s exported `resolveScroller` rather than re-deriving the
+  `#dash-scroll-container` lookup. `Categories.jsx` moved the same
   direction earlier, off framer-motion: its entrance was mount-based, and the section sits
   far below the fold, so it always finished playing before anyone scrolled to it. The cards
   "show all" adds after the reveal has run get a matching local entrance inside
