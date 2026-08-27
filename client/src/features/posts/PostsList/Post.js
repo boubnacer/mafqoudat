@@ -835,8 +835,11 @@ const Post = ({ post, viewMode = "grid" }) => {
         // highlight in the card's own found/lost tone, centred so it reads
         // the same in LTR and RTL, fading into the plain surfaceRaised fill
         // by the time it reaches the photo. No blur/translucency here (see
-        // PostCardRoot above) - just a tint baked into the background.
-        background: `radial-gradient(circle at top, ${alpha(tone.main, isDarkMode ? 0.12 : 0.06)} 0%, transparent 45%), ${theme.custom.color.surfaceRaised}`,
+        // PostCardRoot above) - just a tint baked into the background. Two
+        // stops rather than a straight fade to transparent, so the color
+        // actually reads instead of dissolving into invisibility on a
+        // near-white card.
+        background: `radial-gradient(circle at top, ${alpha(tone.main, isDarkMode ? 0.32 : 0.2)} 0%, ${alpha(tone.main, isDarkMode ? 0.12 : 0.07)} 35%, transparent 65%), ${theme.custom.color.surfaceRaised}`,
       }}
     >
       {/* Header row: what kind of listing this is, and how to open it. */}
