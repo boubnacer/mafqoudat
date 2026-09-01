@@ -45,7 +45,7 @@ const Process = () => {
   const nodeSize = isMobile ? 56 : 64;
   const iconContrastText = theme.palette.getContrastText(theme.custom.color.brandPrimary);
   const isDark = theme.palette.mode === 'dark';
-  const { surfaceRaised, brandPrimary } = theme.custom.color;
+  const { surfaceRaised, surfaceBase, brandPrimary, brandLogo } = theme.custom.color;
   const white = theme.palette.common.white;
 
   // Same glass-blob family as QuickActions/Categories, toned down (gentle):
@@ -151,7 +151,12 @@ const Process = () => {
       sx={{
         position: 'relative',
         overflow: 'hidden',
-        background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
+        // Dark mode: darker, premium glass wash — two low-alpha brand radial
+        // blobs over surfaceBase instead of a flat surfaceRaised fill. Light
+        // mode keeps the original flat surfaceRaised gradient untouched.
+        background: isDark
+          ? `radial-gradient(120% 100% at 10% 0%, ${alpha(brandPrimary, 0.22)} 0%, transparent 55%), radial-gradient(120% 100% at 90% 100%, ${alpha(brandLogo, 0.18)} 0%, transparent 55%), ${surfaceBase}`
+          : `linear-gradient(135deg, ${alpha(surfaceRaised, 0.95)} 0%, ${alpha(surfaceRaised, 0.95)} 100%)`,
         backdropFilter: 'blur(10px)',
         borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
         boxShadow: 'none',
@@ -224,7 +229,9 @@ const Process = () => {
                   p: { xs: 3, md: 3.5 },
                   transition: 'box-shadow 0.25s ease, transform 0.25s ease',
                   '&:hover': {
-                    boxShadow: theme.custom.elevation.e2,
+                    boxShadow: isDark
+                      ? `${theme.custom.elevation.e2}, 0 0 24px ${alpha(brandPrimary, 0.25)}`
+                      : theme.custom.elevation.e2,
                     transform: 'translateY(-4px)',
                   },
                 }}
@@ -240,7 +247,11 @@ const Process = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     backgroundColor: theme.custom.color.brandPrimary,
-                    boxShadow: theme.custom.elevation.e1,
+                    // Dark mode: glowing disc via brandPrimary-tinted shadow;
+                    // light mode keeps the original flat elevation.e1.
+                    boxShadow: isDark
+                      ? `0 4px 16px ${alpha(brandPrimary, 0.4)}`
+                      : theme.custom.elevation.e1,
                   }}
                 >
                   <StepIcon sx={{ color: iconContrastText, fontSize: 26 }} />
@@ -354,7 +365,9 @@ const Process = () => {
                   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                   '&:hover': {
                     transform: 'translateY(-3px)',
-                    boxShadow: theme.custom.elevation.e2,
+                    boxShadow: isDark
+                      ? `${theme.custom.elevation.e2}, 0 0 24px ${alpha(brandPrimary, 0.25)}`
+                      : theme.custom.elevation.e2,
                   },
                 }}
               >
