@@ -4,6 +4,76 @@ import { useLanguage } from './languageContext';
 
 export const translations = {
   en: {
+    // Per-page <title>/<meta description>, keyed by the pageKey SeoMeta is
+    // given. Nested rather than flat because t() is a string lookup and these
+    // are pairs; SeoMeta reads this object directly, and the build-time
+    // prerender (client/scripts/prerenderSeo.js) reads the very same block, so
+    // the tags a crawler gets before React mounts and the ones it gets after
+    // cannot disagree. They used to: the prerender wrote Arabic, then Helmet
+    // replaced it with English on a page that renders in Arabic.
+    seoPages: {
+      home: {
+        title: "Mafqoudat | Lost and Found Platform in Morocco and the Arab World",
+        description:
+          "Report a lost item or something you found, and browse the latest reports across Morocco and the Arab world. Mafqoudat is a free platform that helps people return what was lost to its owner.",
+      },
+      about: {
+        title: "About Us | Mafqoudat",
+        description:
+          "Learn about Mafqoudat and its mission: a platform that brings together communities across Morocco and the Arab world to return lost belongings to their owners.",
+      },
+      blog: {
+        title: "Blog | Lost and Found Tips and Stories - Mafqoudat",
+        description:
+          "Mafqoudat articles: how to avoid losing your belongings, what to do when you lose a document or a phone, and real stories of items that made it home.",
+      },
+      contact: {
+        title: "Contact Us | Mafqoudat",
+        description:
+          "Need help with a lost or found report? Get in touch with the Mafqoudat team for support, media enquiries and partnership opportunities.",
+      },
+      help: {
+        title: "Help Center | Mafqoudat",
+        description:
+          "Answers to common questions on Mafqoudat: how to publish a report for a lost item, how to verify a found item, and how to stay safe while using the platform.",
+      },
+      guidelines: {
+        title: "Community Guidelines | Mafqoudat",
+        description:
+          "Mafqoudat community guidelines: the posting and conduct rules that keep the platform a safe place while helping people recover their belongings.",
+      },
+      safety: {
+        title: "Safety Tips | Mafqoudat",
+        description:
+          "Mafqoudat safety tips for handing over or collecting an item: choose a public place, verify the owner, and avoid common scams.",
+      },
+      privacy: {
+        title: "Privacy Policy | Mafqoudat",
+        description:
+          "The Mafqoudat privacy policy: what data we collect, how we protect it, and the rights you have to control it.",
+      },
+      terms: {
+        title: "Terms of Use | Mafqoudat",
+        description:
+          "The Mafqoudat terms of use: user responsibilities, acceptable use, and the rules for publishing on the platform.",
+      },
+      cookies: {
+        title: "Cookie Notice | Mafqoudat",
+        description:
+          "How Mafqoudat uses cookies to improve your experience, and the options you have to control them.",
+      },
+      dash: {
+        title: "Lost and Found Dashboard | Mafqoudat",
+        description:
+          "An overview of activity on Mafqoudat: the latest reports, lost and found counts, and the most searched categories across Morocco and the Arab world.",
+      },
+      dashPosts: {
+        title: "Lost and Found Items in Morocco and the Arab World | Mafqoudat",
+        description:
+          "Browse the latest lost and found reports on Mafqoudat: items lost and items found across cities in Morocco and the Arab world. Search for your belongings or help return what you found.",
+      },
+    },
+
     // Post-related translations
     found: "Found",
     lost: "Lost",
@@ -1721,6 +1791,70 @@ export const translations = {
     matchDaysApart: "{days} days apart"
   },
   fr: {
+    // See the comment on the English seoPages block.
+    seoPages: {
+      home: {
+        title: "Mafqoudat | Plateforme d'objets perdus et trouvés au Maroc et dans le monde arabe",
+        description:
+          "Signalez un objet perdu ou un objet que vous avez trouvé, et parcourez les dernières annonces dans les villes du Maroc et du monde arabe. Mafqoudat est une plateforme gratuite qui aide à rendre les objets à leurs propriétaires.",
+      },
+      about: {
+        title: "À propos | Mafqoudat",
+        description:
+          "Découvrez Mafqoudat et sa mission : une plateforme qui réunit les communautés du Maroc et du monde arabe pour rendre les objets perdus à leurs propriétaires.",
+      },
+      blog: {
+        title: "Blog | Conseils et histoires d'objets perdus et trouvés - Mafqoudat",
+        description:
+          "Les articles de Mafqoudat : comment éviter de perdre vos affaires, que faire en cas de perte d'un document ou d'un téléphone, et de vraies histoires d'objets retrouvés.",
+      },
+      contact: {
+        title: "Nous contacter | Mafqoudat",
+        description:
+          "Besoin d'aide pour une annonce d'objet perdu ou trouvé ? Contactez l'équipe Mafqoudat pour le support, les demandes presse et les partenariats.",
+      },
+      help: {
+        title: "Centre d'aide | Mafqoudat",
+        description:
+          "Réponses aux questions fréquentes sur Mafqoudat : comment publier une annonce pour un objet perdu, comment vérifier un objet trouvé, et comment rester en sécurité.",
+      },
+      guidelines: {
+        title: "Règles de la communauté | Mafqoudat",
+        description:
+          "Les règles de la communauté Mafqoudat : les règles de publication et de conduite qui gardent la plateforme sûre tout en aidant les gens à récupérer leurs affaires.",
+      },
+      safety: {
+        title: "Conseils de sécurité | Mafqoudat",
+        description:
+          "Les conseils de sécurité de Mafqoudat pour remettre ou récupérer un objet : choisir un lieu public, vérifier le propriétaire et éviter les arnaques courantes.",
+      },
+      privacy: {
+        title: "Politique de confidentialité | Mafqoudat",
+        description:
+          "La politique de confidentialité de Mafqoudat : les données que nous collectons, comment nous les protégeons, et vos droits pour les contrôler.",
+      },
+      terms: {
+        title: "Conditions d'utilisation | Mafqoudat",
+        description:
+          "Les conditions d'utilisation de Mafqoudat : responsabilités de l'utilisateur, usage acceptable et règles de publication sur la plateforme.",
+      },
+      cookies: {
+        title: "Avis relatif aux cookies | Mafqoudat",
+        description:
+          "Comment Mafqoudat utilise les cookies pour améliorer votre expérience, et les options dont vous disposez pour les contrôler.",
+      },
+      dash: {
+        title: "Tableau de bord des objets perdus et trouvés | Mafqoudat",
+        description:
+          "Un aperçu de l'activité sur Mafqoudat : les dernières annonces, le nombre d'objets perdus et trouvés, et les catégories les plus recherchées.",
+      },
+      dashPosts: {
+        title: "Objets perdus et trouvés au Maroc et dans le monde arabe | Mafqoudat",
+        description:
+          "Parcourez les dernières annonces d'objets perdus et trouvés sur Mafqoudat, dans les villes du Maroc et du monde arabe. Cherchez vos affaires ou aidez à rendre ce que vous avez trouvé.",
+      },
+    },
+
     // Post-related translations
     found: "Trouvé",
     lost: "Perdu",
@@ -3415,6 +3549,72 @@ export const translations = {
     matchDaysApart: "{days} jours d'écart"
   },
   ar: {
+    // See the comment on the English seoPages block. This is the block the
+    // build-time prerender writes into the HTML, since Arabic is what a
+    // first-time visitor with no stored preference gets.
+    seoPages: {
+      home: {
+        title: "مفقودات | منصة المفقودات والموجودات في المغرب والعالم العربي",
+        description:
+          "أعلن عن غرض مفقود أو عن شيء عثرت عليه، وتصفّح أحدث البلاغات في مدن المغرب والعالم العربي. مفقودات منصة مجانية تساعد الناس على إعادة ما ضاع إلى أصحابه.",
+      },
+      about: {
+        title: "من نحن | مفقودات",
+        description:
+          "تعرّف على مفقودات ورسالتها: منصة تجمع سكان المغرب والعالم العربي لإعادة الأغراض المفقودة إلى أصحابها عبر مجتمع موثوق.",
+      },
+      blog: {
+        title: "المدونة | نصائح وقصص عن المفقودات والموجودات - مفقودات",
+        description:
+          "مقالات مفقودات: نصائح لتفادي ضياع أغراضك، وما تفعله عند فقدان وثيقة أو هاتف، وقصص حقيقية لأشياء عادت إلى أصحابها.",
+      },
+      contact: {
+        title: "اتصل بنا | مفقودات",
+        description:
+          "تحتاج مساعدة في بلاغ مفقود أو موجود؟ تواصل مع فريق مفقودات للدعم والاستفسارات الإعلامية وفرص الشراكة.",
+      },
+      help: {
+        title: "مركز المساعدة | مفقودات",
+        description:
+          "إجابات عن الأسئلة الشائعة في مفقودات: كيف تنشر بلاغاً عن غرض مفقود، وكيف تتحقق من غرض عُثر عليه، وكيف تبقى آمناً أثناء الاستخدام.",
+      },
+      guidelines: {
+        title: "إرشادات المجتمع | مفقودات",
+        description:
+          "إرشادات مجتمع مفقودات: قواعد النشر والتعامل المحترم التي تحافظ على بيئة آمنة أثناء مساعدة الناس على استعادة أغراضهم.",
+      },
+      safety: {
+        title: "نصائح السلامة | مفقودات",
+        description:
+          "نصائح مفقودات للسلامة عند تسليم أو استلام غرض: اختيار مكان عام، التحقق من صاحب الغرض، وتفادي عمليات الاحتيال.",
+      },
+      privacy: {
+        title: "سياسة الخصوصية | مفقودات",
+        description:
+          "سياسة الخصوصية في مفقودات: ما البيانات التي نجمعها، وكيف نحميها، وما حقوقك في التحكم بها.",
+      },
+      terms: {
+        title: "شروط الاستخدام | مفقودات",
+        description:
+          "شروط استخدام منصة مفقودات: مسؤوليات المستخدم، والاستخدام المقبول، وقواعد النشر على المنصة.",
+      },
+      cookies: {
+        title: "إشعار ملفات تعريف الارتباط | مفقودات",
+        description:
+          "كيف تستخدم مفقودات ملفات تعريف الارتباط لتحسين تجربتك، وما الخيارات المتاحة لك للتحكم بها.",
+      },
+      dash: {
+        title: "لوحة المفقودات والموجودات | مفقودات",
+        description:
+          "نظرة عامة على نشاط مفقودات: أحدث البلاغات، وأعداد المفقودات والموجودات، والفئات الأكثر بحثاً في المغرب والعالم العربي.",
+      },
+      dashPosts: {
+        title: "المفقودات والموجودات في المغرب والعالم العربي | مفقودات",
+        description:
+          "تصفّح أحدث بلاغات المفقودات والموجودات على مفقودات: أشياء ضاعت وأشياء عُثر عليها في مدن المغرب والعالم العربي. ابحث عن غرضك أو ساعد في إعادة ما وجدته إلى صاحبه.",
+      },
+    },
+
     // Post-related translations
     found: "عثر عليه",
     lost: "مفقود",

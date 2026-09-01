@@ -83,7 +83,6 @@ const SinglePost = () => {
       <SeoMeta
         title={seo.title}
         description={seo.description}
-        keywords={seo.keywords}
         image={seo.image}
         path={seo.path}
         structuredData={seo.structuredData}

@@ -6,10 +6,21 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(facebookexternalhit|facebookcatalog|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterestbot|redditbot|vkShare|SkypeUriPreview|bingbot|BingPreview|Yandex).*"
+          "value": ".*(facebookexternalhit|facebookcatalog|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterestbot|redditbot|vkShare|SkypeUriPreview|bingbot|BingPreview|Yandex|Googlebot|Google-InspectionTool|Storebot-Google|GoogleOther|AdsBot-Google|DuckDuckBot|Applebot|PetalBot|SeznamBot|Qwantify|GPTBot|OAI-SearchBot|ChatGPT-User|PerplexityBot|ClaudeBot|Claude-Web|Amazonbot|YouBot).*"
         }
       ],
       "destination": "https://mafqoudat-api.onrender.com/og/posts/:id"
+    },
+    {
+      "source": "/dash/posts",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|facebookcatalog|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterestbot|redditbot|vkShare|SkypeUriPreview|bingbot|BingPreview|Yandex|Googlebot|Google-InspectionTool|Storebot-Google|GoogleOther|AdsBot-Google|DuckDuckBot|Applebot|PetalBot|SeznamBot|Qwantify|GPTBot|OAI-SearchBot|ChatGPT-User|PerplexityBot|ClaudeBot|Claude-Web|Amazonbot|YouBot).*"
+        }
+      ],
+      "destination": "https://mafqoudat-api.onrender.com/og/posts"
     },
     {
       "source": "/sitemap-posts.xml",

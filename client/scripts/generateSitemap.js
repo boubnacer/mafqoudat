@@ -6,7 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { STATIC_ROUTES } = require('./seoRoutes');
+const { STATIC_ROUTES, SITEMAP_ONLY_ROUTES } = require('./seoRoutes');
 
 const BASE_URL = 'https://www.mafqoudat.com';
 const blogPosts = require('../src/data/blogPosts.json');
@@ -30,7 +30,7 @@ const buildUrlEntry = ({ loc, lastmod, changefreq, priority }) => `  <url>
 const generateSitemap = () => {
   const today = new Date().toISOString().slice(0, 10);
 
-  const staticEntries = STATIC_ROUTES.map((route) =>
+  const staticEntries = [...STATIC_ROUTES, ...SITEMAP_ONLY_ROUTES].map((route) =>
     buildUrlEntry({
       loc: `${BASE_URL}${route.path}`,
       lastmod: today,
@@ -87,7 +87,8 @@ const writeSitemaps = (outputDir) => {
   const staticPath = path.join(outputDir, 'sitemap-static.xml');
   fs.writeFileSync(staticPath, generateSitemap(), 'utf8');
   console.log(
-    `Sitemap written: ${staticPath} (${STATIC_ROUTES.length} static + ${blogPosts.length} blog URLs)`
+    `Sitemap written: ${staticPath} (${STATIC_ROUTES.length} static + ` +
+      `${SITEMAP_ONLY_ROUTES.length} listing + ${blogPosts.length} blog URLs)`
   );
 
   const indexPath = path.join(outputDir, 'sitemap.xml');

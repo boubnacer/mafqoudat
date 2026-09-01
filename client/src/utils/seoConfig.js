@@ -8,66 +8,11 @@ export const LOCALE_MAP = {
   fr: 'fr_FR',
 };
 
-export const defaultKeywords = [
-  // Brand name - Latin transliteration variants (q/k/g for ق, ou/u/o for و)
-  'mafqoudat',
-  'mafqudat',
-  'mafqodat',
-  'mafqud',
-  'mafqod',
-  'mafkoudat',
-  'mafkudat',
-  'mafkodat',
-  'mafkoud',
-  'mafkod',
-  'mafgoudat',
-  'mafgudat',
-  'mafgodat',
-  'mafgoud',
-  'mafgod',
-  'mafoudat',
-  'mafodat',
-  'maf9oudat',
-  'mafkouda',
-  'mafqouda',
-  'mafqoudat.com',
-  // Brand name - Arabic script variants
-  'مفقودات',
-  'مفقود',
-  'مفقودة',
-  'مفكودات',
-  'موجودات',
-  'موجود',
-  'فقد',
-  'فقدان',
-  'ضياع',
-  'وجدت',
-  'وجد',
-  'منصة مفقودات',
-  // English search intent
-  'lost and found',
-  'lost and found Morocco',
-  'lost and found platform',
-  'lost items',
-  'found items',
-  'community lost and found',
-  'Morocco lost and found',
-  'Arab world lost and found',
-  // French search intent
-  'objets perdus',
-  'objets trouvés',
-  'objets perdus et trouvés',
-  'objet perdu Maroc',
-  'objet trouvé Maroc',
-  'plateforme objets perdus Maroc',
-];
-
 export const defaultSeo = {
   siteName: 'Mafqoudat',
   title: 'Mafqoudat - Lost and Found Platform | Morocco',
   description:
     'Mafqoudat is the leading lost and found platform in Morocco and the Arab world. Report lost items, share found items, and reunite communities with their belongings.',
-  keywords: defaultKeywords,
   path: '/',
   image: `${BASE_URL}/maflogo1200-630.png`,
   // Intentionally empty. The site-wide WebSite and Organization schemas live in
@@ -134,22 +79,19 @@ export const buildAbsoluteUrl = (path = '/') => {
   return `${BASE_URL}/${path}`;
 };
 
-const sharedPageKeywords = [
-  'mafqoudat community',
-  'lost and found support',
-  'mafqoudat help',
-  'مفقودات المغرب',
-  'منصة مفقودات المغرب',
-  'mafqoudat platform',
-];
-
+// Per-page path + structured data.
+//
+// The title/description here are a FALLBACK only. The copy SeoMeta actually
+// renders lives in translations.js's `seoPages` block, keyed by the same page
+// keys used below, so a page gets its title in the language it is displaying -
+// these English strings are what a key with no entry there falls back to. The
+// structured data stays here because it is language-independent.
 export const pageSeoConfig = {
   home: {
     path: '/',
     title: 'Mafqoudat - Lost and Found Platform | Morocco',
     description:
       'Reconnect with your belongings through Mafqoudat. Report lost items, browse found items, and collaborate with your community across Morocco and the Arab region.',
-    keywords: defaultKeywords,
     // No breadcrumbs on the homepage (it is the root), and the site-wide
     // WebSite/Organization schemas come from the shell - so nothing to add.
     structuredData: [],
@@ -161,7 +103,6 @@ export const pageSeoConfig = {
     title: 'About Mafqoudat | Lost and Found Community',
     description:
       'Learn about Mafqoudat’s mission to connect communities across Morocco and the Arab world to reunite lost items with their owners through a trusted platform.',
-    keywords: [...defaultKeywords, 'about Mafqoudat', 'mafqoudat mission', 'lost and found community'],
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
@@ -174,7 +115,6 @@ export const pageSeoConfig = {
     title: 'Contact Mafqoudat | Support & Partnerships',
     description:
       'Need help with a lost or found item? Contact Mafqoudat for support, media inquiries, and partnership opportunities. We are here to help 24/7.',
-    keywords: [...defaultKeywords, 'contact mafqoudat', 'mafqoudat support', 'lost and found contact'],
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
@@ -187,7 +127,6 @@ export const pageSeoConfig = {
     title: 'Help Center | Mafqoudat Lost and Found',
     description:
       'Get answers to common questions about Mafqoudat. Learn how to report lost items, verify found items, and stay safe while using our platform.',
-    keywords: [...defaultKeywords, 'mafqoudat help center', 'lost and found faq', 'mafqoudat support center'],
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
@@ -200,7 +139,6 @@ export const pageSeoConfig = {
     title: 'Privacy Policy | Mafqoudat',
     description:
       'Read the Mafqoudat privacy policy to understand how we protect your personal data and ensure security for everyone using our lost and found platform.',
-    keywords: [...defaultKeywords, 'mafqoudat privacy policy', 'lost and found privacy', 'data protection mafqoudat'],
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
@@ -213,7 +151,6 @@ export const pageSeoConfig = {
     title: 'Delete Your Account | Mafqoudat',
     description:
       'Permanently delete your Mafqoudat account and all of the data stored with it, from the web or from inside the mobile app.',
-    keywords: [...defaultKeywords, 'delete mafqoudat account', 'account deletion', 'remove my data'],
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
@@ -226,7 +163,6 @@ export const pageSeoConfig = {
     title: 'Terms of Use | Mafqoudat',
     description:
       'Review the Mafqoudat terms of use for our lost and found services. Learn about user responsibilities, acceptable use, and platform guidelines.',
-    keywords: [...defaultKeywords, 'mafqoudat terms', 'lost and found terms', 'mafqoudat guidelines'],
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
@@ -239,7 +175,6 @@ export const pageSeoConfig = {
     title: 'Cookie Notice | Mafqoudat',
     description:
       'Understand how Mafqoudat uses cookies to improve your experience on our lost and found platform. Learn about your options and privacy settings.',
-    keywords: [...defaultKeywords, 'mafqoudat cookies', 'cookie policy', 'tracking consent'],
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
@@ -252,7 +187,6 @@ export const pageSeoConfig = {
     title: 'Community Guidelines | Mafqoudat',
     description:
       'Read the Mafqoudat community guidelines to ensure a respectful and safe environment while helping people recover lost items across the region.',
-    keywords: [...defaultKeywords, 'mafqoudat guidelines', 'lost and found rules', 'community safety mafqoudat'],
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
@@ -265,7 +199,6 @@ export const pageSeoConfig = {
     title: 'Safety Tips | Mafqoudat',
     description:
       'Stay safe while meeting to exchange lost and found items. Mafqoudat shares best practices to protect yourself and ensure trustworthy interactions.',
-    keywords: [...defaultKeywords, 'mafqoudat safety tips', 'lost and found safety', 'safe meetups'],
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
@@ -278,7 +211,6 @@ export const pageSeoConfig = {
     title: 'Mafqoudat Blog | Lost and Found Stories & Tips',
     description:
       'Explore Mafqoudat blog articles featuring success stories, prevention tips, and community updates about lost and found efforts in Morocco and beyond.',
-    keywords: [...defaultKeywords, 'mafqoudat blog', 'lost and found tips', 'success stories Mafqoudat'],
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
@@ -291,7 +223,6 @@ export const pageSeoConfig = {
     title: 'Dashboard | Mafqoudat Lost and Found',
     description:
       'Browse lost and found items on Mafqoudat dashboard. View trending posts, recent items, and help reunite belongings with their owners across Morocco.',
-    keywords: [...defaultKeywords, 'mafqoudat dashboard', 'lost and found dashboard', 'browse lost items'],
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
@@ -304,7 +235,6 @@ export const pageSeoConfig = {
     title: 'Lost and Found Posts | Mafqoudat',
     description:
       'Explore all lost and found posts on Mafqoudat. Search and filter by category, location, and status to find or report lost items across Morocco and the Arab world.',
-    keywords: [...defaultKeywords, 'lost and found posts', 'browse posts', 'search lost items', 'found items Morocco'],
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
@@ -314,11 +244,5 @@ export const pageSeoConfig = {
     ],
   },
 };
-
-Object.keys(pageSeoConfig).forEach((key) => {
-  pageSeoConfig[key].keywords = Array.from(
-    new Set([...(pageSeoConfig[key].keywords || []), ...sharedPageKeywords])
-  );
-});
 
 export default pageSeoConfig;

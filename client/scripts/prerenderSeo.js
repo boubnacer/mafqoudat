@@ -3,8 +3,8 @@
 // react-snap (Puppeteer) gives the fullest prerendering but is skipped on
 // Vercel entirely (see postbuild.js) and may fail elsewhere too. This script
 // needs no headless browser: it writes per-route static HTML files with
-// correct <title>/meta/canonical/hreflang/OG/Twitter/JSON-LD, and for blog
-// posts also injects the real article text into the initial HTML.
+// correct <title>/meta/canonical/OG/Twitter/JSON-LD, and injects the route's
+// real <h1> (and, for blog posts, the full article text) into the initial HTML.
 //
 // It never overwrites a route react-snap already prerendered successfully
 // (detected simply as: that route's build/<path>/index.html already exists)
@@ -16,10 +16,17 @@
 // Note on hydration safety: client/src/index.js uses ReactDOM.createRoot()
 // (not hydrateRoot()), so injected content in #root is simply replaced when
 // React mounts - there is no hydration-mismatch risk here.
+//
+// Everything injected is in Arabic, because Arabic is what a first-time
+// visitor with no stored preference actually gets (languageContext's
+// resolveLanguage returns 'ar'), and a crawler never has a stored preference.
+// The pages used to be prerendered with English titles on top of a page that
+// renders in Arabic, which is a mismatch a searcher sees the moment they click.
 
 const fs = require('fs');
 const path = require('path');
 const { STATIC_ROUTES } = require('./seoRoutes');
+const { loadTranslations, translator } = require('./loadTranslations');
 
 const BASE_URL = 'https://www.mafqoudat.com';
 const BUILD_DIR = path.join(__dirname, '..', 'build');
@@ -27,66 +34,43 @@ const SHELL_PATH = path.join(BUILD_DIR, 'index.html');
 
 const blogPosts = require('../src/data/blogPosts.json');
 
-// English copy for static marketing pages, mirrored from src/utils/seoConfig.js
-// pageSeoConfig (kept in sync manually - that file is ESM and can't be
-// required from plain Node without a build step). SeoMeta.jsx does not
-// localize title/description per language today, so English-only here
-// matches actual runtime behavior, not a regression.
-const STATIC_PAGE_SEO = {
-  '/': {
-    title: 'Mafqoudat - Lost and Found Platform | Morocco',
-    description:
-      'Reconnect with your belongings through Mafqoudat. Report lost items, browse found items, and collaborate with your community across Morocco and the Arab region.',
-  },
-  '/about': {
-    title: 'About Mafqoudat | Lost and Found Community',
-    description:
-      'Learn about Mafqoudat’s mission to connect communities across Morocco and the Arab world to reunite lost items with their owners through a trusted platform.',
-  },
-  '/blog': {
-    title: 'Mafqoudat Blog | Lost and Found Stories & Tips',
-    description:
-      'Explore Mafqoudat blog articles featuring success stories, prevention tips, and community updates about lost and found efforts in Morocco and beyond.',
-  },
-  '/contact': {
-    title: 'Contact Mafqoudat | Support & Partnerships',
-    description:
-      'Need help with a lost or found item? Contact Mafqoudat for support, media inquiries, and partnership opportunities. We are here to help 24/7.',
-  },
-  '/help': {
-    title: 'Help Center | Mafqoudat Lost and Found',
-    description:
-      'Get answers to common questions about Mafqoudat. Learn how to report lost items, verify found items, and stay safe while using our platform.',
-  },
-  '/guidelines': {
-    title: 'Community Guidelines | Mafqoudat',
-    description:
-      'Read the Mafqoudat community guidelines to ensure a respectful and safe environment while helping people recover lost items across the region.',
-  },
-  '/safety': {
-    title: 'Safety Tips | Mafqoudat',
-    description:
-      'Stay safe while meeting to exchange lost and found items. Mafqoudat shares best practices to protect yourself and ensure trustworthy interactions.',
-  },
-  '/privacy': {
-    title: 'Privacy Policy | Mafqoudat',
-    description:
-      'Read the Mafqoudat privacy policy to understand how we protect your personal data and ensure security for everyone using our lost and found platform.',
-  },
-  '/terms': {
-    title: 'Terms of Use | Mafqoudat',
-    description:
-      'Review the Mafqoudat terms of use for our lost and found services. Learn about user responsibilities, acceptable use, and platform guidelines.',
-  },
-  '/cookies': {
-    title: 'Cookie Notice | Mafqoudat',
-    description:
-      'Understand how Mafqoudat uses cookies to improve your experience on our lost and found platform. Learn about your options and privacy settings.',
-  },
-};
+// The brand as it is written in the language these pages are prerendered in.
+const BRAND_AR = 'مفقودات';
 
-const SUPPORTED_LANGUAGES = ['en', 'ar', 'fr'];
-const LOCALE_MAP = { en: 'en_US', ar: 'ar_AR', fr: 'fr_FR' };
+// What each static route needs, and nothing that is written twice.
+//
+// `pageKey` points into translations.js's `seoPages` block - the same object
+// SeoMeta reads at runtime - so the <title> a crawler gets from this script and
+// the one Helmet sets a moment later are the same string by construction. They
+// used to be two hand-maintained copies, and had already drifted into
+// prerendering Arabic and then re-rendering English over it.
+//
+// `h1Key`/`subKey` name the translation keys the page component itself passes
+// to t(), so the injected heading is the same string React will render. That is
+// what keeps this on the right side of the cloaking line - the crawler is shown
+// the page's own heading, just already assembled. If a page's heading changes,
+// the key here is what has to be repointed; the copy follows automatically.
+const STATIC_PAGE_SEO = {
+  // WelcomePage.jsx renders t('heroHeadline') as its h1, then
+  // t('welcomeMessage') under it.
+  '/': { pageKey: 'home', h1Key: 'heroHeadline', subKey: 'welcomeMessage' },
+  '/about': { pageKey: 'about', h1Key: 'aboutUs', subKey: 'reunitingCommunities' },
+  '/blog': { pageKey: 'blog', h1Key: 'blog', subKey: 'blogSubtitle' },
+  '/contact': { pageKey: 'contact', h1Key: 'contactUs', subKey: 'getInTouch' },
+  '/help': { pageKey: 'help', h1Key: 'helpCenter', subKey: 'helpCenterSubtitle' },
+  '/guidelines': { pageKey: 'guidelines', h1Key: 'communityGuidelines', subKey: null },
+  // SafetyTips.jsx renders {t('staySafeWhileUsing')} followed by the literal
+  // brand name, so the injected h1 has to carry it too.
+  '/safety': { pageKey: 'safety', h1Key: 'staySafeWhileUsing', h1Suffix: ' Mafqoudat', subKey: null },
+  '/privacy': { pageKey: 'privacy', h1Key: 'privacyPolicy', subKey: null },
+  '/terms': { pageKey: 'terms', h1Key: 'termsOfUse', subKey: null },
+  '/cookies': { pageKey: 'cookies', h1Key: 'cookieNotice', subKey: null },
+  // No h1Key: Dash.js is a panel layout with no single page heading, and
+  // inventing one here would put text on the page React never renders. Meta
+  // only - the point of prerendering this route is that it stops answering with
+  // the homepage's markup, not that it gains copy.
+  '/dash': { pageKey: 'dash', h1Key: null, subKey: null },
+};
 
 const escapeHtml = (value) =>
   String(value).replace(/[&<>'"]/g, (char) => ({
@@ -105,15 +89,6 @@ const escapeHtml = (value) =>
 // one of each. See the comment block in public/index.html.
 const RH = 'data-rh="true"';
 
-const buildHreflangLinks = (routePath) => {
-  const links = SUPPORTED_LANGUAGES.map((lang) => {
-    const url = `${BASE_URL}${routePath}?lang=${lang}`;
-    return `    <link rel="alternate" hreflang="${lang}" href="${escapeHtml(url)}" ${RH} />`;
-  });
-  links.push(`    <link rel="alternate" hreflang="x-default" href="${escapeHtml(BASE_URL + routePath)}" ${RH} />`);
-  return links.join('\n');
-};
-
 // The shell already carries generic og:image*/og:locale*/og:type tags (see
 // public/index.html). Strip them before injecting route-specific values so a
 // crawler never sees two conflicting og:image or og:locale pairs.
@@ -131,6 +106,16 @@ const stripGenericOgTags = (html) =>
     .replace(/<meta property="og:locale:alternate"[^>]*>/g, '')
     .replace(/<meta property="og:type"[^>]*>/g, '');
 
+// No hreflang here, deliberately.
+//
+// This used to emit <link rel="alternate" hreflang="ar|fr|en"> pointing at
+// ?lang=xx variants of the same path - while the canonical on every one of
+// those variants pointed back at the bare URL. Google discards an hreflang
+// cluster whose members canonicalise elsewhere, so the tags bought nothing and
+// spent crawl budget on three extra URLs per page. The site has one URL per
+// page and switches language client-side; until there are genuinely distinct
+// localised URLs (/ar/..., /fr/...) with self-referencing canonicals, the
+// honest markup is a single canonical and no alternates.
 const buildHeadInjection = ({ routePath, title, description, image, structuredData, locale, ogType }) => {
   const canonicalUrl = `${BASE_URL}${routePath}`;
   const absoluteImage = image
@@ -138,9 +123,8 @@ const buildHeadInjection = ({ routePath, title, description, image, structuredDa
     : `${BASE_URL}/maflogo1200-630.png`;
   const parts = [
     `    <link rel="canonical" href="${escapeHtml(canonicalUrl)}" ${RH} />`,
-    buildHreflangLinks(routePath),
     `    <meta property="og:type" content="${ogType || 'website'}" ${RH} />`,
-    `    <meta property="og:locale" content="${LOCALE_MAP[locale] || LOCALE_MAP.en}" ${RH} />`,
+    `    <meta property="og:locale" content="${locale === 'ar' ? 'ar_AR' : 'en_US'}" ${RH} />`,
     `    <meta property="og:title" content="${escapeHtml(title)}" ${RH} />`,
     `    <meta property="og:description" content="${escapeHtml(description)}" ${RH} />`,
     `    <meta property="og:url" content="${escapeHtml(canonicalUrl)}" ${RH} />`,
@@ -156,8 +140,7 @@ const buildHeadInjection = ({ routePath, title, description, image, structuredDa
   // and blog posts with two BlogPosting. Helmet replaces the tagged ones.
   //
   // This only ever applies to routes this script writes. The shell's site-wide
-  // WebSite/Organization blocks stay untagged and survive on every page,
-  // including "/", which this script deliberately never rewrites.
+  // WebSite/Organization blocks stay untagged and survive on every page.
   (structuredData || []).forEach((schema) => {
     parts.push(`    <script type="application/ld+json" ${RH}>${JSON.stringify(schema)}</script>`);
   });
@@ -198,11 +181,28 @@ const injectHead = (html, headAdditions) => html.replace('</head>', `${headAddit
 
 const setTitle = (html, title) => html.replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(title)}</title>`);
 
+// The `content=` in the pattern is load-bearing, not decoration.
+//
+// public/index.html carries an explanatory comment above the real tag that
+// contains the literal text `<meta name="description">` (it is explaining why
+// the page must not end up with two of them). String#replace takes the FIRST
+// match, and that comment sits earlier in the file - so the looser
+// /<meta name="description"[^>]*>/ rewrote the text inside the comment and left
+// the actual tag alone. Every prerendered route shipped the generic site
+// description as a result, silently, while the <title> beside it was correct.
+// Requiring a content attribute makes the pattern match a real tag only.
 const setDescription = (html, description) =>
   html.replace(
-    /<meta name="description"[^>]*>/,
+    /<meta name="description"[^>]*content=[^>]*>/,
     `<meta name="description" content="${escapeHtml(description)}" ${RH} />`
   );
+
+// Matches the opening tag whatever attributes it currently carries, rather than
+// the literal '<html lang="en">' this used to look for - the shell now ships
+// lang="ar" dir="rtl" itself, and a literal match would have silently stopped
+// applying the moment that changed.
+const setHtmlLang = (html, lang, dir) =>
+  html.replace(/<html[^>]*>/, `<html lang="${lang}"${dir ? ` dir="${dir}"` : ''}>`);
 
 const writeRoute = (routePath, html) => {
   const outDir = path.join(BUILD_DIR, routePath);
@@ -211,18 +211,53 @@ const writeRoute = (routePath, html) => {
   fs.writeFileSync(outFile, html, 'utf8');
 };
 
-const alreadyPrerendered = (routePath) => fs.existsSync(path.join(BUILD_DIR, routePath, 'index.html'));
+// '/' is the shell itself, which always exists - checking the filesystem for it
+// would report every build as already prerendered and skip the homepage.
+const alreadyPrerendered = (routePath) =>
+  routePath !== '/' && fs.existsSync(path.join(BUILD_DIR, routePath, 'index.html'));
 
-const renderArticleBody = (post, localized) => {
+// A static page's initial markup: its own heading, its own subtitle where it
+// has one, and the site's real navigation so a crawler arriving here has links
+// to follow. React replaces all of it on mount.
+const renderStaticBody = (heading, subtitle, t) => {
+  const nav = [
+    ['/', 'goHome'],
+    ['/dash/posts', 'posts'],
+    ['/blog', 'blog'],
+    ['/about', 'aboutUs'],
+    ['/help', 'helpCenter'],
+    ['/safety', 'safetyTips'],
+    ['/contact', 'contactUs'],
+  ]
+    .map(([href, key]) => {
+      const label = t(key) || key;
+      return `<li><a href="${BASE_URL}${href}">${escapeHtml(label)}</a></li>`;
+    })
+    .join('');
+
+  return `<div id="root"><main>
+    <h1>${escapeHtml(heading)}</h1>
+${subtitle ? `    <p>${escapeHtml(subtitle)}</p>\n` : ''}    <nav><ul>${nav}</ul></nav>
+  </main></div>`;
+};
+
+const renderArticleBody = (post, localized, t) => {
   const tagsHtml = post.tagKeys
     .map((key) => `<li>${escapeHtml(key)}</li>`)
     .join('');
+  // The two links out are new: an article that linked nowhere left a crawler
+  // that arrived from search with no route into the listings the article is
+  // about.
   return `<div id="root"><main>
     <h1>${escapeHtml(localized.title)}</h1>
     <p>${escapeHtml(localized.excerpt)}</p>
     <img src="${escapeHtml(post.image)}" alt="${escapeHtml(localized.title)}" />
     <article><p>${escapeHtml(localized.content)}</p></article>
     <ul>${tagsHtml}</ul>
+    <nav><ul>
+      <li><a href="${BASE_URL}/blog">${escapeHtml(t('blog') || 'Blog')}</a></li>
+      <li><a href="${BASE_URL}/dash/posts">${escapeHtml(t('posts') || 'Posts')}</a></li>
+    </ul></nav>
   </main></div>`;
 };
 
@@ -233,13 +268,26 @@ const run = () => {
   }
 
   const shellHtml = fs.readFileSync(SHELL_PATH, 'utf8');
+
+  // Both the meta and the body copy come from the app's own translation table.
+  // If it ever stops parsing, the static routes are left alone rather than
+  // written with half their content - the shell's own tags are a worse page
+  // than the previous build's, but a page with a heading and no title, or a
+  // title in the wrong language, is worse still. Blog posts read from
+  // blogPosts.json and are unaffected.
+  let t = () => '';
+  let seoPages = null;
+  try {
+    t = translator('ar');
+    seoPages = loadTranslations().ar.seoPages || null;
+  } catch (error) {
+    console.error('prerenderSeo: could not read translations:', error.message);
+  }
+
   let written = 0;
   let skipped = 0;
 
-  // Static marketing/info pages: meta-only injection, English copy (matches
-  // current SeoMeta.jsx behavior, which does not localize title/description).
   STATIC_ROUTES.forEach((route) => {
-    if (route.path === '/') return; // root index.html is the shell itself, already correct
     if (alreadyPrerendered(route.path)) {
       skipped += 1;
       return;
@@ -247,24 +295,49 @@ const run = () => {
     const seo = STATIC_PAGE_SEO[route.path];
     if (!seo) return;
 
+    const copy = seoPages && seoPages[seo.pageKey];
+    if (!copy || !copy.title || !copy.description) {
+      console.error(`prerenderSeo: no seoPages copy for "${seo.pageKey}" (${route.path}), skipping`);
+      return;
+    }
+
     let html = stripGenericOgTags(shellHtml);
-    html = setTitle(html, `${seo.title}`);
-    html = setDescription(html, seo.description);
-    const headAdditions = buildHeadInjection({
-      routePath: route.path,
-      title: seo.title,
-      description: seo.description,
-      structuredData: [createBreadcrumbSchema([{ name: 'Home', path: '/' }, { name: seo.title, path: route.path }])],
-      locale: 'en',
-    });
-    html = injectHead(html, headAdditions);
+    html = setHtmlLang(html, 'ar', 'rtl');
+    html = setTitle(html, copy.title);
+    html = setDescription(html, copy.description);
+
+    // No breadcrumb on '/': it is the root of the trail, and a one-item
+    // BreadcrumbList pointing at itself says nothing.
+    const breadcrumbs =
+      route.path === '/'
+        ? null
+        : createBreadcrumbSchema([
+            { name: t('goHome') || 'Home', path: '/' },
+            { name: copy.title.split('|')[0].trim(), path: route.path },
+          ]);
+
+    html = injectHead(
+      html,
+      buildHeadInjection({
+        routePath: route.path,
+        title: copy.title,
+        description: copy.description,
+        structuredData: breadcrumbs ? [breadcrumbs] : [],
+        locale: 'ar',
+      })
+    );
+
+    const heading = seo.h1Key ? `${t(seo.h1Key)}${seo.h1Suffix || ''}`.trim() : '';
+    const subtitle = seo.subKey ? t(seo.subKey) : '';
+    if (heading) {
+      html = html.replace('<div id="root"></div>', renderStaticBody(heading, subtitle, t));
+    }
+
     writeRoute(route.path, html);
     written += 1;
   });
 
-  // Blog post detail pages: meta + real visible article content, in Arabic
-  // (the app's actual default language for a first-time visitor with no
-  // stored preference - see src/utils/languageContext.js resolveLanguage()).
+  // Blog post detail pages: meta + real visible article content, in Arabic.
   blogPosts.forEach((post) => {
     const routePath = `/blog/${post.slug}`;
     if (alreadyPrerendered(routePath)) {
@@ -272,12 +345,12 @@ const run = () => {
       return;
     }
     const localized = post.i18n.ar;
-    const title = `${localized.title} | Mafqoudat Blog`;
+    const title = `${localized.title} | ${BRAND_AR}`;
 
     let html = stripGenericOgTags(shellHtml);
+    html = setHtmlLang(html, 'ar', 'rtl');
     html = setTitle(html, title);
     html = setDescription(html, localized.excerpt);
-    html = html.replace('<html lang="en">', '<html lang="ar" dir="rtl">');
     const headAdditions = buildHeadInjection({
       routePath,
       title,
@@ -287,15 +360,15 @@ const run = () => {
       structuredData: [
         createArticleSchema(post, localized, routePath),
         createBreadcrumbSchema([
-          { name: 'Home', path: '/' },
-          { name: 'Blog', path: '/blog' },
+          { name: t('goHome') || 'Home', path: '/' },
+          { name: t('blog') || 'Blog', path: '/blog' },
           { name: localized.title, path: routePath },
         ]),
       ],
       locale: 'ar',
     });
     html = injectHead(html, headAdditions);
-    html = html.replace('<div id="root"></div>', renderArticleBody(post, localized));
+    html = html.replace('<div id="root"></div>', renderArticleBody(post, localized, t));
     writeRoute(routePath, html);
     written += 1;
   });

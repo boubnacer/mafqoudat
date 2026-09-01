@@ -4,7 +4,7 @@
 // passport casablanca", "objet trouvé rabat"), but they are rendered entirely
 // from API data, so nothing about them can be baked into the build-time
 // prerender the way blog posts are. This module turns a post payload into the
-// title / description / image / keywords / JSON-LD that SeoMeta renders into
+// title / description / image / JSON-LD that SeoMeta renders into
 // the document head at runtime.
 //
 // It deliberately re-derives found/lost, category, city and country from the
@@ -15,7 +15,6 @@
 import {
   buildAbsoluteUrl,
   createBreadcrumbSchema,
-  defaultKeywords,
   defaultSeo,
 } from './seoConfig';
 import { getOptimizedImageUrl } from './cloudinaryUtils';
@@ -176,7 +175,6 @@ export const buildPostSeo = ({ post, language = 'en', t }) => {
     return {
       title: defaultSeo.title,
       description: defaultSeo.description,
-      keywords: defaultKeywords,
       image: resolvePostImage(post),
       path: buildPostPath(post?._id),
       // Explicitly empty rather than omitted: SeoMeta falls back to the
@@ -229,13 +227,6 @@ export const buildPostSeo = ({ post, language = 'en', t }) => {
   const canonicalUrl = buildAbsoluteUrl(path);
   const image = resolvePostImage(post);
   const userDescription = collapseWhitespace(post?.description);
-
-  const statusKeyword = code === 'FOUND' ? translate('found') : code === 'LOST' ? translate('lost') : '';
-  const keywords = Array.from(
-    new Set(
-      [...categoryLabels, cityLabel, countryLabel, statusKeyword, ...defaultKeywords].filter(Boolean)
-    )
-  );
 
   const itemPageSchema = {
     '@context': 'https://schema.org',
@@ -294,7 +285,6 @@ export const buildPostSeo = ({ post, language = 'en', t }) => {
   return {
     title,
     description,
-    keywords,
     image,
     path,
     structuredData,

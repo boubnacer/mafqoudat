@@ -1,5 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--
+  lang="ar" dir="rtl", not "en".
+
+  languageContext's resolveLanguage() returns 'ar' for anyone with no stored
+  preference, which is every first-time visitor and every crawler. The shell
+  used to declare English while rendering Arabic, and since this file is also
+  the SPA fallback for every route without a build-time file of its own, that
+  wrong declaration was what most of the site served on its first byte.
+  scripts/prerenderSeo.js rewrites this tag per route, and applyDocumentLanguage
+  updates it at runtime once a preference is known.
+-->
+<html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
     <!--
@@ -44,8 +55,19 @@
       Do NOT add this attribute to the JSON-LD blocks further down - SeoMeta
       never re-renders those site-wide schemas, so Helmet would delete them.
     -->
-    <meta name="description" content="Mafqoudat - The leading lost and found platform in Morocco and the Arab world. Connect with your community to recover lost belongings. Report lost items, help return found items, and reunite with your belongings." data-rh="true" />
-    <meta name="keywords" content="mafqoudat, mafqudat, mafqodat, mafqud, mafqod, mafkoudat, mafkudat, mafkodat, mafkoud, mafkod, mafgoudat, mafgudat, mafgodat, mafgoud, mafgod, mafoudat, mafodat, maf9oudat, mafkouda, mafqouda, مفقودات, موجودات, فقد, ضياع, فقدت, وجدت, وجد, موجود, فقدان, مفقود, مفقودة, مفكودات, منصة مفقودات, lost and found, Morocco, Arabic, community, lost items, found items, recovery, reunite, lost and found Morocco, lost and found Arabic, objets perdus, objets trouvés, objets perdus et trouvés, objet perdu Maroc, objet trouvé Maroc, plateforme objets perdus Maroc" data-rh="true" />
+    <meta name="description" content="أعلن عن غرض مفقود أو عن شيء عثرت عليه، وتصفّح أحدث البلاغات في مدن المغرب والعالم العربي. مفقودات منصة مجانية تساعد الناس على إعادة ما ضاع إلى أصحابه." data-rh="true" />
+    <!--
+      There is deliberately no keywords meta tag here. Google has ignored that
+      tag since 2009, and what sat here was ~60 brand misspellings and repeated
+      intent phrases - a signal no engine reads, in the one shape they all
+      recognise as stuffing.
+
+      (Written out in prose rather than shown as markup on purpose: the build's
+      prerender rewrites tags in this file by regex, and a tag quoted inside a
+      comment is indistinguishable from a real one to those patterns. That is
+      exactly how the description meta below went unrewritten for every
+      prerendered route - see setDescription in scripts/prerenderSeo.js.)
+    -->
     <meta name="author" content="Mafqoudat Team" />
     <meta name="robots" content="index, follow" data-rh="true" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
@@ -81,12 +103,16 @@
     <meta property="og:locale:alternate" content="ar_AR" data-rh="true" />
     <meta property="og:locale:alternate" content="fr_FR" data-rh="true" />
 
-    <!-- Cache busting meta tags -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
+    <!--
+      The Cache-Control / Pragma / Expires <meta http-equiv> trio that used to
+      sit here is gone. Browsers ignore http-equiv cache directives (only real
+      HTTP response headers count, which Vercel already sets), so it never
+      busted any cache - but crawlers do read the head, and a document
+      announcing no-store on every route is a poor signal on a page you want
+      indexed and kept. Cache headers belong in vercel.json's headers block.
+    -->
 
-    <title>Mafqoudat - Lost and Found Platform | Morocco</title>
+    <title>مفقودات | منصة المفقودات والموجودات في المغرب والعالم العربي</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -140,48 +166,31 @@
     </script>
     <!-- End Google Analytics 4 -->
     
-    <!-- Structured Data -->
+    <!--
+      Structured Data.
+
+      alternateName is a short list on purpose. It used to carry ~34 entries:
+      every transliteration of the brand (mafgod, maf9oudat, mafodat...) plus
+      bare Arabic nouns that are not names of anything - فقد, ضياع, وجد. An
+      alternateName is for names the entity is genuinely also known by; a list
+      of misspellings and topic words is a keyword list wearing a schema tag,
+      and it earns nothing for queries the site does not already win. What is
+      left is the brand in both scripts and the two transliterations people
+      actually type.
+    -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "Mafqoudat",
       "alternateName": [
-        "mafqoudat",
-        "mafqudat",
-        "mafqodat",
-        "mafqud",
-        "mafqod",
-        "mafkoudat",
-        "mafkudat",
-        "mafkodat",
-        "mafkoud",
-        "mafkod",
-        "mafgoudat",
-        "mafgudat",
-        "mafgodat",
-        "mafgoud",
-        "mafgod",
-        "mafoudat",
-        "mafodat",
-        "maf9oudat",
-        "mafkouda",
-        "mafqouda",
         "مفقودات",
-        "موجودات",
-        "فقد",
-        "ضياع",
-        "فقدت",
-        "وجدت",
-        "وجد",
-        "موجود",
-        "فقدان",
-        "مفقود",
-        "مفقودة",
-        "مفكودات",
-        "منصة مفقودات"
+        "منصة مفقودات",
+        "Mafqudat",
+        "Mafkoudat"
       ],
-      "description": "Lost and found platform for Morocco and the Arab world",
+      "description": "منصة المفقودات والموجودات في المغرب والعالم العربي",
+      "inLanguage": ["ar", "fr", "en"],
       "url": "https://www.mafqoudat.com",
       "potentialAction": {
         "@type": "SearchAction",
@@ -198,44 +207,14 @@
       "@type": "Organization",
       "name": "Mafqoudat",
       "alternateName": [
-        "mafqoudat",
-        "mafqudat",
-        "mafqodat",
-        "mafqud",
-        "mafqod",
-        "mafkoudat",
-        "mafkudat",
-        "mafkodat",
-        "mafkoud",
-        "mafkod",
-        "mafgoudat",
-        "mafgudat",
-        "mafgodat",
-        "mafgoud",
-        "mafgod",
-        "mafoudat",
-        "mafodat",
-        "maf9oudat",
-        "mafkouda",
-        "mafqouda",
         "مفقودات",
-        "موجودات",
-        "فقد",
-        "ضياع",
-        "فقدت",
-        "وجدت",
-        "وجد",
-        "موجود",
-        "فقدان",
-        "مفقود",
-        "مفقودة",
-        "مفكودات",
         "منصة مفقودات",
-        "mafqoudat.com"
+        "Mafqudat",
+        "Mafkoudat"
       ],
       "url": "https://www.mafqoudat.com",
       "logo": "https://www.mafqoudat.com/maflogo1200-630.png",
-      "description": "The leading lost and found platform in Morocco and the Arab world",
+      "description": "منصة المفقودات والموجودات في المغرب والعالم العربي",
       "contactPoint": {
         "@type": "ContactPoint",
         "contactType": "Customer Service",
