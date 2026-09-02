@@ -59,19 +59,32 @@ import CommentsSection from "./CommentsSection";
 // inset shadow toward the top-left, blur/offset scaled down from that
 // reference (30px blur / 18px offset on a ~240px swatch) to badge size — so
 // the badge reads as pressed into the photo rather than floating on top of
-// it. Background stays a translucent wash of surfaceRaised — never tinted to
-// the badge's own color — so the shadow is what carves out the shape; the
-// identity color survives only in the icon/label, same rule mobile's
-// neumorphic surfaces (theme/neumorphism.js) rest on.
-const neumorphicOverlaySx = (theme) => {
+// it.
+//
+// Optional `tone` (theme.custom.status.found/lost, or the warning fallback
+// used for an undetermined status) tints the badge in its own Found/Lost
+// color — a translucent wash of `tone.main` with a shadow pair derived from
+// that same color, so a "Found" tag reads green-compatible and a "Lost" tag
+// red-compatible instead of both sharing one neutral chip. Badges with no
+// type of their own (date, no-image caption) call this with no tone and get
+// the neutral ink/surfaceRaised version. Either way the shadow is what
+// carves out the shape — the base color only ever tints the wash, never
+// flattens it solid — and the identity color still lives primarily in the
+// icon/label, same rule mobile's neumorphic surfaces (theme/neumorphism.js)
+// rest on.
+const neumorphicOverlaySx = (theme, tone) => {
   const isDark = theme.palette.mode === 'dark';
   return {
-    backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.4 : 0.65),
+    backgroundColor: tone
+      ? alpha(tone.main, isDark ? 0.26 : 0.16)
+      : alpha(theme.custom.color.surfaceRaised, isDark ? 0.4 : 0.65),
     backdropFilter: 'blur(10px) saturate(150%)',
     WebkitBackdropFilter: 'blur(10px) saturate(150%)',
-    boxShadow: isDark
-      ? `inset 3px 3px 6px ${alpha('#000000', 0.55)}, inset -3px -3px 6px ${alpha(theme.custom.color.ink, 0.06)}`
-      : `inset 3px 3px 6px ${alpha(theme.custom.color.ink, 0.16)}, inset -3px -3px 6px ${alpha('#FFFFFF', 0.85)}`,
+    boxShadow: tone
+      ? `inset 3px 3px 6px ${alpha(tone.main, isDark ? 0.5 : 0.3)}, inset -3px -3px 6px ${alpha('#FFFFFF', isDark ? 0.08 : 0.75)}`
+      : isDark
+        ? `inset 3px 3px 6px ${alpha('#000000', 0.55)}, inset -3px -3px 6px ${alpha(theme.custom.color.ink, 0.06)}`
+        : `inset 3px 3px 6px ${alpha(theme.custom.color.ink, 0.16)}, inset -3px -3px 6px ${alpha('#FFFFFF', 0.85)}`,
   };
 };
 
@@ -93,7 +106,7 @@ const StatusTag = ({ tone, icon: Icon, label }) => {
         px: 1.5,
         py: 0.625,
         borderRadius: `${theme.custom.radius.sm}px`,
-        ...neumorphicOverlaySx(theme),
+        ...neumorphicOverlaySx(theme, tone),
       }}
     >
       <Icon sx={{ fontSize: 18, color: tone.main }} />
@@ -145,7 +158,7 @@ const ResolvedRibbon = ({ children }) => {
         px: 2,
         py: 0.75,
         borderRadius: `${theme.custom.radius.sm}px`,
-        ...neumorphicOverlaySx(theme),
+        ...neumorphicOverlaySx(theme, theme.custom.status.found),
       }}
     >
       <CheckCircleIcon sx={{ fontSize: 18, color: theme.custom.status.found.main }} />
