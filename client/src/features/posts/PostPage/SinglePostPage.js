@@ -739,11 +739,10 @@ const SinglePostPage = ({
     || (countryLabels && countryLabels.en)
     || countryname;
 
-  // City now has its own InfoTile below, so it no longer doubles as the page
-  // headline — mirrors mobile PostDetailScreen.js's titleLabel/metaLocationLabel
-  // (Phase 14): headline falls to exactLocation, then the status text, and the
-  // location tile only repeats it when it says something the city tile doesn't.
-  const titleLabel = (exactLocation && exactLocation.trim()) ? exactLocation.trim() : foundLostStatus.statusText;
+  // Exact location has its own InfoTile below (metaLocationLabel) — mirrors
+  // mobile PostDetailScreen.js's titleLabel/metaLocationLabel (Phase 14): the
+  // headline no longer repeats it, so it's just the status text now.
+  const titleLabel = foundLostStatus.statusText;
   const metaLocationLabel = (exactLocation && exactLocation.trim() && exactLocation.trim() !== displayCityName)
     ? exactLocation.trim()
     : null;

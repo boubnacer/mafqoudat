@@ -306,9 +306,10 @@ const PostDetailScreen = ({ navigation, route }) => {
   const countryLabel =
     getLocalizedLabel({ names: post.countryLabels, code: post.countryname }, currentLanguage) || null;
 
-  // City has its own InfoTile in the grid now, so it no longer doubles as the
-  // big headline here - falls straight to exactLocation, then status.
-  const titleLabel = post.exactLocation || badgeLabel;
+  // Exact location has its own InfoTile in the grid below (metaLocationLabel),
+  // so the headline no longer repeats it - status is the only thing left that
+  // isn't already shown as its own fact in the grid.
+  const titleLabel = badgeLabel;
   const metaLocationLabel = post.exactLocation && post.exactLocation !== cityLabel ? post.exactLocation : null;
 
   const description = post.description && post.description.trim() ? post.description.trim() : t('noDescriptionProvided');
