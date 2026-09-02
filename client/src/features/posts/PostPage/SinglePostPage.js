@@ -54,21 +54,24 @@ import CommentsSection from "./CommentsSection";
 
 // Frosted-glass neumorphic treatment shared by every badge that sits directly
 // on the post photo (status tag, date badge, resolved ribbon, no-image
-// caption). Background stays a translucent wash of surfaceRaised — never
-// tinted to the badge's own color — so the dual soft shadow (a light
-// highlight toward the top-left, a soft dark shadow toward the bottom-right)
-// reads as one embossed shape resting on the image rather than a flat chip
-// pasted over it; the identity color survives only in the icon/label, same
-// rule mobile's neumorphic surfaces (theme/neumorphism.js) rest on.
+// caption). Same soft-UI recipe as the "inner shadow" swatch this was built
+// from — a dark inset shadow toward the bottom-right paired with a light
+// inset shadow toward the top-left, blur/offset scaled down from that
+// reference (30px blur / 18px offset on a ~240px swatch) to badge size — so
+// the badge reads as pressed into the photo rather than floating on top of
+// it. Background stays a translucent wash of surfaceRaised — never tinted to
+// the badge's own color — so the shadow is what carves out the shape; the
+// identity color survives only in the icon/label, same rule mobile's
+// neumorphic surfaces (theme/neumorphism.js) rest on.
 const neumorphicOverlaySx = (theme) => {
   const isDark = theme.palette.mode === 'dark';
   return {
-    backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.32 : 0.55),
-    backdropFilter: 'blur(12px) saturate(160%)',
-    WebkitBackdropFilter: 'blur(12px) saturate(160%)',
+    backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.4 : 0.65),
+    backdropFilter: 'blur(10px) saturate(150%)',
+    WebkitBackdropFilter: 'blur(10px) saturate(150%)',
     boxShadow: isDark
-      ? '-2px -2px 6px rgba(255, 255, 255, 0.06), 3px 3px 10px rgba(0, 0, 0, 0.5)'
-      : '-2px -2px 6px rgba(255, 255, 255, 0.65), 3px 3px 10px rgba(15, 23, 42, 0.2)',
+      ? `inset 3px 3px 6px ${alpha('#000000', 0.55)}, inset -3px -3px 6px ${alpha(theme.custom.color.ink, 0.06)}`
+      : `inset 3px 3px 6px ${alpha(theme.custom.color.ink, 0.16)}, inset -3px -3px 6px ${alpha('#FFFFFF', 0.85)}`,
   };
 };
 
