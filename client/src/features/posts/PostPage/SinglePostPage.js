@@ -77,22 +77,34 @@ const mixHexColors = (colorA, colorB, ratio) => {
 // 30px blur / 18px offset on a ~240px swatch to badge size).
 //
 // Optional `tone` (theme.custom.status.found/lost, or the warning fallback
-// used for an undetermined status) tints the fill with `tone.main` mixed
-// into surfaceRaised — an opaque pastel, not a translucent wash — so a
-// "Found" tag reads green-compatible and a "Lost" tag red-compatible instead
-// of both sharing one neutral chip. Badges with no type of their own (date,
+// used for an undetermined status) tints the fill toward its status color —
+// a single clean pastel, not a visibly "mixed" middle color — by leaning on
+// the same ~11% ratio designTokens.js's own status.bg pastels already use
+// against white (#D6483B mixed 11% into white lands within a point of
+// #FBEAE8, the hand-picked "lost" light background), instead of the far
+// stronger 18-32% blend this used before, which read as a muddy tint rather
+// than a sweet, airy one. Light mode uses the designed status.bg token
+// outright wherever it's already a solid hex; dark mode's status.bg is a
+// translucent wash unusable on an opaque fill, so it's approximated with the
+// same gentle mix ratio there and for the warning fallback (whose own `bg`
+// is alpha-based in both modes). Badges with no type of their own (date,
 // no-image caption) call this with no tone and get plain, opaque
 // surfaceRaised. Either way the identity color still lives primarily in the
 // icon/label, same rule mobile's neumorphic surfaces (theme/neumorphism.js)
 // rest on.
+const STATUS_TINT_RATIO = 0.11;
+
 const neumorphicOverlaySx = (theme, tone) => {
   const isDark = theme.palette.mode === 'dark';
+  const toneFill = tone && (
+    !isDark && typeof tone.bg === 'string' && tone.bg.startsWith('#')
+      ? tone.bg
+      : mixHexColors(tone.main, theme.custom.color.surfaceRaised, STATUS_TINT_RATIO)
+  );
   return {
-    backgroundColor: tone
-      ? mixHexColors(tone.main, theme.custom.color.surfaceRaised, isDark ? 0.32 : 0.18)
-      : theme.custom.color.surfaceRaised,
+    backgroundColor: toneFill || theme.custom.color.surfaceRaised,
     boxShadow: tone
-      ? `inset 3px 3px 6px ${alpha(tone.main, isDark ? 0.45 : 0.28)}, inset -3px -3px 6px ${alpha('#FFFFFF', isDark ? 0.06 : 0.8)}`
+      ? `inset 3px 3px 6px ${alpha(tone.main, isDark ? 0.35 : 0.2)}, inset -3px -3px 6px ${alpha('#FFFFFF', isDark ? 0.06 : 0.8)}`
       : isDark
         ? `inset 3px 3px 6px ${alpha('#000000', 0.55)}, inset -3px -3px 6px ${alpha(theme.custom.color.ink, 0.06)}`
         : `inset 3px 3px 6px ${alpha(theme.custom.color.ink, 0.16)}, inset -3px -3px 6px ${alpha('#FFFFFF', 0.85)}`,
