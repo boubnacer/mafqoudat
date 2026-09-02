@@ -52,9 +52,29 @@ import PostMatchesPanel from "../../notifications/PostMatchesPanel";
 import SocialReach from "./SocialReach";
 import CommentsSection from "./CommentsSection";
 
-// Solid-fill tag, same signature as the post card DNA (Post.js/TrendingItem):
-// this is the single most load-bearing fact on the page, so it lives on the image,
-// not buried in a label:value row further down.
+// Frosted-glass neumorphic treatment shared by every badge that sits directly
+// on the post photo (status tag, date badge, resolved ribbon, no-image
+// caption). Background stays a translucent wash of surfaceRaised — never
+// tinted to the badge's own color — so the dual soft shadow (a light
+// highlight toward the top-left, a soft dark shadow toward the bottom-right)
+// reads as one embossed shape resting on the image rather than a flat chip
+// pasted over it; the identity color survives only in the icon/label, same
+// rule mobile's neumorphic surfaces (theme/neumorphism.js) rest on.
+const neumorphicOverlaySx = (theme) => {
+  const isDark = theme.palette.mode === 'dark';
+  return {
+    backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.32 : 0.55),
+    backdropFilter: 'blur(12px) saturate(160%)',
+    WebkitBackdropFilter: 'blur(12px) saturate(160%)',
+    boxShadow: isDark
+      ? '-2px -2px 6px rgba(255, 255, 255, 0.06), 3px 3px 10px rgba(0, 0, 0, 0.5)'
+      : '-2px -2px 6px rgba(255, 255, 255, 0.65), 3px 3px 10px rgba(15, 23, 42, 0.2)',
+  };
+};
+
+// Same signature as the post card DNA (Post.js/TrendingItem): this is the
+// single most load-bearing fact on the page, so it lives on the image, not
+// buried in a label:value row further down.
 const StatusTag = ({ tone, icon: Icon, label }) => {
   const theme = useTheme();
   return (
@@ -70,13 +90,13 @@ const StatusTag = ({ tone, icon: Icon, label }) => {
         px: 1.5,
         py: 0.625,
         borderRadius: `${theme.custom.radius.sm}px`,
-        backgroundColor: tone.main,
+        ...neumorphicOverlaySx(theme),
       }}
     >
-      <Icon sx={{ fontSize: 18, color: theme.palette.getContrastText(tone.main) }} />
+      <Icon sx={{ fontSize: 18, color: tone.main }} />
       <Typography
         variant="body2"
-        sx={{ fontWeight: 700, letterSpacing: 0.3, color: theme.palette.getContrastText(tone.main), lineHeight: 1 }}
+        sx={{ fontWeight: 700, letterSpacing: 0.3, color: tone.main, lineHeight: 1 }}
       >
         {label}
       </Typography>
@@ -96,7 +116,7 @@ const DateBadge = ({ children }) => {
         px: 1.25,
         py: 0.625,
         borderRadius: `${theme.custom.radius.sm}px`,
-        backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.85),
+        ...neumorphicOverlaySx(theme),
       }}
     >
       <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 600, lineHeight: 1 }}>
@@ -122,11 +142,10 @@ const ResolvedRibbon = ({ children }) => {
         px: 2,
         py: 0.75,
         borderRadius: `${theme.custom.radius.sm}px`,
-        backgroundColor: theme.custom.status.found.main,
-        boxShadow: theme.custom.elevation.e2,
+        ...neumorphicOverlaySx(theme),
       }}
     >
-      <CheckCircleIcon sx={{ fontSize: 18, color: theme.palette.getContrastText(theme.custom.status.found.main) }} />
+      <CheckCircleIcon sx={{ fontSize: 18, color: theme.custom.status.found.main }} />
       <Typography
         variant="body2"
         sx={{
@@ -134,7 +153,7 @@ const ResolvedRibbon = ({ children }) => {
           textTransform: 'uppercase',
           letterSpacing: 0.5,
           lineHeight: 1,
-          color: theme.palette.getContrastText(theme.custom.status.found.main),
+          color: theme.custom.status.found.main,
         }}
       >
         {children}
@@ -864,7 +883,7 @@ const SinglePostPage = ({
                     px: 1.25,
                     py: 0.5,
                     borderRadius: `${theme.custom.radius.sm}px`,
-                    backgroundColor: alpha(theme.custom.color.surfaceBase, 0.7),
+                    ...neumorphicOverlaySx(theme),
                   }}
                 >
                   <NoImageIcon sx={{ fontSize: 16, color: 'text.secondary', opacity: 0.7 }} />
