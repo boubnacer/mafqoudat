@@ -288,24 +288,21 @@ full-bleed backdrop zoomed to the visitor's country, countries tinted by
   tokens by measured ratio instead (ink at 5.9:1 light, the panel tone at 5.5:1
   dark). Deepening the color the way `status.lost`/`status.found` did is not
   available here: being the logo's exact blue is the point.
-- **Depth, not a different palette (web only).** The map read as flat, and the
-  activity fill ramp had already been re-tuned twice and reverted both times, so
-  the fix is light rather than color: the city dots and "+N today" badges share
-  **one** `feDropShadow` group each, and the four edges dissolve into the
-  container's `surfaceBase` via a two-axis linear-gradient overlay. The shadow
-  filter is deliberately kept off the countries group: that group re-renders on
-  hover, and a filter over the whole world's geometry re-rasterizes all of it on
-  every pointer move. The edge fade is an overlay on the visible window, not a
-  CSS mask on the map layer — that layer is oversized and offset (165% wide /
-  271% tall), so a fade in its own coordinate space lands mostly off-screen; and
-  it is two per-axis gradients rather than one radial, because the desktop crop
-  lands the country ~75% across, where a centred vignette would dim the subject.
-  The SVG filter id is `useId`-suffixed (`:` stripped — React's id is not a
-  legal selector) since the hero and a Dash header can both be mounted. Not
-  mirrored to mobile: `react-native-svg` has no filter support. An earlier
-  version of this pass also gave the focus country a blurred brand halo, masked
-  out of its own shape; it read as an extra wash of the already-bold logo blue
-  on top of the country's own fill and was dropped rather than tuned down.
+- **Edge fade, not a drop shadow (web only).** An earlier version of this pass
+  gave the city dots and "+N today" badges a shared `feDropShadow` group each
+  for depth; that was removed on request — city markers and badges are flat
+  fills again (panel fill + brand stroke, brand fill respectively), map color
+  alone carries the surface. What stayed: the four edges still dissolve into
+  the container's `surfaceBase` via a two-axis linear-gradient overlay, since
+  that layer is oversized and offset (165% wide / 271% tall) and needs a fade
+  in the visible window rather than a CSS mask on the map layer itself (which
+  would land mostly off-screen); it's two per-axis gradients rather than one
+  radial because the desktop crop lands the country ~75% across, where a
+  centred vignette would dim the subject. Not mirrored to mobile:
+  `react-native-svg` has no filter support anyway. A still-earlier version of
+  this pass also gave the focus country a blurred brand halo, masked out of
+  its own shape; it read as an extra wash of the already-bold logo blue on top
+  of the country's own fill and was dropped rather than tuned down.
 - **Cities with a post today pulse a ring**, and only those — the same condition
   the "+N today" badge uses, so the motion carries data the map already shows
   instead of giving every dot a heartbeat it has not earned. Stroked in `ink`

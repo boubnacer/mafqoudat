@@ -157,7 +157,6 @@ const WorldActivityMap = ({
   // markers would resolve against the other's filter. React's useId is unique
   // per instance but returns ":r0:", which is not a legal CSS selector.
   const uid = useId().replace(/:/g, "");
-  const markerShadowId = `world-map-marker-shadow-${uid}`;
   const pulseClass = `world-map-city-pulse-${uid}`;
   const containerRef = useRef(null);
 
@@ -368,22 +367,6 @@ const WorldActivityMap = ({
       projectionConfig={{ center: mapView.center, scale: mapView.scale }}
       style={{ width: "100%", height: "100%" }}
     >
-      <defs>
-        {/* One shadow shared by every marker that floats above the country
-            fill. Kept off the countries group on purpose: that group re-renders
-            on hover, and a filter over the whole world's geometry would make
-            the browser re-rasterize all of it on every pointer move. */}
-        <filter id={markerShadowId} x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow
-            dx="0"
-            dy="1.2"
-            stdDeviation="1.4"
-            floodColor={ink}
-            floodOpacity={isDark ? 0.6 : 0.3}
-          />
-        </filter>
-      </defs>
-
       <Geographies geography={geoFeatures}>
         {({ geographies }) =>
           geographies.map((geo) => {
@@ -526,10 +509,8 @@ const WorldActivityMap = ({
 
       {/* City markers — uniform small dots (see CITY_DOT_RADIUS) layered on
           top of the country fill. Panel-filled with a brand stroke so they
-          read as solid pins regardless of the fill tone beneath them, and
-          grouped under one shadow so they sit above the fill rather than being
-          painted onto it (one filter for the whole set, not one per dot). */}
-      <g filter={`url(#${markerShadowId})`}>
+          read as solid pins regardless of the fill tone beneath them. */}
+      <g>
         {cityMarkers.dots.map(({ city, x, y }, index) => (
           <circle
             key={`${city.name}-${index}`}
@@ -572,12 +553,9 @@ const WorldActivityMap = ({
       {/* Today's-new-posts badges, last so a badge is never overlapped by a
           neighbouring city's marker or name. Their positions are fixed above
           their own dot and the labels route around them, rather than the other
-          way round: a badge carries a number, a name does not. Shares the dots'
-          shadow, for the same reason — a pill reporting today's posts is the
-          most current thing on the map and should read as sitting closest to
-          the viewer. The names deliberately stay flat: they already carry a
-          panel-colored outline, and a shadow under outlined text muddies it. */}
-      <g filter={`url(#${markerShadowId})`}>
+          way round: a badge carries a number, a name does not. The names
+          deliberately stay flat: they already carry a panel-colored outline. */}
+      <g>
         {cityMarkers.badges.map((badge, index) => (
           <g key={`badge-${index}`} pointerEvents="none">
             {/* Panel-colored halo, same trick the city label uses: keeps the pill
