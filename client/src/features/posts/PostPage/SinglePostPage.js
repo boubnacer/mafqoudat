@@ -52,36 +52,47 @@ import PostMatchesPanel from "../../notifications/PostMatchesPanel";
 import SocialReach from "./SocialReach";
 import CommentsSection from "./CommentsSection";
 
-// Frosted-glass neumorphic treatment shared by every badge that sits directly
-// on the post photo (status tag, date badge, resolved ribbon, no-image
-// caption). Same soft-UI recipe as the "inner shadow" swatch this was built
-// from — a dark inset shadow toward the bottom-right paired with a light
-// inset shadow toward the top-left, blur/offset scaled down from that
-// reference (30px blur / 18px offset on a ~240px swatch) to badge size — so
-// the badge reads as pressed into the photo rather than floating on top of
-// it.
+// Blends two hex colors at `ratio` (0-1, share of colorA) into a solid,
+// fully opaque rgb() — used to tint a badge's fill with its status color
+// without making the fill itself translucent (alpha() changes opacity, not
+// hue mix, so it can't produce an opaque tint on its own).
+const mixHexColors = (colorA, colorB, ratio) => {
+  const toRgb = (hex) => {
+    const int = parseInt(hex.replace('#', ''), 16);
+    return [(int >> 16) & 255, (int >> 8) & 255, int & 255];
+  };
+  const [r1, g1, b1] = toRgb(colorA);
+  const [r2, g2, b2] = toRgb(colorB);
+  const mix = (a, b) => Math.round(a * ratio + b * (1 - ratio));
+  return `rgb(${mix(r1, r2)}, ${mix(g1, g2)}, ${mix(b1, b2)})`;
+};
+
+// Neumorphic treatment shared by every badge that sits directly on the post
+// photo (status tag, date badge, resolved ribbon, no-image caption): a solid,
+// fully opaque fill — never see-through, so the badge reads as its own
+// surface rather than a tint of whatever photo is behind it — carved with
+// the same soft-UI shadow pair as the "inner shadow" reference swatch this
+// was built from (a dark inset shadow toward the bottom-right, a light inset
+// shadow toward the top-left, blur/offset scaled down from that reference's
+// 30px blur / 18px offset on a ~240px swatch to badge size).
 //
 // Optional `tone` (theme.custom.status.found/lost, or the warning fallback
-// used for an undetermined status) tints the badge in its own Found/Lost
-// color — a translucent wash of `tone.main` with a shadow pair derived from
-// that same color, so a "Found" tag reads green-compatible and a "Lost" tag
-// red-compatible instead of both sharing one neutral chip. Badges with no
-// type of their own (date, no-image caption) call this with no tone and get
-// the neutral ink/surfaceRaised version. Either way the shadow is what
-// carves out the shape — the base color only ever tints the wash, never
-// flattens it solid — and the identity color still lives primarily in the
+// used for an undetermined status) tints the fill with `tone.main` mixed
+// into surfaceRaised — an opaque pastel, not a translucent wash — so a
+// "Found" tag reads green-compatible and a "Lost" tag red-compatible instead
+// of both sharing one neutral chip. Badges with no type of their own (date,
+// no-image caption) call this with no tone and get plain, opaque
+// surfaceRaised. Either way the identity color still lives primarily in the
 // icon/label, same rule mobile's neumorphic surfaces (theme/neumorphism.js)
 // rest on.
 const neumorphicOverlaySx = (theme, tone) => {
   const isDark = theme.palette.mode === 'dark';
   return {
     backgroundColor: tone
-      ? alpha(tone.main, isDark ? 0.26 : 0.16)
-      : alpha(theme.custom.color.surfaceRaised, isDark ? 0.4 : 0.65),
-    backdropFilter: 'blur(10px) saturate(150%)',
-    WebkitBackdropFilter: 'blur(10px) saturate(150%)',
+      ? mixHexColors(tone.main, theme.custom.color.surfaceRaised, isDark ? 0.32 : 0.18)
+      : theme.custom.color.surfaceRaised,
     boxShadow: tone
-      ? `inset 3px 3px 6px ${alpha(tone.main, isDark ? 0.5 : 0.3)}, inset -3px -3px 6px ${alpha('#FFFFFF', isDark ? 0.08 : 0.75)}`
+      ? `inset 3px 3px 6px ${alpha(tone.main, isDark ? 0.45 : 0.28)}, inset -3px -3px 6px ${alpha('#FFFFFF', isDark ? 0.06 : 0.8)}`
       : isDark
         ? `inset 3px 3px 6px ${alpha('#000000', 0.55)}, inset -3px -3px 6px ${alpha(theme.custom.color.ink, 0.06)}`
         : `inset 3px 3px 6px ${alpha(theme.custom.color.ink, 0.16)}, inset -3px -3px 6px ${alpha('#FFFFFF', 0.85)}`,
