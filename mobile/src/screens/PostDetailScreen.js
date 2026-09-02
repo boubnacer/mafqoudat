@@ -306,10 +306,9 @@ const PostDetailScreen = ({ navigation, route }) => {
   const countryLabel =
     getLocalizedLabel({ names: post.countryLabels, code: post.countryname }, currentLanguage) || null;
 
-  // Exact location has its own InfoTile in the grid below (metaLocationLabel),
-  // so the headline no longer repeats it - status is the only thing left that
-  // isn't already shown as its own fact in the grid.
-  const titleLabel = badgeLabel;
+  // Status already shows on the image-overlay badge above, and exact location
+  // has its own InfoTile in the grid below (metaLocationLabel) - no standalone
+  // headline needed on top of both.
   const metaLocationLabel = post.exactLocation && post.exactLocation !== cityLabel ? post.exactLocation : null;
 
   const description = post.description && post.description.trim() ? post.description.trim() : t('noDescriptionProvided');
@@ -513,8 +512,6 @@ const PostDetailScreen = ({ navigation, route }) => {
         </Animated.View>
 
         <Animated.View style={[styles.body, getSectionStyle(1)]}>
-          <Text style={[styles.title, isRTL && styles.textRTL]}>{titleLabel}</Text>
-
           {isResolved && (
             <View style={[styles.resolvedBanner, { backgroundColor: tokens.status.found.bg }]}>
               <Ionicons name="ribbon-outline" size={16} color={tokens.status.found.main} />
@@ -889,12 +886,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 12,
       color: tokens.ink,
-    },
-    title: {
-      fontFamily: fontFamilies.display,
-      fontSize: 22,
-      color: tokens.ink,
-      marginBottom: 10,
     },
     resolvedBanner: {
       flexDirection: row(isRTL),

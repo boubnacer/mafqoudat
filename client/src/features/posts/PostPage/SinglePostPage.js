@@ -739,10 +739,9 @@ const SinglePostPage = ({
     || (countryLabels && countryLabels.en)
     || countryname;
 
-  // Exact location has its own InfoTile below (metaLocationLabel) — mirrors
-  // mobile PostDetailScreen.js's titleLabel/metaLocationLabel (Phase 14): the
-  // headline no longer repeats it, so it's just the status text now.
-  const titleLabel = foundLostStatus.statusText;
+  // Status already shows on the image-overlay badge above, and exact location
+  // has its own InfoTile below (metaLocationLabel) — mirrors mobile
+  // PostDetailScreen.js: no standalone headline needed on top of both.
   const metaLocationLabel = (exactLocation && exactLocation.trim() && exactLocation.trim() !== displayCityName)
     ? exactLocation.trim()
     : null;
@@ -878,18 +877,6 @@ const SinglePostPage = ({
 
             {/* Content Section */}
             <Box sx={{ p: { xs: 3, md: 4 } }}>
-              <Typography
-                variant="h4"
-                fontWeight={700}
-                sx={{
-                  mb: 2,
-                  color: theme.custom.color.ink,
-                  fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
-                }}
-              >
-                {titleLabel}
-              </Typography>
-
               {/* Category chips, icon + label like mobile's category pill. */}
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
                 {categories.map((cat, index) => {
