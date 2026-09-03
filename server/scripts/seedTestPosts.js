@@ -7,8 +7,12 @@ const Category = require('../models/Category');
 const Post = require('../models/Post');
 const User = require('../models/User');
 
-// Use production database URI
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@clustermafqm0.mty6zln.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=ClusterMafqM0';
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('MONGODB_URI is not set. Define it in server/.env (or export it) before running this script.');
+  process.exit(1);
+}
 
 const seedTestPosts = async () => {
   try {

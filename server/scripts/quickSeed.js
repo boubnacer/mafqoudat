@@ -2,9 +2,14 @@ const mongoose = require('mongoose');
 const Country = require('../models/Country');
 const FoundLost = require('../models/FoundLost');
 const Category = require('../models/Category');
+require('dotenv').config();
 
-// Use the same MongoDB URI format as Railway
-const MONGODB_URI = 'mongodb+srv://mafqoudat:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority';
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('MONGODB_URI is not set. Define it in server/.env (or export it) before running this script.');
+  process.exit(1);
+}
 
 // Simple data to seed
 const countriesData = [
