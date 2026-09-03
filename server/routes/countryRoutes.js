@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const countrycontroller = require("../controllers/countryController");
 const verifyJWT = require("../middleware/verifyJWT");
+const verifyAdmin = require("../middleware/verifyAdmin");
 const { staticDataCache } = require("../middleware/cacheMiddleware");
 const { staticDataCache: optimizedStaticDataCache } = require("../middleware/optimizedCacheMiddleware");
 
@@ -14,16 +15,16 @@ router
   .route("/search")
   .get(staticDataCache('countries-search'), countrycontroller.searchCountries);
 
-// Protected routes - require authentication for admin operations
+// Admin-only routes - require authentication and admin privileges
 router.use(verifyJWT);
 
 router
   .route("/")
-  .post(countrycontroller.createCountry);
+  .post(verifyAdmin, countrycontroller.createCountry);
 
 router
   .route("/:id")
-  .put(countrycontroller.updateCountry)
-  .delete(countrycontroller.deleteCountry);
+  .put(verifyAdmin, countrycontroller.updateCountry)
+  .delete(verifyAdmin, countrycontroller.deleteCountry);
 
 module.exports = router;
