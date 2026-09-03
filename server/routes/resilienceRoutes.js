@@ -1,17 +1,26 @@
 /**
  * Resilience and Health Check Routes
  * Comprehensive health monitoring and system status endpoints
+ *
+ * GET /live and GET /ready are the only open routes here - they are what a
+ * load balancer or uptime monitor polls, and they answer with a status word
+ * and nothing else. Every other route reports service internals (connection
+ * metrics, circuit-breaker state, process memory/CPU, node version) or
+ * mutates runtime state (recovery, metric reset), so all of them require an
+ * authenticated admin.
  */
 
 const express = require('express');
 const router = express.Router();
 const resilienceManager = require('../utils/resilienceManager');
 const { checkDatabaseHealth, getConnectionMetrics } = require('../config/resilientDbConn');
+const verifyJWT = require("../middleware/verifyJWT");
+const verifyAdmin = require("../middleware/verifyAdmin");
 
 /**
  * Comprehensive health check endpoint
  */
-router.get('/health', async (req, res) => {
+router.get('/health', verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const healthData = await resilienceManager.performHealthChecks();
     const dbMetrics = getConnectionMetrics();
@@ -59,7 +68,7 @@ router.get('/health', async (req, res) => {
 /**
  * Database-specific health check
  */
-router.get('/health/database', async (req, res) => {
+router.get('/health/database', verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const healthData = await resilienceManager.executeWithCircuitBreaker(
       'database',
@@ -87,7 +96,7 @@ router.get('/health/database', async (req, res) => {
 /**
  * Redis health check
  */
-router.get('/health/redis', async (req, res) => {
+router.get('/health/redis', verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const healthData = await resilienceManager.executeWithCircuitBreaker(
       'redis',
@@ -112,7 +121,7 @@ router.get('/health/redis', async (req, res) => {
 /**
  * Cloudinary health check
  */
-router.get('/health/cloudinary', async (req, res) => {
+router.get('/health/cloudinary', verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const healthData = await resilienceManager.executeWithCircuitBreaker(
       'cloudinary',
@@ -137,7 +146,7 @@ router.get('/health/cloudinary', async (req, res) => {
 /**
  * Resilience metrics endpoint
  */
-router.get('/resilience/metrics', async (req, res) => {
+router.get('/resilience/metrics', verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const metrics = resilienceManager.getMetrics();
     const dbMetrics = getConnectionMetrics();
@@ -167,7 +176,7 @@ router.get('/resilience/metrics', async (req, res) => {
 /**
  * Circuit breaker status
  */
-router.get('/resilience/circuit-breakers', async (req, res) => {
+router.get('/resilience/circuit-breakers', verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const metrics = resilienceManager.getMetrics();
     
@@ -191,7 +200,7 @@ router.get('/resilience/circuit-breakers', async (req, res) => {
 /**
  * Manual recovery endpoint
  */
-router.post('/resilience/recover/:service', async (req, res) => {
+router.post('/resilience/recover/:service', verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const { service } = req.params;
     const result = await resilienceManager.attemptRecovery(service);
@@ -221,7 +230,7 @@ router.post('/resilience/recover/:service', async (req, res) => {
 /**
  * Reset resilience metrics
  */
-router.post('/resilience/reset', async (req, res) => {
+router.post('/resilience/reset', verifyJWT, verifyAdmin, async (req, res) => {
   try {
     resilienceManager.resetMetrics();
     
@@ -241,6 +250,7 @@ router.post('/resilience/reset', async (req, res) => {
 
 /**
  * System readiness check (for load balancers)
+ * Deliberately open - returns ready/not_ready only, no service details.
  */
 router.get('/ready', async (req, res) => {
   try {
@@ -264,9 +274,10 @@ router.get('/ready', async (req, res) => {
       });
     }
   } catch (error) {
+    // Open route: report the verdict, never the underlying error text.
+    console.error('Readiness check failed:', error);
     res.status(503).json({
       status: 'not_ready',
-      error: error.message,
       timestamp: new Date().toISOString()
     });
   }
@@ -274,6 +285,7 @@ router.get('/ready', async (req, res) => {
 
 /**
  * Liveness check (for Kubernetes)
+ * Deliberately open - returns process liveness only.
  */
 router.get('/live', (req, res) => {
   res.status(200).json({
@@ -286,7 +298,7 @@ router.get('/live', (req, res) => {
 /**
  * Detailed system status
  */
-router.get('/status', async (req, res) => {
+router.get('/status', verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const healthData = await resilienceManager.performHealthChecks();
     const dbMetrics = getConnectionMetrics();
