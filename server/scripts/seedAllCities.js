@@ -3,8 +3,12 @@ const City = require("../models/City");
 const Country = require("../models/Country");
 require('dotenv').config();
 
-// Use the MongoDB Atlas URI directly
-const MONGODB_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@clustermafqm0.mty6zln.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=ClusterMafqM0';
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('MONGODB_URI is not set. Define it in server/.env (or export it) before running this script.');
+  process.exit(1);
+}
 
 // Comprehensive cities data for ALL 25 Arabic countries with multilingual support (names field removed)
 const citiesData = [

@@ -2,11 +2,17 @@ const mongoose = require('mongoose');
 const City = require('../models/City');
 require('dotenv').config();
 
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('MONGODB_URI is not set. Define it in server/.env (or export it) before running this script.');
+  process.exit(1);
+}
+
 const removeCityNamesField = async () => {
   try {
     // Connect to MongoDB
-    const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=Cluster0';
-    await mongoose.connect(mongoUri);
+    await mongoose.connect(MONGODB_URI);
     console.log('Connected to MongoDB');
 
     // Get all cities

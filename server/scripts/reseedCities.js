@@ -1,9 +1,14 @@
 const mongoose = require("mongoose");
 const City = require("../models/City");
 const Country = require("../models/Country");
+require('dotenv').config();
 
-// Use the MongoDB URI directly
-const MONGODB_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('MONGODB_URI is not set. Define it in server/.env (or export it) before running this script.');
+  process.exit(1);
+}
 
 // Major cities data for Arabic countries with multilingual support (using only labels field)
 const citiesData = [
