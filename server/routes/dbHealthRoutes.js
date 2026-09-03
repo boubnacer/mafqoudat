@@ -3,14 +3,23 @@ const router = express.Router();
 const { getConnectionMetrics, checkConnectionHealth, forceReconnect } = require('../config/dbConn');
 const { dbMonitor } = require('../utils/dbMonitor');
 const mongoose = require('mongoose');
+const verifyJWT = require("../middleware/verifyJWT");
+const verifyAdmin = require("../middleware/verifyAdmin");
 
 /**
  * Database health and monitoring routes
  * Provides endpoints for monitoring MongoDB connection health and performance
+ *
+ * Every route here is admin-only: they expose connection internals (host,
+ * database name, pool state), collection/index sizes, monitoring alerts, and
+ * a manual reconnect that can drop the live connection pool. Even /health
+ * reports the connection host and database name, so it is not a safe
+ * unauthenticated liveness probe - infrastructure health checks should call
+ * the open GET /resilience/live and GET /resilience/ready instead.
  */
 
-// Basic health check endpoint
-router.get('/health', async (req, res) => {
+// Basic health check endpoint (admin only - exposes connection host/database name)
+router.get('/health', verifyJWT, verifyAdmin, async (req, res) => {
     try {
         const healthStatus = await checkConnectionHealth();
         const statusCode = healthStatus.healthy ? 200 : 503;
@@ -35,7 +44,7 @@ router.get('/health', async (req, res) => {
 });
 
 // Detailed metrics endpoint
-router.get('/metrics', (req, res) => {
+router.get('/metrics', verifyJWT, verifyAdmin, (req, res) => {
     try {
         const connectionMetrics = getConnectionMetrics();
         const monitorStatus = dbMonitor.getStatus();
@@ -56,7 +65,7 @@ router.get('/metrics', (req, res) => {
 });
 
 // Connection pool status
-router.get('/pool', (req, res) => {
+router.get('/pool', verifyJWT, verifyAdmin, (req, res) => {
     try {
         const connection = mongoose.connection;
         const poolStats = {
@@ -87,7 +96,7 @@ router.get('/pool', (req, res) => {
 });
 
 // Force reconnection endpoint (admin only)
-router.post('/reconnect', async (req, res) => {
+router.post('/reconnect', verifyJWT, verifyAdmin, async (req, res) => {
     try {
         console.log('🔄 Manual reconnection requested');
         await forceReconnect();
@@ -107,7 +116,7 @@ router.post('/reconnect', async (req, res) => {
 });
 
 // Performance test endpoint
-router.get('/performance-test', async (req, res) => {
+router.get('/performance-test', verifyJWT, verifyAdmin, async (req, res) => {
     try {
         const startTime = Date.now();
         
@@ -137,7 +146,7 @@ router.get('/performance-test', async (req, res) => {
 });
 
 // Database statistics
-router.get('/stats', async (req, res) => {
+router.get('/stats', verifyJWT, verifyAdmin, async (req, res) => {
     try {
         const db = mongoose.connection.db;
         const stats = await db.stats();
@@ -164,7 +173,7 @@ router.get('/stats', async (req, res) => {
 });
 
 // Monitoring alerts
-router.get('/alerts', (req, res) => {
+router.get('/alerts', verifyJWT, verifyAdmin, (req, res) => {
     try {
         const monitorStatus = dbMonitor.getStatus();
         const recentAlerts = monitorStatus.metrics.alerts.slice(-20); // Last 20 alerts
