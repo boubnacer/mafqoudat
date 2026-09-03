@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const contactController = require("../controllers/contactController");
 const verifyJWT = require("../middleware/verifyJWT");
+const verifyAdmin = require("../middleware/verifyAdmin");
 const { createRateLimiter } = require("../middleware/rateLimiting");
 const { sanitizeInput } = require("../middleware/validation");
 
@@ -27,26 +28,6 @@ router.post(
   contactController.submitContactForm
 );
 
-// Ultra-simple test route
-router.post("/simple", (req, res) => {
-  console.log('Simple contact route hit with data:', req.body);
-  res.status(200).json({
-    success: true,
-    message: "Simple contact route working",
-    received: req.body
-  });
-});
-
-// Simple test route without middleware
-router.post("/test", (req, res) => {
-  console.log('Contact test route hit:', req.body);
-  res.json({
-    success: true,
-    message: "Contact test route working",
-    received: req.body
-  });
-});
-
 // Even simpler test route
 router.get("/ping", (req, res) => {
   res.json({
@@ -56,8 +37,9 @@ router.get("/ping", (req, res) => {
   });
 });
 
-// Admin routes - require authentication
+// Admin routes - require authentication and admin privileges
 router.use(verifyJWT);
+router.use(verifyAdmin);
 
 // Get all contacts with pagination and filtering
 router.get(

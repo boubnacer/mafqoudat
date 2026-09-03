@@ -1,6 +1,7 @@
 const Contact = require("../models/Contact");
 const { logger } = require("../middleware/logger");
 const { getRequestUserId } = require('../utils/requestUser');
+const { escapeRegex } = require("../utils/regexUtils");
 
 // @desc    Submit a contact form
 // @route   POST /contact
@@ -143,11 +144,12 @@ const getAllContacts = async (req, res) => {
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
     if (search) {
+      const escapedSearch = escapeRegex(search);
       filter.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { subject: { $regex: search, $options: 'i' } },
-        { message: { $regex: search, $options: 'i' } }
+        { name: { $regex: escapedSearch, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
+        { subject: { $regex: escapedSearch, $options: 'i' } },
+        { message: { $regex: escapedSearch, $options: 'i' } }
       ];
     }
 
