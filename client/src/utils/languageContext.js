@@ -15,11 +15,16 @@ const applyDocumentLanguage = (language) => {
   if (typeof document === 'undefined') return;
   document.documentElement.setAttribute('lang', language);
 
+  // Keep <html> and <body> dir in sync - older components' '[dir="rtl"] &'
+  // selectors match on any ancestor with dir="rtl", including <html> if
+  // it's left stale.
   if (language === 'ar') {
+    document.documentElement.setAttribute('dir', 'rtl');
     document.body.setAttribute('dir', 'rtl');
     document.body.style.direction = 'rtl';
     document.body.style.textAlign = 'right';
   } else {
+    document.documentElement.setAttribute('dir', 'ltr');
     document.body.setAttribute('dir', 'ltr');
     document.body.style.direction = 'ltr';
     document.body.style.textAlign = 'left';
