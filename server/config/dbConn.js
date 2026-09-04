@@ -1,9 +1,13 @@
 const mongoose = require('mongoose')
 
-// Suppress deprecation warnings in production
-if (process.env.NODE_ENV === 'production') {
-    mongoose.set('strictQuery', false);
-}
+// Set unconditionally rather than only in production. Mongoose 6 stripped query
+// conditions on paths that are not in the schema; Mongoose 7 onwards passes them
+// through. Production already pinned `false` and so is unaffected, but every other
+// environment used to get the opposite behaviour from the default alone - which
+// meant a stray filter field was silently dropped in development and sent to the
+// database in production. Pinning it here keeps the two the same and keeps a
+// future change of default from moving it again.
+mongoose.set('strictQuery', false);
 
 // Connection metrics tracking
 const connectionMetrics = {
@@ -27,9 +31,6 @@ const retryConfig = {
 
 // Atlas Flex plan optimized connection options
 const getConnectionOptions = () => ({
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    
     // Optimized for Atlas Flex plan limits
     maxPoolSize: 8, // Optimal for Flex plan (was 5, increased for better performance)
     minPoolSize: 2, // Maintain minimum connections for responsiveness
