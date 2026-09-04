@@ -448,6 +448,34 @@ three OAuth routes, `/auth/refresh`): `issueSession` in
   `accessToken` off the response and takes the refresh token from the cookie;
   mobile stores the body copy (`AuthContext.refreshSession` takes an optional
   second argument) so it does not leave an orphaned session behind.
+- **One verification call, not five.** `verifyAccessToken(token)` in
+  [jwtSecurity.js](server/middleware/jwtSecurity.js) is the only place
+  `jwt.verify` is called on an access token; `JWT_VERIFY_OPTIONS` beside it is
+  the only place the issuer/audience/algorithm options are written. It resolves
+  with the decoded payload and rejects with jsonwebtoken's own error, so each
+  caller keeps its own idea of what a failure means - `verifyJWT` still answers
+  its 401 `code` values, both `optionalAuth`s still continue as a guest,
+  `maintenanceMode`'s admin bypass still falls through to the excluded-route
+  check, `authcontroller`'s legacy bootstrap and logout still return null /
+  denylist nothing. What it removed was five hand-maintained copies of the same
+  options object, two of which had already drifted to passing **no options at
+  all** (`middleware/optionalAuth.js`, and `maintenanceMode.js`'s admin bypass -
+  the one that decides who gets through a maintenance window): those two accepted
+  a token signed by another issuer, or with `alg: none`. Making
+  `readBearerUserInfo` async is the one knock-on - its single caller,
+  `postViewTracker`, was already async, and `optionalAuth` is a promise chain
+  now, so it ends `.then(() => next()).catch(next)` to hand a downstream
+  synchronous throw to Express rather than leaving it an unhandled rejection
+  (`server.js` exits the process on those).
+- **`server.js` refuses to boot without `JWT_SECRET`, `MONGODB_URI` or
+  `FRONTEND_URL`** - checked right after `dotenv.config()`, before anything
+  reads them, `process.exit(1)` naming every missing one. Each was survivable at
+  boot and only broke later, somewhere that did not point back at the config:
+  no `JWT_SECRET` means jsonwebtoken signs and verifies with `undefined` as the
+  key, no `MONGODB_URI` surfaces as a connection error rather than a config one,
+  and no `FRONTEND_URL` just drops the entry from
+  [allowedOrigins.js](server/config/allowedOrigins.js), leaving the deployed
+  site CORS-blocked from its own API.
 - **Offline check**: `npm run test-auth-session` in `server/` - boots the real
   auth routes/controllers/middleware on an ephemeral port with only
   `models/User` stubbed, and drives real HTTP at each of the five failure

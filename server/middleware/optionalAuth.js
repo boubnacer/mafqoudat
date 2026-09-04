@@ -1,4 +1,4 @@
-const jwt = require("jsonwebtoken");
+const { verifyAccessToken } = require("./jwtSecurity");
 
 /**
  * Populates req.user/req.username/req.country/req.role when the request carries
@@ -23,13 +23,18 @@ const jwt = require("jsonwebtoken");
  * response cache whose key includes req.user, so populating the request there
  * would hand every signed-in viewer their own copy of an identical post detail
  * response.
+ *
+ * Verification goes through jwtSecurity's shared verifyAccessToken rather than
+ * calling jwt.verify here, so the issuer/audience/algorithm options can never
+ * drift from the ones verifyJWT enforces. Async because that helper is - the
+ * one caller of this (postViewTracker) is already async.
  */
-const readBearerUserInfo = (req) => {
+const readBearerUserInfo = async (req) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
   if (!authHeader?.startsWith("Bearer ")) return null;
 
   try {
-    const decoded = jwt.verify(authHeader.split(" ")[1], process.env.JWT_SECRET);
+    const decoded = await verifyAccessToken(authHeader.split(" ")[1]);
     return decoded?.UserInfo?.usernameId ? decoded.UserInfo : null;
   } catch (err) {
     return null;
@@ -37,16 +42,26 @@ const readBearerUserInfo = (req) => {
 };
 
 const optionalAuth = (req, res, next) => {
-  const userInfo = readBearerUserInfo(req);
-
-  if (userInfo) {
-    req.user = userInfo.usernameId;
-    req.username = userInfo.username;
-    req.country = userInfo.country;
-    req.role = userInfo.role;
-  }
-
-  next();
+  readBearerUserInfo(req)
+    .then((userInfo) => {
+      if (userInfo) {
+        req.user = userInfo.usernameId;
+        req.username = userInfo.username;
+        req.country = userInfo.country;
+        req.role = userInfo.role;
+      }
+    })
+    // Same contract as before: an unreadable token leaves the request a guest
+    // and continues, it never becomes the route's error. Caught *before*
+    // next(), so only the token read is swallowed here.
+    .catch(() => {})
+    // This middleware is a promise chain now, so it no longer sits inside the
+    // router's own try/catch: a downstream handler that throws synchronously
+    // would land here as a rejection. Hand it to Express the way the router
+    // would, rather than leaving it an unhandled rejection - server.js exits
+    // the process on those.
+    .then(() => next())
+    .catch(next);
 };
 
 module.exports = optionalAuth;
