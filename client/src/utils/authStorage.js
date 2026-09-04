@@ -29,7 +29,7 @@ const extractUserFromToken = (token) => {
     
     if (payload.UserInfo) {
       return {
-        _id: payload.UserInfo.userId,
+        _id: payload.UserInfo.usernameId,
         username: payload.UserInfo.username,
         country: payload.UserInfo.country,
         role: payload.UserInfo.role
