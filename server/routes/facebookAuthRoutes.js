@@ -5,6 +5,7 @@ const passport = require('../config/passport');
 const User = require('../models/User');
 const Country = require('../models/Country');
 const { issueSession, setRefreshCookie } = require('../utils/authSession');
+const { createExchangeCode } = require('../utils/oauthExchange');
 const { logEvents } = require('../middleware/logger');
 
 // Map to store pending OAuth registrations with timestamps
@@ -160,9 +161,12 @@ const processFacebookCallback = async (req, res) => {
           const protocol = req.protocol || 'https';
           const host = req.get('host') || 'localhost:3500';
           const serverUrl = `${protocol}://${host}`;
-          // Deep link carries the refresh token: the auth-session browser's
-          // cookie jar is not the app's (see googleAuthRoutes.js).
-          return `${serverUrl}/auth/mobile-callback?token=${encodeURIComponent(tokens.accessToken)}&refreshToken=${encodeURIComponent(tokens.refreshToken)}`;
+          // Deep link carries only a one-time opaque exchange code - never the
+          // tokens, which middleware/logger.js would write to reqLog.log along
+          // with the rest of the query string (see googleAuthRoutes.js and
+          // utils/oauthExchange.js). The app redeems it at
+          // POST /auth/mobile-exchange.
+          return `${serverUrl}/auth/mobile-callback?code=${encodeURIComponent(createExchangeCode(tokens))}`;
         }
         // Web: refresh token as an httpOnly cookie only, never in the URL.
         // Returned as an object so the route sets the cookie on its own

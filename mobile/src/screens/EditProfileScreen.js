@@ -109,7 +109,7 @@ const EditProfileScreen = ({ navigation, route }) => {
       const response = await apiClient.patch('/users', payload);
 
       if (response.data?.accessToken) {
-        await refreshSession(response.data.accessToken);
+        await refreshSession(response.data.accessToken, response.data.refreshToken);
       }
 
       // PostsListScreen prefers the onboarding-selected browsing country over

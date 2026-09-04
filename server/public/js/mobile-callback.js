@@ -21,25 +21,22 @@ function getParams() {
   try {
     var params = new URLSearchParams(window.location.search);
     return {
-      token: params.get('token'),
-      refreshToken: params.get('refreshToken'),
+      code: params.get('code'),
       pendingToken: params.get('pendingToken'),
       error: params.get('error')
     };
   } catch (e) {
-    return { token: null, refreshToken: null, pendingToken: null, error: null };
+    return { code: null, pendingToken: null, error: null };
   }
 }
 
 function buildDeepLink(params) {
-  if (params.token) {
-    var link = DEEP_LINK_BASE + '?token=' + encodeURIComponent(params.token);
-    // Refresh token for the app's SecureStore - a cookie set by this browser
-    // never reaches the app's own requests.
-    if (params.refreshToken) {
-      link += '&refreshToken=' + encodeURIComponent(params.refreshToken);
-    }
-    return link;
+  if (params.code) {
+    // A one-time opaque exchange code, never the tokens themselves: this URL
+    // is a request the server logs verbatim (server/middleware/logger.js), and
+    // it also lands in the auth browser's history. The app redeems the code at
+    // POST /auth/mobile-exchange - see server/utils/oauthExchange.js.
+    return DEEP_LINK_BASE + '?code=' + encodeURIComponent(params.code);
   }
   if (params.pendingToken) {
     return DEEP_LINK_BASE + '?pendingToken=' + encodeURIComponent(params.pendingToken);
@@ -62,7 +59,7 @@ function showError(message) {
 function run() {
   var params = getParams();
 
-  if (!params.token && !params.pendingToken && !params.error) {
+  if (!params.code && !params.pendingToken && !params.error) {
     showError('Sign-in could not be completed. Please return to the app and try again.');
     return;
   }

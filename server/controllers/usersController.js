@@ -10,7 +10,6 @@ const Contact = require("../models/Contact");
 const PasswordResetRequest = require("../models/PasswordResetRequest");
 const { deleteFromCloudinary } = require("../config/cloudinary");
 const { cacheService } = require("../config/cache");
-const { generateTokens } = require("../middleware/jwtSecurity");
 const { issueSession, setRefreshCookie } = require("../utils/authSession");
 const { logEvents } = require("../middleware/logger");
 
@@ -331,15 +330,23 @@ const updateUser = async (req, res) => {
     let response = { message: `${updatedUser.username} updated` };
     
     if (usernameChanged || countryChanged) {
-      const { accessToken } = generateTokens({
+      // issueSession, not generateTokens: every other credential-minting call
+      // site (login, register, the three OAuth flows, /auth/refresh) goes
+      // through it, and it is what pairs the access token with a refresh
+      // session and delivers that session per platform - cookie for web, body
+      // for mobile. Calling generateTokens directly left this one endpoint
+      // handing back an access token with no session behind it.
+      const { accessToken, refreshToken } = await issueSession({
         username: updatedUser.username,
         id: updatedUser.id,
         country: updatedUser.country,
         role: updatedUser.role
       });
-      
+
+      setRefreshCookie(res, refreshToken);
       response.accessToken = accessToken;
-      console.log('New access token generated due to username or country change');
+      response.refreshToken = refreshToken;
+      console.log('New session issued due to username or country change');
     }
 
     res.json(response);

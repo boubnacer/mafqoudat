@@ -7,6 +7,7 @@ const passport = require('../config/passport');
 const User = require('../models/User');
 const Country = require('../models/Country');
 const { issueSession, setRefreshCookie } = require('../utils/authSession');
+const { createExchangeCode } = require('../utils/oauthExchange');
 const { logEvents } = require('../middleware/logger');
 
 // Map to store pending OAuth registrations with timestamps
@@ -156,15 +157,18 @@ router.get('/google/callback',
 
           // Redirect based on platform
           if (isMobile) {
-            // For mobile, redirect to HTML page that will trigger deep link
-            // Browser can't handle deep links directly, so we use an HTML page.
-            // The refresh token rides the deep link too: the auth-session
-            // browser's cookie jar is not the app's, so a cookie set here
-            // would never reach the app's own requests.
+            // For mobile, redirect to HTML page that will trigger deep link -
+            // browsers can't handle deep links directly. Only a one-time
+            // opaque code travels in the URL: a cookie set here would never
+            // reach the app (the auth-session browser's jar is not the app's),
+            // and the tokens themselves must not be in a query string, which
+            // middleware/logger.js writes to disk verbatim on every request.
+            // The app trades the code at POST /auth/mobile-exchange.
             const protocol = req.protocol || 'https';
             const host = req.get('host') || 'localhost:3500';
             const serverUrl = `${protocol}://${host}`;
-            const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?token=${encodeURIComponent(tokens.accessToken)}&refreshToken=${encodeURIComponent(tokens.refreshToken)}`;
+            const exchangeCode = createExchangeCode(tokens);
+            const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?code=${encodeURIComponent(exchangeCode)}`;
             return res.redirect(mobileRedirectUrl);
           } else {
             // Web: the refresh token travels only as an httpOnly cookie set on

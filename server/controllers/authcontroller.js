@@ -132,8 +132,19 @@ const login = async (req, res) => {
 
 // A refresh answered with 401 must never be mistaken for a permissions problem
 // - same 401-vs-403 contract as middleware/jwtSecurity.js.
-const refreshUnauthorized = (res, message, code) => {
-  clearRefreshCookie(res);
+//
+// `clearCookie` is opt-in, and deliberately NOT the default: cookies are shared
+// per-origin across a browser's tabs, so clearing on every failure loses a
+// perfectly good session. Two tabs booting at once both refresh with the same
+// cookie; rotation (consumeRefreshSession) is atomic, so exactly one wins and
+// the other is told REFRESH_INVALID. If the loser's Set-Cookie (a clear) lands
+// after the winner's (the new token), it wipes a live session and forces a
+// real re-login. So the cookie is only cleared when the session is genuinely
+// gone no matter which tab asked - no token presented at all, or an account
+// that is no longer active - never for "this particular token was already
+// consumed", which is the expected outcome of losing a race.
+const refreshUnauthorized = (res, message, code, { clearCookie = false } = {}) => {
+  if (clearCookie) clearRefreshCookie(res);
   return res.status(401).json({
     message,
     isError: true,
@@ -169,7 +180,9 @@ const readLegacyBootstrapUser = async (req) => {
   if ((decoded.exp - decoded.iat) < LEGACY_BOOTSTRAP_MIN_LIFETIME_SECONDS) return null;
   if (await isTokenBlacklisted(decoded.jti)) return null;
 
-  return decoded.UserInfo.usernameId;
+  // jti/exp come back so the caller can denylist this token the moment it has
+  // been traded in - see `refresh` below.
+  return { userId: decoded.UserInfo.usernameId, jti: decoded.jti, exp: decoded.exp };
 };
 
 // @desc Exchange a refresh token (or a legacy long-lived access token) for a
@@ -180,6 +193,7 @@ const refresh = async (req, res) => {
   const providedRefreshToken = readRefreshToken(req);
 
   let userId = null;
+  let legacyBootstrap = null;
   if (providedRefreshToken) {
     // consumeRefreshSession deletes the session atomically - a stolen-and-replayed
     // refresh token fails here once the legitimate client has rotated.
@@ -189,14 +203,19 @@ const refresh = async (req, res) => {
         `Refresh rejected - unknown or already-rotated token\t${req.method}\t${req.url}\t${req.ip}`,
         "errLog.log"
       );
+      // No clearCookie: the browser may already be holding a newer, valid
+      // cookie written by whichever tab won the rotation race.
       return refreshUnauthorized(res, "Refresh token is invalid or expired", "REFRESH_INVALID");
     }
     userId = session.userId;
   } else {
-    userId = await readLegacyBootstrapUser(req);
-    if (!userId) {
-      return refreshUnauthorized(res, "No refresh token provided", "NO_REFRESH_TOKEN");
+    legacyBootstrap = await readLegacyBootstrapUser(req);
+    if (!legacyBootstrap) {
+      return refreshUnauthorized(res, "No refresh token provided", "NO_REFRESH_TOKEN", {
+        clearCookie: true,
+      });
     }
+    userId = legacyBootstrap.userId;
   }
 
   // Reload the user so the new access token carries their *current* role,
@@ -208,7 +227,11 @@ const refresh = async (req, res) => {
     .exec();
 
   if (!user || user.isActive === false) {
-    return refreshUnauthorized(res, "Account is no longer active", "REFRESH_INVALID");
+    // The account itself is gone or deactivated - no cookie any tab holds can
+    // ever be good again, so clearing is correct here.
+    return refreshUnauthorized(res, "Account is no longer active", "ACCOUNT_INACTIVE", {
+      clearCookie: true,
+    });
   }
 
   const { accessToken, refreshToken } = await issueSession({
@@ -217,6 +240,23 @@ const refresh = async (req, res) => {
     country: user.country,
     role: user.role,
   });
+
+  // A legacy token is single-use here, exactly like a refresh token: it has
+  // just been traded for a rotating session, so denylist its jti now. Without
+  // this, one leaked pre-migration 30-day token could mint an unlimited number
+  // of independent sessions for the rest of its lifetime, with nothing to
+  // revoke and no way to notice - the one property refresh-token rotation
+  // (consumeRefreshSession's atomic delete) exists to provide.
+  if (legacyBootstrap) {
+    await blacklistToken(
+      legacyBootstrap.jti,
+      legacyBootstrap.exp ? legacyBootstrap.exp * 1000 : null
+    );
+    logEvents(
+      `Legacy token bootstrapped and revoked: ${legacyBootstrap.jti}\t${req.method}\t${req.url}\t${req.ip}`,
+      "reqLog.log"
+    );
+  }
 
   setRefreshCookie(res, refreshToken);
   res.json({ accessToken, refreshToken });

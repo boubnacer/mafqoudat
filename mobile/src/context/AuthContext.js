@@ -514,8 +514,11 @@ export const AuthProvider = ({ children }) => {
   // PATCH /users mints a fresh accessToken whenever username or country changes
   // (the JWT embeds both) - screens that trigger that (e.g. EditProfileScreen)
   // must call this so the stored/in-memory session isn't left stale.
-  const refreshSession = async (accessToken) => {
-    return persistSession(accessToken);
+  // refreshToken is optional: PATCH /users now issues a whole session (see
+  // server/controllers/usersController.js), so when one comes back it replaces
+  // the stored one rather than leaving an orphaned session behind.
+  const refreshSession = async (accessToken, refreshToken) => {
+    return persistSession(accessToken, undefined, refreshToken);
   };
 
   const value = {

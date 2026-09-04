@@ -10,6 +10,7 @@ import {
   MOBILE_OAUTH_CALLBACK_URL,
 } from '../config/api';
 import { useTranslation } from './translations';
+import { exchangeOAuthCode } from './oauthExchange';
 
 // Minimal query-string parser for the deep-link callback URL - avoids depending on
 // URLSearchParams, which isn't guaranteed to exist in every Hermes/RN version.
@@ -95,10 +96,21 @@ class GoogleAuth {
         return { success: false, error: 'Google sign-in failed' };
       }
 
-      const { token, refreshToken, pendingToken, error } = parseQueryParams(result.url);
+      const { code, pendingToken, error } = parseQueryParams(result.url);
 
-      if (token) {
-        return { success: true, accessToken: token, refreshToken, isNewUser: false };
+      if (code) {
+        // The deep link carries a one-time opaque code, not the tokens - see
+        // oauthExchange.js for why.
+        const tokens = await exchangeOAuthCode(code);
+        if (!tokens) {
+          return { success: false, error: 'Google sign-in failed' };
+        }
+        return {
+          success: true,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          isNewUser: false,
+        };
       }
 
       if (pendingToken) {
@@ -213,6 +225,8 @@ class GoogleAuth {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
+          // Required by server/middleware/csrfGuard.js on /auth/logout.
+          'X-Requested-With': 'XMLHttpRequest',
         },
         body: JSON.stringify(refreshToken ? { refreshToken } : {}),
       });

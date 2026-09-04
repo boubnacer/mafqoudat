@@ -395,16 +395,64 @@ three OAuth routes, `/auth/refresh`): `issueSession` in
   adds `NO_REFRESH_TOKEN`/`REFRESH_INVALID`. `/auth/refresh` has its own rate
   limiter (`refresh` in rateLimiting.js, counts failures only) - never put it
   behind the strict `auth` one.
-- **Mobile OAuth browser flows** carry `refreshToken` through the deep link
-  (`mobile-callback.js` → `mafqoudat://auth/callback?token=...&refreshToken=...`),
-  because the auth-session browser's cookie jar is not the app's. Native
-  mobile endpoints return it in the body. Facebook's callback returns
+- **Mobile OAuth browser flows never put tokens in a URL.** They used to
+  (`?token=...&refreshToken=...` on `/auth/mobile-callback` and on the deep
+  link), and `middleware/logger.js` writes every request's full query string
+  to `reqLog.log` unredacted - so each mobile OAuth sign-in wrote a live
+  30-day refresh credential to disk in plaintext, and left it in the auth
+  browser's history. Now the callback parks the pair under a one-time opaque
+  code ([oauthExchange.js](server/utils/oauthExchange.js) - 5-minute expiry,
+  deleted on read, same shape as the `pendingRegistrations` handoff beside it)
+  and only `?code=` travels; the app trades it at `POST /auth/mobile-exchange`
+  ([mobile/src/utils/oauthExchange.js](mobile/src/utils/oauthExchange.js),
+  shared by Google and Facebook). A cookie still cannot be used here - the
+  auth-session browser's jar is not the app's. Native mobile endpoints
+  (`mobileAuthRoutes.js`) were never affected: they answer a POST with a JSON
+  body. Facebook's *web* callback still returns
   `{ redirectUrl, webRefreshToken }` from `processFacebookCallback` so the
   in-flight-dedupe duplicate request also sets the web cookie on its own
   response.
-- **`PATCH /users`** still mints only a fresh access token on username/country
-  change - the refresh session continues untouched (refresh reloads the user
-  anyway).
+- **`/auth/refresh` and `/auth/logout` require an `X-Requested-With` header**
+  ([csrfGuard.js](server/middleware/csrfGuard.js), 403 `CSRF_HEADER_REQUIRED`
+  without it). They are the only two routes that authenticate from the refresh
+  cookie alone, and that cookie is `SameSite=None` in production by necessity,
+  so a third-party page could otherwise drive them with a plain
+  `<form method="POST">` - a simple request, no preflight, the browser
+  attaching the cookie by itself. A header cannot ride on a form post, and
+  setting it from script forces a preflight that `corsOptions.js`'s allowlist
+  answers. Deliberately not a double-submit token: same protection here for a
+  token to mint, store, rotate and verify. Every client sends it -
+  `apiSlice.js`'s `prepareHeaders` (all endpoints), `refreshClient.js`,
+  `logoutUtils.js`, mobile's `apiClient` default headers plus the plain-axios
+  `refreshSessionTokens` and `googleAuth.signOut`.
+- **A failed refresh only clears the cookie when the session is really gone.**
+  `refreshUnauthorized`'s `clearCookie` is opt-in: `NO_REFRESH_TOKEN` and
+  `ACCOUNT_INACTIVE` clear, `REFRESH_INVALID` does not. Cookies are shared
+  across a browser's tabs, so two tabs booting together both refresh with the
+  same one; rotation is atomic, exactly one wins, and clearing on the loser's
+  401 wiped the winner's fresh cookie whenever that response landed second -
+  a forced re-login with a live session on the server. The client half:
+  `refreshClient.js` treats `REFRESH_INVALID` as "another tab may have won"
+  and looks for a newer, unexpired token in the shared `localStorage` (once,
+  then again after `CROSS_TAB_RECHECK_MS`) before reporting failure.
+- **Legacy bootstrap tokens are single-use**, like refresh tokens.
+  `readLegacyBootstrapUser` returns the decoded `jti`/`exp` and `refresh`
+  denylists them (`blacklistToken`) the moment the new session is issued -
+  otherwise one leaked pre-migration 30-day token could mint unlimited
+  independent sessions for the rest of its lifetime, with nothing to revoke
+  and no way to notice.
+- **`PATCH /users`** issues a whole session (`issueSession` +
+  `setRefreshCookie`) on username/country change, like every other
+  credential-minting call site; it used to call `generateTokens` directly and
+  hand back an access token with no session behind it. Web reads only
+  `accessToken` off the response and takes the refresh token from the cookie;
+  mobile stores the body copy (`AuthContext.refreshSession` takes an optional
+  second argument) so it does not leave an orphaned session behind.
+- **Offline check**: `npm run test-auth-session` in `server/` - boots the real
+  auth routes/controllers/middleware on an ephemeral port with only
+  `models/User` stubbed, and drives real HTTP at each of the five failure
+  modes above (legacy replay, tokens in a URL, a cross-site form post, a
+  two-tab rotation race, `PATCH /users`).
 
 ## Match notifications (web + mobile)
 

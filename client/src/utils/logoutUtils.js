@@ -41,7 +41,9 @@ export const performLogout = async (options = {}) => {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authStorage.getAccessToken()}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          // Required by server/middleware/csrfGuard.js on /auth/logout.
+          'X-Requested-With': 'XMLHttpRequest'
         },
         credentials: 'include'
       });
@@ -59,6 +61,7 @@ export const performLogout = async (options = {}) => {
       try {
         const fallbackResponse = await fetch('/api/auth/logout-fallback', {
           method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
           credentials: 'include'
         });
 

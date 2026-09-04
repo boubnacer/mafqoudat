@@ -17,17 +17,47 @@
  */
 
 import { authStorage } from './authStorage';
+import { isStoredTokenExpired } from '../features/auth/authSlice';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3500';
 
+// How long to wait before re-checking storage for a token another tab won.
+// Long enough to cover the gap between the two tabs' responses, short enough
+// that a genuinely dead session isn't left hanging on the login bounce.
+const CROSS_TAB_RECHECK_MS = 500;
+
 let inflight = null;
 
+// Rotation is atomic server-side, so when two tabs boot together and both
+// refresh with the same cookie, exactly one wins and the other is answered
+// REFRESH_INVALID. The loser's session is not actually dead - the winner just
+// stored a brand-new access token in the shared localStorage. So before
+// treating REFRESH_INVALID as "log out", look for that token.
+// (The server no longer clears the refresh cookie on this failure either -
+// see server/controllers/authcontroller.js's refreshUnauthorized.)
+const adoptTokenFromAnotherTab = (tokenBefore) => {
+  const stored = authStorage.getAccessToken();
+  if (!stored || stored === tokenBefore) return null;
+  if (isStoredTokenExpired(stored)) return null;
+  return stored;
+};
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const doRefresh = async () => {
+  const tokenBefore = authStorage.getAccessToken();
+
   try {
-    const headers = { 'Content-Type': 'application/json' };
-    const token = authStorage.getAccessToken();
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
+    const headers = {
+      'Content-Type': 'application/json',
+      // Required by server/middleware/csrfGuard.js: /auth/refresh and
+      // /auth/logout authenticate from the SameSite=None refresh cookie alone,
+      // so they only accept requests carrying a header a cross-site form post
+      // cannot set.
+      'X-Requested-With': 'XMLHttpRequest',
+    };
+    if (tokenBefore) {
+      headers.Authorization = `Bearer ${tokenBefore}`;
     }
 
     const response = await fetch(`${API_URL}/auth/refresh`, {
@@ -36,18 +66,38 @@ const doRefresh = async () => {
       headers,
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      let code = null;
+      try {
+        code = (await response.json())?.code || null;
+      } catch (parseError) {
+        // Non-JSON error body - treated as an unknown failure code.
+      }
+
+      if (code === 'REFRESH_INVALID') {
+        let fromOtherTab = adoptTokenFromAnotherTab(tokenBefore);
+        if (!fromOtherTab) {
+          // The winning tab's response may simply not have landed yet.
+          await delay(CROSS_TAB_RECHECK_MS);
+          fromOtherTab = adoptTokenFromAnotherTab(tokenBefore);
+        }
+        if (fromOtherTab) return { accessToken: fromOtherTab, code: null };
+      }
+
+      return { accessToken: null, code };
+    }
 
     const data = await response.json();
-    return data?.accessToken || null;
+    return { accessToken: data?.accessToken || null, code: null };
   } catch (error) {
-    // Network failure is not "session dead" - callers treat null as
+    // Network failure is not "session dead" - callers treat a null token as
     // "no new token", and only log out when the old one is unusable too.
-    return null;
+    return { accessToken: null, code: null };
   }
 };
 
-export const refreshAccessToken = () => {
+/** Full result: { accessToken, code } - `code` is the server's failure code. */
+export const refreshSession = () => {
   if (!inflight) {
     inflight = doRefresh().finally(() => {
       inflight = null;
@@ -55,5 +105,7 @@ export const refreshAccessToken = () => {
   }
   return inflight;
 };
+
+export const refreshAccessToken = async () => (await refreshSession()).accessToken;
 
 export default refreshAccessToken;

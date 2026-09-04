@@ -14,6 +14,11 @@ const apiClient = axios.create({
   timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
+    // server/middleware/csrfGuard.js requires this on /auth/refresh and
+    // /auth/logout. The app is not a browser and carries no ambient cookie, so
+    // it was never the threat that guard exists for - it just has to satisfy
+    // the same check. Set on the whole client so no auth call can miss it.
+    'X-Requested-With': 'XMLHttpRequest',
   },
 });
 
@@ -80,7 +85,12 @@ export const refreshSessionTokens = () => {
         const accessToken = await SecureStore.getItemAsync('accessToken');
         if (!refreshToken && !accessToken) return null;
 
-        const headers = { 'Content-Type': 'application/json' };
+        const headers = {
+          'Content-Type': 'application/json',
+          // Plain axios here, not apiClient - the default header above does
+          // not apply, and /auth/refresh rejects a request without it.
+          'X-Requested-With': 'XMLHttpRequest',
+        };
         if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
         const response = await axios.post(

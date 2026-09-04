@@ -4,6 +4,7 @@ import {
   API_ENDPOINTS,
   MOBILE_OAUTH_CALLBACK_URL,
 } from '../config/api';
+import { exchangeOAuthCode } from './oauthExchange';
 
 // Minimal query-string parser for the deep-link callback URL - avoids depending on
 // URLSearchParams, which isn't guaranteed to exist in every Hermes/RN version.
@@ -42,10 +43,20 @@ class FacebookAuth {
         return { success: false, error: 'Facebook sign-in failed' };
       }
 
-      const { token, refreshToken, pendingToken, error } = parseQueryParams(result.url);
+      const { code, pendingToken, error } = parseQueryParams(result.url);
 
-      if (token) {
-        return { success: true, accessToken: token, refreshToken, isNewUser: false };
+      if (code) {
+        // One-time opaque code, not the tokens themselves - see oauthExchange.js.
+        const tokens = await exchangeOAuthCode(code);
+        if (!tokens) {
+          return { success: false, error: 'Facebook sign-in failed' };
+        }
+        return {
+          success: true,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          isNewUser: false,
+        };
       }
 
       if (pendingToken) {

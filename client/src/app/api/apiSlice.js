@@ -88,6 +88,15 @@ const baseQuery = fetchBaseQuery({
       debugLog('Added authorization header', { endpoint });
     }
     
+    // Marks every call as script-originated. server/middleware/csrfGuard.js
+    // requires it on /auth/refresh and /auth/logout - the two routes that
+    // authenticate from the SameSite=None refresh cookie alone, and so the two
+    // a cross-site form post could otherwise drive. Set for all endpoints
+    // rather than only those: it costs nothing (X-Visitor-Session below
+    // already forces a preflight on every cross-origin call) and means the
+    // logout mutation can never be the one call that forgot it.
+    headers.set("X-Requested-With", "XMLHttpRequest");
+
     // Add visitor session ID header for cross-origin tracking
     // Always get from localStorage - it should be set synchronously
     const visitorSessionId = getVisitorSessionId();

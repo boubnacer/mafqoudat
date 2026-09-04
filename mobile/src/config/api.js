@@ -41,6 +41,10 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: "/auth",
     REFRESH: "/auth/refresh",
+    // Trades the one-time code the OAuth browser flow returns in the deep link
+    // for the real tokens - they are never put in a URL, which the server logs
+    // verbatim (see mobile/src/utils/oauthExchange.js).
+    MOBILE_EXCHANGE: "/auth/mobile-exchange",
     LOGOUT: "/auth/logout",
     GOOGLE: "/auth/google",
     GOOGLE_CALLBACK: "/auth/google/callback",
