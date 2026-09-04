@@ -172,9 +172,12 @@ const processFacebookCallback = async (req, res) => {
         // Returned as an object so the route sets the cookie on its own
         // response - with the in-flight dedupe below, the response that runs
         // this flow and the response the real browser ends up on can be
-        // different requests, and both must get the cookie.
+        // different requests, and both must get the cookie. The access token
+        // is likewise kept out of the URL - only a one-time opaque code
+        // travels, same as the mobile browser flow (utils/oauthExchange.js);
+        // the client trades it at POST /auth/mobile-exchange.
         return {
-          redirectUrl: `${frontendUrl}/auth/callback?token=${tokens.accessToken}`,
+          redirectUrl: `${frontendUrl}/auth/callback?code=${encodeURIComponent(createExchangeCode(tokens))}`,
           webRefreshToken: tokens.refreshToken,
         };
       } catch (tokenError) {

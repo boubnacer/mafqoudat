@@ -174,8 +174,14 @@ router.get('/google/callback',
             // Web: the refresh token travels only as an httpOnly cookie set on
             // this redirect (same API origin the client later refreshes
             // against) - never in the URL, which lands in browser history.
+            // The access token used to ride along in the URL too
+            // (?token=...) - now only a one-time opaque code does, the same
+            // mechanism the mobile browser flow already uses (see
+            // utils/oauthExchange.js). The client trades it at
+            // POST /auth/mobile-exchange.
             setRefreshCookie(res, tokens.refreshToken);
-            const webUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}`;
+            const exchangeCode = createExchangeCode(tokens);
+            const webUrl = `${frontendUrl}/auth/callback?code=${encodeURIComponent(exchangeCode)}`;
             return res.redirect(webUrl);
           }
         } catch (tokenError) {

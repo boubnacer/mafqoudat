@@ -1,27 +1,32 @@
 /**
- * One-time exchange codes for the mobile OAuth browser flow.
+ * One-time exchange codes for the OAuth browser flows (mobile and web).
  *
  * The browser flows (routes/googleAuthRoutes.js, routes/facebookAuthRoutes.js)
- * used to hand the app its tokens by putting them straight in the redirect URL:
+ * used to hand tokens back by putting them straight in the redirect URL:
  *
- *   /auth/mobile-callback?token=<access>&refreshToken=<refresh>
+ *   mobile: /auth/mobile-callback?token=<access>&refreshToken=<refresh>
+ *   web:    /auth/callback?token=<access>
  *
  * middleware/logger.js writes `req.url` - the full query string, unredacted -
- * to reqLog.log for every request, so the app's own GET of that URL wrote a
- * live 30-day refresh credential to disk in plaintext on every mobile OAuth
- * sign-in. Query strings also survive in browser history and in any proxy or
- * CDN log on the path.
+ * to reqLog.log for every request, so the app's own GET of the mobile
+ * callback URL wrote a live 30-day refresh credential to disk in plaintext on
+ * every mobile OAuth sign-in. Query strings also survive in browser history
+ * and in any proxy or CDN log on the path - the web redirect's exposure was
+ * already lower (access-token only, and short-lived since the refresh-token
+ * rework) but the same fix closes it for consistency.
  *
  * So the tokens never enter a URL. They are parked here under a short opaque
- * code, and only the code travels through the redirect and the deep link; the
- * app trades it for the real tokens over POST /auth/mobile-exchange. The code
- * is single-use (deleted on read) and expires in 5 minutes, exactly like the
+ * code, and only the code travels through the redirect (and, on mobile, the
+ * deep link); the client trades it for the real tokens over
+ * POST /auth/mobile-exchange - one endpoint, reused by both platforms, since
+ * a code from either mints the same shape of entry. The code is single-use
+ * (deleted on read) and expires in 5 minutes, exactly like the
  * `pendingRegistrations` handoff the OAuth routes already use for new-user
  * registrations - same pattern, same lifetime.
  *
  * In-memory on purpose, matching pendingRegistrations: the code is redeemed
  * seconds after it is issued, by the same process that just served the
- * redirect (sticky by nature - the app follows the redirect chain it was
+ * redirect (sticky by nature - the client follows the redirect chain it was
  * given). A multi-instance deployment would want this in Redis; so would
  * pendingRegistrations, and that is a separate change.
  */
