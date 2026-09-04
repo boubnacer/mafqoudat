@@ -567,13 +567,17 @@ class LanguageStorageManager {
     try {
       // Set document language attribute
       document.documentElement.setAttribute("lang", language);
-      
-      // Update RTL/LTR direction
+
+      // Update RTL/LTR direction - keep <html> and <body> in sync, since
+      // older components' '[dir="rtl"] &' selectors match on any ancestor
+      // with dir="rtl", including <html> if it's left stale.
       if (language === "ar") {
+        document.documentElement.setAttribute("dir", "rtl");
         document.body.setAttribute("dir", "rtl");
         document.body.style.direction = "rtl";
         document.body.style.textAlign = "right";
       } else {
+        document.documentElement.setAttribute("dir", "ltr");
         document.body.setAttribute("dir", "ltr");
         document.body.style.direction = "ltr";
         document.body.style.textAlign = "left";
