@@ -30,13 +30,17 @@ router.route("/refresh").post(requireClientHeader, refreshRateLimit, asyncAuthHa
 // verifies whatever Bearer token is presented itself.
 router.route("/logout").post(requireClientHeader, logoutRateLimit, asyncAuthHandler(authController.logout));
 
-// /auth/mobile-exchange - Redeem the one-time code the mobile OAuth browser
-// flow hands back through the deep link, for the actual tokens. The tokens
-// never travel in a URL, because middleware/logger.js writes every request's
-// full query string to disk (see utils/oauthExchange.js). Provider-agnostic:
-// Google and Facebook both mint their codes from the same store.
+// /auth/mobile-exchange - Redeem the one-time code an OAuth browser flow
+// hands back through its redirect, for the actual tokens. The tokens never
+// travel in a URL - the mobile deep link for the reason in the name (every
+// request's full query string is written to disk unredacted, see
+// middleware/logger.js), the web `/auth/callback?code=` redirect for
+// consistency with it (the access token there is short-lived, but still
+// landed in browser history). Provider- and platform-agnostic despite the
+// name: Google and Facebook both mint codes from the same store for both
+// their mobile and web success paths (see utils/oauthExchange.js).
 // Rate-limited with the refresh limiter rather than the strict `auth` one: a
-// legitimate app only ever calls this once per sign-in, but a failure here
+// legitimate client only ever calls this once per sign-in, but a failure here
 // must not lock the same IP out of the login form.
 router.route("/mobile-exchange").post(refreshRateLimit, (req, res) => {
   const tokens = consumeExchangeCode(req.body?.code);
