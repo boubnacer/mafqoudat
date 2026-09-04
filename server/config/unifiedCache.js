@@ -512,10 +512,16 @@ const scheduleCacheWarming = () => {
   }, 6 * 60 * 60 * 1000); // 6 hours
 };
 
+// Live module-level client, not the snapshot UnifiedCacheService captured at
+// construction (initRedis runs after the singleton is built). Used by
+// services/tokenStore.js for auth revocation state.
+const getRedisClient = () => (redisConnected && redisClient ? redisClient : null);
+
 module.exports = {
   unifiedCacheService,
   warmCache,
   scheduleCacheWarming,
   initRedis,
+  getRedisClient,
   CACHE_TTL
 };

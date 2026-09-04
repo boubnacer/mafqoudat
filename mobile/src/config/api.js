@@ -40,6 +40,7 @@ export const WEB_BASE_URL = process.env.EXPO_PUBLIC_WEB_BASE_URL;
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: "/auth",
+    REFRESH: "/auth/refresh",
     LOGOUT: "/auth/logout",
     GOOGLE: "/auth/google",
     GOOGLE_CALLBACK: "/auth/google/callback",

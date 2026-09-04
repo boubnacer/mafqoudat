@@ -86,6 +86,19 @@ const rateLimiters = {
     skipSuccessfulRequests: true
   }),
 
+  // Silent-refresh endpoint (/auth/refresh): machine-triggered, so failures
+  // arrive without a human pacing them (every boot of a tab whose session has
+  // died fires one). More generous than `auth`, and kept separate so a
+  // misbehaving refresh loop can never lock the same IP out of the login form.
+  // skipSuccessfulRequests: a healthy client refreshing every ~30 minutes
+  // must never count toward the limit.
+  refresh: createRateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 30, // 30 *failed* refreshes per 15 minutes
+    message: "Too many session refresh attempts, please try again later",
+    skipSuccessfulRequests: true
+  }),
+
   // Moderate rate limiter for general API usage
   general: createRateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes

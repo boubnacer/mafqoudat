@@ -11,6 +11,7 @@ const PasswordResetRequest = require("../models/PasswordResetRequest");
 const { deleteFromCloudinary } = require("../config/cloudinary");
 const { cacheService } = require("../config/cache");
 const { generateTokens } = require("../middleware/jwtSecurity");
+const { issueSession, setRefreshCookie } = require("../utils/authSession");
 const { logEvents } = require("../middleware/logger");
 
 // @desc Get all users
@@ -209,8 +210,8 @@ const createNewUser = async (req, res) => {
     const user = await User.create(userObject);
     console.log('User created successfully:', user._id);
 
-  // Generate access token (long-lived, no refresh token needed)
-  const { accessToken } = generateTokens({
+  // Short-lived access token + refresh session (cookie for web, body for mobile)
+  const { accessToken, refreshToken } = await issueSession({
     username: user.username,
     id: user.id,
     country: user.country,
@@ -223,7 +224,8 @@ const createNewUser = async (req, res) => {
     "reqLog.log"
   );
 
-  res.json({ accessToken });
+  setRefreshCookie(res, refreshToken);
+  res.json({ accessToken, refreshToken });
   } catch (error) {
     console.error('Error creating user:', error);
     return res.status(500).json({ message: "Error creating user" });

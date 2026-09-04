@@ -59,6 +59,57 @@ const AUTH_FAILURE_CODES = new Set([
 // already-established session has gone bad - must never force a logout.
 const AUTH_FAILURE_EXCLUDED_PREFIXES = ['/auth'];
 
+// Silent session refresh. Access tokens are short-lived (~30 min) now; the
+// long-lived refresh token in SecureStore (mobile's stand-in for the web's
+// httpOnly cookie) trades for a fresh one via POST /auth/refresh, which also
+// rotates the refresh token. Single-flight: a burst of concurrent 401s shares
+// one refresh request, which matters doubly here because rotation makes the
+// second concurrent attempt with the same refresh token fail by design.
+// Raw axios, not apiClient - the interceptors must never recurse into this.
+//
+// Legacy bootstrap: a still-valid 30-day token from before the refresh-token
+// deploy has no stored refresh token; sending it as a Bearer lets the server
+// upgrade it to a real session without re-login (see AuthContext's
+// loadStoredAuth, which calls this once at startup for exactly that case).
+let refreshPromise = null;
+export const refreshSessionTokens = () => {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const refreshToken = await SecureStore.getItemAsync('refreshToken');
+        const accessToken = await SecureStore.getItemAsync('accessToken');
+        if (!refreshToken && !accessToken) return null;
+
+        const headers = { 'Content-Type': 'application/json' };
+        if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+
+        const response = await axios.post(
+          `${API_BASE_URL}/auth/refresh`,
+          refreshToken ? { refreshToken } : {},
+          { headers, timeout: API_TIMEOUT }
+        );
+
+        const data = response.data;
+        if (!data?.accessToken) return null;
+
+        await SecureStore.setItemAsync('accessToken', data.accessToken);
+        if (data.refreshToken) {
+          await SecureStore.setItemAsync('refreshToken', data.refreshToken);
+        }
+        return data.accessToken;
+      } catch (error) {
+        // Network failure or a refused refresh - the caller decides whether
+        // that ends the session (it does only after a real 401).
+        return null;
+      }
+    })();
+    refreshPromise.finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+};
+
 // Request interceptor - Add token to requests
 apiClient.interceptors.request.use(
   async (config) => {
@@ -101,10 +152,25 @@ apiClient.interceptors.response.use(
       status === 401 || (status === 403 && (data?.message === 'Forbidden' || AUTH_FAILURE_CODES.has(data?.code)));
 
     if (isAuthFailure && !isExcluded) {
+      // First response to a dead access token is a silent refresh + one retry
+      // of the original request - _retriedAfterRefresh stops a second lap if
+      // the retry itself comes back 401.
+      if (!error.config?._retriedAfterRefresh) {
+        const newToken = await refreshSessionTokens();
+        if (newToken) {
+          error.config._retriedAfterRefresh = true;
+          error.config.headers = error.config.headers || {};
+          error.config.headers.Authorization = `Bearer ${newToken}`;
+          return apiClient(error.config);
+        }
+      }
+
+      // Refresh unavailable or refused - the session is really over.
       try {
         await SecureStore.deleteItemAsync('accessToken');
+        await SecureStore.deleteItemAsync('refreshToken');
       } catch (storageError) {
-        console.error('Error clearing token:', storageError);
+        console.error('Error clearing tokens:', storageError);
       }
       authFailureHandler?.();
     }

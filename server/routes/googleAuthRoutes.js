@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const passport = require('../config/passport');
 const User = require('../models/User');
 const Country = require('../models/Country');
-const { generateTokens } = require('../middleware/jwtSecurity');
+const { issueSession, setRefreshCookie } = require('../utils/authSession');
 const { logEvents } = require('../middleware/logger');
 
 // Map to store pending OAuth registrations with timestamps
@@ -141,7 +141,7 @@ router.get('/google/callback',
       // Existing user - generate JWT and redirect
       if (user && user._id) {
         try {
-          const tokens = generateTokens({
+          const tokens = await issueSession({
             username: user.username,
             id: user._id,
             country: user.country,
@@ -157,14 +157,20 @@ router.get('/google/callback',
           // Redirect based on platform
           if (isMobile) {
             // For mobile, redirect to HTML page that will trigger deep link
-            // Browser can't handle deep links directly, so we use an HTML page
+            // Browser can't handle deep links directly, so we use an HTML page.
+            // The refresh token rides the deep link too: the auth-session
+            // browser's cookie jar is not the app's, so a cookie set here
+            // would never reach the app's own requests.
             const protocol = req.protocol || 'https';
             const host = req.get('host') || 'localhost:3500';
             const serverUrl = `${protocol}://${host}`;
-            const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?token=${encodeURIComponent(tokens.accessToken)}`;
+            const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?token=${encodeURIComponent(tokens.accessToken)}&refreshToken=${encodeURIComponent(tokens.refreshToken)}`;
             return res.redirect(mobileRedirectUrl);
           } else {
-            // Redirect to frontend with token
+            // Web: the refresh token travels only as an httpOnly cookie set on
+            // this redirect (same API origin the client later refreshes
+            // against) - never in the URL, which lands in browser history.
+            setRefreshCookie(res, tokens.refreshToken);
             const webUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}`;
             return res.redirect(webUrl);
           }
@@ -346,8 +352,9 @@ router.post('/complete', async (req, res) => {
     // Clean up pending token
     pendingRegistrations.delete(pendingToken);
 
-    // Generate JWT token
-    const tokens = generateTokens({
+    // Generate session (this endpoint serves both web CountrySelection and the
+    // mobile browser-flow completion, so cookie AND body carry the refresh token)
+    const tokens = await issueSession({
       username: newUser.username,
       id: newUser._id,
       country: newUser.country,
@@ -360,9 +367,10 @@ router.post('/complete', async (req, res) => {
       'reqLog.log'
     );
 
-    // Return access token
-    res.status(201).json({ 
+    setRefreshCookie(res, tokens.refreshToken);
+    res.status(201).json({
       accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
       message: 'User registered successfully',
       username: newUser.username
     });

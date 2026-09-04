@@ -352,6 +352,60 @@ full-bleed backdrop zoomed to the visitor's country, countries tinted by
   `client/.cache/naturalearth/`, which is gitignored. Public domain, no key,
   no attribution requirement.
 
+## Auth sessions (web + mobile)
+
+Short-lived JWT access token (default 30 min, `JWT_ACCESS_EXPIRES_IN` - do NOT
+set this to `30d` anymore; that was the pre-refresh-token era) + long-lived
+opaque refresh token (30 days, `REFRESH_TOKEN_EXPIRES_IN`), rotated on every
+use. One issuance path for all six entry points (password login, register, the
+three OAuth routes, `/auth/refresh`): `issueSession` in
+[authSession.js](server/utils/authSession.js).
+
+- **Storage/revocation**: [tokenStore.js](server/services/tokenStore.js) -
+  Redis (shared client via `getRedisClient()` from `unifiedCache.js`, so logout
+  survives restarts and works across instances) with an in-memory fallback when
+  `REDIS_URL` is absent. Refresh tokens stored as SHA-256 hashes only; consumed
+  via `GETDEL` so a replayed (stolen-and-rotated-away) token fails atomically.
+  Logout denylists the access token's `jti` AND revokes the refresh session,
+  and deliberately does **not** require a valid access token - an expired
+  session must still be able to revoke its refresh token
+  ([authcontroller.js](server/controllers/authcontroller.js) `logoutHandler`).
+- **`/auth/refresh` reloads the user from the DB** before minting, so role
+  demotion/deactivation takes effect within one access-token lifetime.
+  Refresh-token transport is the platform split: web = httpOnly cookie scoped
+  to `/auth` (`SameSite=None; Secure` in prod - Vercel→Render is cross-site;
+  `Lax` in dev), mobile = JSON body stored in SecureStore. JSON auth responses
+  carry `refreshToken` in the body for mobile; web ignores it.
+- **Legacy bootstrap**: a pre-deploy 30-day token with no refresh session can
+  call `/auth/refresh` with only its Bearer and get upgraded to a real session
+  - gated on the token's own issued lifetime (`exp - iat` ≥ 4× the access
+  lifetime), so a stolen short-lived token gains nothing. This plus the removal
+  of verifyJWT's wall-clock "token too old" check (each token is judged on its
+  own `exp`) is what makes the deploy not force anyone to re-login. Web calls
+  it once at boot ([useSessionBootstrap.js](client/src/hooks/useSessionBootstrap.js)),
+  mobile in `AuthContext.loadStoredAuth` when a token exists without a stored
+  refresh token.
+- **Silent refresh, both clients**: single-flight refresh + one retry on a 401
+  session failure - web in [apiSlice.js](client/src/app/api/apiSlice.js)
+  (plain-fetch twin: [refreshClient.js](client/src/utils/refreshClient.js)),
+  mobile in [apiService.js](mobile/src/api/apiService.js)
+  (`refreshSessionTokens`, `_retriedAfterRefresh` guard). Only when refresh
+  fails too does the existing logout-with-sessionExpired path run. The 401
+  `code` values in jwtSecurity.js remain a contract with both clients; refresh
+  adds `NO_REFRESH_TOKEN`/`REFRESH_INVALID`. `/auth/refresh` has its own rate
+  limiter (`refresh` in rateLimiting.js, counts failures only) - never put it
+  behind the strict `auth` one.
+- **Mobile OAuth browser flows** carry `refreshToken` through the deep link
+  (`mobile-callback.js` → `mafqoudat://auth/callback?token=...&refreshToken=...`),
+  because the auth-session browser's cookie jar is not the app's. Native
+  mobile endpoints return it in the body. Facebook's callback returns
+  `{ redirectUrl, webRefreshToken }` from `processFacebookCallback` so the
+  in-flight-dedupe duplicate request also sets the web cookie on its own
+  response.
+- **`PATCH /users`** still mints only a fresh access token on username/country
+  change - the refresh session continues untouched (refresh reloads the user
+  anyway).
+
 ## Match notifications (web + mobile)
 
 Lost↔found matching engine + in-app notifications. The engine and API are shared —

@@ -143,10 +143,10 @@ const LoginScreen = ({ navigation }) => {
         password: password,
       });
 
-      const { accessToken } = response.data;
+      const { accessToken, refreshToken } = response.data;
 
       if (accessToken) {
-        await completeLogin(accessToken);
+        await completeLogin(accessToken, refreshToken);
         goAfterLogin();
       } else {
         setError(t('invalidCredentials'));

@@ -22,17 +22,24 @@ function getParams() {
     var params = new URLSearchParams(window.location.search);
     return {
       token: params.get('token'),
+      refreshToken: params.get('refreshToken'),
       pendingToken: params.get('pendingToken'),
       error: params.get('error')
     };
   } catch (e) {
-    return { token: null, pendingToken: null, error: null };
+    return { token: null, refreshToken: null, pendingToken: null, error: null };
   }
 }
 
 function buildDeepLink(params) {
   if (params.token) {
-    return DEEP_LINK_BASE + '?token=' + encodeURIComponent(params.token);
+    var link = DEEP_LINK_BASE + '?token=' + encodeURIComponent(params.token);
+    // Refresh token for the app's SecureStore - a cookie set by this browser
+    // never reaches the app's own requests.
+    if (params.refreshToken) {
+      link += '&refreshToken=' + encodeURIComponent(params.refreshToken);
+    }
+    return link;
   }
   if (params.pendingToken) {
     return DEEP_LINK_BASE + '?pendingToken=' + encodeURIComponent(params.pendingToken);

@@ -7,6 +7,9 @@ import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TOKEN_KEY = 'accessToken';
+// Long-lived opaque refresh token (server rotates it on every /auth/refresh).
+// Key name is a contract with api/apiService.js's refresh logic.
+const REFRESH_TOKEN_KEY = 'refreshToken';
 const USER_KEY = 'userData';
 const COUNTRY_KEY = 'currentCountry';
 const SELECTED_FL_KEY = 'selectedFl';
@@ -38,6 +41,36 @@ export const storage = {
       return true;
     } catch (error) {
       console.error('Error removing token:', error);
+      return false;
+    }
+  },
+
+  // Refresh token storage (mobile's stand-in for the web's httpOnly cookie)
+  async setRefreshToken(token) {
+    try {
+      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, token);
+      return true;
+    } catch (error) {
+      console.error('Error storing refresh token:', error);
+      return false;
+    }
+  },
+
+  async getRefreshToken() {
+    try {
+      return await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+    } catch (error) {
+      console.error('Error getting refresh token:', error);
+      return null;
+    }
+  },
+
+  async removeRefreshToken() {
+    try {
+      await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+      return true;
+    } catch (error) {
+      console.error('Error removing refresh token:', error);
       return false;
     }
   },
@@ -139,6 +172,7 @@ export const storage = {
   async clearSession() {
     try {
       await this.removeToken();
+      await this.removeRefreshToken();
       await this.removeUserData();
       await this.removeSelectedFl();
       return true;
@@ -152,6 +186,7 @@ export const storage = {
   async clearAll() {
     try {
       await this.removeToken();
+      await this.removeRefreshToken();
       await this.removeUserData();
       await this.removeCurrentCountry();
       await this.removeSelectedFl();

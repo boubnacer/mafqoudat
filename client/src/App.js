@@ -14,6 +14,7 @@ import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorag
 import { validateAndRepairLocalStorage } from "./utils/localStorageValidator";
 import { ensureGlobalStateAlwaysExists } from "./utils/globalStateInitializer";
 import useAuthErrorHandler from "./hooks/useAuthErrorHandler";
+import useSessionBootstrap from "./hooks/useSessionBootstrap";
 import useMaintenanceCheck from "./hooks/useMaintenanceCheck";
 import LanguageSwitchHandler from "./components/LanguageSwitchHandler";
 import LanguageChangeHandler from "./components/LanguageChangeHandler";
@@ -101,7 +102,11 @@ const AppContent = () => {
   
   // Initialize authentication error handler
   useAuthErrorHandler();
-  
+
+  // One-shot silent token refresh at boot: revives an expired session via the
+  // refresh cookie and upgrades legacy long-lived tokens to the refresh flow.
+  useSessionBootstrap();
+
   // Check maintenance mode status from hook
   const { isMaintenanceMode: hookMaintenanceMode, isLoading: isCheckingMaintenance, isAdmin } = useMaintenanceCheck();
   

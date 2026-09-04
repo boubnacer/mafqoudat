@@ -92,10 +92,13 @@ const CountrySelection = () => {
       const completeUrl = provider === 'google'
         ? `${apiUrl}/auth/complete`
         : `${apiUrl}/auth/${provider}/complete`;
+      // withCredentials so the httpOnly refresh cookie the completion endpoint
+      // sets is actually stored - without it the session works only until the
+      // first access token expires.
       const response = await axios.post(completeUrl, {
         pendingToken,
         countryId: selectedCountry
-      });
+      }, { withCredentials: true });
 
       if (response.data?.accessToken) {
         dispatch(setCredentials({

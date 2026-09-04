@@ -3,7 +3,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const User = require('../models/User');
 const Country = require('../models/Country');
-const { generateTokens } = require('../middleware/jwtSecurity');
+const { issueSession } = require('../utils/authSession');
 const { logEvents } = require('../middleware/logger');
 const { OAuth2Client } = require('google-auth-library');
 
@@ -158,8 +158,9 @@ router.post('/google/mobile', async (req, res) => {
 
       await existingUser.save();
 
-      // Generate JWT tokens
-      const tokens = generateTokens({
+      // Generate session - refresh token in the body only, this is a native
+      // app with no cookie jar (it stores both in SecureStore).
+      const tokens = await issueSession({
         username: existingUser.username,
         id: existingUser._id,
         country: existingUser.country,
@@ -173,6 +174,7 @@ router.post('/google/mobile', async (req, res) => {
 
       return res.status(200).json({
         accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
         user: {
           id: existingUser._id,
           username: existingUser.username,
@@ -387,8 +389,8 @@ router.post('/google/mobile/complete', async (req, res) => {
     // Clean up pending token
     pendingRegistrations.delete(pendingToken);
 
-    // Generate JWT token
-    const tokens = generateTokens({
+    // Generate session - body only, native app (SecureStore, no cookie jar)
+    const tokens = await issueSession({
       username: newUser.username,
       id: newUser._id,
       country: newUser.country,
@@ -402,6 +404,7 @@ router.post('/google/mobile/complete', async (req, res) => {
 
     res.status(201).json({
       accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
       username: newUser.username,
       message: 'User registered successfully'
     });

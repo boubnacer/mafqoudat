@@ -1,13 +1,20 @@
 const jwt = require("jsonwebtoken");
 const { logEvents } = require("./logger");
+const {
+  revokeAccessToken,
+  isAccessTokenRevoked,
+} = require("../services/tokenStore");
 
 // JWT security configuration with environment-based settings
 const JWT_CONFIG = {
   // Access token expiry - configurable via environment variable
-  // Default: 30 days (long-lived tokens for simplicity)
-  // Can be overridden with JWT_ACCESS_EXPIRES_IN environment variable
-  accessTokenExpiry: process.env.JWT_ACCESS_EXPIRES_IN || '30d',
-  
+  // Default: 30 minutes. Sessions outlive this through the refresh flow
+  // (POST /auth/refresh + utils/authSession.js), which is also what makes a
+  // role change or logout effective within minutes instead of 30 days.
+  // NOTE: if a deployment still sets JWT_ACCESS_EXPIRES_IN=30d from the
+  // pre-refresh-token era, that env var wins - unset it or set it short.
+  accessTokenExpiry: process.env.JWT_ACCESS_EXPIRES_IN || '30m',
+
   issuer: 'mafqoudat-api',
   audience: 'mafqoudat-client'
 };
@@ -133,17 +140,13 @@ const verifyJWT = (req, res, next) => {
       return unauthorized(res, "Incomplete user information in token", 'INCOMPLETE_USER_INFO');
     }
 
-    // Check token age (additional security layer)
+    // No wall-clock "token too old" check against the *current* configured
+    // expiry: jwt.verify already enforces each token's own `exp`. The old
+    // check re-derived a max age from JWT_CONFIG at request time, which would
+    // have killed every legacy 30-day token the moment the configured expiry
+    // was shortened to 30 minutes - the deploy that introduced refresh tokens
+    // must not force every signed-in user to re-login.
     const tokenAge = Date.now() / 1000 - decoded.iat;
-    const maxAge = parseExpiryToSeconds(JWT_CONFIG.accessTokenExpiry);
-    
-    if (tokenAge > maxAge) {
-      logEvents(
-        `JWT Token Too Old: ${tokenAge}s (max: ${maxAge}s)\t${req.method}\t${req.url}\t${req.ip}`,
-        "errLog.log"
-      );
-      return unauthorized(res, "Token too old", 'TOKEN_TOO_OLD');
-    }
 
     // Check token freshness (prevent replay attacks)
     const tokenFreshness = Date.now() / 1000 - decoded.iat;
@@ -164,108 +167,55 @@ const verifyJWT = (req, res, next) => {
       return unauthorized(res, "Token missing ID", 'MISSING_JTI');
     }
 
-    // The blacklist is keyed by `jti` (that is what logout stores), so the lookup can
+    // The denylist is keyed by `jti` (that is what logout stores), so the lookup can
     // only happen here, once the token is decoded - checking it against the raw token
     // string before verification, as this used to, never matched a single entry and
-    // left logout unable to revoke anything.
-    if (isTokenBlacklisted(decoded.jti)) {
+    // left logout unable to revoke anything. The lookup is async now that it lives in
+    // Redis (services/tokenStore.js) rather than a per-process Map.
+    (async () => {
+      if (await isTokenBlacklisted(decoded.jti)) {
+        logEvents(
+          `JWT Blacklisted Token Attempt: ${req.method}\t${req.url}\t${req.ip}`,
+          "errLog.log"
+        );
+        return unauthorized(res, "Token has been revoked", 'TOKEN_REVOKED');
+      }
+
+      // Attach comprehensive user info to request
+      req.user = usernameId;
+      req.username = username;
+      req.country = country;
+      req.role = role || 'user';
+      req.tokenId = decoded.jti;
+      req.tokenIssuedAt = decoded.iat;
+      req.tokenExpiresAt = decoded.exp;
+      req.tokenAge = tokenAge;
+
+      // Log successful authentication
       logEvents(
-        `JWT Blacklisted Token Attempt: ${req.method}\t${req.url}\t${req.ip}`,
-        "errLog.log"
+        `JWT Verification Success: ${username} (${usernameId})\t${req.method}\t${req.url}\t${req.ip}`,
+        "reqLog.log"
       );
-      return unauthorized(res, "Token has been revoked", 'TOKEN_REVOKED');
-    }
 
-    // Attach comprehensive user info to request
-    req.user = usernameId;
-    req.username = username;
-    req.country = country;
-    req.role = role || 'user';
-    req.tokenId = decoded.jti;
-    req.tokenIssuedAt = decoded.iat;
-    req.tokenExpiresAt = decoded.exp;
-    req.tokenAge = tokenAge;
-
-    // Log successful authentication
-    logEvents(
-      `JWT Verification Success: ${username} (${usernameId})\t${req.method}\t${req.url}\t${req.ip}`,
-      "reqLog.log"
-    );
-
-    next();
+      next();
+    })().catch(next);
   });
 };
 
-// Enhanced token blacklist with expiration tracking.
-// In-memory and therefore per-process: a restart, or a second instance behind a load
-// balancer, does not see these entries. Revocation is best-effort until this moves to
-// a shared store.
-const tokenBlacklist = new Map(); // jti -> epoch ms at which the entry may be dropped
-
-// An entry has to outlive the token it revokes. Dropping it any earlier hands the
-// token back its validity - which the old 15-minute default did to 30-day tokens.
-const blacklistToken = (tokenId, expiresAt = null) => {
+// Token revocation, delegated to services/tokenStore.js (Redis with in-memory
+// fallback) so a restart or a second instance can no longer un-revoke a
+// logged-out session. Same exported names as the old in-memory Map, but both
+// are async now.
+//
+// An entry has to outlive the token it revokes. Dropping it any earlier hands
+// the token back its validity - which the old 15-minute default did to 30-day
+// tokens. tokenStore derives each entry's TTL from the token's own expiry.
+const blacklistToken = async (tokenId, expiresAt = null) => {
   const expirationTime = expiresAt || Date.now() + parseExpiryToSeconds(JWT_CONFIG.accessTokenExpiry) * 1000;
-  tokenBlacklist.set(tokenId, expirationTime);
-
-  // No per-entry setTimeout: a 30-day delay overflows setTimeout's 32-bit range and
-  // fires immediately, which would delete the entry as soon as it was added.
-  // cleanupBlacklist below sweeps on an interval, and isTokenBlacklisted expires
-  // entries lazily on read, so an entry is never honoured past its time either way.
+  await revokeAccessToken(tokenId, expirationTime);
 };
 
-const isTokenBlacklisted = (tokenId) => {
-  if (!tokenBlacklist.has(tokenId)) {
-    return false;
-  }
-  
-  const expirationTime = tokenBlacklist.get(tokenId);
-  if (Date.now() > expirationTime) {
-    tokenBlacklist.delete(tokenId);
-    return false;
-  }
-  
-  return true;
-};
-
-// Cleanup expired tokens from blacklist (run periodically)
-const cleanupBlacklist = () => {
-  const now = Date.now();
-  for (const [tokenId, expirationTime] of tokenBlacklist.entries()) {
-    if (now > expirationTime) {
-      tokenBlacklist.delete(tokenId);
-    }
-  }
-};
-
-// Run cleanup every 5 minutes
-setInterval(cleanupBlacklist, 5 * 60 * 1000);
-
-// Simplified logout middleware - blacklist access token only
-const logout = (req, res) => {
-  const tokenId = req.tokenId;
-  
-  // Blacklist the current access token until its own expiry - past that point the
-  // token is refused on its `exp` alone and the entry is dead weight.
-  if (tokenId) {
-    blacklistToken(tokenId, req.tokenExpiresAt ? req.tokenExpiresAt * 1000 : null);
-    logEvents(
-      `Access token blacklisted on logout: ${req.username || 'unknown'}\t${req.method}\t${req.url}\t${req.ip}`,
-      "reqLog.log"
-    );
-  }
-  
-  // Log successful logout
-  logEvents(
-    `Successful logout: ${req.username || 'unknown'}\t${req.method}\t${req.url}\t${req.ip}`,
-    "reqLog.log"
-  );
-  
-  res.json({ 
-    message: "Logged out successfully",
-    isError: false 
-  });
-};
+const isTokenBlacklisted = (tokenId) => isAccessTokenRevoked(tokenId);
 
 // Role-based access control middleware
 const requireRole = (requiredRole) => {
@@ -403,22 +353,24 @@ const optionalAuth = (req, res, next) => {
     // Blacklisted (logged-out) token: treat the caller as a guest rather than
     // rejecting them, since this middleware is optional by design. Keyed by `jti`
     // after decoding, for the same reason as in verifyJWT above.
-    if (isTokenBlacklisted(decoded.jti)) {
-      return next();
-    }
+    (async () => {
+      if (await isTokenBlacklisted(decoded.jti)) {
+        return next();
+      }
 
-    // Token valid, attach user info
-    if (decoded.UserInfo && decoded.UserInfo.usernameId) {
-      req.user = decoded.UserInfo.usernameId;
-      req.username = decoded.UserInfo.username;
-      req.country = decoded.UserInfo.country;
-      req.role = decoded.UserInfo.role || 'user';
-      req.tokenId = decoded.jti;
-      req.tokenIssuedAt = decoded.iat;
-      req.tokenExpiresAt = decoded.exp;
-    }
+      // Token valid, attach user info
+      if (decoded.UserInfo && decoded.UserInfo.usernameId) {
+        req.user = decoded.UserInfo.usernameId;
+        req.username = decoded.UserInfo.username;
+        req.country = decoded.UserInfo.country;
+        req.role = decoded.UserInfo.role || 'user';
+        req.tokenId = decoded.jti;
+        req.tokenIssuedAt = decoded.iat;
+        req.tokenExpiresAt = decoded.exp;
+      }
 
-    next();
+      next();
+    })().catch(() => next());
   });
 };
 
@@ -438,10 +390,9 @@ const logoutRateLimit = (req, res, next) => {
 module.exports = {
   generateTokens,
   verifyJWT,
-  logout,
   isTokenBlacklisted,
   blacklistToken,
-  cleanupBlacklist,
+  parseExpiryToSeconds,
   JWT_CONFIG,
   // New middleware exports
   requireRole,

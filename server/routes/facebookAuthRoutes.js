@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const passport = require('../config/passport');
 const User = require('../models/User');
 const Country = require('../models/Country');
-const { generateTokens } = require('../middleware/jwtSecurity');
+const { issueSession, setRefreshCookie } = require('../utils/authSession');
 const { logEvents } = require('../middleware/logger');
 
 // Map to store pending OAuth registrations with timestamps
@@ -141,10 +141,10 @@ const processFacebookCallback = async (req, res) => {
       return `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}&provider=facebook`;
     }
 
-    // Existing user - generate JWT and redirect
+    // Existing user - generate session and redirect
     if (user && user._id) {
       try {
-        const tokens = generateTokens({
+        const tokens = await issueSession({
           username: user.username,
           id: user._id,
           country: user.country,
@@ -160,9 +160,19 @@ const processFacebookCallback = async (req, res) => {
           const protocol = req.protocol || 'https';
           const host = req.get('host') || 'localhost:3500';
           const serverUrl = `${protocol}://${host}`;
-          return `${serverUrl}/auth/mobile-callback?token=${encodeURIComponent(tokens.accessToken)}`;
+          // Deep link carries the refresh token: the auth-session browser's
+          // cookie jar is not the app's (see googleAuthRoutes.js).
+          return `${serverUrl}/auth/mobile-callback?token=${encodeURIComponent(tokens.accessToken)}&refreshToken=${encodeURIComponent(tokens.refreshToken)}`;
         }
-        return `${frontendUrl}/auth/callback?token=${tokens.accessToken}`;
+        // Web: refresh token as an httpOnly cookie only, never in the URL.
+        // Returned as an object so the route sets the cookie on its own
+        // response - with the in-flight dedupe below, the response that runs
+        // this flow and the response the real browser ends up on can be
+        // different requests, and both must get the cookie.
+        return {
+          redirectUrl: `${frontendUrl}/auth/callback?token=${tokens.accessToken}`,
+          webRefreshToken: tokens.refreshToken,
+        };
       } catch (tokenError) {
         console.error('Token generation error during Facebook OAuth:', tokenError);
         logEvents(
@@ -208,8 +218,14 @@ router.get('/facebook/callback', async (req, res) => {
     });
   }
 
-  const redirectUrl = await resultPromise;
-  return res.redirect(redirectUrl);
+  const result = await resultPromise;
+  // String result: error/pending/mobile paths. Object: web login carrying the
+  // refresh cookie (set per-response - see processFacebookCallback).
+  if (typeof result === 'string') {
+    return res.redirect(result);
+  }
+  setRefreshCookie(res, result.webRefreshToken);
+  return res.redirect(result.redirectUrl);
 });
 
 // @desc Complete Facebook OAuth registration
@@ -346,7 +362,9 @@ router.post('/facebook/complete', async (req, res) => {
 
     pendingRegistrations.delete(pendingToken);
 
-    const tokens = generateTokens({
+    // Serves both web CountrySelection and the mobile completion flow, so
+    // cookie AND body carry the refresh token.
+    const tokens = await issueSession({
       username: newUser.username,
       id: newUser._id,
       country: newUser.country,
@@ -358,8 +376,10 @@ router.post('/facebook/complete', async (req, res) => {
       'reqLog.log'
     );
 
+    setRefreshCookie(res, tokens.refreshToken);
     res.status(201).json({
       accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
       message: 'User registered successfully',
       username: newUser.username
     });

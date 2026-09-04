@@ -85,6 +85,29 @@ export const authApiSlice = apiSlice.injectEndpoints({
         }
       },
     }),
+    // Silent refresh: authenticates via the httpOnly refresh cookie
+    // (credentials are included by the shared baseQuery), rotates it
+    // server-side, and answers with a fresh access token. The plain-fetch
+    // twin used by baseQuery's own 401 handling lives in
+    // utils/refreshClient.js - this mutation exists for components/hooks
+    // (useAuthValidation) that want the RTK Query lifecycle.
+    refresh: builder.mutation({
+      query: () => ({
+        url: "/auth/refresh",
+        method: "POST",
+      }),
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          if (data?.accessToken) {
+            dispatch(setCredentials({ accessToken: data.accessToken }));
+          }
+        } catch (error) {
+          // A failed refresh is the caller's decision to act on - the boot
+          // hook and apiSlice already own the logout paths.
+        }
+      },
+    }),
     sendLogout: builder.mutation({
       query: () => ({
         url: "/auth/logout",
@@ -125,4 +148,4 @@ export const authApiSlice = apiSlice.injectEndpoints({
   }),
 });
 
-export const { useLoginMutation, useSendLogoutMutation } = authApiSlice;
+export const { useLoginMutation, useRefreshMutation, useSendLogoutMutation } = authApiSlice;

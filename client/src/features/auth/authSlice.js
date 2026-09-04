@@ -71,26 +71,14 @@ const getInitialState = () => {
     tokenLength: authState.token?.length
   });
   
-  // A token past its `exp` will be refused by every protected endpoint, so restoring
-  // it would put the app back in the state this guard exists to prevent: a UI that
-  // shows the user as signed in while every write fails. Drop it up front and let
-  // them log in again, with the same notice the API layer stores on a mid-session
-  // failure (see app/api/apiSlice.js).
-  if (authState.token && isStoredTokenExpired(authState.token)) {
-    debugLog('Stored token is expired, starting signed out');
-    authStorage.setLoggedOut();
-    authStorage.setLoginRedirectMessage('sessionExpiredMessage');
+  // An expired stored token is no longer dropped here: the refresh flow can
+  // usually revive the session silently (httpOnly refresh cookie on the API
+  // origin), so the session is restored optimistically and
+  // hooks/useSessionBootstrap.js immediately attempts a refresh at boot -
+  // logging out with the sessionExpiredMessage notice only if that fails.
+  // apiSlice's 401 handling covers any request that races the bootstrap.
 
-    return {
-      token: null,
-      isLoggedIn: false,
-      user: null,
-      isLoading: false,
-      lastUpdate: Date.now(),
-    };
-  }
-
-  // Restore token and user from localStorage (tokens last 30 days)
+  // Restore token and user from localStorage
   if (authState.token && authState.isLoggedIn) {
     // Extract user data from token if not in storage
     const userData = extractUserFromToken(authState.token) || authState.user;

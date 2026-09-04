@@ -6,7 +6,7 @@ import facebookAuth from '../utils/facebookAuth';
 import { storage } from '../utils/storage';
 import { decodeToken } from '../utils/tokenUtils';
 import { USE_NATIVE_GOOGLE_AUTH } from '../config/api';
-import { setAuthFailureHandler } from '../api/apiService';
+import { setAuthFailureHandler, refreshSessionTokens } from '../api/apiService';
 import { unregisterForPushNotifications } from '../utils/pushNotifications';
 import { resetToLogin } from '../navigation/navigationRef';
 
@@ -143,6 +143,7 @@ export const AuthProvider = ({ children }) => {
   // full country-picker flow.
   const forceSignOut = useCallback(async () => {
     await storage.removeToken();
+    await storage.removeRefreshToken();
     await storage.removeUserData();
     dispatch({ type: AUTH_ACTIONS.LOGOUT });
     setSessionExpired(true);
@@ -183,8 +184,13 @@ export const AuthProvider = ({ children }) => {
   // Shared by every path that ends up with a valid access token (password login,
   // Google sign-in, Google registration): persists it and flips auth state, which
   // is what drives RootNavigator (App.js) to swap to the signed-in screens.
-  const persistSession = async (accessToken, fallbackUser) => {
+  // refreshToken (when the flow provided one) is what keeps the session alive
+  // past the short access-token lifetime - apiService silently refreshes with it.
+  const persistSession = async (accessToken, fallbackUser, refreshToken) => {
     await storage.setToken(accessToken);
+    if (refreshToken) {
+      await storage.setRefreshToken(refreshToken);
+    }
     const user = decodeToken(accessToken) || fallbackUser || null;
     if (user) {
       await storage.setUserData(user);
@@ -206,10 +212,23 @@ export const AuthProvider = ({ children }) => {
 
       await migrateLegacyStorage();
 
-      const storedToken = await storage.getToken();
+      let storedToken = await storage.getToken();
       const storedUser = await storage.getUserData();
       const storedCountry = await storage.getCurrentCountry();
       setHasCountry(!!storedCountry);
+
+      // Legacy-session upgrade: a token stored before the refresh-token deploy
+      // has no companion refresh token. While it is still valid, one Bearer-only
+      // /auth/refresh call trades it for a short-lived token + refresh token
+      // pair, so the session survives the shortened expiry without re-login.
+      const storedRefreshToken = await storage.getRefreshToken();
+      if (storedToken && !storedRefreshToken) {
+        const upgradedToken = await refreshSessionTokens();
+        if (upgradedToken) {
+          storedToken = upgradedToken;
+          console.log('✅ Upgraded legacy session to refresh-token flow');
+        }
+      }
 
       if (storedToken && storedUser) {
         dispatch({ type: AUTH_ACTIONS.SET_TOKEN, payload: storedToken });
@@ -283,7 +302,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (authResult.success && authResult.accessToken) {
-        const user = await persistSession(authResult.accessToken);
+        const user = await persistSession(authResult.accessToken, null, authResult.refreshToken);
         console.log('✅ Google sign in successful');
         return { success: true, user };
       }
@@ -323,7 +342,7 @@ export const AuthProvider = ({ children }) => {
       const result = await googleAuth.completeRegistration(pendingToken, countryId, pendingAuthMethod);
 
       if (result.success && result.accessToken) {
-        const user = await persistSession(result.accessToken, { username: result.username });
+        const user = await persistSession(result.accessToken, { username: result.username }, result.refreshToken);
         setPendingToken(null);
         setPendingAuthMethod('native');
 
@@ -357,7 +376,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (authResult.success && authResult.accessToken) {
-        const user = await persistSession(authResult.accessToken);
+        const user = await persistSession(authResult.accessToken, null, authResult.refreshToken);
         console.log('✅ Facebook sign in successful');
         return { success: true, user };
       }
@@ -396,7 +415,7 @@ export const AuthProvider = ({ children }) => {
       const result = await facebookAuth.completeRegistration(pendingToken, countryId);
 
       if (result.success && result.accessToken) {
-        const user = await persistSession(result.accessToken, { username: result.username });
+        const user = await persistSession(result.accessToken, { username: result.username }, result.refreshToken);
         setPendingToken(null);
         setPendingProvider('google');
 
@@ -416,12 +435,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Called by LoginScreen after a successful POST /auth (password login) to persist
-  // the token through the same single storage/state path Google sign-in uses, so
-  // isSignedIn flips and RootNavigator swaps to the signed-in screens automatically.
-  const completeLogin = async (accessToken) => {
+  // Called by LoginScreen/SignUpScreen after a successful POST /auth or
+  // /auth/register to persist the session through the same single storage/state
+  // path Google sign-in uses, so isSignedIn flips and RootNavigator swaps to
+  // the signed-in screens automatically.
+  const completeLogin = async (accessToken, refreshToken) => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
-    return persistSession(accessToken);
+    return persistSession(accessToken, null, refreshToken);
   };
 
   // Clears the session but deliberately keeps the selected country (see
@@ -442,7 +462,10 @@ export const AuthProvider = ({ children }) => {
 
       if (state.token) {
         try {
-          await googleAuth.signOut(state.token);
+          // The refresh token rides along so the server revokes the whole
+          // session, not just the current (short-lived) access token.
+          const storedRefreshToken = await storage.getRefreshToken();
+          await googleAuth.signOut(state.token, storedRefreshToken);
         } catch (error) {
           // Even if server sign out fails, still clear local data below
           console.error('❌ Server sign out failed:', error);

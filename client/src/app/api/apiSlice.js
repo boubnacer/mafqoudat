@@ -1,8 +1,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { logOut } from "../../features/auth/authSlice";
+import { logOut, setCredentials } from "../../features/auth/authSlice";
 import { setMaintenanceMode } from "../state/maintenanceSlice";
 import { getVisitorSessionId } from "../../utils/visitorSession";
 import { authStorage } from "../../utils/authStorage";
+import { refreshAccessToken } from "../../utils/refreshClient";
 
 // Debug configuration
 const DEBUG_AUTH = false;
@@ -80,7 +81,8 @@ const baseQuery = fetchBaseQuery({
       tokenLength: token?.length
     });
     
-    // Add token to headers if available (tokens are long-lived, no expiration checks needed)
+    // Add token to headers if available. No expiry pre-check here: an expired
+    // token 401s and baseQueryWithReauth below silently refreshes and retries.
     if (token) {
       headers.set("authorization", `Bearer ${token}`);
       debugLog('Added authorization header', { endpoint });
@@ -130,19 +132,37 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     return result;
   }
 
-  // A dead token has to end the session, whichever status the server dressed it up
-  // in. Leaving it in localStorage is what produced the worst bug this file has had:
-  // the user still looked signed in everywhere in the UI, but every write failed with
-  // a bare 403 and nothing ever cleared the token, so they were stuck until they
-  // logged out by hand. isSessionFailure() is what separates that from an
-  // insufficient-permission 403, which the caller still handles on its own.
-  if (isSessionFailure(args.url, result?.error)) {
-    debugLog('Session failure detected, clearing stored token', {
+  // A dead token no longer ends the session outright: access tokens are
+  // short-lived now (30 min), so the *expected* recovery is a silent refresh
+  // against the httpOnly refresh cookie, then a single retry of the original
+  // request. refreshAccessToken() is single-flight, so a burst of concurrent
+  // 401s costs one refresh round trip, not one each.
+  if (isSessionFailure(args.url, result?.error) && api.getState().auth.token) {
+    debugLog('Session failure detected, attempting silent refresh', {
       status: result?.error?.status,
       code: result?.error?.data?.code
     });
 
-    // Logout user - no refresh token available with simplified auth
+    const newAccessToken = await refreshAccessToken();
+    if (newAccessToken) {
+      api.dispatch(setCredentials({ accessToken: newAccessToken }));
+      result = await baseQuery(args, api, extraOptions);
+    }
+  }
+
+  // Refresh failed (no cookie, revoked session, deactivated account) or the
+  // retry still came back as a session failure - only now does the session
+  // end. Leaving a dead token in localStorage is what produced the worst bug
+  // this file has had: the user still looked signed in everywhere in the UI,
+  // but every write failed with a bare 403 and nothing ever cleared the
+  // token. isSessionFailure() is what separates that from an
+  // insufficient-permission 403, which the caller still handles on its own.
+  if (isSessionFailure(args.url, result?.error)) {
+    debugLog('Session failure not recoverable, clearing stored token', {
+      status: result?.error?.status,
+      code: result?.error?.data?.code
+    });
+
     api.dispatch(logOut({ reason: 'Token expired or invalid' }));
 
     // Tell the login screen why the user landed there. Set after the dispatch: logOut

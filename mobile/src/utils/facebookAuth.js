@@ -42,10 +42,10 @@ class FacebookAuth {
         return { success: false, error: 'Facebook sign-in failed' };
       }
 
-      const { token, pendingToken, error } = parseQueryParams(result.url);
+      const { token, refreshToken, pendingToken, error } = parseQueryParams(result.url);
 
       if (token) {
-        return { success: true, accessToken: token, isNewUser: false };
+        return { success: true, accessToken: token, refreshToken, isNewUser: false };
       }
 
       if (pendingToken) {
@@ -80,6 +80,7 @@ class FacebookAuth {
         return {
           success: true,
           accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
           username: data.username,
         };
       }

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectCurrentToken, selectCurrentUser, selectIsRefreshing } from '../features/auth/authSlice';
+import { selectCurrentToken, selectCurrentUser } from '../features/auth/authSlice';
 import { useRefreshMutation } from '../features/auth/authApiSlice';
 import { isTokenExpired, isTokenExpiringSoon, getTokenTimeRemaining } from '../utils/tokenUtils';
 import { authStorage } from '../utils/authStorage';
@@ -28,9 +28,12 @@ export const useAuthValidation = (options = {}) => {
   const dispatch = useDispatch();
   const token = useSelector(selectCurrentToken);
   const user = useSelector(selectCurrentUser);
-  const isRefreshing = useSelector(selectIsRefreshing);
 
-  const [refresh] = useRefreshMutation();
+  // The mutation's own lifecycle flag replaces the selectIsRefreshing selector
+  // this hook used to import - that selector (and the refresh endpoint itself)
+  // never actually existed in the long-lived-token era, so this hook was dead
+  // code until the refresh flow was implemented for real.
+  const [refresh, { isLoading: isRefreshing }] = useRefreshMutation();
   
   // State management
   const [authState, setAuthState] = useState({

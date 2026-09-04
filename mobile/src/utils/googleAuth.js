@@ -95,10 +95,10 @@ class GoogleAuth {
         return { success: false, error: 'Google sign-in failed' };
       }
 
-      const { token, pendingToken, error } = parseQueryParams(result.url);
+      const { token, refreshToken, pendingToken, error } = parseQueryParams(result.url);
 
       if (token) {
-        return { success: true, accessToken: token, isNewUser: false };
+        return { success: true, accessToken: token, refreshToken, isNewUser: false };
       }
 
       if (pendingToken) {
@@ -129,6 +129,7 @@ class GoogleAuth {
         return {
           success: true,
           accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
           isNewUser: false,
         };
       }
@@ -183,6 +184,7 @@ class GoogleAuth {
         return {
           success: true,
           accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
           username: data.username,
         };
       }
@@ -201,8 +203,10 @@ class GoogleAuth {
     }
   }
 
-  // Sign out user
-  async signOut(token) {
+  // Sign out user. refreshToken (when stored) is sent in the body so the
+  // server revokes the refresh session too - blacklisting only the access
+  // token would leave a stolen refresh token able to mint new ones.
+  async signOut(token, refreshToken) {
     try {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`, {
         method: 'POST',
@@ -210,6 +214,7 @@ class GoogleAuth {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
+        body: JSON.stringify(refreshToken ? { refreshToken } : {}),
       });
 
       const data = await response.json();

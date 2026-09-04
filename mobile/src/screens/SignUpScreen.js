@@ -161,13 +161,13 @@ const SignUpScreen = ({ navigation }) => {
         country: selectedCountry.id,
       });
 
-      const { accessToken } = response.data;
+      const { accessToken, refreshToken } = response.data;
 
       if (accessToken) {
         // Same storage/state path as password login, and the same landing
         // rule: a guest who was bounced into the auth flow mid-action resumes
         // it here too (see navigation/afterLogin.js).
-        await completeLogin(accessToken);
+        await completeLogin(accessToken, refreshToken);
         navigateAfterLogin(navigation, consumeLoginRedirect());
       } else {
         setError(t('networkError'));
