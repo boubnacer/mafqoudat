@@ -1,4 +1,4 @@
-const jwt = require("jsonwebtoken");
+const { verifyAccessToken } = require("./jwtSecurity");
 const User = require("../models/User");
 const SystemSettings = require("../models/SystemSettings");
 const { logEvents } = require("./logger");
@@ -86,13 +86,12 @@ const maintenanceMode = async (req, res, next) => {
       const token = authHeader.split(" ")[1];
 
       try {
-        // Verify JWT token
-        const decoded = await new Promise((resolve, reject) => {
-          jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-            if (err) reject(err);
-            else resolve(decoded);
-          });
-        });
+        // Verify JWT token through the shared helper, so this bypass enforces
+        // the same issuer/audience/algorithm options as verifyJWT. It used to
+        // call jwt.verify with no options at all - the one path that would
+        // have accepted a token signed by another issuer, or with `alg: none`,
+        // as proof of admin.
+        const decoded = await verifyAccessToken(token);
 
         // Get user ID from decoded token
         const userId = decoded.UserInfo?.usernameId;

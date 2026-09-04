@@ -1,4 +1,25 @@
 require("dotenv").config();
+
+// Fail fast on missing configuration, before anything reads it.
+//
+// Each of these is silently survivable at boot and only breaks later, in a way
+// that does not point back here: without JWT_SECRET, jsonwebtoken signs and
+// verifies with `undefined` as the key, so every request 401s (or, worse, a
+// signature nobody can trust is accepted); without MONGODB_URI, mongoose.connect
+// gets undefined and the failure surfaces as a connection error rather than a
+// config one; without FRONTEND_URL, config/allowedOrigins.js just drops the entry
+// and the deployed site is CORS-blocked from its own API.
+const REQUIRED_ENV_VARS = ["JWT_SECRET", "MONGODB_URI", "FRONTEND_URL"];
+const missingEnvVars = REQUIRED_ENV_VARS.filter((name) => !process.env[name]?.trim());
+
+if (missingEnvVars.length) {
+  console.error(
+    `Missing required environment variable${missingEnvVars.length > 1 ? 's' : ''}: ${missingEnvVars.join(', ')}.\n` +
+    `Set ${missingEnvVars.length > 1 ? 'them' : 'it'} in the environment (or server/.env) and start again.`
+  );
+  process.exit(1);
+}
+
 require("express-async-errors");
 const express = require("express");
 const app = express();

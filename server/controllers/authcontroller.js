@@ -1,4 +1,3 @@
-const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const Country = require("../models/Country");
@@ -6,6 +5,7 @@ const {
   blacklistToken,
   isTokenBlacklisted,
   parseExpiryToSeconds,
+  verifyAccessToken,
   JWT_CONFIG,
 } = require("../middleware/jwtSecurity");
 const {
@@ -167,11 +167,7 @@ const readLegacyBootstrapUser = async (req) => {
 
   let decoded;
   try {
-    decoded = jwt.verify(authHeader.split(" ")[1], process.env.JWT_SECRET, {
-      issuer: JWT_CONFIG.issuer,
-      audience: JWT_CONFIG.audience,
-      algorithms: ["HS256"],
-    });
+    decoded = await verifyAccessToken(authHeader.split(" ")[1]);
   } catch (error) {
     return null;
   }
@@ -273,11 +269,7 @@ const logoutHandler = async (req, res) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
   if (authHeader?.startsWith("Bearer ")) {
     try {
-      const decoded = jwt.verify(authHeader.split(" ")[1], process.env.JWT_SECRET, {
-        issuer: JWT_CONFIG.issuer,
-        audience: JWT_CONFIG.audience,
-        algorithms: ["HS256"],
-      });
+      const decoded = await verifyAccessToken(authHeader.split(" ")[1]);
       if (decoded?.jti) {
         await blacklistToken(decoded.jti, decoded.exp ? decoded.exp * 1000 : null);
       }

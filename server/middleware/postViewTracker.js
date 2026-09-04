@@ -40,7 +40,7 @@ const recordView = async (req) => {
 
   // Read straight off the token instead of req.user: this middleware sits in
   // front of the response cache, and the cache key includes req.user.
-  const viewerId = readBearerUserInfo(req)?.usernameId || null;
+  const viewerId = (await readBearerUserInfo(req))?.usernameId || null;
 
   // Signed-in viewers are counted per account so the window follows them
   // across devices; guests fall back to their address.

@@ -78,6 +78,36 @@ const generateTokens = (userInfo) => {
   return { accessToken };
 };
 
+// The one place the access-token verification options live. Every caller goes
+// through verifyAccessToken below rather than restating this object: the three
+// middlewares that verify a Bearer token (verifyJWT, optionalAuth here and in
+// middleware/optionalAuth.js, and the admin bypass in
+// middleware/maintenanceMode.js) used to each keep their own copy, and two of
+// them had drifted to passing no options at all - which accepts a token signed
+// with a different issuer, or with `alg: none`. A future change to the
+// algorithm list or the issuer now reaches all of them at once.
+const JWT_VERIFY_OPTIONS = {
+  issuer: JWT_CONFIG.issuer,
+  audience: JWT_CONFIG.audience,
+  algorithms: ['HS256']
+};
+
+/**
+ * Verify an access token against JWT_VERIFY_OPTIONS.
+ *
+ * Resolves with the decoded payload, rejects with jsonwebtoken's own error
+ * (TokenExpiredError / JsonWebTokenError / NotBeforeError) so callers can keep
+ * mapping err.name to their own response - this helper owns the verification
+ * call and nothing else, never the decision about what a failure means.
+ */
+const verifyAccessToken = (token) =>
+  new Promise((resolve, reject) => {
+    jwt.verify(token, process.env.JWT_SECRET, JWT_VERIFY_OPTIONS, (err, decoded) => {
+      if (err) reject(err);
+      else resolve(decoded);
+    });
+  });
+
 // Enhanced JWT verification with comprehensive security checks
 const verifyJWT = (req, res, next) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
@@ -88,16 +118,14 @@ const verifyJWT = (req, res, next) => {
 
   const token = authHeader.split(" ")[1];
 
-  // Verify token with enhanced options
-  jwt.verify(token, process.env.JWT_SECRET, {
-    issuer: JWT_CONFIG.issuer,
-    audience: JWT_CONFIG.audience,
-    algorithms: ['HS256']
-  }, (err, decoded) => {
-    if (err) {
+  (async () => {
+    let decoded;
+    try {
+      decoded = await verifyAccessToken(token);
+    } catch (err) {
       let errorMessage = "Unauthorized - Invalid token";
       let errorCode = 'INVALID_TOKEN';
-      
+
       if (err.name === 'TokenExpiredError') {
         errorMessage = "Token expired";
         errorCode = 'TOKEN_EXPIRED';
@@ -172,34 +200,32 @@ const verifyJWT = (req, res, next) => {
     // string before verification, as this used to, never matched a single entry and
     // left logout unable to revoke anything. The lookup is async now that it lives in
     // Redis (services/tokenStore.js) rather than a per-process Map.
-    (async () => {
-      if (await isTokenBlacklisted(decoded.jti)) {
-        logEvents(
-          `JWT Blacklisted Token Attempt: ${req.method}\t${req.url}\t${req.ip}`,
-          "errLog.log"
-        );
-        return unauthorized(res, "Token has been revoked", 'TOKEN_REVOKED');
-      }
-
-      // Attach comprehensive user info to request
-      req.user = usernameId;
-      req.username = username;
-      req.country = country;
-      req.role = role || 'user';
-      req.tokenId = decoded.jti;
-      req.tokenIssuedAt = decoded.iat;
-      req.tokenExpiresAt = decoded.exp;
-      req.tokenAge = tokenAge;
-
-      // Log successful authentication
+    if (await isTokenBlacklisted(decoded.jti)) {
       logEvents(
-        `JWT Verification Success: ${username} (${usernameId})\t${req.method}\t${req.url}\t${req.ip}`,
-        "reqLog.log"
+        `JWT Blacklisted Token Attempt: ${req.method}\t${req.url}\t${req.ip}`,
+        "errLog.log"
       );
+      return unauthorized(res, "Token has been revoked", 'TOKEN_REVOKED');
+    }
 
-      next();
-    })().catch(next);
-  });
+    // Attach comprehensive user info to request
+    req.user = usernameId;
+    req.username = username;
+    req.country = country;
+    req.role = role || 'user';
+    req.tokenId = decoded.jti;
+    req.tokenIssuedAt = decoded.iat;
+    req.tokenExpiresAt = decoded.exp;
+    req.tokenAge = tokenAge;
+
+    // Log successful authentication
+    logEvents(
+      `JWT Verification Success: ${username} (${usernameId})\t${req.method}\t${req.url}\t${req.ip}`,
+      "reqLog.log"
+    );
+
+    next();
+  })().catch(next);
 };
 
 // Token revocation, delegated to services/tokenStore.js (Redis with in-memory
@@ -339,13 +365,11 @@ const optionalAuth = (req, res, next) => {
 
   const token = authHeader.split(" ")[1];
 
-  // Verify token with enhanced options
-  jwt.verify(token, process.env.JWT_SECRET, {
-    issuer: JWT_CONFIG.issuer,
-    audience: JWT_CONFIG.audience,
-    algorithms: ['HS256']
-  }, (err, decoded) => {
-    if (err) {
+  (async () => {
+    let decoded;
+    try {
+      decoded = await verifyAccessToken(token);
+    } catch (err) {
       // Token invalid, continue without authentication
       return next();
     }
@@ -353,25 +377,23 @@ const optionalAuth = (req, res, next) => {
     // Blacklisted (logged-out) token: treat the caller as a guest rather than
     // rejecting them, since this middleware is optional by design. Keyed by `jti`
     // after decoding, for the same reason as in verifyJWT above.
-    (async () => {
-      if (await isTokenBlacklisted(decoded.jti)) {
-        return next();
-      }
+    if (await isTokenBlacklisted(decoded.jti)) {
+      return next();
+    }
 
-      // Token valid, attach user info
-      if (decoded.UserInfo && decoded.UserInfo.usernameId) {
-        req.user = decoded.UserInfo.usernameId;
-        req.username = decoded.UserInfo.username;
-        req.country = decoded.UserInfo.country;
-        req.role = decoded.UserInfo.role || 'user';
-        req.tokenId = decoded.jti;
-        req.tokenIssuedAt = decoded.iat;
-        req.tokenExpiresAt = decoded.exp;
-      }
+    // Token valid, attach user info
+    if (decoded.UserInfo && decoded.UserInfo.usernameId) {
+      req.user = decoded.UserInfo.usernameId;
+      req.username = decoded.UserInfo.username;
+      req.country = decoded.UserInfo.country;
+      req.role = decoded.UserInfo.role || 'user';
+      req.tokenId = decoded.jti;
+      req.tokenIssuedAt = decoded.iat;
+      req.tokenExpiresAt = decoded.exp;
+    }
 
-      next();
-    })().catch(() => next());
-  });
+    next();
+  })().catch(() => next());
 };
 
 // Enhanced rate limiting for authentication endpoints
@@ -390,6 +412,7 @@ const logoutRateLimit = (req, res, next) => {
 module.exports = {
   generateTokens,
   verifyJWT,
+  verifyAccessToken,
   isTokenBlacklisted,
   blacklistToken,
   parseExpiryToSeconds,
