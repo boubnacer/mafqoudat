@@ -47,7 +47,7 @@ const login = async (req, res) => {
   try {
     foundUser = await User.findOne(searchQuery)
       .collation({ locale: "en", strength: 2 })
-      .select('_id username password country role email phone').exec();
+      .select('_id username password country role email phone authProvider').exec();
   } catch (dbError) {
     console.error('Database error during login:', dbError);
     throw createAuthError('DATABASE_ERROR', 'Database connection error', {
