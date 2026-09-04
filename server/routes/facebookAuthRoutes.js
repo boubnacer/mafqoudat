@@ -38,10 +38,6 @@ router.get('/facebook', (req, res, next) => {
   const isMobile = req.query.mobile === 'true' ||
                    req.headers['x-requested-with'] === 'mobile';
 
-  req.session = req.session || {};
-  req.session.isMobile = isMobile;
-  req.session.redirectUri = req.query.redirect_uri;
-
   const state = {
     mobile: isMobile,
     redirectUri: req.query.redirect_uri

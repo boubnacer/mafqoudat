@@ -44,7 +44,6 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
 const { connectDB, disconnectDB, getConnectionMetrics } = require("./config/resilientDbConn");
-const session = require("express-session");
 const passport = require("./config/passport");
 
 // Security middleware imports
@@ -189,20 +188,11 @@ app.use(cookieParser());
 const visitorTracker = require("./middleware/visitorTracker");
 app.use(visitorTracker);
 
-// Session configuration for OAuth
-app.use(session({
-  secret: process.env.JWT_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
-
-// Initialize Passport for OAuth
+// Initialize Passport for OAuth. OAuth state (isMobile/redirectUri) travels
+// in the base64 `state` query param passed to passport.authenticate() and
+// read back in each provider's callback - no server-side session needed,
+// and every authenticate() call already passes { session: false }.
 app.use(passport.initialize());
-app.use(passport.session());
 
 // Serve static files
 app.use("/", express.static(path.join(__dirname, "public")));

@@ -43,11 +43,6 @@ router.get('/google', (req, res, next) => {
   const isMobile = req.query.mobile === 'true' ||
                    req.headers['x-requested-with'] === 'mobile';
 
-  // Store mobile flag and redirect_uri in session/state for callback
-  req.session = req.session || {};
-  req.session.isMobile = isMobile;
-  req.session.redirectUri = req.query.redirect_uri;
-  
   // Create state with mobile flag and redirect_uri
   const state = {
     mobile: isMobile,
