@@ -5,9 +5,20 @@ const dbSecurity = {
   // Sanitize MongoDB queries to prevent NoSQL injection
   sanitizeQuery: (query) => {
     if (!query || typeof query !== 'object') return query;
-    
+
+    // Arrays are objects too (typeof [] === 'object'), and until this middleware
+    // started actually running against req.body (see server.js), nothing ever
+    // recursed into one here. Rebuilding via Object.entries/{} below would turn
+    // an array into a plain object keyed "0","1",... - preserve array-ness by
+    // mapping instead of falling into the generic object branch.
+    if (Array.isArray(query)) {
+      return query.map((item) =>
+        typeof item === 'object' && item !== null ? dbSecurity.sanitizeQuery(item) : item
+      );
+    }
+
     const sanitized = {};
-    
+
     for (const [key, value] of Object.entries(query)) {
       // Strip any MongoDB operator arriving from client-supplied query/body.
       // Nothing in this app builds a Mongoose filter directly out of
