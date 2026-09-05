@@ -14,7 +14,7 @@ const dbSecurity = {
         // Only allow safe operators
         const allowedOperators = [
           '$eq', '$ne', '$gt', '$gte', '$lt', '$lte', '$in', '$nin',
-          '$exists', '$regex', '$text', '$where', '$all', '$elemMatch',
+          '$exists', '$text', '$all', '$elemMatch',
           '$size', '$type', '$mod', '$bitsAllSet', '$bitsAnySet', '$bitsAllClear',
           '$bitsAnyClear', '$geoWithin', '$geoIntersects', '$near', '$nearSphere'
         ];
