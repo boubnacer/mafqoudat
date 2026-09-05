@@ -8,13 +8,6 @@ const { escapeRegex } = require("../utils/regexUtils");
 // @access  Public
 const submitContactForm = async (req, res) => {
   try {
-    console.log('Contact form submission received:', {
-      body: req.body,
-      headers: req.headers,
-      ip: req.ip,
-      timestamp: new Date().toISOString()
-    });
-
     const { name, email, subject, message } = req.body;
 
     // Check if Contact model is available
@@ -69,12 +62,9 @@ const submitContactForm = async (req, res) => {
       country: req.get('CF-IPCountry') || req.get('X-Country-Code') || null
     };
 
-    console.log('Creating contact with data:', contactData);
-    
     let contact;
     try {
       contact = await Contact.create(contactData);
-      console.log('Contact created successfully:', contact._id);
     } catch (dbError) {
       console.error('Database error creating contact:', dbError);
       return res.status(500).json({
@@ -83,17 +73,7 @@ const submitContactForm = async (req, res) => {
       });
     }
 
-    // Log the contact submission
-    console.log(`New contact form submission: ${contact._id}`, {
-      contactId: contact._id,
-      email: contact.email,
-      subject: contact.subject,
-      priority: contact.priority,
-      ipAddress: contact.ipAddress
-    });
-
     // Send success response
-    console.log('Sending success response...');
     res.status(201).json({
       success: true,
       message: "Your message has been sent successfully. We'll get back to you soon!",
@@ -102,16 +82,14 @@ const submitContactForm = async (req, res) => {
         submittedAt: contact.createdAt
       }
     });
-    console.log('Success response sent');
 
   } catch (error) {
     console.error("Error submitting contact form:", error);
     console.error("Error stack:", error.stack);
-    
+
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
-      console.log('Validation errors:', errors);
       return res.status(400).json({
         success: false,
         message: "Validation error",
@@ -119,12 +97,10 @@ const submitContactForm = async (req, res) => {
       });
     }
 
-    console.log('Sending 500 error response...');
     res.status(500).json({
       success: false,
       message: "Internal server error. Please try again later."
     });
-    console.log('500 error response sent');
   }
 };
 

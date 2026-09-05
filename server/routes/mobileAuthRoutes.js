@@ -80,18 +80,10 @@ router.post('/google/mobile', async (req, res) => {
       });
     }
 
-    console.log('🔍 Mobile Google OAuth request:', {
-      hasIdToken: !!idToken,
-      hasAccessToken: !!accessToken,
-      userEmail: user.email,
-      userId: user.id
-    });
-
     // Verify Google ID token
     let tokenPayload;
     try {
       tokenPayload = await verifyGoogleToken(idToken);
-      console.log('✅ Google token verified successfully');
     } catch (verificationError) {
       console.error('❌ Google token verification failed:', verificationError);
       logEvents(
@@ -141,8 +133,6 @@ router.post('/google/mobile', async (req, res) => {
     }).select('-password');
 
     if (existingUser) {
-      console.log('👤 Existing user found:', existingUser.username);
-      
       // Update last login and ensure Google ID is set
       existingUser.lastLogin = new Date();
       
@@ -188,8 +178,6 @@ router.post('/google/mobile', async (req, res) => {
     }
 
     // New user - create pending registration
-    console.log('🆕 New user, creating pending registration');
-    
     const pendingToken = crypto.randomBytes(32).toString('hex');
     
     // Store user data temporarily

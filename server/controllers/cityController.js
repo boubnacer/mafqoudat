@@ -104,7 +104,6 @@ const getCities = async (req, res) => {
     // Check cache first
     const cachedCities = await cacheService.get(cacheKey);
     if (cachedCities) {
-      console.log('📦 Cities served from cache');
       return res.json(cachedCities);
     }
     
@@ -231,11 +230,8 @@ const searchCities = async (req, res) => {
     // Check cache first
     const cachedResult = await cacheService.get(cacheKey);
     if (cachedResult) {
-      console.log('📦 Hybrid search served from cache');
       return res.json(cachedResult);
     }
-
-    console.log(`🔍 Hybrid search: "${q}" in ${countryCode || 'all countries'} (${language})`);
 
     // Step 1: Search local database first
     let query = {
@@ -263,8 +259,6 @@ const searchCities = async (req, res) => {
       .limit(parseInt(limit))
       .lean()
       .exec();
-
-    console.log(`📊 Local database found ${localCities.length} cities ($text search)`);
 
     // Fallback: $text only matches whole words, so partial queries ("Dchei")
     // and Arabic spelling variants ("اكادير" vs "أكادير") find nothing.
@@ -295,8 +289,6 @@ const searchCities = async (req, res) => {
         .limit(parseInt(limit))
         .lean()
         .exec();
-
-      console.log(`📊 Local database found ${localCities.length} cities (regex fallback)`);
     }
 
     let allCities = [...localCities];
@@ -307,11 +299,8 @@ const searchCities = async (req, res) => {
     // Step 2: If we need more results or found few local results, search GeoNames API
     if (localCities.length < parseInt(limit) && countryCode) {
       try {
-        console.log(`🌐 Searching GeoNames API for more cities...`);
-        console.log(`🔍 Service call: geonamesService.searchCities("${q}", "${countryCode}", "${language}")`);
         apiCities = await geonamesService.searchCities(q, countryCode, language);
-        console.log(`🔍 Service returned ${apiCities.length} cities`);
-        
+
         // Filter out cities that already exist in our database
         const existingCityNames = localCities.map(city => 
           city.labels[language]?.toLowerCase() || city.labels.en?.toLowerCase()
@@ -322,8 +311,6 @@ const searchCities = async (req, res) => {
           return !existingCityNames.includes(apiCityName);
         });
 
-        console.log(`🌐 GeoNames API found ${apiCities.length} additional cities`);
-
         // A GeoNames match is real, useful data even when it lacks translated
         // alternate names (common for small towns/villages) - it just falls
         // back to showing the Latin name in every language, which is still
@@ -333,12 +320,6 @@ const searchCities = async (req, res) => {
         // Details calls can fetch a real Arabic name GeoNames doesn't have).
         const hasArabicCoverage = apiCities.some(city => city.labels?.ar && isArabicText(city.labels.ar));
         needsArabicSupplement = language === 'ar' && apiCities.length > 0 && !hasArabicCoverage;
-
-        if (needsArabicSupplement) {
-          console.log(`⚠️ GeoNames results have no Arabic-script names; will supplement with Google Places...`);
-        }
-
-        console.log(`🔍 API cities:`, apiCities.map(c => c.labels?.en || c.code));
 
         // Add API cities to results (limit total results)
         const remainingSlots = parseInt(limit) - localCities.length;
@@ -357,15 +338,7 @@ const searchCities = async (req, res) => {
     // replace what's already been found.
     if ((allCities.length < parseInt(limit) || needsArabicSupplement) && countryCode) {
       try {
-        console.log(`🌐 Trying Google Places API...`);
-        console.log(`🔍 Service call: googlePlacesService.searchCities("${q}", "${countryCode}", "${language}")`);
         googleCities = await googlePlacesService.searchCities(q, countryCode, language);
-        console.log(`🔍 Service returned ${googleCities.length} cities`);
-
-        console.log(`✅ Google Places API found ${googleCities.length} cities`);
-        if (googleCities.length > 0) {
-          console.log(`🔍 Google cities:`, googleCities.map(c => c.labels?.en || c.code));
-        }
 
         // Merge Google Places cities into the existing results, de-duplicated
         // by English label, instead of overwriting DB/GeoNames matches.
@@ -448,9 +421,6 @@ const searchCities = async (req, res) => {
         };
       }
     });
-
-    // Log final source breakdown
-    console.log(`📊 Final source breakdown - Database: ${localCities.length}, GeoNames: ${apiCities.length}, Google: ${googleCities.length}, Total: ${transformedCities.length}`);
 
     const response = {
       success: true,
@@ -787,9 +757,7 @@ const createDynamicCity = async (req, res) => {
     const translations = await TranslationService.translateCityName(cityName, sourceLanguage);
     
     // Generate a unique code for the city
-    console.log('Generating city code for:', cityName, 'in country:', country.code);
     const cityCode = await TranslationService.generateCityCode(cityName, country.code, countryId);
-    console.log('Generated city code:', cityCode);
 
          // Normalize labels before creating city
          const normalizedLabels = normalizeCityLabels({
@@ -811,13 +779,11 @@ const createDynamicCity = async (req, res) => {
 
     try {
       await newCity.save();
-      console.log('Successfully created dynamic city:', newCity);
     } catch (saveError) {
       console.error('Error saving dynamic city:', saveError);
-      
+
       // If it's a duplicate key error, try to find the existing city
       if (saveError.code === 11000) {
-        console.log('Duplicate key error detected, looking for existing city...');
         const existingCity = await City.findOne({
           country: countryId,
           $or: [
@@ -826,9 +792,8 @@ const createDynamicCity = async (req, res) => {
             { "labels.fr": { $regex: escapeRegex(cityName), $options: 'i' } }
           ]
         });
-        
+
         if (existingCity) {
-          console.log('Found existing city:', existingCity);
           return res.status(200).json({
             success: true,
             message: "City already exists",
@@ -910,8 +875,7 @@ const cacheApiCityToDatabase = async (apiCity, countryId) => {
     });
 
     await newCity.save();
-    console.log(`💾 Cached API city to database: ${apiCity.labels.en}`);
-    
+
     // Invalidate cache
     await cacheService.invalidatePattern('cities*');
     

@@ -624,11 +624,6 @@ const dispatchQueuedPushes = async (pushQueue) => {
 const scheduleMatchScan = (postId, options = {}) => {
   setImmediate(() => {
     computeMatchesForPost(postId, options)
-      .then((outcome) => {
-        if (process.env.NODE_ENV !== 'production' && outcome) {
-          console.log(`[matching] post ${postId}:`, outcome);
-        }
-      })
       .catch((error) => {
         console.error(`[matching] scan failed for post ${postId}:`, error?.message || error);
       });

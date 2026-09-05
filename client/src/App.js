@@ -425,16 +425,11 @@ function App() {
       ensureGlobalStateAlwaysExists();
       
       // Step 2: Validate and repair localStorage before any other initialization
-      const validationReport = validateAndRepairLocalStorage({
+      validateAndRepairLocalStorage({
         autoRepair: true,
         logResults: true,
         preserveUserData: true
       });
-      
-      // Log validation results in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('localStorage Validation Report:', validationReport);
-      }
       
       // Step 3: Initialize any missing default values
       initializeLocalStorage();

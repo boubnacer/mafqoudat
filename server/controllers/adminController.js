@@ -808,17 +808,7 @@ const getAllPostsAdmin = async (req, res) => {
 const getVisitorStats = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    
-    // Log the date range for debugging
-    if (startDate && endDate) {
-      console.log('📊 [VISITOR-STATS] Fetching stats for date range:', {
-        startDate,
-        endDate,
-        startDateObj: new Date(startDate),
-        endDateObj: new Date(endDate)
-      });
-    }
-    
+
     // Get statistics with optional date range
     const stats = await Visitor.getStats(startDate || null, endDate || null);
 

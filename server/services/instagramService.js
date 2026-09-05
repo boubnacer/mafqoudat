@@ -113,8 +113,6 @@ class InstagramService {
 
     const publishData = await this.publishWithRetry(containerResponse.data.id);
 
-    console.log(`✅ Instagram: posted post ${post._id} as IG media ${publishData.id}`);
-
     return { mediaId: publishData.id, permalink: await this.resolvePermalink(publishData.id) };
   }
 }

@@ -101,7 +101,6 @@ router.get('/pool', verifyJWT, verifyAdmin, (req, res) => {
 // Force reconnection endpoint (admin only)
 router.post('/reconnect', verifyJWT, verifyAdmin, async (req, res) => {
     try {
-        console.log('🔄 Manual reconnection requested');
         await forceReconnect();
         
         res.json({

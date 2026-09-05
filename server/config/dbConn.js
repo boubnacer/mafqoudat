@@ -82,7 +82,7 @@ const connectWithRetry = async (retryCount = 0) => {
                 retryConfig.maxDelay
             );
             
-            console.log(`⚠️ Connection attempt ${retryCount + 1} failed. Retrying in ${delay}ms...`);
+            console.error(`⚠️ Connection attempt ${retryCount + 1} failed. Retrying in ${delay}ms...`);
             console.error(`Error: ${error.message}`);
             
             await sleep(delay);
@@ -134,18 +134,9 @@ const connectDB = async () => {
         const healthCheckInterval = setInterval(() => {
             connectionMetrics.healthChecks++;
             
-            if (mongoose.connection.readyState === 1) {
-                const poolStats = {
-                    readyState: mongoose.connection.readyState,
-                    host: mongoose.connection.host,
-                    name: mongoose.connection.name,
-                    uptime: connectionMetrics.connectionUptime ? Date.now() - connectionMetrics.connectionUptime : 0
-                };
-                
-                console.log(`📊 MongoDB Health: ${JSON.stringify(poolStats)}`);
-            } else {
+            if (mongoose.connection.readyState !== 1) {
                 connectionMetrics.healthCheckFailures++;
-                console.log(`⚠️ MongoDB Health Check Failed: State=${mongoose.connection.readyState}`);
+                console.error(`⚠️ MongoDB Health Check Failed: State=${mongoose.connection.readyState}`);
             }
         }, 30000); // Every 30 seconds
         
