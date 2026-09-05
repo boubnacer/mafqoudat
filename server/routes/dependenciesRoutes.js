@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { createCategory, createFoundLost, getCitiesByCountry } = require("../controllers/dependenciesController");
 const verifyJWT = require("../middleware/verifyJWT");
+const verifyAdmin = require("../middleware/verifyAdmin");
 const { staticDataCache } = require("../middleware/cacheMiddleware");
 
 // Public routes - no authentication required
@@ -11,9 +12,9 @@ router.get("/cities", staticDataCache('dependencies-cities'), getCitiesByCountry
 router.use(verifyJWT);
 
 // POST /dependencies/category
-router.route("/category").post(createCategory);
+router.route("/category").post(verifyAdmin, createCategory);
 
 // POST /dependencies/foundlost
-router.route("/foundlost").post(createFoundLost);
+router.route("/foundlost").post(verifyAdmin, createFoundLost);
 
 module.exports = router; 

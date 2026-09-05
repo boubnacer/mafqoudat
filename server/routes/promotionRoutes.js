@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const verifyJWT = require("../middleware/verifyJWT");
+const verifyAdmin = require("../middleware/verifyAdmin");
 const { requestPromotion } = require("../controllers/promotionController");
 const emailNotification = require("../utils/emailNotification");
 
@@ -11,8 +12,8 @@ router.post("/request", verifyJWT, requestPromotion);
 
 // @route POST /api/promotion/test-email
 // @desc Test email notification
-// @access Private
-router.post("/test-email", verifyJWT, async (req, res) => {
+// @access Private (Admin)
+router.post("/test-email", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const result = await emailNotification.sendTestEmail();
     if (result.success) {
