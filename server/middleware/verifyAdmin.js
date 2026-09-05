@@ -43,7 +43,6 @@ const verifyAdmin = async (req, res, next) => {
     res.status(500).json({
       success: false,
       message: "Error verifying admin privileges",
-      error: error.message,
     });
   }
 };

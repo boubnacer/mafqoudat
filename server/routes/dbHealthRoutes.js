@@ -35,9 +35,10 @@ router.get('/health', verifyJWT, verifyAdmin, async (req, res) => {
             }
         });
     } catch (error) {
+        console.error('Database health check failed:', error);
         res.status(503).json({
             status: 'error',
-            message: `Health check failed: ${error.message}`,
+            message: 'Health check failed',
             timestamp: new Date().toISOString()
         });
     }
@@ -56,9 +57,10 @@ router.get('/metrics', verifyJWT, verifyAdmin, (req, res) => {
             recommendations: dbMonitor.getRecommendations()
         });
     } catch (error) {
+        console.error('Failed to get database metrics:', error);
         res.status(500).json({
             status: 'error',
-            message: `Failed to get metrics: ${error.message}`,
+            message: 'Failed to get metrics',
             timestamp: new Date().toISOString()
         });
     }
@@ -87,9 +89,10 @@ router.get('/pool', verifyJWT, verifyAdmin, (req, res) => {
             pool: poolStats
         });
     } catch (error) {
+        console.error('Failed to get connection pool status:', error);
         res.status(500).json({
             status: 'error',
-            message: `Failed to get pool status: ${error.message}`,
+            message: 'Failed to get pool status',
             timestamp: new Date().toISOString()
         });
     }
@@ -107,9 +110,10 @@ router.post('/reconnect', verifyJWT, verifyAdmin, async (req, res) => {
             timestamp: new Date().toISOString()
         });
     } catch (error) {
+        console.error('Database reconnection failed:', error);
         res.status(500).json({
             status: 'error',
-            message: `Reconnection failed: ${error.message}`,
+            message: 'Reconnection failed',
             timestamp: new Date().toISOString()
         });
     }
@@ -137,9 +141,10 @@ router.get('/performance-test', verifyJWT, verifyAdmin, async (req, res) => {
             }
         });
     } catch (error) {
+        console.error('Database performance test failed:', error);
         res.status(500).json({
             status: 'error',
-            message: `Performance test failed: ${error.message}`,
+            message: 'Performance test failed',
             timestamp: new Date().toISOString()
         });
     }
@@ -164,9 +169,10 @@ router.get('/stats', verifyJWT, verifyAdmin, async (req, res) => {
             }
         });
     } catch (error) {
+        console.error('Failed to get database stats:', error);
         res.status(500).json({
             status: 'error',
-            message: `Failed to get database stats: ${error.message}`,
+            message: 'Failed to get database stats',
             timestamp: new Date().toISOString()
         });
     }
@@ -185,9 +191,10 @@ router.get('/alerts', verifyJWT, verifyAdmin, (req, res) => {
             alertSummary: getAlertSummary(recentAlerts)
         });
     } catch (error) {
+        console.error('Failed to get monitoring alerts:', error);
         res.status(500).json({
             status: 'error',
-            message: `Failed to get alerts: ${error.message}`,
+            message: 'Failed to get alerts',
             timestamp: new Date().toISOString()
         });
     }

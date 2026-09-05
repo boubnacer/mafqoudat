@@ -1,4 +1,7 @@
 {
+  "env": {
+    "GENERATE_SOURCEMAP": "false"
+  },
   "rewrites": [
     {
       "source": "/dash/posts/:id",

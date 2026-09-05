@@ -22,7 +22,8 @@ router.post("/test-email", verifyJWT, verifyAdmin, async (req, res) => {
       res.status(500).json({ error: result.error });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error sending test email:', error);
+    res.status(500).json({ error: "Failed to send test email" });
   }
 });
 

@@ -205,7 +205,6 @@ const getCities = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to fetch cities",
-      error: error.message 
     });
   }
 };
@@ -475,7 +474,6 @@ const searchCities = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to search cities",
-      error: error.message 
     });
   }
 };
@@ -524,7 +522,6 @@ const getCitiesByCountry = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to fetch cities by country",
-      error: error.message 
     });
   }
 };
@@ -623,7 +620,6 @@ const createCity = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to create city",
-      error: error.message 
     });
   }
 };
@@ -705,7 +701,6 @@ const updateCity = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to update city",
-      error: error.message 
     });
   }
 };
@@ -745,7 +740,6 @@ const deleteCity = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to delete city",
-      error: error.message 
     });
   }
 };
@@ -866,7 +860,6 @@ const createDynamicCity = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: error.message
     });
   }
 };
@@ -969,7 +962,6 @@ const searchCitiesByName = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: error.message
     });
   }
 };
@@ -1005,7 +997,6 @@ const cacheApiCity = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to cache city",
-      error: error.message
     });
   }
 };
@@ -1023,7 +1014,6 @@ const getGeonamesStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to get GeoNames statistics",
-      error: error.message
     });
   }
 };

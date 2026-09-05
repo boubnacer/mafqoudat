@@ -271,7 +271,8 @@ app.get("/cache/stats", async (req, res) => {
     const stats = unifiedCacheService.getStats();
     res.json({ success: true, data: stats });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error fetching cache stats:', error);
+    res.status(500).json({ success: false, message: "Failed to fetch cache stats" });
   }
 });
 
@@ -288,7 +289,8 @@ app.delete("/cache/clear", async (req, res) => {
     await unifiedCacheService.clear(true);
     res.json({ success: true, message: 'Cache cleared successfully' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error clearing cache:', error);
+    res.status(500).json({ success: false, message: "Failed to clear cache" });
   }
 });
 
@@ -301,7 +303,8 @@ app.post("/cache/warm", async (req, res) => {
       message: result ? 'Cache warming completed' : 'Cache warming failed' 
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error warming cache:', error);
+    res.status(500).json({ success: false, message: "Failed to warm cache" });
   }
 });
 
@@ -311,7 +314,8 @@ app.get("/cache/health", async (req, res) => {
     const health = await unifiedCacheService.healthCheck();
     res.json({ success: true, data: health });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error fetching cache health:', error);
+    res.status(500).json({ success: false, message: "Failed to fetch cache health" });
   }
 });
 
@@ -321,7 +325,8 @@ app.get("/memory/stats", async (req, res) => {
     const stats = memoryOptimizer.getMemoryStats();
     res.json({ success: true, data: stats });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error fetching memory stats:', error);
+    res.status(500).json({ success: false, message: "Failed to fetch memory stats" });
   }
 });
 
@@ -330,7 +335,8 @@ app.post("/memory/optimize", async (req, res) => {
     const stats = await memoryOptimizer.optimizeMemory();
     res.json({ success: true, data: stats, message: 'Memory optimization completed' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error optimizing memory:', error);
+    res.status(500).json({ success: false, message: "Failed to optimize memory" });
   }
 });
 
@@ -343,7 +349,8 @@ app.get("/memory/report", async (req, res) => {
       res.status(500).json({ success: false, message: 'Failed to export memory report' });
     }
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error exporting memory report:', error);
+    res.status(500).json({ success: false, message: "Failed to export memory report" });
   }
 });
 

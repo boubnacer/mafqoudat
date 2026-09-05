@@ -272,7 +272,6 @@ const cacheStatsMiddleware = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get cache statistics',
-      error: error.message
     });
   }
 };
@@ -326,7 +325,6 @@ const clearCacheMiddleware = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to clear cache',
-      error: error.message
     });
   }
 };
@@ -352,7 +350,6 @@ const warmCacheMiddleware = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to warm cache',
-      error: error.message
     });
   }
 };

@@ -1106,7 +1106,8 @@ const getDashboard = async (req, res) => {
     
     res.status(200).json(response);
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    console.error('Error fetching dashboard:', error);
+    res.status(404).json({ message: "Failed to fetch dashboard" });
   }
 };
 
@@ -1160,7 +1161,6 @@ const getflOptions = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to fetch post types",
-      error: error.message 
     });
   }
 };
@@ -1261,7 +1261,6 @@ const getCountries = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to fetch countries",
-      error: error.message 
     });
   }
 };
@@ -1347,7 +1346,6 @@ const getCategories = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to fetch categories",
-      error: error.message 
     });
   }
 };
@@ -1410,7 +1408,6 @@ const createCategory = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to create category",
-      error: error.message 
     });
   }
 };
@@ -1480,7 +1477,6 @@ const createFoundLost = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to create post type",
-      error: error.message 
     });
   }
 };
@@ -1689,7 +1685,6 @@ const getCitiesByCountry = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to fetch cities by country",
-      error: error.message 
     });
   }
 };
