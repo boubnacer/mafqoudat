@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const costMonitor = require('../utils/costMonitor');
 const { getCloudinaryStats } = require('../config/optimizedCloudinary');
+const verifyJWT = require('../middleware/verifyJWT');
 const verifyAdmin = require('../middleware/verifyAdmin');
 
 /**
@@ -9,8 +10,11 @@ const verifyAdmin = require('../middleware/verifyAdmin');
  * Provides insights into Cloudinary cost optimization effectiveness
  */
 
+router.use(verifyJWT);
+router.use(verifyAdmin);
+
 // Get current cost metrics
-router.get('/metrics', verifyAdmin, async (req, res) => {
+router.get('/metrics', async (req, res) => {
   try {
     const metrics = costMonitor.getMetrics();
     
@@ -29,7 +33,7 @@ router.get('/metrics', verifyAdmin, async (req, res) => {
 });
 
 // Generate comprehensive cost report
-router.get('/report', verifyAdmin, async (req, res) => {
+router.get('/report', async (req, res) => {
   try {
     const report = await costMonitor.generateReport();
     
@@ -55,7 +59,7 @@ router.get('/report', verifyAdmin, async (req, res) => {
 });
 
 // Get Cloudinary usage statistics
-router.get('/cloudinary-stats', verifyAdmin, async (req, res) => {
+router.get('/cloudinary-stats', async (req, res) => {
   try {
     const stats = await getCloudinaryStats();
     
@@ -74,7 +78,7 @@ router.get('/cloudinary-stats', verifyAdmin, async (req, res) => {
 });
 
 // Reset cost monitoring metrics
-router.post('/reset', verifyAdmin, async (req, res) => {
+router.post('/reset', async (req, res) => {
   try {
     costMonitor.reset();
     
@@ -93,7 +97,7 @@ router.post('/reset', verifyAdmin, async (req, res) => {
 });
 
 // Get optimization recommendations
-router.get('/recommendations', verifyAdmin, async (req, res) => {
+router.get('/recommendations', async (req, res) => {
   try {
     const metrics = costMonitor.getMetrics();
     const recommendations = costMonitor.generateRecommendations(metrics);
@@ -120,7 +124,7 @@ router.get('/recommendations', verifyAdmin, async (req, res) => {
 });
 
 // Get cost savings summary
-router.get('/savings-summary', verifyAdmin, async (req, res) => {
+router.get('/savings-summary', async (req, res) => {
   try {
     const metrics = costMonitor.getMetrics();
     const savings = metrics.savings.estimatedCostSavings;
