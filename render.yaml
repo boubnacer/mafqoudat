@@ -27,8 +27,11 @@ services:
       # --- Auth / JWT ---
       - key: JWT_SECRET
         sync: false
+      # Short-lived on purpose; sessions outlive this via the refresh-token
+      # flow. Do NOT set to 30d - that's the pre-refresh-token era and
+      # defeats fast logout/role-change revocation.
       - key: JWT_ACCESS_EXPIRES_IN
-        value: 30d
+        value: 30m
 
       # --- CORS / frontend linkage (Vercel) ---
       - key: FRONTEND_URL
