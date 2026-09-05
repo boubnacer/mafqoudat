@@ -160,7 +160,7 @@ const createNewUser = async (req, res) => {
   }
 
   // Hash password
-  const hashedPwd = await bcrypt.hash(password, 10); // salt rounds
+  const hashedPwd = await bcrypt.hash(password, 12); // salt rounds
 
   const userObject = { 
     username, 
@@ -305,7 +305,7 @@ const updateUser = async (req, res) => {
     if (password) {
       // For Google OAuth users, allow setting a password (linking local auth)
       // For local auth users, update the password
-      user.password = await bcrypt.hash(password, 10); // salt rounds
+      user.password = await bcrypt.hash(password, 12); // salt rounds
     }
 
     const updatedUser = await user.save();

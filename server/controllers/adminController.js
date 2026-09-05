@@ -623,7 +623,7 @@ const adminResetUserPassword = async (req, res) => {
     }
 
     // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
 
     // Update user password
     user.password = hashedPassword;

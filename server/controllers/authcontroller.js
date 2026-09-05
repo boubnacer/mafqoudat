@@ -97,6 +97,18 @@ const login = async (req, res) => {
     });
   }
 
+  // Migrate hashes still on the old cost factor as their owners log in -
+  // no forced reset, no batch job. Never let a rehash failure fail the login.
+  const hashCost = parseInt(foundUser.password.split('$')[2], 10);
+  if (hashCost < 12) {
+    try {
+      foundUser.password = await bcrypt.hash(password, 12);
+      await foundUser.save();
+    } catch (rehashError) {
+      console.error('Password rehash error during login:', rehashError);
+    }
+  }
+
   // Short-lived access token + refresh session (cookie for web, body for mobile)
   let accessToken;
   let refreshToken;
