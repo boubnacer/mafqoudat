@@ -58,6 +58,7 @@ router.route("/")
     // searchRateLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
     optionalAuth,
     commonValidations.pagination(),
+    commonValidations.searchQuery(),
     validateRequest,
     attachLivePostStats,
     optimizedPaginatedCache('posts'),
@@ -69,6 +70,7 @@ router.route("/filtered")
     // searchRateLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
     optionalAuth,
     commonValidations.pagination(),
+    commonValidations.searchQuery(),
     validateRequest,
     attachLivePostStats,
     searchResultsCache('posts-filtered'),
@@ -80,6 +82,7 @@ router.route("/user")
     verifyJWT,
     // searchRateLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
     commonValidations.pagination(),
+    commonValidations.searchQuery(),
     validateRequest,
     attachLivePostStats,
     postsController.getUserPosts
@@ -115,7 +118,7 @@ router.route("/:id/comments")
     verifyJWT,
     commentActionLimit,
     commonValidations.objectId('id'),
-    commonValidations.textContent('text', 1000),
+    validationSets.commentCreation,
     validateRequest,
     commentsController.createComment
   );
@@ -135,6 +138,7 @@ router.route("/:id/comments/:commentId/report")
     reportRateLimit,
     commonValidations.objectId('id'),
     commonValidations.objectId('commentId'),
+    validationSets.commentReport,
     validateRequest,
     commentsController.reportComment
   );
@@ -309,6 +313,9 @@ router
       next();
     },
     commonValidations.bodyObjectId('id'),
+    // Length limits on the free-text fields, same bounds as create. Without
+    // this an edit could store a description of any size at all.
+    validationSets.postUpdate,
     validateRequest,
     optimizedInvalidateCache([], 'posts'), 
     postsController.updatePost

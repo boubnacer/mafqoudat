@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { FIELD_LIMITS } = require("../config/fieldLimits");
 
 const reportSchema = new mongoose.Schema(
   {
@@ -25,6 +26,10 @@ const reportSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      maxlength: [
+        FIELD_LIMITS.report.reason,
+        `Reason cannot exceed ${FIELD_LIMITS.report.reason} characters`,
+      ],
     },
     reasonType: {
       type: String,
@@ -57,6 +62,10 @@ const reportSchema = new mongoose.Schema(
       type: String,
       default: "",
       trim: true,
+      maxlength: [
+        FIELD_LIMITS.report.adminNotes,
+        `Admin notes cannot exceed ${FIELD_LIMITS.report.adminNotes} characters`,
+      ],
     },
     // Store post data at time of report for reference
     postData: {

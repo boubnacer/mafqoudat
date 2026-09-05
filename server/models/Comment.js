@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { FIELD_LIMITS } = require("../config/fieldLimits");
 
 /**
  * One comment written on the site itself.
@@ -33,7 +34,13 @@ const commentSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      maxlength: 1000,
+      // Shared with the express-validator rule on the create route, so a long
+      // comment is refused with a 400 naming the field rather than reaching
+      // this backstop as a 500.
+      maxlength: [
+        FIELD_LIMITS.comment.text,
+        `Comment cannot exceed ${FIELD_LIMITS.comment.text} characters`,
+      ],
     },
     status: {
       type: String,
