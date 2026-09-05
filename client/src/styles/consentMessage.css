@@ -1,0 +1,104 @@
+/*
+ * Funding Choices consent message - theme correction only.
+ *
+ * The message is Google's markup, drawn into this document under
+ * .fc-consent-root, and its own colors are configured in AdSense (Privacy &
+ * messaging), not here. Google offers one palette per message, so a message
+ * styled for the light theme lands on this app's near-black dark surfaces as a
+ * white slab - the case this file exists for.
+ *
+ * Scope discipline matters here: TCF policy does not allow a publisher to alter
+ * what the message says, which choices it offers or how prominent they are.
+ * Everything below is limited to surface, text and border color, taken from the
+ * same design tokens the rest of the app reads (utils/documentTheme.js
+ * publishes them as custom properties). Nothing here moves, hides, resizes or
+ * reorders any part of the message, and the buttons keep the geometry and
+ * relative prominence Google gave them.
+ *
+ * The fallback values in each var() mirror designTokens.js for the window
+ * before React mounts and sets the properties - the message can appear in it.
+ */
+
+/* Native form controls, scrollbars and the like inside the message. */
+.fc-consent-root {
+  color-scheme: light;
+}
+
+:root[data-color-scheme='dark'] .fc-consent-root {
+  color-scheme: dark;
+}
+
+/*
+ * Dark mode only. In light mode Google's default message already sits correctly
+ * on the app's light surfaces, so nothing is overridden there.
+ *
+ * !important throughout: the message's own rules are inline-weight and land
+ * after this stylesheet.
+ */
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog-content,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog-headline,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog-scrollable-content {
+  background-color: var(--mafq-surface-raised, #171b22) !important;
+  color: var(--mafq-ink, #edeff5) !important;
+}
+
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog {
+  border-radius: var(--mafq-radius-lg, 16px) !important;
+  box-shadow: var(--mafq-elevation-e3, 0 12px 32px rgba(0, 0, 0, 0.55)) !important;
+}
+
+/*
+ * Descendants that inherit a hardcoded dark text color from the message's own
+ * light-theme stylesheet, rather than from the container above.
+ */
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog p,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog h1,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog h2,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog h3,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog li,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog span,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog label,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-data-preferences-legal-text,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-vendor-preferences-legal-text {
+  color: var(--mafq-ink, #edeff5) !important;
+}
+
+/* Links and the "manage options" style of button carry the brand accent. */
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog a,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-button.fc-secondary-button .fc-button-label,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-cta-manage-options .fc-button-label {
+  color: var(--mafq-brand-primary, #5b7fff) !important;
+}
+
+/*
+ * Separators and the secondary button's outline. The dialog is already the
+ * raised surface, so these are drawn from the page tone rather than a grey of
+ * their own.
+ */
+:root[data-color-scheme='dark'] .fc-consent-root .fc-header,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-footer-buttons,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-preference-legitimate-interest,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-preference-consent {
+  border-color: var(--mafq-surface-base, #0e1116) !important;
+}
+
+/*
+ * The primary action keeps a filled brand button - a consent message needs one
+ * shape that outranks the rest, and it has to stay at least as prominent in
+ * dark mode as Google configured it in light.
+ */
+:root[data-color-scheme='dark'] .fc-consent-root .fc-button.fc-cta-consent,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-button.fc-confirm-choices {
+  background-color: var(--mafq-brand-primary, #5b7fff) !important;
+}
+
+:root[data-color-scheme='dark'] .fc-consent-root .fc-button.fc-cta-consent .fc-button-label,
+:root[data-color-scheme='dark'] .fc-consent-root .fc-button.fc-confirm-choices .fc-button-label {
+  color: #0b1220 !important; /* ink (light) - the constant dark text on brand fills */
+}
+
+/* The scrim behind the dialog, so the page does not flash pale behind it. */
+:root[data-color-scheme='dark'] .fc-consent-root .fc-dialog-overlay {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}

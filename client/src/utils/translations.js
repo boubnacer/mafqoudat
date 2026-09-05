@@ -1233,6 +1233,12 @@ export const translations = {
     thirdPartyCookiesDesc: "Third-party cookies are subject to their own policies.",
     required: "Required",
     cookieQuestions: "Have questions about cookies?",
+    // Consent manager (Google Funding Choices). The banner itself is Google's;
+    // these strings are the entry point to it from the cookie notice.
+    manageCookiePreferences: "Manage cookie preferences",
+    manageCookiePreferencesDesc: "Your choices about analytics and advertising cookies are recorded by our consent panel. Open it at any time to review or change them.",
+    openConsentPanel: "Open consent settings",
+    consentPanelUnavailable: "The consent panel could not be opened. A browser setting or extension may be blocking it.",
     
     // Community Guidelines translations
     communityGuidelinesDescription: "These guidelines help maintain a safe and respectful community for all users.",
@@ -2989,6 +2995,11 @@ export const translations = {
     thirdPartyCookiesDesc: "Les cookies tiers sont soumis à leurs propres politiques.",
     required: "Requis",
     cookieQuestions: "Des questions sur les cookies ?",
+    // Consent manager (Google Funding Choices).
+    manageCookiePreferences: "Gérer les préférences de cookies",
+    manageCookiePreferencesDesc: "Vos choix concernant les cookies d'analyse et de publicité sont enregistrés par notre panneau de consentement. Ouvrez-le à tout moment pour les consulter ou les modifier.",
+    openConsentPanel: "Ouvrir les paramètres de consentement",
+    consentPanelUnavailable: "Le panneau de consentement n'a pas pu être ouvert. Un paramètre du navigateur ou une extension le bloque peut-être.",
     
     // Community Guidelines translations
     communityGuidelinesDescription: "Ces directives aident à maintenir une communauté sûre et respectueuse pour tous les utilisateurs.",
@@ -4733,6 +4744,11 @@ export const translations = {
     thirdPartyCookiesDesc: "ملفات تعريف الارتباط الخارجية تخضع لسياساتها الخاصة.",
     required: "مطلوب",
     cookieQuestions: "هل لديك أسئلة حول ملفات تعريف الارتباط؟",
+    // Consent manager (Google Funding Choices).
+    manageCookiePreferences: "إدارة تفضيلات ملفات تعريف الارتباط",
+    manageCookiePreferencesDesc: "يتم تسجيل اختياراتك بشأن ملفات تعريف الارتباط الخاصة بالتحليلات والإعلانات في لوحة الموافقة. يمكنك فتحها في أي وقت لمراجعتها أو تغييرها.",
+    openConsentPanel: "فتح إعدادات الموافقة",
+    consentPanelUnavailable: "تعذّر فتح لوحة الموافقة. قد يكون أحد إعدادات المتصفح أو إحدى الإضافات يمنعها.",
     
     // Community Guidelines translations
     communityGuidelinesDescription: "تساعد هذه الإرشادات في الحفاظ على مجتمع آمن ومحترم لجميع المستخدمين.",

@@ -1,6 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+// Theme correction for the consent message Google renders outside the React
+// tree - see the file header.
+import './styles/consentMessage.css';
 import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 

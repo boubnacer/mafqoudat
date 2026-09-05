@@ -25,6 +25,8 @@ import MaintenanceMode from "./components/MaintenanceMode";
 import { initializeVisitorSession } from "./utils/visitorSessionSync";
 import { getVisitorSessionId } from "./utils/visitorSession";
 import { initializeGA, trackPageView } from "./utils/analytics";
+import { startConsentListener } from "./utils/consent";
+import { applyDocumentTheme } from "./utils/documentTheme";
 import WelcomePageSkeleton from "./components/WelcomePageSkeleton";
 import InfoPageSkeleton from "./components/InfoPageSkeleton";
 import PostFormSkeleton from "./components/PostFormSkeleton";
@@ -126,7 +128,16 @@ const AppContent = () => {
     }
   }, [mode, currentLanguage]);
 
-  // Track page views when route changes
+  // Mirror the active mode onto the document, for UI drawn outside the React
+  // tree - the consent message, which Google renders into this document with
+  // its own markup. public/index.html sets the same attribute from localStorage
+  // before React mounts; this is what keeps it right after the mode toggle.
+  useEffect(() => {
+    applyDocumentTheme(mode);
+  }, [mode]);
+
+  // Track page views when route changes. No-ops until the CMP has reported
+  // analytics consent and analytics.js has loaded gtag.js on the back of it.
   useEffect(() => {
     trackPageView(location.pathname + location.search, document.title);
   }, [location]);
@@ -399,7 +410,11 @@ function App() {
     // This is async but doesn't block - other API calls will use the localStorage ID
     initializeVisitorSession();
     
-    // Initialize Google Analytics
+    // Start listening for the consent manager's answer, then hand Google
+    // Analytics to it: initializeGA loads nothing until consent is reported.
+    // Started here rather than only from initializeGA so the consent state is
+    // resolved even on a build with no GA measurement ID.
+    startConsentListener();
     initializeGA();
   }, []);
 
