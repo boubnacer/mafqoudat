@@ -89,8 +89,14 @@ process.on('uncaughtException', (err) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
+  console.error(
+    'Unhandled Rejection at:', promise,
+    'reason:', reason,
+    reason?.stack ? `\nstack: ${reason.stack}` : ''
+  );
+  // Log only - do not exit. A single unhandled rejection in a rarely-hit
+  // code path shouldn't kill the whole process; uncaughtException above
+  // stays strict for actual crashes.
 });
 
 // Enhanced graceful shutdown with metrics
