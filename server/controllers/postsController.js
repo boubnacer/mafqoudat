@@ -1770,12 +1770,9 @@ const updatePost = async (req, res) => {
   }
 
   // Confirm post exists to update - only select fields needed for update
-  // console.log('🔍 UPDATE POST SERVER - Looking for post with ID:', id);
   const post = await Post.findById(id).select('_id user country category categories city exactLocation contact returned foundLost description mainDate cloudinaryPublicId').exec();
-  // console.log('🔍 UPDATE POST SERVER - Post found:', !!post);
 
   if (!post) {
-    // console.log('❌ UPDATE POST SERVER - Post not found with ID:', id);
     return res.status(400).json({ message: "Post not found" });
   }
 
@@ -1783,7 +1780,6 @@ const updatePost = async (req, res) => {
     return res.status(403).json({ message: "Not authorized to update this post" });
   }
 
-  // console.log('🔍 UPDATE POST SERVER - Updating post fields...');
   post.user = user;
   post.country = country;
   
