@@ -188,8 +188,6 @@ class MemoryOptimizer {
 
   // Force memory optimization
   async optimizeMemory() {
-    console.log('🔧 Performing memory optimization...');
-    
     // Force garbage collection
     if (global.gc) {
       global.gc();
@@ -199,7 +197,6 @@ class MemoryOptimizer {
     try {
       const { unifiedCacheService } = require('../config/unifiedCache');
       await unifiedCacheService.invalidatePattern('temp:*');
-      console.log('✅ Temporary caches cleared');
     } catch (error) {
       console.error('❌ Failed to clear temporary caches:', error);
     }
@@ -207,12 +204,8 @@ class MemoryOptimizer {
     // Clear memory history if it's too large
     if (this.memoryHistory.length > this.maxHistorySize) {
       this.memoryHistory = this.memoryHistory.slice(-this.maxHistorySize / 2);
-      console.log('✅ Memory history trimmed');
     }
 
-    const memUsage = process.memoryUsage();
-    console.log(`✅ Memory optimization completed. Current usage: ${(memUsage.heapUsed / 1024 / 1024).toFixed(2)}MB`);
-    
     return this.getMemoryStats();
   }
 

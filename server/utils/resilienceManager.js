@@ -59,7 +59,6 @@ class ResilienceManager {
         circuitBreaker.state = 'HALF_OPEN';
         console.log(`🔄 Circuit breaker '${name}' moved to HALF_OPEN state`);
       } else {
-        console.log(`⚡ Circuit breaker '${name}' is OPEN, using fallback`);
         this.metrics.circuitBreakerTrips++;
         return fallback ? await fallback() : null;
       }
@@ -136,7 +135,6 @@ class ResilienceManager {
         const result = await operation();
         
         if (attempt > 1) {
-          console.log(`✅ Operation '${name}' succeeded on attempt ${attempt}`);
           this.metrics.retries += (attempt - 1);
         }
         
@@ -156,8 +154,6 @@ class ResilienceManager {
           config.maxDelay
         );
 
-        console.log(`🔄 Retrying '${name}' in ${delay}ms (attempt ${attempt + 1}/${config.maxAttempts})`);
-        
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
