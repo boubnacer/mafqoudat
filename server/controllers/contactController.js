@@ -110,7 +110,7 @@ const submitContactForm = async (req, res) => {
 const getAllContacts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 100);
     const status = req.query.status;
     const priority = req.query.priority;
     const search = req.query.search;
