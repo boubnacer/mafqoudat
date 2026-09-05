@@ -10,28 +10,11 @@ function LanguageToggle() {
   const handleLanguageChange = (language) => {
     // Language change is now handled by the context
     // This callback is for any additional logic if needed
-    console.log(`Language changed to: ${language}`);
   };
 
   const testLanguagePersistence = () => {
-    console.log('=== Testing Language Persistence (Unified Key) ===');
-    console.log('Current language:', currentLanguage);
-    console.log('localStorage language:', localStorage.getItem('language'));
-    console.log('localStorage app_language (deprecated):', localStorage.getItem('app_language'));
-    console.log('document.documentElement.lang:', document.documentElement.getAttribute('lang'));
-    console.log('document.body.dir:', document.body.getAttribute('dir'));
-    
     // Test switching to Arabic
-    console.log('Switching to Arabic...');
     setLanguage('ar');
-    
-    setTimeout(() => {
-      console.log('After switching to Arabic:');
-      console.log('Current language:', currentLanguage);
-      console.log('localStorage language:', localStorage.getItem('language'));
-      console.log('document.documentElement.lang:', document.documentElement.getAttribute('lang'));
-      console.log('document.body.dir:', document.body.getAttribute('dir'));
-    }, 100);
   };
 
   return (

@@ -80,7 +80,6 @@ const uploadToCloudinary = async (file, folder = 'mafqoudat', options = {}) => {
 
     // If duplicate found, return existing URL
     if (processResult.isDuplicate) {
-      console.log('💰 Cost saved: Duplicate image detected');
       costMonitor.recordUpload(0, true);
       return {
         url: processResult.existingUrl,
@@ -96,7 +95,6 @@ const uploadToCloudinary = async (file, folder = 'mafqoudat', options = {}) => {
     // Check cache first
     const cachedResult = await cacheService.get(cacheKey);
     if (cachedResult) {
-      console.log('📦 Cloudinary upload served from cache');
       costMonitor.recordCacheHit(true);
       costMonitor.recordUpload(processResult.compressionRatio, false);
       return cachedResult;
@@ -152,8 +150,6 @@ const uploadToCloudinary = async (file, folder = 'mafqoudat', options = {}) => {
     costMonitor.recordUpload(processResult.compressionRatio, false);
     costMonitor.recordBandwidthSaved(fileBuffer.length - processResult.optimizedBuffer.length);
     
-    console.log(`📤 Cloudinary upload completed: ${processResult.compressionRatio}% compression, cached`);
-    
     return uploadResult;
   } catch (error) {
     console.error('Cloudinary upload error:', error);
@@ -181,8 +177,6 @@ const deleteFromCloudinary = async (public_id) => {
       // Invalidate related cache entries
       await cacheService.invalidatePattern(`cloudinary:upload:*`);
       await cacheService.invalidatePattern(`cloudinary:transform:${public_id}:*`);
-      
-      console.log('🗑️ Cloudinary image deleted and cache invalidated');
     }
   } catch (error) {
     console.error('Cloudinary delete error:', error);
@@ -256,10 +250,6 @@ const batchUploadToCloudinary = async (files, folder = 'mafqoudat') => {
       }
     }
     
-    const duplicatesSaved = results.filter(r => r.isDuplicate).length;
-    const avgCompression = results.reduce((sum, r) => sum + (r.compressionRatio || 0), 0) / results.length;
-    
-    console.log(`📤 Batch upload completed: ${results.length} images, ${duplicatesSaved} duplicates skipped, ${avgCompression.toFixed(1)}% avg compression`);
     return results;
   } catch (error) {
     console.error('Batch upload error:', error);

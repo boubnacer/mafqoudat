@@ -107,7 +107,6 @@ export const triggerLanguageDependentRefetch = (language, options = {}) => {
   } catch (error) {
     console.error('🌐 [LANGUAGE-REFETCH] Error triggering refetch:', error);
     // Provide fallback behavior
-    console.log('🌐 [LANGUAGE-REFETCH] Attempting fallback refetch method...');
     fallbackLanguageRefetch(language);
   }
 };
@@ -207,15 +206,11 @@ export const isLanguageDependentQuery = (queryKey) => {
  */
 export const fallbackLanguageRefetch = (language) => {
   try {
-    console.log('🌐 [LANGUAGE-REFETCH] Using fallback refetch method for language:', language);
-    
     // Simple fallback: just dispatch a custom event that components can listen to
     const fallbackEvent = new CustomEvent('languageRefetchFallback', {
       detail: { language, timestamp: Date.now() }
     });
     window.dispatchEvent(fallbackEvent);
-    
-    console.log('🌐 [LANGUAGE-REFETCH] Fallback event dispatched');
   } catch (error) {
     console.error('🌐 [LANGUAGE-REFETCH] Fallback refetch also failed:', error);
   }

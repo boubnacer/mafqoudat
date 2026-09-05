@@ -93,7 +93,7 @@ const initRedis = async () => {
       });
       
       redisClient.on('error', (err) => {
-        console.log('Redis Client Error:', err);
+        console.error('Redis Client Error:', err);
         redisConnected = false;
       });
       
@@ -113,7 +113,7 @@ const initRedis = async () => {
       console.log('⚠️  REDIS_URL not provided, using in-memory cache only');
     }
   } catch (error) {
-    console.log('❌ Redis connection failed, using in-memory cache only:', error.message);
+    console.error('❌ Redis connection failed, using in-memory cache only:', error.message);
     redisConnected = false;
   }
 };
@@ -287,7 +287,6 @@ class OptimizedCacheService {
         }
       }
       
-      console.log(`🗑️ Cache invalidated: ${invalidatedKeys} keys for pattern: ${pattern}`);
       return invalidatedKeys;
     } catch (error) {
       console.error('Smart cache invalidation error:', error);
@@ -318,7 +317,6 @@ class OptimizedCacheService {
       totalInvalidated += invalidated;
     }
     
-    console.log(`🗑️ Cache invalidated for type '${dataType}': ${totalInvalidated} keys`);
     return totalInvalidated;
   }
 
@@ -412,8 +410,6 @@ class OptimizedCacheService {
       // Warm dynamic data caches (disabled to prevent startup issues)
       const warmDynamicData = async () => {
         try {
-          console.log('⚠️  Dynamic data warming disabled to prevent startup issues');
-          console.log('💡 Use manual cache warming after startup if needed');
           // Dynamic data warming disabled to prevent populate errors
           // await this.set(
           //   this.generateKey('dynamic', 'recent-posts', { limit: 20 }),

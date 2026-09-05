@@ -5,20 +5,8 @@
  * localStorage operations, ensuring consistency across the application.
  */
 
-// Debug configuration
-const DEBUG_AUTH = false;
-
 // Debug logging function
-const debugLog = (message, data = null) => {
-  if (DEBUG_AUTH) {
-    const timestamp = new Date().toISOString();
-    if (data) {
-      console.log(`🔍 [AUTH-STORAGE] ${message}`, { timestamp, ...data });
-    } else {
-      console.log(`🔍 [AUTH-STORAGE] ${message} - ${timestamp}`);
-    }
-  }
-};
+const debugLog = () => {};
 
 // Helper function to extract user data from token
 const extractUserFromToken = (token) => {
@@ -531,8 +519,6 @@ class LanguageStorageManager {
    */
   static setLanguage(language) {
     try {
-      console.log('🌐 [SMOOTH-SWITCHING] setLanguage called:', { language, currentUrl: window.location.href });
-      
       // Validate language
       if (!['en', 'ar', 'fr'].includes(language)) {
         console.error('Invalid language code:', language);
@@ -550,8 +536,7 @@ class LanguageStorageManager {
         detail: { language, timestamp: Date.now() }
       });
       window.dispatchEvent(languageChangeEvent);
-      
-      console.log('🌐 [SMOOTH-SWITCHING] Language changed successfully:', language);
+
       return true;
     } catch (error) {
       console.error('Failed to set language:', error);
@@ -582,8 +567,6 @@ class LanguageStorageManager {
         document.body.style.direction = "ltr";
         document.body.style.textAlign = "left";
       }
-      
-      console.log('🌐 [SMOOTH-SWITCHING] Document attributes updated for language:', language);
     } catch (error) {
       console.error('Failed to update document attributes:', error);
     }
@@ -628,15 +611,12 @@ class LanguageStorageManager {
   static getAndClearLanguageChangeRedirectUrl() {
     try {
       const redirectUrl = localStorage.getItem('languageChangeRedirectUrl');
-      console.log('🌐 Getting preserved URL from localStorage:', redirectUrl);
-      
+
       if (redirectUrl) {
         localStorage.removeItem('languageChangeRedirectUrl');
-        console.log('🌐 Returning preserved URL:', redirectUrl);
         return redirectUrl;
       }
-      
-      console.log('🌐 No preserved URL found, returning null');
+
       return null;
     } catch (error) {
       console.error('Failed to get language change redirect URL:', error);

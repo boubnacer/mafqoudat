@@ -8,7 +8,6 @@ export const languageReset = {
       // Also remove deprecated keys if they exist
       localStorage.removeItem('app_language');
       localStorage.removeItem('currentLanguage');
-      console.log('✅ Cleared all language localStorage (including deprecated keys)');
       return true;
     } catch (error) {
       console.error('❌ Error clearing localStorage:', error);
@@ -19,8 +18,6 @@ export const languageReset = {
   // Set language and verify it's saved (using unified key)
   setAndVerify: (language) => {
     try {
-      console.log(`Setting language to: ${language}`);
-      
       // Clear first
       languageReset.clearAll();
       
@@ -29,15 +26,10 @@ export const languageReset = {
       
       // Verify it's saved
       const savedLanguage = localStorage.getItem('language');
-      
-      console.log('Verification:');
-      console.log('  localStorage.language:', savedLanguage);
-      
+
       if (savedLanguage === language) {
-        console.log('✅ Language saved successfully');
         return true;
       } else {
-        console.log('❌ Language not saved correctly');
         return false;
       }
     } catch (error) {
@@ -48,38 +40,28 @@ export const languageReset = {
   
   // Test full persistence cycle
   testPersistence: () => {
-    console.log('=== Language Persistence Test (Unified Key) ===');
-    
     // Step 1: Clear everything
-    console.log('1. Clearing all language data...');
     languageReset.clearAll();
-    
+
     // Step 2: Set to Arabic
-    console.log('2. Setting to Arabic...');
     if (!languageReset.setAndVerify('ar')) {
-      console.log('❌ Failed to set Arabic');
       return false;
     }
-    
+
     // Step 3: Simulate page refresh (check localStorage)
-    console.log('3. Simulating page refresh...');
     const savedLanguage = localStorage.getItem('language');
-    
+
     if (savedLanguage === 'ar') {
-      console.log('✅ Language persisted after "refresh"');
+      // Language persisted after "refresh"
     } else {
-      console.log('❌ Language not persisted');
       return false;
     }
-    
+
     // Step 4: Set to English
-    console.log('4. Setting to English...');
     if (!languageReset.setAndVerify('en')) {
-      console.log('❌ Failed to set English');
       return false;
     }
-    
-    console.log('✅ All tests passed!');
+
     return true;
   },
   
@@ -91,8 +73,7 @@ export const languageReset = {
       currentLanguage: localStorage.getItem('currentLanguage'), // deprecated
       allKeys: Object.keys(localStorage)
     };
-    
-    console.log('Current localStorage state:', current);
+
     if (current.app_language || current.currentLanguage) {
       console.warn('⚠️ Deprecated language keys detected! Migration may be needed.');
     }

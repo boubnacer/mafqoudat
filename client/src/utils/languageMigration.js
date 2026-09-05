@@ -7,8 +7,6 @@
  * It provides backward compatibility during the transition period.
  */
 
-const DEBUG_MIGRATION = false;
-
 // Storage keys
 const PRIMARY_KEY = 'language';
 const DEPRECATED_KEYS = ['app_language', 'currentLanguage'];
@@ -19,16 +17,7 @@ const MIGRATION_FLAG = 'languageMigrationCompleted';
  * @param {string} message - Log message
  * @param {*} data - Optional data to log
  */
-const logMigration = (message, data = null) => {
-  if (DEBUG_MIGRATION) {
-    const timestamp = new Date().toISOString();
-    if (data) {
-      console.log(`🔄 [LANG-MIGRATION] ${message}`, { timestamp, ...data });
-    } else {
-      console.log(`🔄 [LANG-MIGRATION] ${message} - ${timestamp}`);
-    }
-  }
-};
+const logMigration = () => {};
 
 /**
  * Migrate language storage from old keys to new unified key
