@@ -97,7 +97,6 @@ export const initializeLocalStorage = () => {
   const legacyTheme = localStorage.getItem('theme');
   if (legacyTheme) {
     localStorage.removeItem('theme');
-    console.log('Removed legacy theme key from localStorage');
   }
 };
 

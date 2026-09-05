@@ -10,14 +10,12 @@ export const simpleLanguageTest = {
       localStorage.removeItem('test_key');
       
       if (retrieved === 'test_value') {
-        console.log('✅ localStorage is working');
         return true;
       } else {
-        console.log('❌ localStorage is not working');
         return false;
       }
     } catch (error) {
-      console.log('❌ localStorage error:', error);
+      console.error('❌ localStorage error:', error);
       return false;
     }
   },
@@ -33,8 +31,7 @@ export const simpleLanguageTest = {
       bodyDirection: document.body.style.direction,
       bodyTextAlign: document.body.style.textAlign
     };
-    
-    console.log('Current Language State:', state);
+
     if (state.localStorage_app_language || state.localStorage_currentLanguage) {
       console.warn('⚠️ Deprecated language keys detected! Consider running migration.');
     }
@@ -44,8 +41,6 @@ export const simpleLanguageTest = {
   // Set language directly (using unified key)
   setLanguageDirect: (language) => {
     try {
-      console.log(`Setting language directly to: ${language} (using unified key)`);
-      
       // Save to ONLY the unified localStorage key
       localStorage.setItem('language', language);
       
@@ -56,12 +51,10 @@ export const simpleLanguageTest = {
         document.body.setAttribute('dir', 'rtl');
         document.body.style.direction = 'rtl';
         document.body.style.textAlign = 'right';
-        console.log('Applied RTL settings');
       } else {
         document.body.setAttribute('dir', 'ltr');
         document.body.style.direction = 'ltr';
         document.body.style.textAlign = 'left';
-        console.log('Applied LTR settings');
       }
       
       return true;
@@ -73,34 +66,17 @@ export const simpleLanguageTest = {
   
   // Test full cycle
   runTest: () => {
-    console.log('=== Simple Language Test (Unified Key) ===');
-    
     // Step 1: Test localStorage
     if (!simpleLanguageTest.testLocalStorage()) {
-      console.log('❌ Test failed: localStorage not working');
       return false;
     }
-    
-    // Step 2: Check initial state
-    console.log('Initial state:');
-    simpleLanguageTest.checkCurrentState();
-    
-    // Step 3: Set to Arabic
-    console.log('Setting to Arabic...');
+
+    // Step 2: Set to Arabic
     simpleLanguageTest.setLanguageDirect('ar');
-    simpleLanguageTest.checkCurrentState();
-    
-    // Step 4: Simulate refresh (check localStorage)
-    console.log('Simulating refresh...');
-    const savedLang = localStorage.getItem('language');
-    console.log('Saved language:', savedLang);
-    
-    // Step 5: Set to English
-    console.log('Setting to English...');
+
+    // Step 3: Set to English
     simpleLanguageTest.setLanguageDirect('en');
-    simpleLanguageTest.checkCurrentState();
-    
-    console.log('✅ Test completed successfully');
+
     return true;
   }
 };

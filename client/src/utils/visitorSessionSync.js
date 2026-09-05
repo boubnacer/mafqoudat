@@ -47,7 +47,7 @@ export const initializeVisitorSession = async () => {
     }
   } catch (error) {
     // Silently fail - not critical, will use sessionStorage session ID
-    console.debug('Could not sync visitor session from server:', error);
+    console.error('Could not sync visitor session from server:', error);
     // Fallback: ensure we have a session ID in sessionStorage
     getVisitorSessionId();
   }
