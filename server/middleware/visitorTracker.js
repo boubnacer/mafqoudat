@@ -10,6 +10,24 @@ const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 const sessionCache = new Map();
 const SESSION_CACHE_TTL = 5 * 60 * 1000; // 5 minutes - cache session lookups
 
+// Hard cap on both caches, independent of TTL expiry above. sessionCache in
+// particular is keyed on the client-supplied X-Visitor-Session header, so a
+// client sending a fresh random value on every request would otherwise grow
+// it without bound. Map preserves insertion order, so the oldest entries are
+// simply the first ones yielded by .keys() - no LRU bookkeeping needed.
+const MAX_CACHE_ENTRIES = 10000;
+const EVICTION_BATCH_SIZE = 1000; // evict the oldest 10% in one sweep, not one entry per insert
+
+const evictOldestEntries = (cache, maxEntries = MAX_CACHE_ENTRIES, batchSize = EVICTION_BATCH_SIZE) => {
+  if (cache.size < maxEntries) return;
+  const keys = cache.keys();
+  for (let i = 0; i < batchSize; i++) {
+    const next = keys.next();
+    if (next.done) break;
+    cache.delete(next.value);
+  }
+};
+
 /**
  * Get country code from IP address using free IP geolocation API
  * @param {string} ip - IP address
@@ -37,6 +55,7 @@ const getCountryFromIP = async (ip) => {
     if (response.data && response.data.countryCode) {
       const countryCode = response.data.countryCode;
       // Cache the result
+      evictOldestEntries(ipCountryCache);
       ipCountryCache.set(ip, {
         country: countryCode,
         timestamp: Date.now()
@@ -246,6 +265,7 @@ const visitorTracker = async (req, res, next) => {
 
       // OPTIMIZED: Cache the session to avoid future database queries
       if (result) {
+        evictOldestEntries(sessionCache);
         sessionCache.set(sessionId, {
           timestamp: Date.now(),
           sessionId: result.sessionId
@@ -259,6 +279,7 @@ const visitorTracker = async (req, res, next) => {
         console.error('❌ Visitor Tracker: Error saving visitor data:', err);
       } else {
         // Even on duplicate key error, cache the session since it exists
+        evictOldestEntries(sessionCache);
         sessionCache.set(sessionId, {
           timestamp: Date.now(),
           sessionId: sessionId

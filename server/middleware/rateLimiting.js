@@ -188,6 +188,17 @@ const rateLimiters = {
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 200, // 200 requests per 15 minutes
     message: "Too many requests to public endpoints, please slow down"
+  }),
+
+  // GET /visitor-session: called on every app boot/tab open, unauthenticated.
+  // Generous but bounded, keyed by IP - visitorTracker.js's sessionCache is
+  // keyed on the client-supplied X-Visitor-Session header, so a client
+  // sending a fresh random value on every request would otherwise trigger an
+  // unbounded stream of Visitor document upserts.
+  visitorSession: createRateLimiter({
+    windowMs: 60 * 1000, // 1 minute
+    max: 30, // 30 requests per minute per IP
+    message: "Too many visitor session requests, please slow down"
   })
 };
 
