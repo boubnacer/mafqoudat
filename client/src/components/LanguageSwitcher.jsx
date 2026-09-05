@@ -34,8 +34,6 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
   };
 
   const handleLanguageChange = async (language) => {
-    console.log('🌐 [LANGUAGE-SWITCHER] Language change triggered:', { language, currentUrl: window.location.href });
-    
     try {
       // Use unified language change handler
       const success = await changeLanguage(language);
@@ -47,8 +45,6 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
         if (onLanguageChange) {
           onLanguageChange(language);
         }
-        
-        console.log('🌐 [LANGUAGE-SWITCHER] Language changed successfully to:', language);
       } else {
         console.error('🌐 [LANGUAGE-SWITCHER] Failed to change language to:', language);
       }

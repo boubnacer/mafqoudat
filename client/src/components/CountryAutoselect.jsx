@@ -13,7 +13,6 @@ const CountryAutoselect = ({ countries, setCountryId, language = 'en' }) => {
   };
 
   const handleChange = (_, value, reason) => {
-    console.log({ id: value._id });
     setCountryId(value._id);
     dispatch(setOpenModal());
   };

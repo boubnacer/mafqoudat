@@ -35,7 +35,6 @@ const getCountries = async (req, res) => {
     // Check response cache first
     const cachedResponse = await cacheService.get(responseCacheKey);
     if (cachedResponse) {
-      console.log('📦 Countries response served from response cache');
       res.set('X-Cache', 'HIT');
       res.set('X-Cache-Source', 'response-cache');
       return res.json(cachedResponse);
@@ -108,7 +107,6 @@ const searchCountries = async (req, res) => {
     // Check response cache first
     const cachedResponse = await cacheService.get(responseCacheKey);
     if (cachedResponse) {
-      console.log('📦 Countries search served from response cache');
       res.set('X-Cache', 'HIT');
       res.set('X-Cache-Source', 'response-cache');
       return res.json(cachedResponse);
@@ -165,7 +163,6 @@ const getCategories = async (req, res) => {
     // Check response cache first
     const cachedResponse = await cacheService.get(responseCacheKey);
     if (cachedResponse) {
-      console.log('📦 Categories served from response cache');
       res.set('X-Cache', 'HIT');
       res.set('X-Cache-Source', 'response-cache');
       return res.json(cachedResponse);
@@ -230,7 +227,6 @@ const getFoundLostOptions = async (req, res) => {
     // Check response cache first
     const cachedResponse = await cacheService.get(responseCacheKey);
     if (cachedResponse) {
-      console.log('📦 Found/Lost options served from response cache');
       res.set('X-Cache', 'HIT');
       res.set('X-Cache-Source', 'response-cache');
       return res.json(cachedResponse);
@@ -304,7 +300,6 @@ const getCitiesByCountry = async (req, res) => {
     // Check response cache first
     const cachedResponse = await cacheService.get(responseCacheKey);
     if (cachedResponse) {
-      console.log('📦 Cities by country served from response cache');
       res.set('X-Cache', 'HIT');
       res.set('X-Cache-Source', 'response-cache');
       return res.json(cachedResponse);
@@ -378,7 +373,6 @@ const searchCities = async (req, res) => {
     // Check response cache first
     const cachedResponse = await cacheService.get(responseCacheKey);
     if (cachedResponse) {
-      console.log('📦 Cities search served from response cache');
       res.set('X-Cache', 'HIT');
       res.set('X-Cache-Source', 'response-cache');
       return res.json(cachedResponse);
@@ -447,7 +441,6 @@ const getCities = async (req, res) => {
     // Check response cache first
     const cachedResponse = await cacheService.get(responseCacheKey);
     if (cachedResponse) {
-      console.log('📦 Cities served from response cache');
       res.set('X-Cache', 'HIT');
       res.set('X-Cache-Source', 'response-cache');
       return res.json(cachedResponse);
@@ -515,7 +508,6 @@ const getDependencies = async (req, res) => {
     // Check response cache first
     const cachedResponse = await cacheService.get(responseCacheKey);
     if (cachedResponse) {
-      console.log('📦 Dependencies served from response cache');
       res.set('X-Cache', 'HIT');
       res.set('X-Cache-Source', 'response-cache');
       return res.json(cachedResponse);

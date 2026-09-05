@@ -50,7 +50,7 @@ const initRedis = async () => {
       });
       
       redisClient.on('error', (err) => {
-        console.log('Redis Client Error:', err);
+        console.error('Redis Client Error:', err);
         redisConnected = false;
       });
       
@@ -71,7 +71,7 @@ const initRedis = async () => {
       console.log('⚠️  REDIS_URL not provided, using in-memory cache only');
     }
   } catch (error) {
-    console.log('❌ Redis connection failed, using in-memory cache only:', error.message);
+    console.error('❌ Redis connection failed, using in-memory cache only:', error.message);
     redisConnected = false;
   }
 };
@@ -295,8 +295,7 @@ class UnifiedCacheService {
       
       memoryStats.totalKeys = Math.max(0, memoryStats.totalKeys - invalidatedKeys);
       this.cacheStats.evictions += invalidatedKeys;
-      
-      console.log(`🗑️ Cache invalidated: ${invalidatedKeys} keys for pattern: ${pattern}`);
+
       return invalidatedKeys;
     } catch (error) {
       console.error('Cache invalidation error:', error);

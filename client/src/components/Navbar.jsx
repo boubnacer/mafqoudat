@@ -414,7 +414,6 @@ const Navbar = () => {
     try {
       setIsRefreshing(true);
       await forceRefreshAllDependencies(currentLanguage);
-      console.log("✅ All data refreshed successfully from navbar");
     } catch (error) {
       console.error("❌ Failed to refresh data from navbar:", error);
     } finally {
@@ -423,14 +422,11 @@ const Navbar = () => {
   };
 
   const handleLanguageChange = async (newLanguage) => {
-    console.log("🌐 [NAVBAR] Language change triggered:", { newLanguage, currentUrl: window.location.href });
-
     try {
       // Use unified language change handler
       const success = await changeLanguage(newLanguage);
 
       if (success) {
-        console.log("🌐 [NAVBAR] Language changed successfully to:", newLanguage);
         handleRegionClose();
       } else {
         console.error("🌐 [NAVBAR] Failed to change language to:", newLanguage);

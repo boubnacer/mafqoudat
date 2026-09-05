@@ -81,7 +81,6 @@ const invalidateCache = (patterns = []) => {
           for (const pattern of patterns) {
             await cacheService.invalidatePattern(pattern);
           }
-          console.log(`🗑️ Cache invalidated for patterns: ${patterns.join(', ')}`);
         }
         return originalJson.call(res, data);
       };
