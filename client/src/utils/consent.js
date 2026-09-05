@@ -68,6 +68,10 @@ export const getConsentSource = () => source;
 
 export const hasAnalyticsConsent = () => signals.analytics_storage === 'granted';
 
+/** Ad-tracking consent (Meta Pixel and anything else in that category). */
+export const hasAdConsent = () =>
+  signals.ad_storage === 'granted' && signals.ad_user_data === 'granted';
+
 /**
  * Subscribe to consent changes. Fires on every CMP answer, including a later
  * one - a visitor who opens the message again and withdraws consent has to be

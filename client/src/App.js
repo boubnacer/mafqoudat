@@ -25,6 +25,7 @@ import MaintenanceMode from "./components/MaintenanceMode";
 import { initializeVisitorSession } from "./utils/visitorSessionSync";
 import { getVisitorSessionId } from "./utils/visitorSession";
 import { initializeGA, trackPageView } from "./utils/analytics";
+import { initializeMetaPixel } from "./utils/metaPixel";
 import { startConsentListener } from "./utils/consent";
 import { applyDocumentTheme } from "./utils/documentTheme";
 import WelcomePageSkeleton from "./components/WelcomePageSkeleton";
@@ -411,11 +412,12 @@ function App() {
     initializeVisitorSession();
     
     // Start listening for the consent manager's answer, then hand Google
-    // Analytics to it: initializeGA loads nothing until consent is reported.
-    // Started here rather than only from initializeGA so the consent state is
-    // resolved even on a build with no GA measurement ID.
+    // Analytics and the Meta Pixel to it: both load nothing until consent is
+    // reported. Started here rather than only from initializeGA so the
+    // consent state is resolved even on a build with no GA measurement ID.
     startConsentListener();
     initializeGA();
+    initializeMetaPixel();
   }, []);
 
   // Initialize localStorage (language is now handled by LanguageProvider)

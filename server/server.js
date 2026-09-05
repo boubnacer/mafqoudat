@@ -154,9 +154,6 @@ app.use(requestLogger);
 // Input sanitization
 app.use(sanitizeInput);
 
-// Database security
-app.use(dbSecurity.validateQuery);
-
 // Enhanced compression middleware with smart optimization
 app.use(...enhancedCompressionMiddleware({
   logLargeResponses: process.env.NODE_ENV === 'development',
@@ -174,8 +171,7 @@ app.use(requestTimeout(30000)); // 30 second timeout
 app.use(cors(corsOptions));
 
 // Rate limiting
-// TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
-// app.use(generalRateLimit);
+app.use(generalRateLimit);
 
 // `verify` stashes the raw bytes on req.rawBody before they're gone to JSON
 // parsing - middleware/facebookWebhookSecurity.js needs the exact raw body to
@@ -187,6 +183,12 @@ app.use(express.json({
   verify: (req, res, buf) => { req.rawBody = buf; },
 }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Database security - has to run after the body parsers above: its
+// req.body operator-stripping (dbSecurity.js's sanitizeQuery) was previously
+// mounted ahead of express.json(), so req.body was always undefined when it
+// ran and the sanitization never touched a single JSON request body.
+app.use(dbSecurity.validateQuery);
 
 app.use(cookieParser());
 

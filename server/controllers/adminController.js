@@ -18,7 +18,7 @@ const { purgeUserData } = require("./usersController");
 const getAllReports = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 100);
     const status = req.query.status;
     const reasonType = req.query.reasonType;
     const sortBy = req.query.sortBy || 'createdAt';
@@ -74,7 +74,7 @@ const getAllReports = async (req, res) => {
 const getAllPromotions = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 100);
     const status = req.query.status; // 'requested', 'processed'
     const sortBy = req.query.sortBy || 'promotionRequestedAt';
     const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
@@ -364,7 +364,7 @@ const deletePost = async (req, res) => {
 const getAllPasswordResetRequests = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 100);
     const status = req.query.status;
     const sortBy = req.query.sortBy || 'createdAt';
     const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
@@ -468,7 +468,7 @@ const updatePasswordResetRequestStatus = async (req, res) => {
 const getAllUsersAdmin = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 100);
     const search = req.query.search || '';
     const sortBy = req.query.sortBy || 'createdAt';
     const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
@@ -530,7 +530,7 @@ const getUserPosts = async (req, res) => {
   try {
     const { userId } = req.params;
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 100);
     const sortBy = req.query.sortBy || 'createdAt';
     const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
 
@@ -724,7 +724,7 @@ const deleteUserAdmin = async (req, res) => {
 const getAllPostsAdmin = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 100);
     const search = req.query.search || '';
     const status = req.query.status;
     const category = req.query.category;

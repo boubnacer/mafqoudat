@@ -6,6 +6,7 @@ const Country = require('../models/Country');
 const { issueSession } = require('../utils/authSession');
 const { logEvents } = require('../middleware/logger');
 const { OAuth2Client } = require('google-auth-library');
+const { auth: authRateLimit } = require('../middleware/rateLimiting');
 
 
 // Initialize Google OAuth2 client
@@ -63,7 +64,7 @@ const verifyGoogleToken = async (idToken) => {
  * @route POST /auth/google/mobile
  * @access Public
  */
-router.post('/google/mobile', async (req, res) => {
+router.post('/google/mobile', authRateLimit, async (req, res) => {
   try {
     const { idToken, accessToken, user, mobile } = req.body;
 
@@ -243,7 +244,7 @@ router.post('/google/mobile', async (req, res) => {
  * @route POST /auth/google/mobile/complete
  * @access Public
  */
-router.post('/google/mobile/complete', async (req, res) => {
+router.post('/google/mobile/complete', authRateLimit, async (req, res) => {
   try {
     const { pendingToken, countryId } = req.body;
 
