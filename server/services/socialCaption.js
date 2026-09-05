@@ -3,21 +3,79 @@ const City = require('../models/City');
 const Category = require('../models/Category');
 const Country = require('../models/Country');
 
-// Matches the badge text in client/src/utils/translations.js (found/lost, ar)
-// exactly - intentionally not FoundLost.labels.ar, which reads differently.
-const STATUS_TEXT = {
-  FOUND: { emoji: '✅', label: 'عثر عليه', dateLabel: 'التاريخ الذي تم العثور فيه على الغرض' },
-  LOST: { emoji: '🔍', label: 'مفقود', dateLabel: 'التاريخ الذي فقد فيه الغرض' },
+// One post, one caption, three stacked language blocks (ar/fr/en) separated
+// by a divider - there is no per-post language field to pick just one, and
+// the Facebook Page / Instagram account serve the whole en/fr/ar audience.
+// Country/city/category names come from their own DB `labels`/`names`
+// (already fetched in full below, not projected to one language), so those
+// are real per-language translations. Free text the user actually typed
+// (exactLocation, mainDate, description) cannot be machine-translated
+// reliably, so it repeats verbatim in every block; only the surrounding
+// labels and "not provided" fallbacks are localized.
+const LOCALES = ['ar', 'fr', 'en'];
+
+// Matches client/src/utils/translations.js's "Post details translations"
+// block (noDescriptionProvided/exactLocation/exactDate/etc.) so the caption
+// reads the same as the site itself.
+const LOCALE_TEXT = {
+  ar: {
+    lostVerb: 'فقدان',
+    foundVerb: 'عثور على',
+    inCountry: 'بدولة',
+    inCity: (city) => ` في مدينة ${city}`,
+    detailsHeading: 'التفاصيل :',
+    exactLocationLabel: 'المكان بالتحديد',
+    dateLabel: 'التاريخ الدقيق',
+    imageLabel: 'الصورة',
+    descriptionHeading: 'الوصف :',
+    contactHeading: 'للمزيد من المعلومات والتواصل :',
+    notAvailable: 'غير متاح',
+    noDescription: 'هذا المنشور لا يحتوي على وصف',
+    footer: 'تم نشر هذا الإعلان بشكل أوتوماتيكي من خلال موقع مفقودات\nmafqoudat.com',
+    listSeparator: '، ',
+  },
+  fr: {
+    lostVerb: 'Perte de',
+    foundVerb: 'Découverte de',
+    inCountry: 'dans le pays',
+    inCity: (city) => `, dans la ville de ${city}`,
+    detailsHeading: 'Détails :',
+    exactLocationLabel: 'Emplacement exact',
+    dateLabel: 'Date exacte',
+    imageLabel: 'Image',
+    descriptionHeading: 'Description :',
+    contactHeading: "Pour plus d'informations et contact :",
+    notAvailable: 'Non disponible',
+    noDescription: "Ce post n'a pas de description",
+    footer: 'Cette annonce a été publiée automatiquement via le site Mafqoudat\nmafqoudat.com',
+    listSeparator: ', ',
+  },
+  en: {
+    lostVerb: 'Lost',
+    foundVerb: 'Found',
+    inCountry: 'in the country of',
+    inCity: (city) => `, in the city of ${city}`,
+    detailsHeading: 'Details:',
+    exactLocationLabel: 'Exact Location',
+    dateLabel: 'Exact Date',
+    imageLabel: 'Image',
+    descriptionHeading: 'Description:',
+    contactHeading: 'For more information & contact:',
+    notAvailable: 'Not available',
+    noDescription: 'This post has no description',
+    footer: 'This listing was posted automatically via the Mafqoudat website\nmafqoudat.com',
+    listSeparator: ', ',
+  },
 };
 
-// Matches translations.js noDescriptionProvided (ar) - same fallback the
-// post detail page shows for a missing description.
-const NO_DESCRIPTION_TEXT = 'هذا المنشور لا يحتوي على وصف';
+const HEADER_EMOJI = { FOUND: '🟢', LOST: '🔴' };
 
-// City and exact date are the only genuinely optional fields on a post
-// (country/category/type are schema-required, always present) - give them
-// the same "shown, but says it's missing" treatment as the description.
-const NOT_PROVIDED_TEXT = 'غير متوفر';
+// Deliberately not translated (see buildLocaleBlock) - the user asked for
+// this exact Arabic word in every language block, unlike every other
+// "not provided" fallback which is localized per block.
+const IMAGE_NOT_AVAILABLE_TEXT = 'غير متاحة';
+
+const BLOCK_DIVIDER = '➖➖➖➖➖➖➖➖➖➖';
 
 // Hashtags can't contain spaces or punctuation - strip both.
 const toHashtag = (label) => label && `#${label.replace(/[\s'"،.,-]/g, '')}`;
@@ -33,6 +91,32 @@ function resolveListingImage(post) {
 
   const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
   return { imageUrl: `${siteUrl}/no-image-placeholder.png`, isPlaceholder: true };
+}
+
+function buildLocaleBlock(locale, data) {
+  const t = LOCALE_TEXT[locale];
+  const {
+    statusCode, categoryLabel, countryLabel, cityLabel,
+    exactLocation, mainDate, isPlaceholder, description, postUrl,
+  } = data;
+
+  const verb = statusCode === 'FOUND' ? t.foundVerb : t.lostVerb;
+  const emoji = HEADER_EMOJI[statusCode] || '📢';
+  const header = `${emoji} ${verb} ${categoryLabel} ${t.inCountry} ${countryLabel}${cityLabel ? t.inCity(cityLabel) : ''}`;
+
+  const detailLines = [
+    `📍 ${t.exactLocationLabel}: ${exactLocation || t.notAvailable}`,
+    `📅 ${t.dateLabel}: ${mainDate || t.notAvailable}`,
+    isPlaceholder && `🖼️ ${t.imageLabel}: ${IMAGE_NOT_AVAILABLE_TEXT}`,
+  ].filter(Boolean).join('\n');
+
+  return [
+    header,
+    `${t.detailsHeading}\n\n${detailLines}`,
+    `${t.descriptionHeading}\n${description || t.noDescription}`,
+    `👉 ${t.contactHeading}\n${postUrl}`,
+    t.footer,
+  ].join('\n\n');
 }
 
 /**
@@ -51,37 +135,31 @@ async function buildListingCaption(post, { isPlaceholder = false } = {}) {
     post.country ? Country.findById(post.country).select('names').lean() : Promise.resolve(null),
   ]);
 
-  const status = STATUS_TEXT[foundLost?.code] || { emoji: '📢', label: '', dateLabel: '' };
-  const countryLabel = country?.names?.ar || '';
-  const cityLabel = city?.labels?.ar || '';
-  const categoryLabels = categories.map((c) => c.labels?.ar).filter(Boolean);
-  const categoryLabel = categoryLabels.join('، ');
-
-  const infoLines = [
-    countryLabel && `🌍 الدولة: ${countryLabel}`,
-    `📍 المدينة: ${cityLabel || NOT_PROVIDED_TEXT}`,
-    post.exactLocation && `🧭 الموقع الدقيق: ${post.exactLocation}`,
-    categoryLabel && `🏷️ الفئة: ${categoryLabel}`,
-    status.label && `${status.emoji} النوع: ${status.label}`,
-    `🗓️ ${status.dateLabel || 'التاريخ'}: ${(post.mainDate && post.mainDate.trim()) || NOT_PROVIDED_TEXT}`,
-    isPlaceholder && '🖼️ الصورة: هذا المنشور لا يحتوي على صورة',
-  ].filter(Boolean).join('\n');
-
-  const lines = [infoLines, post.description || NO_DESCRIPTION_TEXT];
-
+  const statusCode = foundLost?.code;
   const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
   const postUrl = `${siteUrl}/dash/posts/${post._id}`;
-  lines.push(`👉 التفاصيل والتواصل: ${postUrl}`);
 
+  const blocks = LOCALES.map((locale) => buildLocaleBlock(locale, {
+    statusCode,
+    categoryLabel: categories.map((c) => c.labels?.[locale]).filter(Boolean).join(LOCALE_TEXT[locale].listSeparator),
+    countryLabel: country?.names?.[locale] || '',
+    cityLabel: city?.labels?.[locale] || '',
+    exactLocation: post.exactLocation,
+    mainDate: post.mainDate && post.mainDate.trim(),
+    isPlaceholder,
+    description: post.description,
+    postUrl,
+  }));
+
+  const categoryLabelsAr = categories.map((c) => c.labels?.ar).filter(Boolean);
   const hashtags = [
     '#مفقودات',
     '#Mafqoudat',
-    toHashtag(cityLabel),
-    ...categoryLabels.map(toHashtag),
+    toHashtag(city?.labels?.ar),
+    ...categoryLabelsAr.map(toHashtag),
   ].filter(Boolean).join(' ');
-  lines.push(hashtags);
 
-  return lines.join('\n\n');
+  return `${blocks.join(`\n\n${BLOCK_DIVIDER}\n\n`)}\n\n${hashtags}`;
 }
 
 module.exports = { buildListingCaption, resolveListingImage };
