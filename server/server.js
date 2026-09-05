@@ -55,7 +55,7 @@ const {
   apiSecurityHeaders 
 } = require("./middleware/securityHeaders");
 const { sanitizeInput } = require("./middleware/validation");
-const { general: generalRateLimit, dynamicRateLimiter } = require("./middleware/rateLimiting");
+const { general: generalRateLimit, dynamicRateLimiter, visitorSession: visitorSessionRateLimit } = require("./middleware/rateLimiting");
 const dbSecurity = require("./middleware/dbSecurity");
 // Use unified cache system only
 const { initRedis, scheduleCacheWarming } = require("./config/unifiedCache");
@@ -184,7 +184,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(cookieParser());
 
-// Visitor tracking middleware - must be after cookieParser to read cookies
+// Visitor tracking middleware - must be after cookieParser to read cookies.
+// Rate-limited on this exact path first: it's the one path visitorTracker
+// does its (unauthenticated) DB upsert + cache-growing work on, and it's
+// also handled again by routes/root.js further down the chain.
+app.use('/visitor-session', visitorSessionRateLimit);
 const visitorTracker = require("./middleware/visitorTracker");
 app.use(visitorTracker);
 
