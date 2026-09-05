@@ -33,26 +33,6 @@ const securityHeaders = helmet({
   // DNS Prefetch Control
   dnsPrefetchControl: { allow: false },
   
-  // Expect-CT
-  expectCt: {
-    maxAge: 86400,
-    enforce: true
-  },
-  
-  // Feature Policy (deprecated but still useful)
-  featurePolicy: {
-    features: {
-      camera: ["'none'"],
-      microphone: ["'none'"],
-      geolocation: ["'none'"],
-      payment: ["'none'"],
-      usb: ["'none'"],
-      magnetometer: ["'none'"],
-      gyroscope: ["'none'"],
-      accelerometer: ["'none'"]
-    }
-  },
-  
   // Frameguard
   frameguard: { action: 'deny' },
   
@@ -74,21 +54,7 @@ const securityHeaders = helmet({
   
   // Origin Agent Cluster
   originAgentCluster: true,
-  
-  // Permissions Policy
-  permissionsPolicy: {
-    features: {
-      camera: [],
-      microphone: [],
-      geolocation: [],
-      payment: [],
-      usb: [],
-      magnetometer: [],
-      gyroscope: [],
-      accelerometer: []
-    }
-  },
-  
+
   // Referrer Policy
   referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   
@@ -199,7 +165,10 @@ const apiSecurityHeaders = (req, res, next) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
+  );
   
   // Remove server information
   res.removeHeader('X-Powered-By');
