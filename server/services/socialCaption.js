@@ -2,6 +2,7 @@ const FoundLost = require('../models/FoundLost');
 const City = require('../models/City');
 const Category = require('../models/Category');
 const Country = require('../models/Country');
+const { categorySocialImagePath } = require('../config/categorySocialImages');
 
 // One post, one caption, three stacked language blocks (ar/fr/en) separated
 // by a divider - there is no per-post language field to pick just one, and
@@ -81,16 +82,39 @@ const BLOCK_DIVIDER = '➖➖➖➖➖➖➖➖➖➖';
 const toHashtag = (label) => label && `#${label.replace(/[\s'"،.,-]/g, '')}`;
 
 /**
- * A post without an uploaded image still posts with this branded graphic
- * instead of being skipped (Instagram has no text-only post type) or
- * falling back to plain text (Facebook, for visual consistency with IG).
+ * A post without an uploaded image still posts with a branded graphic instead
+ * of being skipped (Instagram has no text-only post type) or falling back to
+ * plain text (Facebook, for visual consistency with IG). The graphic is the
+ * one for the listing's own category - a lost phone goes up with the phone
+ * icon - which says something about the item at a glance, unlike the generic
+ * placeholder that graphic family started as.
+ *
+ * `isPlaceholder` stays true either way: the listing still has no photo of the
+ * item, and the caption has to keep saying so, or a reader would take the
+ * category icon for the thing that was lost.
+ *
+ * The category read is its own query rather than a share of the one
+ * buildListingCaption makes - one indexed point read on a path that already
+ * waits on several Graph calls, and publishing is paced at one post per
+ * SOCIAL_QUEUE_MIN_INTERVAL_SECONDS anyway.
  */
-function resolveListingImage(post) {
+async function resolveListingImage(post) {
   const imageUrl = post.cloudinaryUrl || post.image;
   if (imageUrl) return { imageUrl, isPlaceholder: false };
 
+  const categoryId = (post.categories && post.categories.length > 0)
+    ? post.categories[0]
+    : post.category;
+
+  const category = categoryId
+    ? await Category.findById(categoryId).select('code').lean()
+    : null;
+
   const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
-  return { imageUrl: `${siteUrl}/no-image-placeholder.png`, isPlaceholder: true };
+  return {
+    imageUrl: `${siteUrl}/${categorySocialImagePath(category?.code)}`,
+    isPlaceholder: true,
+  };
 }
 
 function buildLocaleBlock(locale, data) {

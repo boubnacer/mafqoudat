@@ -47,7 +47,7 @@ class FacebookService {
       return null;
     }
 
-    const { imageUrl, isPlaceholder } = resolveListingImage(post);
+    const { imageUrl, isPlaceholder } = await resolveListingImage(post);
     const caption = await buildListingCaption(post, { isPlaceholder });
 
     const response = await axios.post(`${this.baseURL}/${this.pageId}/photos`, null, {

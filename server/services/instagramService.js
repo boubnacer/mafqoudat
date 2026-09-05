@@ -95,7 +95,7 @@ class InstagramService {
       return null;
     }
 
-    const { imageUrl, isPlaceholder } = resolveListingImage(post);
+    const { imageUrl, isPlaceholder } = await resolveListingImage(post);
     const caption = await buildListingCaption(post, { isPlaceholder });
 
     // Instagram publishing is a two-step Graph API flow: create a media
