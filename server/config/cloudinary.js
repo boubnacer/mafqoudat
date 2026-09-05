@@ -21,7 +21,6 @@ const uploadToCloudinary = async (file, folder = 'mafqoudat', options = {}) => {
     // Check cache first
     const cachedResult = await cacheService.get(cacheKey);
     if (cachedResult) {
-      console.log('📦 Cloudinary upload served from cache');
       return cachedResult;
     }
 
@@ -52,8 +51,7 @@ const uploadToCloudinary = async (file, folder = 'mafqoudat', options = {}) => {
 
     // Cache the result
     await cacheService.set(cacheKey, uploadResult, CLOUDINARY_CACHE_TTL);
-    
-    console.log('📤 Cloudinary upload completed and cached');
+
     return uploadResult;
   } catch (error) {
     console.error('Cloudinary upload error:', error);
@@ -69,8 +67,6 @@ const deleteFromCloudinary = async (public_id) => {
       
       // Invalidate related cache entries
       await cacheService.invalidatePattern(`cloudinary:upload:*:${public_id.split('/').pop()}`);
-      
-      console.log('🗑️ Cloudinary image deleted and cache invalidated');
     }
   } catch (error) {
     console.error('Cloudinary delete error:', error);
@@ -114,8 +110,7 @@ const batchUploadToCloudinary = async (files, folder = 'mafqoudat') => {
   try {
     const uploadPromises = files.map(file => uploadToCloudinary(file, folder));
     const results = await Promise.all(uploadPromises);
-    
-    console.log(`📤 Batch upload completed: ${results.length} images`);
+
     return results;
   } catch (error) {
     console.error('Batch upload error:', error);

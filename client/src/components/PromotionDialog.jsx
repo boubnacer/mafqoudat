@@ -32,14 +32,6 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
   
   const [requestPromotion, { isLoading, isError, error: promotionError }] = useRequestPromotionMutation();
 
-  // Debug: Log the postId to see what's being passed
-  React.useEffect(() => {
-    if (open && postId) {
-      console.log('PromotionDialog - Post ID:', postId);
-    }
-  }, [open, postId]);
-
-
   const handlePromotionRequest = async () => {
     setError(null);
     setPhoneError('');
@@ -78,19 +70,13 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
     }
 
     try {
-      // Debug: Log what we're sending
-      console.log('PromotionDialog - Requesting promotion for postId:', postId);
-      
-      const promotionData = { 
+      const promotionData = {
         postId,
         phoneNumber: phoneNumber.trim()
       };
-      
+
       const result = await requestPromotion(promotionData).unwrap();
-      
-      // Debug: Log the result
-      console.log('PromotionDialog - Result:', result);
-      
+
       // Check if the API call was successful
       if (result && result.success) {
         setIsSuccess(true);
