@@ -60,55 +60,17 @@ visitorSchema.statics.getStats = async function(startDate = null, endDate = null
     // Ensure we're using the exact dates provided (they should already be at correct times)
     // Don't modify hours since the frontend sends UTC dates with correct times
     monthVisitorsQuery = { visitedAt: { $gte: start, $lte: end } };
-    
-    // Log for debugging
-    console.log('📊 [VISITOR-MODEL] Using date range query:', {
-      startDateInput: startDate,
-      endDateInput: endDate,
-      startParsed: start.toISOString(),
-      endParsed: end.toISOString(),
-      startLocal: start.toLocaleString(),
-      endLocal: end.toLocaleString(),
-      query: monthVisitorsQuery,
-      countResult: 'will be calculated'
-    });
-  } else {
-    console.log('📊 [VISITOR-MODEL] Using default month query (no date range provided)');
   }
-  
+
   // Get first visit date (earliest visitedAt)
   const firstVisit = await this.findOne().sort({ visitedAt: 1 }).select('visitedAt').lean();
   const firstVisitDate = firstVisit ? firstVisit.visitedAt : null;
-  
-  // First, let's verify the query is correct by checking a sample
-  if (startDate && endDate) {
-    const sampleDocs = await this.find(monthVisitorsQuery).limit(5).select('visitedAt').lean();
-    console.log('📊 [VISITOR-MODEL] Sample documents in range:', {
-      count: sampleDocs.length,
-      dates: sampleDocs.map(d => d.visitedAt.toISOString()),
-      query: monthVisitorsQuery
-    });
-  }
 
   const [totalVisitors, todayVisitors, monthVisitors] = await Promise.all([
     this.countDocuments(),
     this.countDocuments({ visitedAt: { $gte: startOfDay } }),
     this.countDocuments(monthVisitorsQuery)
   ]);
-  
-  // Log the actual count result for debugging
-  if (startDate && endDate) {
-    console.log('📊 [VISITOR-MODEL] Query result:', {
-      monthVisitors,
-      query: monthVisitorsQuery,
-      dateRange: {
-        start: new Date(startDate).toISOString(),
-        end: new Date(endDate).toISOString()
-      },
-      startDateParsed: new Date(startDate).toISOString(),
-      endDateParsed: new Date(endDate).toISOString()
-    });
-  }
 
   return {
     total: totalVisitors,

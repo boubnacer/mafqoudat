@@ -475,8 +475,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         url += `&countryCode=${validCountryCode}`;
       }
       
-      console.log(`🔍 Hybrid search: "${searchQuery}" in ${validCountryCode || 'all countries'} (${currentLanguage || 'en'})`);
-      
       // Include Authorization header if token exists (needed for admin bypass during maintenance)
       const headers = {};
       if (token) {
@@ -495,7 +493,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const data = await response.json();
       
       if (data.success) {
-        console.log(`✅ Hybrid search found ${data.data?.length || 0} cities`);
         return data.data || [];
       } else {
         console.warn(`⚠️ Search API returned success=false:`, data.message);

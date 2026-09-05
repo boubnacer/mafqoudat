@@ -393,17 +393,9 @@ class UnifiedCacheService {
   // Monitor and report memory usage
   monitorMemoryUsage() {
     const memUsage = process.memoryUsage();
-    const memoryStats = this.memoryCache.getStats();
-    
-    // Log memory usage if it's high
-    if (memUsage.heapUsed > 100 * 1024 * 1024) { // 100MB
-      console.log(`⚠️ High memory usage: ${(memUsage.heapUsed / 1024 / 1024).toFixed(2)}MB`);
-      console.log(`📊 Cache stats: ${memoryStats.keys} keys, hit rate: ${((memoryStats.hits / (memoryStats.hits + memoryStats.misses)) * 100).toFixed(2)}%`);
-    }
-    
+
     // Force garbage collection if memory is very high
     if (memUsage.heapUsed > 200 * 1024 * 1024 && global.gc) { // 200MB
-      console.log('🧹 Forcing garbage collection due to high memory usage');
       global.gc();
     }
   }
