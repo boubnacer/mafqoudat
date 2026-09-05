@@ -74,7 +74,6 @@ const getCountries = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch countries",
-      error: error.message
     });
   }
 };
@@ -140,7 +139,6 @@ const searchCountries = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to search countries",
-      error: error.message
     });
   }
 };
@@ -206,7 +204,6 @@ const getCategories = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch categories",
-      error: error.message
     });
   }
 };
@@ -272,7 +269,6 @@ const getFoundLostOptions = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch post types",
-      error: error.message
     });
   }
 };
@@ -347,7 +343,6 @@ const getCitiesByCountry = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch cities by country",
-      error: error.message
     });
   }
 };
@@ -414,7 +409,6 @@ const searchCities = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to search cities",
-      error: error.message
     });
   }
 };
@@ -495,7 +489,6 @@ const getCities = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch cities",
-      error: error.message
     });
   }
 };
@@ -564,7 +557,6 @@ const getDependencies = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch dependencies",
-      error: error.message
     });
   }
 };
@@ -587,7 +579,6 @@ const getCacheStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to get cache stats",
-      error: error.message
     });
   }
 };
@@ -630,7 +621,6 @@ const refreshCache = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to refresh cache",
-      error: error.message
     });
   }
 };
@@ -654,7 +644,6 @@ const clearCache = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to clear cache",
-      error: error.message
     });
   }
 };

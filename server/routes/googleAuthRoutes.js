@@ -73,20 +73,13 @@ router.get('/google/callback',
       let isMobile = false;
       let redirectUri = null;
       
-      console.log('🔍 Google OAuth callback analysis:');
-      console.log('   Query params:', req.query);
-      console.log('   User-Agent:', req.headers['user-agent']);
-      console.log('   State:', req.query.state);
-      
       try {
         if (req.query.state) {
           const stateData = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
           isMobile = stateData.mobile || false;
           redirectUri = stateData.redirectUri;
-          console.log('   Parsed state:', { isMobile, redirectUri });
         }
       } catch (e) {
-        console.log('   State parsing failed:', e.message);
         // Fallback to old detection methods. Deliberately excludes a generic
         // "Mobile" UA substring check — that matches every phone's browser,
         // not just the native app, and would misroute mobile-web logins into
@@ -95,11 +88,7 @@ router.get('/google/callback',
                    req.query.mobile === 'true' ||
                    req.headers['user-agent']?.includes('Expo') ||
                    req.headers['user-agent']?.includes('ReactNative');
-        console.log('   Fallback detection - isMobile:', isMobile);
       }
-      
-      console.log('   Final mobile detection result:', isMobile);
-      
 
       // Check if this is a pending user (new registration)
       if (user && user.isPending) {

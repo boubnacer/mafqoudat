@@ -59,7 +59,7 @@ router.get('/health', verifyJWT, verifyAdmin, async (req, res) => {
     console.error('Health check failed:', error);
     res.status(503).json({
       status: 'unhealthy',
-      error: error.message,
+      error: 'Health check failed',
       timestamp: new Date().toISOString()
     });
   }
@@ -85,9 +85,10 @@ router.get('/health/database', verifyJWT, verifyAdmin, async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    console.error('Database health check failed:', error);
     res.status(503).json({
       status: 'unhealthy',
-      error: error.message,
+      error: 'Database health check failed',
       timestamp: new Date().toISOString()
     });
   }
@@ -110,9 +111,10 @@ router.get('/health/redis', verifyJWT, verifyAdmin, async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    console.error('Redis health check failed:', error);
     res.status(503).json({
       status: 'unhealthy',
-      error: error.message,
+      error: 'Redis health check failed',
       timestamp: new Date().toISOString()
     });
   }
@@ -135,9 +137,10 @@ router.get('/health/cloudinary', verifyJWT, verifyAdmin, async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    console.error('Cloudinary health check failed:', error);
     res.status(503).json({
       status: 'unhealthy',
-      error: error.message,
+      error: 'Cloudinary health check failed',
       timestamp: new Date().toISOString()
     });
   }
@@ -165,9 +168,10 @@ router.get('/resilience/metrics', verifyJWT, verifyAdmin, async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    console.error('Failed to fetch resilience metrics:', error);
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: 'Failed to fetch resilience metrics',
       timestamp: new Date().toISOString()
     });
   }
@@ -189,9 +193,10 @@ router.get('/resilience/circuit-breakers', verifyJWT, verifyAdmin, async (req, r
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    console.error('Failed to fetch circuit breaker status:', error);
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: 'Failed to fetch circuit breaker status',
       timestamp: new Date().toISOString()
     });
   }
@@ -219,9 +224,10 @@ router.post('/resilience/recover/:service', verifyJWT, verifyAdmin, async (req, 
       });
     }
   } catch (error) {
+    console.error('Service recovery attempt failed:', error);
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: 'Service recovery attempt failed',
       timestamp: new Date().toISOString()
     });
   }
@@ -240,9 +246,10 @@ router.post('/resilience/reset', verifyJWT, verifyAdmin, async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    console.error('Failed to reset resilience metrics:', error);
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: 'Failed to reset resilience metrics',
       timestamp: new Date().toISOString()
     });
   }
@@ -346,9 +353,10 @@ router.get('/status', verifyJWT, verifyAdmin, async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Failed to fetch system status:', error);
     res.status(500).json({
       status: 'error',
-      error: error.message,
+      error: 'Failed to fetch system status',
       timestamp: new Date().toISOString()
     });
   }

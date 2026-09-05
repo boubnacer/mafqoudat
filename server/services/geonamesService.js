@@ -50,8 +50,6 @@ class GeoNamesService {
         throw new Error('GeoNames API rate limit exceeded');
       }
 
-      console.log(`🔍 GeoNames API: Searching for "${cityName}" in ${countryCode} (${language})`);
-
       // GeoNames API parameters. name_startsWith does a genuine prefix match
       // (needed for type-ahead search as the user types); the generic `q`
       // param instead does fuzzy full-text relevance search across all
@@ -91,7 +89,6 @@ class GeoNamesService {
       // allows 1-2 character edits, e.g. "Dchira" -> "Dcheira"). Only fires
       // on zero prefix results, so correctly-typed searches cost one request.
       if (places.length === 0 && this.canMakeRequest()) {
-        console.log(`🔎 GeoNames API: No prefix match for "${cityName}", retrying with fuzzy search...`);
         const fuzzyResponse = await axios.get(`${this.baseURL}/searchJSON`, {
           params: { ...baseParams, name: cityName, fuzzy: 0.6 },
           timeout: 10000
@@ -103,7 +100,6 @@ class GeoNamesService {
 
       if (places.length > 0) {
         const cities = places.map(place => this.formatCityData(place, language));
-        console.log(`✅ GeoNames API: Found ${cities.length} cities for "${cityName}"`);
         return cities;
       }
 

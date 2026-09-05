@@ -64,7 +64,6 @@ const getAllReports = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching reports",
-      error: error.message,
     });
   }
 };
@@ -126,7 +125,6 @@ const getAllPromotions = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching promotions",
-      error: error.message,
     });
   }
 };
@@ -181,7 +179,6 @@ const updateReportStatus = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error updating report status",
-      error: error.message,
     });
   }
 };
@@ -227,7 +224,6 @@ const updatePromotionStatus = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error updating promotion status",
-      error: error.message,
     });
   }
 };
@@ -300,7 +296,6 @@ const getAdminDashboard = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching admin dashboard",
-      error: error.message,
     });
   }
 };
@@ -359,7 +354,6 @@ const deletePost = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error deleting post",
-      error: error.message,
     });
   }
 };
@@ -412,7 +406,6 @@ const getAllPasswordResetRequests = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching password reset requests",
-      error: error.message,
     });
   }
 };
@@ -465,7 +458,6 @@ const updatePasswordResetRequestStatus = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error updating password reset request status",
-      error: error.message,
     });
   }
 };
@@ -527,7 +519,6 @@ const getAllUsersAdmin = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching users",
-      error: error.message,
     });
   }
 };
@@ -594,7 +585,6 @@ const getUserPosts = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching user posts",
-      error: error.message,
     });
   }
 };
@@ -661,7 +651,6 @@ const adminResetUserPassword = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error resetting user password",
-      error: error.message,
     });
   }
 };
@@ -725,7 +714,6 @@ const deleteUserAdmin = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error deleting user",
-      error: error.message,
     });
   }
 };
@@ -808,7 +796,6 @@ const getAllPostsAdmin = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching posts",
-      error: error.message,
     });
   }
 };
@@ -821,17 +808,7 @@ const getAllPostsAdmin = async (req, res) => {
 const getVisitorStats = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    
-    // Log the date range for debugging
-    if (startDate && endDate) {
-      console.log('📊 [VISITOR-STATS] Fetching stats for date range:', {
-        startDate,
-        endDate,
-        startDateObj: new Date(startDate),
-        endDateObj: new Date(endDate)
-      });
-    }
-    
+
     // Get statistics with optional date range
     const stats = await Visitor.getStats(startDate || null, endDate || null);
 
@@ -846,7 +823,6 @@ const getVisitorStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching visitor statistics",
-      error: error.message,
     });
   }
 };

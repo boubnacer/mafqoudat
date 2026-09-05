@@ -82,7 +82,7 @@ router.get('/summary', verifyJWT, verifyAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching DB metrics:', error);
-    res.status(500).json({ success: false, error: error.message || 'Failed to fetch DB metrics' });
+    res.status(500).json({ success: false, error: 'Failed to fetch DB metrics' });
   }
 });
 

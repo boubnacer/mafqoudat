@@ -397,7 +397,6 @@ const getAllPosts = async (req, res) => {
     console.error('Error in getAllPosts:', error);
     res.status(500).json({ 
       message: "Error fetching posts",
-      error: error.message 
     });
   }
 };
@@ -1135,9 +1134,9 @@ const getUserPosts = async (req, res) => {
     
     res.json(response);
   } catch (error) {
-    res.status(500).json({ 
-      message: "Error fetching user posts",
-      error: error.message 
+    console.error('Error fetching user posts:', error);
+    res.status(500).json({
+      message: "Error fetching user posts"
     });
   }
 };
@@ -1656,7 +1655,6 @@ const submitPostReport = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to submit report",
-      error: error.message 
     });
   }
 };
@@ -1991,9 +1989,8 @@ const updatePost = async (req, res) => {
 
     res.json(`Post with ID ${updatedPost._id} updated`);
   } catch (error) {
-    console.log('❌ UPDATE POST SERVER - Error saving post:', error.message);
-    console.log('❌ UPDATE POST SERVER - Error details:', error);
-    return res.status(400).json({ message: "Error updating post: " + error.message });
+    console.error('Error updating post:', error);
+    return res.status(400).json({ message: "Error updating post" });
   }
 };
 
@@ -2102,7 +2099,6 @@ const markPostAsReturned = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Error marking post as returned",
-      error: error.message 
     });
   }
 };

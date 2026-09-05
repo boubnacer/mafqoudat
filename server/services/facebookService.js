@@ -58,7 +58,6 @@ class FacebookService {
     // A /photos publish answers with the photo id and, separately, the id of
     // the Page post wrapping it. Engagement lives on the post, not the photo.
     const postId = response.data.post_id || response.data.id;
-    console.log(`✅ Facebook: posted post ${post._id} as FB post ${postId}`);
 
     return { postId, permalink: await this.resolvePermalink(postId) };
   }

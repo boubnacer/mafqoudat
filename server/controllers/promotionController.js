@@ -74,7 +74,6 @@ const requestPromotion = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Error processing promotion request",
-      error: error.message 
     });
   }
 };

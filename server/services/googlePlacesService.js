@@ -85,9 +85,6 @@ class GooglePlacesService {
       // Validate language
       const requestLanguage = this.supportedLanguages.includes(language) ? language : 'en';
 
-      // Log search
-      console.log(`🔍 Google Places: "${cityName}" in ${countryCode} (${requestLanguage})`);
-
       // Construct search query with country name for better results
       const searchQuery = `${cityName} ${this.getCountryName(countryCode)}`;
 
@@ -129,12 +126,10 @@ class GooglePlacesService {
           cities.map(city => this.enrichWithTranslations(city, requestLanguage))
         );
 
-        console.log(`✅ Google Places: ${enrichedCities.length} cities found`);
         return enrichedCities;
       }
 
       if (response.data && response.data.status === 'ZERO_RESULTS') {
-        console.log(`✅ Google Places API: No cities found for "${cityName}"`);
         return [];
       }
 

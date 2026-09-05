@@ -51,7 +51,6 @@ const getCountries = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to fetch countries",
-      error: error.message 
     });
   }
 };
@@ -95,7 +94,6 @@ const searchCountries = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to search countries",
-      error: error.message 
     });
   }
 };
@@ -152,7 +150,6 @@ const createCountry = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to create country",
-      error: error.message 
     });
   }
 };
@@ -203,7 +200,6 @@ const updateCountry = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to update country",
-      error: error.message 
     });
   }
 };
@@ -237,7 +233,6 @@ const deleteCountry = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Failed to delete country",
-      error: error.message 
     });
   }
 };

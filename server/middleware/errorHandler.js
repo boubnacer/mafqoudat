@@ -2,7 +2,7 @@ const { logEvents } = require('./logger')
 
 const errorHandler = (err, req, res, next) => {
     logEvents(`${err.name}: ${err.message}\t${req.method}\t${req.url}\t${req.headers.origin}`, 'errLog.log')
-    console.log(err.stack)
+    console.error(err.stack)
 
     const status = res.statusCode ? res.statusCode : 500 // server error 
 
@@ -10,10 +10,9 @@ const errorHandler = (err, req, res, next) => {
 
     // Handle different types of errors
     if (err.name === 'ValidationError') {
-        return res.json({ 
-            message: 'Validation Error', 
-            details: err.message,
-            isError: true 
+        return res.json({
+            message: 'Validation Error',
+            isError: true
         });
     }
 
@@ -38,9 +37,9 @@ const errorHandler = (err, req, res, next) => {
         });
     }
 
-    res.json({ 
-        message: err.message || 'Internal Server Error', 
-        isError: true 
+    res.json({
+        message: 'Internal Server Error',
+        isError: true
     })
 }
 

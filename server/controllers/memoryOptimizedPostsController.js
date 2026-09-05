@@ -252,7 +252,6 @@ const getAllPosts = async (req, res) => {
     console.error('Error in getAllPosts:', error);
     res.status(500).json({ 
       message: "Error fetching posts",
-      error: error.message 
     });
   }
 };
@@ -689,7 +688,6 @@ const createPost = async (req, res) => {
     console.error('Error in createPost:', error);
     res.status(500).json({ 
       message: "Error creating post",
-      error: error.message 
     });
   }
 };
@@ -728,7 +726,6 @@ const updatePost = async (req, res) => {
     console.error('Error in updatePost:', error);
     res.status(500).json({ 
       message: "Error updating post",
-      error: error.message 
     });
   }
 };
@@ -768,7 +765,6 @@ const deletePost = async (req, res) => {
     console.error('Error in deletePost:', error);
     res.status(500).json({ 
       message: "Error deleting post",
-      error: error.message 
     });
   }
 };

@@ -243,7 +243,6 @@ const getAllPostsOptimized = async (req, res) => {
     console.error('Error in getAllPostsOptimized:', error);
     res.status(500).json({ 
       message: "Error fetching posts",
-      error: error.message 
     });
   }
 };
@@ -556,7 +555,6 @@ const getDashboardOptimized = async (req, res) => {
     console.error('Error in getDashboardOptimized:', error);
     res.status(500).json({ 
       message: "Error fetching dashboard data",
-      error: error.message 
     });
   }
 };

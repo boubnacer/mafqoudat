@@ -50,7 +50,6 @@ const submitPasswordResetRequest = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error submitting password reset request",
-      error: error.message,
     });
   }
 };
