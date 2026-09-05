@@ -106,7 +106,11 @@ const gracefulShutdown = async (signal) => {
   try {
     // Stop database monitoring
     dbMonitor.stopMonitoring();
-    
+
+    // Stop claiming social publish jobs before the database goes away. Whatever
+    // is still queued stays queued and is picked up by the next boot.
+    require("./services/socialPublishQueue").stop();
+
     // Final connection metrics logged
     
     // Close database connection gracefully
@@ -431,6 +435,11 @@ mongoose.connection.once("open", () => {
   require("./models/Notification").syncIndexes().catch((err) => {
     console.error("Failed to sync Notification indexes:", err?.message || err);
   });
+  // Drains the Facebook/Instagram publishing queue, one post at a time per
+  // platform (services/socialPublishQueue.js). Needs the database, so it
+  // starts here rather than at require time; does nothing when no Page or
+  // Instagram account is configured.
+  require("./services/socialPublishQueue").start();
   server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
 });
 

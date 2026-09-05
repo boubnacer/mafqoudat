@@ -589,6 +589,119 @@ never in one platform's UI.
   the Expo transport and covers what a recipient actually receives (direction wording,
   per-device language, burst collapsing, dead-token pruning).
 
+## Auto-posting to Facebook/Instagram (server)
+
+Every new listing is mirrored to the Facebook Page and the Instagram account.
+That publish is **queued and paced**, never inline — the single design decision
+this whole section exists to protect.
+
+- **What it replaced.** `createNewPost` used to call
+  `facebookService.postNewListing` and `instagramService.postNewListing`
+  directly, fire-and-forget, concurrently, and `.catch(console.error)` whatever
+  failed. Correct for one listing at a time; wrong for a burst, in three
+  separate ways. Instagram's Content Publishing API refuses everything past 25
+  published posts per rolling 24h per account, so listing 26 onwards silently
+  never reached Instagram. Facebook has no such count — its limit is a rolling
+  per-app/per-Page call budget (BUC) that **concurrency spends fastest**, so ten
+  calls in one second is far likelier to be throttled than the same ten over ten
+  minutes. And simultaneous near-identical automated posting is the shape Meta's
+  spam systems look for regardless of any numeric limit. In all three cases the
+  refusal was caught, logged and dropped: the listing existed on the site with
+  no Page copy, no retry, and nothing anywhere recording that it had happened.
+- **Pacing is unconditional, the quota is a separate gate on top.** The worker
+  leaves at least `SOCIAL_QUEUE_MIN_INTERVAL_SECONDS` (30) between two publishes
+  on the same platform whether or not any limit is close — "burst until
+  something breaks, then slow down" is the behaviour being removed, so the fix
+  cannot be a limit check alone. Instagram's daily cap is then a second,
+  independent gate, and it **defers rather than drops**: when the window is
+  full, the remaining jobs are dated to when the oldest publish ages out of it
+  (+ a minute's buffer) and go up by themselves the next day. Facebook gets no
+  quota gate because it has no such cap — pacing plus the rate-limit cooldown is
+  what handles its budget.
+- **The queue is a collection, not a library.**
+  [SocialPostJob.js](server/models/SocialPostJob.js), one row per (post,
+  platform), drained by [socialPublishQueue.js](server/services/socialPublishQueue.js).
+  MongoDB rather than Bull/BullMQ + Redis: `MONGODB_URI` is already required at
+  boot while `REDIS_URL` is explicitly optional (see the auth-session notes), so
+  a Redis-backed queue would be a new hard dependency for the one part of the
+  system that must not lose work. It also makes the queue *readable* — `npm run
+  social-queue -- --status` answers "did my listing reach the Page?", which
+  previously could only be answered by grepping logs.
+- **`nextAttemptAt` carries every kind of waiting** — retry backoff,
+  rate-limit cooldown, daily-quota deferral. One field, one claim query
+  (`{platform, status:'pending', nextAttemptAt:{$lte:now}}` sorted
+  `nextAttemptAt, createdAt`), so there is no separate scheduler to keep in step
+  with the queue.
+- **A limit pauses the whole platform, not just the job that hit it.**
+  Deferring one job hands the next job the same refusal a second later, and
+  continuing to call a throttled endpoint is what extends a block rather than
+  clearing it. `deferPlatform` levels every pending job of that platform onto
+  one resume time; the claim's secondary sort on `createdAt` is what keeps the
+  queue FIFO through that levelling. An in-memory `pausedUntil` is a fast path
+  only — the durable copy is on the jobs, which is what a restart or a second
+  instance reads.
+- **Being rate-limited is not a failed attempt.** `attempts` counts only real
+  failures, so a throttle can never burn through `SOCIAL_QUEUE_MAX_ATTEMPTS` and
+  mark a perfectly good listing failed. A missing permission, by contrast, fails
+  *immediately* — an OAuth scope error answers the same way however many times
+  it is asked, and retrying it just spends the rate-limit budget the rest of the
+  queue needs.
+- **Classification order is load-bearing.** Meta returns its throttling codes
+  (4/17/32/341/613) under `type: "OAuthException"`, so `graphApi.js`'s
+  long-standing `isPermissionError` answers true for them too. `handleFailure`
+  checks `isPublishLimitError` → `isRateLimitError` → `isPermissionError`, in
+  that order; reversed, every throttle would read as a permanent authorisation
+  problem. The predicate carries a comment saying so.
+- **`isPublishLimitError` exists even though the queue counts publishes
+  itself.** The local count only knows about posts *this app* published;
+  anything posted to the account by hand spends quota it never saw. The
+  platform's own refusal (code 9) is the backstop, and it is always right.
+- **Nothing is published twice, and the ordering of the two writes is the
+  reason.** After a successful publish the *job* is marked done (with its own
+  copy of the returned id and permalink) **before** `Post.social` is updated. The
+  other order would leave a published copy nobody can ask Graph about and a
+  retry that posts it a second time; this order means a failed second write is
+  recoverable — `--repair` reattaches the ids from the jobs. On top of that:
+  claiming is an atomic `findOneAndUpdate` (two instances cannot take the same
+  job), the `{post, platform}` unique index makes enqueueing idempotent, and the
+  publish path re-reads the post and skips it if it already carries that
+  platform's id.
+- **A job whose worker died is returned to the queue, with `attempts`
+  incremented** so an interruption that repeats cannot loop forever. The lock
+  timeout is 10 minutes, not seconds, precisely because an Instagram publish
+  legitimately takes tens of seconds (container creation, readiness polling,
+  publish retries) and reclaiming one that is still running is the one place a
+  duplicate Page post is conceivable.
+- **A listing that should no longer be published is cancelled, not published.**
+  Deleted before its turn, or no longer `active` (resolved/expired/suspended) —
+  putting it on the Page then would advertise something the site itself no
+  longer shows.
+- **Post creation is untouched.** It never waited on social publishing and still
+  does not; `enqueuePost` is awaited only because it is two small upserts and the
+  work should be durably recorded before the author is told the post exists, and
+  it is wrapped so a queue failure can never fail the request.
+- **`resolvePermalink` was deliberately left as a second call per publish.**
+  Folding it into `socialStatsService`'s existing batch would save one Graph call
+  per post, but pacing already removed the burst that made call count matter, and
+  it would churn a working path in `facebookService`/`instagramService` for a
+  marginal gain. Revisit only if the call budget ever becomes the binding
+  constraint.
+- **Worker lifecycle**: started from `server.js` on the `mongoose.connection`
+  open event (it needs the database), stopped in `gracefulShutdown`, interval
+  `unref()`ed so it never holds the process open — anything queued is durable and
+  resumes on the next boot. `SOCIAL_QUEUE_ENABLED=false` turns social publishing
+  off without touching post creation.
+- **Ops**: `npm run social-queue -- --status | --drain [--max=N] |
+  --retry-failed | --repair` ([socialQueue.js](server/scripts/socialQueue.js)).
+  `--drain` runs the same worker from the command line, for a scheduler-only
+  deployment or to push a backlog through after fixing what was refusing it.
+- **Offline check**: `npm run test-social-queue` in `server/` — no DB, no
+  network, no waiting: both collections are an in-memory fake, the publishers are
+  stubs, and the clock is injected, so the 24h quota window is exercised in
+  microseconds. Covers pacing, FIFO order, the quota deferral rolling over to the
+  next day, the platform-wide throttle stand-down, permission-vs-transient
+  classification, cancellation, stall recovery, and the two double-post guards.
+
 ## Reach: post views + social engagement (web + mobile)
 
 How much attention a listing has had, from two independent sources. Both front
@@ -610,11 +723,11 @@ server-side.
   response. Consequence: the stored count is always current, the *displayed* one
   can lag by the detail cache TTL (30 min).
 - **Social engagement**: every post is auto-posted to the Facebook Page and the
-  Instagram account on creation. Those publish responses used to be logged and
+  Instagram account on creation (queued and paced — see **Auto-posting to
+  Facebook/Instagram** above). Those publish responses used to be logged and
   discarded; `Post.social.{facebook.postId,instagram.mediaId}` + permalinks are
-  now persisted by `createNewPost` (each on its own subpath, so the two
-  concurrent fire-and-forget writes cannot clobber each other), which is what
-  makes it possible to ask Graph anything afterwards. **Posts created before this
+  now persisted as each publish lands, which is what makes it possible to ask
+  Graph anything afterwards. **Posts created before this
   have no ids and can never get stats** — there is no reliable way to map an old
   listing back to its Page copy.
 - **Reader**: [socialStatsService.js](server/services/socialStatsService.js) fills
