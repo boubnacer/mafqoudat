@@ -8,8 +8,7 @@ const Report = require("../models/Report");
 const { deleteFromCloudinary } = require("../config/cloudinary");
 const mongoose = require("mongoose");
 const TranslationService = require("../services/translationService");
-const facebookService = require("../services/facebookService");
-const instagramService = require("../services/instagramService");
+const socialPublishQueue = require("../services/socialPublishQueue");
 const matchingService = require("../services/matchingService");
 const { cacheService } = require("../config/cache");
 const { escapeRegex } = require("../utils/regexUtils");
@@ -1470,35 +1469,22 @@ const createNewPost = async (req, res) => {
       await cacheService.invalidatePattern('posts:*');
       await cacheService.invalidatePattern('dashboard:*');
 
-      // Fire-and-forget: never block or fail post creation on a social posting
-      // error. The ids that come back are stored (each on its own subpath, so
-      // the two concurrent writes cannot clobber each other) - they are the
-      // only handle on the Page/IG copies, and socialStatsService needs them
-      // to read back how the listing is doing there.
-      facebookService.postNewListing(post).then(async (result) => {
-        if (!result?.postId) return;
-        await Post.updateOne({ _id: post._id }, {
-          $set: {
-            'social.facebook.postId': result.postId,
-            'social.facebook.permalink': result.permalink || null,
-            'social.facebook.postedAt': new Date(),
-          }
-        });
-      }).catch((socialError) => {
-        console.error(`Facebook auto-post failed for post ${post._id}:`, socialError.response?.data || socialError.message);
-      });
-      instagramService.postNewListing(post).then(async (result) => {
-        if (!result?.mediaId) return;
-        await Post.updateOne({ _id: post._id }, {
-          $set: {
-            'social.instagram.mediaId': result.mediaId,
-            'social.instagram.permalink': result.permalink || null,
-            'social.instagram.postedAt': new Date(),
-          }
-        });
-      }).catch((socialError) => {
-        console.error(`Instagram auto-post failed for post ${post._id}:`, socialError.response?.data || socialError.message);
-      });
+      // Queue the Facebook/Instagram copies rather than publishing them here.
+      // This used to fire both Graph calls inline, concurrently, and drop
+      // whatever failed - which is fine for one listing and wrong for a burst,
+      // since Meta limits both platforms and a refused publish was lost with
+      // nothing to say so. services/socialPublishQueue.js paces them out
+      // instead and retries or defers anything that is refused.
+      //
+      // Awaited, unlike the publishing it replaces: it is two small upserts,
+      // and the whole point is that the work is durably recorded before the
+      // author is told the post exists. It still cannot fail the request - a
+      // queue that is unreachable is a missing social copy, not a failed post.
+      try {
+        await socialPublishQueue.enqueuePost(post);
+      } catch (queueError) {
+        console.error(`Failed to queue social publishing for post ${post._id}:`, queueError.message);
+      }
 
       // Look for counterparts on the opposite side (lost <-> found) and alert
       // both owners. Deferred and self-contained: a matching failure must never
