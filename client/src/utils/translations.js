@@ -1229,8 +1229,8 @@ export const translations = {
     trackingCampaigns: "Marketing campaign tracking",
     managingCookies: "Managing Cookies",
     browserSettingsDesc: "You can control cookies through your browser settings.",
-    cookieConsentDesc: "We ask for your consent before analytics and advertising cookies are set. Some social media cookies are still set when the page loads.",
-    thirdPartyCookiesDesc: "Third-party cookies are subject to their own policies.",
+    cookieConsentDesc: "We ask for your consent before analytics and advertising cookies are set, including Google Analytics, Google AdSense, and the Meta (Facebook) Pixel.",
+    thirdPartyCookiesDesc: "We use Google Analytics (usage analytics), Google AdSense (advertising), and the Meta (Facebook) Pixel (advertising, tied to our Facebook Page). Each is subject to its own provider's privacy policy.",
     required: "Required",
     cookieQuestions: "Have questions about cookies?",
     // Consent manager (Google Funding Choices). The banner itself is Google's;
@@ -2991,8 +2991,8 @@ export const translations = {
     trackingCampaigns: "Suivi des campagnes marketing",
     managingCookies: "Gestion des cookies",
     browserSettingsDesc: "Vous pouvez contrôler les cookies via les paramètres de votre navigateur.",
-    cookieConsentDesc: "Nous demandons votre consentement avant de déposer des cookies d'analyse et de publicité. Certains cookies de réseaux sociaux sont encore déposés au chargement de la page.",
-    thirdPartyCookiesDesc: "Les cookies tiers sont soumis à leurs propres politiques.",
+    cookieConsentDesc: "Nous demandons votre consentement avant de déposer des cookies d'analyse et de publicité, notamment Google Analytics, Google AdSense et le pixel Meta (Facebook).",
+    thirdPartyCookiesDesc: "Nous utilisons Google Analytics (analyse d'utilisation), Google AdSense (publicité) et le pixel Meta (Facebook) (publicité, lié à notre page Facebook). Chacun est soumis à la politique de confidentialité de son propre fournisseur.",
     required: "Requis",
     cookieQuestions: "Des questions sur les cookies ?",
     // Consent manager (Google Funding Choices).
@@ -4740,8 +4740,8 @@ export const translations = {
     trackingCampaigns: "تتبع الحملات التسويقية",
     managingCookies: "إدارة ملفات تعريف الارتباط",
     browserSettingsDesc: "يمكنك التحكم في ملفات تعريف الارتباط من خلال إعدادات متصفحك.",
-    cookieConsentDesc: "نطلب موافقتك قبل تعيين ملفات تعريف الارتباط الخاصة بالتحليلات والإعلانات. ولا تزال بعض ملفات تعريف الارتباط الخاصة بوسائل التواصل الاجتماعي تُعيَّن عند تحميل الصفحة.",
-    thirdPartyCookiesDesc: "ملفات تعريف الارتباط الخارجية تخضع لسياساتها الخاصة.",
+    cookieConsentDesc: "نطلب موافقتك قبل تعيين ملفات تعريف الارتباط الخاصة بالتحليلات والإعلانات، بما في ذلك Google Analytics وGoogle AdSense وبكسل Meta (فيسبوك).",
+    thirdPartyCookiesDesc: "نستخدم Google Analytics (تحليل الاستخدام)، وGoogle AdSense (الإعلانات)، وبكسل Meta (فيسبوك) (الإعلانات، المرتبط بصفحتنا على فيسبوك). يخضع كل منها لسياسة الخصوصية الخاصة بمزوّده.",
     required: "مطلوب",
     cookieQuestions: "هل لديك أسئلة حول ملفات تعريف الارتباط؟",
     // Consent manager (Google Funding Choices).

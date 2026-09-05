@@ -174,8 +174,7 @@ app.use(requestTimeout(30000)); // 30 second timeout
 app.use(cors(corsOptions));
 
 // Rate limiting
-// TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
-// app.use(generalRateLimit);
+app.use(generalRateLimit);
 
 // `verify` stashes the raw bytes on req.rawBody before they're gone to JSON
 // parsing - middleware/facebookWebhookSecurity.js needs the exact raw body to

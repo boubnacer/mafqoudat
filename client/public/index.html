@@ -138,24 +138,20 @@
     <!-- Design system (Phase 1): Cairo (display) + IBM Plex Sans Arabic (body) -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet" />
 
-    <!-- Facebook Pixel Code -->
-    <script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '822628638471721');
-      fbq('track', 'PageView');
-    </script>
-    <noscript><img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=822628638471721&ev=PageView&noscript=1"
-    /></noscript>
-    <!-- End Facebook Pixel Code -->
-    
+    <!--
+      Facebook Pixel used to load here unconditionally - fbq('init'...) and
+      fbq('track', 'PageView') fired on first byte, before the Consent Mode
+      defaults below were even set and with no dependency on the CMP's answer.
+      That undermined the whole point of having a certified CMP with
+      denied-by-default consent for everything else. It now lives in
+      src/utils/metaPixel.js, requested only after utils/consent.js reports ad
+      consent (ad_storage + ad_user_data granted) - same pattern as gtag.js
+      below. The noscript fallback pixel is not reproduced: there is no way to
+      gate a <noscript> tag on a JS-read consent signal, and the tradeoff here
+      mirrors the rest of this consent setup - no tracking fires without an
+      answer, even at the cost of the non-JS fallback.
+    -->
+
     <!--
       Consent management (Google Funding Choices / "Privacy & messaging") and
       the Google Analytics gate.

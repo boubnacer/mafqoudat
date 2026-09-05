@@ -179,7 +179,7 @@ router.route("/report").post(
 router
   .route("/")
   .post(
-    // createPostLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
+    createPostLimit,
     (req, res, next) => {
       uploadWithFields.fields([
         { name: 'image', maxCount: 1 },
