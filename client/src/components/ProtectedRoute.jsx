@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { selectIsLoggedIn } from '../features/auth/authSlice';
 import { selectCurrentCountry } from '../app/state';
 import useAuth from '../hooks/useAuth';
 import { Alert, Snackbar } from '@mui/material';
-import { store } from '../app/store';
 import { authStorage } from '../utils/authStorage';
 
 // Debug configuration
@@ -68,8 +67,7 @@ const ProtectedRoute = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  
+
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const currentCountry = useSelector(selectCurrentCountry);
   const { country: userCountry } = useAuth();
@@ -105,23 +103,6 @@ const ProtectedRoute = ({
       window.removeEventListener('rateLimitError', handleGlobalError);
     };
   }, []);
-
-  // State synchronization check
-  useEffect(() => {
-    const checkAuthState = () => {
-      const state = store.getState();
-      const { token, isLoggedIn: stateIsLoggedIn } = state.auth;
-      
-      if (token && !stateIsLoggedIn) {
-        console.warn('🚨 Auth state inconsistency detected, forcing update');
-        dispatch({ type: 'auth/forceUpdate' });
-      }
-    };
-    
-    const interval = setInterval(checkAuthState, 5000);
-    
-    return () => clearInterval(interval);
-  }, [dispatch]);
 
   // Simple initialization - no complex refresh logic needed
   useEffect(() => {
