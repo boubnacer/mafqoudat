@@ -71,9 +71,6 @@ const Sponsored = ({ post }) => {
             src={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : post.image) : noImageSvg} 
             alt={`${post.category} - ${post.region}`}
             fallback={noImageSvg}
-            onError={(e) => {
-              console.log('Image failed to load:', e.target.src);
-            }}
             sx={{
               width: '100%',
               height: '100%',

@@ -1385,10 +1385,8 @@ const createNewPost = async (req, res) => {
           if (apiCityData.source === 'google') {
             cityDataToSave.apiSource = 'google';
             cityDataToSave.placeId = apiCityData.placeId;
-            console.log(`🌐 Saved city from Google Places: ${apiCityData.labels.en}`);
           } else {
             cityDataToSave.apiSource = 'geonames';
-            console.log(`🗺️ Saved city from GeoNames: ${apiCityData.labels.en}`);
           }
 
           const newCity = await City.create(cityDataToSave);
@@ -1544,10 +1542,6 @@ const submitPostReport = async (req, res) => {
   try {
     const { postId, reason, reasonType, reasonLabel, userId } = req.body;
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Report submission - body keys:', Object.keys(req.body));
-    }
-
     // For authenticated reports, we'll use the authenticated user's ID
     const reportingUserId = req.user || userId || null;
 
@@ -1591,10 +1585,6 @@ const submitPostReport = async (req, res) => {
       createdAt: post.createdAt
     };
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Email post data prepared for post:', emailPostData._id);
-    }
-
     // Get user data (if userId is provided and not anonymous) - optimized with selective fields
     let user = null;
     if (reportingUserId && reportingUserId !== 'anonymous') {
@@ -1633,7 +1623,6 @@ const submitPostReport = async (req, res) => {
       };
 
       const savedReport = await Report.create(reportData);
-      console.log('Report saved to database:', savedReport._id);
     } catch (dbError) {
       console.error('Error saving report to database:', dbError);
       // Continue with email notification even if database save fails
@@ -1693,32 +1682,11 @@ const updatePost = async (req, res) => {
     image,
   } = requestData;
 
-  // Debug: log request shape without leaking PII (contact, exactLocation, description, user id)
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('🔍 UPDATE POST SERVER - Request body keys:', Object.keys(req.body));
-    console.log('🔍 UPDATE POST SERVER - City value present:', !!city, 'Type:', typeof city);
-    console.log('🔍 UPDATE POST SERVER - Validation check:');
-    console.log('  - id exists:', !!id);
-    console.log('  - user exists:', !!user);
-    console.log('  - category exists:', !!category);
-    console.log('  - categories exists:', !!categories, 'isArray:', Array.isArray(categories));
-    console.log('  - exactLocation length:', exactLocation ? String(exactLocation).length : 0);
-    console.log('  - country exists:', !!country);
-    console.log('  - contact length:', contact ? String(contact).length : 0);
-    console.log('  - foundLost exists:', !!foundLost);
-    console.log('  - returned type:', typeof returned, 'isBoolean:', typeof returned === "boolean");
-  }
-
   // Determine which category field to use - prefer categories array, fallback to category
   const categoryIds = (categories && Array.isArray(categories) && categories.length > 0)
     ? categories
     : (category ? [category] : []);
-  
-  console.log('🔍 UPDATE POST SERVER - Category processing:');
-  console.log('  - categories (from request):', categories);
-  console.log('  - category (from request):', category);
-  console.log('  - categoryIds (processed):', categoryIds);
-  
+
   // Use first category for legacy category field validation
   const primaryCategory = categoryIds.length > 0 ? categoryIds[0] : category;
   
@@ -1733,7 +1701,6 @@ const updatePost = async (req, res) => {
     typeof returned !== "boolean" ||
     categoryIds.length === 0
   ) {
-    console.log('❌ UPDATE POST SERVER - Missing required fields');
     return res.status(400).json({ message: "All fields are required" });
   }
   
@@ -1754,13 +1721,9 @@ const updatePost = async (req, res) => {
   });
   
   if (validCategoryIds.length !== categoryIds.length) {
-    console.log('❌ UPDATE POST SERVER - Invalid category IDs found');
-    console.log('  - Received categoryIds:', categoryIds);
-    console.log('  - Valid categoryIds:', validCategoryIds);
     return res.status(400).json({ message: "Invalid category ID format" });
   }
-  
-  console.log('🔍 UPDATE POST SERVER - Validating categories:', validCategoryIds);
+
   // Convert to ObjectIds for validation
   const categoryObjectIds = validCategoryIds.map(catId => {
     if (typeof catId === 'string' && mongoose.Types.ObjectId.isValid(catId)) {
@@ -1771,47 +1734,21 @@ const updatePost = async (req, res) => {
   
   const categoryValidationPromises = categoryObjectIds.map(catId => Category.exists({ _id: catId }));
   const categoryExistsResults = await Promise.all(categoryValidationPromises);
-  console.log('🔍 UPDATE POST SERVER - Category validation results:', categoryExistsResults);
-  
+
   // exists() returns the document _id or null, so check for truthy values
   const allCategoriesExist = categoryExistsResults.every(exists => exists !== null && exists !== undefined);
-  console.log('🔍 UPDATE POST SERVER - All categories exist:', allCategoriesExist);
-  
-  if (!allCategoriesExist) {
-    console.log('❌ UPDATE POST SERVER - Some categories do not exist');
-    console.log('  - Category IDs checked:', categoryObjectIds);
-    console.log('  - Validation results:', categoryExistsResults);
-  }
-  
+
   const foundLostExists = await FoundLost.exists({ _id: foundLost });
-  
+
   // Validate city if it's a valid ObjectId (skip validation for API cities)
   let cityExists = true;
   if (city && mongoose.Types.ObjectId.isValid(city)) {
-    // console.log('🔍 UPDATE POST SERVER - Validating ObjectId city:', city);
     cityExists = await City.exists({ _id: city });
-    // console.log('🔍 UPDATE POST SERVER - City exists:', cityExists);
-  } else if (city) {
-    // console.log('🔍 UPDATE POST SERVER - API city (non-ObjectId):', city);
   }
   // For API cities (non-ObjectId strings), we'll accept them as-is
-  
-  // console.log('🔍 UPDATE POST SERVER - Database existence checks:');
-  // console.log('  - userExists:', userExists);
-  // console.log('  - countryExists:', countryExists);
-  // console.log('  - categoryExists:', categoryExists);
-  // console.log('  - foundLostExists:', foundLostExists);
-  // console.log('  - cityExists:', cityExists);
-  
+
   // Detailed validation error reporting
   if (!userExists || !countryExists || !allCategoriesExist || !foundLostExists || !cityExists) {
-    console.log('❌ UPDATE POST SERVER - Database validation failed');
-    console.log('  - userExists:', userExists);
-    console.log('  - countryExists:', countryExists);
-    console.log('  - allCategoriesExist:', allCategoriesExist);
-    console.log('  - foundLostExists:', foundLostExists);
-    console.log('  - cityExists:', cityExists);
-    
     let errorDetails = [];
     if (!userExists) errorDetails.push('user');
     if (!countryExists) errorDetails.push('country');

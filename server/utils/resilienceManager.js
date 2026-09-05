@@ -93,7 +93,7 @@ class ResilienceManager {
       // Try fallback if available
       if (fallback) {
         try {
-          console.log(`🔄 Using fallback for '${name}' after failure`);
+          console.error(`🔄 Using fallback for '${name}' after failure`);
           return await fallback();
         } catch (fallbackError) {
           console.error(`❌ Fallback also failed for '${name}':`, fallbackError.message);

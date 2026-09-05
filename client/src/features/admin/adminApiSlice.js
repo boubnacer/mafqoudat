@@ -225,34 +225,16 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         if (endDate) params.append('endDate', endDate);
         const queryString = params.toString();
         const url = `/admin/visitor-stats${queryString ? `?${queryString}` : ''}`;
-        
-        // Log for debugging
-        console.log('📊 [API-SLICE] Fetching visitor stats:', {
-          startDate,
-          endDate,
-          url
-        });
-        
+
         return url;
       },
       // Use serializable query key to ensure different date ranges create different cache entries
       serializeQueryArgs: ({ queryArgs }) => {
         const key = `visitor-stats-${queryArgs?.startDate || 'all'}-${queryArgs?.endDate || 'all'}`;
-        console.log('📊 [API-SLICE] Serialized query key:', key, {
-          startDate: queryArgs?.startDate,
-          endDate: queryArgs?.endDate
-        });
         return key;
       },
       // Don't merge - always use new data (replace cache entirely)
       merge: (currentCache, newItems) => {
-        console.log('📊 [API-SLICE] Cache merge:', {
-          hasCurrentCache: !!currentCache,
-          hasNewItems: !!newItems,
-          currentCacheThisMonth: currentCache?.data?.statistics?.thisMonth,
-          newItemsThisMonth: newItems?.data?.statistics?.thisMonth,
-          willUse: 'newItems'
-        });
         // Always return new items to replace cache
         return newItems;
       },
