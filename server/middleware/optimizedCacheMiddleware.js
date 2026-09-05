@@ -46,8 +46,6 @@ const invalidateCache = (patterns = [], dataType = null) => {
             totalInvalidated += invalidated;
           }
           
-          console.log(`🗑️ Cache invalidated: ${totalInvalidated} keys for patterns: ${patterns.join(', ')}`);
-          
           // Add invalidation info to response headers
           res.set('X-Cache-Invalidated', totalInvalidated.toString());
         }
@@ -334,9 +332,7 @@ const warmCacheMiddleware = async (req, res) => {
   try {
     const { force } = req.query;
     const forceRefresh = force === 'true';
-    
-    console.log(`🔥 Manual cache warming requested (force: ${forceRefresh})`);
-    
+
     const result = await optimizedCacheService.warmCache(forceRefresh);
     
     res.json({

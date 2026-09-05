@@ -132,7 +132,6 @@ const UserProfile = () => {
                 country: result.data.country,
               };
               authStorage.updateUserData(updatedUserData);
-              console.log('✅ [PROFILE] localStorage synced with updated user data');
             }
           }
         } catch (error) {
@@ -201,13 +200,11 @@ const UserProfile = () => {
       
       // If a new token was returned (username or country changed), update the auth state
       if (response.accessToken) {
-        console.log('✅ [PROFILE] New token received, updating credentials');
         dispatch(setCredentials({ accessToken: response.accessToken }));
       }
 
       // If country changed, update the global state immediately for navbar
       if (formData.country !== oldCountry) {
-        console.log('✅ [PROFILE] Country changed, updating global state');
         dispatch(setCurrentCountry({ currentCountry: formData.country }));
       }
     } catch (err) {

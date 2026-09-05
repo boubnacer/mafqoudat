@@ -50,7 +50,7 @@ const initRedis = async () => {
       });
       
       redisClient.on('error', (err) => {
-        console.log('Redis Client Error:', err);
+        console.error('Redis Client Error:', err);
         redisConnected = false;
       });
       
@@ -71,7 +71,7 @@ const initRedis = async () => {
       console.log('⚠️  REDIS_URL not provided, using in-memory cache only');
     }
   } catch (error) {
-    console.log('❌ Redis connection failed, using in-memory cache only:', error.message);
+    console.error('❌ Redis connection failed, using in-memory cache only:', error.message);
     redisConnected = false;
   }
 };
@@ -295,8 +295,7 @@ class UnifiedCacheService {
       
       memoryStats.totalKeys = Math.max(0, memoryStats.totalKeys - invalidatedKeys);
       this.cacheStats.evictions += invalidatedKeys;
-      
-      console.log(`🗑️ Cache invalidated: ${invalidatedKeys} keys for pattern: ${pattern}`);
+
       return invalidatedKeys;
     } catch (error) {
       console.error('Cache invalidation error:', error);
@@ -394,17 +393,9 @@ class UnifiedCacheService {
   // Monitor and report memory usage
   monitorMemoryUsage() {
     const memUsage = process.memoryUsage();
-    const memoryStats = this.memoryCache.getStats();
-    
-    // Log memory usage if it's high
-    if (memUsage.heapUsed > 100 * 1024 * 1024) { // 100MB
-      console.log(`⚠️ High memory usage: ${(memUsage.heapUsed / 1024 / 1024).toFixed(2)}MB`);
-      console.log(`📊 Cache stats: ${memoryStats.keys} keys, hit rate: ${((memoryStats.hits / (memoryStats.hits + memoryStats.misses)) * 100).toFixed(2)}%`);
-    }
-    
+
     // Force garbage collection if memory is very high
     if (memUsage.heapUsed > 200 * 1024 * 1024 && global.gc) { // 200MB
-      console.log('🧹 Forcing garbage collection due to high memory usage');
       global.gc();
     }
   }

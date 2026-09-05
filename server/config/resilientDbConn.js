@@ -255,7 +255,6 @@ const executeWithFallback = async (operation, fallbackOperation = null, context 
         
         if (fallbackOperation) {
             try {
-                console.log(`🔄 Using fallback operation${context ? ` for ${context}` : ''}`);
                 connectionMetrics.gracefulDegradations++;
                 return await fallbackOperation();
             } catch (fallbackError) {

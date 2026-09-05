@@ -5,21 +5,6 @@ import { getVisitorSessionId } from "../../utils/visitorSession";
 import { authStorage } from "../../utils/authStorage";
 import { refreshAccessToken } from "../../utils/refreshClient";
 
-// Debug configuration
-const DEBUG_AUTH = false;
-
-// Debug logging function
-const debugLog = (message, data = null) => {
-  if (DEBUG_AUTH) {
-    const timestamp = new Date().toISOString();
-    if (data) {
-      console.log(`🔍 [API-SLICE] ${message}`, { timestamp, ...data });
-    } else {
-      console.log(`🔍 [API-SLICE] ${message} - ${timestamp}`);
-    }
-  }
-};
-
 // Enhanced error handling for network failures
 const isNetworkError = (error) => {
   return !error?.status || error.status === 'FETCH_ERROR' || error.status === 'PARSING_ERROR';
@@ -72,20 +57,13 @@ const baseQuery = fetchBaseQuery({
   baseUrl: process.env.REACT_APP_API_URL || "http://localhost:3500",
   credentials: "include", // important, to send the cookie back to the server along with the token
   timeout: 30000, // 30 seconds timeout for slow connections
-  prepareHeaders: async (headers, { getState, endpoint }) => {
+  prepareHeaders: async (headers, { getState }) => {
     const token = getState().auth.token;
-    
-    debugLog('Preparing headers for request', {
-      endpoint,
-      hasToken: !!token,
-      tokenLength: token?.length
-    });
-    
+
     // Add token to headers if available. No expiry pre-check here: an expired
     // token 401s and baseQueryWithReauth below silently refreshes and retries.
     if (token) {
       headers.set("authorization", `Bearer ${token}`);
-      debugLog('Added authorization header', { endpoint });
     }
     
     // Marks every call as script-originated. server/middleware/csrfGuard.js
@@ -109,23 +87,11 @@ const baseQuery = fetchBaseQuery({
 });
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {
-  debugLog('Base query started', {
-    url: args.url,
-    method: args.method
-  });
-  
   let result = await baseQuery(args, api, extraOptions);
-  
+
   // Sync visitor session from response headers (if available)
   // Note: RTK Query doesn't expose raw response, so we'll handle this differently
   // For now, the session ID is sent in headers on every request
-
-  debugLog('Base query completed', {
-    url: args.url,
-    hasError: !!result?.error,
-    errorStatus: result?.error?.status,
-    errorCode: result?.error?.data?.code
-  });
 
   // Check for maintenance mode from ANY 503 response
   // This ensures maintenance mode is detected immediately from any blocked API call
@@ -147,11 +113,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
   // request. refreshAccessToken() is single-flight, so a burst of concurrent
   // 401s costs one refresh round trip, not one each.
   if (isSessionFailure(args.url, result?.error) && api.getState().auth.token) {
-    debugLog('Session failure detected, attempting silent refresh', {
-      status: result?.error?.status,
-      code: result?.error?.data?.code
-    });
-
     const newAccessToken = await refreshAccessToken();
     if (newAccessToken) {
       api.dispatch(setCredentials({ accessToken: newAccessToken }));
@@ -167,11 +128,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
   // token. isSessionFailure() is what separates that from an
   // insufficient-permission 403, which the caller still handles on its own.
   if (isSessionFailure(args.url, result?.error)) {
-    debugLog('Session failure not recoverable, clearing stored token', {
-      status: result?.error?.status,
-      code: result?.error?.data?.code
-    });
-
     api.dispatch(logOut({ reason: 'Token expired or invalid' }));
 
     // Tell the login screen why the user landed there. Set after the dispatch: logOut
@@ -191,12 +147,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
       }
     };
   }
-
-  debugLog('Base query with reauth completed', {
-    url: args.url,
-    finalResult: !!result,
-    hasError: !!result?.error
-  });
 
   return result;
 };

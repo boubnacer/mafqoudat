@@ -51,8 +51,6 @@ class DatabaseMonitor {
         this.metricsInterval = setInterval(() => {
             this.logDetailedMetrics();
         }, 300000);
-
-        console.log('📊 Database monitoring started');
     }
 
     /**
@@ -165,25 +163,6 @@ class DatabaseMonitor {
      * Log detailed metrics
      */
     logDetailedMetrics() {
-        const connectionMetrics = getConnectionMetrics();
-        
-        console.log('📊 === Database Performance Report ===');
-        console.log(`📈 Connection Metrics:`, {
-            totalConnections: connectionMetrics.totalConnections,
-            activeConnections: connectionMetrics.activeConnections,
-            failedConnections: connectionMetrics.failedConnections,
-            retryAttempts: connectionMetrics.retryAttempts,
-            healthCheckSuccessRate: connectionMetrics.healthCheckSuccessRate,
-            uptime: `${Math.round(connectionMetrics.uptime / 1000)}s`
-        });
-        
-        console.log(`📊 Performance Metrics:`, {
-            poolUtilization: `${(this.metrics.connection.poolUtilization * 100).toFixed(1)}%`,
-            totalAlerts: this.metrics.alerts.length,
-            recentAlerts: this.metrics.alerts.slice(-5).map(a => `${a.type}: ${a.message}`)
-        });
-        
-        console.log('=====================================');
     }
 
     /**
@@ -212,8 +191,6 @@ class DatabaseMonitor {
         if (this.performanceInterval) clearInterval(this.performanceInterval);
         if (this.healthInterval) clearInterval(this.healthInterval);
         if (this.metricsInterval) clearInterval(this.metricsInterval);
-        
-        console.log('📊 Database monitoring stopped');
     }
 
     /**

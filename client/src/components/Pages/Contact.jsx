@@ -387,7 +387,6 @@ const Contact = () => {
                           fullWidth
                           onClick={() => {
                             // Navigate to FAQ page
-                            console.log('Navigate to FAQ');
                           }}
                         >
                           {t('viewFAQ')}

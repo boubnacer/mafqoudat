@@ -177,7 +177,7 @@ const withDatabaseResilience = (operation, fallbackOperation = null) => {
       // Try fallback if available
       if (fallbackOperation) {
         try {
-          console.log('🔄 Using fallback operation after database error');
+          console.error('🔄 Using fallback operation after database error');
           const fallbackResult = await fallbackOperation(req, res, next);
           if (fallbackResult) {
             res.json(fallbackResult);

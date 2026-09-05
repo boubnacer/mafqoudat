@@ -20,8 +20,6 @@ const LanguageChangeHandler = () => {
     const isLanguageChange = urlParams.get('lang_changed') === 'true';
     
     if (isLanguageChange) {
-      console.log('🔄 [LANG-FIX] Language change detected on:', location.pathname);
-      
       // Set a flag to indicate we're in a language change process
       // This helps other components (like ProtectedRoute) know about the language change
       localStorage.setItem('isLanguageChanging', 'true');
@@ -31,12 +29,9 @@ const LanguageChangeHandler = () => {
       
       // Get the preserved URL from localStorage
       const preservedUrl = languageStorage.getAndClearLanguageChangeRedirectUrl();
-      console.log('🔄 [LANG-FIX] Preserved URL:', preservedUrl);
-      
+
       if (preservedUrl && preservedUrl !== location.pathname + location.search) {
         // Only redirect if we have a preserved URL and it's different from current location
-        console.log('🔄 [LANG-FIX] Redirecting to preserved URL:', preservedUrl);
-        
         // Small delay to ensure authentication state is fully restored
         setTimeout(() => {
           navigate(preservedUrl, { replace: true });
@@ -49,13 +44,10 @@ const LanguageChangeHandler = () => {
           
           // Only navigate if the URL actually changes
           if (cleanUrl !== location.pathname + location.search) {
-            console.log('🔄 [LANG-FIX] Cleaning up URL parameters');
             navigate(cleanUrl, { replace: true });
           }
         }
-        
-        console.log('🔄 [LANG-FIX] Staying on current route:', location.pathname);
-        
+
         // Clear the language change flag after a delay to allow other components to detect it
         setTimeout(() => {
           localStorage.removeItem('isLanguageChanging');

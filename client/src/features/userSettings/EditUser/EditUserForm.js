@@ -33,7 +33,6 @@ const EditUserForm = ({ user, countries }) => {
   }, [password]);
 
   useEffect(() => {
-    console.log(isSuccess);
     if (isSuccess || isDelSuccess) {
       setUsername("");
       setPassword("");

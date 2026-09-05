@@ -79,8 +79,6 @@ class EfficientLoadingStrategies {
     const startTime = Date.now();
     
     try {
-      console.log(`📦 Loading ${dataType} with optimized strategy...`);
-      
       let data;
       
       switch (dataType) {
@@ -102,8 +100,7 @@ class EfficientLoadingStrategies {
       
       const loadTime = Date.now() - startTime;
       this.updateLoadingStats(dataType, true, loadTime, data.length);
-      
-      console.log(`✅ Loaded ${data.length} ${dataType} in ${loadTime}ms`);
+
       return data;
       
     } catch (error) {
@@ -533,8 +530,6 @@ class EfficientLoadingStrategies {
 
   setInCache(dataType, key, data) {
     // This would integrate with your actual cache system
-    // For now, just log the operation
-    console.log(`📦 Cached ${dataType}:${key} (${data.length} items)`);
   }
 
   // Update loading statistics

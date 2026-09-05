@@ -124,8 +124,6 @@ const createNewUser = async (req, res) => {
       .lean()
       .exec();
 
-    console.log('Checking for duplicate email:', username.toLowerCase(), 'Found:', !!duplicateEmail);
-
     if (duplicateEmail) {
       // Check if it's a Google or Facebook OAuth account
       if (duplicateEmail.authProvider === 'google' || duplicateEmail.authProvider === 'facebook') {
@@ -145,8 +143,6 @@ const createNewUser = async (req, res) => {
       .lean()
       .exec();
 
-    console.log('Checking for duplicate phone:', username, 'Found:', !!duplicatePhone);
-
     if (duplicatePhone) {
       return res.status(409).json({ message: "Phone number already exists" });
     }
@@ -158,8 +154,6 @@ const createNewUser = async (req, res) => {
     .collation({ locale: "en", strength: 2 })
     .lean()
     .exec();
-
-  console.log('Checking for duplicate username:', username, 'Found:', !!duplicateUsername);
 
   if (duplicateUsername) {
     return res.status(409).json({ message: "Email or phone number already exists" });
@@ -194,20 +188,9 @@ const createNewUser = async (req, res) => {
   
   userObject.ipAddress = ipAddress;
 
-  console.log('Creating user with object:', {
-    username: userObject.username,
-    email: userObject.email,
-    phone: userObject.phone,
-    country: userObject.country,
-    ipAddress: userObject.ipAddress,
-    isEmail,
-    isPhone
-  });
-
   try {
     // Create and store new user
     const user = await User.create(userObject);
-    console.log('User created successfully:', user._id);
 
   // Short-lived access token + refresh session (cookie for web, body for mobile)
   const { accessToken, refreshToken } = await issueSession({
@@ -346,7 +329,6 @@ const updateUser = async (req, res) => {
       setRefreshCookie(res, refreshToken);
       response.accessToken = accessToken;
       response.refreshToken = refreshToken;
-      console.log('New session issued due to username or country change');
     }
 
     res.json(response);

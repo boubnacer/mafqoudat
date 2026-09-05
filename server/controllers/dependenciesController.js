@@ -32,8 +32,6 @@ const getDashboard = async (req, res) => {
       });
     }
 
-    console.log('Dashboard request received:', { currentCountry, language });
-    
     // Generate cache key
     const cacheKey = cacheService.generateKey('dashboard', {
       currentCountry,
@@ -44,7 +42,6 @@ const getDashboard = async (req, res) => {
     // Check cache first
     const cachedDashboard = await cacheService.get(cacheKey);
     if (cachedDashboard) {
-      console.log('📦 Dashboard served from cache');
       return res.json(cachedDashboard);
     }
     
@@ -52,11 +49,8 @@ const getDashboard = async (req, res) => {
     const currentDate = new Date();
     
     if (!currentCountry) {
-      console.log("Missing currentCountry parameter");
       return res.status(400).json({ message: "currentCountry parameter is required" });
     }
-
-    console.log("Processing dashboard for country:", currentCountry);
 
     // OPTIMIZED: Lookup FoundLost IDs by code - Combined query using Promise.all
     // Auto-create if missing
@@ -67,8 +61,6 @@ const getDashboard = async (req, res) => {
     
     // Auto-create FoundLost options if they don't exist
     if (!foundOption || !lostOption) {
-      console.log("FoundLost options missing, creating them...");
-      
       const defaultOptions = [
         {
           code: "FOUND",
@@ -108,16 +100,11 @@ const getDashboard = async (req, res) => {
       // Update variables (convert to plain objects for consistency with .lean())
       foundOption = newFoundOption ? newFoundOption.toObject ? newFoundOption.toObject() : newFoundOption : null;
       lostOption = newLostOption ? newLostOption.toObject ? newLostOption.toObject() : newLostOption : null;
-      
-      console.log("Created FoundLost options:", { found: foundOption?._id, lost: lostOption?._id });
     }
-    
-    console.log("Using FoundLost options:", { found: foundOption?.code, lost: lostOption?.code });
 
     // Add error handling for aggregation
     let trendingPost = [];
     try {
-      console.log('Dashboard: Starting trending post aggregation for country:', currentCountry);
       trendingPost = await Post.aggregate([
       { $match: { country: new mongoose.Types.ObjectId(currentCountry) } },
         // Handle undefined category and city fields and convert to ObjectIds
@@ -351,19 +338,6 @@ const getDashboard = async (req, res) => {
         $limit: 6,
       },
     ]);
-    console.log('Dashboard: Trending post aggregation result:', {
-      count: trendingPost.length,
-      firstPost: trendingPost[0] ? {
-        _id: trendingPost[0]._id,
-        categoryname: trendingPost[0].categoryname,
-        floptionName: trendingPost[0].floptionName,
-        Floptions: trendingPost[0].Floptions,
-        cityName: trendingPost[0].cityName,
-        cityLabels: trendingPost[0].cityLabels,
-        city: trendingPost[0].city,
-        cityDebug: trendingPost[0].cityDebug
-      } : null
-    });
     } catch (error) {
       console.error("Error in trendingPost aggregation:", error);
       trendingPost = [];
@@ -1267,11 +1241,6 @@ const getCountries = async (req, res) => {
 
 const getCategories = async (req, res) => {
   try {
-    // Cache bypass option for testing
-    if (req.query.nocache === 'true') {
-      console.log('🚫 Cache bypassed for categories');
-    }
-    
     const { language = 'en', active = true } = req.query;
     
     let query = {};
@@ -1529,8 +1498,6 @@ const postsPerDay = async () => {
   }).countDocuments();
 
   const createdToday = { todaysFoundPosts, todaysLostPosts };
-
-  console.log("Posts inserted today:", createdToday);
 };
 
 // Get cities by country

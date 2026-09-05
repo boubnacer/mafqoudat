@@ -47,7 +47,7 @@ const initRedis = async () => {
       });
       
       redisClient.on('error', (err) => {
-        console.log('Redis Client Error:', err);
+        console.error('Redis Client Error:', err);
         redisConnected = false;
       });
       
@@ -61,7 +61,7 @@ const initRedis = async () => {
       console.log('⚠️  REDIS_URL not provided, using in-memory cache only');
     }
   } catch (error) {
-    console.log('❌ Redis connection failed, using in-memory cache only:', error.message);
+    console.error('❌ Redis connection failed, using in-memory cache only:', error.message);
     redisConnected = false;
   }
 };

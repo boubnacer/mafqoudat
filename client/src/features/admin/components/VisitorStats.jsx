@@ -200,67 +200,14 @@ const VisitorStats = () => {
     }
   }, [dateRange.startDate, dateRange.endDate, shouldSkip, refetch]);
 
-  // Debug: Log query state
-  useEffect(() => {
-    console.log('📊 [VISITOR-STATS] Query state:', {
-      shouldSkip,
-      initialLoading,
-      availableMonthsLength: availableMonths.length,
-      hasDateRange: !!(dateRange.startDate && dateRange.endDate),
-      isLoading: loading,
-      hasData: !!visitorData,
-      queryArgs
-    });
-  }, [shouldSkip, initialLoading, availableMonths.length, dateRange.startDate, dateRange.endDate, loading, visitorData, queryArgs]);
-
-  // Debug: Log when query data changes
-  useEffect(() => {
-    if (visitorData?.data?.statistics) {
-      console.log('📊 [VISITOR-STATS] Query data received:', {
-        thisMonth: visitorData.data.statistics.thisMonth,
-        total: visitorData.data.statistics.total,
-        today: visitorData.data.statistics.today,
-        dateRange: {
-          start: dateRange.startDate,
-          end: dateRange.endDate
-        },
-        selectedMonth: availableMonths[selectedMonthIndex]?.label,
-        queryArgs
-      });
-    }
-  }, [visitorData, dateRange, selectedMonthIndex, availableMonths, queryArgs]);
-
   const formatNumber = (num) => {
     return new Intl.NumberFormat().format(num);
   };
 
   const handleMonthChange = (event) => {
     const newIndex = event.target.value;
-    console.log('📊 [VISITOR-STATS] Month changed:', {
-      oldIndex: selectedMonthIndex,
-      newIndex,
-      month: availableMonths[newIndex]?.label,
-      dateRange: dateRange
-    });
     setSelectedMonthIndex(newIndex);
   };
-
-  // Debug: Log when date range changes (throttled to avoid spam)
-  useEffect(() => {
-    if (dateRange.startDate && dateRange.endDate) {
-      const timeoutId = setTimeout(() => {
-        console.log('📊 [VISITOR-STATS] Date range updated:', {
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-          startDateFormatted: dateRange.startDateFormatted,
-          endDateFormatted: dateRange.endDateFormatted,
-          selectedMonthIndex,
-          selectedMonth: availableMonths[selectedMonthIndex]?.label
-        });
-      }, 100);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [dateRange.startDate, dateRange.endDate, selectedMonthIndex, availableMonths]);
 
   // Show loading only if we're actually loading the main query (not the initial one)
   // and we don't have data yet

@@ -7,21 +7,6 @@ import useAuth from '../hooks/useAuth';
 import { Alert, Snackbar } from '@mui/material';
 import { authStorage } from '../utils/authStorage';
 
-// Debug configuration
-const DEBUG_AUTH = false;
-
-// Debug logging function
-const debugLog = (message, data = null) => {
-  if (DEBUG_AUTH) {
-    const timestamp = new Date().toISOString();
-    if (data) {
-      console.log(`🔍 [PROTECTED-ROUTE] ${message}`, { timestamp, ...data });
-    } else {
-      console.log(`🔍 [PROTECTED-ROUTE] ${message} - ${timestamp}`);
-    }
-  }
-};
-
 const getLoginRedirectMessageKey = (pathname = '') => {
   if (!pathname) return 'loginRequiredDefault';
 
@@ -76,22 +61,10 @@ const ProtectedRoute = ({
   const [rateLimitError, setRateLimitError] = useState(null);
   const [showRateLimitAlert, setShowRateLimitAlert] = useState(false);
 
-  debugLog('ProtectedRoute component initialized', {
-    pathname: location.pathname,
-    requireAuth,
-    requireCountry,
-    redirectTo,
-    isLoggedIn,
-    currentCountry,
-    userCountry,
-    isInitialized
-  });
-
   // Global error handler for rate limiting
   useEffect(() => {
     const handleGlobalError = (event) => {
       if (event.detail && event.detail.status === 429) {
-        debugLog('Global rate limiting error detected', { error: event.detail });
         setRateLimitError(event.detail);
         setShowRateLimitAlert(true);
       }
@@ -106,7 +79,6 @@ const ProtectedRoute = ({
 
   // Simple initialization - no complex refresh logic needed
   useEffect(() => {
-    debugLog('Initializing protected route');
     // Simple delay to ensure state is loaded
     const timer = setTimeout(() => {
       setIsInitialized(true);
@@ -120,11 +92,6 @@ const ProtectedRoute = ({
     if (!isInitialized) return;
 
     if (requireAuth && !isLoggedIn) {
-      debugLog('User not authenticated, redirecting to login', {
-        requireAuth,
-        isLoggedIn,
-        pathname: location.pathname
-      });
       const redirectUrl = location.pathname + location.search;
       if (redirectUrl !== '/login') {
         // The return URL is always ours to set. The message is not: a session that
@@ -141,13 +108,6 @@ const ProtectedRoute = ({
     }
 
     if (requireCountry && !currentCountry && isLoggedIn && !userCountry) {
-      debugLog('Country required but not selected, redirecting to Welcome page', {
-        requireCountry,
-        currentCountry,
-        isLoggedIn,
-        pathname: location.pathname
-      });
-      console.log('🚨 Country required but not selected, redirecting to Welcome page');
       const redirectUrl = location.pathname + location.search;
       if (redirectUrl !== '/') {
         localStorage.setItem('redirectAfterCountrySelection', redirectUrl);
@@ -156,13 +116,6 @@ const ProtectedRoute = ({
       return;
     }
 
-    debugLog('All conditions met, rendering children', {
-      requireAuth,
-      isLoggedIn,
-      requireCountry,
-      currentCountry,
-      pathname: location.pathname
-    });
   }, [requireAuth, requireCountry, isLoggedIn, currentCountry, userCountry, isInitialized, location.pathname, location.search, navigate]);
 
   // Handle rate limit alert close
@@ -173,7 +126,6 @@ const ProtectedRoute = ({
 
   // Loading state while initializing
   if (!isInitialized) {
-    debugLog('Not initialized, showing loading');
     return (
       <div style={{
         display: 'flex',
@@ -211,14 +163,6 @@ const ProtectedRoute = ({
   }
 
   // All conditions met, render children
-  debugLog('Rendering protected content', {
-    requireAuth,
-    isLoggedIn,
-    requireCountry,
-    currentCountry,
-    pathname: location.pathname
-  });
-  
   return (
     <>
       {children}

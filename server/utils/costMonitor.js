@@ -208,7 +208,6 @@ class CostMonitor {
       transformationsSaved: 0
     };
     this.startTime = Date.now();
-    console.log('📊 Cost monitoring metrics reset');
   }
 }
 

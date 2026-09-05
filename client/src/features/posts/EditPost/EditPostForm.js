@@ -394,8 +394,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
         url += `&countryCode=${validCountryCode}`;
       }
       
-      console.log(`🔍 Hybrid search: "${searchQuery}" in ${validCountryCode || 'all countries'} (${currentLanguage || 'en'})`);
-      
       // Include Authorization header if token exists (needed for admin bypass during maintenance)
       const headers = {};
       if (token) {
@@ -414,7 +412,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       const data = await response.json();
       
       if (data.success) {
-        console.log(`✅ Hybrid search found ${data.data?.length || 0} cities`);
         return data.data || [];
       } else {
         console.warn(`⚠️ Search API returned success=false:`, data.message);
@@ -1435,10 +1432,6 @@ if (typeof document !== 'undefined') {
         // Database city - send the ObjectId directly
         postData.city = values.city;
       }
-      
-      // console.log('🚀 UPDATE POST - Starting update process...');
-      // console.log('📦 UPDATE POST - Prepared postData:', postData);
-      // console.log('🌐 UPDATE POST - Calling updatePost API...');
       
       // Use FormData if there's an image, otherwise use regular JSON
       let result;

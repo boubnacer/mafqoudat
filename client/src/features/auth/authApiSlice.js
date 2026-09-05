@@ -77,7 +77,6 @@ export const authApiSlice = apiSlice.injectEndpoints({
             // Update current country in Redux state
             if (userData?.country) {
               dispatch(setCurrentCountry({ currentCountry: userData.country }));
-              console.log('🌍 [AUTH-API] Updated currentCountry in Redux:', userData.country);
             }
           }
         } catch (error) {

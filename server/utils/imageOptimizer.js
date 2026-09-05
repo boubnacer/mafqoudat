@@ -128,7 +128,6 @@ class ImageOptimizer {
     try {
       // If Sharp is not available, return original buffer
       if (!sharp) {
-        console.log('⚠️ Sharp not available, skipping image optimization');
         return buffer;
       }
 
@@ -195,11 +194,7 @@ class ImageOptimizer {
       }
 
       const optimizedBuffer = await sharpInstance.toBuffer();
-      
-      // Log optimization results
-      const compressionRatio = ((buffer.length - optimizedBuffer.length) / buffer.length * 100).toFixed(1);
-      console.log(`📊 Image optimized: ${(buffer.length / 1024).toFixed(1)}KB → ${(optimizedBuffer.length / 1024).toFixed(1)}KB (${compressionRatio}% reduction)`);
-      
+
       return optimizedBuffer;
     } catch (error) {
       console.error('Error optimizing image:', error);
@@ -218,7 +213,6 @@ class ImageOptimizer {
       // Check for duplicates first
       const duplicateCheck = await this.checkForDuplicate(buffer);
       if (duplicateCheck.isDuplicate) {
-        console.log('🔄 Duplicate image detected, skipping upload');
         return {
           optimizedBuffer: null,
           isDuplicate: true,
@@ -267,7 +261,6 @@ class ImageOptimizer {
   clearCaches() {
     this.duplicateCache.clear();
     this.processedHashes.clear();
-    console.log('🧹 Image optimizer caches cleared');
   }
 }
 

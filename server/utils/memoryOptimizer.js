@@ -34,16 +34,10 @@ class MemoryOptimizer {
       setInterval(() => {
         const memUsage = process.memoryUsage();
         if (memUsage.heapUsed > this.memoryThresholds.warning) {
-          console.log('🧹 Forcing garbage collection due to memory usage');
           global.gc();
         }
       }, 5 * 60 * 1000);
     }
-
-    // Log memory stats every 10 minutes
-    setInterval(() => {
-      this.logMemoryStats();
-    }, 10 * 60 * 1000);
   }
 
   // Check current memory usage
@@ -82,8 +76,6 @@ class MemoryOptimizer {
 
   // Handle critical memory usage
   async handleCriticalMemoryUsage() {
-    console.log('🔧 Taking emergency memory optimization actions...');
-    
     // Force garbage collection
     if (global.gc) {
       global.gc();
@@ -103,8 +95,6 @@ class MemoryOptimizer {
 
   // Handle high memory usage
   handleHighMemoryUsage() {
-    console.log('🔧 Taking memory optimization actions...');
-    
     // Force garbage collection
     if (global.gc) {
       global.gc();

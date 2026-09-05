@@ -62,7 +62,6 @@ const getAllPostsOptimized = async (req, res) => {
     // Check cache first
     const cachedPosts = await cacheService.get(cacheKey);
     if (cachedPosts) {
-      console.log('📦 Optimized posts served from cache');
       return res.json(cachedPosts);
     }
 
@@ -274,8 +273,6 @@ const getDashboardOptimized = async (req, res) => {
       });
     }
 
-    console.log('Dashboard optimized request received:', { currentCountry, language });
-    
     // Generate cache key
     const cacheKey = cacheService.generateKey('dashboard_optimized', {
       currentCountry,
@@ -285,7 +282,6 @@ const getDashboardOptimized = async (req, res) => {
     // Check cache first
     const cachedDashboard = await cacheService.get(cacheKey);
     if (cachedDashboard) {
-      console.log('📦 Optimized dashboard served from cache');
       return res.json(cachedDashboard);
     }
     

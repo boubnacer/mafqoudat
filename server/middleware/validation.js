@@ -18,11 +18,6 @@ const validateRequest = (req, res, next) => {
       value: error.value
     }));
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('🔍 VALIDATION ERROR - Request:', req.method, req.url);
-      console.log('🔍 VALIDATION ERROR - Fields:', errorMessages.map(e => ({ field: e.field, message: e.message })));
-    }
-
     logEvents(
       `Validation Error: ${JSON.stringify(errorMessages)}\t${req.method}\t${req.url}\t${req.headers.origin}`,
       'errLog.log'
@@ -256,23 +251,6 @@ const validationSets = {
         postData = readPostPayload(req);
       } catch (error) {
         throw new Error('Invalid postData JSON format');
-      }
-
-      if (process.env.NODE_ENV !== 'production') {
-        // Log field presence/length only - never the raw contact, exactLocation,
-        // description, or user id values.
-        console.log('🔍 Validation middleware - post creation payload shape:', {
-          hasUser: !!postData.user,
-          hasCountry: !!postData.country,
-          categoriesCount: Array.isArray(postData.categories)
-            ? postData.categories.length
-            : (postData.category ? 1 : 0),
-          hasFoundLost: !!postData.foundLost,
-          contactLength: postData.contact ? String(postData.contact).length : 0,
-          exactLocationLength: postData.exactLocation ? String(postData.exactLocation).length : 0,
-          descriptionLength: postData.description ? String(postData.description).length : 0,
-          hasExactDate: !!postData.exactDate
-        });
       }
 
       if (!postData.user) {

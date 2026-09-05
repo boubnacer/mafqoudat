@@ -54,7 +54,6 @@ const getAllPosts = async (req, res) => {
     // Check cache first
     const cachedPosts = await unifiedCacheService.get(cacheKey);
     if (cachedPosts) {
-      console.log('📦 Posts served from unified cache');
       return res.json(cachedPosts);
     }
 
@@ -269,7 +268,6 @@ const getPost = async (req, res) => {
     // Check cache first
     const cachedPost = await unifiedCacheService.get(cacheKey);
     if (cachedPost) {
-      console.log('📦 Post served from unified cache');
       return res.json(cachedPost);
     }
 
@@ -434,7 +432,6 @@ const getFilteredPosts = async (req, res) => {
     // Check cache first
     const cachedPosts = await unifiedCacheService.get(cacheKey);
     if (cachedPosts) {
-      console.log('📦 Filtered posts served from unified cache');
       return res.json(cachedPosts);
     }
 

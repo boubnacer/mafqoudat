@@ -286,45 +286,36 @@ class TranslationService {
    */
   static async translateCityName(cityName, sourceLanguage = 'en') {
     try {
-      console.log('Translating city name:', cityName, 'from language:', sourceLanguage);
-      
       const normalizedName = cityName.trim();
-      
+
       // If the input is Arabic, try to find it in our mapping
       if (sourceLanguage === 'ar' || this.isArabicText(cityName)) {
-        console.log('🔍 DEBUG: Detected Arabic text, looking for translation. CityName:', cityName, 'isArabic:', this.isArabicText(cityName));
         const arabicTranslation = arabicCityNames[cityName];
         if (arabicTranslation) {
-          console.log('Found Arabic translation:', arabicTranslation);
           return {
             en: arabicTranslation.en,
             fr: arabicTranslation.fr,
             ar: cityName // Keep the original Arabic name
           };
         }
-        
+
         // If not found in mapping, try to transliterate to English and French
-        console.log('Arabic city not found in mapping, using transliteration');
         const englishTransliteration = this.transliterateToEnglish(cityName);
         const frenchTransliteration = this.transliterateToFrench(englishTransliteration);
-        
+
         const result = {
           en: englishTransliteration,
           fr: frenchTransliteration,
           ar: cityName // Keep the original Arabic name
         };
-        console.log('🔍 DEBUG: Arabic transliteration result:', result);
         return result;
       }
-      
+
       // If it's English, try to translate to Arabic and French
       if (sourceLanguage === 'en' || !this.isArabicText(cityName)) {
-        console.log('Detected English text, looking for translation');
-        
         // First, check if we have a direct mapping for this exact city name
         for (const [arabicName, translations] of Object.entries(arabicCityNames)) {
           if (translations.en.toLowerCase() === cityName.toLowerCase()) {
-            console.log('Found exact English match:', translations);
             return {
               en: cityName,
               fr: translations.fr,
@@ -332,28 +323,25 @@ class TranslationService {
             };
           }
         }
-        
+
         // Try to use a translation API (Google Translate or similar)
         const translations = await this.translateWithAPI(cityName, sourceLanguage);
         if (translations) {
-          console.log('API translation result:', translations);
           return translations;
         }
-        
+
         // If no translation found, create basic transliterations
-        console.log('No translation found, using basic transliteration');
         const arabicTransliteration = this.transliterateToArabic(cityName);
         const frenchTransliteration = this.transliterateToFrench(cityName);
-        
+
         return {
           en: cityName,
           fr: frenchTransliteration,
           ar: arabicTransliteration
         };
       }
-      
+
       // Fallback: return the same name for all languages
-      console.log('Using fallback translation (same name for all languages)');
       return {
         en: cityName,
         fr: cityName,
@@ -426,17 +414,14 @@ class TranslationService {
    */
   static async translateWithAPI(text, sourceLanguage) {
     try {
-      console.log('Attempting API translation for:', text, 'from:', sourceLanguage);
-      
       let translatedText = text;
       let frenchText = text;
-      
+
       // If source language is Arabic, try to find English and French equivalents
       if (sourceLanguage === 'ar' || this.isArabicText(text)) {
         // Look for Arabic city in our mapping
         for (const [arabicName, translations] of Object.entries(arabicCityNames)) {
           if (arabicName === text) {
-            console.log('Found Arabic mapping:', translations);
             return {
               en: translations.en,
               fr: translations.fr,
@@ -444,22 +429,20 @@ class TranslationService {
             };
           }
         }
-        
+
         // If not found, keep the Arabic name for all languages
-        console.log('No Arabic mapping found, using original text');
         return {
           en: text,
           fr: text,
           ar: text
         };
       }
-      
+
       // If source language is English, try to translate to Arabic and French
       if (sourceLanguage === 'en' || !this.isArabicText(text)) {
         // Look for English city in our mapping
         for (const [arabicName, translations] of Object.entries(arabicCityNames)) {
           if (translations.en.toLowerCase() === text.toLowerCase()) {
-            console.log('Found English mapping:', translations);
             return {
               en: text,
               fr: translations.fr,
@@ -496,11 +479,6 @@ class TranslationService {
         
         // If we made any translations, use them
         if (arabicTranslation !== text || frenchTranslation !== text) {
-          console.log('Applied word-by-word translation:', {
-            original: text,
-            arabic: arabicTranslation,
-            french: frenchTranslation
-          });
           return {
             en: text,
             fr: frenchTranslation,
@@ -512,13 +490,7 @@ class TranslationService {
         // This is a basic approach - in production you might want to use a proper transliteration service
         const arabicTransliteration = this.transliterateToArabic(text);
         const frenchTransliteration = this.transliterateToFrench(text);
-        
-        console.log('Using transliteration:', {
-          original: text,
-          arabic: arabicTransliteration,
-          french: frenchTransliteration
-        });
-        
+
         return {
           en: text,
           fr: frenchTransliteration,

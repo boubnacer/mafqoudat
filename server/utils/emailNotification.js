@@ -12,13 +12,7 @@ class EmailNotificationService {
 
   async sendNotification(postData, userData) {
     try {
-      console.log('Email notification service - checking configuration...');
-      console.log('Admin email:', this.adminEmail ? 'Set' : 'Not set');
-      console.log('Email user:', this.emailUser ? 'Set' : 'Not set');
-      console.log('Email pass:', this.emailPass ? 'Set' : 'Not set');
-      
       if (!this.adminEmail || !this.emailUser || !this.emailPass) {
-        console.log('Email notification not configured. Skipping notification.');
         return { success: false, message: 'Email not configured' };
       }
 
@@ -35,7 +29,6 @@ class EmailNotificationService {
       };
 
       const result = await transporter.sendMail(mailOptions);
-      console.log('Email notification sent successfully:', result.messageId);
       return { success: true, data: result };
 
     } catch (error) {
@@ -175,7 +168,6 @@ Support: ${this.supportEmail}`;
       };
 
       const result = await transporter.sendMail(mailOptions);
-      console.log('Test email sent successfully:', result.messageId);
       return { success: true, data: result };
 
     } catch (error) {
@@ -187,13 +179,7 @@ Support: ${this.supportEmail}`;
   // Method to send report notification to admin
   async sendReportNotification(postData, userData, reportReason) {
     try {
-      console.log('Report notification service - checking configuration...');
-      console.log('Admin email:', this.adminEmail ? 'Set' : 'Not set');
-      console.log('Email user:', this.emailUser ? 'Set' : 'Not set');
-      console.log('Email pass:', this.emailPass ? 'Set' : 'Not set');
-      
       if (!this.adminEmail || !this.emailUser || !this.emailPass) {
-        console.log('Email notification not configured. Skipping notification.');
         return { success: false, message: 'Email not configured' };
       }
 
@@ -210,7 +196,6 @@ Support: ${this.supportEmail}`;
       };
 
       const result = await transporter.sendMail(mailOptions);
-      console.log('Report notification sent successfully:', result.messageId);
       return { success: true, data: result };
 
     } catch (error) {
