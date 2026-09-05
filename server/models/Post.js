@@ -1,4 +1,12 @@
 const mongoose = require("mongoose");
+const { FIELD_LIMITS } = require("../config/fieldLimits");
+
+// Free-text length limits live in config/fieldLimits.js so the schema and the
+// express-validator rules that produce the 400 read the same numbers. These
+// are the backstop: no write path - controller, script or migration - gets
+// past them, which is what makes it safe for the request pipeline to stop
+// silently truncating every string it sees.
+const POST_LIMITS = FIELD_LIMITS.post;
 // Temporarily comment out AutoIncrement to fix post creation issue
 // const AutoIncrement = require("mongoose-sequence")(mongoose);
 
@@ -34,6 +42,8 @@ const postSchema = new mongoose.Schema(
     contact: {
       type: String,
       required: true,
+      trim: true,
+      maxlength: [POST_LIMITS.contact, `Contact cannot exceed ${POST_LIMITS.contact} characters`],
     },
     returned: {
       type: Boolean,
@@ -43,24 +53,31 @@ const postSchema = new mongoose.Schema(
     image: {
       type: String,
       required: false, // Changed from required to optional
+      maxlength: [POST_LIMITS.imageUrl, `Image URL cannot exceed ${POST_LIMITS.imageUrl} characters`],
     },
     // Cloudinary fields for proper image management
     cloudinaryUrl: {
       type: String,
       required: false, // Changed from required to optional
+      maxlength: [POST_LIMITS.imageUrl, `Image URL cannot exceed ${POST_LIMITS.imageUrl} characters`],
     },
     cloudinaryPublicId: {
       type: String,
       required: false, // Changed from required to optional
+      maxlength: [POST_LIMITS.imageUrl, `Image id cannot exceed ${POST_LIMITS.imageUrl} characters`],
     },
     mainDate: {
       type: String,
       required: false, // Made optional
+      trim: true,
+      maxlength: [POST_LIMITS.mainDate, `Date cannot exceed ${POST_LIMITS.mainDate} characters`],
     },
 
     description: {
       type: String,
       default: "",
+      trim: true,
+      maxlength: [POST_LIMITS.description, `Description cannot exceed ${POST_LIMITS.description} characters`],
     },
     // Promotion fields
     promotionRequested: {
@@ -80,6 +97,10 @@ const postSchema = new mongoose.Schema(
     promotionPhoneNumber: {
       type: String,
       trim: true,
+      maxlength: [
+        POST_LIMITS.promotionPhoneNumber,
+        `Phone number cannot exceed ${POST_LIMITS.promotionPhoneNumber} characters`,
+      ],
     },
     // Additional useful fields
     city: {
@@ -89,6 +110,8 @@ const postSchema = new mongoose.Schema(
     exactLocation: {
       type: String,
       required: true,
+      trim: true,
+      maxlength: [POST_LIMITS.exactLocation, `Location cannot exceed ${POST_LIMITS.exactLocation} characters`],
     },
     contactPreferences: {
       phone: {
@@ -127,7 +150,8 @@ const postSchema = new mongoose.Schema(
     },
     tags: [{
       type: String,
-      trim: true
+      trim: true,
+      maxlength: [POST_LIMITS.tag, `Tag cannot exceed ${POST_LIMITS.tag} characters`]
     }],
     // Where this listing was mirrored to, set by services/facebookService.js
     // and services/instagramService.js once the auto-post succeeds. The
@@ -186,6 +210,11 @@ const postSchema = new mongoose.Schema(
     //
     // Capped at SOCIAL_COMMENTS_LIMIT newest per platform - this is context
     // alongside the site's own thread, not a full mirror of Facebook.
+    //
+    // Deliberately without a maxlength, unlike every other free-text field on
+    // this schema: these are not submissions to validate, they are a mirror of
+    // what Facebook already published, and a length rule here would only turn
+    // someone else's long comment into a failed stats refresh.
     socialComments: {
       facebook: [{
         _id: false,

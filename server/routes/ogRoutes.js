@@ -346,8 +346,16 @@ const breadcrumbSchema = (items) => ({
   })),
 });
 
+// JSON inside a <script> block is raw text, not parsed markup: the only thing
+// that can end it early is a literal "<" (as "</script" or "<!--"). A post
+// description is free text from a stranger, so it has to be escaped on the way
+// out. "\u003C" is what the JSON parser reads back as "<", so the payload is
+// unchanged for a crawler while being inert as markup - the encoding belongs
+// here, at the point of output, not in a filter on the way into the database.
+const escapeJsonLd = (json) => json.replace(/</g, "\\u003C");
+
 const jsonLd = (schema) =>
-  `    <script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+  `    <script type="application/ld+json">${escapeJsonLd(JSON.stringify(schema))}</script>`;
 
 // One row of the listing page, and of a post page's "related" block.
 const renderCard = (info, image) => `        <li>

@@ -16,6 +16,7 @@
     "test-post-stats-overlay": "node scripts/testPostStatsOverlay.js",
     "test-facebook-webhook": "node scripts/testFacebookWebhook.js",
     "test-comments": "node scripts/testComments.js",
+    "test-input-validation": "node scripts/testInputValidation.js",
     "test-auth-session": "node scripts/testAuthSessionFixes.js",
     "refresh-social-stats": "node scripts/refreshSocialStats.js",
     "test-email": "node test-email-config.js",
