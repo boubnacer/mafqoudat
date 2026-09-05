@@ -13,7 +13,6 @@ const {
   searchResultsCache,
   invalidateCache: optimizedInvalidateCache 
 } = require("../middleware/optimizedCacheMiddleware");
-const { postsOptimizationMiddleware } = require("../middleware/responseOptimization");
 const { generateFieldSelectionDocs, POSTS_SCHEMA } = require("../utils/graphqlFieldSelection");
 const { upload, uploadWithFields, uploadToCloudinaryMiddleware } = require("../middleware/multer");
 const { validateRequest, validationSets, commonValidations } = require("../middleware/validation");
@@ -163,76 +162,6 @@ router.route("/fields")
           description: "Use comma to separate fields, curly braces for nested selection"
         }
       }
-    });
-  });
-
-// Optimization test endpoint
-router.route("/optimization-test")
-  .get(...postsOptimizationMiddleware(), (req, res) => {
-    const testData = {
-      postsWithUser: [
-        {
-          _id: "test123",
-          description: "Test post for optimization demonstration",
-          contact: "test@example.com",
-          exactLocation: "Test Location",
-          createdAt: new Date(),
-          username: "testuser",
-          categoryname: "ELECTRONICS",
-          countryname: "MA",
-          cityName: "Casablanca",
-          image: "https://res.cloudinary.com/test/image/upload/test.jpg",
-          returned: false,
-          user: {
-            _id: "user123",
-            username: "testuser"
-          },
-          category: {
-            _id: "cat123",
-            code: "ELECTRONICS",
-            labels: { en: "Electronics", ar: "إلكترونيات", fr: "Électronique" }
-          },
-          country: {
-            _id: "country123",
-            code: "MA",
-            labels: { en: "Morocco", ar: "المغرب", fr: "Maroc" }
-          },
-          city: {
-            id: "city123",
-            code: "CASABLANCA",
-            labels: { en: "Casablanca", ar: "الدار البيضاء", fr: "Casablanca" },
-            isDynamic: false
-          }
-        }
-      ],
-      page: 1,
-      totalPages: 1,
-      total: 1
-    };
-
-    // Add optimization metadata
-    testData._metadata = {
-      timestamp: new Date().toISOString(),
-      optimization: {
-        fieldProjection: !!req.selectedFields,
-        compression: true,
-        cacheHeaders: true,
-        paginationOptimized: true
-      },
-      testMode: true,
-      description: "This is a test endpoint to demonstrate API optimization features"
-    };
-
-    res.json(testData);
-  });
-
-// Simple health check endpoint to test header setting
-router.route("/health-check")
-  .get((req, res) => {
-    res.json({
-      status: "OK",
-      timestamp: new Date().toISOString(),
-      message: "Headers should be set correctly without errors"
     });
   });
 
