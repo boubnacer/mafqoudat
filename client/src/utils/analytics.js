@@ -1,8 +1,22 @@
-// Google Analytics utility functions
+// Google Analytics, behind the consent manager.
+//
+// Nothing in here runs until utils/consent.js reports analytics consent. The
+// gtag.js snippet used to sit in public/index.html and load on every page view,
+// which set the GA cookie before the visitor had been asked anything; the
+// document now carries only the Consent Mode defaults (all denied) and the
+// Funding Choices loader, and this module is what actually requests gtag.js -
+// after the CMP has answered, and only if the answer was yes.
+
+import {
+  hasAnalyticsConsent,
+  onConsentChange,
+  startConsentListener,
+} from './consent';
 
 // Use environment variable if available, otherwise fallback to hardcoded ID
 const GA_MEASUREMENT_ID = process.env.REACT_APP_GA_MEASUREMENT_ID || 'G-6CHWS73F4W';
 let isGAInitialized = false;
+let loadPromise = null;
 
 /**
  * Check if Google Analytics script is already loaded in the HTML
@@ -11,18 +25,41 @@ const isGAScriptLoaded = () => {
   if (typeof window === 'undefined') {
     return false;
   }
-  
+
   // Check if the script tag exists in the HTML
   const existingScript = document.querySelector(`script[src*="googletagmanager.com/gtag/js"]`);
   return !!existingScript;
 };
 
 /**
- * Load Google Analytics script dynamically (fallback if not in HTML)
+ * The dataLayer/gtag stub normally comes from the consent block in
+ * public/index.html. Recreate it if some entry point (a prerendered shell that
+ * predates that block, a test) is missing it, so the consent defaults and the
+ * config below always have somewhere to go.
+ */
+const ensureGtagStub = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.dataLayer = window.dataLayer || [];
+  if (typeof window.gtag !== 'function') {
+    window.gtag = function gtag() {
+      window.dataLayer.push(arguments);
+    };
+  }
+};
+
+/**
+ * Load Google Analytics script dynamically
  * Returns a Promise that resolves when the script is loaded
  */
 const loadGAScript = () => {
-  return new Promise((resolve, reject) => {
+  if (loadPromise) {
+    return loadPromise;
+  }
+
+  loadPromise = new Promise((resolve, reject) => {
     if (typeof window === 'undefined' || !GA_MEASUREMENT_ID) {
       reject(new Error('GA Measurement ID not found or window is undefined'));
       return;
@@ -34,74 +71,57 @@ const loadGAScript = () => {
       return;
     }
 
-    // Load the GA script dynamically as fallback
     const script = document.createElement('script');
     script.async = true;
     script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
-    
+
     script.onload = () => resolve();
     script.onerror = () => reject(new Error('Failed to load Google Analytics script'));
-    
+
     document.head.appendChild(script);
   });
+
+  return loadPromise;
 };
 
 /**
- * Check if the GA script in HTML has the placeholder (meaning build-time injection failed)
+ * Load gtag.js and configure the property. Only ever called from the consent
+ * path below.
  */
-const hasPlaceholderInHTML = () => {
-  if (typeof document === 'undefined') {
-    return false;
-  }
-  
-  const scripts = document.querySelectorAll('script[src*="googletagmanager.com/gtag/js"]');
-  for (const script of scripts) {
-    if (script.src && script.src.includes('GA_MEASUREMENT_ID_PLACEHOLDER')) {
-      return true;
-    }
-  }
-  
-  // Also check inline scripts
-  const inlineScripts = document.querySelectorAll('script:not([src])');
-  for (const script of inlineScripts) {
-    if (script.textContent && script.textContent.includes('GA_MEASUREMENT_ID_PLACEHOLDER')) {
-      return true;
-    }
-  }
-  
-  return false;
-};
-
-/**
- * Fix placeholder in HTML at runtime (fallback if build-time injection failed)
- */
-const fixPlaceholderAtRuntime = () => {
-  if (typeof document === 'undefined' || !GA_MEASUREMENT_ID) {
+const activateGA = async () => {
+  if (isGAInitialized || typeof window === 'undefined' || !GA_MEASUREMENT_ID) {
     return;
   }
-  
-  // Fix script src
-  const scripts = document.querySelectorAll('script[src*="googletagmanager.com/gtag/js"]');
-  scripts.forEach(script => {
-    if (script.src && script.src.includes('GA_MEASUREMENT_ID_PLACEHOLDER')) {
-      script.src = script.src.replace('GA_MEASUREMENT_ID_PLACEHOLDER', GA_MEASUREMENT_ID);
+
+  try {
+    ensureGtagStub();
+    await loadGAScript();
+
+    // gtag() itself is the stub above, available synchronously; the loaded
+    // library drains the dataLayer it has been filling.
+    window.gtag('js', new Date());
+    window.gtag('config', GA_MEASUREMENT_ID, {
+      page_path: window.location.pathname + window.location.search,
+      page_title: document.title,
+    });
+
+    isGAInitialized = true;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to initialize Google Analytics:', error);
     }
-  });
-  
-  // Fix inline config scripts
-  const inlineScripts = document.querySelectorAll('script:not([src])');
-  inlineScripts.forEach(script => {
-    if (script.textContent && script.textContent.includes('GA_MEASUREMENT_ID_PLACEHOLDER')) {
-      script.textContent = script.textContent.replace(/GA_MEASUREMENT_ID_PLACEHOLDER/g, GA_MEASUREMENT_ID);
-    }
-  });
+  }
 };
 
 /**
  * Initialize Google Analytics
- * This should be called once when the app loads
+ * This should be called once when the app loads. It does not load anything by
+ * itself - it starts the consent listener and hands the decision to the CMP.
+ * A visitor who accepts later (or reopens the message from the cookie notice
+ * and accepts then) is picked up by the subscription rather than needing a
+ * reload.
  */
-export const initializeGA = async () => {
+export const initializeGA = () => {
   if (!GA_MEASUREMENT_ID) {
     // Only log in development to avoid console noise in production
     if (process.env.NODE_ENV === 'development') {
@@ -114,60 +134,36 @@ export const initializeGA = async () => {
     return;
   }
 
-  // Don't initialize twice
-  if (isGAInitialized) {
+  startConsentListener();
+
+  if (hasAnalyticsConsent()) {
+    activateGA();
     return;
   }
 
-  try {
-    // Check if placeholder is still in HTML (build-time injection failed)
-    if (hasPlaceholderInHTML()) {
-      console.log('⚠️  GA placeholder found in HTML, fixing at runtime...');
-      fixPlaceholderAtRuntime();
+  onConsentChange(() => {
+    if (hasAnalyticsConsent()) {
+      activateGA();
     }
-    
-    // Check if script is already in HTML (from build-time injection or runtime fix)
-    const scriptAlreadyLoaded = isGAScriptLoaded();
-    
-    if (!scriptAlreadyLoaded) {
-      // Load the GA script dynamically if not in HTML
-      await loadGAScript();
-    }
-    
-    // Wait a bit for gtag to be available (especially if script was in HTML)
-    let retries = 0;
-    while (!window.gtag && retries < 10) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      retries++;
-    }
-    
-    // Initialize GA once script is loaded
-    if (window.gtag) {
-      // Only set 'js' date if not already set (script in HTML already does this)
-      if (!scriptAlreadyLoaded) {
-        window.gtag('js', new Date());
-      }
-      
-      // Update config with current page info
-      window.gtag('config', GA_MEASUREMENT_ID, {
-        page_path: window.location.pathname + window.location.search,
-        page_title: document.title,
-      });
-      isGAInitialized = true;
-    }
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Failed to initialize Google Analytics:', error);
-    }
-  }
+  });
 };
+
+/**
+ * Whether GA has actually been loaded and configured. Everything that reports
+ * to GA checks this rather than window.gtag: the gtag stub exists on every page
+ * from the consent block, so its presence says nothing about consent, and
+ * pushing events into the dataLayer before an answer would only park them there
+ * to be sent the moment one arrived.
+ */
+const isTrackingActive = () =>
+  isGAInitialized && typeof window !== 'undefined' && typeof window.gtag === 'function';
 
 /**
  * Track page views
  * Call this whenever the route changes in a React Router app
  */
 export const trackPageView = (path, title) => {
-  if (!GA_MEASUREMENT_ID || typeof window === 'undefined' || !window.gtag) {
+  if (!isTrackingActive()) {
     return;
   }
 
@@ -183,7 +179,7 @@ export const trackPageView = (path, title) => {
  * @param {object} eventParams - Additional parameters for the event
  */
 export const trackEvent = (eventName, eventParams = {}) => {
-  if (!GA_MEASUREMENT_ID || typeof window === 'undefined' || !window.gtag) {
+  if (!isTrackingActive()) {
     return;
   }
 

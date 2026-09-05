@@ -1,7 +1,11 @@
-// Postbuild pipeline: GA injection -> react-snap (where available) -> sitemap
-// generation -> dependency-free SEO prerender fallback (fills in whatever
-// react-snap didn't cover - this is the only prerendering that runs on
-// Vercel, where Puppeteer/react-snap is skipped entirely).
+// Postbuild pipeline: GA + consent-manager injection -> react-snap (where
+// available) -> sitemap generation -> dependency-free SEO prerender fallback
+// (fills in whatever react-snap didn't cover - this is the only prerendering
+// that runs on Vercel, where Puppeteer/react-snap is skipped entirely).
+//
+// Both injections have to run before prerenderSeo, which copies build/index.html
+// as the shell for every route it writes: whatever is missing from the shell at
+// that point is missing from every prerendered page.
 
 const fs = require('fs');
 const path = require('path');
@@ -73,8 +77,68 @@ const injectGoogleAnalytics = () => {
   }
 };
 
-// Inject GA before react-snap (if it runs)
+
+// Inject the Funding Choices (Google CMP) publisher ID into built HTML.
+//
+// public/index.html carries a loader that reads this placeholder and refuses to
+// request anything while it is still a placeholder, so a build without the
+// variable ships no CMP - and, because src/utils/consent.js reads "no CMP" as
+// "no consent", no Google Analytics either. That is deliberate: analytics
+// running with nobody asked is the thing this change exists to stop. Set
+// REACT_APP_FC_PUBLISHER_ID (the AdSense publisher ID, with or without the
+// leading `ca-`) in Vercel to turn both back on.
+const injectFundingChoices = () => {
+  console.log('🔍 Starting Funding Choices (CMP) injection...');
+
+  const rawPublisherId = process.env.REACT_APP_FC_PUBLISHER_ID;
+  console.log('🔑 REACT_APP_FC_PUBLISHER_ID:', rawPublisherId || 'NOT FOUND');
+
+  const indexPath = path.join(__dirname, '..', 'build', 'index.html');
+
+  if (!fs.existsSync(indexPath)) {
+    console.log('⚠️  index.html not found in build directory, skipping CMP injection');
+    return;
+  }
+
+  if (!rawPublisherId) {
+    console.log('⚠️  REACT_APP_FC_PUBLISHER_ID not found, skipping CMP injection');
+    console.log('⚠️  No consent manager will load, and Google Analytics stays off as a result.');
+    console.log('💡 Set REACT_APP_FC_PUBLISHER_ID in Vercel to the AdSense publisher ID (e.g. pub-1234567890123456)');
+    return;
+  }
+
+  // The Funding Choices message URL takes the bare `pub-...` form; accept the
+  // `ca-pub-...` spelling too, since that is how AdSense shows it.
+  const publisherId = rawPublisherId.trim().replace(/^ca-/, '');
+
+  if (!/^pub-\d+$/.test(publisherId)) {
+    console.log(`⚠️  REACT_APP_FC_PUBLISHER_ID ("${rawPublisherId}") does not look like a publisher ID (pub-1234567890123456), skipping CMP injection`);
+    return;
+  }
+
+  try {
+    let html = fs.readFileSync(indexPath, 'utf8');
+
+    const placeholderCount = (html.match(/FC_PUBLISHER_ID_PLACEHOLDER/g) || []).length;
+    console.log('🔍 Found', placeholderCount, 'CMP placeholder(s) to replace');
+
+    if (placeholderCount === 0) {
+      console.log('⚠️  No CMP placeholder found in index.html - may have already been replaced');
+      return;
+    }
+
+    html = html.replace(/FC_PUBLISHER_ID_PLACEHOLDER/g, publisherId);
+    fs.writeFileSync(indexPath, html, 'utf8');
+    console.log(`✅ Funding Choices publisher ID (${publisherId}) injected into index.html`);
+  } catch (error) {
+    console.error('❌ Failed to inject Funding Choices:', error.message);
+    console.error('❌ Error stack:', error.stack);
+  }
+};
+
+// Inject GA + CMP before react-snap (if it runs)
 injectGoogleAnalytics();
+injectFundingChoices();
 
 const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
 
@@ -87,8 +151,9 @@ if (isVercel) {
   try {
     execSync('react-snap', { stdio: 'inherit' });
     console.log('✅ react-snap completed successfully');
-    // Re-inject GA after react-snap (in case it modified the HTML)
+    // Re-inject after react-snap (in case it modified the HTML)
     injectGoogleAnalytics();
+    injectFundingChoices();
   } catch (error) {
     console.error('❌ react-snap failed:', error.message);
     // Don't fail the build if react-snap fails - the SEO prerender fallback

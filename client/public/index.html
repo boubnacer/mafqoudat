@@ -156,15 +156,110 @@
     /></noscript>
     <!-- End Facebook Pixel Code -->
     
-    <!-- Google Analytics 4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6CHWS73F4W"></script>
+    <!--
+      Consent management (Google Funding Choices / "Privacy & messaging") and
+      the Google Analytics gate.
+
+      What used to sit here was the gtag.js snippet, loaded unconditionally on
+      every page: the GA cookie was written before the visitor had been asked
+      anything. Google requires a certified CMP before ads can be served to
+      EEA/UK visitors, and this site's diaspora traffic makes that a real share
+      of visitors, so consent now comes first and GA follows it.
+
+      Three things happen here, in order, and the order is load-bearing:
+
+      1. Consent Mode v2 defaults, denied. These have to be in the dataLayer
+         before any Google tag reads it, which is why they are inline in the
+         head rather than in the bundle. Nothing about them loads GA - they are
+         the standing answer any Google tag gets until the CMP says otherwise.
+      2. The Funding Choices loader, as early as possible so the message can be
+         shown before the page settles.
+      3. Nothing else. gtag.js itself is no longer requested from this document
+         at all; src/utils/analytics.js loads it, and only after
+         src/utils/consent.js reports analytics consent. "No signal" is treated
+         as "no consent", so a build with no publisher ID configured, or a
+         visitor whose CMP request is blocked, gets no analytics rather than
+         analytics with no consent behind it.
+    -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-6CHWS73F4W');
+      (function () {
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        window.gtag = window.gtag || gtag;
+
+        // wait_for_update gives the CMP a window to answer before any tag that
+        // did load acts on the default; ads_data_redaction keeps ad click
+        // identifiers out of requests for as long as ad_storage is denied.
+        gtag('consent', 'default', {
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          analytics_storage: 'denied',
+          wait_for_update: 2000
+        });
+        gtag('set', 'ads_data_redaction', true);
+      })();
     </script>
-    <!-- End Google Analytics 4 -->
+    <script>
+      (function () {
+        // Replaced at build time by scripts/postbuild.js from
+        // REACT_APP_FC_PUBLISHER_ID. Left as the placeholder when that variable
+        // is not set, which this guard reads as "no CMP configured" - the
+        // script is then never requested (a request for the literal
+        // placeholder would only 404) and consent.js resolves to denied.
+        var publisherId = 'FC_PUBLISHER_ID_PLACEHOLDER'.replace(/^ca-/, '');
+
+        if (!publisherId || publisherId.indexOf('PLACEHOLDER') !== -1) {
+          window.__MAFQ_CMP_CONFIGURED__ = false;
+          return;
+        }
+        window.__MAFQ_CMP_CONFIGURED__ = true;
+
+        var script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://fundingchoicesmessages.google.com/i/' + publisherId + '?ers=1';
+        (document.head || document.documentElement).appendChild(script);
+
+        // Google's own ad-block detection ping, verbatim from their snippet:
+        // the presence of this named frame is how fundingchoicesmessages.google.com
+        // learns the script was not blocked.
+        (function signalGooglefcPresent() {
+          if (!window.frames['googlefcPresent']) {
+            if (document.body) {
+              var iframe = document.createElement('iframe');
+              iframe.style = 'width:0;height:0;border:none;z-index:-1000;left:-1000px;top:-1000px;';
+              iframe.style.display = 'none';
+              iframe.name = 'googlefcPresent';
+              document.body.appendChild(iframe);
+            } else {
+              setTimeout(signalGooglefcPresent, 0);
+            }
+          }
+        })();
+      })();
+    </script>
+    <!--
+      The consent message is Google's markup, not ours, and it renders into this
+      document before React has mounted - so the only way it can know which of
+      the two themes it is being drawn on is an attribute set here, from the
+      same localStorage key the Redux global slice persists mode to. App.js
+      keeps it in sync afterwards (applyDocumentTheme), and
+      styles/consentMessage.css is what reads it.
+    -->
+    <script>
+      (function () {
+        var mode = 'light';
+        try {
+          var stored = JSON.parse(window.localStorage.getItem('globalState') || '{}');
+          if (stored && stored.mode === 'dark') {
+            mode = 'dark';
+          }
+        } catch (error) {
+          /* private mode, or a corrupt value - light is the app's own default */
+        }
+        document.documentElement.setAttribute('data-color-scheme', mode);
+      })();
+    </script>
     
     <!--
       Structured Data.

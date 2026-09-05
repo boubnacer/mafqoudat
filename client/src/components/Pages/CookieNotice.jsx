@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
+  Button,
   Typography,
   Paper,
   Container,
@@ -19,6 +20,7 @@ import {
 import {
   Cookie,
   Settings,
+  Tune,
   Analytics,
   ShoppingCart,
   Security,
@@ -26,14 +28,37 @@ import {
   Warning,
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
+import { isConsentManagerConfigured, openConsentManager } from '../../utils/consent';
+import { colorTokens } from '../../designTokens';
 import Navbar from '../Navbar';
 import DashFooter from '../Footer/DashFooter';
 import SeoMeta from '../SeoMeta';
 
+// This page explains cookies; it does not collect consent. That is the
+// consent manager's job (Google Funding Choices, loaded from public/index.html)
+// and it is deliberately the only consent UI on the site - a second banner here
+// would give the same question two answers, and only the one recorded in the
+// CMP's TC string is the one Google Analytics and AdSense actually read. What
+// the page adds is the way back into it: withdrawing consent has to stay as
+// easy as giving it, and the CMP is not otherwise reachable once answered.
 const CookieNotice = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery('(max-width:600px)');
   const { t, currentLanguage } = useTranslation();
+  const [consentPanelFailed, setConsentPanelFailed] = useState(false);
+  const consentManagerAvailable = isConsentManagerConfigured();
+
+  const handleOpenConsentPanel = () => {
+    setConsentPanelFailed(!openConsentManager());
+  };
+
+  // Text on the brand fill, picked by measured ratio rather than by
+  // getContrastText - palette.primary.main is still the pre-Phase-1 #FFFFFF, so
+  // MUI's contained button answers this question about the wrong color. White
+  // on the light-mode brand blue is 7.5:1; on the lightened dark-mode twin it
+  // is 3.4:1, where the light-mode ink is 5.3:1 instead.
+  const brandButtonLabel =
+    theme.palette.mode === 'dark' ? colorTokens.ink.light : colorTokens.surfaceRaised.light;
 
   const cookieTypes = [
     {
@@ -301,6 +326,60 @@ const CookieNotice = () => {
                     ))}
                   </Grid>
                 </Box>
+
+                {/* Consent manager entry point */}
+                {consentManagerAvailable && (
+                  <Box
+                    sx={{
+                      mb: 4,
+                      p: 3,
+                      borderRadius: `${theme.custom.radius.lg}px`,
+                      backgroundColor: theme.custom.color.surfaceRaised,
+                      boxShadow: theme.custom.elevation.e1,
+                    }}
+                  >
+                    <Box display="flex" alignItems="center" mb={2}>
+                      <ListItemIcon sx={{ minWidth: 'auto', marginInlineEnd: 1 }}>
+                        <Tune sx={{ color: theme.custom.color.brandPrimary }} />
+                      </ListItemIcon>
+                      <Typography
+                        variant="h5"
+                        component="h2"
+                        sx={{ fontWeight: '600', color: theme.custom.color.ink }}
+                      >
+                        {t('manageCookiePreferences')}
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      {t('manageCookiePreferencesDesc')}
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      onClick={handleOpenConsentPanel}
+                      sx={{
+                        backgroundColor: theme.custom.color.brandPrimary,
+                        color: brandButtonLabel,
+                        borderRadius: `${theme.custom.radius.md}px`,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        '&:hover': {
+                          backgroundColor: theme.custom.color.brandPrimary,
+                          boxShadow: theme.custom.elevation.e2,
+                        },
+                      }}
+                    >
+                      {t('openConsentPanel')}
+                    </Button>
+                    {consentPanelFailed && (
+                      <Typography
+                        variant="body2"
+                        sx={{ mt: 2, color: theme.custom.status.lost.main }}
+                      >
+                        {t('consentPanelUnavailable')}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
 
                 {/* Contact Information */}
                 <Box
