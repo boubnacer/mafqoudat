@@ -203,12 +203,9 @@ const userSchema = new mongoose.Schema({
 });
 
 // Optimized indexes for efficient queries
-// 1. Authentication indexes (most critical)
-userSchema.index({ username: 1 });
-userSchema.index({ email: 1 }, { sparse: true });
-userSchema.index({ phone: 1 }, { sparse: true });
-userSchema.index({ googleId: 1 }, { sparse: true, unique: true });
-userSchema.index({ facebookId: 1 }, { sparse: true, unique: true });
+// Authentication fields (username/email/phone/googleId/facebookId) already
+// declare their index via `unique`/`sparse` on the path itself above -
+// redeclaring them here via schema.index() duplicated those indexes.
 
 // 2. User management indexes
 // blockedUsers is read on nearly every listing request for a signed-in viewer,
