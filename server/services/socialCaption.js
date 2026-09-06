@@ -26,7 +26,7 @@ const LOCALE_TEXT = {
     inCity: (city) => ` في مدينة ${city}`,
     detailsHeading: 'التفاصيل :',
     exactLocationLabel: 'المكان بالتحديد',
-    dateLabel: 'التاريخ الدقيق',
+    dateLabel: 'التاريخ بالتحديد',
     imageLabel: 'الصورة',
     descriptionHeading: 'الوصف :',
     contactHeading: 'للمزيد من المعلومات والتواصل :',
@@ -71,9 +71,9 @@ const LOCALE_TEXT = {
 
 const HEADER_EMOJI = { FOUND: '🟢', LOST: '🔴' };
 
-// Deliberately not translated (see buildLocaleBlock) - the user asked for
-// this exact Arabic word in every language block, unlike every other
-// "not provided" fallback which is localized per block.
+// Missing-image notice: Arabic word, Arabic block only - it reads as
+// broken embedded in an English/French sentence, so fr/en blocks omit
+// the image line entirely rather than mixing scripts.
 const IMAGE_NOT_AVAILABLE_TEXT = 'غير متاحة';
 
 const BLOCK_DIVIDER = '➖➖➖➖➖➖➖➖➖➖';
@@ -131,7 +131,7 @@ function buildLocaleBlock(locale, data) {
   const detailLines = [
     `📍 ${t.exactLocationLabel}: ${exactLocation || t.notAvailable}`,
     `📅 ${t.dateLabel}: ${mainDate || t.notAvailable}`,
-    isPlaceholder && `🖼️ ${t.imageLabel}: ${IMAGE_NOT_AVAILABLE_TEXT}`,
+    isPlaceholder && locale === 'ar' && `🖼️ ${t.imageLabel}: ${IMAGE_NOT_AVAILABLE_TEXT}`,
   ].filter(Boolean).join('\n');
 
   return [
@@ -175,13 +175,20 @@ async function buildListingCaption(post, { isPlaceholder = false } = {}) {
     postUrl,
   }));
 
-  const categoryLabelsAr = categories.map((c) => c.labels?.ar).filter(Boolean);
-  const hashtags = [
+  // Caption is trilingual now, so the hashtags follow: one set per language
+  // (city + every category), not just Arabic - a French or English reader
+  // searching a hashtag should find the post too. A city/category whose
+  // fr and en labels happen to be spelled the same (e.g. "Agadir") would
+  // otherwise repeat the identical tag - a Set collapses that.
+  const localizedHashtags = LOCALES.flatMap((locale) => [
+    toHashtag(city?.labels?.[locale]),
+    ...categories.map((c) => toHashtag(c.labels?.[locale])),
+  ]);
+  const hashtags = [...new Set([
     '#مفقودات',
     '#Mafqoudat',
-    toHashtag(city?.labels?.ar),
-    ...categoryLabelsAr.map(toHashtag),
-  ].filter(Boolean).join(' ');
+    ...localizedHashtags.filter(Boolean),
+  ])].join(' ');
 
   return `${blocks.join(`\n\n${BLOCK_DIVIDER}\n\n`)}\n\n${hashtags}`;
 }
