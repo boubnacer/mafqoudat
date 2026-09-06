@@ -316,7 +316,10 @@ const LOCKUP_CENTER_Y = 186;
 // begins.
 const ARABIC_WORDMARK_FILE = 'scripts/assets/arabicWordmark.svg';
 const ARABIC_WORDMARK_HEIGHT = 46;
-const ARABIC_WORDMARK_GAP = 18;
+// Near enough to touch: the two words read as one lockup rather than as a
+// caption above a logo. Measured off the descender, which is the word's real
+// bottom edge.
+const ARABIC_WORDMARK_GAP = 3;
 
 function brandLockup() {
   const totalWidth = LOCKUP_TILE + LOCKUP_GAP + LOCKUP_WORDMARK_WIDTH;
