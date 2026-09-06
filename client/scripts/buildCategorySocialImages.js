@@ -320,6 +320,12 @@ const ARABIC_WORDMARK_HEIGHT = 46;
 // caption above a logo. Measured off the descender, which is the word's real
 // bottom edge.
 const ARABIC_WORDMARK_GAP = 3;
+// A requested nudge off the trailing-edge/gap position above - 0.2cm left,
+// 0.1cm down, at the 96px/inch (37.795px/cm) a browser assumes for an
+// unitless SVG.
+const CM_TO_PX = 96 / 2.54;
+const ARABIC_WORDMARK_OFFSET_X = 0.2 * CM_TO_PX;
+const ARABIC_WORDMARK_OFFSET_Y = 0.1 * CM_TO_PX;
 
 function brandLockup() {
   const totalWidth = LOCKUP_TILE + LOCKUP_GAP + LOCKUP_WORDMARK_WIDTH;
@@ -330,8 +336,8 @@ function brandLockup() {
 
   return [
     `<g fill="${BRAND_ARABIC}">${placeSvgFile(ARABIC_WORDMARK_FILE, {
-      x: left + totalWidth - arabicWidth,
-      y: tileY - ARABIC_WORDMARK_GAP - ARABIC_WORDMARK_HEIGHT,
+      x: left + totalWidth - arabicWidth - ARABIC_WORDMARK_OFFSET_X,
+      y: tileY - ARABIC_WORDMARK_GAP - ARABIC_WORDMARK_HEIGHT + ARABIC_WORDMARK_OFFSET_Y,
       width: arabicWidth,
       height: ARABIC_WORDMARK_HEIGHT,
     })}</g>`,
