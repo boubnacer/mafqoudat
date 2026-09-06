@@ -59,11 +59,16 @@ const initRedis = async () => {
         redisConnected = true;
       });
       
-      redisClient.on('ready', () => {
+      redisClient.on('ready', async () => {
         console.log('✅ Redis ready for operations');
-        // Set Redis memory optimization
-        redisClient.configSet('maxmemory-policy', 'allkeys-lru');
-        redisClient.configSet('maxmemory', '100mb'); // Limit Redis memory
+        // Managed providers (Upstash, Render's own) block CONFIG SET outright -
+        // this is a best-effort tuning step, not a requirement for correctness.
+        try {
+          await redisClient.configSet('maxmemory-policy', 'allkeys-lru');
+          await redisClient.configSet('maxmemory', '100mb'); // Limit Redis memory
+        } catch (error) {
+          console.log('ℹ️  Redis CONFIG SET not permitted by provider, skipping memory tuning:', error.message);
+        }
       });
       
       await redisClient.connect();
