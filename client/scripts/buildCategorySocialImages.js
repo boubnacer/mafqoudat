@@ -45,6 +45,11 @@ const DOT = '#343B50';
 const BRAND = '#3498DB';
 const TEXT = '#EDEFF5';
 
+// The Arabic name above the wordmark. A lighter step of BRAND rather than the
+// logo blue itself: it sits at a smaller size than the wordmark it heads, and
+// the logo blue at that weight reads as a shadow of the word below it.
+const BRAND_ARABIC = '#4AA8E0';
+
 // The placeholder's dot grid, same origin/step/radius.
 const DOT_ORIGIN = 59.5;
 const DOT_STEP = 108;
@@ -278,6 +283,14 @@ function placeSvgFile(relativeToClient, { x, y, width, height }) {
   return `<svg x="${x}" y="${y}" width="${width}" height="${height}" viewBox="${viewBox[2]}" ${inherited}>${children}</svg>`;
 }
 
+/** width / height of a source SVG's own viewBox. */
+function svgAspect(relativeToClient) {
+  const viewBox = readFile(relativeToClient).match(/viewBox="([^"]+)"/);
+  if (!viewBox) throw new Error(`${relativeToClient} has no viewBox`);
+  const [, , width, height] = viewBox[1].split(/[\s,]+/).map(Number);
+  return width / height;
+}
+
 function dotGrid() {
   const dots = [];
   for (let y = DOT_ORIGIN; y < CANVAS; y += DOT_STEP) {
@@ -296,15 +309,38 @@ const LOCKUP_TILE = 150 * LOCKUP_SCALE;
 const LOCKUP_GAP = 48 * LOCKUP_SCALE;
 const LOCKUP_WORDMARK_HEIGHT = 141 * LOCKUP_SCALE;
 const LOCKUP_WORDMARK_WIDTH = LOCKUP_WORDMARK_HEIGHT * (328 / 71);
-const LOCKUP_CENTER_Y = 168;
+const LOCKUP_CENTER_Y = 186;
+
+// The Arabic name heads the Latin wordmark rather than sitting beside it, and
+// is set to the wordmark's trailing edge - which in Arabic is where the word
+// begins.
+const ARABIC_WORDMARK_FILE = 'scripts/assets/arabicWordmark.svg';
+const ARABIC_WORDMARK_HEIGHT = 46;
+// Near enough to touch: the two words read as one lockup rather than as a
+// caption above a logo. Measured off the descender, which is the word's real
+// bottom edge.
+const ARABIC_WORDMARK_GAP = 3;
+// A requested nudge off the trailing-edge/gap position above - 0.2cm left,
+// 0.1cm down, at the 96px/inch (37.795px/cm) a browser assumes for an
+// unitless SVG.
+const CM_TO_PX = 96 / 2.54;
+const ARABIC_WORDMARK_OFFSET_X = 0.2 * CM_TO_PX;
+const ARABIC_WORDMARK_OFFSET_Y = 0.1 * CM_TO_PX;
 
 function brandLockup() {
   const totalWidth = LOCKUP_TILE + LOCKUP_GAP + LOCKUP_WORDMARK_WIDTH;
   const left = (CANVAS - totalWidth) / 2;
   const tileY = LOCKUP_CENTER_Y - LOCKUP_TILE / 2;
   const glyph = LOCKUP_TILE * 0.6;
+  const arabicWidth = ARABIC_WORDMARK_HEIGHT * svgAspect(ARABIC_WORDMARK_FILE);
 
   return [
+    `<g fill="${BRAND_ARABIC}">${placeSvgFile(ARABIC_WORDMARK_FILE, {
+      x: left + totalWidth - arabicWidth - ARABIC_WORDMARK_OFFSET_X,
+      y: tileY - ARABIC_WORDMARK_GAP - ARABIC_WORDMARK_HEIGHT + ARABIC_WORDMARK_OFFSET_Y,
+      width: arabicWidth,
+      height: ARABIC_WORDMARK_HEIGHT,
+    })}</g>`,
     `<rect x="${left}" y="${tileY}" width="${LOCKUP_TILE}" height="${LOCKUP_TILE}" rx="${LOCKUP_TILE * 0.28}" fill="${BRAND}" fill-opacity="0.13"/>`,
     placeSvgFile('public/maficonSVG.svg', {
       x: left + (LOCKUP_TILE - glyph * (47 / 53)) / 2,
@@ -341,15 +377,14 @@ function heroTile(color, icon) {
   ].join('');
 }
 
+const DOMAIN_FILE = 'scripts/assets/domainWordmark.svg';
 const DOMAIN_WIDTH = 296;
 const DOMAIN_CENTER_Y = 902;
 
 function domainWordmark() {
-  const markup = readFile('scripts/assets/domainWordmark.svg');
-  const viewBox = markup.match(/viewBox="([^"]+)"/)[1].split(' ').map(Number);
-  const height = DOMAIN_WIDTH * (viewBox[3] / viewBox[2]);
+  const height = DOMAIN_WIDTH / svgAspect(DOMAIN_FILE);
 
-  return `<g fill="${TEXT}" fill-opacity="0.72">${placeSvgFile('scripts/assets/domainWordmark.svg', {
+  return `<g fill="${TEXT}" fill-opacity="0.72">${placeSvgFile(DOMAIN_FILE, {
     x: (CANVAS - DOMAIN_WIDTH) / 2,
     y: DOMAIN_CENTER_Y - height / 2,
     width: DOMAIN_WIDTH,
@@ -372,7 +407,14 @@ function buildCard({ color, icon }) {
 /* ------------------------------------------------------------------ run --- */
 
 async function main() {
-  const categories = resolveCategories();
+  // Category codes may be passed as arguments to rebuild only those - for
+  // looking at one card while tuning the layout, rather than rewriting all 19.
+  const only = process.argv.slice(2).map((code) => code.toUpperCase());
+  const all = resolveCategories();
+  const categories = only.length > 0 ? all.filter(({ code }) => only.includes(code)) : all;
+
+  if (categories.length === 0) throw new Error(`No category matches ${only.join(', ')}`);
+
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
   for (const category of categories) {
