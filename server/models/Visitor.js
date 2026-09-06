@@ -4,8 +4,7 @@ const visitorSchema = new mongoose.Schema({
   sessionId: {
     type: String,
     required: true,
-    unique: true,
-    index: true
+    unique: true
   },
   ip: {
     type: String,
@@ -38,7 +37,7 @@ const visitorSchema = new mongoose.Schema({
 
 // Index for efficient queries
 visitorSchema.index({ visitedAt: -1 });
-visitorSchema.index({ sessionId: 1 });
+// sessionId already gets its index from `unique: true` above.
 
 // Static method to get visitor statistics
 visitorSchema.statics.getStats = async function(startDate = null, endDate = null) {

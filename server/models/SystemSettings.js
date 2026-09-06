@@ -41,8 +41,7 @@ const systemSettingsSchema = new mongoose.Schema(
       type: String,
       default: "system_settings",
       unique: true,
-      immutable: true,
-      index: true
+      immutable: true
     }
   },
   {
@@ -51,8 +50,7 @@ const systemSettingsSchema = new mongoose.Schema(
   }
 );
 
-// Index for efficient singleton lookup
-systemSettingsSchema.index({ singleton: 1 }, { unique: true });
+// singleton already gets its unique index from `unique: true` above.
 
 // Pre-save middleware to enforce singleton pattern
 systemSettingsSchema.pre("save", async function (next) {

@@ -1,5 +1,3 @@
-const { getCloudinaryStats } = require('../config/optimizedCloudinary');
-
 /**
  * Cost Monitoring Utility
  * Tracks Cloudinary usage and cost savings from optimizations
@@ -141,6 +139,11 @@ class CostMonitor {
   async generateReport() {
     try {
       const metrics = this.getMetrics();
+      // Required lazily (not at module top) because optimizedCloudinary.js
+      // requires this module too - a top-level require here formed a cycle
+      // where this file loaded first, so it captured optimizedCloudinary's
+      // exports before getCloudinaryStats was assigned.
+      const { getCloudinaryStats } = require('../config/optimizedCloudinary');
       const cloudinaryStats = await getCloudinaryStats();
       
       const report = {

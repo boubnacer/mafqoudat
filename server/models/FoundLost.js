@@ -47,8 +47,7 @@ const foundlostSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for efficient lookup
-foundlostSchema.index({ code: 1 });
+// code already gets its unique index from `unique: true` above.
 
 // Compound indexes for common query patterns
 // 1. isActive + code (for active found/lost types)
