@@ -47,6 +47,7 @@ const PrivacyPolicy = () => {
         t('usageData'),
         t('deviceInformation'),
         t('locationData'),
+        t('crashDiagnosticsData'),
       ]
     },
     {
