@@ -36,12 +36,24 @@ import { summarizeSocialStats } from "../../../utils/socialStats";
  * Facebook's numbers from Instagram's. The whole section (heading + both
  * platform blocks) is wrapped in one outlined card, at request, rather than
  * reading as three separate pieces stacked on the page.
+ *
+ * Colors only (web, this page): reskinned to a glowing "SaaS panel" look —
+ * a violet-tinted glass card, a gradient icon badge and platform blocks/chips
+ * tinted from each platform's own color instead of a flat neutral fill. Same
+ * exception this file already documents for the Facebook/Instagram brand
+ * colors: the header badge's violet-to-pink gradient is a one-off decorative
+ * accent (built from theme.custom.color.brandPrimary, not a bare hex, so it
+ * still tracks the brand in both modes) rather than a token, scoped to this
+ * card only. No progress bars/percentages were added on the metric chips —
+ * these counts (views, reactions...) have no natural maximum, and a bar
+ * implies a proportion nobody measured (see "Data integrity" in CLAUDE.md).
  */
 
 // One count, as a chip — up to six per platform, and unseparated they wrap
 // into a paragraph of numbers nobody can scan.
-const Metric = ({ icon: Icon, value, label }) => {
+const Metric = ({ icon: Icon, value, label, tint }) => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   if (value === null) return null;
   return (
     <Box
@@ -51,11 +63,12 @@ const Metric = ({ icon: Icon, value, label }) => {
         gap: 0.625,
         px: 1.125,
         py: 0.625,
-        borderRadius: `${theme.custom.radius.sm}px`,
-        backgroundColor: theme.custom.color.surfaceRaised,
+        borderRadius: '999px',
+        backgroundColor: alpha(tint, isDark ? 0.16 : 0.08),
+        border: `1px solid ${alpha(tint, isDark ? 0.35 : 0.22)}`,
       }}
     >
-      <Icon sx={{ fontSize: 15, color: alpha(theme.custom.color.ink, 0.6), flexShrink: 0 }} />
+      <Icon sx={{ fontSize: 15, color: tint, flexShrink: 0 }} />
       <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
         {value}
       </Typography>
@@ -68,6 +81,7 @@ const Metric = ({ icon: Icon, value, label }) => {
 
 const PlatformBlock = ({ icon: Icon, name, tint, permalink, linkLabel, children }) => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   return (
     <Box
       sx={{
@@ -76,7 +90,8 @@ const PlatformBlock = ({ icon: Icon, name, tint, permalink, linkLabel, children 
         gap: 1.25,
         p: 1.5,
         borderRadius: `${theme.custom.radius.md}px`,
-        backgroundColor: alpha(theme.custom.color.ink, 0.04),
+        backgroundColor: alpha(tint, isDark ? 0.10 : 0.05),
+        border: `1px solid ${alpha(tint, isDark ? 0.3 : 0.18)}`,
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
@@ -85,7 +100,8 @@ const PlatformBlock = ({ icon: Icon, name, tint, permalink, linkLabel, children 
             width: 30,
             height: 30,
             borderRadius: `${theme.custom.radius.sm}px`,
-            backgroundColor: alpha(tint, 0.12),
+            backgroundColor: alpha(tint, 0.16),
+            boxShadow: `0 0 12px ${alpha(tint, isDark ? 0.45 : 0.3)}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -108,7 +124,8 @@ const PlatformBlock = ({ icon: Icon, name, tint, permalink, linkLabel, children 
               width: 30,
               height: 30,
               borderRadius: `${theme.custom.radius.sm}px`,
-              backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
+              backgroundColor: alpha(theme.custom.color.brandPrimary, 0.14),
+              border: `1px solid ${alpha(theme.custom.color.brandPrimary, 0.3)}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -129,6 +146,7 @@ const SocialReach = ({ post }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const { facebook, instagram, hasStats } = summarizeSocialStats(post);
+  const isDark = theme.palette.mode === 'dark';
 
   // Nothing has been read back yet - say nothing rather than render a row of
   // zeros that reads as "this listing is being ignored".
@@ -136,6 +154,10 @@ const SocialReach = ({ post }) => {
 
   const showFacebook = facebook.interactions !== null || facebook.views !== null;
   const showInstagram = instagram.interactions !== null || instagram.views !== null;
+  const brand = theme.custom.color.brandPrimary;
+  // radial-gradient has no logical-property equivalent, so the glow's start
+  // corner is picked from theme.direction instead of a fixed 0% 0%.
+  const glowOrigin = theme.direction === 'rtl' ? '100% 0%' : '0% 0%';
 
   return (
     <Box
@@ -144,24 +166,42 @@ const SocialReach = ({ post }) => {
         flexDirection: 'column',
         gap: 1.5,
         p: 2,
+        position: 'relative',
+        overflow: 'hidden',
         borderRadius: `${theme.custom.radius.lg}px`,
-        border: `1px solid ${theme.palette.divider}`,
+        border: `1px solid ${alpha(brand, isDark ? 0.35 : 0.18)}`,
         backgroundColor: theme.custom.color.surfaceRaised,
+        backgroundImage: `radial-gradient(120% 100% at ${glowOrigin}, ${alpha(brand, isDark ? 0.16 : 0.07)} 0%, transparent 55%)`,
+        boxShadow: `${theme.custom.elevation.e2}, 0 0 32px ${alpha(brand, isDark ? 0.16 : 0.08)}`,
       }}
     >
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <ReachIcon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
+        <Box
+          sx={{
+            width: 34,
+            height: 34,
+            borderRadius: `${theme.custom.radius.sm}px`,
+            backgroundImage: `linear-gradient(135deg, ${brand}, #EC4899)`,
+            boxShadow: `0 0 16px ${alpha(brand, 0.45)}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <ReachIcon sx={{ fontSize: 18, color: '#FFFFFF' }} />
+        </Box>
+        <Box sx={{ minWidth: 0 }}>
           <Typography
             variant="h6"
             sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: { xs: '1rem', md: '1.1rem' } }}
           >
             {t('socialReach')}
           </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            {t('socialReachNote')}
+          </Typography>
         </Box>
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          {t('socialReachNote')}
-        </Typography>
       </Box>
 
       {showFacebook && (
@@ -174,12 +214,12 @@ const SocialReach = ({ post }) => {
           permalink={facebook.unavailable ? null : facebook.permalink}
           linkLabel={t('viewOnFacebook')}
         >
-          <Metric icon={ViewsIcon} value={facebook.views} label={t('views')} />
-          <Metric icon={ReactionsIcon} value={facebook.reactions} label={t('reactions')} />
-          <Metric icon={CommentsIcon} value={facebook.comments} label={t('comments')} />
-          <Metric icon={SharesIcon} value={facebook.shares} label={t('shares')} />
-          <Metric icon={EngagedIcon} value={facebook.engagedUsers} label={t('engagedUsers')} />
-          <Metric icon={ClicksIcon} value={facebook.clicks} label={t('clicks')} />
+          <Metric icon={ViewsIcon} value={facebook.views} label={t('views')} tint="#1877F2" />
+          <Metric icon={ReactionsIcon} value={facebook.reactions} label={t('reactions')} tint="#1877F2" />
+          <Metric icon={CommentsIcon} value={facebook.comments} label={t('comments')} tint="#1877F2" />
+          <Metric icon={SharesIcon} value={facebook.shares} label={t('shares')} tint="#1877F2" />
+          <Metric icon={EngagedIcon} value={facebook.engagedUsers} label={t('engagedUsers')} tint="#1877F2" />
+          <Metric icon={ClicksIcon} value={facebook.clicks} label={t('clicks')} tint="#1877F2" />
         </PlatformBlock>
       )}
 
@@ -191,10 +231,10 @@ const SocialReach = ({ post }) => {
           permalink={instagram.unavailable ? null : instagram.permalink}
           linkLabel={t('viewOnInstagram')}
         >
-          <Metric icon={ViewsIcon} value={instagram.views} label={t('views')} />
-          <Metric icon={LikesIcon} value={instagram.likes} label={t('likes')} />
-          <Metric icon={CommentsIcon} value={instagram.comments} label={t('comments')} />
-          <Metric icon={SavedIcon} value={instagram.saved} label={t('saved')} />
+          <Metric icon={ViewsIcon} value={instagram.views} label={t('views')} tint="#E1306C" />
+          <Metric icon={LikesIcon} value={instagram.likes} label={t('likes')} tint="#E1306C" />
+          <Metric icon={CommentsIcon} value={instagram.comments} label={t('comments')} tint="#E1306C" />
+          <Metric icon={SavedIcon} value={instagram.saved} label={t('saved')} tint="#E1306C" />
         </PlatformBlock>
       )}
     </Box>
