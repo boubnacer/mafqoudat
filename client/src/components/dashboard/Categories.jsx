@@ -66,11 +66,11 @@ const Categories = () => {
     return (
       <Box sx={{ py: 4 }}>
         <Grid container spacing={isMobile ? 2 : 3} justifyContent="center">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Grid item xs={12} sm={6} md={4} key={i}>
+          {Array.from({ length: CATEGORY_COLLAPSED_SMALL_COUNT }).map((_, i) => (
+            <Grid item xs={6} sm={6} md={3} key={i}>
               <SkeletonBlock
                 radius={theme.custom.radius.lg}
-                sx={{ height: i === 0 ? 180 : 130 }}
+                sx={{ height: { xs: 120, sm: 135 } }}
               />
             </Grid>
           ))}
@@ -79,133 +79,16 @@ const Categories = () => {
     );
   }
 
-  const [featuredCategory, ...rest] = categories || [];
-  const hasMoreCategories = rest.length > CATEGORY_COLLAPSED_SMALL_COUNT;
-  const visibleRest = showAllCategories ? rest : rest.slice(0, CATEGORY_COLLAPSED_SMALL_COUNT);
-
+  const hasMoreCategories = (categories?.length || 0) > CATEGORY_COLLAPSED_SMALL_COUNT;
+  const visibleCategories = showAllCategories
+    ? categories
+    : (categories || []).slice(0, CATEGORY_COLLAPSED_SMALL_COUNT);
 
   return (
     <Box sx={{ py: 4 }}>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2.5,
-          maxWidth: '1200px',
-          mx: 'auto',
-        }}
-      >
-        {featuredCategory && (() => {
-          const code = featuredCategory.code;
-          const IconComponent = getCategoryIcon(code);
-          const iconColor = getCategoryColor(code);
-          const tint = alpha(iconColor, isDark ? 0.2 : 0.12);
-          const badgeBg = isDark ? 'rgba(0,0,0,0.28)' : 'rgba(255,255,255,0.55)';
-          const label = featuredCategory.labels[currentLanguage] || featuredCategory.labels.en;
-
-          return (
-            <Box data-reveal-item="" sx={{ width: '100%' }}>
-              <Card
-                onClick={() => handleCategoryClick(featuredCategory._id)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleCategoryClick(featuredCategory._id);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                elevation={0}
-                sx={{
-                  position: 'relative',
-                  overflow: 'hidden',
-                  backgroundColor: tint,
-                  borderRadius: `${theme.custom.radius.lg}px`,
-                  cursor: 'pointer',
-                  border: 'none',
-                  boxShadow: 'none',
-                  minHeight: { xs: 150, sm: 170 },
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: theme.custom.elevation?.e2 || '0 4px 20px rgba(0,0,0,0.08)',
-                    '& .category-ghost-icon': {
-                      transform: 'scale(1.05)',
-                    },
-                    '& .category-icon-badge': {
-                      transform: 'scale(1.08)',
-                    },
-                  },
-                  '&:focus-visible': {
-                    outline: `2px solid ${theme.custom.color.brandPrimary}`,
-                    outlineOffset: '2px',
-                  },
-                }}
-              >
-                <Box
-                  className="category-ghost-icon"
-                  sx={{
-                    position: 'absolute',
-                    right: { xs: -20, sm: -15 },
-                    bottom: { xs: -20, sm: -15 },
-                    color: iconColor,
-                    opacity: 0.15,
-                    fontSize: { xs: '110px', sm: '140px' },
-                    pointerEvents: 'none',
-                    transition: 'transform 0.3s ease',
-                  }}
-                >
-                  <IconComponent sx={{ fontSize: 'inherit' }} />
-                </Box>
-                <CardContent
-                  sx={{
-                    p: { xs: 3, sm: 4 },
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
-                    justifyContent: 'space-between',
-                    height: '100%',
-                    zIndex: 1,
-                  }}
-                >
-                  <Box
-                    className="category-icon-badge"
-                    sx={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: '50%',
-                      backgroundColor: badgeBg,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mb: 2,
-                      transition: 'transform 0.3s ease',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                    }}
-                  >
-                    <IconComponent sx={{ color: iconColor, fontSize: '26px' }} />
-                  </Box>
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      fontWeight: 700,
-                      color: theme.custom.color.ink,
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {label}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Box>
-          );
-        })()}
-      
+      <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
         <Grid container spacing={2} ref={gridRef}>
-          {visibleRest.map(({ _id, code, labels }) => {
+          {visibleCategories.map(({ _id, code, labels }) => {
             const IconComponent = getCategoryIcon(code);
             const iconColor = getCategoryColor(code);
             const tint = alpha(iconColor, isDark ? 0.2 : 0.12);
