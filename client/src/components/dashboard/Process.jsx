@@ -7,8 +7,9 @@ import { gsap, ScrollTrigger, useGSAP } from "../../utils/gsapSetup";
 import { resolveScroller } from "../../features/dashboard/useDashboardMotion";
 
 // Step icons rendered directly (bypassing RenderIcon) because these sit on a
-// solid brandPrimary disc and need contrast-text white, not RenderIcon's
-// fixed brandPrimary fill — same reasoning FoundLostStrip/TrendingItem use to
+// solid brandLogo disc (the logo's own blue, matching public/maflogoSVG.svg —
+// see designTokens.js) and need contrast-text white, not RenderIcon's fixed
+// brandPrimary fill — same reasoning FoundLostStrip/TrendingItem use to
 // sidestep RenderIcon for Found/Lost (see RenderIcon's tokenization debt).
 const STEP_ICONS = { share: Share, ad: Campaign, notif: Notifications };
 
@@ -43,7 +44,7 @@ const Process = () => {
   ];
 
   const nodeSize = isMobile ? 56 : 64;
-  const iconContrastText = theme.palette.getContrastText(theme.custom.color.brandPrimary);
+  const iconContrastText = theme.palette.getContrastText(theme.custom.color.brandLogo);
   const isDark = theme.palette.mode === 'dark';
   const { surfaceRaised, surfaceBase, brandPrimary, brandLogo } = theme.custom.color;
   const white = theme.palette.common.white;
@@ -246,11 +247,11 @@ const Process = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: theme.custom.color.brandPrimary,
-                    // Dark mode: glowing disc via brandPrimary-tinted shadow;
+                    backgroundColor: brandLogo,
+                    // Dark mode: glowing disc via brandLogo-tinted shadow;
                     // light mode keeps the original flat elevation.e1.
                     boxShadow: isDark
-                      ? `0 4px 16px ${alpha(brandPrimary, 0.4)}`
+                      ? `0 4px 16px ${alpha(brandLogo, 0.4)}`
                       : theme.custom.elevation.e1,
                   }}
                 >
@@ -258,13 +259,24 @@ const Process = () => {
                 </Box>
 
                 <Typography
-                  sx={{ fontWeight: 700, fontSize: { xs: '1.15rem', md: '1.1rem' }, color: theme.custom.color.ink }}
+                  variant="h6"
+                  fontWeight={700}
+                  sx={{
+                    fontFamily: theme.custom.font.display,
+                    fontSize: { xs: '1.15rem', md: '1.1rem' },
+                    color: theme.custom.color.ink,
+                  }}
                 >
                   {step.text}
                 </Typography>
 
                 <Typography
-                  sx={{ fontSize: { xs: '1rem', md: '0.95rem' }, color: alpha(theme.custom.color.ink, 0.7) }}
+                  variant="body2"
+                  sx={{
+                    fontFamily: theme.custom.font.body,
+                    fontSize: { xs: '1rem', md: '0.95rem' },
+                    color: alpha(theme.custom.color.ink, 0.7),
+                  }}
                 >
                   {step.description}
                 </Typography>
@@ -297,7 +309,10 @@ const Process = () => {
                           backgroundColor: theme.custom.status.lost.main,
                         }}
                       />
-                      <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: theme.custom.status.lost.main }}>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontFamily: theme.custom.font.body, fontSize: '0.85rem', fontWeight: 600, color: theme.custom.status.lost.main }}
+                      >
                         {t('notifyLostHint')}
                       </Typography>
                     </Box>
@@ -322,7 +337,10 @@ const Process = () => {
                           backgroundColor: theme.custom.status.found.main,
                         }}
                       />
-                      <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: theme.custom.status.found.main }}>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontFamily: theme.custom.font.body, fontSize: '0.85rem', fontWeight: 600, color: theme.custom.status.found.main }}
+                      >
                         {t('notifyFoundHint')}
                       </Typography>
                     </Box>
