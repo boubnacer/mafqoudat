@@ -32,7 +32,8 @@ means sent to a party other than Mafqoudat's own backend.
 | Approximate location | Yes | Yes | App functionality | N/A (automatic, not user-entered) | IP → country lookup via `ipwho.is` on first launch, to pre-select onboarding country. Not GPS/precise location. Not persisted server-side. Shared = the device's IP goes directly to ipwho.is, not through your backend |
 | App activity (in-app actions, search history) | Yes | No | App functionality, analytics | N/A | Posts created, comments, searches |
 | App info and performance (crash logs, diagnostics) | No | — | — | — | No crash-reporting or performance SDK in `mobile/` (no Sentry/Crashlytics/Bugsnag found) |
-| Device or other IDs | Yes | Yes | App functionality | No (if push enabled) | Expo push token, stored on `User.pushTokens`; Expo's push service (and FCM behind it) sees the token |
+| Device or other IDs | Yes | Yes | App functionality | No (if push enabled) | Expo push token, stored on `User.pushTokens`; Expo's push service (and FCM behind it) sees the token. Firebase Crashlytics (see row below) also assigns its own Firebase Installation ID, independent of the push token |
+| App info and performance (crash logs, diagnostics) | Yes | Yes | Analytics | No | `@react-native-firebase/crashlytics` (`mobile/src/utils/crashReporting.js`), wired up in `App.js`'s `initCrashReporting()`. Collection is disabled in dev/dev-client builds (`setCrashlyticsCollectionEnabled(!__DEV__)`) so only real installs report. Shared with Firebase/Google, who host the crash-reporting service |
 | User-generated content (comments) | Yes | No | App functionality | Yes | Site comments; separately, social comments are *read from* Facebook/Instagram, not collected from your users |
 
 Categories deliberately **not** declared (checked, not assumed):
