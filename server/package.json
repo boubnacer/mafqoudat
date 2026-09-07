@@ -44,7 +44,7 @@
   "dependencies": {
     "all-the-cities": "^3.1.0",
     "axios": "^1.20.0",
-    "bcrypt": "^5.0.1",
+    "bcrypt": "^6.0.0",
     "body-parser": "^1.20.1",
     "cloudinary": "^2.11.0",
     "compression": "^1.7.4",
@@ -64,16 +64,19 @@
     "mongoose-sequence": "^5.3.1",
     "multer": "^1.4.5-lts.1",
     "node-cache": "^5.1.2",
-    "nodemailer": "^6.10.1",
+    "nodemailer": "^9.1.1",
     "passport": "^0.7.0",
     "passport-facebook": "^3.0.0",
     "passport-google-oauth20": "^2.0.0",
     "redis": "^4.6.7",
     "sharp": "^0.33.5",
-    "uuid": "^8.3.2"
+    "uuid": "^14.0.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.19"
+    "nodemon": "^3.1.14"
+  },
+  "overrides": {
+    "qs": "^6.16.0"
   },
   "engines": {
     "node": ">=18.0.0 <21.0.0",

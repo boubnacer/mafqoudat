@@ -10,10 +10,6 @@
     "@gsap/react": "^2.1.2",
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.3",
-    "@nivo/core": "^0.80.0",
-    "@nivo/geo": "^0.80.0",
-    "@nivo/line": "^0.80.0",
-    "@nivo/pie": "^0.80.0",
     "@reduxjs/toolkit": "^1.8.4",
     "axios": "^1.9.0",
     "browser-image-compression": "^2.0.2",
@@ -34,7 +30,6 @@
     "react-scripts": "5.0.1",
     "react-simple-maps": "^3.0.0",
     "react-spinners": "^0.13.4",
-    "swiper": "^11.2.8",
     "topojson-client": "^3.1.0",
     "world-atlas": "^2.0.2",
     "yup": "^0.32.11"
@@ -132,5 +127,12 @@
     "topojson-server": "^3.0.1",
     "topojson-simplify": "^3.0.3",
     "webpack-bundle-analyzer": "^4.10.2"
+  },
+  "overrides": {
+    "d3-color": "^3.1.0",
+    "minimist": "^1.2.8",
+    "nth-check": "^2.1.1",
+    "serialize-javascript": "^6.0.2",
+    "ws": "^8.18.3"
   }
 }
