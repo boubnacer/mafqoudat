@@ -129,12 +129,19 @@
     "webpack-bundle-analyzer": "^4.10.2"
   },
   "overrides": {
+    "body-parser": "^1.20.6",
     "d3-color": "^3.1.0",
+    "express": "^4.22.2",
+    "http-proxy-agent": "^5.0.0",
     "minimist": "^1.2.8",
+    "node-fetch": "^2.6.7",
     "nth-check": "^2.1.1",
     "postcss": "^8.5.28",
     "qs": "^6.16.0",
+    "send": "^0.19.2",
     "serialize-javascript": "^7.1.1",
+    "serve-static": "^1.16.3",
+    "svgo": "^2.8.3",
     "uuid": "^14.0.2",
     "ws": "^8.18.3"
   }
