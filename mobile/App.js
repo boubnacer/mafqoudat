@@ -32,6 +32,8 @@ import { useTranslation } from './src/utils/translations';
 import MaintenanceOverlay from './src/components/MaintenanceOverlay';
 import OfflineBanner from './src/components/OfflineBanner';
 import DirectionChangeDialog from './src/components/DirectionChangeDialog';
+import ErrorBoundary from './src/components/ErrorBoundary';
+import { initCrashReporting } from './src/utils/crashReporting';
 import OnboardingScreen from './src/screens/onboarding/OnboardingScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
@@ -53,6 +55,7 @@ import { ActivityIndicator, View, StyleSheet, Text, Linking } from 'react-native
 
 // Runs once, at module evaluation, before anything renders - see validateEnv.js.
 validateEnv();
+initCrashReporting();
 
 const Stack = createNativeStackNavigator();
 
@@ -396,7 +399,13 @@ export default function App() {
             <NotificationsProvider>
               <OnboardingProvider>
                 <SafeAreaProvider>
-                  <AppShell />
+                  {/* Inside every provider above, so ErrorFallback (see
+                      ErrorBoundary.js) can safely read theme/language/
+                      translation context - only this subtree unmounts on a
+                      catch, never its ancestors. */}
+                  <ErrorBoundary>
+                    <AppShell />
+                  </ErrorBoundary>
                 </SafeAreaProvider>
               </OnboardingProvider>
             </NotificationsProvider>

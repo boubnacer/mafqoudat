@@ -241,6 +241,16 @@ export default {
       // Required by expo-secure-store v15+ (config plugin sets Android's
       // faceIDPermission / no-op iOS entries; no custom options needed here).
       "expo-secure-store",
+      // Firebase Crashlytics. "@react-native-firebase/app" is the base module
+      // every other RNFirebase package needs; its config plugin is what wires
+      // android.googleServicesFile above into the actual Firebase native init
+      // (previously only used for FCM's google-services.json application) -
+      // "@react-native-firebase/crashlytics" adds the Gradle plugin that
+      // uploads native symbol/mapping info on each release build. Both no-op
+      // safely in Expo Go (see src/utils/crashReporting.js) - only a
+      // dev-client/preview/production build actually links the native module.
+      "@react-native-firebase/app",
+      "@react-native-firebase/crashlytics",
       // APK/AAB size: enables R8 code shrinking + resource shrinking on every Android
       // release build (preview APK and production AAB alike - neither was minified
       // before), and restricts native libs to arm64-v8a on internal-test builds only
