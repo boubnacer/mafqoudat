@@ -2,7 +2,8 @@
 # This tells Railway how to build the server
 
 [phases.setup]
-nixPkgs = ["nodejs-18_x", "npm-8_x", "python3", "make", "gcc"]
+# nodejs_22 bundles npm 10, so npm is no longer listed separately.
+nixPkgs = ["nodejs_22", "python3", "make", "gcc"]
 
 # Install dependencies in server directory
 [phases.install]
