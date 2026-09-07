@@ -10,6 +10,13 @@ services:
     healthCheckPath: /health
     envVars:
       # --- Core server config ---
+      # Node 18 and 20 are both past end-of-life (Apr 2025 / Apr 2026), so they
+      # no longer receive runtime security patches. 22 is in maintenance until
+      # Apr 2027. Also the floor for sharp >= 0.35, which carries the libvips
+      # CVE fixes. server/.node-version pins the same value for anything that
+      # reads that instead.
+      - key: NODE_VERSION
+        value: "22"
       - key: NODE_ENV
         value: production
       - key: NODE_OPTIONS

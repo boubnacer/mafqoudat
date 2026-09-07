@@ -117,12 +117,12 @@
     ]
   },
   "engines": {
-    "node": ">=16.0.0",
+    "node": ">=20.9.0",
     "npm": ">=8.0.0"
   },
   "devDependencies": {
     "react-snap": "^1.23.0",
-    "sharp": "^0.33.5",
+    "sharp": "^0.35.4",
     "source-map-explorer": "^2.5.3",
     "topojson-server": "^3.0.1",
     "topojson-simplify": "^3.0.3",
