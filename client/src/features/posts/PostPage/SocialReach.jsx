@@ -30,16 +30,21 @@ import { summarizeSocialStats } from "../../../utils/socialStats";
  * Facebook reaction, an Instagram like and a view are three different things
  * and pooling them would state a figure nobody measured.
  *
- * Each metric renders as a labelled row with a bar, the bar's fill relative to
- * the largest known metric on that same platform - a real comparison between
- * numbers we actually have, not an invented "score out of 100". The fill
- * gradient reuses Phase 17/19's brandPrimary -> lighten(brandPrimary) formula
- * rather than picking a new one.
+ * Visual treatment: a glowing "product panel" look (gradient icon badge, a
+ * status pill, metric rows with a gradient progress bar) rather than the flat
+ * chip row this used before. The glow/gradient is built from
+ * theme.custom.color.brandPrimary (Phase 17/19's brandPrimary ->
+ * lighten(brandPrimary, 0.45) formula) so it still resolves correctly in both
+ * light and dark mode, rather than a fixed dark-purple palette that would
+ * ignore the theme toggle. Each bar's fill is relative to the largest known
+ * metric on that same platform - a real comparison between numbers we
+ * actually have, not an invented "score out of 100".
  */
 
 const MetricRow = ({ icon: Icon, label, value, max }) => {
   const theme = useTheme();
   if (value === null) return null;
+  const brand = theme.custom.color.brandPrimary;
   const fillPercent = max > 0 ? Math.max((value / max) * 100, value > 0 ? 4 : 0) : 0;
 
   return (
@@ -56,30 +61,25 @@ const MetricRow = ({ icon: Icon, label, value, max }) => {
     >
       <Box
         sx={{
-          width: 28,
-          height: 28,
+          width: 30,
+          height: 30,
           borderRadius: `${theme.custom.radius.sm}px`,
-          backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
+          backgroundColor: alpha(brand, 0.12),
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
         }}
       >
-        <Icon sx={{ fontSize: 15, color: theme.custom.color.brandPrimary }} />
+        <Icon sx={{ fontSize: 16, color: brand }} />
       </Box>
       <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-          <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
-            {label}
-          </Typography>
-          <Typography variant="caption" sx={{ color: theme.custom.color.brandPrimary, fontWeight: 700 }}>
-            {value}
-          </Typography>
-        </Box>
+        <Typography variant="body2" sx={{ color: theme.custom.color.ink, fontWeight: 700, mb: 0.5 }}>
+          {label}
+        </Typography>
         <Box
           sx={{
-            height: 6,
+            height: 8,
             borderRadius: 999,
             backgroundColor: alpha(theme.custom.color.ink, 0.08),
             overflow: 'hidden',
@@ -90,17 +90,24 @@ const MetricRow = ({ icon: Icon, label, value, max }) => {
               width: `${fillPercent}%`,
               height: '100%',
               borderRadius: 999,
-              backgroundImage: `linear-gradient(90deg, ${theme.custom.color.brandPrimary} 0%, ${lighten(theme.custom.color.brandPrimary, 0.45)} 100%)`,
+              backgroundImage: `linear-gradient(90deg, ${brand} 0%, ${lighten(brand, 0.45)} 100%)`,
+              boxShadow: `0 0 8px ${alpha(brand, 0.55)}`,
               transition: 'width 0.4s ease',
             }}
           />
         </Box>
       </Box>
+      <Typography
+        variant="h6"
+        sx={{ color: brand, fontWeight: 800, minWidth: 32, textAlign: 'end', flexShrink: 0 }}
+      >
+        {value}
+      </Typography>
     </Box>
   );
 };
 
-const PlatformCard = ({ icon: Icon, name, tint, permalink, linkLabel, metrics }) => {
+const PlatformCard = ({ icon: Icon, name, tint, permalink, linkLabel, statusLabel, metrics }) => {
   const theme = useTheme();
   const shown = metrics.filter((metric) => metric.value !== null);
   if (shown.length === 0) return null;
@@ -112,30 +119,52 @@ const PlatformCard = ({ icon: Icon, name, tint, permalink, linkLabel, metrics })
         display: 'flex',
         flexDirection: 'column',
         gap: 1,
-        p: 1.5,
-        borderRadius: `${theme.custom.radius.md}px`,
+        p: 1.75,
+        borderRadius: `${theme.custom.radius.lg}px`,
         backgroundColor: theme.custom.color.surfaceRaised,
-        boxShadow: theme.custom.elevation.e1,
+        boxShadow: `${theme.custom.elevation.e2}, 0 0 28px ${alpha(tint, 0.18)}`,
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0, mb: 0.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0, mb: 0.5 }}>
         <Box
           sx={{
-            width: 36,
-            height: 36,
-            borderRadius: `${theme.custom.radius.sm}px`,
-            backgroundColor: alpha(tint, 0.12),
+            width: 40,
+            height: 40,
+            borderRadius: `${theme.custom.radius.md}px`,
+            backgroundImage: `linear-gradient(135deg, ${tint} 0%, ${lighten(tint, 0.25)} 100%)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
+            boxShadow: `0 0 14px ${alpha(tint, 0.5)}`,
           }}
         >
-          <Icon sx={{ fontSize: 19, color: tint }} />
+          <Icon sx={{ fontSize: 21, color: '#fff' }} />
         </Box>
-        <Typography variant="body2" sx={{ color: theme.custom.color.ink, fontWeight: 700, flexGrow: 1 }}>
-          {name}
-        </Typography>
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+          <Typography variant="body1" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
+            {name}
+          </Typography>
+        </Box>
+        {statusLabel && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.625,
+              px: 1.125,
+              py: 0.5,
+              borderRadius: 999,
+              backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
+              flexShrink: 0,
+            }}
+          >
+            <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: theme.custom.color.brandPrimary, flexShrink: 0 }} />
+            <Typography variant="caption" sx={{ color: theme.custom.color.brandPrimary, fontWeight: 700, whiteSpace: 'nowrap' }}>
+              {statusLabel}
+            </Typography>
+          </Box>
+        )}
         {permalink && (
           <Box
             component="a"
@@ -144,18 +173,18 @@ const PlatformCard = ({ icon: Icon, name, tint, permalink, linkLabel, metrics })
             rel="noopener noreferrer"
             aria-label={linkLabel}
             sx={{
-              width: 30,
-              height: 30,
+              width: 32,
+              height: 32,
               borderRadius: `${theme.custom.radius.sm}px`,
-              backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
+              backgroundColor: alpha(theme.custom.color.ink, 0.06),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
-              color: theme.custom.color.brandPrimary,
+              color: theme.custom.color.ink,
             }}
           >
-            <OpenIcon sx={{ fontSize: 15 }} />
+            <OpenIcon sx={{ fontSize: 16 }} />
           </Box>
         )}
       </Box>
@@ -186,21 +215,22 @@ const SocialReach = ({ post }) => {
   })();
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
         <Box
           sx={{
-            width: 32,
-            height: 32,
-            borderRadius: `${theme.custom.radius.sm}px`,
-            backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
+            width: 36,
+            height: 36,
+            borderRadius: `${theme.custom.radius.md}px`,
+            backgroundImage: `linear-gradient(135deg, ${theme.custom.color.brandPrimary} 0%, ${lighten(theme.custom.color.brandPrimary, 0.45)} 100%)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
+            boxShadow: `0 0 14px ${alpha(theme.custom.color.brandPrimary, 0.45)}`,
           }}
         >
-          <ReachIcon sx={{ fontSize: 18, color: theme.custom.color.brandPrimary }} />
+          <ReachIcon sx={{ fontSize: 19, color: '#fff' }} />
         </Box>
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <Typography
@@ -213,21 +243,6 @@ const SocialReach = ({ post }) => {
             {t('socialReachNote')}
           </Typography>
         </Box>
-        {updatedAgo && (
-          <Box
-            sx={{
-              px: 1.25,
-              py: 0.375,
-              borderRadius: 999,
-              backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
-              flexShrink: 0,
-            }}
-          >
-            <Typography variant="caption" sx={{ color: theme.custom.color.brandPrimary, fontWeight: 700, whiteSpace: 'nowrap' }}>
-              {t('updated')} {updatedAgo}
-            </Typography>
-          </Box>
-        )}
       </Box>
 
       <PlatformCard
@@ -238,6 +253,7 @@ const SocialReach = ({ post }) => {
         tint="#1877F2"
         permalink={facebook.unavailable ? null : facebook.permalink}
         linkLabel={t('viewOnFacebook')}
+        statusLabel={updatedAgo ? `${t('updated')} ${updatedAgo}` : null}
         metrics={[
           { key: 'views', icon: ViewsIcon, label: t('views'), value: facebook.views },
           { key: 'reactions', icon: ReactionsIcon, label: t('reactions'), value: facebook.reactions },
@@ -254,6 +270,7 @@ const SocialReach = ({ post }) => {
         tint="#E1306C"
         permalink={instagram.unavailable ? null : instagram.permalink}
         linkLabel={t('viewOnInstagram')}
+        statusLabel={updatedAgo ? `${t('updated')} ${updatedAgo}` : null}
         metrics={[
           { key: 'views', icon: ViewsIcon, label: t('views'), value: instagram.views },
           { key: 'likes', icon: LikesIcon, label: t('likes'), value: instagram.likes },
