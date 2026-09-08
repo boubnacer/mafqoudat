@@ -45,7 +45,7 @@ import {
   Collapse,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
-import { useEffect, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react";
+import { useEffect, useState, useMemo, useCallback, useLayoutEffect } from "react";
 import useAuth from "../../../hooks/useAuth";
 import { selectCurrentCountry, selectFoundOrLost, selectCategoryFilter, selectActiveLink } from "../../../app/state";
 import FlexCenter from "../../../components/FlexCenter";
@@ -125,8 +125,18 @@ const PostsList = () => {
   // its height changes as it expands/collapses (and per language/breakpoint),
   // so a spacer of the same height is kept in the normal flow to reserve its
   // space rather than letting content jump underneath it.
-  const filterBarRef = useRef(null);
+  // A state-backed callback ref (not a plain useRef) because this component
+  // returns a loading skeleton first - the filter bar (and its DOM node)
+  // don't exist until the success branch renders, so the observer effect
+  // needs to react to the node actually appearing rather than only running
+  // once on mount.
+  const [filterBarNode, setFilterBarNode] = useState(null);
+  const filterBarRef = useCallback((node) => setFilterBarNode(node), []);
   const [filterBarHeight, setFilterBarHeight] = useState(0);
+  // Real rendered height of the fixed navbar, measured rather than guessed -
+  // it differs by breakpoint (and can shift with font loading/i18n string
+  // length), and the filter bar has to sit flush under it with no dead gap.
+  const [navbarHeight, setNavbarHeight] = useState(0);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [citySearchTerm, setCitySearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState(null);
@@ -472,10 +482,11 @@ const PostsList = () => {
 
   // Track the fixed filter bar's rendered height (it changes as it expands/
   // collapses via Collapse's own animation) so the spacer below can always
-  // reserve exactly that much space.
+  // reserve exactly that much space. Depends on filterBarNode (not a mount-
+  // only []) because the bar doesn't exist in the DOM until the query
+  // resolves and the success branch renders it.
   useLayoutEffect(() => {
-    const el = filterBarRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    if (!filterBarNode || typeof ResizeObserver === 'undefined') return undefined;
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
@@ -483,7 +494,25 @@ const PostsList = () => {
         setFilterBarHeight(entry.contentRect.height);
       }
     });
-    observer.observe(el);
+    observer.observe(filterBarNode);
+    return () => observer.disconnect();
+  }, [filterBarNode]);
+
+  // Measure the real fixed navbar height rather than guessing a fixed rem
+  // value - it differs by breakpoint and can shift with content/i18n, and
+  // the filter bar has to sit flush under it with no dead gap.
+  useLayoutEffect(() => {
+    if (typeof ResizeObserver === 'undefined') return undefined;
+    const header = document.querySelector('header.MuiAppBar-root') || document.querySelector('header');
+    if (!header) return undefined;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setNavbarHeight(entry.contentRect.height);
+      }
+    });
+    observer.observe(header);
     return () => observer.disconnect();
   }, []);
 
@@ -889,17 +918,21 @@ const PostsList = () => {
       handleClearSort();
       handleClearSearch();
     };
+    // Falls back to the old approximate values only for the very first paint
+    // before the navbar's real height has been measured.
+    const navbarClearance = navbarHeight || (isMobile ? 96 : 112);
 
     return (
       <>
         <SeoMeta pageKey="dashPosts" />
         <Box sx={{
         p: { xs: 2, md: 4 },
-        pt: { xs: "6rem", md: "7rem" },
+        pt: `${navbarClearance}px`,
         minHeight: "100vh",
         backgroundColor: theme.custom.color.postsListBackdrop
       }}>
-        {/* Filter bar is fixed below the navbar so it's always reachable while
+        {/* Filter bar is fixed flush below the navbar (top matches its
+            measured height, no extra gap) so it's always reachable while
             scrolling. Collapsed by default - only this header row shows until
             pressed; the spacer right after it reserves whatever height the
             bar currently renders at (it grows when expanded), so page content
@@ -908,13 +941,13 @@ const PostsList = () => {
           ref={filterBarRef}
           sx={{
             position: 'fixed',
-            top: { xs: '6rem', md: '7rem' },
+            top: `${navbarClearance}px`,
             insetInlineStart: 0,
             insetInlineEnd: 0,
             zIndex: (t) => t.zIndex.appBar - 1,
             backgroundColor: theme.custom.color.postsListBackdrop,
             px: { xs: 2, md: 4 },
-            pt: 1.5,
+            pt: 1,
             pb: 2,
           }}
         >
