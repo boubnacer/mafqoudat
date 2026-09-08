@@ -50,7 +50,6 @@ import useAuth from "../../../hooks/useAuth";
 import { selectCurrentCountry, selectFoundOrLost, selectCategoryFilter, selectActiveLink } from "../../../app/state";
 import FlexCenter from "../../../components/FlexCenter";
 import { authStorage } from "../../../utils/authStorage";
-import useCountryName from "../../../hooks/useCountryName";
 
 
 /**
@@ -180,9 +179,6 @@ const PostsList = () => {
 
   // Get current language
   const { t, currentLanguage } = useTranslation();
-
-  // Get country name for title
-  const { countryName } = useCountryName(currentCountry);
 
   // Check if store is ready
   const [storeReady, setStoreReady] = useState(false);
@@ -874,12 +870,7 @@ const PostsList = () => {
   }
 
   if (isSuccess && currentCountry) {
-    const { totalPages, total } = data;
-    const activeStatusTone = foundOrlost === 'FOUND'
-      ? theme.custom.status.found
-      : foundOrlost === 'LOST'
-        ? theme.custom.status.lost
-        : null;
+    const { totalPages } = data;
 
     // Filter panel treatment mirrors PostPage's SocialReach "SaaS panel" look
     // (glass card, brand-tinted glow/border, tinted pill controls) rather than
@@ -1428,40 +1419,10 @@ const PostsList = () => {
           </Box>
         </Box>
 
-        {/* Spacer reserving the fixed filter bar's current height. */}
-        <Box sx={{ height: filterBarHeight }} />
-
-        {/* Header Section — a slim results line replaces the old full-sentence
-            "Search for Found Items in Morocco..." title, which just restated
-            what the top nav tab (Found/Lost/All) already told the user. */}
-        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.25 }}>
-          <Typography
-            variant="overline"
-            sx={{ fontWeight: 600, letterSpacing: 1, color: 'text.secondary' }}
-          >
-            {typeof total === 'number' ? total : filteredPosts.length} {t('posts')}
-            {countryName ? ` • ${countryName}` : ''}
-          </Typography>
-          {activeStatusTone && (
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                px: 1,
-                py: 0.25,
-                borderRadius: `${theme.custom.radius.sm}px`,
-                backgroundColor: activeStatusTone.main,
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{ fontWeight: 700, letterSpacing: 0.3, color: theme.palette.getContrastText(activeStatusTone.main) }}
-              >
-                {foundOrlost === 'FOUND' ? t('found') : t('lost')}
-              </Typography>
-            </Box>
-          )}
-        </Box>
+        {/* Spacer reserving the fixed filter bar's current height, plus a
+            little extra breathing room so post cards don't start flush
+            against its bottom edge. */}
+        <Box sx={{ height: filterBarHeight ? filterBarHeight + 16 : 0 }} />
 
         {/* Posts Content */}
         {filteredPosts?.length ? (
