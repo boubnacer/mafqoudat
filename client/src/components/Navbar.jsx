@@ -756,9 +756,16 @@ const Navbar = () => {
           )}
 
           {/* Mobile menu button — everything else lives in the drawer below
-              (<760px). The bell is the one exception: a badge is only useful if
-              it is visible without opening the drawer first. */}
+              (<760px). The bell and the mode toggle are the exceptions: a
+              badge is only useful visible without opening the drawer first,
+              and the mode toggle sits beside the hamburger for a one-tap
+              switch instead of a trip into the drawer. */}
           {!showDesktopNav && authLoggedIn && <NotificationBell variant="mobile" />}
+          {!showDesktopNav && (
+            <ActionButton onClick={handleModeToggle} aria-label={mode === "light" ? t("darkMode") : t("lightMode")}>
+              {mode === "light" ? <DarkModeOutlined sx={{ fontSize: "20px" }} /> : <LightModeOutlined sx={{ fontSize: "20px" }} />}
+            </ActionButton>
+          )}
           {!showDesktopNav && (
             <ActionButton onClick={() => setMobileDrawerOpen(true)}>
               <MenuIcon sx={{ fontSize: "24px" }} />
@@ -1094,8 +1101,8 @@ const Navbar = () => {
             </Box>
           </Collapse>
 
-          {/* Group: Preferences — region/language + theme, visually boxed so
-              it reads as one cluster rather than more flat rows. */}
+          {/* Group: Preferences — region/language. Theme now toggles from the
+              navbar itself, next to the hamburger, so it no longer lives here. */}
           <Divider sx={{ my: 1.5 }} />
           <Box
             sx={{
@@ -1104,7 +1111,7 @@ const Navbar = () => {
               backgroundColor: alpha(theme.custom.color.ink, 0.03),
             }}
           >
-            <DrawerRow onClick={handleRegionClick} sx={{ mb: 0.5 }}>
+            <DrawerRow onClick={handleRegionClick} sx={{ mb: 0 }}>
               <ListItemIcon>
                 {isInitialized && currentCountryData ? (
                   <img width="20" height="15" src={regionFlagUrl} srcSet={`${regionFlagUrl2x} 2x`} alt="" style={{ borderRadius: 2 }} />
@@ -1118,16 +1125,6 @@ const Navbar = () => {
                 primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }}
               />
               <KeyboardArrowDown sx={{ fontSize: "18px" }} />
-            </DrawerRow>
-
-            <DrawerRow onClick={handleModeToggle} sx={{ mb: 0 }}>
-              <ListItemIcon>
-                {mode === "light" ? <DarkModeOutlined sx={{ fontSize: 22 }} /> : <LightModeOutlined sx={{ fontSize: 22 }} />}
-              </ListItemIcon>
-              <ListItemText
-                primary={mode === "light" ? t("darkMode") : t("lightMode")}
-                primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }}
-              />
             </DrawerRow>
           </Box>
 
