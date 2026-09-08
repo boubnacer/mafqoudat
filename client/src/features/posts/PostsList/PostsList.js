@@ -9,19 +9,21 @@ import SeoMeta from "../../../components/SeoMeta";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { store } from "../../../app/store";
-import { 
-  Search, 
-  Add as AddIcon, 
+import {
+  Search,
+  Add as AddIcon,
   ViewList as ViewListIcon,
   ViewModule as ViewModuleIcon,
   Language,
-  LocationOn
+  LocationOn,
+  TuneRounded as FilterIcon,
+  CategoryOutlined as CategoryIcon,
 } from "@mui/icons-material";
-import { 
-  Button, 
-  Box, 
-  Typography, 
-  TextField, 
+import {
+  Button,
+  Box,
+  Typography,
+  TextField,
   InputAdornment,
   FormControl,
   InputLabel,
@@ -38,6 +40,7 @@ import {
   CircularProgress,
   Alert,
   alpha,
+  lighten,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
 import { useEffect, useState, useMemo, useCallback } from "react";
@@ -818,6 +821,44 @@ const PostsList = () => {
         ? theme.custom.status.lost
         : null;
 
+    // Filter panel treatment mirrors PostPage's SocialReach "SaaS panel" look
+    // (glass card, brand-tinted glow/border, tinted pill controls) rather than
+    // the flat bordered Paper this section used before.
+    const brand = theme.custom.color.brandPrimary;
+    const isDark = theme.palette.mode === 'dark';
+    // radial-gradient has no logical-property equivalent, so the glow's start
+    // corner is picked from theme.direction instead of a fixed 0% 0%.
+    const glowOrigin = theme.direction === 'rtl' ? '100% 0%' : '0% 0%';
+    const filterFieldSx = {
+      '& .MuiOutlinedInput-root': {
+        borderRadius: `${theme.custom.radius.md}px`,
+        backgroundColor: alpha(brand, isDark ? 0.07 : 0.035),
+        transition: 'background-color 0.2s ease',
+        '& fieldset': { borderColor: alpha(brand, isDark ? 0.3 : 0.16) },
+        '&:hover fieldset': { borderColor: alpha(brand, isDark ? 0.5 : 0.32) },
+        '&.Mui-focused': { backgroundColor: alpha(brand, isDark ? 0.12 : 0.06) },
+        '&.Mui-focused fieldset': { borderColor: brand, borderWidth: '1.5px' },
+      },
+      '& .MuiInputLabel-root.Mui-focused': { color: brand },
+    };
+    const filterFieldIconBadgeSx = {
+      width: 26,
+      height: 26,
+      borderRadius: `${theme.custom.radius.sm}px`,
+      backgroundColor: alpha(brand, isDark ? 0.18 : 0.1),
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+      marginInlineEnd: 1,
+    };
+    const handleClearAllFilters = () => {
+      handleClearCategoryFilter();
+      handleClearCityFilter();
+      handleClearSort();
+      handleClearSearch();
+    };
+
     return (
       <>
         <SeoMeta pageKey="dashPosts" />
@@ -861,17 +902,69 @@ const PostsList = () => {
 
         <Box sx={{ mb: 4 }}>
           {/* Filters and Search - Always visible */}
-          <Paper
-            elevation={0}
+          <Box
             sx={{
-              p: 3,
+              p: { xs: 2, md: 3 },
+              position: 'relative',
+              overflow: 'hidden',
               borderRadius: `${theme.custom.radius.lg}px`,
+              border: `1px solid ${alpha(brand, isDark ? 0.35 : 0.18)}`,
               backgroundColor: theme.custom.color.surfaceRaised,
-              border: `1px solid ${theme.palette.divider}`,
-              boxShadow: theme.custom.elevation.e1,
+              backgroundImage: `radial-gradient(120% 100% at ${glowOrigin}, ${alpha(brand, isDark ? 0.16 : 0.07)} 0%, transparent 55%)`,
+              boxShadow: `${theme.custom.elevation.e2}, 0 0 32px ${alpha(brand, isDark ? 0.16 : 0.08)}`,
             }}
           >
-            <Grid container spacing={3} alignItems="center">
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 1.5,
+                mb: 2.5,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                <Box
+                  sx={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: `${theme.custom.radius.sm}px`,
+                    backgroundImage: `linear-gradient(135deg, ${brand} 0%, ${lighten(brand, 0.45)} 100%)`,
+                    boxShadow: `0 0 16px ${alpha(brand, 0.4)}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <FilterIcon sx={{ fontSize: 18, color: theme.palette.getContrastText(brand) }} />
+                </Box>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: { xs: '1rem', md: '1.1rem' } }}
+                >
+                  {t('filters')}
+                </Typography>
+              </Box>
+              {hasActiveFilters && (
+                <Button
+                  size="small"
+                  onClick={handleClearAllFilters}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    borderRadius: `${theme.custom.radius.sm}px`,
+                    color: brand,
+                    '&:hover': { backgroundColor: alpha(brand, 0.08) },
+                  }}
+                >
+                  {t('clearFilters')}
+                </Button>
+              )}
+            </Box>
+
+            <Grid container spacing={2} alignItems="center">
               {/* Search - Hidden for now */}
               {/* <Grid item xs={12} md={4}>
                 <TextField
@@ -913,7 +1006,7 @@ const PostsList = () => {
               </Grid> */}
 
               {/* Category Filter - Multiple categories support */}
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid item xs={12} sm={6}>
                 <Autocomplete
                   multiple
                   options={categoryOptions || []}
@@ -926,7 +1019,7 @@ const PostsList = () => {
                   }}
                   value={selectedCategories.length > 0
                     ? categoryOptions.filter(cat => selectedCategories.includes(cat.id || cat.value))
-                    : (localCategoryFilter !== "all" 
+                    : (localCategoryFilter !== "all"
                         ? categoryOptions.filter(cat => (cat.id || cat.value) === localCategoryFilter)
                         : [])
                   }
@@ -940,11 +1033,21 @@ const PostsList = () => {
                     <TextField
                       {...params}
                       label={t('category')}
-                      placeholder={selectedCategories.length === 0 
+                      placeholder={selectedCategories.length === 0
                         ? (currentLanguage === 'ar' ? 'اختر الفئات...' : currentLanguage === 'fr' ? 'Sélectionner les catégories...' : 'Select categories...')
                         : ''
                       }
-                      sx={{ borderRadius: `${theme.custom.radius.md}px` }}
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <>
+                            <Box sx={filterFieldIconBadgeSx}>
+                              <CategoryIcon sx={{ fontSize: 15, color: brand }} />
+                            </Box>
+                            {params.InputProps.startAdornment}
+                          </>
+                        ),
+                      }}
                     />
                   )}
                   renderTags={(value, getTagProps) =>
@@ -956,20 +1059,26 @@ const PostsList = () => {
                           label={option.label || option.id}
                           {...tagProps}
                           size="small"
+                          sx={{
+                            borderRadius: '999px',
+                            backgroundColor: alpha(brand, isDark ? 0.18 : 0.1),
+                            color: brand,
+                            fontWeight: 600,
+                            '& .MuiChip-deleteIcon': {
+                              color: alpha(brand, 0.7),
+                              '&:hover': { color: brand },
+                            },
+                          }}
                         />
                       );
                     })
                   }
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: `${theme.custom.radius.md}px`
-                    }
-                  }}
+                  sx={filterFieldSx}
                 />
               </Grid>
 
               {/* City Filter */}
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid item xs={12} sm={6}>
                 <Autocomplete
                   fullWidth
                   options={allCitiesData || []}
@@ -1059,7 +1168,6 @@ const PostsList = () => {
                       {...params}
                       label={t('city')}
                       placeholder={t('searchCityPlaceholder')}
-                      sx={{ borderRadius: `${theme.custom.radius.md}px` }}
                       onFocus={(e) => {
                         setCityInputFocused(true);
                         params.inputProps.onFocus?.(e);
@@ -1073,20 +1181,24 @@ const PostsList = () => {
                       }}
                       InputProps={{
                         ...params.InputProps,
+                        startAdornment: (
+                          <>
+                            <Box sx={filterFieldIconBadgeSx}>
+                              <LocationOn sx={{ fontSize: 15, color: brand }} />
+                            </Box>
+                            {params.InputProps.startAdornment}
+                          </>
+                        ),
                         endAdornment: (
                           <>
-                            {citiesLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                            {citiesLoading ? <CircularProgress color="inherit" size={20} sx={{ color: brand }} /> : null}
                             {params.InputProps.endAdornment}
                           </>
                         ),
                       }}
                     />
                   )}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: `${theme.custom.radius.md}px`
-                    }
-                  }}
+                  sx={filterFieldSx}
                 />
               </Grid>
 
@@ -1185,29 +1297,34 @@ const PostsList = () => {
               </Grid> */}
 
               {/* Active Filters Display */}
-              <Grid item xs={12}>
-                <Box display="flex" gap={1} flexWrap="wrap">
-                  {activeFilterChips.map((chip, index) => (
-                    <Chip
-                      key={index}
-                      label={chip.label}
-                      onDelete={chip.onDelete}
-                      variant="outlined"
-                      sx={{
-                        borderRadius: `${theme.custom.radius.sm}px`,
-                        borderColor: theme.custom.color.brandPrimary,
-                        color: theme.custom.color.brandPrimary,
-                        '& .MuiChip-deleteIcon': {
-                          color: alpha(theme.custom.color.brandPrimary, 0.7),
-                          '&:hover': { color: theme.custom.color.brandPrimary },
-                        },
-                      }}
-                    />
-                  ))}
-                </Box>
-              </Grid>
+              {activeFilterChips.length > 0 && (
+                <Grid item xs={12}>
+                  <Box display="flex" gap={1} flexWrap="wrap">
+                    {activeFilterChips.map((chip, index) => (
+                      <Chip
+                        key={index}
+                        label={chip.label}
+                        onDelete={chip.onDelete}
+                        size="small"
+                        sx={{
+                          borderRadius: '999px',
+                          height: 30,
+                          fontWeight: 600,
+                          backgroundColor: alpha(brand, isDark ? 0.16 : 0.08),
+                          border: `1px solid ${alpha(brand, isDark ? 0.35 : 0.22)}`,
+                          color: brand,
+                          '& .MuiChip-deleteIcon': {
+                            color: alpha(brand, 0.7),
+                            '&:hover': { color: brand },
+                          },
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </Grid>
+              )}
             </Grid>
-          </Paper>
+          </Box>
         </Box>
 
         {/* Posts Content */}
