@@ -18,6 +18,7 @@ import {
   LocationOn,
   TuneRounded as FilterIcon,
   CategoryOutlined as CategoryIcon,
+  ExpandMoreRounded as ExpandMoreIcon,
 } from "@mui/icons-material";
 import {
   Button,
@@ -41,9 +42,10 @@ import {
   Alert,
   alpha,
   lighten,
+  Collapse,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react";
 import useAuth from "../../../hooks/useAuth";
 import { selectCurrentCountry, selectFoundOrLost, selectCategoryFilter, selectActiveLink } from "../../../app/state";
 import FlexCenter from "../../../components/FlexCenter";
@@ -117,6 +119,14 @@ const PostsList = () => {
   const [viewMode, setViewMode] = useState("grid");
   const [localCategoryFilter, setLocalCategoryFilter] = useState("all");
   const [selectedCategories, setSelectedCategories] = useState([]); // Multiple categories filter
+  // Collapsed by default - only the "Filters" header row shows until pressed.
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
+  // The filter bar is fixed below the navbar so it never scrolls out of view;
+  // its height changes as it expands/collapses (and per language/breakpoint),
+  // so a spacer of the same height is kept in the normal flow to reserve its
+  // space rather than letting content jump underneath it.
+  const filterBarRef = useRef(null);
+  const [filterBarHeight, setFilterBarHeight] = useState(0);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [citySearchTerm, setCitySearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState(null);
@@ -459,6 +469,27 @@ const PostsList = () => {
   }, [location.state, categoryFilter, navigate, location.pathname]);
 
 
+
+  // Track the fixed filter bar's rendered height (it changes as it expands/
+  // collapses via Collapse's own animation) so the spacer below can always
+  // reserve exactly that much space.
+  useLayoutEffect(() => {
+    const el = filterBarRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setFilterBarHeight(entry.contentRect.height);
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const handleToggleFilters = useCallback(() => {
+    setFiltersExpanded((prev) => !prev);
+  }, []);
 
   // Debounce search term
   useEffect(() => {
@@ -868,40 +899,25 @@ const PostsList = () => {
         minHeight: "100vh",
         backgroundColor: theme.custom.color.postsListBackdrop
       }}>
-        {/* Header Section — a slim results line replaces the old full-sentence
-            "Search for Found Items in Morocco..." title, which just restated
-            what the top nav tab (Found/Lost/All) already told the user. */}
-        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.25 }}>
-          <Typography
-            variant="overline"
-            sx={{ fontWeight: 600, letterSpacing: 1, color: 'text.secondary' }}
-          >
-            {typeof total === 'number' ? total : filteredPosts.length} {t('posts')}
-            {countryName ? ` • ${countryName}` : ''}
-          </Typography>
-          {activeStatusTone && (
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                px: 1,
-                py: 0.25,
-                borderRadius: `${theme.custom.radius.sm}px`,
-                backgroundColor: activeStatusTone.main,
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{ fontWeight: 700, letterSpacing: 0.3, color: theme.palette.getContrastText(activeStatusTone.main) }}
-              >
-                {foundOrlost === 'FOUND' ? t('found') : t('lost')}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-
-        <Box sx={{ mb: 4 }}>
-          {/* Filters and Search - Always visible */}
+        {/* Filter bar is fixed below the navbar so it's always reachable while
+            scrolling. Collapsed by default - only this header row shows until
+            pressed; the spacer right after it reserves whatever height the
+            bar currently renders at (it grows when expanded), so page content
+            is never covered by or jumps under the fixed bar. */}
+        <Box
+          ref={filterBarRef}
+          sx={{
+            position: 'fixed',
+            top: { xs: '6rem', md: '7rem' },
+            insetInlineStart: 0,
+            insetInlineEnd: 0,
+            zIndex: (t) => t.zIndex.appBar - 1,
+            backgroundColor: theme.custom.color.postsListBackdrop,
+            px: { xs: 2, md: 4 },
+            pt: 1.5,
+            pb: 2,
+          }}
+        >
           <Box
             sx={{
               p: { xs: 2, md: 3 },
@@ -915,13 +931,30 @@ const PostsList = () => {
             }}
           >
             <Box
+              onClick={handleToggleFilters}
+              role="button"
+              tabIndex={0}
+              aria-expanded={filtersExpanded}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleToggleFilters();
+                }
+              }}
               sx={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 flexWrap: 'wrap',
                 gap: 1.5,
-                mb: 2.5,
+                mb: filtersExpanded ? 2.5 : 0,
+                cursor: 'pointer',
+                userSelect: 'none',
+                borderRadius: `${theme.custom.radius.sm}px`,
+                '&:focus-visible': {
+                  outline: `2px solid ${brand}`,
+                  outlineOffset: 2,
+                },
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
@@ -946,24 +979,58 @@ const PostsList = () => {
                 >
                   {t('filters')}
                 </Typography>
+                {!filtersExpanded && activeFilterChips.length > 0 && (
+                  <Box
+                    sx={{
+                      minWidth: 20,
+                      height: 20,
+                      px: 0.5,
+                      borderRadius: '999px',
+                      backgroundColor: brand,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{ fontWeight: 700, fontSize: '0.7rem', color: theme.palette.getContrastText(brand), lineHeight: 1 }}
+                    >
+                      {activeFilterChips.length}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
-              {hasActiveFilters && (
-                <Button
-                  size="small"
-                  onClick={handleClearAllFilters}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                {hasActiveFilters && (
+                  <Button
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleClearAllFilters();
+                    }}
+                    sx={{
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      borderRadius: `${theme.custom.radius.sm}px`,
+                      color: brand,
+                      '&:hover': { backgroundColor: alpha(brand, 0.08) },
+                    }}
+                  >
+                    {t('clearFilters')}
+                  </Button>
+                )}
+                <ExpandMoreIcon
                   sx={{
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderRadius: `${theme.custom.radius.sm}px`,
                     color: brand,
-                    '&:hover': { backgroundColor: alpha(brand, 0.08) },
+                    transform: filtersExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
                   }}
-                >
-                  {t('clearFilters')}
-                </Button>
-              )}
+                />
+              </Box>
             </Box>
 
+            <Collapse in={filtersExpanded} timeout="auto" unmountOnExit>
             <Grid container spacing={2} alignItems="center">
               {/* Search - Hidden for now */}
               {/* <Grid item xs={12} md={4}>
@@ -1324,7 +1391,43 @@ const PostsList = () => {
                 </Grid>
               )}
             </Grid>
+            </Collapse>
           </Box>
+        </Box>
+
+        {/* Spacer reserving the fixed filter bar's current height. */}
+        <Box sx={{ height: filterBarHeight }} />
+
+        {/* Header Section — a slim results line replaces the old full-sentence
+            "Search for Found Items in Morocco..." title, which just restated
+            what the top nav tab (Found/Lost/All) already told the user. */}
+        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.25 }}>
+          <Typography
+            variant="overline"
+            sx={{ fontWeight: 600, letterSpacing: 1, color: 'text.secondary' }}
+          >
+            {typeof total === 'number' ? total : filteredPosts.length} {t('posts')}
+            {countryName ? ` • ${countryName}` : ''}
+          </Typography>
+          {activeStatusTone && (
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                px: 1,
+                py: 0.25,
+                borderRadius: `${theme.custom.radius.sm}px`,
+                backgroundColor: activeStatusTone.main,
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 700, letterSpacing: 0.3, color: theme.palette.getContrastText(activeStatusTone.main) }}
+              >
+                {foundOrlost === 'FOUND' ? t('found') : t('lost')}
+              </Typography>
+            </Box>
+          )}
         </Box>
 
         {/* Posts Content */}
