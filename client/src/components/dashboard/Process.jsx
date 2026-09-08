@@ -46,45 +46,18 @@ const Process = () => {
   const nodeSize = isMobile ? 56 : 64;
   const iconContrastText = theme.palette.getContrastText(theme.custom.color.brandLogo);
   const isDark = theme.palette.mode === 'dark';
-  const { surfaceRaised, surfaceBase, brandPrimary, brandLogo } = theme.custom.color;
-  const white = theme.palette.common.white;
+  const { surfaceRaised, brandPrimary, brandLogo } = theme.custom.color;
 
-  // Same glass-blob family as QuickActions/Categories, toned down (gentle):
-  // smaller blobs, lower opacity, since the step cards below now carry their
-  // own elevation and don't need a loud backdrop competing with them.
-  const processBlob = (color, position) => ({
-    position: 'absolute',
-    width: 220,
-    height: 220,
-    borderRadius: '50%',
-    background: `radial-gradient(circle, ${alpha(color, isDark ? 0.2 : 0.14)} 0%, ${alpha(color, 0)} 70%)`,
-    filter: 'blur(20px)',
-    pointerEvents: 'none',
-    ...position,
-  });
-
-  // Same frosted-panel formula as QuickActions' glassPanel: the step cards
-  // and social icons now float over this section's blurred brand-color
-  // blobs as translucent glass, instead of sitting on them as an opaque
-  // surfaceRaised card that hid the blobs entirely behind flat color.
-  const glassPanel = (radius) => ({
+  // Card treatment lifted from SocialReach.jsx's "SaaS panel" look (the
+  // detail-page reach card) instead of the glass-blob formula this section
+  // used before: a brand-tinted flat fill + brand-alpha border, no
+  // backdrop-filter/blur and no separate blob elements — the section's own
+  // radial-gradient glow (below) does the job the blobs did.
+  const tintedCard = (radius) => ({
     position: 'relative',
-    backgroundColor: alpha(surfaceRaised, isDark ? 0.55 : 0.7),
-    backdropFilter: 'blur(14px)',
-    WebkitBackdropFilter: 'blur(14px)',
-    border: `1px solid ${alpha(brandPrimary, isDark ? 0.28 : 0.18)}`,
+    backgroundColor: alpha(brandPrimary, isDark ? 0.10 : 0.05),
+    border: `1px solid ${alpha(brandPrimary, isDark ? 0.3 : 0.18)}`,
     borderRadius: radius,
-    boxShadow: theme.custom.elevation.e1,
-    overflow: 'hidden',
-    '&::before': {
-      content: '""',
-      position: 'absolute',
-      insetInlineStart: 0,
-      insetInlineEnd: 0,
-      top: 0,
-      height: '1px',
-      background: `linear-gradient(90deg, transparent, ${alpha(white, isDark ? 0.3 : 0.75)}, transparent)`,
-    },
   });
 
   // Local GSAP rather than useDashboardMotion's data-reveal machinery: that
@@ -152,21 +125,18 @@ const Process = () => {
       sx={{
         position: 'relative',
         overflow: 'hidden',
-        // Dark mode: darker, premium glass wash — two low-alpha brand radial
-        // blobs over surfaceBase instead of a flat surfaceRaised fill. Light
-        // mode keeps the original flat surfaceRaised gradient untouched.
-        background: isDark
-          ? `radial-gradient(120% 100% at 10% 0%, ${alpha(brandPrimary, 0.22)} 0%, transparent 55%), radial-gradient(120% 100% at 90% 100%, ${alpha(brandLogo, 0.18)} 0%, transparent 55%), ${surfaceBase}`
-          : `linear-gradient(135deg, ${alpha(surfaceRaised, 0.95)} 0%, ${alpha(surfaceRaised, 0.95)} 100%)`,
-        backdropFilter: 'blur(10px)',
+        // Same container recipe as SocialReach.jsx: flat surfaceRaised fill,
+        // a brand-alpha border and one radial-gradient glow (no separate
+        // blurred blob elements, no backdrop-filter) — elevation.e2 plus a
+        // brand-tinted glow shadow, both modes.
+        backgroundColor: surfaceRaised,
+        backgroundImage: `radial-gradient(120% 100% at 10% 0%, ${alpha(brandPrimary, isDark ? 0.16 : 0.07)} 0%, transparent 55%), radial-gradient(120% 100% at 90% 100%, ${alpha(brandLogo, isDark ? 0.14 : 0.06)} 0%, transparent 55%)`,
+        border: `1px solid ${alpha(brandPrimary, isDark ? 0.35 : 0.18)}`,
         borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
-        boxShadow: 'none',
+        boxShadow: `${theme.custom.elevation.e2}, 0 0 32px ${alpha(brandPrimary, isDark ? 0.16 : 0.08)}`,
         padding: { xs: '1.5rem', sm: '2.5rem', md: '3rem' },
       }}
     >
-      <Box sx={processBlob(theme.custom.color.brandPrimary, { top: -80, insetInlineStart: -60 })} />
-      <Box sx={processBlob(theme.custom.color.brandLogo, { bottom: -90, insetInlineEnd: -60 })} />
-
       <Box sx={{ position: 'relative', zIndex: 1 }}>
         {/* Heading — title takes Phase 17's brand gradient (brandPrimary ->
             lighten(brandPrimary)), the one gradient in the app, so it stays
@@ -195,11 +165,9 @@ const Process = () => {
           </Typography>
         </Box>
 
-        {/* Step cards — three frosted glass tiles (QuickActions' glassPanel
-            formula: translucent surfaceRaised + blur + brandPrimary border +
-            top highlight line), floating over this section's blurred brand
-            blobs instead of hiding them behind an opaque surfaceRaised fill;
-            e1 -> e2 hover-lift kept from the original Post card DNA. No step
+        {/* Step cards — brand-tinted flat tiles, same recipe as SocialReach's
+            PlatformBlock (tinted fill + brand-alpha border, no blur/glass),
+            with a brand-glow hover in place of the old e1 -> e2 lift. No step
             numbers or connecting arrows: reading order alone (which
             auto-mirrors in RTL, since flexbox's row axis follows
             inline-start/end) already says "first, second, third" without
@@ -220,7 +188,7 @@ const Process = () => {
                 key={step.icon}
                 className="processCard"
                 sx={{
-                  ...glassPanel(`${theme.custom.radius.lg}px`),
+                  ...tintedCard(`${theme.custom.radius.md}px`),
                   flex: 1,
                   display: 'flex',
                   flexDirection: 'column',
@@ -230,9 +198,7 @@ const Process = () => {
                   p: { xs: 3, md: 3.5 },
                   transition: 'box-shadow 0.25s ease, transform 0.25s ease',
                   '&:hover': {
-                    boxShadow: isDark
-                      ? `${theme.custom.elevation.e2}, 0 0 24px ${alpha(brandPrimary, 0.25)}`
-                      : theme.custom.elevation.e2,
+                    boxShadow: `0 0 24px ${alpha(brandPrimary, isDark ? 0.35 : 0.25)}`,
                     transform: 'translateY(-4px)',
                   },
                 }}
@@ -374,7 +340,7 @@ const Process = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={{
-                  ...glassPanel('50%'),
+                  ...tintedCard('50%'),
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -383,9 +349,7 @@ const Process = () => {
                   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                   '&:hover': {
                     transform: 'translateY(-3px)',
-                    boxShadow: isDark
-                      ? `${theme.custom.elevation.e2}, 0 0 24px ${alpha(brandPrimary, 0.25)}`
-                      : theme.custom.elevation.e2,
+                    boxShadow: `0 0 24px ${alpha(brandPrimary, isDark ? 0.35 : 0.25)}`,
                   },
                 }}
               >
