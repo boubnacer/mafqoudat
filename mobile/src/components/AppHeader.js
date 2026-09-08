@@ -2,10 +2,10 @@
  * Shared header for the four bottom-tab screens (Home, New Post, My Posts,
  * Profile) plus stack screens that push on top of them (e.g. PostsListScreen).
  * Mirrors the web app's Navbar (client/src/components/Navbar.jsx) in its
- * mobile/responsive (<760px) form: brand logo on the start side, a single
- * overflow "menu" icon on the end - everything else (country, theme,
- * language, browse shortcuts, settings, sign out) lives behind that menu,
- * same as the web navbar's mobile Drawer.
+ * mobile/responsive (<760px) form: brand logo on the start side, a theme
+ * toggle and a single overflow "menu" icon on the end - everything else
+ * (country, language, browse shortcuts, settings, sign out) lives behind
+ * that menu, same as the web navbar's mobile Drawer/theme toggle split.
  *
  * Country selection can be controlled or self-managed:
  * - Controlled (pass `countryId` + `onSelectCountry`): used by PostsListScreen,
@@ -189,6 +189,20 @@ const AppHeader = ({
           </TouchableOpacity>
         ) : null}
 
+        {/* Theme toggle sits beside the menu button for a one-tap switch,
+            same as the web navbar's mobile bar - it used to live only inside
+            HeaderMenu. */}
+        {showMenu ? (
+          <TouchableOpacity
+            onPress={handleToggleTheme}
+            style={styles.themeButton}
+            accessibilityLabel={isDark ? t('themeLight') : t('themeDark')}
+            hitSlop={8}
+          >
+            <Ionicons name={isDark ? 'sunny-outline' : 'moon-outline'} size={20} color={tokens.ink} />
+          </TouchableOpacity>
+        ) : null}
+
         {showMenu ? (
           <TouchableOpacity onPress={openMenu} style={styles.menuButton} accessibilityLabel={t('menu')} hitSlop={8}>
             <Ionicons name="menu-outline" size={22} color={tokens.ink} />
@@ -294,6 +308,15 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       ...logical(isRTL, { marginStart: 8 }),
     },
     bellButton: {
+      width: 38,
+      height: 38,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.ink}0A`,
+      justifyContent: 'center',
+      alignItems: 'center',
+      ...logical(isRTL, { marginStart: 8 }),
+    },
+    themeButton: {
       width: 38,
       height: 38,
       borderRadius: radiusTokens.md,

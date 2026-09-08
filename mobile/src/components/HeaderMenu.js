@@ -1,7 +1,8 @@
 /**
  * Overflow (☰) menu for AppHeader: everything that used to live as separate
- * icon buttons in the header bar - country, language, theme - now lives here
- * as rows, alongside the original Browse section (All Posts/Lost/Found -
+ * icon buttons in the header bar - country, language - now lives here as
+ * rows (theme moved back to the header bar itself, beside the menu button),
+ * alongside the original Browse section (All Posts/Lost/Found -
  * jumps to Home already filtered), an account section (New Post/My Posts/
  * Profile - formerly bottom-tab buttons, now that the tab bar is gone),
  * Settings, the website's secondary pages (About, Help Center, Safety Tips,
@@ -70,7 +71,7 @@ const DRAWER_WIDTH = Math.min(360, SCREEN_WIDTH * 0.86);
 
 const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountryPicker }) => {
   const insets = useSafeAreaInsets();
-  const { isDark, setThemeMode } = useTheme();
+  const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const { currentLanguage, setLanguage } = useLanguage();
   const { t } = useTranslation();
@@ -183,10 +184,6 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
     onOpenCountryPicker();
   };
 
-  const handleToggleTheme = () => {
-    setThemeMode(isDark ? 'light' : 'dark');
-  };
-
   const renderItem = ({ key, label, icon, iconColor, onPress, destructive, trailingCount }) => (
     <TouchableOpacity key={key} style={styles.item} onPress={onPress} activeOpacity={0.7}>
       <Ionicons
@@ -256,9 +253,10 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
 
             <View style={styles.divider} />
 
-            {/* Preferences cluster - country, language, theme. Visually boxed
-                so it reads as one group, mirroring the web mobile drawer's
-                own Preferences box. */}
+            {/* Preferences cluster - country, language. Visually boxed so it
+                reads as one group, mirroring the web mobile drawer's own
+                Preferences box. Theme now toggles from the header bar itself,
+                next to the menu button, so it no longer lives here. */}
             <View style={styles.prefsBox}>
               <TouchableOpacity style={styles.prefRow} onPress={handleOpenCountryPicker} activeOpacity={0.7}>
                 <Text style={styles.prefFlag}>{countryFlag}</Text>
@@ -275,7 +273,7 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
                 <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={`${tokens.ink}66`} />
               </TouchableOpacity>
 
-              <View style={styles.prefLangBlock}>
+              <View style={[styles.prefLangBlock, styles.prefLangBlockLast]}>
                 <View style={styles.prefLangHeaderRow}>
                   <Ionicons name="language-outline" size={19} color={`${tokens.ink}99`} style={styles.itemIcon} />
                   <Text style={[styles.itemText, textStyle]} numberOfLines={1}>
@@ -304,18 +302,6 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
                   })}
                 </View>
               </View>
-
-              <TouchableOpacity style={[styles.prefRow, styles.prefRowLast]} onPress={handleToggleTheme} activeOpacity={0.7}>
-                <Ionicons
-                  name={isDark ? 'sunny-outline' : 'moon-outline'}
-                  size={19}
-                  color={`${tokens.ink}99`}
-                  style={styles.itemIcon}
-                />
-                <Text style={[styles.itemText, textStyle]} numberOfLines={1}>
-                  {isDark ? t('themeLight') : t('themeDark')}
-                </Text>
-              </TouchableOpacity>
             </View>
 
             <View style={styles.divider} />
@@ -493,9 +479,6 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       borderBottomWidth: 1,
       borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
-    prefRowLast: {
-      borderBottomWidth: 0,
-    },
     prefFlag: {
       fontSize: 18,
       ...logical(isRTL, { marginEnd: 10 }),
@@ -514,6 +497,9 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       paddingVertical: 12,
       borderBottomWidth: 1,
       borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    },
+    prefLangBlockLast: {
+      borderBottomWidth: 0,
     },
     prefLangHeaderRow: {
       flexDirection: row(isRTL),
