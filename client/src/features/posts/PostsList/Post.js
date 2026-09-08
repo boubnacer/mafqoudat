@@ -34,7 +34,7 @@ import FlexBetween from "../../../components/FlexBetween";
 import { useTranslation } from "../../../utils/translations";
 import { getLabel, isRTL } from "../../../utils/languageUtils";
 import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
 import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
@@ -145,6 +145,22 @@ const Post = ({ post, viewMode = "grid" }) => {
       return t('unknownDate');
     }
   }, [post?.createdAt, locale, t]);
+
+  // The exact date the card's calendar icon shows, distinct from `created`'s
+  // relative "posted X ago" phrasing. Prefers the listing's own free-text
+  // mainDate (when it was lost/found, as entered in DateEntryDialog); when a
+  // post doesn't carry one, falls back to the post's own createdAt formatted
+  // as a plain date, so the card never collapses to showing only the
+  // relative "posted" time.
+  const exactDateLabel = useMemo(() => {
+    if (post?.mainDate) return post.mainDate;
+    if (!post?.createdAt) return null;
+    try {
+      return format(new Date(post.createdAt), 'MMM d, yyyy', { locale });
+    } catch (error) {
+      return null;
+    }
+  }, [post?.mainDate, post?.createdAt, locale]);
 
   // Memoized found/lost status computation.
   // `foundLostValue` starts unset so the ObjectId-reference fallback below only
@@ -298,14 +314,6 @@ const Post = ({ post, viewMode = "grid" }) => {
   // Function to detect if the site is in RTL mode (Arabic language)
   const isRTLMode = () => {
     return currentLanguage === 'ar';
-  };
-
-  // Function to detect if text contains Arabic characters (for exactLocation field alignment)
-  const isArabicText = (text) => {
-    if (!text) return false;
-    // Arabic Unicode range: U+0600-U+06FF, U+0750-U+077F, U+08A0-U+08FF, U+FB50-U+FDFF, U+FE70-U+FEFF
-    const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
-    return arabicRegex.test(text);
   };
 
   // Memoized city name computation
@@ -802,14 +810,16 @@ const Post = ({ post, viewMode = "grid" }) => {
         backgroundColor: theme.custom.color.surfaceRaised,
       }}
     >
-      {/* Photo: the card's top block, square, inset from the card's own
-          edges with its own radius.xl corners rather than sitting flush. */}
-      <Box sx={{ padding: '12px 12px 0' }}>
+      {/* Photo: the card's top block, inset from the card's own edges with
+          its own radius.xl corners rather than sitting flush. Square from
+          sm up; on xs a full 1:1 box made the card noticeably tall once
+          everything below it was added, so the photo trims to 4:3 there. */}
+      <Box sx={{ padding: { xs: '8px 8px 0', sm: '12px 12px 0' } }}>
       <Box
         sx={{
           position: 'relative',
           width: '100%',
-          aspectRatio: '1 / 1',
+          aspectRatio: { xs: '4 / 3', sm: '1 / 1' },
           borderRadius: `${theme.custom.radius.xl}px`,
           overflow: 'hidden',
           backgroundColor: post?.image ? 'transparent' : alpha(tone.main, 0.06),
@@ -945,8 +955,11 @@ const Post = ({ post, viewMode = "grid" }) => {
       </Box>
       </Box>
 
-      {/* Header: category, city headline, exact location. */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '0 6px', pt: 2 }}>
+      {/* Header: category, city headline, city (with a location icon) -
+          the exact-location text used to live in that third line and was
+          dropped in favor of just repeating the city, since the headline
+          above it already carries the free-text address's job. */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '0 6px', pt: { xs: 1.5, sm: 2 } }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
           {categories.map((cat, index) => {
             const catStyle = categoryStyles[index];
@@ -974,7 +987,7 @@ const Post = ({ post, viewMode = "grid" }) => {
         <Typography
           component="h3"
           sx={{
-            fontSize: 22,
+            fontSize: { xs: 18, sm: 22 },
             fontWeight: 800,
             lineHeight: 1.2,
             color: theme.custom.color.ink,
@@ -984,31 +997,24 @@ const Post = ({ post, viewMode = "grid" }) => {
           {cityName}
         </Typography>
 
-        {/* Where it was lost or found, in the words whoever posted it used;
-            falls back to the city when there is no exact location. */}
-        <Typography
-          sx={{
-            fontSize: 14,
-            fontWeight: 600,
-            color: alpha(theme.custom.color.ink, 0.6),
-            ...(post?.exactLocation && isArabicText(post.exactLocation)
-              ? { '&&&': { direction: 'rtl' } }
-              : {}),
-          }}
-        >
-          {post?.exactLocation || cityName}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <LocationIcon sx={{ fontSize: 16, color: alpha(theme.custom.color.ink, 0.6) }} />
+          <Typography sx={{ fontSize: 14, fontWeight: 600, color: alpha(theme.custom.color.ink, 0.6) }}>
+            {cityName}
+          </Typography>
+        </Box>
       </Box>
 
-      {/* Facts: when it was lost/found, and when the listing went up. View
-          count isn't repeated here - it's already the first column of the
-          stats bar below. */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', padding: '0 6px', pt: 1.5 }}>
-        {post?.mainDate && (
+      {/* Facts: the exact date (mainDate, or createdAt as a fallback so this
+          slot never goes empty), and when the listing went up (relative).
+          View count isn't repeated here - it's already the first column of
+          the stats bar below. */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', padding: '0 6px', pt: { xs: 1, sm: 1.5 } }}>
+        {exactDateLabel && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <CalendarIcon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
             <Typography sx={{ fontSize: 13, fontWeight: 700, color: theme.custom.color.ink }}>
-              {post.mainDate}
+              {exactDateLabel}
             </Typography>
           </Box>
         )}
@@ -1028,10 +1034,10 @@ const Post = ({ post, viewMode = "grid" }) => {
           gridTemplateColumns: 'repeat(3, 1fr)',
           borderRadius: '18px',
           backgroundColor: theme.custom.color.surfaceBase,
-          padding: '16px 6px',
+          padding: { xs: '10px 6px', sm: '16px 6px' },
           mx: '6px',
-          mt: 2,
-          mb: 1,
+          mt: { xs: 1.25, sm: 2 },
+          mb: { xs: 0.5, sm: 1 },
         }}
       >
         {statsBarItems.map((item, index) => (
