@@ -101,6 +101,8 @@ export const translations = {
     report: "Report",
     view: "View",
     views: "views",
+    shareListing: "Share listing",
+    saveListing: "Save listing",
     // Reach: the site's own view counter plus the engagement the listing's
     // auto-posted copies collect on the Facebook Page / Instagram account.
     postViews: "{count} views",
@@ -1889,6 +1891,8 @@ export const translations = {
     report: "Signaler",
     view: "Voir",
     views: "vues",
+    shareListing: "Partager l'annonce",
+    saveListing: "Enregistrer l'annonce",
     postViews: "{count} vues",
     socialReach: "Portée sur les réseaux sociaux",
     socialReachNote: "Depuis les copies automatiques de cette annonce sur nos pages Facebook et Instagram.",
@@ -3655,6 +3659,8 @@ export const translations = {
     report: "إبلاغ",
     view: "عرض",
     views: "مشاهدة",
+    shareListing: "مشاركة الإعلان",
+    saveListing: "حفظ الإعلان",
     postViews: "{count} مشاهدة",
     socialReach: "الوصول على مواقع التواصل",
     socialReachNote: "من النسخ التلقائية لهذا الإعلان على صفحتينا على فيسبوك وإنستغرام.",

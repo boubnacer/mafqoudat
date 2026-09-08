@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import React from "react";
 import noImageSvg from "../../../img/noimage.svg";
 import {
@@ -11,11 +11,9 @@ import {
   Box,
   Chip,
   IconButton,
-  Tooltip,
   useMediaQuery,
   Paper,
   alpha,
-  lighten,
   styled,
 } from "@mui/material";
 import {
@@ -25,14 +23,13 @@ import {
   Visibility as VisibilityIcon,
   ArrowForward as ArrowIcon,
   AccessTime as TimeIcon,
-  Event as EventIcon,
   ImageNotSupported as NoImageIcon,
   CheckCircle as CheckCircleIcon,
-  TaskAltOutlined,
-  SearchOffOutlined,
   Facebook as FacebookIcon,
   Instagram as InstagramIcon,
-  NorthEast as NorthEastIcon,
+  IosShare as ShareIcon,
+  FavoriteBorder as FavoriteBorderIcon,
+  Favorite as FavoriteIcon,
 } from "@mui/icons-material";
 import FlexBetween from "../../../components/FlexBetween";
 import { useTranslation } from "../../../utils/translations";
@@ -44,6 +41,7 @@ import RenderIcon from "../../../components/RenderIcon";
 import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
 import LazyCardMedia from "../../../components/LazyCardMedia";
 import ReachRow from "../../../components/ReachRow";
+import { summarizeSocialStats, readSiteViews } from "../../../utils/socialStats";
 
 
 // Get the API base URL for image construction
@@ -82,83 +80,10 @@ const PostCardRoot = styled(Card)(({ theme }) => ({
 // keeps Latin text in Latin order, so it has to say so at a specificity those
 // rules cannot override. Scoped to this card on purpose: the globals are older
 // than the card and fixing them belongs to a pass of its own.
-const centeredText = (direction) => ({
-  '&&&': { textAlign: 'center', ...(direction ? { direction } : {}) },
-});
-
-// Found / Lost, as the first thing the card says. Same solid-fill status tag
-// language as before, but sitting in the card's header row rather than floating
-// over the photo: the media frame is inset now, and the card leads with what
-// kind of listing this is.
-const StatusTag = ({ isFound, label }) => {
-  const theme = useTheme();
-  const tone = isFound ? theme.custom.status.found : theme.custom.status.lost;
-  const Icon = isFound ? TaskAltOutlined : SearchOffOutlined;
-  return (
-    <Box
-      sx={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 0.5,
-        px: 1.25,
-        py: 0.625,
-        borderRadius: `${theme.custom.radius.sm}px`,
-        backgroundColor: tone.main,
-      }}
-    >
-      <Icon sx={{ fontSize: 16, color: theme.palette.getContrastText(tone.main) }} />
-      <Typography
-        variant="caption"
-        sx={{
-          fontWeight: 700,
-          letterSpacing: 0.3,
-          color: theme.palette.getContrastText(tone.main),
-          lineHeight: 1,
-        }}
-      >
-        {label}
-      </Typography>
-    </Box>
-  );
-};
-
-// The card's open action: a filled brand circle in the header row's trailing
-// corner. The card itself still opens the listing on click - this is the
-// affordance that says so, and the one thing on the card allowed to be loud.
-// The arrow points away from the reader, so it mirrors with the document.
-const OpenAction = ({ onClick, label }) => {
-  const theme = useTheme();
-  const { currentLanguage } = useTranslation();
-  return (
-    <Tooltip title={label}>
-      <IconButton
-        onClick={onClick}
-        aria-label={label}
-        sx={{
-          width: 44,
-          height: 44,
-          backgroundColor: theme.custom.color.brandPrimary,
-          color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
-          "&:hover": {
-            backgroundColor: theme.custom.color.brandPrimary,
-            filter: "brightness(0.94)",
-          },
-        }}
-      >
-        <NorthEastIcon
-          sx={{
-            fontSize: 20,
-            transform: currentLanguage === "ar" ? "scaleX(-1)" : "none",
-          }}
-        />
-      </IconButton>
-    </Tooltip>
-  );
-};
 
 // Resolved/returned is dashboard-specific — public marketing card has no
-// equivalent. Reuses the same solid-fill badge language as StatusTag rather
-// than the old hardcoded-green pulsing overlay.
+// equivalent. Sits at the photo's bottom-start corner, opposite the overlay
+// action buttons at bottom-end.
 const ResolvedBadge = ({ label }) => {
   const theme = useTheme();
   const tone = theme.custom.status.found;
@@ -167,7 +92,7 @@ const ResolvedBadge = ({ label }) => {
       sx={{
         position: "absolute",
         bottom: 12,
-        insetInlineEnd: 12,
+        insetInlineStart: 12,
         zIndex: 11,
         display: "inline-flex",
         alignItems: "center",
@@ -474,6 +399,33 @@ const Post = ({ post, viewMode = "grid" }) => {
     navigate(`/dash/posts/${post?._id}`);
   }, [navigate, post?._id]);
 
+  // No save/favorite feature exists yet on the app - this is a local,
+  // client-only placeholder (toggles the heart's fill) until a real
+  // save/favorite endpoint exists to wire it to.
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = useCallback((e) => {
+    e.stopPropagation();
+    setSaved((prev) => !prev);
+  }, []);
+
+  const handleShare = useCallback(async (e) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/dash/posts/${post?._id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: cityName, url });
+      } catch (error) {
+        // User cancelled the share sheet - nothing to do.
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch (error) {
+      // Clipboard access denied - nothing further to fall back to.
+    }
+  }, [post?._id, cityName]);
 
   // Early return after all hooks
   if (!post) return null;
@@ -818,33 +770,29 @@ const Post = ({ post, viewMode = "grid" }) => {
     );
   }
 
-  // Grid view layout - a single centred stack: status badge and open action,
-  // the city as a display-type gradient headline, the photo inset inside the
-  // card, then the exact location, the category chip and the date facts. One
-  // fixed density: the card carried a control that cycled it through three
-  // widths, and that control is gone, so the layout that reads best in a grid
-  // cell is the only one it renders.
+  // Grid view layout - the photo leads as a square top block (its own
+  // corners rounded to match the card), status and quick actions overlaid on
+  // it, then a plain content stack below: category, city headline, exact
+  // location, the date/time/views facts, and a stats bar reusing ReachRow's
+  // metrics. One fixed density: the card carried a control that cycled it
+  // through three widths, and that control is gone, so the layout that reads
+  // best in a grid cell is the only one it renders.
   const tone = foundLostStatus.isFound ? theme.custom.status.found : theme.custom.status.lost;
 
-  // Same corner-blob language as RecentSection's own panel (the "Recent
-  // Founds/Losts" component on the dashboard home page) - a soft wash
-  // parked in the top corner where that panel's colored accent (its title
-  // icon / See all corner) lives, scaled down to this card's size. Anchored
-  // to StatusTag's own side (insetInlineStart) via a negative offset so it
-  // pokes out from that corner rather than sitting centred, and clipped by
-  // PostCardRoot's own overflow:hidden so it never spans the full card
-  // width the way an earlier, centred attempt did.
-  const cardCornerBlob = {
-    position: 'absolute',
-    top: -50,
-    insetInlineStart: -40,
-    width: 160,
-    height: 160,
-    borderRadius: '50%',
-    background: `radial-gradient(circle, ${alpha(tone.main, isDarkMode ? 0.32 : 0.22)} 0%, transparent 70%)`,
-    filter: 'blur(6px)',
-    pointerEvents: 'none',
-  };
+  const siteViews = readSiteViews(post);
+  const socialStats = summarizeSocialStats(post);
+  // Reactions/likes and comments are the same kind of activity whichever
+  // platform they happened on, so - like `interactions` itself above - they
+  // combine across Facebook/Instagram. `null` only when neither platform has
+  // anything fetched, so an unfetched number never reads as a real zero.
+  const combineCounts = (a, b) => (a === null && b === null ? null : (a || 0) + (b || 0));
+  const reactionsCount = combineCounts(socialStats.facebook.reactions, socialStats.instagram.likes);
+  const commentsCount = combineCounts(socialStats.facebook.comments, socialStats.instagram.comments);
+  const statsBarItems = [
+    { key: 'views', label: t('views'), value: siteViews },
+    { key: 'reactions', label: t('reactions'), value: reactionsCount },
+    { key: 'comments', label: t('comments'), value: commentsCount },
+  ];
 
   return (
     <PostCardRoot
@@ -855,171 +803,151 @@ const Post = ({ post, viewMode = "grid" }) => {
         backgroundColor: theme.custom.color.surfaceRaised,
       }}
     >
-      <Box sx={cardCornerBlob} />
-
-      <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-      {/* Header row: what kind of listing this is, and how to open it. */}
+      {/* Photo: the card's top block, square, corners matching the card's
+          own radius.xl so it sits flush with no gap. */}
       <Box
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 1,
-          px: 2.5,
-          pt: 2.5,
+          position: 'relative',
+          width: '100%',
+          aspectRatio: '1 / 1',
+          borderTopLeftRadius: `${theme.custom.radius.xl}px`,
+          borderTopRightRadius: `${theme.custom.radius.xl}px`,
+          overflow: 'hidden',
+          backgroundColor: post?.image ? 'transparent' : alpha(tone.main, 0.06),
         }}
       >
-        <StatusTag isFound={foundLostStatus.isFound} label={foundLostStatus.statusText} />
-        <OpenAction onClick={handleViewDetails} label={t('viewDetails')} />
-      </Box>
+        {post?.image && imageUrl ? (
+          <LazyCardMedia
+            component="img"
+            sx={{ height: '100%', width: '100%', objectFit: 'cover', objectPosition: 'center' }}
+            image={imageUrl}
+            alt={categoryName || 'Item Image'}
+            fallback={noImageSvg}
+            onError={handleImageError}
+          />
+        ) : categoryIconsData.length > 0 ? (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+              padding: 2,
+              width: '100%',
+              height: '100%',
+            }}
+          >
+            {categoryIconsData.length === 1 ? (() => {
+              const IconComponent = categoryIconsData[0].IconComponent;
+              return (
+                <IconComponent
+                  sx={{
+                    fontSize: { xs: '72px', sm: '88px' },
+                    color: categoryIconsData[0].style?.main || theme.palette.text.secondary,
+                    opacity: 0.85,
+                  }}
+                />
+              );
+            })() : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: { xs: 2.5, sm: 3 },
+                  flexWrap: 'wrap',
+                }}
+              >
+                {categoryIconsData.slice(0, 4).map((iconData, idx) => {
+                  const IconComponent = iconData.IconComponent;
+                  return (
+                    <IconComponent
+                      key={iconData.code || idx}
+                      sx={{
+                        fontSize: { xs: '44px', sm: '52px' },
+                        color: iconData.style?.main || theme.palette.text.secondary,
+                        opacity: 0.85,
+                      }}
+                    />
+                  );
+                })}
+              </Box>
+            )}
+          </Box>
+        ) : null}
 
-      {/* The city, as the card's headline. It is the field every listing has
-          and the one a searcher scans for; the category rides below as a chip. */}
-      <Box
-        sx={{ px: 2.5, pt: 2, pb: 1 }}
-      >
-        <Typography
-          component="h3"
-          sx={{
-            fontFamily: theme.custom.font.display,
-            fontWeight: 800,
-            textTransform: 'uppercase',
-            ...centeredText(),
-            fontSize: { xs: '2rem', sm: '1.9rem' },
-            lineHeight: 1.1,
-            letterSpacing: currentLanguage === 'ar' ? 0 : '-0.02em',
-            // The one gradient in the app, and it is built from the brand
-            // token rather than a picked pair of hex values, so it follows
-            // brandPrimary into dark mode with it.
-            backgroundImage: `linear-gradient(135deg, ${theme.custom.color.brandPrimary} 0%, ${lighten(theme.custom.color.brandPrimary, 0.45)} 100%)`,
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            color: 'transparent',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            overflowWrap: 'anywhere',
-          }}
-        >
-          {cityName}
-        </Typography>
-      </Box>
-
-      {/* Media, inset inside the card rather than bleeding to its edges. */}
-      <Box
-        sx={{ px: 2.5 }}
-      >
+        {/* Status: a white pill overlaid on the photo, top-start. */}
         <Box
           sx={{
-            position: 'relative',
-            width: '100%',
-            height: { xs: 200, sm: 190 },
-            borderRadius: `${theme.custom.radius.lg}px`,
-            overflow: 'hidden',
-            backgroundColor: post?.image ? 'transparent' : alpha(tone.main, 0.06),
+            position: 'absolute',
+            top: 12,
+            insetInlineStart: 12,
+            zIndex: 2,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 1,
+            backgroundColor: theme.custom.color.surfaceRaised,
+            borderRadius: '999px',
+            padding: '8px 16px 8px 12px',
+            boxShadow: theme.custom.elevation.e2,
           }}
         >
-          {post?.image && imageUrl ? (
-            <LazyCardMedia
-              component="img"
-              sx={{ height: '100%', width: '100%', objectFit: 'cover', objectPosition: 'center' }}
-              image={imageUrl}
-              alt={categoryName || 'Item Image'}
-              fallback={noImageSvg}
-              onError={handleImageError}
-            />
-          ) : categoryIconsData.length > 0 ? (
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 1,
-                padding: 2,
-                width: '100%',
-                height: '100%',
-              }}
-            >
-              {categoryIconsData.length === 1 ? (() => {
-                const IconComponent = categoryIconsData[0].IconComponent;
-                return (
-                  <IconComponent
-                    sx={{
-                      fontSize: { xs: '72px', sm: '88px' },
-                      color: categoryIconsData[0].style?.main || theme.palette.text.secondary,
-                      opacity: 0.85,
-                    }}
-                  />
-                );
-              })() : (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: { xs: 2.5, sm: 3 },
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  {categoryIconsData.slice(0, 4).map((iconData, idx) => {
-                    const IconComponent = iconData.IconComponent;
-                    return (
-                      <IconComponent
-                        key={iconData.code || idx}
-                        sx={{
-                          fontSize: { xs: '44px', sm: '52px' },
-                          color: iconData.style?.main || theme.palette.text.secondary,
-                          opacity: 0.85,
-                        }}
-                      />
-                    );
-                  })}
-                </Box>
-              )}
-            </Box>
-          ) : null}
+          <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: tone.main, flexShrink: 0 }} />
+          <Typography sx={{ fontWeight: 700, fontSize: 13, color: theme.custom.color.ink, lineHeight: 1 }}>
+            {foundLostStatus.statusText}
+          </Typography>
+        </Box>
 
-          {post?.returned && <ResolvedBadge label={t('returned')} />}
+        {post?.returned && <ResolvedBadge label={t('returned')} />}
+
+        {/* Quick actions: share and save, stacked bottom-end on the photo.
+            '#78808E' is the reference design's own scrim color for these two
+            circles - not a design token, since it exists only as a
+            translucent overlay on a photo and has no equivalent elsewhere. */}
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 12,
+            insetInlineEnd: 12,
+            zIndex: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+          }}
+        >
+          <IconButton
+            onClick={handleShare}
+            aria-label={t('shareListing')}
+            sx={{
+              width: 40,
+              height: 40,
+              backgroundColor: alpha('#78808E', 0.55),
+              color: '#FFFFFF',
+              '&:hover': { backgroundColor: alpha('#78808E', 0.7) },
+            }}
+          >
+            <ShareIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+          <IconButton
+            onClick={handleSave}
+            aria-label={t('saveListing')}
+            sx={{
+              width: 40,
+              height: 40,
+              backgroundColor: alpha('#78808E', 0.55),
+              color: '#FFFFFF',
+              '&:hover': { backgroundColor: alpha('#78808E', 0.7) },
+            }}
+          >
+            {saved ? <FavoriteIcon sx={{ fontSize: 18 }} /> : <FavoriteBorderIcon sx={{ fontSize: 18 }} />}
+          </IconButton>
         </Box>
       </Box>
 
-      {/* Copy: the listing's own words when it has any, its exact location
-          when it does not, then the facts that place it in time. */}
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 1.25,
-          px: 2.5,
-          pt: 2.5,
-          pb: 2.5,
-          flexGrow: 1,
-        }}
-      >
-        {/* Where it was lost or found, in the words whoever posted it used.
-            The city is already the headline, so the line under the photo is
-            the one that narrows it down to a street or a landmark. */}
-        {post?.exactLocation && (
-          <Typography
-            variant="body2"
-            sx={{
-              color: alpha(theme.custom.color.ink, 0.72),
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              ...centeredText(isArabicText(post.exactLocation) ? 'rtl' : 'ltr'),
-            }}
-          >
-            {post.exactLocation}
-          </Typography>
-        )}
-
-        {/* Category Badges - Multiple categories support */}
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, justifyContent: 'center' }}>
+      {/* Header: category, city headline, exact location. */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '0 6px', pt: 2 }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
           {categories.map((cat, index) => {
             const catStyle = categoryStyles[index];
             const catName = categoryNames[index];
@@ -1027,65 +955,113 @@ const Post = ({ post, viewMode = "grid" }) => {
               <Box
                 key={cat.code || index}
                 sx={{
-                  // config/categories.js only carries a light-mode
-                  // backgroundColor, which renders as a white pill on a dark
-                  // card. A translucent wash of the category's own color works
-                  // in both modes and keeps the per-category accent.
-                  backgroundColor: alpha(catStyle.main, isDarkMode ? 0.2 : 0.12),
-                  padding: '4px 8px',
-                  borderRadius: `${theme.custom.radius.sm}px`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  border: `1px solid ${alpha(catStyle.main, 0.6)}`,
+                  alignSelf: 'flex-start',
+                  backgroundColor: alpha(catStyle.main, 0.1),
+                  border: `1px solid ${alpha(catStyle.main, 0.35)}`,
+                  color: catStyle.main,
+                  fontWeight: 700,
+                  fontSize: 12,
+                  borderRadius: '999px',
+                  padding: '5px 12px',
                 }}
               >
-                <RenderIcon
-                  name={`${cat.code?.toLowerCase() || 'other'}cate`}
-                  sx={{ fontSize: '12px', color: isDarkMode ? catStyle.main : catStyle.text }}
-                />
-                <Typography
-                  sx={{
-                    color: isDarkMode ? catStyle.main : catStyle.text,
-                    fontSize: '11px',
-                    fontWeight: 700,
-                  }}
-                >
-                  {catName}
-                </Typography>
+                {catName}
               </Box>
             );
           })}
         </Box>
 
-        {/* When the item was lost or found, and when the listing went up. */}
-        <Box
+        <Typography
+          component="h3"
           sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: 1.5,
+            fontSize: 22,
+            fontWeight: 800,
+            lineHeight: 1.2,
+            color: theme.custom.color.ink,
+            overflowWrap: 'anywhere',
           }}
         >
-          {post?.mainDate && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <EventIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
-              <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
-                {post.mainDate}
-              </Typography>
-            </Box>
-          )}
+          {cityName}
+        </Typography>
+
+        {/* Where it was lost or found, in the words whoever posted it used;
+            falls back to the city when there is no exact location. */}
+        <Typography
+          sx={{
+            fontSize: 14,
+            fontWeight: 600,
+            color: alpha(theme.custom.color.ink, 0.6),
+            ...(post?.exactLocation && isArabicText(post.exactLocation)
+              ? { '&&&': { direction: 'rtl' } }
+              : {}),
+          }}
+        >
+          {post?.exactLocation || cityName}
+        </Typography>
+      </Box>
+
+      {/* Facts: when it was lost/found, when the listing went up, how many
+          have viewed it. */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', padding: '0 6px', pt: 1.5 }}>
+        {post?.mainDate && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <TimeIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              {created}
+            <CalendarIcon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: theme.custom.color.ink }}>
+              {post.mainDate}
             </Typography>
           </Box>
+        )}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <TimeIcon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: theme.custom.color.ink }}>
+            {created}
+          </Typography>
         </Box>
-
-        <ReachRow post={post} sx={{ mt: 'auto', justifyContent: 'center' }} />
+        {siteViews !== null && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <VisibilityIcon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: theme.custom.color.ink }}>
+              {siteViews}
+            </Typography>
+          </Box>
+        )}
       </Box>
+
+      {/* Stats bar: the same reach metrics ReachRow renders elsewhere,
+          spelled out as a 3-column grid instead of an inline row. */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          borderRadius: '18px',
+          backgroundColor: theme.custom.color.surfaceBase,
+          padding: '16px 6px',
+          mx: '6px',
+          mt: 2,
+          mb: 1,
+        }}
+      >
+        {statsBarItems.map((item, index) => (
+          <Box
+            key={item.key}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 0.5,
+              borderInlineEnd: index < statsBarItems.length - 1
+                ? `1px solid ${alpha(theme.custom.color.ink, 0.1)}`
+                : 'none',
+            }}
+          >
+            <Typography variant="caption" sx={{ color: alpha(theme.custom.color.ink, 0.6), fontWeight: 600 }}>
+              {item.label}
+            </Typography>
+            <Typography sx={{ color: theme.custom.color.brandPrimary, fontWeight: 800, fontSize: 16 }}>
+              {item.value !== null ? item.value : '—'}
+            </Typography>
+          </Box>
+        ))}
       </Box>
     </PostCardRoot>
   );
