@@ -20,7 +20,6 @@ import {
   LocationOn as LocationIcon,
   CalendarToday as CalendarIcon,
   Category as CategoryIcon,
-  Visibility as VisibilityIcon,
   ArrowForward as ArrowIcon,
   AccessTime as TimeIcon,
   ImageNotSupported as NoImageIcon,
@@ -803,15 +802,15 @@ const Post = ({ post, viewMode = "grid" }) => {
         backgroundColor: theme.custom.color.surfaceRaised,
       }}
     >
-      {/* Photo: the card's top block, square, corners matching the card's
-          own radius.xl so it sits flush with no gap. */}
+      {/* Photo: the card's top block, square, inset from the card's own
+          edges with its own radius.xl corners rather than sitting flush. */}
+      <Box sx={{ padding: '12px 12px 0' }}>
       <Box
         sx={{
           position: 'relative',
           width: '100%',
           aspectRatio: '1 / 1',
-          borderTopLeftRadius: `${theme.custom.radius.xl}px`,
-          borderTopRightRadius: `${theme.custom.radius.xl}px`,
+          borderRadius: `${theme.custom.radius.xl}px`,
           overflow: 'hidden',
           backgroundColor: post?.image ? 'transparent' : alpha(tone.main, 0.06),
         }}
@@ -944,6 +943,7 @@ const Post = ({ post, viewMode = "grid" }) => {
           </IconButton>
         </Box>
       </Box>
+      </Box>
 
       {/* Header: category, city headline, exact location. */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '0 6px', pt: 2 }}>
@@ -1000,8 +1000,9 @@ const Post = ({ post, viewMode = "grid" }) => {
         </Typography>
       </Box>
 
-      {/* Facts: when it was lost/found, when the listing went up, how many
-          have viewed it. */}
+      {/* Facts: when it was lost/found, and when the listing went up. View
+          count isn't repeated here - it's already the first column of the
+          stats bar below. */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', padding: '0 6px', pt: 1.5 }}>
         {post?.mainDate && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -1017,14 +1018,6 @@ const Post = ({ post, viewMode = "grid" }) => {
             {created}
           </Typography>
         </Box>
-        {siteViews !== null && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <VisibilityIcon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
-            <Typography sx={{ fontSize: 13, fontWeight: 700, color: theme.custom.color.ink }}>
-              {siteViews}
-            </Typography>
-          </Box>
-        )}
       </Box>
 
       {/* Stats bar: the same reach metrics ReachRow renders elsewhere,
