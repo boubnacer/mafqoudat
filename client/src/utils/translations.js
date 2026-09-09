@@ -889,6 +889,7 @@ export const translations = {
     close: "Close",
     
     // Process Section
+    step: "Step",
     whatWeDo: "What we do",
     afterPostingInMafqoudat: "After posting in the mafqoudat website",
     shareToOurSocials: "Share to our socials",
@@ -2681,6 +2682,7 @@ export const translations = {
     close: "Fermer",
     
     // Process Section
+    step: "Étape",
     whatWeDo: "Ce que nous faisons",
     afterPostingInMafqoudat: "Après avoir publié sur le site web mafqoudat",
     shareToOurSocials: "Partager sur nos réseaux sociaux",
@@ -4433,6 +4435,7 @@ export const translations = {
     close: "إغلاق",
     
     // Process Section
+    step: "خطوة",
     whatWeDo: "ما نقوم به",
     afterPostingInMafqoudat: "بعد النشر في موقع مفقودات",
     shareToOurSocials: "مشاركة على وسائل التواصل الاجتماعي",
