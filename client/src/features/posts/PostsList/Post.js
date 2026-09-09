@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo } from "react";
 import React from "react";
 import noImageSvg from "../../../img/noimage.svg";
 import {
@@ -10,7 +10,6 @@ import {
   useTheme,
   Box,
   Chip,
-  IconButton,
   useMediaQuery,
   Paper,
   alpha,
@@ -28,9 +27,6 @@ import {
   SearchOffOutlined,
   Facebook as FacebookIcon,
   Instagram as InstagramIcon,
-  IosShare as ShareIcon,
-  FavoriteBorder as FavoriteBorderIcon,
-  Favorite as FavoriteIcon,
 } from "@mui/icons-material";
 import FlexBetween from "../../../components/FlexBetween";
 import { useTranslation } from "../../../utils/translations";
@@ -407,34 +403,6 @@ const Post = ({ post, viewMode = "grid" }) => {
   const handleViewDetails = useCallback(() => {
     navigate(`/dash/posts/${post?._id}`);
   }, [navigate, post?._id]);
-
-  // No save/favorite feature exists yet on the app - this is a local,
-  // client-only placeholder (toggles the heart's fill) until a real
-  // save/favorite endpoint exists to wire it to.
-  const [saved, setSaved] = useState(false);
-
-  const handleSave = useCallback((e) => {
-    e.stopPropagation();
-    setSaved((prev) => !prev);
-  }, []);
-
-  const handleShare = useCallback(async (e) => {
-    e.stopPropagation();
-    const url = `${window.location.origin}/dash/posts/${post?._id}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: cityName, url });
-      } catch (error) {
-        // User cancelled the share sheet - nothing to do.
-      }
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-    } catch (error) {
-      // Clipboard access denied - nothing further to fall back to.
-    }
-  }, [post?._id, cityName]);
 
   // Early return after all hooks
   if (!post) return null;
@@ -967,47 +935,39 @@ const Post = ({ post, viewMode = "grid" }) => {
 
         {post?.returned && <ResolvedBadge label={t('returned')} />}
 
-        {/* Quick actions: share and save, stacked bottom-end on the photo.
-            '#78808E' is the reference design's own scrim color for these two
-            circles - not a design token, since it exists only as a
-            translucent overlay on a photo and has no equivalent elsewhere. */}
+        {/* Date posted: replaces the share/save icon buttons that used to
+            sit bottom-end on the photo. Same '#78808E' scrim background as
+            those buttons (the reference design's own translucent overlay
+            color, not a design token - it exists only on top of a photo and
+            has no equivalent elsewhere), now a pill carrying the relative
+            "posted X ago" time instead. */}
         <Box
           sx={{
             position: 'absolute',
             bottom: 12,
             insetInlineEnd: 12,
             zIndex: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: { xs: 0.5, sm: 0.75 },
+            px: { xs: 1.25, sm: 1.5 },
+            py: { xs: 0.5, sm: 0.625 },
+            borderRadius: '999px',
+            backgroundColor: alpha('#78808E', 0.55),
           }}
         >
-          <IconButton
-            onClick={handleShare}
-            aria-label={t('shareListing')}
+          <TimeIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: '#FFFFFF' }} />
+          <Typography
             sx={{
-              width: 40,
-              height: 40,
-              backgroundColor: alpha('#78808E', 0.55),
+              fontWeight: 700,
+              fontSize: { xs: '12px', sm: '13px' },
               color: '#FFFFFF',
-              '&:hover': { backgroundColor: alpha('#78808E', 0.7) },
+              lineHeight: 1,
+              whiteSpace: 'nowrap',
             }}
           >
-            <ShareIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-          <IconButton
-            onClick={handleSave}
-            aria-label={t('saveListing')}
-            sx={{
-              width: 40,
-              height: 40,
-              backgroundColor: alpha('#78808E', 0.55),
-              color: '#FFFFFF',
-              '&:hover': { backgroundColor: alpha('#78808E', 0.7) },
-            }}
-          >
-            {saved ? <FavoriteIcon sx={{ fontSize: 18 }} /> : <FavoriteBorderIcon sx={{ fontSize: 18 }} />}
-          </IconButton>
+            {created}
+          </Typography>
         </Box>
       </Box>
       </Box>
@@ -1043,26 +1003,20 @@ const Post = ({ post, viewMode = "grid" }) => {
       </Box>
 
       {/* Facts: the exact date (mainDate, or createdAt as a fallback so this
-          slot never goes empty), and when the listing went up (relative).
-          Centered with a gap between them rather than pushed to opposite
-          edges. View count isn't repeated here - it's already the first
+          slot never goes empty). When the listing went up (relative) moved
+          onto the photo as its own badge (see above) - not repeated here.
+          View count isn't repeated here either - it's already the first
           column of the stats bar below. */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 3, padding: { xs: '0 16px', sm: '0 20px' }, pt: { xs: 1, sm: 1.5 } }}>
-        {exactDateLabel && (
+      {exactDateLabel && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: { xs: '0 16px', sm: '0 20px' }, pt: { xs: 1, sm: 1.5 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <CalendarIcon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
             <Typography sx={{ fontSize: 13, fontWeight: 700, color: theme.custom.color.ink }}>
               {exactDateLabel}
             </Typography>
           </Box>
-        )}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <TimeIcon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: theme.custom.color.ink }}>
-            {created}
-          </Typography>
         </Box>
-      </Box>
+      )}
 
       {/* Stats bar: the same reach metrics ReachRow renders elsewhere,
           spelled out as a 3-column grid instead of an inline row. */}
