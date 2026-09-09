@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Box, Typography, useTheme, Link, alpha, lighten, darken } from "@mui/material";
+import { Box, Typography, useTheme, useMediaQuery, Link, alpha, lighten, darken } from "@mui/material";
 import { ShareOutlined, CampaignOutlined, NotificationsNoneOutlined } from "@mui/icons-material";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
@@ -24,10 +24,12 @@ const STEP_ICONS = { share: ShareOutlined, ad: CampaignOutlined, notif: Notifica
 // depends on. Ratios worth naming: pill 2.56:1, disc 0.80 x pill height, row
 // pitch 1.55 x pill height, numeral cap height 0.54 x pill height.
 //
-// Because it is one fixed composition, it is fitted to narrower containers —
-// mobile/responsive included — by scaling the whole thing down rather than by
-// re-flowing it into a different layout: see `useHostWidth`. The mobile view
-// is this same stage at a smaller scale, not a re-proportioned alternative.
+// Because it is one fixed composition, it is fitted to its container by
+// scaling the whole thing down rather than by re-flowing it: see
+// `useHostWidth`. It is now the NARROW layout only — a 820x916 column is the
+// right shape for a phone and the wrong one for a desktop panel, where it
+// reads as one enormous vertical banner. Wide containers get `RAIL` below
+// instead, which says the same thing along the axis that actually has room.
 // ---------------------------------------------------------------------------
 const STAGE = {
   W: 820,
@@ -95,6 +97,72 @@ const buildTrail = (rows) => {
   return { d: d.join(" "), head, tail, mid };
 };
 
+// ---------------------------------------------------------------------------
+// The horizontal rail (wide containers).
+//
+// Same vocabulary as the zig-zag stage — brand-ramp card, light disc carrying
+// the icon, a notch pointing out of the card at a ring, and one dotted trail
+// threading every ring, capped by a solid dot at each end — turned through 90
+// degrees so the sequence runs along the reading axis instead of down the
+// page. Three consequences of the turn, all forced rather than chosen:
+//
+//   * The disc pierces the card's TOP edge at its centre instead of its inner
+//     end. A portrait card has no inner end to overlap, and the top edge is
+//     where the eye enters the column.
+//   * The corner radius is capped (as in the stage's own narrow variant): a
+//     true stadium on a 344x276 box is an ellipse whose caps eat the text
+//     column from both sides.
+//   * The numeral becomes a ghost bleeding off the card's trailing corner
+//     rather than a block standing beside the card. Beside it there is no room
+//     — the columns are the width; behind the copy it costs no height at all
+//     and still carries the count, which is what it is for.
+//
+// The trail is straight here, and runs under the row like an axis. The S-curve
+// exists in the stage to carry the eye from one side of the page to the other
+// between rows; along a single row there is nothing for it to carry.
+//
+// Width is derived from the step count, the way the stage's height is, so a
+// fourth step widens the rail instead of overflowing it.
+// ---------------------------------------------------------------------------
+const RAIL = {
+  CARD_W: 344,
+  CARD_H: 276,
+  CARD_R: 40,
+  COL_GAP: 40,
+  CARD_TOP: 56, // = DISC / 2: the disc's upper half stands above the card
+  DISC: 112,
+  TEXT_PAD_X: 30,
+  TEXT_TOP: 72, // clears the disc's lower half inside the card
+  TEXT_PAD_BOTTOM: 26,
+  NOTCH_W: 26,
+  NOTCH_H: 12,
+  RING: 44,
+  RING_BORDER: 4,
+  RING_DOT: 21,
+  RING_GAP: 4, // notch tip to ring
+  TITLE_FS: 22,
+  BODY_FS: 15,
+  STEP_FS: 13,
+  NUM_FS: 128,
+  CAP: 56, // how far the trail runs past the outer rings
+  DOT_R: 3.9,
+  DOT_GAP: 30,
+  CAP_R: 8.5,
+};
+
+RAIL.CARD_BOTTOM = RAIL.CARD_TOP + RAIL.CARD_H;
+RAIL.RING_TOP = RAIL.CARD_BOTTOM + RAIL.NOTCH_H + RAIL.RING_GAP;
+RAIL.TRAIL_Y = RAIL.RING_TOP + RAIL.RING / 2;
+RAIL.H = RAIL.RING_TOP + RAIL.RING + 8;
+
+const railWidth = (rows) => rows * RAIL.CARD_W + (rows - 1) * RAIL.COL_GAP;
+const colStart = (i) => i * (RAIL.CARD_W + RAIL.COL_GAP);
+const colCenter = (i) => colStart(i) + RAIL.CARD_W / 2;
+
+// Below this the rail's own body copy would drop under ~11.5px, which is the
+// point the stage is the better answer for the room available.
+const RAIL_MIN_SCALE = 0.76;
+
 // index.css ships `body[dir="rtl"] * { text-align: inherit }`, which outranks a
 // single Emotion class — so in Arabic every line here would silently take the
 // document's right alignment. The centred pill title and the mirrored row's
@@ -140,10 +208,6 @@ const Process = () => {
   const { surfaceRaised, brandPrimary, brandLogo, ink } = theme.custom.color;
 
   const { hostRef, width: hostWidth } = useHostWidth();
-  // Always the same stage, scaled to whatever room the container has —
-  // desktop and mobile/responsive alike, so the design never re-flows into a
-  // different layout, only shrinks.
-  const scale = hostWidth ? Math.min(1, hostWidth / STAGE.W) : 1;
 
   // Three-stop ramp between the two existing brand tokens, descending in
   // luminance the way the reference's does, so the steps read as one
@@ -170,6 +234,21 @@ const Process = () => {
   // fourth step extends the curve rather than leaving it ending in mid-air.
   const stageHeight = STAGE.PAD * 2 + STAGE.PILL_H + (processSteps.length - 1) * STAGE.PITCH;
   const trailPath = useMemo(() => buildTrail(processSteps.length), [processSteps.length]);
+
+  // Which of the two compositions the container has room for. The media query
+  // is only the guess that keeps the FIRST paint from picking the wrong one;
+  // the container's own width overrules it the moment it is measured, because
+  // a sidebar or a narrower page shell leaves less room than the viewport
+  // implies. Measured against the rail's minimum legible scale, not a
+  // breakpoint: the question is whether the rail fits, and that is a width in
+  // pixels, not a device class.
+  const railW = railWidth(processSteps.length);
+  const wideGuess = useMediaQuery(`(min-width:${Math.round(railW * RAIL_MIN_SCALE) + 160}px)`);
+  const isRail = hostWidth ? hostWidth >= railW * RAIL_MIN_SCALE : wideGuess;
+
+  const layoutW = isRail ? railW : STAGE.W;
+  const layoutH = isRail ? RAIL.H : stageHeight;
+  const scale = hostWidth ? Math.min(1, hostWidth / layoutW) : 1;
 
   const socialLinks = [
     { name: "face", url: "https://www.facebook.com/profile.php?id=100075968495897" },
@@ -199,6 +278,19 @@ const Process = () => {
     ...(pointsInlineEnd
       ? { borderInlineStart: `${w}px solid ${darken(color, 0.07)}` }
       : { borderInlineEnd: `${w}px solid ${darken(color, 0.07)}` }),
+  });
+
+  // The rail's notch points along the block axis instead — down, out of the
+  // card's bottom edge at the ring below it — so its transparent sides are the
+  // inline borders. It needs no mirroring: it points at a ring directly
+  // beneath it, and "down" is the same direction in both writing modes.
+  const notchDown = (color) => ({
+    position: "absolute",
+    width: 0,
+    height: 0,
+    borderInlineStart: `${RAIL.NOTCH_W / 2}px solid transparent`,
+    borderInlineEnd: `${RAIL.NOTCH_W / 2}px solid transparent`,
+    borderBlockStart: `${RAIL.NOTCH_H}px solid ${darken(color, 0.07)}`,
   });
 
   // The disc's shadow falls INWARD, onto the pill it overlaps, which is what
@@ -296,25 +388,39 @@ const Process = () => {
     return () => mm.revert();
   }, { scope: rootRef, dependencies: [] });
 
-  // Scaling changes how tall the section is, and ScrollTrigger caches that.
+  // Scaling — and swapping layouts outright — changes how tall the section is,
+  // and ScrollTrigger caches that.
   useEffect(() => {
     ScrollTrigger.refresh();
-  }, [scale]);
+  }, [scale, isRail]);
 
-  const renderStage = () => (
-    <Box sx={{ position: "relative", width: "100%", height: stageHeight * scale, overflow: "hidden", mt: 4.5 }}>
+  // Both compositions are fixed-pixel and centred, and both are fitted by
+  // scaling rather than re-flowing, so they share one host: it reserves the
+  // scaled height (the transform itself takes no space) and clips, which is
+  // what keeps an unmeasured first frame from widening the page.
+  const renderCanvas = (marginTop, children) => (
+    <Box sx={{ position: "relative", width: "100%", height: layoutH * scale, overflow: "hidden", mt: marginTop }}>
       <Box
         sx={{
           position: "absolute",
           top: 0,
           left: "50%",
-          width: STAGE.W,
-          height: stageHeight,
-          marginLeft: `${-STAGE.W / 2}px`,
+          width: layoutW,
+          height: layoutH,
+          marginLeft: `${-layoutW / 2}px`,
           transform: `scale(${scale})`,
           transformOrigin: "top center",
         }}
       >
+        {children}
+      </Box>
+    </Box>
+  );
+
+  const renderStage = () =>
+    renderCanvas(
+      4.5,
+      <>
         {/* Decorative: mirrored wholesale in RTL since it carries no text. */}
         <Box
           className="processTrail"
@@ -462,9 +568,180 @@ const Process = () => {
             </Box>
           );
         })}
-      </Box>
-    </Box>
-  );
+      </>
+    );
+
+  const renderRail = () =>
+    renderCanvas(
+      4,
+      <>
+        {/* One straight axis under the row, dotted and capped exactly like the
+            stage's curve. No RTL flip: a horizontal line through evenly spaced
+            rings is its own mirror image. */}
+        <Box
+          className="processTrail"
+          aria-hidden="true"
+          component="svg"
+          viewBox={`0 0 ${railW} ${RAIL.H}`}
+          width={railW}
+          height={RAIL.H}
+          sx={{ position: "absolute", insetInlineStart: 0, top: 0, pointerEvents: "none" }}
+        >
+          <path
+            d={`M ${colCenter(0) - RAIL.CAP} ${RAIL.TRAIL_Y} L ${colCenter(processSteps.length - 1) + RAIL.CAP} ${RAIL.TRAIL_Y}`}
+            fill="none"
+            stroke={alpha(ink, 0.34)}
+            strokeWidth={RAIL.DOT_R * 2}
+            strokeLinecap="round"
+            strokeDasharray={`0.1 ${RAIL.DOT_GAP}`}
+          />
+          <circle cx={colCenter(0) - RAIL.CAP} cy={RAIL.TRAIL_Y} r={RAIL.CAP_R} fill={alpha(ink, 0.42)} />
+          <circle
+            cx={colCenter(processSteps.length - 1) + RAIL.CAP}
+            cy={RAIL.TRAIL_Y}
+            r={RAIL.CAP_R}
+            fill={alpha(ink, 0.42)}
+          />
+        </Box>
+
+        {processSteps.map((step, i) => {
+          const StepIcon = STEP_ICONS[step.icon];
+          const marker = onPanel(step.color);
+          const pillText = theme.palette.getContrastText(step.color);
+          const num = String(i + 1).padStart(2, "0");
+
+          return (
+            <Box
+              key={step.icon}
+              className="processCard"
+              sx={{ position: "absolute", insetInlineStart: colStart(i), top: 0, width: RAIL.CARD_W, height: RAIL.H }}
+            >
+              <Box
+                sx={{
+                  ...pillFill(step.color),
+                  position: "absolute",
+                  top: RAIL.CARD_TOP,
+                  insetInlineStart: 0,
+                  width: RAIL.CARD_W,
+                  height: RAIL.CARD_H,
+                  borderRadius: `${RAIL.CARD_R}px`,
+                  overflow: "hidden",
+                }}
+              >
+                {/* The count, carried without spending a pixel of layout on
+                    it. Decorative here — the step's position in the row and
+                    its own STEP label already say which one it is. */}
+                <Typography
+                  aria-hidden="true"
+                  sx={{
+                    ...stepNumSx(alpha(pillText, 0.16)),
+                    position: "absolute",
+                    insetInlineEnd: -6,
+                    bottom: -36,
+                    fontSize: RAIL.NUM_FS,
+                    lineHeight: 1,
+                    pointerEvents: "none",
+                  }}
+                >
+                  {num}
+                </Typography>
+
+                {/* Centred in what the disc leaves, not top-aligned: the three
+                    cards are one height (they are a row), and the shortest
+                    copy would otherwise sit against the ceiling of a hollow
+                    card. */}
+                <Box
+                  sx={{
+                    position: "relative",
+                    height: "100%",
+                    boxSizing: "border-box",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    paddingInline: `${RAIL.TEXT_PAD_X}px`,
+                    paddingTop: `${RAIL.TEXT_TOP}px`,
+                    paddingBottom: `${RAIL.TEXT_PAD_BOTTOM}px`,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      ...stepWordSx,
+                      fontSize: RAIL.STEP_FS,
+                      letterSpacing: ".12em",
+                      color: alpha(pillText, 0.7),
+                      mb: 0.75,
+                      ...alignText("center"),
+                    }}
+                  >
+                    {`${t("step")} ${num}`}
+                  </Typography>
+                  <Typography
+                    variant="h6"
+                    fontWeight={700}
+                    sx={{
+                      fontFamily: theme.custom.font.display,
+                      fontSize: RAIL.TITLE_FS,
+                      lineHeight: 1.25,
+                      mb: 1,
+                      color: pillText,
+                      ...alignText("center"),
+                    }}
+                  >
+                    {step.text}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: theme.custom.font.body,
+                      fontSize: RAIL.BODY_FS,
+                      lineHeight: 1.5,
+                      color: alpha(pillText, 0.92),
+                      textWrap: "pretty",
+                      ...alignText("center"),
+                    }}
+                  >
+                    {step.description}
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* x: 0 on the lift, so the disc's shadow falls straight down
+                  onto the card it pierces — the one axis that means the same
+                  thing in both directions, and the reason this variant needs
+                  no hand-mirrored offset. */}
+              <Box
+                sx={{
+                  ...disc(step.color, RAIL.DISC, true, { x: 0, y: 10, blur: 22 }),
+                  insetInlineStart: (RAIL.CARD_W - RAIL.DISC) / 2,
+                  top: 0,
+                }}
+              >
+                <StepIcon sx={{ color: marker, fontSize: Math.round(RAIL.DISC * 0.34) }} />
+              </Box>
+
+              <Box
+                sx={{
+                  ...notchDown(step.color),
+                  insetInlineStart: (RAIL.CARD_W - RAIL.NOTCH_W) / 2,
+                  top: RAIL.CARD_BOTTOM,
+                }}
+              />
+
+              <Box
+                className="processNode"
+                sx={{
+                  ...ring(marker, RAIL.RING, RAIL.RING_BORDER, RAIL.RING_DOT),
+                  insetInlineStart: (RAIL.CARD_W - RAIL.RING) / 2,
+                  top: RAIL.RING_TOP,
+                }}
+              >
+                <Box />
+              </Box>
+            </Box>
+          );
+        })}
+      </>
+    );
 
   return (
     <Box
@@ -504,7 +781,10 @@ const Process = () => {
           </Typography>
         </Box>
 
-        <Box ref={hostRef} sx={{ width: "100%" }}>{renderStage()}</Box>
+        {/* The measuring host wraps BOTH layouts. Parked inside one of them it
+            would stop reporting the moment the other took over, and the
+            section could never switch back. */}
+        <Box ref={hostRef} sx={{ width: "100%" }}>{isRail ? renderRail() : renderStage()}</Box>
 
         <Box className="processSocial" sx={{ mt: { xs: 3.5, md: 3 } }}>
           <Typography
