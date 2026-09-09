@@ -955,11 +955,11 @@ const Post = ({ post, viewMode = "grid" }) => {
       </Box>
       </Box>
 
-      {/* Header: category, city headline, city (with a location icon) -
-          the exact-location text used to live in that third line and was
-          dropped in favor of just repeating the city, since the headline
-          above it already carries the free-text address's job. */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '0 6px', pt: { xs: 1.5, sm: 2 } }}>
+      {/* Header: category, city (with a location icon). The city used to
+          also render as a plain headline above this row with no icon,
+          duplicating the same text - removed, this icon'd line is the only
+          city mention on the card now. */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: { xs: '0 16px', sm: '0 20px' }, pt: { xs: 1.5, sm: 2 } }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
           {categories.map((cat, index) => {
             const catStyle = categoryStyles[index];
@@ -984,19 +984,6 @@ const Post = ({ post, viewMode = "grid" }) => {
           })}
         </Box>
 
-        <Typography
-          component="h3"
-          sx={{
-            fontSize: { xs: 18, sm: 22 },
-            fontWeight: 800,
-            lineHeight: 1.2,
-            color: theme.custom.color.ink,
-            overflowWrap: 'anywhere',
-          }}
-        >
-          {cityName}
-        </Typography>
-
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <LocationIcon sx={{ fontSize: 16, color: alpha(theme.custom.color.ink, 0.6) }} />
           <Typography sx={{ fontSize: 14, fontWeight: 600, color: alpha(theme.custom.color.ink, 0.6) }}>
@@ -1007,9 +994,10 @@ const Post = ({ post, viewMode = "grid" }) => {
 
       {/* Facts: the exact date (mainDate, or createdAt as a fallback so this
           slot never goes empty), and when the listing went up (relative).
-          View count isn't repeated here - it's already the first column of
-          the stats bar below. */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', padding: '0 6px', pt: { xs: 1, sm: 1.5 } }}>
+          Centered with a gap between them rather than pushed to opposite
+          edges. View count isn't repeated here - it's already the first
+          column of the stats bar below. */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 3, padding: { xs: '0 16px', sm: '0 20px' }, pt: { xs: 1, sm: 1.5 } }}>
         {exactDateLabel && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <CalendarIcon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
