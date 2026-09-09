@@ -200,10 +200,27 @@ Reuse these, don't invent new card/panel treatment — now house style:
   - **The panel lost its border and its brand wash.** Borderless is Phase 8; the wash went
     because the reference stands its composition on a clean ground, and a brand tint behind
     pills that are themselves the brand ramp only muddies them.
-  - **Sub-lg is untouched** — the stacked pill rail from the previous pass still serves
-    everything narrower, since the trail's alignment only holds at 1:1 scale. It picks up the
-    new ramp and `onPanel()` because those are shared, and its two remaining hardcoded
-    shadow/scrim colors were moved onto tokens on the way past.
+  - **The narrow layout carries the same vocabulary, re-proportioned.** Below the width the
+    stage can be scaled into, the section stacks: the dotted trail runs straight down the
+    inline-start edge with a cap dot at each end, every pill sits on the same side of it with
+    its notch pointing back at its ring, and the disc still overlaps the pill's inline-start
+    end. Two things change, and both are forced. The `STEP` label and numeral move *inside*
+    the pill (a 104px numeral has nowhere to stand beside a 250px pill), and the corner radius
+    is **capped** rather than left at half the height — the pill grows with its copy here, and
+    a true stadium on a 250x300 box is an ellipse whose caps eat the text column from both
+    ends. The trail is a repeating background rather than a path through the rings, because
+    row heights depend on how the copy wraps and a path would have to be measured for nothing
+    a straight line does not already say.
+  - **In between, the stage is scaled, not re-flowed.** It is one fixed composition whose
+    parts have to stay in register, so `useHostWidth` measures the container and the whole
+    820px stage takes a `transform: scale()`, down to `STAGE_MIN_SCALE` (0.76, where body copy
+    would drop under ~11.5px). The measuring host wraps *both* layouts — parked inside the
+    stage only, it would stop reporting the moment a narrow container sent the section to the
+    stacked layout, and the stage could never come back. A media query is the pre-measurement
+    guess so the first paint does not pick the wrong layout, and the container's own width
+    overrules it once measured: a sidebar or a narrower page shell leaves less room than the
+    viewport implies. This also fixes what shipped first — the stage was gated at `lg`
+    (1200px), so a phone in desktop-site mode (~980px) never saw it.
 
 ## Motion (GSAP)
 
