@@ -900,7 +900,10 @@ const Post = ({ post, viewMode = "grid" }) => {
 
         {/* City: same white-pill treatment as the status badge above, on the
             opposite end of the same top row (insetInlineEnd), so the pair
-            reads as one inline header - top-end in LTR, top-start in RTL. */}
+            reads as one inline header - top-end in LTR, top-start in RTL.
+            Same size/radius as the status badge (radius.sm, not a full
+            pill) so the two match exactly - only the fill (white here vs.
+            tone.main there) tells them apart. */}
         <Box
           sx={{
             position: 'absolute',
@@ -909,19 +912,20 @@ const Post = ({ post, viewMode = "grid" }) => {
             zIndex: 2,
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 0.5,
+            gap: { xs: 0.5, sm: 0.75 },
+            px: { xs: 1.25, sm: 1.5 },
+            py: { xs: 0.5, sm: 0.625 },
             backgroundColor: theme.custom.color.surfaceRaised,
-            borderRadius: '999px',
-            padding: '8px 12px',
+            borderRadius: `${theme.custom.radius.sm}px`,
             boxShadow: theme.custom.elevation.e2,
             maxWidth: '55%',
           }}
         >
-          <LocationIcon sx={{ fontSize: 16, color: theme.custom.color.ink, flexShrink: 0 }} />
+          <LocationIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: theme.custom.color.ink, flexShrink: 0 }} />
           <Typography
             sx={{
               fontWeight: 700,
-              fontSize: 13,
+              fontSize: { xs: '12px', sm: '13px' },
               color: theme.custom.color.ink,
               lineHeight: 1,
               overflow: 'hidden',
@@ -989,8 +993,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                   backgroundColor: alpha(catStyle.main, 0.1),
                   border: `1px solid ${alpha(catStyle.main, 0.35)}`,
                   color: catStyle.main,
-                  fontWeight: 700,
-                  fontSize: 12,
+                  fontWeight: 800,
+                  fontSize: 13,
                   borderRadius: '999px',
                   padding: '5px 12px',
                 }}
@@ -1003,12 +1007,14 @@ const Post = ({ post, viewMode = "grid" }) => {
       </Box>
 
       {/* Facts: the exact date (mainDate, or createdAt as a fallback so this
-          slot never goes empty). When the listing went up (relative) moved
-          onto the photo as its own badge (see above) - not repeated here.
-          View count isn't repeated here either - it's already the first
-          column of the stats bar below. */}
+          slot never goes empty). Start-aligned (start in LTR, end in RTL,
+          via flex-start on a direction-aware row) rather than centered.
+          When the listing went up (relative) moved onto the photo as its
+          own badge (see above) - not repeated here. View count isn't
+          repeated here either - it's already the first column of the
+          stats bar below. */}
       {exactDateLabel && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: { xs: '0 16px', sm: '0 20px' }, pt: { xs: 1, sm: 1.5 } }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: { xs: '0 16px', sm: '0 20px' }, pt: { xs: 1, sm: 1.5 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <CalendarIcon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
             <Typography sx={{ fontSize: 13, fontWeight: 700, color: theme.custom.color.ink }}>
@@ -1048,7 +1054,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             <Typography variant="caption" sx={{ color: alpha(theme.custom.color.ink, 0.6), fontWeight: 600 }}>
               {item.label}
             </Typography>
-            <Typography sx={{ color: theme.custom.color.brandPrimary, fontWeight: 800, fontSize: 16 }}>
+            <Typography sx={{ color: theme.custom.color.brandLogo, fontWeight: 800, fontSize: 16 }}>
               {item.value !== null ? item.value : '—'}
             </Typography>
           </Box>
