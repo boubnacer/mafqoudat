@@ -233,6 +233,50 @@ Reuse these, don't invent new card/panel treatment — now house style:
   holds and the composition is identical, just smaller. `xs`/`sm` are already narrower than
   640 in practice, so mobile is unaffected.
 
+- Phase 22 — [Process.jsx](client/src/components/dashboard/Process.jsx) **desktop only**:
+  the wide view is a second composition, reproducing a supplied horizontal reference,
+  while the narrow view stays Phase 20/21's zig-zag stage exactly as it was. Three pills
+  side by side on one horizontal wave: steps 1 and 3 hang above the trail with their notch
+  pointing down at a ring below them, step 2 sits below it with its notch pointing up, and
+  each `STEP` / numeral block is centred on the far side of its own ring. Every pill keeps
+  its disc at the inline-end, so the three read as one repeated shape rather than mirrored
+  pairs. Decisions worth keeping:
+  - **`HSTAGE` is the same kind of measured set as `STAGE`**, taken off the new reference
+    (pills 530x185, disc 162, gap 80 in its own pixels) and carried across as ratios: pill
+    2.85:1, disc 0.875 x pill height at 0.818 x pill width, text column half the pill,
+    gap 0.151 x pill width, ring lines 1.54 x pill height apart. **The two ring gaps are
+    deliberately not equal** — 0.514 x pill height below a pill, 0.378 above — which is what
+    staggers the middle pill only a third of a pill height below its neighbours; averaging
+    them into one number reads as a half-height step and stops matching the reference.
+  - **The trail is the vertical stage's curve transposed**, same `S_EASE`/`CAP_EASE`, with
+    one deliberate exception: the two end tails (`CAP_DX`/`CAP_DY`) leave their ring
+    horizontally and rise only slightly, instead of climbing to the mid-line between the ring
+    lines the way a straight transpose would. A tail that climbs ends up *behind* an outer
+    pill, so the wave appears to stop at the ring; the reference's tails terminate in the
+    open below the outer pills, and so do these.
+  - **The body type is the one departure from the reference**, exactly as in Phase 20 and
+    for the same reason: proportionally it would be 11px, and the longest French description
+    would then spill out of a fixed-height pill. Held at 13 (title keeps its ratio at 17),
+    which fits en/fr/ar in all three pills.
+  - **Which composition renders is a measured decision, not a breakpoint.** The host `Box`
+    wraps *both* and measures the container; the wide stage is used whenever it can be scaled
+    at `HSTAGE_MIN_SCALE` (0.84) or better, and below that the section falls back to the
+    zig-zag stage — with the `maxWidth: 640` md+ cap Phase 21 gave it, so the narrow and
+    mobile views are unchanged down to the pixel. `WIDE_VIEWPORT_GUESS` is only the
+    pre-measurement guess for the first paint and the prerendered shell.
+  - **Both stages are step-count driven.** `hStageWidth(rows)` and `buildTrailWide(rows)`
+    take the count the way `stageHeight`/`buildTrail` already did, so a fourth step lengthens
+    the wave rather than running off the end of it.
+  - **The notch grows out of the gradient stop it touches.** `notchBlock` points along the
+    block axis (so it needs no mirroring, unlike the zig-zag's `notch`) and takes the pill's
+    darkened bottom going down, its lightened top going up.
+  - **Two header changes came with it.** The heading gets a wider `maxWidth` under the wide
+    stage (the reference sets it on one line, which 560 cannot hold), and the `whatWeDo`
+    overline is now `display: block` like the `followUs` one beside it — it only *looked*
+    like its own line in en/fr, where the heading under it wraps; in Arabic, where the
+    heading is short, the two shared a line. That is the one narrow-view pixel that moved:
+    LTR is byte-identical to Phase 21 at every width below the wide stage's floor.
+
 ## Motion (GSAP)
 
 Web animation is GSAP (`gsap` + `@gsap/react`). Plugins are registered once in
