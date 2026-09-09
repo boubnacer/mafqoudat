@@ -78,6 +78,10 @@ const PostsList = () => {
 
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:768px)");
+  // Desktop (md+) renders the filter panel as a sticky sidebar instead of
+  // the collapsible dropdown fixed under the navbar - see the isSuccess
+  // branch below.
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
   const user = useAuth();
   const countryId = useSelector(selectCurrentCountry);
@@ -913,6 +917,603 @@ const PostsList = () => {
     // before the navbar's real height has been measured.
     const navbarClearance = navbarHeight || (isMobile ? 96 : 112);
 
+    // ---- Filter field nodes - shared between the desktop sidebar and the
+    // mobile/tablet dropdown below. Only one of the two layouts is ever
+    // returned per render (isDesktop picks the branch), so reusing the same
+    // elements in either tree is safe. ----
+    const categoryFilterNode = (
+      <Autocomplete
+        multiple
+        fullWidth
+        options={categoryOptions || []}
+        getOptionLabel={(option) => {
+          if (typeof option === 'string') {
+            const cat = categoryOptions.find(c => c.id === option || c.value === option);
+            return cat?.label || option;
+          }
+          return option.label || option.id || '';
+        }}
+        value={selectedCategories.length > 0
+          ? categoryOptions.filter(cat => selectedCategories.includes(cat.id || cat.value))
+          : (localCategoryFilter !== "all"
+              ? categoryOptions.filter(cat => (cat.id || cat.value) === localCategoryFilter)
+              : [])
+        }
+        onChange={handleCategoriesFilter}
+        isOptionEqualToValue={(option, value) => {
+          const optionId = option.id || option.value;
+          const valueId = value.id || value.value;
+          return optionId === valueId;
+        }}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={t('category')}
+            placeholder={selectedCategories.length === 0
+              ? (currentLanguage === 'ar' ? 'اختر الفئات...' : currentLanguage === 'fr' ? 'Sélectionner les catégories...' : 'Select categories...')
+              : ''
+            }
+            InputProps={{
+              ...params.InputProps,
+              startAdornment: (
+                <>
+                  <Box sx={filterFieldIconBadgeSx}>
+                    <CategoryIcon sx={{ fontSize: 15, color: brand }} />
+                  </Box>
+                  {params.InputProps.startAdornment}
+                </>
+              ),
+            }}
+          />
+        )}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) => {
+            const { key, ...tagProps } = getTagProps({ index });
+            return (
+              <Chip
+                key={key}
+                label={option.label || option.id}
+                {...tagProps}
+                size="small"
+                sx={{
+                  borderRadius: '999px',
+                  backgroundColor: alpha(brand, isDark ? 0.18 : 0.1),
+                  color: brand,
+                  fontWeight: 600,
+                  '& .MuiChip-deleteIcon': {
+                    color: alpha(brand, 0.7),
+                    '&:hover': { color: brand },
+                  },
+                }}
+              />
+            );
+          })
+        }
+        sx={filterFieldSx}
+      />
+    );
+
+    const cityFilterNode = (
+      <Autocomplete
+        fullWidth
+        options={allCitiesData || []}
+        value={selectedCity}
+        autoHighlight={false}
+        autoSelect={false}
+        onChange={handleCityChange}
+        onInputChange={handleCityInputChange}
+        inputValue={citySearchTerm}
+        open={
+          !selectedCity &&
+          // Only open if there are cities to show
+          allCitiesData.length > 0 &&
+          !citiesLoading && (
+            // Open when focused and there are cached cities OR user is typing
+            (cityInputFocused && (allCachedCitiesForCountry.length > 0 || citySearchTerm.length >= 1)) ||
+            // Or when user is typing (even if not focused) AND there are results
+            (citySearchTerm.length >= 1)
+          )
+        }
+        onOpen={() => {
+          setCityInputFocused(true);
+        }}
+        onClose={() => {
+          setCityInputFocused(false);
+          // When dropdown closes, if a city is selected, keep the city name
+          if (selectedCity) {
+            const cityName = getCityDisplayName(selectedCity);
+            setCitySearchTerm(cityName);
+          }
+        }}
+        openOnFocus={false}
+        getOptionLabel={(option) => {
+          if (typeof option === 'string') return option;
+          return getCityDisplayName(option);
+        }}
+        isOptionEqualToValue={(option, value) => {
+          if (!option || !value) return false;
+          const optionId = option._id || option.id;
+          const valueId = value._id || value.id;
+          return optionId && valueId && optionId.toString() === valueId.toString();
+        }}
+        loading={citiesLoading}
+        filterOptions={(options, state) => {
+          // Completely disable client-side filtering - return all options from server
+          // Server already filtered the results, so show all returned options
+          // IMPORTANT: Return all options without any filtering
+          return options || [];
+        }}
+        disableListWrap
+        freeSolo={false}
+        selectOnFocus
+        clearOnBlur
+        handleHomeEndKeys
+        noOptionsText={
+          citiesLoading
+            ? (t('loading') || 'Loading...')
+            : citySearchTerm.length >= 1
+              ? '' // Empty string to hide dropdown and show feedback message below
+              : allCachedCitiesForCountry.length === 0
+                ? t('searchCityPlaceholder')
+                : t('noSearchResults')
+        }
+        ListboxProps={{
+          style: { maxHeight: '300px' }
+        }}
+        renderOption={(props, option) => {
+          // Show city name in all languages for better search experience
+          const cityNames = [];
+          if (option.labels?.en) cityNames.push(option.labels.en);
+          if (option.labels?.fr) cityNames.push(option.labels.fr);
+          if (option.labels?.ar) cityNames.push(option.labels.ar);
+          const displayText = cityNames.length > 0 ? cityNames.join(' • ') : getCityDisplayName(option);
+
+          return (
+            <li {...props} key={option._id || option.id}>
+              <Box>
+                <Typography variant="body1" fontWeight={500}>
+                  {displayText}
+                </Typography>
+              </Box>
+            </li>
+          );
+        }}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={t('city')}
+            placeholder={t('searchCityPlaceholder')}
+            onFocus={(e) => {
+              setCityInputFocused(true);
+              params.inputProps.onFocus?.(e);
+            }}
+            onBlur={(e) => {
+              // Delay to allow option selection
+              setTimeout(() => {
+                setCityInputFocused(false);
+              }, 200);
+              params.inputProps.onBlur?.(e);
+            }}
+            InputProps={{
+              ...params.InputProps,
+              startAdornment: (
+                <>
+                  <Box sx={filterFieldIconBadgeSx}>
+                    <LocationOn sx={{ fontSize: 15, color: brand }} />
+                  </Box>
+                  {params.InputProps.startAdornment}
+                </>
+              ),
+              endAdornment: (
+                <>
+                  {citiesLoading ? <CircularProgress color="inherit" size={20} sx={{ color: brand }} /> : null}
+                  {params.InputProps.endAdornment}
+                </>
+              ),
+            }}
+          />
+        )}
+        sx={filterFieldSx}
+      />
+    );
+
+    // Row layout only ever kicked in at the "md" breakpoint or above, which
+    // is now exactly the desktop sidebar's territory - always stacking the
+    // message and button reads better in a ~300px sidebar than the old
+    // viewport-driven row split did.
+    const cityNotFoundNode = (
+      citySearchTerm.length >= 1 &&
+      !citiesLoading &&
+      allCitiesData.length === 0 &&
+      !selectedCity
+    ) ? (
+      <Alert
+        severity="info"
+        icon={false}
+        sx={{
+          borderRadius: `${theme.custom.radius.md}px`,
+          alignItems: 'center',
+          backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
+          color: theme.custom.color.ink,
+          '& .MuiAlert-message': {
+            width: '100%',
+            padding: 0,
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
+          <Typography variant="body2">
+            {t('noCityFoundMessage', { cityName: citySearchTerm })}
+          </Typography>
+          <Button
+            variant="contained"
+            size="medium"
+            startIcon={<AddIcon />}
+            onClick={handleAddNewPost}
+            sx={{
+              borderRadius: `${theme.custom.radius.md}px`,
+              textTransform: 'none',
+              fontWeight: 600,
+              backgroundColor: theme.custom.color.brandPrimary,
+              '&:hover': {
+                backgroundColor: theme.custom.color.brandPrimary,
+                opacity: 0.9,
+              },
+              width: '100%',
+            }}
+          >
+            {t('createPostForCity', { cityName: citySearchTerm })}
+          </Button>
+        </Box>
+      </Alert>
+    ) : null;
+
+    const activeChipsNode = activeFilterChips.length > 0 ? (
+      <Box display="flex" gap={1} flexWrap="wrap">
+        {activeFilterChips.map((chip, index) => (
+          <Chip
+            key={index}
+            label={chip.label}
+            onDelete={chip.onDelete}
+            size="small"
+            sx={{
+              borderRadius: '999px',
+              height: 30,
+              fontWeight: 600,
+              backgroundColor: alpha(brand, isDark ? 0.16 : 0.08),
+              border: `1px solid ${alpha(brand, isDark ? 0.35 : 0.22)}`,
+              color: brand,
+              '& .MuiChip-deleteIcon': {
+                color: alpha(brand, 0.7),
+                '&:hover': { color: brand },
+              },
+            }}
+          />
+        ))}
+      </Box>
+    ) : null;
+
+    // ---- Posts grid / pagination / empty state - also shared between
+    // layouts. Column count narrows on desktop to leave room for the
+    // sidebar (the grid's breakpoints are viewport-width based, not
+    // container-based, so the column count has to account for the ~300px
+    // the sidebar takes out of the available width by itself). ----
+    const gridColumns = viewMode === "grid"
+      ? (isDesktop
+          ? { md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)", xl: "repeat(3, 1fr)" }
+          : { xs: "repeat(1, 1fr)", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)", lg: "repeat(4, 1fr)", xl: "repeat(4, 1fr)" })
+      : "repeat(1, 1fr)";
+
+    const mainArea = filteredPosts?.length ? (
+      <>
+        {/* Posts Grid/List */}
+        <Box sx={{ mb: 4 }}>
+          <Box
+            display="grid"
+            gap={3}
+            sx={{
+              gridTemplateColumns: gridColumns,
+              // Remove conflicting width constraints and let grid handle sizing
+              '& > *': {
+                width: '100%',
+                minHeight: 'fit-content',
+              },
+              // Ensure the grid container doesn't overflow
+              maxWidth: '100%',
+              overflow: 'hidden'
+            }}
+          >
+            {filteredPosts.map((post) => (
+              <Post
+                key={post._id}
+                post={post}
+                viewMode={viewMode}
+              />
+            ))}
+          </Box>
+        </Box>
+
+        {/* Add New Post Button - only shown once the user has paged to
+            the last page (no more "next" page to reach) */}
+        {page >= totalPages && (
+          <Box
+            sx={{
+              mb: 4,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleAddNewPost}
+              sx={{
+                borderRadius: `${theme.custom.radius.md}px`,
+                px: 4,
+                py: 1.5,
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '1rem',
+                backgroundColor: theme.custom.color.brandPrimary,
+                '&:hover': {
+                  backgroundColor: theme.custom.color.brandPrimary,
+                  opacity: 0.9,
+                },
+                '& .MuiButton-startIcon': {
+                  marginInlineEnd: '8px',
+                  marginInlineStart: 0,
+                }
+              }}
+            >
+              {t('addNewPost')}
+            </Button>
+          </Box>
+        )}
+
+        {/* Enhanced Pagination */}
+        {totalPages > 1 && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: `${theme.custom.radius.lg}px`,
+              backgroundColor: theme.custom.color.surfaceRaised,
+              border: `1px solid ${theme.palette.divider}`,
+              boxShadow: theme.custom.elevation.e1,
+            }}
+          >
+            <Box
+              display="flex"
+              flexDirection={{ xs: "column", sm: "row" }}
+              justifyContent="space-between"
+              alignItems="center"
+              gap={2}
+            >
+              <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65) }}>
+                {t('page')} {page} {t('of')} {totalPages} • {filteredPosts.length} {t('posts')}
+              </Typography>
+
+              <Pagination
+                page={page}
+                count={totalPages}
+                onChange={handlePaginate}
+                size={isMobile ? "small" : "medium"}
+                showFirstButton
+                showLastButton
+                sx={{
+                  '& .MuiPaginationItem-root': {
+                    borderRadius: `${theme.custom.radius.sm}px`,
+                    fontWeight: 600,
+                  },
+                  '& .MuiPaginationItem-root.Mui-selected': {
+                    backgroundColor: theme.custom.color.brandPrimary,
+                    color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+                    '&:hover': {
+                      backgroundColor: theme.custom.color.brandPrimary,
+                      opacity: 0.9,
+                    },
+                  },
+                }}
+              />
+
+              <Box display="flex" gap={1} alignItems="center">
+                <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65) }}>
+                  {t('postsPerPage')}:
+                </Typography>
+                <Select
+                  value={pageSize}
+                  onChange={handlePageSizeChange}
+                  size="small"
+                  sx={{ minWidth: 80, borderRadius: `${theme.custom.radius.md}px` }}
+                >
+                  <MenuItem value={4}>4</MenuItem>
+                  <MenuItem value={8}>8</MenuItem>
+                  <MenuItem value={12}>12</MenuItem>
+                  <MenuItem value={16}>16</MenuItem>
+                </Select>
+              </Box>
+            </Box>
+          </Paper>
+        )}
+      </>
+    ) : (
+      // Locally tokenized rather than the shared (untokenized) EmptyState —
+      // mirrors the DashboardEmptyStates.NoRecentFounds/NoRecentLosts
+      // precedent in LoadingStates.jsx without touching that shared file.
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          py: 8,
+          px: 2,
+          textAlign: 'center',
+          backgroundColor: theme.custom.color.surfaceRaised,
+          borderRadius: `${theme.custom.radius.lg}px`,
+          border: `1px dashed ${alpha(theme.custom.color.ink, 0.15)}`,
+        }}
+      >
+        <Search sx={{ fontSize: 56, color: theme.custom.color.brandPrimary, mb: 2, opacity: 0.6 }} />
+        <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, mb: 1 }}>
+          {selectedCity && localCategoryFilter !== "all"
+            ? t('noPostsInCityWithCategory', { cityName: getCityDisplayName(selectedCity) })
+            : selectedCity
+              ? t('noPostsInCity', { cityName: getCityDisplayName(selectedCity) })
+              : hasActiveFilters
+                ? t('noPostsMatchFilters')
+                : t('noPostsFound')}
+        </Typography>
+        <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65), mb: 3, maxWidth: 420 }}>
+          {selectedCity && localCategoryFilter !== "all"
+            ? t('noPostsInCityWithCategoryDescription', { cityName: getCityDisplayName(selectedCity) })
+            : selectedCity
+              ? t('noPostsInCityDescription', { cityName: getCityDisplayName(selectedCity) })
+              : hasActiveFilters
+                ? t('adjustFilters')
+                : t('noPostsInArea')}
+        </Typography>
+        <Box display="flex" gap={2} flexWrap="wrap" justifyContent="center">
+          <Link to="/dash/posts/new">
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{
+                borderRadius: `${theme.custom.radius.md}px`,
+                px: 3,
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 600,
+                backgroundColor: theme.custom.color.brandPrimary,
+                '&:hover': {
+                  backgroundColor: theme.custom.color.brandPrimary,
+                  opacity: 0.9,
+                },
+              }}
+            >
+              {selectedCity
+                ? t('createPostInCity', { cityName: getCityDisplayName(selectedCity) })
+                : t('addNewPost')}
+            </Button>
+          </Link>
+          {!selectedCity && (
+            <Button
+              variant="outlined"
+              startIcon={<Language />}
+              onClick={handleSelectCountry}
+              sx={{
+                borderRadius: `${theme.custom.radius.md}px`,
+                px: 3,
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 600,
+                borderColor: theme.custom.color.brandPrimary,
+                color: theme.custom.color.brandPrimary,
+                '&:hover': {
+                  borderColor: theme.custom.color.brandPrimary,
+                  backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
+                },
+              }}
+            >
+              {t('changeCountry')}
+            </Button>
+          )}
+        </Box>
+      </Box>
+    );
+
+    // ---- Desktop (md+): sticky sidebar filter panel beside the grid,
+    // always expanded (no collapse toggle - there's no fixed bar competing
+    // for scroll space to justify collapsing it). ----
+    if (isDesktop) {
+      return (
+        <>
+          <SeoMeta pageKey="dashPosts" />
+          <Box sx={{
+            p: 4,
+            pt: `${navbarClearance + 32}px`,
+            minHeight: "100vh",
+            backgroundColor: theme.custom.color.postsListBackdrop,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 3,
+          }}>
+            <Box
+              component="aside"
+              sx={{
+                width: 300,
+                flexShrink: 0,
+                position: 'sticky',
+                top: `${navbarClearance + 16}px`,
+                zIndex: (t) => t.zIndex.appBar - 1,
+                maxHeight: `calc(100vh - ${navbarClearance + 32}px)`,
+                overflowY: 'auto',
+                p: 3,
+                borderRadius: `${theme.custom.radius.lg}px`,
+                border: `1px solid ${alpha(brand, isDark ? 0.35 : 0.18)}`,
+                backgroundColor: theme.custom.color.surfaceRaised,
+                backgroundImage: `radial-gradient(120% 100% at ${glowOrigin}, ${alpha(brand, isDark ? 0.16 : 0.07)} 0%, transparent 55%)`,
+                boxShadow: `${theme.custom.elevation.e2}, 0 0 32px ${alpha(brand, isDark ? 0.16 : 0.08)}`,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 2.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                  <Box
+                    sx={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: `${theme.custom.radius.sm}px`,
+                      backgroundImage: `linear-gradient(135deg, ${brand} 0%, ${lighten(brand, 0.45)} 100%)`,
+                      boxShadow: `0 0 16px ${alpha(brand, 0.4)}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <FilterIcon sx={{ fontSize: 18, color: theme.palette.getContrastText(brand) }} />
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: '1.1rem' }}>
+                    {t('filters')}
+                  </Typography>
+                </Box>
+                {hasActiveFilters && (
+                  <Button
+                    size="small"
+                    onClick={handleClearAllFilters}
+                    sx={{
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      borderRadius: `${theme.custom.radius.sm}px`,
+                      color: brand,
+                      minWidth: 0,
+                      px: 1,
+                      '&:hover': { backgroundColor: alpha(brand, 0.08) },
+                    }}
+                  >
+                    {t('clearFilters')}
+                  </Button>
+                )}
+              </Box>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                {categoryFilterNode}
+                {cityFilterNode}
+                {cityNotFoundNode}
+                {activeChipsNode}
+              </Box>
+            </Box>
+
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              {mainArea}
+            </Box>
+          </Box>
+        </>
+      );
+    }
+
+    // ---- Mobile/tablet (below md): collapsible dropdown fixed under the navbar ----
     return (
       <>
         <SeoMeta pageKey="dashPosts" />
@@ -1098,262 +1699,18 @@ const PostsList = () => {
 
               {/* Category Filter - Multiple categories support */}
               <Grid item xs={12} sm={6}>
-                <Autocomplete
-                  multiple
-                  options={categoryOptions || []}
-                  getOptionLabel={(option) => {
-                    if (typeof option === 'string') {
-                      const cat = categoryOptions.find(c => c.id === option || c.value === option);
-                      return cat?.label || option;
-                    }
-                    return option.label || option.id || '';
-                  }}
-                  value={selectedCategories.length > 0
-                    ? categoryOptions.filter(cat => selectedCategories.includes(cat.id || cat.value))
-                    : (localCategoryFilter !== "all"
-                        ? categoryOptions.filter(cat => (cat.id || cat.value) === localCategoryFilter)
-                        : [])
-                  }
-                  onChange={handleCategoriesFilter}
-                  isOptionEqualToValue={(option, value) => {
-                    const optionId = option.id || option.value;
-                    const valueId = value.id || value.value;
-                    return optionId === valueId;
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label={t('category')}
-                      placeholder={selectedCategories.length === 0
-                        ? (currentLanguage === 'ar' ? 'اختر الفئات...' : currentLanguage === 'fr' ? 'Sélectionner les catégories...' : 'Select categories...')
-                        : ''
-                      }
-                      InputProps={{
-                        ...params.InputProps,
-                        startAdornment: (
-                          <>
-                            <Box sx={filterFieldIconBadgeSx}>
-                              <CategoryIcon sx={{ fontSize: 15, color: brand }} />
-                            </Box>
-                            {params.InputProps.startAdornment}
-                          </>
-                        ),
-                      }}
-                    />
-                  )}
-                  renderTags={(value, getTagProps) =>
-                    value.map((option, index) => {
-                      const { key, ...tagProps } = getTagProps({ index });
-                      return (
-                        <Chip
-                          key={key}
-                          label={option.label || option.id}
-                          {...tagProps}
-                          size="small"
-                          sx={{
-                            borderRadius: '999px',
-                            backgroundColor: alpha(brand, isDark ? 0.18 : 0.1),
-                            color: brand,
-                            fontWeight: 600,
-                            '& .MuiChip-deleteIcon': {
-                              color: alpha(brand, 0.7),
-                              '&:hover': { color: brand },
-                            },
-                          }}
-                        />
-                      );
-                    })
-                  }
-                  sx={filterFieldSx}
-                />
+                {categoryFilterNode}
               </Grid>
 
               {/* City Filter */}
               <Grid item xs={12} sm={6}>
-                <Autocomplete
-                  fullWidth
-                  options={allCitiesData || []}
-                  value={selectedCity}
-                  autoHighlight={false}
-                  autoSelect={false}
-                  onChange={handleCityChange}
-                  onInputChange={handleCityInputChange}
-                  inputValue={citySearchTerm}
-                  open={
-                    !selectedCity && 
-                    // Only open if there are cities to show
-                    allCitiesData.length > 0 && 
-                    !citiesLoading && (
-                      // Open when focused and there are cached cities OR user is typing
-                      (cityInputFocused && (allCachedCitiesForCountry.length > 0 || citySearchTerm.length >= 1)) ||
-                      // Or when user is typing (even if not focused) AND there are results
-                      (citySearchTerm.length >= 1)
-                    )
-                  }
-                  onOpen={() => {
-                    setCityInputFocused(true);
-                  }}
-                  onClose={() => {
-                    setCityInputFocused(false);
-                    // When dropdown closes, if a city is selected, keep the city name
-                    if (selectedCity) {
-                      const cityName = getCityDisplayName(selectedCity);
-                      setCitySearchTerm(cityName);
-                    }
-                  }}
-                  openOnFocus={false}
-                  getOptionLabel={(option) => {
-                    if (typeof option === 'string') return option;
-                    return getCityDisplayName(option);
-                  }}
-                  isOptionEqualToValue={(option, value) => {
-                    if (!option || !value) return false;
-                    const optionId = option._id || option.id;
-                    const valueId = value._id || value.id;
-                    return optionId && valueId && optionId.toString() === valueId.toString();
-                  }}
-                  loading={citiesLoading}
-                  filterOptions={(options, state) => {
-                    // Completely disable client-side filtering - return all options from server
-                    // Server already filtered the results, so show all returned options
-                    // IMPORTANT: Return all options without any filtering
-                    return options || [];
-                  }}
-                  disableListWrap
-                  freeSolo={false}
-                  selectOnFocus
-                  clearOnBlur
-                  handleHomeEndKeys
-                  noOptionsText={
-                    citiesLoading 
-                      ? (t('loading') || 'Loading...')
-                      : citySearchTerm.length >= 1 
-                        ? '' // Empty string to hide dropdown and show feedback message below
-                        : allCachedCitiesForCountry.length === 0
-                          ? t('searchCityPlaceholder')
-                          : t('noSearchResults')
-                  }
-                  ListboxProps={{
-                    style: { maxHeight: '300px' }
-                  }}
-                  renderOption={(props, option) => {
-                    // Show city name in all languages for better search experience
-                    const cityNames = [];
-                    if (option.labels?.en) cityNames.push(option.labels.en);
-                    if (option.labels?.fr) cityNames.push(option.labels.fr);
-                    if (option.labels?.ar) cityNames.push(option.labels.ar);
-                    const displayText = cityNames.length > 0 ? cityNames.join(' • ') : getCityDisplayName(option);
-                    
-                    return (
-                      <li {...props} key={option._id || option.id}>
-                        <Box>
-                          <Typography variant="body1" fontWeight={500}>
-                            {displayText}
-                          </Typography>
-                        </Box>
-                      </li>
-                    );
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label={t('city')}
-                      placeholder={t('searchCityPlaceholder')}
-                      onFocus={(e) => {
-                        setCityInputFocused(true);
-                        params.inputProps.onFocus?.(e);
-                      }}
-                      onBlur={(e) => {
-                        // Delay to allow option selection
-                        setTimeout(() => {
-                          setCityInputFocused(false);
-                        }, 200);
-                        params.inputProps.onBlur?.(e);
-                      }}
-                      InputProps={{
-                        ...params.InputProps,
-                        startAdornment: (
-                          <>
-                            <Box sx={filterFieldIconBadgeSx}>
-                              <LocationOn sx={{ fontSize: 15, color: brand }} />
-                            </Box>
-                            {params.InputProps.startAdornment}
-                          </>
-                        ),
-                        endAdornment: (
-                          <>
-                            {citiesLoading ? <CircularProgress color="inherit" size={20} sx={{ color: brand }} /> : null}
-                            {params.InputProps.endAdornment}
-                          </>
-                        ),
-                      }}
-                    />
-                  )}
-                  sx={filterFieldSx}
-                />
+                {cityFilterNode}
               </Grid>
 
               {/* City Not Found Message */}
-              {citySearchTerm.length >= 1 && 
-               !citiesLoading && 
-               allCitiesData.length === 0 && 
-               !selectedCity && (
+              {cityNotFoundNode && (
                 <Grid item xs={12}>
-                  <Alert
-                    severity="info"
-                    icon={false}
-                    sx={{
-                      borderRadius: `${theme.custom.radius.md}px`,
-                      alignItems: 'center',
-                      backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
-                      color: theme.custom.color.ink,
-                      '& .MuiAlert-message': {
-                        width: '100%',
-                        padding: 0,
-                      }
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: { xs: 'column', md: 'row' },
-                        gap: { xs: 2, md: 3 },
-                        alignItems: { xs: 'stretch', md: 'center' },
-                        width: '100%',
-                      }}
-                    >
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          flex: { xs: 'none', md: 1 },
-                          width: { xs: '100%', md: 'auto' },
-                        }}
-                      >
-                        {t('noCityFoundMessage', { cityName: citySearchTerm })}
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        size="medium"
-                        startIcon={<AddIcon />}
-                        onClick={handleAddNewPost}
-                        sx={{
-                          borderRadius: `${theme.custom.radius.md}px`,
-                          textTransform: 'none',
-                          fontWeight: 600,
-                          backgroundColor: theme.custom.color.brandPrimary,
-                          '&:hover': {
-                            backgroundColor: theme.custom.color.brandPrimary,
-                            opacity: 0.9,
-                          },
-                          width: { xs: '100%', md: 'auto' },
-                          minWidth: { xs: '100%', md: '280px' },
-                          px: { xs: 2, md: 4 },
-                        }}
-                      >
-                        {t('createPostForCity', { cityName: citySearchTerm })}
-                      </Button>
-                    </Box>
-                  </Alert>
+                  {cityNotFoundNode}
                 </Grid>
               )}
 
@@ -1388,30 +1745,9 @@ const PostsList = () => {
               </Grid> */}
 
               {/* Active Filters Display */}
-              {activeFilterChips.length > 0 && (
+              {activeChipsNode && (
                 <Grid item xs={12}>
-                  <Box display="flex" gap={1} flexWrap="wrap">
-                    {activeFilterChips.map((chip, index) => (
-                      <Chip
-                        key={index}
-                        label={chip.label}
-                        onDelete={chip.onDelete}
-                        size="small"
-                        sx={{
-                          borderRadius: '999px',
-                          height: 30,
-                          fontWeight: 600,
-                          backgroundColor: alpha(brand, isDark ? 0.16 : 0.08),
-                          border: `1px solid ${alpha(brand, isDark ? 0.35 : 0.22)}`,
-                          color: brand,
-                          '& .MuiChip-deleteIcon': {
-                            color: alpha(brand, 0.7),
-                            '&:hover': { color: brand },
-                          },
-                        }}
-                      />
-                    ))}
-                  </Box>
+                  {activeChipsNode}
                 </Grid>
               )}
             </Grid>
@@ -1425,235 +1761,12 @@ const PostsList = () => {
         <Box sx={{ height: filterBarHeight ? filterBarHeight + 16 : 0 }} />
 
         {/* Posts Content */}
-        {filteredPosts?.length ? (
-          <>
-            {/* Posts Grid/List */}
-            <Box sx={{ mb: 4 }}>
-              <Box
-                display="grid"
-                gap={3}
-                sx={{
-                  gridTemplateColumns: viewMode === "grid" ? {
-                    xs: "repeat(1, 1fr)",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(3, 1fr)",
-                    lg: "repeat(4, 1fr)",
-                    xl: "repeat(4, 1fr)", // Reduced from 5 to 4 to prevent overflow
-                  } : "repeat(1, 1fr)",
-                  // Remove conflicting width constraints and let grid handle sizing
-                  '& > *': {
-                    width: '100%',
-                    minHeight: 'fit-content',
-                  },
-                  // Ensure the grid container doesn't overflow
-                  maxWidth: '100%',
-                  overflow: 'hidden'
-                }}
-              >
-                {filteredPosts.map((post) => (
-                  <Post
-                    key={post._id}
-                    post={post}
-                    viewMode={viewMode}
-                  />
-                ))}
-              </Box>
-            </Box>
-
-            {/* Add New Post Button - only shown once the user has paged to
-                the last page (no more "next" page to reach) */}
-            {page >= totalPages && (
-              <Box
-                sx={{
-                  mb: 4,
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-              >
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={handleAddNewPost}
-                  sx={{
-                    borderRadius: `${theme.custom.radius.md}px`,
-                    px: 4,
-                    py: 1.5,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    fontSize: '1rem',
-                    backgroundColor: theme.custom.color.brandPrimary,
-                    '&:hover': {
-                      backgroundColor: theme.custom.color.brandPrimary,
-                      opacity: 0.9,
-                    },
-                    '& .MuiButton-startIcon': {
-                      marginInlineEnd: '8px',
-                      marginInlineStart: 0,
-                    }
-                  }}
-                >
-                  {t('addNewPost')}
-                </Button>
-              </Box>
-            )}
-
-            {/* Enhanced Pagination */}
-            {totalPages > 1 && (
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 3,
-                  borderRadius: `${theme.custom.radius.lg}px`,
-                  backgroundColor: theme.custom.color.surfaceRaised,
-                  border: `1px solid ${theme.palette.divider}`,
-                  boxShadow: theme.custom.elevation.e1,
-                }}
-              >
-                <Box
-                  display="flex"
-                  flexDirection={{ xs: "column", sm: "row" }}
-                  justifyContent="space-between"
-                  alignItems="center"
-                  gap={2}
-                >
-                  <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65) }}>
-                    {t('page')} {page} {t('of')} {totalPages} • {filteredPosts.length} {t('posts')}
-                  </Typography>
-
-                  <Pagination
-                    page={page}
-                    count={totalPages}
-                    onChange={handlePaginate}
-                    size={isMobile ? "small" : "medium"}
-                    showFirstButton
-                    showLastButton
-                    sx={{
-                      '& .MuiPaginationItem-root': {
-                        borderRadius: `${theme.custom.radius.sm}px`,
-                        fontWeight: 600,
-                      },
-                      '& .MuiPaginationItem-root.Mui-selected': {
-                        backgroundColor: theme.custom.color.brandPrimary,
-                        color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
-                        '&:hover': {
-                          backgroundColor: theme.custom.color.brandPrimary,
-                          opacity: 0.9,
-                        },
-                      },
-                    }}
-                  />
-
-                  <Box display="flex" gap={1} alignItems="center">
-                    <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65) }}>
-                      {t('postsPerPage')}:
-                    </Typography>
-                    <Select
-                      value={pageSize}
-                      onChange={handlePageSizeChange}
-                      size="small"
-                      sx={{ minWidth: 80, borderRadius: `${theme.custom.radius.md}px` }}
-                    >
-                      <MenuItem value={4}>4</MenuItem>
-                      <MenuItem value={8}>8</MenuItem>
-                      <MenuItem value={12}>12</MenuItem>
-                      <MenuItem value={16}>16</MenuItem>
-                    </Select>
-                  </Box>
-                </Box>
-              </Paper>
-            )}
-          </>
-        ) : (
-          // Locally tokenized rather than the shared (untokenized) EmptyState —
-          // mirrors the DashboardEmptyStates.NoRecentFounds/NoRecentLosts
-          // precedent in LoadingStates.jsx without touching that shared file.
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              py: 8,
-              px: 2,
-              textAlign: 'center',
-              backgroundColor: theme.custom.color.surfaceRaised,
-              borderRadius: `${theme.custom.radius.lg}px`,
-              border: `1px dashed ${alpha(theme.custom.color.ink, 0.15)}`,
-            }}
-          >
-            <Search sx={{ fontSize: 56, color: theme.custom.color.brandPrimary, mb: 2, opacity: 0.6 }} />
-            <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, mb: 1 }}>
-              {selectedCity && localCategoryFilter !== "all"
-                ? t('noPostsInCityWithCategory', { cityName: getCityDisplayName(selectedCity) })
-                : selectedCity
-                  ? t('noPostsInCity', { cityName: getCityDisplayName(selectedCity) })
-                  : hasActiveFilters
-                    ? t('noPostsMatchFilters')
-                    : t('noPostsFound')}
-            </Typography>
-            <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65), mb: 3, maxWidth: 420 }}>
-              {selectedCity && localCategoryFilter !== "all"
-                ? t('noPostsInCityWithCategoryDescription', { cityName: getCityDisplayName(selectedCity) })
-                : selectedCity
-                  ? t('noPostsInCityDescription', { cityName: getCityDisplayName(selectedCity) })
-                  : hasActiveFilters
-                    ? t('adjustFilters')
-                    : t('noPostsInArea')}
-            </Typography>
-            <Box display="flex" gap={2} flexWrap="wrap" justifyContent="center">
-              <Link to="/dash/posts/new">
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  sx={{
-                    borderRadius: `${theme.custom.radius.md}px`,
-                    px: 3,
-                    py: 1,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    backgroundColor: theme.custom.color.brandPrimary,
-                    '&:hover': {
-                      backgroundColor: theme.custom.color.brandPrimary,
-                      opacity: 0.9,
-                    },
-                  }}
-                >
-                  {selectedCity
-                    ? t('createPostInCity', { cityName: getCityDisplayName(selectedCity) })
-                    : t('addNewPost')}
-                </Button>
-              </Link>
-              {!selectedCity && (
-                <Button
-                  variant="outlined"
-                  startIcon={<Language />}
-                  onClick={handleSelectCountry}
-                  sx={{
-                    borderRadius: `${theme.custom.radius.md}px`,
-                    px: 3,
-                    py: 1,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderColor: theme.custom.color.brandPrimary,
-                    color: theme.custom.color.brandPrimary,
-                    '&:hover': {
-                      borderColor: theme.custom.color.brandPrimary,
-                      backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
-                    },
-                  }}
-                >
-                  {t('changeCountry')}
-                </Button>
-              )}
-            </Box>
-          </Box>
-        )}
+        {mainArea}
       </Box>
       </>
     );
   }
-  
+
   return (
     <>
       <SeoMeta pageKey="dashPosts" />
