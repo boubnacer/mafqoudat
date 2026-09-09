@@ -37,7 +37,6 @@ const TRAIL_PATH =
 
 const Process = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isStage = useMediaQuery(theme.breakpoints.up("lg"));
   const { t } = useTranslation();
   const rootRef = useRef(null);
@@ -140,8 +139,6 @@ const Process = () => {
     lineHeight: 1,
     color,
   });
-
-  const nodeSize = isMobile ? 56 : 64;
 
   const notifyHints = [
     { key: "lost", token: theme.custom.status.lost, text: t("notifyLostHint") },
@@ -322,71 +319,157 @@ const Process = () => {
     </Box>
   );
 
-  // Narrower than lg: the same vocabulary (ramp colour, number, disc) in a
-  // stacked column, no fixed stage and no trail.
-  const renderStack = () => (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: { xs: 3, md: 4 } }}>
-      {processSteps.map((step, i) => {
-        const StepIcon = STEP_ICONS[step.icon];
-        const num = String(i + 1).padStart(2, "0");
-        return (
-          <Box
-            key={step.icon}
-            className="processCard"
-            sx={{
-              ...tintedCard(`${theme.custom.radius.md}px`),
-              display: "flex",
-              alignItems: "flex-start",
-              gap: { xs: 2, sm: 2.5 },
-              p: { xs: 2.5, md: 3 },
-              borderInlineStartWidth: 4,
-              borderInlineStartColor: step.color,
-              transition: "box-shadow 0.25s ease, transform 0.25s ease",
-              "&:hover": {
-                boxShadow: `0 0 24px ${alpha(brandPrimary, isDark ? 0.35 : 0.25)}`,
-                transform: "translateY(-4px)",
-              },
-            }}
-          >
-            <Box
-              className="processNode"
-              sx={{
-                width: nodeSize,
-                height: nodeSize,
-                flexShrink: 0,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: step.color,
-                boxShadow: isDark ? `0 4px 16px ${alpha(step.color, 0.4)}` : theme.custom.elevation.e1,
-              }}
-            >
-              <StepIcon sx={{ color: theme.palette.getContrastText(step.color), fontSize: 26 }} />
-            </Box>
+  // Narrower than lg: the SAME pill vocabulary in one column — gradient pill
+  // card, overlapping icon disc, STEP/0N inside the pill, and a dotted vertical
+  // rail whose ring dots line up with each card. Fully fluid, so it holds from
+  // a 320px phone up to the lg breakpoint; the rail is a repeating dotted
+  // background rather than an SVG path, since a straight line needs no
+  // hand-aligned geometry.
+  const RAIL_INSET = 44;
 
-            <Box sx={{ flex: 1, minWidth: 0, textAlign: "start" }}>
-              <Box sx={{ display: "flex", alignItems: "baseline", gap: 1, mb: 0.5 }}>
-                <Typography sx={{ ...stepNumSx(step.color), fontSize: 28 }}>{num}</Typography>
-                <Typography
-                  variant="h6"
-                  fontWeight={700}
-                  sx={{ fontFamily: theme.custom.font.display, fontSize: { xs: "1.1rem", md: "1.15rem" }, color: ink }}
-                >
-                  {step.text}
-                </Typography>
-              </Box>
-              <Typography
-                variant="body2"
-                sx={{ fontFamily: theme.custom.font.body, fontSize: { xs: "0.95rem", md: "0.95rem" }, color: alpha(ink, 0.7), textWrap: "pretty" }}
+  const renderRail = () => (
+    <Box sx={{ position: "relative", paddingInlineStart: `${RAIL_INSET}px` }}>
+      <Box
+        className="processTrail"
+        aria-hidden="true"
+        sx={{
+          position: "absolute",
+          insetInlineStart: 13,
+          top: 26,
+          bottom: 26,
+          width: 2,
+          backgroundImage: `radial-gradient(circle, ${alpha(ink, 0.42)} 0 1.6px, transparent 1.9px)`,
+          backgroundSize: "2px 15px",
+          backgroundRepeat: "repeat-y",
+        }}
+      />
+
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+        {processSteps.map((step, i) => {
+          const StepIcon = STEP_ICONS[step.icon];
+          const pillText = theme.palette.getContrastText(step.color);
+          const num = String(i + 1).padStart(2, "0");
+          const isNotif = step.icon === "notif";
+
+          return (
+            <Box key={step.icon} sx={{ position: "relative" }}>
+              <Box
+                className="processNode"
+                sx={{ ...trailDot(step.color), insetInlineStart: -RAIL_INSET, top: 18, boxSizing: "border-box" }}
               >
-                {step.description}
-              </Typography>
-              {step.icon === "notif" && <NotifyHints />}
+                <Box sx={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: step.color }} />
+              </Box>
+
+              <Box
+                className="processCard"
+                sx={{
+                  position: "relative",
+                  borderRadius: "22px",
+                  p: 2.25,
+                  // The disc overhangs the inline-end edge, so the pill's own
+                  // text is inset to clear it — except on the notify step,
+                  // where the hint chips sit below the disc and use full width.
+                  paddingInlineEnd: isNotif ? 2.25 : "74px",
+                  backgroundImage: `linear-gradient(150deg, ${lighten(step.color, 0.12)} 0%, ${step.color} 55%, ${darken(step.color, 0.1)} 100%)`,
+                  boxShadow: `0 12px 26px ${alpha(step.color, isDark ? 0.45 : 0.34)}`,
+                }}
+              >
+                <Box sx={{ paddingInlineEnd: isNotif ? "54px" : 0 }}>
+                  <Box sx={{ display: "flex", alignItems: "baseline", gap: 1.125, mb: 0.625 }}>
+                    <Typography
+                      sx={{ ...stepWordSx, fontSize: 10, color: alpha(pillText, 0.82) }}
+                    >
+                      {t("step")}
+                    </Typography>
+                    <Typography sx={{ ...stepNumSx(pillText), fontSize: 26 }}>{num}</Typography>
+                  </Box>
+
+                  <Typography
+                    variant="h6"
+                    fontWeight={700}
+                    sx={{ fontFamily: theme.custom.font.display, fontSize: "1.05rem", mb: 0.625, color: pillText }}
+                  >
+                    {step.text}
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    sx={{ fontFamily: theme.custom.font.body, fontSize: "0.85rem", lineHeight: 1.5, color: pillText, textWrap: "pretty" }}
+                  >
+                    {step.description}
+                  </Typography>
+                </Box>
+
+                <Box
+                  sx={{
+                    position: "absolute",
+                    insetInlineEnd: -8,
+                    top: 22,
+                    width: 62,
+                    height: 62,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundImage: `radial-gradient(120% 120% at 30% 25%, ${surfaceRaised} 0%, ${
+                      isDark ? lighten(surfaceRaised, 0.06) : darken(surfaceRaised, 0.05)
+                    } 100%)`,
+                    boxShadow: `0 10px 20px ${alpha("#0F172A", isDark ? 0.45 : 0.22)}`,
+                  }}
+                >
+                  <StepIcon sx={{ color: step.color, fontSize: 28 }} />
+                </Box>
+
+                {/* On the pill, the status tokens' own bg tints are too light to
+                    sit on a saturated ground, so the chips take a dark scrim and
+                    a lightened token for text — same pairing logic, restated for
+                    this background. */}
+                {isNotif && (
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 1.75 }}>
+                    {notifyHints.map((hint) => (
+                      <Box
+                        key={hint.key}
+                        sx={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: 1,
+                          p: 1.25,
+                          borderRadius: `${theme.custom.radius.sm}px`,
+                          backgroundColor: alpha("#0A0E1A", 0.42),
+                          textAlign: "start",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 6,
+                            height: 6,
+                            mt: "6px",
+                            borderRadius: "50%",
+                            flexShrink: 0,
+                            backgroundColor: lighten(hint.token.main, 0.3),
+                          }}
+                        />
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontFamily: theme.custom.font.body,
+                            fontSize: "0.8rem",
+                            fontWeight: 600,
+                            lineHeight: 1.45,
+                            color: lighten(hint.token.main, 0.65),
+                          }}
+                        >
+                          {hint.text}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Box>
             </Box>
-          </Box>
-        );
-      })}
+          );
+        })}
+      </Box>
     </Box>
   );
 
@@ -426,7 +509,7 @@ const Process = () => {
           </Typography>
         </Box>
 
-        {isStage ? renderStage() : renderStack()}
+        {isStage ? renderStage() : renderRail()}
 
         <Box className="processSocial" sx={{ mt: { xs: 4, md: 3 } }}>
           <Typography
