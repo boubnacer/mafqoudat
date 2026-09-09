@@ -222,6 +222,55 @@ Reuse these, don't invent new card/panel treatment — now house style:
     viewport implies. This also fixes what shipped first — the stage was gated at `lg`
     (1200px), so a phone in desktop-site mode (~980px) never saw it.
 
+- Phase 21 — [Process.jsx](client/src/components/dashboard/Process.jsx) again: the wide
+  layout is now a **horizontal rail**, and Phase 20's zig-zag stage is the narrow layout
+  only. Done. The stage is one 820 x 916 column, which is the right shape for a phone and
+  the wrong one for a desktop panel — scaled up to fill a wide container it became a single
+  enormous vertical banner, three screens of dashboard spent on three sentences. The rail
+  says the same thing along the axis that actually has the room. Decisions worth keeping:
+  - **It is the same vocabulary turned through 90 degrees, not a second design.** Brand-ramp
+    card, light disc carrying the icon, a notch pointing out of the card at a ring, one
+    dotted trail threading every ring and capped by a solid dot at each end — all of it
+    reused, including the `pillFill` / `disc` / `ring` helpers themselves. The section reads
+    as one idea at any width; only its axis changes.
+  - **Three things the turn forces.** The disc pierces the card's *top* edge at its centre
+    (a portrait card has no inner end to overlap); the corner radius is capped rather than
+    left at half the height (a true stadium on a 344 x 276 box is an ellipse whose caps eat
+    the text column); and the numeral becomes a ghost bleeding off the card's trailing
+    corner, since beside the card there is no room — the columns are the width — while
+    behind the copy it costs no height at all. The ghost is `aria-hidden`; the readable
+    number lives in the small `STEP 01` label above the title, so the count is never
+    carried by 16%-alpha text alone.
+  - **The trail is straight here.** The S-curve exists in the stage to carry the eye from
+    one side of the page to the other between rows; along a single row there is nothing for
+    it to carry, so the rail draws one dotted axis under the cards — same dash, same cap
+    dots. It needs no RTL flip either: a horizontal line through evenly spaced rings is its
+    own mirror image.
+  - **The notch is the one element that needed a second helper.** `notch()` builds a
+    triangle from the inline borders and mirrors itself; the rail's points *down* the block
+    axis, so `notchDown()` puts the transparent sides on the inline borders instead. It
+    needs no mirroring — it points at a ring directly beneath it, and "down" means the same
+    thing in both writing modes. Same reason the disc's shadow takes `x: 0` here: it falls
+    straight onto the card it pierces, so Phase 20's hand-mirrored offset has nothing to
+    mirror.
+  - **Which layout is a measured width, not a breakpoint.** `isRail` is
+    `hostWidth >= railWidth * RAIL_MIN_SCALE` (0.76 — the same floor as the stage, where
+    body copy would drop under ~11.5px). A media query is still only the pre-measurement
+    guess for the first paint, and the container's own width overrules it, exactly as in
+    Phase 20; the measuring host stays outside both layouts so either can win back the
+    section. Rail width is derived from the step count the way the stage's height is, so a
+    fourth step widens the rail instead of overflowing it.
+  - **Both compositions share one host** (`renderCanvas`): each is fixed-pixel, centred, and
+    fitted by scaling rather than re-flowing, so the wrapper that reserves the scaled height
+    and clips is written once. `ScrollTrigger.refresh()` now keys on the layout swap as well
+    as the scale, since swapping changes the section's height outright.
+  - **The cards' copy is centred in what the disc leaves, not top-aligned.** The three cards
+    are one height because they are a row, and the shortest step ("Get instant updates")
+    would otherwise sit against the ceiling of a visibly hollow card.
+  - **Motion is untouched.** The rail carries the same `processCard` / `processNode` /
+    `processTrail` class hooks, so Phase 19's local GSAP reveal animates either layout with
+    no branch in the timeline.
+
 ## Motion (GSAP)
 
 Web animation is GSAP (`gsap` + `@gsap/react`). Plugins are registered once in
