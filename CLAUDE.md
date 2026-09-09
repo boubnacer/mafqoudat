@@ -150,6 +150,61 @@ Reuse these, don't invent new card/panel treatment — now house style:
   else. The reveal itself moved off framer-motion onto local GSAP — see **Motion (GSAP)**'s
   "One system per element" entry.
 
+- Phase 20 — [Process.jsx](client/src/components/dashboard/Process.jsx)'s **desktop**
+  layout (lg and up) rebuilt as a strict reproduction of a supplied vector infographic:
+  done. Each step is a fully-rounded colored pill with a large light disc overlapping its
+  inner end, a triangular notch pointing out of that end at a ring marker, and an oversized
+  `STEP` / `01` block beside it; rows alternate sides and a single dotted S-curve threads
+  every ring, ending in a solid dot above the first row and below the last. Decisions worth
+  keeping:
+  - **The geometry is one measured set, not per-element taste.** Every number in the
+    `STAGE` constant is a measurement taken off the reference (2044px wide) divided by one
+    scale factor, k = 0.55 — pill 2.56:1, disc 0.80 x pill height, row pitch 1.55 x pill
+    height, numeral cap height 0.54 x pill height. They cannot be tuned individually: the
+    notch has to meet the ring, and the ring has to sit on the trail. The two trail
+    control-point ratios (`S_EASE` 0.74, `CAP_EASE` 0.55) were fitted to the reference's own
+    dot positions rather than eyeballed — 0.74 of the vertical gap is what flattens the
+    middle of each S until it runs almost horizontally between two rows.
+  - **Only the type scale departs from the reference**, because the reference is a poster set
+    in placeholder Latin and this carries real en/fr/ar copy: a proportional title would be
+    31px and wrap French headings to three lines inside a fixed-height pill. Title 23 / body
+    15 keep the reference's own title:body ratio (1.5) while fitting the longest string in
+    all three languages; `STEP` (48) and the numeral (104) are left at the reference's
+    proportions, since those are what the composition rests on.
+  - **Three steps, not the reference's four.** The step count is content, and `buildTrail`
+    plus the stage height are both derived from `processSteps.length`, so a fourth step
+    extends the curve instead of leaving it ending in mid-air.
+  - **The ramp is two tokens, and each stop answers to two surfaces.** `brandLogo` darkened,
+    `brandPrimary`, `brandPrimary` darkened again — descending in luminance the way the
+    reference's teal-to-navy does, each pinned dark enough that `getContrastText`'s white
+    clears 4.5:1 on the pill. In dark mode `brandPrimary` is darkened *first*, because its
+    dark-mode token value is lightened for use as an accent ON a dark surface, not as a field
+    UNDER white text. The same tone then has to read on the panel too — the ring, the numeral
+    and the disc icon all sit on `surfaceRaised`, where the deepest stop falls under 3:1 in
+    dark mode — so `onPanel()` lifts it there and is the identity in light mode.
+  - **The disc's shadow is the one value that cannot be logical.** It falls inward, onto the
+    pill it overlaps, which is what separates the two; `box-shadow` has no inline-aware form,
+    so the offset is mirrored by hand against `theme.direction`. It is tinted from the pill's
+    own color rather than a fixed slate, so it stays a shadow on that surface in dark mode
+    instead of a white smear. Everything else on the stage is `insetInlineStart` /
+    `borderInline*` and mirrors by itself; the trail SVG is flipped wholesale, since it
+    carries no text.
+  - **`index.css`'s RTL globals had to be answered here too**, exactly as in Phase 17:
+    `body[dir="rtl"] * { text-align: inherit }` outranks a single Emotion class, so the
+    centred pill title and the mirrored row's end-aligned numeral column would silently take
+    the document's right alignment in Arabic. `alignText()` restates alignment at `&&&`,
+    scoped to this section.
+  - **The two Lost/Found clarifier lines sit under the stage, not in step 3's pill.** The
+    reference has no counterpart for them and the pill is a fixed shape; widening or
+    heightening one pill to fit them would break the row rhythm the whole layout depends on.
+  - **The panel lost its border and its brand wash.** Borderless is Phase 8; the wash went
+    because the reference stands its composition on a clean ground, and a brand tint behind
+    pills that are themselves the brand ramp only muddies them.
+  - **Sub-lg is untouched** — the stacked pill rail from the previous pass still serves
+    everything narrower, since the trail's alignment only holds at 1:1 scale. It picks up the
+    new ramp and `onPanel()` because those are shared, and its two remaining hardcoded
+    shadow/scrim colors were moved onto tokens on the way past.
+
 ## Motion (GSAP)
 
 Web animation is GSAP (`gsap` + `@gsap/react`). Plugins are registered once in

@@ -1,6 +1,6 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { Box, Typography, useTheme, useMediaQuery, Link, alpha, lighten, darken } from "@mui/material";
-import { Share, Campaign, Notifications } from "@mui/icons-material";
+import { ShareOutlined, CampaignOutlined, NotificationsNoneOutlined } from "@mui/icons-material";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
 import { gsap, ScrollTrigger, useGSAP } from "../../utils/gsapSetup";
@@ -8,32 +8,99 @@ import { resolveScroller } from "../../features/dashboard/useDashboardMotion";
 
 // Step icons still bypass RenderIcon, for the same reason as before: they sit
 // on a light disc over a solid brand-ramp pill and take that pill's own colour,
-// not RenderIcon's fixed brandPrimary fill.
-const STEP_ICONS = { share: Share, ad: Campaign, notif: Notifications };
+// not RenderIcon's fixed brandPrimary fill. Outlined variants, because the disc
+// is a large light field and a filled glyph reads as a blot on it.
+const STEP_ICONS = { share: ShareOutlined, ad: CampaignOutlined, notif: NotificationsNoneOutlined };
 
-// The zig-zag is authored against a fixed pixel stage, because the dotted
-// trail is a single SVG path whose curve has to pass exactly through each
-// step's ring dot — that alignment only holds at 1:1 scale, so the stage
-// renders at lg and up and the previous stacked layout serves everything
-// narrower.
-const STAGE_W = 844;
-const STAGE_H = 620;
-const PILL_W = 372;
-const PILL_H = 130;
-const DISC = 122;
+// ---------------------------------------------------------------------------
+// The desktop stage.
+//
+// Every number below is one measurement off the reference infographic this
+// layout reproduces, divided by a single scale factor (the reference is 2044px
+// wide, the stage is 820, so k = 0.55). Keeping them as one derived set is the
+// point: the pill, the disc that overlaps it, the notch that points out of it,
+// the ring the notch points AT and the numeral beside it are one composition,
+// and changing any of them in isolation breaks the alignment the dotted trail
+// depends on. Ratios worth naming: pill 2.56:1, disc 0.80 x pill height, row
+// pitch 1.55 x pill height, numeral cap height 0.54 x pill height.
+//
+// The trail is a single SVG path whose curve has to pass exactly through each
+// ring, and that alignment only holds at 1:1 scale — so the stage renders at lg
+// and up, and the stacked rail below serves everything narrower.
+// ---------------------------------------------------------------------------
+const STAGE = {
+  W: 820,
+  PAD: 64, // clearance above the first pill / below the last, for the trail caps
+  PILL_W: 491,
+  PILL_H: 192,
+  PITCH: 298, // top of one pill to the top of the next
+  DISC: 153,
+  DISC_CX: 397, // disc centre, from the pill's inline-start edge
+  NOTCH_W: 12,
+  NOTCH_H: 25,
+  TEXT_START: 78, // text column, from the pill's outer edge
+  TEXT_W: 224,
+  TEXT_PAD: 34, // vertical inset of the text column inside the pill
+  RING: 48,
+  RING_BORDER: 4.5,
+  RING_DOT: 23,
+  RING_CX: 558, // from the stage's inline-start edge, on a lead row
+  META_START: 628, // the STEP / numeral column, likewise
+  META_W: 192,
+  META_TOP: 26,
+  TITLE_FS: 23,
+  BODY_FS: 15,
+  STEP_FS: 48,
+  NUM_FS: 104,
+  CAP: 150, // how far the trail runs past the first and last ring
+  DOT_R: 3.9,
+  DOT_GAP: 30,
+  CAP_R: 8.5,
+};
 
-// Per-row geometry on the stage. `lead` = the pill sits on the inline-start
-// half (steps 1 and 3) and its notch points inline-end toward the trail;
-// step 2 is the mirror. All offsets are logical (insetInlineStart), so RTL
-// mirrors without a second copy of the markup.
-const STAGE_ROWS = [
-  { lead: true,  groupStart: 20,  top: 10,  pillStart: 0,  notchStart: 360, textStart: 34,  textTop: 26, discStart: 262, dotStart: 438, dotTop: 61,  numStart: 492, numTop: 36  },
-  { lead: false, groupStart: 388, top: 175, pillStart: 64, notchStart: 42,  textStart: 188, textTop: 26, discStart: 52,  dotStart: 378, dotTop: 226, numStart: 212, numTop: 201 },
-  { lead: true,  groupStart: 20,  top: 340, pillStart: 0,  notchStart: 360, textStart: 34,  textTop: 36, discStart: 262, dotStart: 438, dotTop: 391, numStart: 492, numTop: 366 },
-];
+// A lead row puts its pill on the inline-start half and points its notch
+// inline-end at the trail; the next row is the mirror. Every offset below is
+// logical, so RTL mirrors without a second copy of the markup.
+const isLead = (i) => i % 2 === 0;
+const rowTop = (i) => STAGE.PAD + i * STAGE.PITCH;
+const ringCy = (i) => rowTop(i) + STAGE.PILL_H / 2;
+const ringCx = (i) => (isLead(i) ? STAGE.RING_CX : STAGE.W - STAGE.RING_CX);
 
-const TRAIL_PATH =
-  "M 418 6 C 452 26, 452 50, 452 75 C 452 130, 392 162, 392 240 C 392 318, 452 342, 452 405 C 452 468, 424 528, 418 592";
+// Both control-point ratios are fitted to the reference's own dot positions:
+// 0.74 of the vertical gap is what flattens the middle of each S until it runs
+// almost horizontally between two rows, and 0.55 is the quarter-turn each end
+// cap makes from horizontal at the terminal dot to vertical at the first ring.
+const S_EASE = 0.74;
+const CAP_EASE = 0.55;
+
+const buildTrail = (rows) => {
+  const mid = STAGE.W / 2;
+  const head = ringCy(0) - STAGE.CAP;
+  const tail = ringCy(rows - 1) + STAGE.CAP;
+  const last = rows - 1;
+
+  const d = [
+    `M ${mid} ${head}`,
+    `C ${mid + CAP_EASE * (ringCx(0) - mid)} ${head}, ${ringCx(0)} ${ringCy(0) - CAP_EASE * STAGE.CAP}, ${ringCx(0)} ${ringCy(0)}`,
+  ];
+  for (let i = 0; i < last; i += 1) {
+    const c = S_EASE * (ringCy(i + 1) - ringCy(i));
+    d.push(`C ${ringCx(i)} ${ringCy(i) + c}, ${ringCx(i + 1)} ${ringCy(i + 1) - c}, ${ringCx(i + 1)} ${ringCy(i + 1)}`);
+  }
+  d.push(
+    `C ${ringCx(last)} ${ringCy(last) + CAP_EASE * STAGE.CAP}, ${mid + CAP_EASE * (ringCx(last) - mid)} ${tail}, ${mid} ${tail}`
+  );
+
+  return { d: d.join(" "), head, tail, mid };
+};
+
+// index.css ships `body[dir="rtl"] * { text-align: inherit }`, which outranks a
+// single Emotion class — so in Arabic every line on this stage would silently
+// take the document's right alignment. The pill title is centred and the
+// mirrored row's numeral column is end-aligned, and both have to say so at a
+// specificity that global cannot override. Scoped to this stage on purpose:
+// the globals are older than it, and fixing them is a pass of its own.
+const alignText = (value) => ({ "&&&": { textAlign: value } });
 
 const Process = () => {
   const theme = useTheme();
@@ -45,20 +112,31 @@ const Process = () => {
   const isRtl = theme.direction === "rtl";
   const { surfaceRaised, brandPrimary, brandLogo, ink } = theme.custom.color;
 
-  // Three-stop ramp between the two existing brand tokens, so the steps read
-  // as one progression and still follow the tokens into dark mode. brandLogo
-  // is darkened in light mode purely for contrast: white pill text needs it.
-  const ramp = [
-    isDark ? brandLogo : darken(brandLogo, 0.2),
-    lighten(brandPrimary, isDark ? 0.12 : 0.08),
-    brandPrimary,
-  ];
+  // Three-stop ramp between the two existing brand tokens, descending in
+  // luminance the way the reference's does, so the steps read as one
+  // progression. Each stop is a pill fill carrying white text, so each is
+  // pinned below the luminance where getContrastText's white still clears
+  // 4.5:1 — which is also why dark mode darkens brandPrimary first: its
+  // dark-mode value is lightened for use as an accent ON a dark surface, not
+  // as a field UNDER white text.
+  const rampAnchor = isDark ? darken(brandPrimary, 0.2) : brandPrimary;
+  const ramp = [darken(brandLogo, 0.22), rampAnchor, darken(rampAnchor, 0.3)];
+
+  // The same tone as it has to read on the panel rather than under white pill
+  // text — the ring, the numeral and the disc icon all sit on surfaceRaised,
+  // where the deepest ramp stop would fall under 3:1 in dark mode.
+  const onPanel = (color) => (isDark ? lighten(color, 0.3) : color);
 
   const processSteps = [
     { icon: "share", text: t("shareToOurSocials"), description: t("shareToOurSocialsDesc"), color: ramp[0] },
     { icon: "ad", text: t("makeAdvertising"), description: t("makeAdvertisingDesc"), color: ramp[1] },
     { icon: "notif", text: t("wellNotifyYou"), description: t("wellNotifyYouDesc"), color: ramp[2] },
   ];
+
+  // The stage's height and its trail both come from the step count, so adding a
+  // fourth step extends the curve rather than leaving it ending in mid-air.
+  const stageHeight = STAGE.PAD * 2 + STAGE.PILL_H + (processSteps.length - 1) * STAGE.PITCH;
+  const trailPath = useMemo(() => buildTrail(processSteps.length), [processSteps.length]);
 
   const socialLinks = [
     { name: "face", url: "https://www.facebook.com/profile.php?id=100075968495897" },
@@ -76,39 +154,49 @@ const Process = () => {
   const pillFace = (color) => ({
     position: "absolute",
     top: 0,
-    width: PILL_W,
-    height: PILL_H,
-    borderRadius: PILL_H / 2,
-    backgroundImage: `linear-gradient(160deg, ${lighten(color, 0.12)} 0%, ${color} 55%, ${darken(color, 0.1)} 100%)`,
-    boxShadow: `0 14px 28px ${alpha(color, isDark ? 0.45 : 0.32)}`,
+    width: STAGE.PILL_W,
+    height: STAGE.PILL_H,
+    borderRadius: STAGE.PILL_H / 2,
+    backgroundImage: `linear-gradient(180deg, ${lighten(color, 0.07)} 0%, ${color} 52%, ${darken(color, 0.07)} 100%)`,
+    boxShadow: theme.custom.elevation.e3,
   });
 
   // CSS triangle from LOGICAL borders, so it flips with direction.
   const notch = (color, pointsInlineEnd) => ({
     position: "absolute",
-    top: 53,
+    top: (STAGE.PILL_H - STAGE.NOTCH_H) / 2,
     width: 0,
     height: 0,
-    borderBlockStart: "12px solid transparent",
-    borderBlockEnd: "12px solid transparent",
+    borderBlockStart: `${STAGE.NOTCH_H / 2}px solid transparent`,
+    borderBlockEnd: `${STAGE.NOTCH_H / 2}px solid transparent`,
     ...(pointsInlineEnd
-      ? { borderInlineStart: `22px solid ${darken(color, 0.1)}` }
-      : { borderInlineEnd: `22px solid ${darken(color, 0.1)}` }),
+      ? { borderInlineStart: `${STAGE.NOTCH_W}px solid ${darken(color, 0.07)}` }
+      : { borderInlineEnd: `${STAGE.NOTCH_W}px solid ${darken(color, 0.07)}` }),
   });
 
-  const disc = (lead) => ({
+  // The disc's shadow falls INWARD, onto the pill it overlaps, which is what
+  // separates the two; an elevation token is centred and cannot say that. It's
+  // tinted from the pill's own colour rather than a fixed slate, so it stays a
+  // shadow on that surface in both modes instead of a white smear in dark. Its
+  // offset is the one value on the stage that cannot be a logical property —
+  // box-shadow has no inline-aware form — so it is mirrored by hand.
+  const disc = (color, lead) => ({
     position: "absolute",
-    top: 4,
-    width: DISC,
-    height: DISC,
+    top: (STAGE.PILL_H - STAGE.DISC) / 2,
+    width: STAGE.DISC,
+    height: STAGE.DISC,
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     backgroundImage: `radial-gradient(120% 120% at 30% 25%, ${surfaceRaised} 0%, ${
-      isDark ? lighten(surfaceRaised, 0.06) : darken(surfaceRaised, 0.05)
+      isDark ? lighten(surfaceRaised, 0.07) : darken(surfaceRaised, 0.05)
     } 100%)`,
-    boxShadow: `${lead ? "-6px" : "6px"} 14px 26px ${alpha("#0F172A", isDark ? 0.5 : 0.22)}`,
+    boxShadow: [
+      `${lead !== isRtl ? "-7px" : "7px"} 12px 24px ${alpha(darken(color, 0.55), isDark ? 0.6 : 0.42)}`,
+      `0 0 0 1px ${alpha(ink, isDark ? 0.14 : 0.05)}`,
+      `inset 0 -3px 8px ${alpha(ink, isDark ? 0.14 : 0.06)}`,
+    ].join(", "),
   });
 
   const trailDot = (color) => ({
@@ -144,34 +232,6 @@ const Process = () => {
     { key: "lost", token: theme.custom.status.lost, text: t("notifyLostHint") },
     { key: "found", token: theme.custom.status.found, text: t("notifyFoundHint") },
   ];
-
-  // Unchanged from the previous version, just extracted so both layouts use it.
-  const NotifyHints = ({ width = "100%", mt = 0.5 }) => (
-    <Box sx={{ width, display: "flex", flexDirection: "column", gap: 0.75, mt }}>
-      {notifyHints.map((hint) => (
-        <Box
-          key={hint.key}
-          sx={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 1,
-            p: 1,
-            borderRadius: `${theme.custom.radius.sm}px`,
-            backgroundColor: hint.token.bg,
-            textAlign: "start",
-          }}
-        >
-          <Box sx={{ width: 6, height: 6, mt: "6px", borderRadius: "50%", flexShrink: 0, backgroundColor: hint.token.main }} />
-          <Typography
-            variant="body2"
-            sx={{ fontFamily: theme.custom.font.body, fontSize: "0.85rem", fontWeight: 600, lineHeight: 1.45, color: hint.token.main }}
-          >
-            {hint.text}
-          </Typography>
-        </Box>
-      ))}
-    </Box>
-  );
 
   useGSAP(() => {
     if (!rootRef.current) return undefined;
@@ -215,15 +275,15 @@ const Process = () => {
   }, { scope: rootRef, dependencies: [isStage] });
 
   const renderStage = () => (
-    <Box sx={{ position: "relative", width: STAGE_W, height: STAGE_H, mx: "auto", mt: 2 }}>
+    <Box sx={{ position: "relative", width: STAGE.W, height: stageHeight, mx: "auto", mt: 4.5 }}>
       {/* Decorative: mirrored wholesale in RTL since it carries no text. */}
       <Box
         className="processTrail"
         aria-hidden="true"
         component="svg"
-        viewBox={`0 0 ${STAGE_W} ${STAGE_H}`}
-        width={STAGE_W}
-        height={STAGE_H}
+        viewBox={`0 0 ${STAGE.W} ${stageHeight}`}
+        width={STAGE.W}
+        height={stageHeight}
         sx={{
           position: "absolute",
           insetInlineStart: 0,
@@ -233,86 +293,122 @@ const Process = () => {
         }}
       >
         <path
-          d={TRAIL_PATH}
+          d={trailPath.d}
           fill="none"
-          stroke={alpha(ink, 0.3)}
-          strokeWidth="6"
+          stroke={alpha(ink, 0.34)}
+          strokeWidth={STAGE.DOT_R * 2}
           strokeLinecap="round"
-          strokeDasharray="0.5 19"
+          strokeDasharray={`0.1 ${STAGE.DOT_GAP}`}
         />
-        <circle cx="418" cy="6" r="9" fill={alpha(ink, 0.38)} />
-        <circle cx="418" cy="592" r="9" fill={alpha(ink, 0.38)} />
+        <circle cx={trailPath.mid} cy={trailPath.head} r={STAGE.CAP_R} fill={alpha(ink, 0.42)} />
+        <circle cx={trailPath.mid} cy={trailPath.tail} r={STAGE.CAP_R} fill={alpha(ink, 0.42)} />
       </Box>
 
       {processSteps.map((step, i) => {
-        const g = STAGE_ROWS[i];
         const StepIcon = STEP_ICONS[step.icon];
+        const lead = isLead(i);
+        const marker = onPanel(step.color);
         const pillText = theme.palette.getContrastText(step.color);
         const num = String(i + 1).padStart(2, "0");
 
-        return (
-          <Box key={step.icon} sx={{ display: "contents" }}>
-            <Box
-              className="processCard"
-              sx={{ position: "absolute", insetInlineStart: g.groupStart, top: g.top, width: 436, height: PILL_H }}
-            >
-              <Box sx={{ ...pillFace(step.color), insetInlineStart: g.pillStart }} />
-              <Box sx={{ ...notch(step.color, g.lead), insetInlineStart: g.notchStart }} />
+        // Mirror every inline offset around the stage for a non-lead row, so
+        // the two variants stay one set of measurements rather than two.
+        const pillStart = lead ? 0 : STAGE.W - STAGE.PILL_W;
+        const discStart = pillStart + (lead ? STAGE.DISC_CX : STAGE.PILL_W - STAGE.DISC_CX) - STAGE.DISC / 2;
+        const textStart = pillStart + (lead ? STAGE.TEXT_START : STAGE.PILL_W - STAGE.TEXT_START - STAGE.TEXT_W);
+        const notchStart = lead ? STAGE.PILL_W : STAGE.W - STAGE.PILL_W - STAGE.NOTCH_W;
+        const metaStart = lead ? STAGE.META_START : STAGE.W - STAGE.META_START - STAGE.META_W;
 
-              <Box
+        return (
+          <Box
+            key={step.icon}
+            className="processCard"
+            sx={{ position: "absolute", insetInlineStart: 0, top: rowTop(i), width: STAGE.W, height: STAGE.PILL_H }}
+          >
+            <Box sx={{ ...pillFace(step.color), insetInlineStart: pillStart }} />
+            <Box sx={{ ...notch(step.color, lead), insetInlineStart: notchStart }} />
+
+            <Box
+              sx={{
+                position: "absolute",
+                insetInlineStart: textStart,
+                top: STAGE.TEXT_PAD,
+                width: STAGE.TEXT_W,
+                height: STAGE.PILL_H - 2 * STAGE.TEXT_PAD,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                variant="h6"
+                fontWeight={700}
                 sx={{
-                  position: "absolute",
-                  insetInlineStart: g.textStart,
-                  top: g.textTop,
-                  width: 214,
-                  textAlign: g.lead ? "start" : "end",
+                  fontFamily: theme.custom.font.display,
+                  fontSize: STAGE.TITLE_FS,
+                  lineHeight: 1.25,
+                  mb: 0.875,
+                  color: pillText,
+                  ...alignText("center"),
                 }}
               >
-                <Typography
-                  variant="h6"
-                  fontWeight={700}
-                  sx={{ fontFamily: theme.custom.font.display, fontSize: "1.05rem", mb: 0.5, color: pillText }}
-                >
-                  {step.text}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ fontFamily: theme.custom.font.body, fontSize: "0.8rem", lineHeight: 1.5, color: pillText, textWrap: "pretty" }}
-                >
-                  {step.description}
-                </Typography>
-              </Box>
-
-              <Box className="processNode" sx={{ ...disc(g.lead), insetInlineStart: g.discStart }}>
-                <StepIcon sx={{ color: step.color, fontSize: 48 }} />
-              </Box>
+                {step.text}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontFamily: theme.custom.font.body,
+                  fontSize: STAGE.BODY_FS,
+                  lineHeight: 1.5,
+                  color: alpha(pillText, 0.92),
+                  textWrap: "pretty",
+                  ...alignText("start"),
+                }}
+              >
+                {step.description}
+              </Typography>
             </Box>
 
-            <Box sx={{ ...trailDot(step.color), insetInlineStart: g.dotStart, top: g.dotTop }}>
-              <Box sx={{ width: 11, height: 11, borderRadius: "50%", backgroundColor: step.color }} />
+            <Box sx={{ ...disc(step.color, lead), insetInlineStart: discStart }}>
+              <StepIcon sx={{ color: marker, fontSize: Math.round(STAGE.DISC * 0.34) }} />
+            </Box>
+
+            <Box
+              className="processNode"
+              sx={{
+                position: "absolute",
+                insetInlineStart: ringCx(i) - STAGE.RING / 2,
+                top: (STAGE.PILL_H - STAGE.RING) / 2,
+                width: STAGE.RING,
+                height: STAGE.RING,
+                boxSizing: "border-box",
+                borderRadius: "50%",
+                border: `${STAGE.RING_BORDER}px solid ${marker}`,
+                backgroundColor: surfaceRaised,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Box sx={{ width: STAGE.RING_DOT, height: STAGE.RING_DOT, borderRadius: "50%", backgroundColor: marker }} />
             </Box>
 
             <Box
               sx={{
                 position: "absolute",
-                insetInlineStart: g.numStart,
-                top: g.numTop,
-                width: 140,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: g.lead ? "flex-start" : "flex-end",
-                textAlign: g.lead ? "start" : "end",
+                insetInlineStart: metaStart,
+                top: STAGE.META_TOP,
+                width: STAGE.META_W,
+                ...alignText(lead ? "start" : "end"),
               }}
             >
-              <Typography sx={stepWordSx}>{t("step")}</Typography>
-              <Typography sx={stepNumSx(step.color)}>{num}</Typography>
+              <Typography
+                sx={{ ...stepWordSx, fontSize: STAGE.STEP_FS, letterSpacing: ".02em", textTransform: "uppercase", lineHeight: 1, color: alpha(ink, 0.42) }}
+              >
+                {t("step")}
+              </Typography>
+              <Typography sx={{ ...stepNumSx(marker), fontSize: STAGE.NUM_FS, lineHeight: 1.05, mt: 0.75 }}>{num}</Typography>
             </Box>
-
-            {step.icon === "notif" && (
-              <Box sx={{ position: "absolute", insetInlineStart: 20, top: 492, width: 352 }}>
-                <NotifyHints mt={0} />
-              </Box>
-            )}
           </Box>
         );
       })}
@@ -355,9 +451,9 @@ const Process = () => {
             <Box key={step.icon} sx={{ position: "relative" }}>
               <Box
                 className="processNode"
-                sx={{ ...trailDot(step.color), insetInlineStart: -RAIL_INSET, top: 18, boxSizing: "border-box" }}
+                sx={{ ...trailDot(onPanel(step.color)), insetInlineStart: -RAIL_INSET, top: 18, boxSizing: "border-box" }}
               >
-                <Box sx={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: step.color }} />
+                <Box sx={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: onPanel(step.color) }} />
               </Box>
 
               <Box
@@ -414,10 +510,10 @@ const Process = () => {
                     backgroundImage: `radial-gradient(120% 120% at 30% 25%, ${surfaceRaised} 0%, ${
                       isDark ? lighten(surfaceRaised, 0.06) : darken(surfaceRaised, 0.05)
                     } 100%)`,
-                    boxShadow: `0 10px 20px ${alpha("#0F172A", isDark ? 0.45 : 0.22)}`,
+                    boxShadow: theme.custom.elevation.e3,
                   }}
                 >
-                  <StepIcon sx={{ color: step.color, fontSize: 28 }} />
+                  <StepIcon sx={{ color: onPanel(step.color), fontSize: 28 }} />
                 </Box>
 
                 {/* On the pill, the status tokens' own bg tints are too light to
@@ -435,7 +531,7 @@ const Process = () => {
                           gap: 1,
                           p: 1.25,
                           borderRadius: `${theme.custom.radius.sm}px`,
-                          backgroundColor: alpha("#0A0E1A", 0.42),
+                          backgroundColor: alpha(darken(step.color, 0.75), 0.42),
                           textAlign: "start",
                         }}
                       >
@@ -479,16 +575,18 @@ const Process = () => {
       sx={{
         position: "relative",
         overflow: "hidden",
+        // Flat surfaceRaised with elevation and no border, per Phase 8 — and
+        // because the reference this section reproduces stands the whole
+        // composition on a clean ground; a brand wash behind pills that are
+        // themselves the brand ramp only muddies them.
         backgroundColor: surfaceRaised,
-        backgroundImage: `radial-gradient(120% 100% at 10% 0%, ${alpha(brandPrimary, isDark ? 0.16 : 0.07)} 0%, transparent 55%), radial-gradient(120% 100% at 90% 100%, ${alpha(brandLogo, isDark ? 0.14 : 0.06)} 0%, transparent 55%)`,
-        border: `1px solid ${alpha(brandPrimary, isDark ? 0.35 : 0.18)}`,
         borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
-        boxShadow: `${theme.custom.elevation.e2}, 0 0 32px ${alpha(brandPrimary, isDark ? 0.16 : 0.08)}`,
+        boxShadow: theme.custom.elevation.e2,
         padding: { xs: "1.5rem", sm: "2.5rem", md: "3rem" },
       }}
     >
       <Box sx={{ position: "relative", zIndex: 1 }}>
-        <Box sx={{ textAlign: "center", maxWidth: 560, mx: "auto", mb: { xs: 4, md: 2 } }}>
+        <Box sx={{ maxWidth: 560, mx: "auto", mb: { xs: 4, md: 2 }, ...alignText("center") }}>
           <Typography variant="overline" sx={{ fontWeight: 600, letterSpacing: 1, color: alpha(ink, 0.6) }}>
             {t("whatWeDo")}
           </Typography>
@@ -511,10 +609,43 @@ const Process = () => {
 
         {isStage ? renderStage() : renderRail()}
 
+        {/* The reference has no counterpart for these two lines, and the pill
+            they belong to is a fixed shape with no room for them — so they sit
+            under the stage as their own row rather than distorting step 3. The
+            rail keeps its own copy inside the notify pill, where the saturated
+            ground needs a dark scrim instead of the tokens' own bg tint. */}
+        {isStage && (
+          <Box className="processCard" sx={{ width: STAGE.W, mx: "auto", mt: 3, display: "flex", gap: 1.5 }}>
+            {notifyHints.map((hint) => (
+              <Box
+                key={hint.key}
+                sx={{
+                  flex: "1 1 0",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 1,
+                  p: 1.5,
+                  borderRadius: `${theme.custom.radius.sm}px`,
+                  backgroundColor: hint.token.bg,
+                  ...alignText("start"),
+                }}
+              >
+                <Box sx={{ width: 6, height: 6, mt: "6px", borderRadius: "50%", flexShrink: 0, backgroundColor: hint.token.main }} />
+                <Typography
+                  variant="body2"
+                  sx={{ fontFamily: theme.custom.font.body, fontSize: "0.85rem", fontWeight: 600, lineHeight: 1.45, color: hint.token.main }}
+                >
+                  {hint.text}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        )}
+
         <Box className="processSocial" sx={{ mt: { xs: 4, md: 3 } }}>
           <Typography
             variant="overline"
-            sx={{ display: "block", textAlign: "center", fontWeight: 600, letterSpacing: 1, color: alpha(ink, 0.6), mb: 1.5 }}
+            sx={{ display: "block", fontWeight: 600, letterSpacing: 1, color: alpha(ink, 0.6), mb: 1.5, ...alignText("center") }}
           >
             {t("followUs")}
           </Typography>
