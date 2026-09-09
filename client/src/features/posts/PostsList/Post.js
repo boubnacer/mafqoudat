@@ -24,6 +24,8 @@ import {
   AccessTime as TimeIcon,
   ImageNotSupported as NoImageIcon,
   CheckCircle as CheckCircleIcon,
+  TaskAltOutlined,
+  SearchOffOutlined,
   Facebook as FacebookIcon,
   Instagram as InstagramIcon,
   IosShare as ShareIcon,
@@ -785,6 +787,7 @@ const Post = ({ post, viewMode = "grid" }) => {
   // through three widths, and that control is gone, so the layout that reads
   // best in a grid cell is the only one it renders.
   const tone = foundLostStatus.isFound ? theme.custom.status.found : theme.custom.status.lost;
+  const StatusIcon = foundLostStatus.isFound ? TaskAltOutlined : SearchOffOutlined;
 
   const siteViews = readSiteViews(post);
   const socialStats = summarizeSocialStats(post);
@@ -886,7 +889,10 @@ const Post = ({ post, viewMode = "grid" }) => {
           </Box>
         ) : null}
 
-        {/* Status: a white pill overlaid on the photo, top-start. */}
+        {/* Status: the same solid-fill tag as the dashboard's Recent
+            Founds/Losts cards (RecentPosts.jsx) - tone.main fill,
+            radius.sm corners, TaskAltOutlined/SearchOffOutlined icon,
+            uppercase caption text - overlaid on the photo, top-start. */}
         <Box
           sx={{
             position: 'absolute',
@@ -895,15 +901,25 @@ const Post = ({ post, viewMode = "grid" }) => {
             zIndex: 2,
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 1,
-            backgroundColor: theme.custom.color.surfaceRaised,
-            borderRadius: '999px',
-            padding: '8px 16px 8px 12px',
-            boxShadow: theme.custom.elevation.e2,
+            gap: 0.5,
+            px: 1,
+            py: 0.375,
+            borderRadius: `${theme.custom.radius.sm}px`,
+            backgroundColor: tone.main,
           }}
         >
-          <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: tone.main, flexShrink: 0 }} />
-          <Typography sx={{ fontWeight: 700, fontSize: 13, color: theme.custom.color.ink, lineHeight: 1 }}>
+          <StatusIcon sx={{ fontSize: 14, color: theme.palette.getContrastText(tone.main) }} />
+          <Typography
+            variant="caption"
+            sx={{
+              fontWeight: 700,
+              fontSize: '10px',
+              letterSpacing: 0.3,
+              textTransform: 'uppercase',
+              color: theme.palette.getContrastText(tone.main),
+              lineHeight: 1,
+            }}
+          >
             {foundLostStatus.statusText}
           </Typography>
         </Box>
