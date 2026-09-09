@@ -310,11 +310,6 @@ const Process = () => {
     color,
   });
 
-  const notifyHints = [
-    { key: "lost", token: theme.custom.status.lost, text: t("notifyLostHint") },
-    { key: "found", token: theme.custom.status.found, text: t("notifyFoundHint") },
-  ];
-
   useGSAP(() => {
     if (!rootRef.current) return undefined;
 
@@ -720,48 +715,6 @@ const Process = () => {
         </Box>
 
         <Box ref={hostRef} sx={{ width: "100%" }}>{isStage ? renderStage() : renderStack()}</Box>
-
-        {/* The reference has no counterpart for these two lines, and the pill
-            they belong to is a fixed shape with no room for them — so they sit
-            under the steps as their own row rather than distorting step 3. */}
-        <Box
-          className="processCard"
-          sx={{
-            width: "100%",
-            maxWidth: STAGE.W,
-            mx: "auto",
-            mt: 2.5,
-            display: "flex",
-            // Side by side only where the stage renders; the stacked layout
-            // never has the width for two chips on one row.
-            flexDirection: isStage ? "row" : "column",
-            gap: 1.5,
-          }}
-        >
-          {notifyHints.map((hint) => (
-            <Box
-              key={hint.key}
-              sx={{
-                flex: "1 1 0",
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 1,
-                p: 1.5,
-                borderRadius: `${theme.custom.radius.sm}px`,
-                backgroundColor: hint.token.bg,
-                ...alignText("start"),
-              }}
-            >
-              <Box sx={{ width: 6, height: 6, mt: "6px", borderRadius: "50%", flexShrink: 0, backgroundColor: hint.token.main }} />
-              <Typography
-                variant="body2"
-                sx={{ fontFamily: theme.custom.font.body, fontSize: "0.85rem", fontWeight: 600, lineHeight: 1.45, color: hint.token.main }}
-              >
-                {hint.text}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
 
         <Box className="processSocial" sx={{ mt: { xs: 3.5, md: 3 } }}>
           <Typography
