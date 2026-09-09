@@ -4,37 +4,14 @@ import DashFooter from "../Footer/DashFooter";
 import "./layout.css";
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import Navbar from "../Navbar";
-import { useState, useEffect } from "react";
 import Sidebar from "../Sidebar";
 import { useTranslation } from "../../utils/translations";
 
 const DashLayout = () => {
-  
+
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const theme = useTheme();
   const { currentLanguage } = useTranslation();
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    // Add error boundary for debugging
-    const handleError = (error) => {
-      console.error('DashLayout: Error caught:', error);
-      setError(error);
-    };
-
-    window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
-  }, []);
-
-  if (error) {
-    return (
-      <Box p={3} textAlign="center">
-        <h2>Error in DashLayout</h2>
-        <p>{error.message}</p>
-        <button onClick={() => window.location.reload()}>Reload Page</button>
-      </Box>
-    );
-  }
 
   return (
     <>
