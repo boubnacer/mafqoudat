@@ -908,6 +908,41 @@ const Post = ({ post, viewMode = "grid" }) => {
           </Typography>
         </Box>
 
+        {/* City: same white-pill treatment as the status badge above, on the
+            opposite end of the same top row (insetInlineEnd), so the pair
+            reads as one inline header - top-end in LTR, top-start in RTL. */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 12,
+            insetInlineEnd: 12,
+            zIndex: 2,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.5,
+            backgroundColor: theme.custom.color.surfaceRaised,
+            borderRadius: '999px',
+            padding: '8px 12px',
+            boxShadow: theme.custom.elevation.e2,
+            maxWidth: '55%',
+          }}
+        >
+          <LocationIcon sx={{ fontSize: 16, color: theme.custom.color.ink, flexShrink: 0 }} />
+          <Typography
+            sx={{
+              fontWeight: 700,
+              fontSize: 13,
+              color: theme.custom.color.ink,
+              lineHeight: 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {cityName}
+          </Typography>
+        </Box>
+
         {post?.returned && <ResolvedBadge label={t('returned')} />}
 
         {/* Quick actions: share and save, stacked bottom-end on the photo.
@@ -955,10 +990,10 @@ const Post = ({ post, viewMode = "grid" }) => {
       </Box>
       </Box>
 
-      {/* Header: category, city (with a location icon). The city used to
-          also render as a plain headline above this row with no icon,
-          duplicating the same text - removed, this icon'd line is the only
-          city mention on the card now. */}
+      {/* Header: category chips. City moved up onto the photo as a pill
+          inline with the found/lost status badge (see above) - this row
+          used to also carry a second icon'd city line, now dropped since
+          the photo-overlay pill is the only city mention on the card. */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: { xs: '0 16px', sm: '0 20px' }, pt: { xs: 1.5, sm: 2 } }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
           {categories.map((cat, index) => {
@@ -982,13 +1017,6 @@ const Post = ({ post, viewMode = "grid" }) => {
               </Box>
             );
           })}
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <LocationIcon sx={{ fontSize: 16, color: alpha(theme.custom.color.ink, 0.6) }} />
-          <Typography sx={{ fontSize: 14, fontWeight: 600, color: alpha(theme.custom.color.ink, 0.6) }}>
-            {cityName}
-          </Typography>
         </Box>
       </Box>
 
