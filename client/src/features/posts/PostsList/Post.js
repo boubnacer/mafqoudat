@@ -892,7 +892,13 @@ const Post = ({ post, viewMode = "grid" }) => {
         {/* Status: the same solid-fill tag as the dashboard's Recent
             Founds/Losts cards (RecentPosts.jsx) - tone.main fill,
             radius.sm corners, TaskAltOutlined/SearchOffOutlined icon,
-            uppercase caption text - overlaid on the photo, top-start. */}
+            uppercase caption text - overlaid on the photo, top-start.
+            Sized up from RecentPosts.jsx's fixed compact size (that one
+            lives on a narrow poster-style card) with responsive steps for
+            this card's larger real estate, and the label is t('found')/
+            t('lost') - the same fixed translation key RecentPosts.jsx
+            reads off its own `type` prop, rather than foundLostStatus's
+            DB-sourced Floptions label, which doesn't always match. */}
         <Box
           sx={{
             position: 'absolute',
@@ -901,26 +907,26 @@ const Post = ({ post, viewMode = "grid" }) => {
             zIndex: 2,
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 0.5,
-            px: 1,
-            py: 0.375,
+            gap: { xs: 0.5, sm: 0.75 },
+            px: { xs: 1.25, sm: 1.5 },
+            py: { xs: 0.5, sm: 0.625 },
             borderRadius: `${theme.custom.radius.sm}px`,
             backgroundColor: tone.main,
           }}
         >
-          <StatusIcon sx={{ fontSize: 14, color: theme.palette.getContrastText(tone.main) }} />
+          <StatusIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: theme.palette.getContrastText(tone.main) }} />
           <Typography
             variant="caption"
             sx={{
               fontWeight: 700,
-              fontSize: '10px',
+              fontSize: { xs: '12px', sm: '13px' },
               letterSpacing: 0.3,
               textTransform: 'uppercase',
               color: theme.palette.getContrastText(tone.main),
               lineHeight: 1,
             }}
           >
-            {foundLostStatus.statusText}
+            {t(foundLostStatus.isFound ? 'found' : 'lost')}
           </Typography>
         </Box>
 
