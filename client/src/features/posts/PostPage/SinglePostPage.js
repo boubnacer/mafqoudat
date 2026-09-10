@@ -846,7 +846,7 @@ const SinglePostPage = ({
             {/* Image Section */}
             <Box sx={{
               position: 'relative',
-              backgroundColor: image ? 'transparent' : alpha(statusTone.main, 0.06),
+              backgroundColor: image ? 'transparent' : (categoryStyles[0]?.background || alpha(theme.custom.color.brandPrimary, 0.08)),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

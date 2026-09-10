@@ -793,7 +793,7 @@ const Post = ({ post, viewMode = "grid" }) => {
           aspectRatio: { xs: '4 / 3', sm: '1 / 1' },
           borderRadius: `${theme.custom.radius.xl}px`,
           overflow: 'hidden',
-          backgroundColor: post?.image ? 'transparent' : alpha(tone.main, 0.06),
+          backgroundColor: post?.image ? 'transparent' : alpha(categoryStyle.main, 0.1),
         }}
       >
         {post?.image && imageUrl ? (
