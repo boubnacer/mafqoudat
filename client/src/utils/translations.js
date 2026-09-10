@@ -1130,7 +1130,8 @@ export const translations = {
     // Search Section
     searchResults: "Search Results",
     filters: "Filters",
-    
+    applyFilters: "Apply Filters",
+
     // Quick Actions
     reportLostItem: "Report Lost Item",
     reportFoundItem: "Report Found Item",
@@ -3213,7 +3214,8 @@ export const translations = {
     // Search Section
     searchResults: "Résultats de recherche",
     filters: "Filtres",
-    
+    applyFilters: "Appliquer les filtres",
+
     // Quick Actions
     reportLostItem: "Signaler un objet perdu",
     reportFoundItem: "Signaler un objet trouvé",
@@ -5258,7 +5260,8 @@ export const translations = {
     // Search Section
     searchResults: "نتائج البحث",
     filters: "التصفيات",
-    
+    applyFilters: "تطبيق التصفيات",
+
     // Quick Actions
     reportLostItem: "الإبلاغ عن غرض مفقود",
     reportFoundItem: "الإبلاغ عن غرض عثر عليه",

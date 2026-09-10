@@ -18,7 +18,7 @@ import {
   LocationOn,
   TuneRounded as FilterIcon,
   CategoryOutlined as CategoryIcon,
-  ExpandMoreRounded as ExpandMoreIcon,
+  CloseRounded as CloseIcon,
 } from "@mui/icons-material";
 import {
   Button,
@@ -36,13 +36,15 @@ import {
   useMediaQuery,
   IconButton,
   Tooltip,
-  Grid,
   Autocomplete,
   CircularProgress,
   Alert,
   alpha,
   lighten,
-  Collapse,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
 import { useEffect, useState, useMemo, useCallback, useLayoutEffect } from "react";
@@ -122,12 +124,19 @@ const PostsList = () => {
   const [viewMode, setViewMode] = useState("grid");
   const [localCategoryFilter, setLocalCategoryFilter] = useState("all");
   const [selectedCategories, setSelectedCategories] = useState([]); // Multiple categories filter
-  // Collapsed by default - only the "Filters" header row shows until pressed.
-  const [filtersExpanded, setFiltersExpanded] = useState(false);
+  // Mobile/tablet filters open as a Dialog rather than an inline collapsible
+  // panel - picks are staged in draft state below and only take effect (and
+  // re-run the posts query) when the user presses Apply, so browsing the
+  // dialog never flashes intermediate result sets.
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+  const [draftLocalCategoryFilter, setDraftLocalCategoryFilter] = useState("all");
+  const [draftSelectedCategories, setDraftSelectedCategories] = useState([]);
+  const [draftSelectedCity, setDraftSelectedCity] = useState(null);
   // The filter bar is fixed below the navbar so it never scrolls out of view;
-  // its height changes as it expands/collapses (and per language/breakpoint),
-  // so a spacer of the same height is kept in the normal flow to reserve its
-  // space rather than letting content jump underneath it.
+  // its height changes as active-filter chips appear/disappear (and per
+  // language/breakpoint), so a spacer of the same height is kept in the
+  // normal flow to reserve its space rather than letting content jump
+  // underneath it.
   // A state-backed callback ref (not a plain useRef) because this component
   // returns a loading skeleton first - the filter bar (and its DOM node)
   // don't exist until the success branch renders, so the observer effect
@@ -480,11 +489,11 @@ const PostsList = () => {
 
 
 
-  // Track the fixed filter bar's rendered height (it changes as it expands/
-  // collapses via Collapse's own animation) so the spacer below can always
-  // reserve exactly that much space. Depends on filterBarNode (not a mount-
-  // only []) because the bar doesn't exist in the DOM until the query
-  // resolves and the success branch renders it.
+  // Track the fixed filter bar's rendered height (it changes as active-filter
+  // chips appear/disappear below it) so the spacer below can always reserve
+  // exactly that much space. Depends on filterBarNode (not a mount-only [])
+  // because the bar doesn't exist in the DOM until the query resolves and
+  // the success branch renders it.
   useLayoutEffect(() => {
     if (!filterBarNode || typeof ResizeObserver === 'undefined') return undefined;
 
@@ -514,10 +523,6 @@ const PostsList = () => {
     });
     observer.observe(header);
     return () => observer.disconnect();
-  }, []);
-
-  const handleToggleFilters = useCallback(() => {
-    setFiltersExpanded((prev) => !prev);
   }, []);
 
   // Debounce search term
@@ -616,63 +621,82 @@ const PostsList = () => {
     setPage(1);
   }, []);
 
+  // Shared by the live (desktop) and draft (mobile dialog) city selection
+  // handlers below - caching which cities have been picked is not itself a
+  // "filter" (it never re-runs the posts query), so it doesn't need to wait
+  // for Apply either way.
+  const cacheCityIfNeeded = useCallback((newValue) => {
+    if (!newValue) return;
+    setCachedCities(prevCached => {
+      const exists = prevCached.some(c =>
+        (c._id || c.id) === (newValue._id || newValue.id)
+      );
+      if (!exists) {
+        // Normalize country to always be a string ID for consistent filtering
+        let normalizedCountry = currentCountry;
+        if (newValue.country) {
+          normalizedCountry = typeof newValue.country === 'object'
+            ? (newValue.country._id || newValue.country.id || currentCountry)
+            : newValue.country;
+        }
+        // Ensure it's a string
+        normalizedCountry = normalizedCountry ? String(normalizedCountry) : currentCountry;
+
+        const cityToCache = {
+          ...newValue,
+          country: normalizedCountry
+        };
+        const newCached = [...prevCached, cityToCache];
+
+        // Limit cache size to prevent localStorage from getting too large (keep last 100 cities)
+        const limitedCache = newCached.slice(-100);
+
+        // Save to localStorage
+        try {
+          localStorage.setItem('cachedCities', JSON.stringify(limitedCache));
+        } catch (error) {
+          console.error('Error saving cached cities:', error);
+          // If localStorage is full, try to clear old entries
+          try {
+            const reducedCache = newCached.slice(-50);
+            localStorage.setItem('cachedCities', JSON.stringify(reducedCache));
+            return reducedCache;
+          } catch (e) {
+            console.error('Error saving reduced cached cities:', e);
+          }
+        }
+
+        return limitedCache;
+      }
+      return prevCached;
+    });
+  }, [currentCountry]);
+
   const handleCityChange = useCallback((event, newValue) => {
     setSelectedCity(newValue);
     // Update search term to show selected city name in current language
     if (newValue) {
-      const cityName = getCityDisplayName(newValue);
-      setCitySearchTerm(cityName);
-      
-      // Save selected city to cache if not already there
-      setCachedCities(prevCached => {
-        const exists = prevCached.some(c => 
-          (c._id || c.id) === (newValue._id || newValue.id)
-        );
-        if (!exists) {
-          // Normalize country to always be a string ID for consistent filtering
-          let normalizedCountry = currentCountry;
-          if (newValue.country) {
-            normalizedCountry = typeof newValue.country === 'object' 
-              ? (newValue.country._id || newValue.country.id || currentCountry)
-              : newValue.country;
-          }
-          // Ensure it's a string
-          normalizedCountry = normalizedCountry ? String(normalizedCountry) : currentCountry;
-          
-          const cityToCache = {
-            ...newValue,
-            country: normalizedCountry
-          };
-          const newCached = [...prevCached, cityToCache];
-          
-          // Limit cache size to prevent localStorage from getting too large (keep last 100 cities)
-          const limitedCache = newCached.slice(-100);
-          
-          // Save to localStorage
-          try {
-            localStorage.setItem('cachedCities', JSON.stringify(limitedCache));
-          } catch (error) {
-            console.error('Error saving cached cities:', error);
-            // If localStorage is full, try to clear old entries
-            try {
-              const reducedCache = newCached.slice(-50);
-              localStorage.setItem('cachedCities', JSON.stringify(reducedCache));
-              return reducedCache;
-            } catch (e) {
-              console.error('Error saving reduced cached cities:', e);
-            }
-          }
-          
-          return limitedCache;
-        }
-        return prevCached;
-      });
+      setCitySearchTerm(getCityDisplayName(newValue));
+      cacheCityIfNeeded(newValue);
     } else {
       setCitySearchTerm('');
     }
     setPage(1);
     // Dropdown will close automatically because open={citySearchTerm.length >= 1 && !selectedCity}
-  }, [getCityDisplayName, currentCountry]);
+  }, [getCityDisplayName, cacheCityIfNeeded]);
+
+  // Draft twin of handleCityChange used by the mobile filter dialog - stages
+  // the pick into draftSelectedCity instead of the applied selectedCity, so
+  // nothing re-queries until the user presses Apply.
+  const handleDraftCityChange = useCallback((event, newValue) => {
+    setDraftSelectedCity(newValue);
+    if (newValue) {
+      setCitySearchTerm(getCityDisplayName(newValue));
+      cacheCityIfNeeded(newValue);
+    } else {
+      setCitySearchTerm('');
+    }
+  }, [getCityDisplayName, cacheCityIfNeeded]);
 
   const handleCityInputChange = useCallback((event, newInputValue, reason) => {
     // Only update search term if user is typing (not when selecting)
@@ -691,6 +715,23 @@ const PostsList = () => {
       setSelectedCity(null);
     }
   }, [selectedCity, getCityDisplayName]);
+
+  // Draft twin of handleCityInputChange - clears/restores draftSelectedCity
+  // rather than the applied selectedCity while the dialog is open.
+  const handleDraftCityInputChange = useCallback((event, newInputValue, reason) => {
+    if (reason === 'input') {
+      setCitySearchTerm(newInputValue);
+      if (newInputValue && draftSelectedCity) {
+        setDraftSelectedCity(null);
+      }
+    } else if (reason === 'reset' && draftSelectedCity) {
+      const cityName = getCityDisplayName(draftSelectedCity);
+      setCitySearchTerm(cityName);
+    } else if (reason === 'clear') {
+      setCitySearchTerm('');
+      setDraftSelectedCity(null);
+    }
+  }, [draftSelectedCity, getCityDisplayName]);
 
   const handleClearCityFilter = useCallback(() => {
     setSelectedCity(null);
@@ -722,6 +763,55 @@ const PostsList = () => {
     setSortBy("newest");
   }, []);
 
+  // Draft twin of handleCategoriesFilter for the mobile filter dialog.
+  const handleDraftCategoriesFilter = useCallback((event, newValue) => {
+    const categoryIds = newValue.map(cat => cat.id || cat._id || cat);
+    setDraftSelectedCategories(categoryIds);
+    if (categoryIds.length > 0) {
+      setDraftLocalCategoryFilter("all");
+    }
+  }, []);
+
+  const handleClearDraftCategoryFilter = useCallback(() => {
+    setDraftLocalCategoryFilter("all");
+    setDraftSelectedCategories([]);
+  }, []);
+
+  const handleClearDraftCityFilter = useCallback(() => {
+    setDraftSelectedCity(null);
+    setCitySearchTerm("");
+  }, []);
+
+  // Mobile filter dialog lifecycle: opening seeds the draft from whatever is
+  // currently applied (so re-opening shows the same picks), Apply promotes
+  // the draft into the applied state (which is what the posts query reads)
+  // and closes, Cancel/close discards the draft untouched.
+  const handleOpenFilterDialog = useCallback(() => {
+    setDraftLocalCategoryFilter(localCategoryFilter);
+    setDraftSelectedCategories(selectedCategories);
+    setDraftSelectedCity(selectedCity);
+    setCitySearchTerm(selectedCity ? getCityDisplayName(selectedCity) : "");
+    setFilterDialogOpen(true);
+  }, [localCategoryFilter, selectedCategories, selectedCity, getCityDisplayName]);
+
+  const handleCloseFilterDialog = useCallback(() => {
+    setFilterDialogOpen(false);
+  }, []);
+
+  const handleResetDraftFilters = useCallback(() => {
+    handleClearDraftCategoryFilter();
+    handleClearDraftCityFilter();
+  }, [handleClearDraftCategoryFilter, handleClearDraftCityFilter]);
+
+  const handleApplyFilters = useCallback(() => {
+    setLocalCategoryFilter(draftLocalCategoryFilter);
+    setSelectedCategories(draftSelectedCategories);
+    setSelectedCity(draftSelectedCity);
+    setCitySearchTerm(draftSelectedCity ? getCityDisplayName(draftSelectedCity) : "");
+    setPage(1);
+    setFilterDialogOpen(false);
+  }, [draftLocalCategoryFilter, draftSelectedCategories, draftSelectedCity, getCityDisplayName]);
+
   const handleAddNewPost = useCallback(() => {
     if (!user.username) {
       // Store the intended destination for redirect after login
@@ -742,6 +832,12 @@ const PostsList = () => {
   const hasActiveFilters = useMemo(() => {
     return searchTerm || localCategoryFilter !== "all" || selectedCategories.length > 0 || selectedCity || sortBy !== "newest";
   }, [searchTerm, localCategoryFilter, selectedCategories, selectedCity, sortBy]);
+
+  // Same check against the mobile dialog's staged (not-yet-applied) picks -
+  // gates the dialog's own "Reset" button.
+  const hasDraftFilters = useMemo(() => {
+    return draftLocalCategoryFilter !== "all" || draftSelectedCategories.length > 0 || draftSelectedCity;
+  }, [draftLocalCategoryFilter, draftSelectedCategories, draftSelectedCity]);
 
   // Get posts from API response (already filtered by country and found/lost)
   const filteredPosts = useMemo(() => {
@@ -917,11 +1013,13 @@ const PostsList = () => {
     // before the navbar's real height has been measured.
     const navbarClearance = navbarHeight || (isMobile ? 96 : 112);
 
-    // ---- Filter field nodes - shared between the desktop sidebar and the
-    // mobile/tablet dropdown below. Only one of the two layouts is ever
-    // returned per render (isDesktop picks the branch), so reusing the same
-    // elements in either tree is safe. ----
-    const categoryFilterNode = (
+    // ---- Filter field node builders - shared between the desktop sidebar
+    // (which reads/writes the applied filter state directly) and the mobile
+    // filter dialog (which reads/writes the staged draft state instead, only
+    // promoted to applied state on Apply). Only one of the two layouts is
+    // ever returned per render (isDesktop picks the branch), so building
+    // both sets of nodes unconditionally here is harmless. ----
+    const renderCategoryFilterField = (activeCategories, activeSingleCategory, onCategoriesChange) => (
       <Autocomplete
         multiple
         fullWidth
@@ -933,13 +1031,13 @@ const PostsList = () => {
           }
           return option.label || option.id || '';
         }}
-        value={selectedCategories.length > 0
-          ? categoryOptions.filter(cat => selectedCategories.includes(cat.id || cat.value))
-          : (localCategoryFilter !== "all"
-              ? categoryOptions.filter(cat => (cat.id || cat.value) === localCategoryFilter)
+        value={activeCategories.length > 0
+          ? categoryOptions.filter(cat => activeCategories.includes(cat.id || cat.value))
+          : (activeSingleCategory !== "all"
+              ? categoryOptions.filter(cat => (cat.id || cat.value) === activeSingleCategory)
               : [])
         }
-        onChange={handleCategoriesFilter}
+        onChange={onCategoriesChange}
         isOptionEqualToValue={(option, value) => {
           const optionId = option.id || option.value;
           const valueId = value.id || value.value;
@@ -949,7 +1047,7 @@ const PostsList = () => {
           <TextField
             {...params}
             label={t('category')}
-            placeholder={selectedCategories.length === 0
+            placeholder={activeCategories.length === 0
               ? (currentLanguage === 'ar' ? 'اختر الفئات...' : currentLanguage === 'fr' ? 'Sélectionner les catégories...' : 'Select categories...')
               : ''
             }
@@ -993,18 +1091,18 @@ const PostsList = () => {
       />
     );
 
-    const cityFilterNode = (
+    const renderCityFilterField = (activeCity, onCityChangeHandler, onCityInputChangeHandler) => (
       <Autocomplete
         fullWidth
         options={allCitiesData || []}
-        value={selectedCity}
+        value={activeCity}
         autoHighlight={false}
         autoSelect={false}
-        onChange={handleCityChange}
-        onInputChange={handleCityInputChange}
+        onChange={onCityChangeHandler}
+        onInputChange={onCityInputChangeHandler}
         inputValue={citySearchTerm}
         open={
-          !selectedCity &&
+          !activeCity &&
           // Only open if there are cities to show
           allCitiesData.length > 0 &&
           !citiesLoading && (
@@ -1020,8 +1118,8 @@ const PostsList = () => {
         onClose={() => {
           setCityInputFocused(false);
           // When dropdown closes, if a city is selected, keep the city name
-          if (selectedCity) {
-            const cityName = getCityDisplayName(selectedCity);
+          if (activeCity) {
+            const cityName = getCityDisplayName(activeCity);
             setCitySearchTerm(cityName);
           }
         }}
@@ -1121,11 +1219,11 @@ const PostsList = () => {
     // is now exactly the desktop sidebar's territory - always stacking the
     // message and button reads better in a ~300px sidebar than the old
     // viewport-driven row split did.
-    const cityNotFoundNode = (
+    const renderCityNotFoundNode = (activeCity) => (
       citySearchTerm.length >= 1 &&
       !citiesLoading &&
       allCitiesData.length === 0 &&
-      !selectedCity
+      !activeCity
     ) ? (
       <Alert
         severity="info"
@@ -1167,6 +1265,17 @@ const PostsList = () => {
         </Box>
       </Alert>
     ) : null;
+
+    // Live (applied) nodes - used by the desktop sidebar, which has no
+    // Apply step and edits the real filter state directly.
+    const categoryFilterNode = renderCategoryFilterField(selectedCategories, localCategoryFilter, handleCategoriesFilter);
+    const cityFilterNode = renderCityFilterField(selectedCity, handleCityChange, handleCityInputChange);
+    const cityNotFoundNode = renderCityNotFoundNode(selectedCity);
+
+    // Draft (staged) nodes - used inside the mobile filter dialog.
+    const draftCategoryFilterNode = renderCategoryFilterField(draftSelectedCategories, draftLocalCategoryFilter, handleDraftCategoriesFilter);
+    const draftCityFilterNode = renderCityFilterField(draftSelectedCity, handleDraftCityChange, handleDraftCityInputChange);
+    const draftCityNotFoundNode = renderCityNotFoundNode(draftSelectedCity);
 
     const activeChipsNode = activeFilterChips.length > 0 ? (
       <Box display="flex" gap={1} flexWrap="wrap">
@@ -1513,7 +1622,10 @@ const PostsList = () => {
       );
     }
 
-    // ---- Mobile/tablet (below md): collapsible dropdown fixed under the navbar ----
+    // ---- Mobile/tablet (below md): a single-row filter trigger fixed under
+    // the navbar, opening the filter fields in a Dialog instead of an inline
+    // dropdown - picks are staged and only take effect on Apply, so the grid
+    // below never reflows mid-pick. ----
     return (
       <>
         <SeoMeta pageKey="dashPosts" />
@@ -1525,10 +1637,10 @@ const PostsList = () => {
       }}>
         {/* Filter bar is fixed flush below the navbar (top matches its
             measured height, no extra gap) so it's always reachable while
-            scrolling. Collapsed by default - only this header row shows until
-            pressed; the spacer right after it reserves whatever height the
-            bar currently renders at (it grows when expanded), so page content
-            is never covered by or jumps under the fixed bar. */}
+            scrolling. The spacer right after it reserves whatever height the
+            bar currently renders at (it grows when active-filter chips
+            appear), so page content is never covered by or jumps under the
+            fixed bar. */}
         <Box
           ref={filterBarRef}
           sx={{
@@ -1556,14 +1668,15 @@ const PostsList = () => {
             }}
           >
             <Box
-              onClick={handleToggleFilters}
+              onClick={handleOpenFilterDialog}
               role="button"
               tabIndex={0}
-              aria-expanded={filtersExpanded}
+              aria-haspopup="dialog"
+              aria-expanded={filterDialogOpen}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  handleToggleFilters();
+                  handleOpenFilterDialog();
                 }
               }}
               sx={{
@@ -1572,7 +1685,7 @@ const PostsList = () => {
                 justifyContent: 'space-between',
                 flexWrap: 'wrap',
                 gap: 1.5,
-                mb: filtersExpanded ? 2.5 : 0,
+                mb: activeChipsNode ? 2 : 0,
                 cursor: 'pointer',
                 userSelect: 'none',
                 borderRadius: `${theme.custom.radius.sm}px`,
@@ -1604,7 +1717,7 @@ const PostsList = () => {
                 >
                   {t('filters')}
                 </Typography>
-                {!filtersExpanded && activeFilterChips.length > 0 && (
+                {activeFilterChips.length > 0 && (
                   <Box
                     sx={{
                       minWidth: 20,
@@ -1645,113 +1758,14 @@ const PostsList = () => {
                     {t('clearFilters')}
                   </Button>
                 )}
-                <ExpandMoreIcon
-                  sx={{
-                    color: brand,
-                    transform: filtersExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.2s ease',
-                  }}
-                />
               </Box>
             </Box>
 
-            <Collapse in={filtersExpanded} timeout="auto" unmountOnExit>
-            <Grid container spacing={2} alignItems="center">
-              {/* Search - Hidden for now */}
-              {/* <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  placeholder={t('searchPostsPlaceholder')}
-                  value={searchTerm}
-                  onChange={handleSearch}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Search />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': { 
-                      borderRadius: 2 
-                    } 
-                  }}
-                />
-              </Grid> */}
-
-              {/* Sort - Hidden for now */}
-              {/* <Grid item xs={12} sm={6} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>{t('sortBy')}</InputLabel>
-                  <Select
-                    value={sortBy}
-                    label={t('sortBy')}
-                    onChange={handleSortChange}
-                    sx={{ borderRadius: 2 }}
-                  >
-                    <MenuItem value="newest">{t('newestFirst')}</MenuItem>
-                    <MenuItem value="oldest">{t('oldestFirst')}</MenuItem>
-                    <MenuItem value="region">{t('byRegion')}</MenuItem>
-                    <MenuItem value="category">{t('byCategory')}</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid> */}
-
-              {/* Category Filter - Multiple categories support */}
-              <Grid item xs={12} sm={6}>
-                {categoryFilterNode}
-              </Grid>
-
-              {/* City Filter */}
-              <Grid item xs={12} sm={6}>
-                {cityFilterNode}
-              </Grid>
-
-              {/* City Not Found Message */}
-              {cityNotFoundNode && (
-                <Grid item xs={12}>
-                  {cityNotFoundNode}
-                </Grid>
-              )}
-
-              {/* View Mode Toggle - Hidden for now */}
-              {/* <Grid item xs={12} md={3}>
-                <Box display="flex" justifyContent="center" gap={1}>
-                  <Tooltip title={t('gridView')}>
-                    <IconButton
-                      onClick={() => setViewMode("grid")}
-                      color={viewMode === "grid" ? "primary" : "default"}
-                      sx={{ 
-                        borderRadius: 2,
-                        backgroundColor: viewMode === "grid" ? theme.palette.primary.light + '20' : 'transparent'
-                      }}
-                    >
-                      <ViewModuleIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title={t('listView')}>
-                    <IconButton
-                      onClick={() => setViewMode("list")}
-                      color={viewMode === "list" ? "primary" : "default"}
-                      sx={{ 
-                        borderRadius: 2,
-                        backgroundColor: viewMode === "list" ? theme.palette.primary.light + '20' : 'transparent'
-                      }}
-                    >
-                      <ViewListIcon />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </Grid> */}
-
-              {/* Active Filters Display */}
-              {activeChipsNode && (
-                <Grid item xs={12}>
-                  {activeChipsNode}
-                </Grid>
-              )}
-            </Grid>
-            </Collapse>
+            {/* Active Filters Display - always visible below the trigger row
+                (not gated behind the dialog) so the current picks stay
+                readable while scrolling; removing one here still applies
+                immediately, same as before. */}
+            {activeChipsNode}
           </Box>
         </Box>
 
@@ -1759,6 +1773,102 @@ const PostsList = () => {
             little extra breathing room so post cards don't start flush
             against its bottom edge. */}
         <Box sx={{ height: filterBarHeight ? filterBarHeight + 16 : 0 }} />
+
+        {/* Filter Dialog - fields here edit the staged draft state; nothing
+            re-queries the posts list until Apply is pressed. */}
+        <Dialog
+          open={filterDialogOpen}
+          onClose={handleCloseFilterDialog}
+          fullScreen={isMobile}
+          fullWidth
+          maxWidth="xs"
+          PaperProps={{
+            sx: {
+              borderRadius: isMobile ? 0 : `${theme.custom.radius.lg}px`,
+              backgroundColor: theme.custom.color.surfaceRaised,
+              backgroundImage: `radial-gradient(120% 100% at ${glowOrigin}, ${alpha(brand, isDark ? 0.16 : 0.07)} 0%, transparent 55%)`,
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+              <Box
+                sx={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: `${theme.custom.radius.sm}px`,
+                  backgroundImage: `linear-gradient(135deg, ${brand} 0%, ${lighten(brand, 0.45)} 100%)`,
+                  boxShadow: `0 0 16px ${alpha(brand, 0.4)}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <FilterIcon sx={{ fontSize: 18, color: theme.palette.getContrastText(brand) }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: '1.1rem' }}>
+                {t('filters')}
+              </Typography>
+            </Box>
+            <IconButton
+              onClick={handleCloseFilterDialog}
+              aria-label={t('close')}
+              size="small"
+              sx={{ color: theme.custom.color.ink }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </DialogTitle>
+
+          <DialogContent dividers sx={{ borderColor: alpha(brand, isDark ? 0.3 : 0.16) }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 0.5 }}>
+              {draftCategoryFilterNode}
+              {draftCityFilterNode}
+              {draftCityNotFoundNode}
+            </Box>
+          </DialogContent>
+
+          <DialogActions sx={{ p: 2, gap: 1 }}>
+            <Button
+              onClick={handleResetDraftFilters}
+              disabled={!hasDraftFilters}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 600,
+                borderRadius: `${theme.custom.radius.md}px`,
+                color: brand,
+                '&:hover': { backgroundColor: alpha(brand, 0.08) },
+              }}
+            >
+              {t('clearFilters')}
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleApplyFilters}
+              sx={{
+                flex: 1,
+                textTransform: 'none',
+                fontWeight: 600,
+                borderRadius: `${theme.custom.radius.md}px`,
+                backgroundColor: brand,
+                '&:hover': {
+                  backgroundColor: brand,
+                  opacity: 0.9,
+                },
+              }}
+            >
+              {t('applyFilters')}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         {/* Posts Content */}
         {mainArea}
