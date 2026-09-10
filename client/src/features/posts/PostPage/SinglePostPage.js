@@ -32,6 +32,7 @@ import {
   ImageNotSupported as NoImageIcon,
   TaskAltOutlined,
   SearchOffOutlined,
+  AccessTime as TimeIcon,
   Visibility as ViewIcon,
   Flag as FlagIcon,
   Block as BlockIcon,
@@ -113,7 +114,9 @@ const neumorphicOverlaySx = (theme, tone) => {
 
 // Same signature as the post card DNA (Post.js/TrendingItem): this is the
 // single most load-bearing fact on the page, so it lives on the image, not
-// buried in a label:value row further down.
+// buried in a label:value row further down. Styling matches the Posts list
+// card's status tag exactly - solid tone.main fill, radius.sm, uppercase
+// contrast-text label - rather than this page's own neumorphic tint.
 const StatusTag = ({ tone, icon: Icon, label }) => {
   const theme = useTheme();
   return (
@@ -129,13 +132,19 @@ const StatusTag = ({ tone, icon: Icon, label }) => {
         px: 1.5,
         py: 0.625,
         borderRadius: `${theme.custom.radius.sm}px`,
-        ...neumorphicOverlaySx(theme, tone),
+        backgroundColor: tone.main,
       }}
     >
-      <Icon sx={{ fontSize: 18, color: tone.main }} />
+      <Icon sx={{ fontSize: 18, color: theme.palette.getContrastText(tone.main) }} />
       <Typography
         variant="body2"
-        sx={{ fontWeight: 700, letterSpacing: 0.3, color: tone.main, lineHeight: 1 }}
+        sx={{
+          fontWeight: 700,
+          letterSpacing: 0.3,
+          textTransform: 'uppercase',
+          color: theme.palette.getContrastText(tone.main),
+          lineHeight: 1,
+        }}
       >
         {label}
       </Typography>
@@ -143,6 +152,10 @@ const StatusTag = ({ tone, icon: Icon, label }) => {
   );
 };
 
+// Matches the Posts list card's date pill exactly - the reference design's
+// translucent '#78808E' scrim (not a design token; only exists on top of a
+// photo), fully rounded, white icon + text - instead of this page's own
+// neumorphic surfaceRaised tile.
 const DateBadge = ({ children }) => {
   const theme = useTheme();
   return (
@@ -152,13 +165,17 @@ const DateBadge = ({ children }) => {
         top: 12,
         insetInlineEnd: 12,
         zIndex: 3,
-        px: 1.25,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 0.75,
+        px: 1.5,
         py: 0.625,
-        borderRadius: `${theme.custom.radius.sm}px`,
-        ...neumorphicOverlaySx(theme),
+        borderRadius: '999px',
+        backgroundColor: alpha('#78808E', 0.55),
       }}
     >
-      <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 600, lineHeight: 1 }}>
+      <TimeIcon sx={{ fontSize: 18, color: '#FFFFFF' }} />
+      <Typography sx={{ fontWeight: 700, fontSize: '13px', color: '#FFFFFF', lineHeight: 1 }}>
         {children}
       </Typography>
     </Box>
