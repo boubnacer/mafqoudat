@@ -53,6 +53,7 @@ import useAuth from "../../../hooks/useAuth";
 import { selectCurrentCountry, selectFoundOrLost, selectCategoryFilter, selectActiveLink } from "../../../app/state";
 import FlexCenter from "../../../components/FlexCenter";
 import { authStorage } from "../../../utils/authStorage";
+import { smoothScrollToTop } from "../../../utils/scrollToTop";
 
 
 /**
@@ -591,7 +592,7 @@ const PostsList = () => {
   // Memoized event handlers
   const handlePaginate = useCallback((e, p) => {
     setPage(p);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    smoothScrollToTop();
   }, []);
 
   const handleSearch = useCallback((e) => {
@@ -738,6 +739,7 @@ const PostsList = () => {
     setSelectedCity(null);
     setCitySearchTerm("");
     setPage(1);
+    smoothScrollToTop();
   }, []);
 
   const handleViewModeChange = useCallback(() => {
@@ -753,15 +755,18 @@ const PostsList = () => {
 
   const handleClearSearch = useCallback(() => {
     setSearchTerm("");
+    smoothScrollToTop();
   }, []);
 
   const handleClearCategoryFilter = useCallback(() => {
     setLocalCategoryFilter("all");
     setSelectedCategories([]);
+    smoothScrollToTop();
   }, []);
 
   const handleClearSort = useCallback(() => {
     setSortBy("newest");
+    smoothScrollToTop();
   }, []);
 
   // Draft twin of handleCategoriesFilter for the mobile filter dialog.
@@ -813,8 +818,10 @@ const PostsList = () => {
     setFilterDialogOpen(false);
     // The results grid re-renders from the top of its (unchanged) scroll
     // position - without this, applying filters while scrolled down leaves
-    // the new results starting off-screen above the viewport.
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // the new results starting off-screen above the viewport. On /dash/* the
+    // real scroller is #dash-scroll-container, not window, so this has to go
+    // through smoothScrollToTop rather than window.scrollTo.
+    smoothScrollToTop();
   }, [draftLocalCategoryFilter, draftSelectedCategories, draftSelectedCity, getCityDisplayName]);
 
   const handleAddNewPost = useCallback(() => {
@@ -885,6 +892,7 @@ const PostsList = () => {
           onDelete: () => {
             setSelectedCategories(prev => prev.filter(id => id !== categoryId));
             setPage(1);
+            smoothScrollToTop();
           },
         });
       });
