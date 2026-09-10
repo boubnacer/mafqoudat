@@ -1,260 +1,229 @@
 import { apiSlice } from '../../app/api/apiSlice';
 
+/**
+ * Every /admin/* endpoint the panel talks to.
+ *
+ * Two things here are load-bearing and were previously wrong:
+ *
+ * The tag names all begin with `Admin` and are declared in apiSlice's
+ * `tagTypes`. They were not, and an undeclared tag makes RTK Query discard the
+ * whole invalidation - so approving a report, deleting a user or suspending a
+ * listing all succeeded on the server and left the table showing the old row.
+ *
+ * And the list endpoints are the panel's own; a page that is not open must not
+ * be fetching. Each page passes `skip` from its own route, so opening the panel
+ * costs one request (the overview) rather than the fourteen it used to fire on
+ * mount regardless of which tab was showing.
+ */
+
+const buildQuery = (params) => {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    search.append(key, value);
+  });
+  const query = search.toString();
+  return query ? `?${query}` : '';
+};
+
 export const adminApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    // Get admin dashboard statistics
-    getAdminDashboard: builder.query({
-      query: () => '/admin/dashboard',
-      providesTags: ['AdminDashboard'],
+    /* ------------------------------------------------------------ insights */
+
+    getAdminOverview: builder.query({
+      query: () => '/admin/overview',
+      providesTags: ['AdminOverview'],
     }),
 
-    // Get all reports with pagination and filtering
+    getAdminAnalytics: builder.query({
+      query: ({ days = 30 } = {}) => `/admin/analytics${buildQuery({ days })}`,
+      providesTags: (result, error, arg) => [
+        { type: 'AdminAnalytics', id: arg?.days || 30 },
+      ],
+    }),
+
+    getAdminAudit: builder.query({
+      query: ({ page = 1, limit = 20, action, targetType } = {}) =>
+        `/admin/audit${buildQuery({ page, limit, action, targetType })}`,
+      providesTags: ['AdminAudit'],
+    }),
+
+    /* ---------------------------------------------------------- moderation */
+
     getReports: builder.query({
-      query: ({ page = 1, limit = 10, status, reasonType, sortBy = 'createdAt', sortOrder = 'desc' } = {}) => {
-        const params = new URLSearchParams();
-        params.append('page', page);
-        params.append('limit', limit);
-        params.append('sortBy', sortBy);
-        params.append('sortOrder', sortOrder);
-        
-        if (status) params.append('status', status);
-        if (reasonType) params.append('reasonType', reasonType);
-        
-        return `/admin/reports?${params.toString()}`;
-      },
-      providesTags: ['Reports'],
+      query: ({ page = 1, limit = 10, status, reasonType, target, sortBy = 'createdAt', sortOrder = 'desc' } = {}) =>
+        `/admin/reports${buildQuery({ page, limit, status, reasonType, target, sortBy, sortOrder })}`,
+      providesTags: ['AdminReports'],
     }),
 
-    // Get all promotion requests with pagination and filtering
-    getPromotions: builder.query({
-      query: ({ page = 1, limit = 10, status, sortBy = 'promotionRequestedAt', sortOrder = 'desc' } = {}) => {
-        const params = new URLSearchParams();
-        params.append('page', page);
-        params.append('limit', limit);
-        params.append('sortBy', sortBy);
-        params.append('sortOrder', sortOrder);
-        
-        if (status) params.append('status', status);
-        
-        return `/admin/promotions?${params.toString()}`;
-      },
-      providesTags: ['Promotions'],
-    }),
-
-    // Update report status
     updateReportStatus: builder.mutation({
       query: ({ reportId, status, adminNotes }) => ({
         url: `/admin/reports/${reportId}`,
         method: 'PATCH',
         body: { status, adminNotes },
       }),
-      invalidatesTags: ['Reports', 'AdminDashboard'],
+      invalidatesTags: ['AdminReports', 'AdminOverview', 'AdminAudit'],
     }),
 
-    // Update promotion status
+    getAdminComments: builder.query({
+      query: ({ page = 1, limit = 20, status, search } = {}) =>
+        `/admin/comments${buildQuery({ page, limit, status, search })}`,
+      providesTags: ['AdminComments'],
+    }),
+
+    updateCommentAdmin: builder.mutation({
+      query: ({ commentId, status }) => ({
+        url: `/admin/comments/${commentId}`,
+        method: 'PATCH',
+        body: { status },
+      }),
+      invalidatesTags: ['AdminComments', 'AdminReports', 'AdminOverview', 'AdminAudit'],
+    }),
+
+    /* --------------------------------------------------------------- posts */
+
+    getAllPostsAdmin: builder.query({
+      query: ({ page = 1, limit = 10, search, status, category, country, sortBy = 'createdAt', sortOrder = 'desc' } = {}) =>
+        `/admin/posts${buildQuery({ page, limit, search, status, category, country, sortBy, sortOrder })}`,
+      providesTags: ['AdminPosts'],
+    }),
+
+    updatePostStatusAdmin: builder.mutation({
+      query: ({ postId, status }) => ({
+        url: `/admin/posts/${postId}/status`,
+        method: 'PATCH',
+        body: { status },
+      }),
+      invalidatesTags: ['AdminPosts', 'AdminOverview', 'AdminReports', 'AdminAudit'],
+    }),
+
+    deletePostAdmin: builder.mutation({
+      query: (postId) => {
+        if (!postId) throw new Error('Post ID is required for deletion');
+        return { url: `/admin/posts/${postId}`, method: 'DELETE' };
+      },
+      invalidatesTags: [
+        'AdminPosts',
+        'AdminReports',
+        'AdminPromotions',
+        'AdminComments',
+        'AdminOverview',
+        'AdminAudit',
+      ],
+    }),
+
+    getPromotions: builder.query({
+      query: ({ page = 1, limit = 10, status, sortBy = 'promotionRequestedAt', sortOrder = 'desc' } = {}) =>
+        `/admin/promotions${buildQuery({ page, limit, status, sortBy, sortOrder })}`,
+      providesTags: ['AdminPromotions'],
+    }),
+
     updatePromotionStatus: builder.mutation({
       query: ({ postId, processed }) => ({
         url: `/admin/promotions/${postId}`,
         method: 'PATCH',
         body: { processed },
       }),
-      invalidatesTags: ['Promotions', 'AdminDashboard'],
+      invalidatesTags: ['AdminPromotions', 'AdminOverview', 'AdminAudit'],
     }),
 
-    // Delete a post
-    deletePostAdmin: builder.mutation({
-      query: (postId) => {
-        if (!postId) {
-          throw new Error('Post ID is required for deletion');
-        }
-        
-        return {
-          url: `/admin/posts/${postId}`,
-          method: 'DELETE',
-        };
-      },
-      invalidatesTags: ['Reports', 'Promotions', 'AdminDashboard'],
-    }),
+    /* --------------------------------------------------------------- users */
 
-    // Get all password reset requests with pagination and filtering
-    getPasswordResetRequests: builder.query({
-      query: ({ page = 1, limit = 10, status, sortBy = 'createdAt', sortOrder = 'desc' } = {}) => {
-        const params = new URLSearchParams();
-        params.append('page', page);
-        params.append('limit', limit);
-        params.append('sortBy', sortBy);
-        params.append('sortOrder', sortOrder);
-        
-        if (status) params.append('status', status);
-        
-        return `/admin/password-reset-requests?${params.toString()}`;
-      },
-      providesTags: ['PasswordResetRequests'],
-    }),
-
-    // Update password reset request status
-    updatePasswordResetRequestStatus: builder.mutation({
-      query: ({ requestId, status, adminNotes }) => ({
-        url: `/admin/password-reset-requests/${requestId}`,
-        method: 'PATCH',
-        body: { status, adminNotes },
-      }),
-      invalidatesTags: ['PasswordResetRequests', 'AdminDashboard'],
-    }),
-
-    // Get all users with pagination, search, and sorting
     getUsersAdmin: builder.query({
-      query: ({ page = 1, limit = 10, search, sortBy = 'createdAt', sortOrder = 'desc' } = {}) => {
-        const params = new URLSearchParams();
-        params.append('page', page);
-        params.append('limit', limit);
-        params.append('sortBy', sortBy);
-        params.append('sortOrder', sortOrder);
-        
-        if (search) params.append('search', search);
-        
-        return `/admin/users?${params.toString()}`;
-      },
+      query: ({ page = 1, limit = 10, search, sortBy = 'createdAt', sortOrder = 'desc' } = {}) =>
+        `/admin/users${buildQuery({ page, limit, search, sortBy, sortOrder })}`,
       providesTags: ['AdminUsers'],
     }),
 
-    // Get all posts for a specific user with pagination
     getUserPostsAdmin: builder.query({
-      query: ({ userId, page = 1, limit = 10 } = {}) => {
-        const params = new URLSearchParams();
-        params.append('page', page);
-        params.append('limit', limit);
-        
-        return `/admin/users/${userId}/posts?${params.toString()}`;
-      },
+      query: ({ userId, page = 1, limit = 10 } = {}) =>
+        `/admin/users/${userId}/posts${buildQuery({ page, limit })}`,
       providesTags: ['AdminUsers'],
     }),
 
-    // Admin reset user password
+    updateUserAdmin: builder.mutation({
+      query: ({ userId, isActive, role }) => ({
+        url: `/admin/users/${userId}`,
+        method: 'PATCH',
+        body: { isActive, role },
+      }),
+      invalidatesTags: ['AdminUsers', 'AdminOverview', 'AdminAudit'],
+    }),
+
     adminResetUserPassword: builder.mutation({
       query: ({ userId, newPassword }) => ({
         url: `/admin/users/${userId}/reset-password`,
         method: 'PATCH',
         body: { newPassword },
       }),
-      invalidatesTags: ['AdminUsers'],
+      invalidatesTags: ['AdminUsers', 'AdminAudit'],
     }),
 
-    // Delete a user and all their posts
     deleteUserAdmin: builder.mutation({
       query: (userId) => {
-        if (!userId) {
-          throw new Error('User ID is required for deletion');
-        }
-        
-        return {
-          url: `/admin/users/${userId}`,
-          method: 'DELETE',
-        };
+        if (!userId) throw new Error('User ID is required for deletion');
+        return { url: `/admin/users/${userId}`, method: 'DELETE' };
       },
-      invalidatesTags: ['AdminUsers', 'AdminDashboard'],
+      invalidatesTags: ['AdminUsers', 'AdminPosts', 'AdminOverview', 'AdminAudit'],
     }),
 
-    // Get all posts with pagination, search, and filtering
-    getAllPostsAdmin: builder.query({
-      query: ({ page = 1, limit = 10, search, status, category, country, sortBy = 'createdAt', sortOrder = 'desc' } = {}) => {
-        const params = new URLSearchParams();
-        params.append('page', page);
-        params.append('limit', limit);
-        params.append('sortBy', sortBy);
-        params.append('sortOrder', sortOrder);
-        
-        if (search) params.append('search', search);
-        if (status) params.append('status', status);
-        if (category) params.append('category', category);
-        if (country) params.append('country', country);
-        
-        return `/admin/posts?${params.toString()}`;
-      },
-      providesTags: ['AdminPosts'],
+    /* ------------------------------------------------------------- support */
+
+    getPasswordResetRequests: builder.query({
+      query: ({ page = 1, limit = 10, status, sortBy = 'createdAt', sortOrder = 'desc' } = {}) =>
+        `/admin/password-reset-requests${buildQuery({ page, limit, status, sortBy, sortOrder })}`,
+      providesTags: ['AdminResetRequests'],
     }),
 
-    // Get all contact submissions for admin management
+    updatePasswordResetRequestStatus: builder.mutation({
+      query: ({ requestId, status, adminNotes }) => ({
+        url: `/admin/password-reset-requests/${requestId}`,
+        method: 'PATCH',
+        body: { status, adminNotes },
+      }),
+      invalidatesTags: ['AdminResetRequests', 'AdminOverview', 'AdminAudit'],
+    }),
+
     getContactsAdmin: builder.query({
-      query: ({ page = 1, limit = 10, search, status, priority, sortBy = 'createdAt', sortOrder = 'desc' } = {}) => {
-        const params = new URLSearchParams();
-        params.append('page', page);
-        params.append('limit', limit);
-        params.append('sortBy', sortBy);
-        params.append('sortOrder', sortOrder);
-        
-        if (search) params.append('search', search);
-        if (status) params.append('status', status);
-        if (priority) params.append('priority', priority);
-        
-        return `/contact?${params.toString()}`;
-      },
+      query: ({ page = 1, limit = 10, search, status, priority, sortBy = 'createdAt', sortOrder = 'desc' } = {}) =>
+        `/contact${buildQuery({ page, limit, search, status, priority, sortBy, sortOrder })}`,
       providesTags: ['AdminContacts'],
     }),
 
-    // Get contact statistics
     getContactStats: builder.query({
       query: () => '/contact/stats',
-      providesTags: ['ContactStats'],
+      providesTags: ['AdminContactStats'],
     }),
 
-    // Update contact status
     updateContactStatus: builder.mutation({
       query: ({ contactId, status, response }) => ({
         url: `/contact/${contactId}`,
         method: 'PATCH',
         body: { status, response },
       }),
-      invalidatesTags: ['AdminContacts', 'ContactStats'],
+      invalidatesTags: ['AdminContacts', 'AdminContactStats', 'AdminOverview'],
     }),
 
-    // Delete contact submission
     deleteContactAdmin: builder.mutation({
-      query: (contactId) => ({
-        url: `/contact/${contactId}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['AdminContacts', 'ContactStats'],
+      query: (contactId) => ({ url: `/contact/${contactId}`, method: 'DELETE' }),
+      invalidatesTags: ['AdminContacts', 'AdminContactStats', 'AdminOverview'],
     }),
 
-    // Get visitor statistics
-    getVisitorStats: builder.query({
-      query: ({ startDate, endDate } = {}) => {
-        const params = new URLSearchParams();
-        if (startDate) params.append('startDate', startDate);
-        if (endDate) params.append('endDate', endDate);
-        const queryString = params.toString();
-        const url = `/admin/visitor-stats${queryString ? `?${queryString}` : ''}`;
+    /* -------------------------------------------------------------- places */
 
-        return url;
-      },
-      // Use serializable query key to ensure different date ranges create different cache entries
-      serializeQueryArgs: ({ queryArgs }) => {
-        const key = `visitor-stats-${queryArgs?.startDate || 'all'}-${queryArgs?.endDate || 'all'}`;
-        return key;
-      },
-      // Don't merge - always use new data (replace cache entirely)
-      merge: (currentCache, newItems) => {
-        // Always return new items to replace cache
-        return newItems;
-      },
-      providesTags: (result, error, arg) => [
-        { type: 'VisitorStats', id: `${arg?.startDate || 'all'}-${arg?.endDate || 'all'}` }
-      ],
-    }),
+    // Visitor counts are read by GET /admin/analytics, which windows them
+    // honestly; /admin/visitor-stats is still served but nothing here asks for
+    // it - its three numbers were the old panel's whole analytics offering.
 
-    // Get cities by country (admin only) - get all cities including inactive ones
     getCitiesByCountryAdmin: builder.query({
-      query: ({ countryId, language = 'en' }) => {
-        const params = new URLSearchParams();
-        params.append('language', language);
-        params.append('active', 'false'); // Get all cities (active and inactive) for admin
-        return `/admin/cities/country/${countryId}?${params.toString()}`;
-      },
+      query: ({ countryId, language = 'en' }) =>
+        // `active=false` asks for every city, inactive ones included - the
+        // panel is the only screen that should see the ones the public
+        // pickers hide.
+        `/admin/cities/country/${countryId}${buildQuery({ language, active: 'false' })}`,
       providesTags: ['AdminCities'],
     }),
 
-    // Update city (admin only)
     updateCityAdmin: builder.mutation({
       query: ({ cityId, labels, isCapital, isActive }) => ({
         url: `/admin/cities/${cityId}`,
@@ -264,36 +233,37 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ['AdminCities'],
     }),
 
-    // Delete city (admin only)
     deleteCityAdmin: builder.mutation({
-      query: (cityId) => ({
-        url: `/admin/cities/${cityId}`,
-        method: 'DELETE',
-      }),
+      query: (cityId) => ({ url: `/admin/cities/${cityId}`, method: 'DELETE' }),
       invalidatesTags: ['AdminCities'],
     }),
   }),
 });
 
 export const {
-  useGetAdminDashboardQuery,
+  useGetAdminOverviewQuery,
+  useGetAdminAnalyticsQuery,
+  useGetAdminAuditQuery,
   useGetReportsQuery,
-  useGetPromotionsQuery,
   useUpdateReportStatusMutation,
-  useUpdatePromotionStatusMutation,
+  useGetAdminCommentsQuery,
+  useUpdateCommentAdminMutation,
+  useGetAllPostsAdminQuery,
+  useUpdatePostStatusAdminMutation,
   useDeletePostAdminMutation,
-  useGetPasswordResetRequestsQuery,
-  useUpdatePasswordResetRequestStatusMutation,
+  useGetPromotionsQuery,
+  useUpdatePromotionStatusMutation,
   useGetUsersAdminQuery,
   useGetUserPostsAdminQuery,
+  useUpdateUserAdminMutation,
   useAdminResetUserPasswordMutation,
   useDeleteUserAdminMutation,
-  useGetAllPostsAdminQuery,
+  useGetPasswordResetRequestsQuery,
+  useUpdatePasswordResetRequestStatusMutation,
   useGetContactsAdminQuery,
   useGetContactStatsQuery,
   useUpdateContactStatusMutation,
   useDeleteContactAdminMutation,
-  useGetVisitorStatsQuery,
   useGetCitiesByCountryAdminQuery,
   useUpdateCityAdminMutation,
   useDeleteCityAdminMutation,

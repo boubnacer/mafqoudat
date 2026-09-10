@@ -20,6 +20,7 @@
     "test-auth-session": "node scripts/testAuthSessionFixes.js",
     "test-social-queue": "node scripts/testSocialPublishQueue.js",
     "test-social-images": "node scripts/testSocialImages.js",
+    "test-admin-panel": "node scripts/testAdminPanel.js",
     "refresh-social-stats": "node scripts/refreshSocialStats.js",
     "social-queue": "node scripts/socialQueue.js",
     "test-email": "node test-email-config.js",

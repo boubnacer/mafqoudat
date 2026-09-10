@@ -1,5 +1,5 @@
 // Fixed Vercel routing - added basename and removed homepage field
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { Box, CircularProgress, CssBaseline, ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
@@ -75,7 +75,19 @@ const NotificationsPage = lazy(() => import("./features/notifications/Notificati
 // Lazy load dashboard components
 const Dash = lazy(() => import("./features/dashboard/Dash"));
 const DependenciesManager = lazy(() => import("./features/MANAGER/Dependencies/DependenciesManager"));
-const AdminDashboard = lazy(() => import("./features/admin/AdminDashboard"));
+// The admin panel is a nested section rather than one page: a shell holding
+// nine routes, each lazily loaded on its own so opening /dash/admin does not
+// pull the analytics charts and the city editor down with it.
+const AdminLayout = lazy(() => import("./features/admin/AdminLayout"));
+const AdminOverviewPage = lazy(() => import("./features/admin/pages/OverviewPage"));
+const AdminModerationPage = lazy(() => import("./features/admin/pages/ModerationPage"));
+const AdminPostsPage = lazy(() => import("./features/admin/pages/PostsPage"));
+const AdminUsersPage = lazy(() => import("./features/admin/pages/UsersPage"));
+const AdminPromotionsPage = lazy(() => import("./features/admin/pages/PromotionsPage"));
+const AdminSupportPage = lazy(() => import("./features/admin/pages/SupportPage"));
+const AdminAnalyticsPage = lazy(() => import("./features/admin/pages/AnalyticsPage"));
+const AdminPlacesPage = lazy(() => import("./features/admin/pages/PlacesPage"));
+const AdminSystemPage = lazy(() => import("./features/admin/pages/SystemPage"));
 
 // Minimal fallback for the handful of routes that don't have a page-shaped
 // skeleton yet (admin/manager tools, profile, myposts, the dash layout
@@ -374,9 +386,58 @@ const AppContent = () => {
                 } />
                 <Route path="admin" element={
                   <Suspense fallback={<LoadingFallback />}>
-                    <AdminDashboard />
+                    <AdminLayout />
                   </Suspense>
-                } />
+                }>
+                  <Route index element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AdminOverviewPage />
+                    </Suspense>
+                  } />
+                  <Route path="moderation" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AdminModerationPage />
+                    </Suspense>
+                  } />
+                  <Route path="posts" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AdminPostsPage />
+                    </Suspense>
+                  } />
+                  <Route path="users" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AdminUsersPage />
+                    </Suspense>
+                  } />
+                  <Route path="promotions" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AdminPromotionsPage />
+                    </Suspense>
+                  } />
+                  <Route path="support" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AdminSupportPage />
+                    </Suspense>
+                  } />
+                  <Route path="analytics" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AdminAnalyticsPage />
+                    </Suspense>
+                  } />
+                  <Route path="places" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AdminPlacesPage />
+                    </Suspense>
+                  } />
+                  <Route path="system" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AdminSystemPage />
+                    </Suspense>
+                  } />
+                  {/* A stale bookmark to a tab that no longer exists lands on
+                      the overview rather than on the dashboard's 404 box. */}
+                  <Route path="*" element={<Navigate to="/dash/admin" replace />} />
+                </Route>
               </Route>
             </Route>
           </Route>
