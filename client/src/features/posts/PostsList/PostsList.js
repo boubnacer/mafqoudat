@@ -811,6 +811,10 @@ const PostsList = () => {
     setCitySearchTerm(draftSelectedCity ? getCityDisplayName(draftSelectedCity) : "");
     setPage(1);
     setFilterDialogOpen(false);
+    // The results grid re-renders from the top of its (unchanged) scroll
+    // position - without this, applying filters while scrolled down leaves
+    // the new results starting off-screen above the viewport.
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [draftLocalCategoryFilter, draftSelectedCategories, draftSelectedCity, getCityDisplayName]);
 
   const handleAddNewPost = useCallback(() => {
