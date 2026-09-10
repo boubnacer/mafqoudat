@@ -45,6 +45,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Grow,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
 import { useEffect, useState, useMemo, useCallback, useLayoutEffect } from "react";
@@ -1774,19 +1775,36 @@ const PostsList = () => {
             against its bottom edge. */}
         <Box sx={{ height: filterBarHeight ? filterBarHeight + 16 : 0 }} />
 
-        {/* Filter Dialog - fields here edit the staged draft state; nothing
-            re-queries the posts list until Apply is pressed. */}
+        {/* Filter Dialog - a compact, centered card (never full-screen/full-
+            width), so it reads as an overlay rather than a page of its own.
+            Fields here edit the staged draft state; nothing re-queries the
+            posts list until Apply is pressed. */}
         <Dialog
           open={filterDialogOpen}
           onClose={handleCloseFilterDialog}
-          fullScreen={isMobile}
           fullWidth
           maxWidth="xs"
+          scroll="paper"
+          TransitionComponent={Grow}
+          transitionDuration={220}
+          slotProps={{
+            backdrop: {
+              sx: {
+                backgroundColor: alpha(theme.custom.color.ink, isDark ? 0.65 : 0.4),
+                backdropFilter: 'blur(3px)',
+              },
+            },
+          }}
           PaperProps={{
+            elevation: 0,
             sx: {
-              borderRadius: isMobile ? 0 : `${theme.custom.radius.lg}px`,
+              borderRadius: `${theme.custom.radius.xl}px`,
               backgroundColor: theme.custom.color.surfaceRaised,
-              backgroundImage: `radial-gradient(120% 100% at ${glowOrigin}, ${alpha(brand, isDark ? 0.16 : 0.07)} 0%, transparent 55%)`,
+              backgroundImage: `radial-gradient(120% 100% at ${glowOrigin}, ${alpha(brand, isDark ? 0.18 : 0.08)} 0%, transparent 55%)`,
+              border: `1px solid ${alpha(brand, isDark ? 0.35 : 0.14)}`,
+              boxShadow: `${theme.custom.elevation.e3}, 0 24px 48px ${alpha('#000000', isDark ? 0.5 : 0.18)}`,
+              maxHeight: 'calc(100% - 64px)',
+              m: 2,
             },
           }}
         >
@@ -1796,25 +1814,28 @@ const PostsList = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: 1,
+              px: 3,
+              pt: 3,
+              pb: 2,
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
               <Box
                 sx={{
-                  width: 34,
-                  height: 34,
+                  width: 36,
+                  height: 36,
                   borderRadius: `${theme.custom.radius.sm}px`,
                   backgroundImage: `linear-gradient(135deg, ${brand} 0%, ${lighten(brand, 0.45)} 100%)`,
-                  boxShadow: `0 0 16px ${alpha(brand, 0.4)}`,
+                  boxShadow: `0 4px 16px ${alpha(brand, 0.4)}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                 }}
               >
-                <FilterIcon sx={{ fontSize: 18, color: theme.palette.getContrastText(brand) }} />
+                <FilterIcon sx={{ fontSize: 19, color: theme.palette.getContrastText(brand) }} />
               </Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: '1.1rem' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: '1.15rem' }}>
                 {t('filters')}
               </Typography>
             </Box>
@@ -1822,21 +1843,25 @@ const PostsList = () => {
               onClick={handleCloseFilterDialog}
               aria-label={t('close')}
               size="small"
-              sx={{ color: theme.custom.color.ink }}
+              sx={{
+                color: theme.custom.color.ink,
+                backgroundColor: alpha(theme.custom.color.ink, isDark ? 0.12 : 0.06),
+                '&:hover': { backgroundColor: alpha(theme.custom.color.ink, isDark ? 0.2 : 0.1) },
+              }}
             >
               <CloseIcon fontSize="small" />
             </IconButton>
           </DialogTitle>
 
-          <DialogContent dividers sx={{ borderColor: alpha(brand, isDark ? 0.3 : 0.16) }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 0.5 }}>
+          <DialogContent sx={{ px: 3, py: 0.5 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, py: 1.5 }}>
               {draftCategoryFilterNode}
               {draftCityFilterNode}
               {draftCityNotFoundNode}
             </Box>
           </DialogContent>
 
-          <DialogActions sx={{ p: 2, gap: 1 }}>
+          <DialogActions sx={{ px: 3, pt: 1.5, pb: 3, gap: 1.25 }}>
             <Button
               onClick={handleResetDraftFilters}
               disabled={!hasDraftFilters}
@@ -1845,6 +1870,7 @@ const PostsList = () => {
                 fontWeight: 600,
                 borderRadius: `${theme.custom.radius.md}px`,
                 color: brand,
+                px: 2,
                 '&:hover': { backgroundColor: alpha(brand, 0.08) },
               }}
             >
@@ -1852,16 +1878,19 @@ const PostsList = () => {
             </Button>
             <Button
               variant="contained"
+              disableElevation
               onClick={handleApplyFilters}
               sx={{
                 flex: 1,
                 textTransform: 'none',
-                fontWeight: 600,
+                fontWeight: 700,
                 borderRadius: `${theme.custom.radius.md}px`,
-                backgroundColor: brand,
+                py: 1,
+                backgroundImage: `linear-gradient(135deg, ${brand} 0%, ${lighten(brand, 0.15)} 100%)`,
+                boxShadow: `0 8px 20px ${alpha(brand, 0.35)}`,
                 '&:hover': {
-                  backgroundColor: brand,
-                  opacity: 0.9,
+                  backgroundImage: `linear-gradient(135deg, ${brand} 0%, ${lighten(brand, 0.15)} 100%)`,
+                  boxShadow: `0 10px 24px ${alpha(brand, 0.45)}`,
                 },
               }}
             >
