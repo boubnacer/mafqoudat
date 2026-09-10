@@ -166,6 +166,22 @@ export const apiSlice = createApi({
     "NotificationPreferences",
     "BlockedUser",
     "Comment",
+    // The admin panel's tags. These were missing, and a tag that is not
+    // declared here does not merely fail to match - RTK Query drops the whole
+    // invalidation, so every admin mutation ran, succeeded, and left the list
+    // it had just changed showing the old rows until a hard reload.
+    "AdminOverview",
+    "AdminAnalytics",
+    "AdminAudit",
+    "AdminReports",
+    "AdminPromotions",
+    "AdminResetRequests",
+    "AdminUsers",
+    "AdminPosts",
+    "AdminComments",
+    "AdminContacts",
+    "AdminContactStats",
+    "AdminCities",
   ],
   endpoints: (builder) => ({}),
 });

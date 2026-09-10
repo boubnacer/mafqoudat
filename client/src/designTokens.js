@@ -45,6 +45,22 @@ export const colorTokens = {
       light: { main: '#1A8563', bg: '#E5F5EF', border: '#1A8563' },
       dark: { main: '#3DDCA6', bg: 'rgba(61, 220, 166, 0.16)', border: '#3DDCA6' },
     },
+    // "Waiting on a human" - a moderation queue, an unanswered support
+    // message, a maintenance window that is on. Added for the admin panel,
+    // which is the first surface in the app with a third state to show:
+    // lost/found are the two halves of the product's own vocabulary and neither
+    // one means "needs attention", so the panel was reaching for MUI's default
+    // `warning` palette and quietly leaving the token system behind.
+    //
+    // Same shape and the same contrast rule as the two above: `main` is deep
+    // enough that white on it clears 4.5:1 (5.43:1 light), and deep enough to
+    // read as text on its own `bg` (4.86:1). The dark-mode value is lightened
+    // for the same reason lost/found are - it sits ON a dark surface rather
+    // than under white text.
+    pending: {
+      light: { main: '#9A5B00', bg: '#FBF0DC', border: '#9A5B00' },
+      dark: { main: '#F5B546', bg: 'rgba(245, 181, 70, 0.16)', border: '#F5B546' },
+    },
   },
 };
 
@@ -84,6 +100,7 @@ export const resolveDesignTokens = (mode) => {
     status: {
       lost: colorTokens.status.lost[m],
       found: colorTokens.status.found[m],
+      pending: colorTokens.status.pending[m],
     },
     radius: radiusTokens,
     elevation: elevationTokens[m],

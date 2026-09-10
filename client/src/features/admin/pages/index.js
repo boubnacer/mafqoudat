@@ -1,0 +1,9 @@
+export { default as OverviewPage } from './OverviewPage';
+export { default as ModerationPage } from './ModerationPage';
+export { default as PostsPage } from './PostsPage';
+export { default as UsersPage } from './UsersPage';
+export { default as PromotionsPage } from './PromotionsPage';
+export { default as SupportPage } from './SupportPage';
+export { default as AnalyticsPage } from './AnalyticsPage';
+export { default as PlacesPage } from './PlacesPage';
+export { default as SystemPage } from './SystemPage';

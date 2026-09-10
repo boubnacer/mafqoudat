@@ -98,6 +98,10 @@ export const colorTokens = {
     status: {
       found: { main: '#1A8563', bg: '#E5F5EF' },
       lost: { main: '#C64335', bg: '#FBEAE8' },
+      // Mirrors web's third status tone (the admin panel's "waiting on a
+      // human"). No mobile screen renders it today — it is here so this file
+      // stays the 1:1 mirror of designTokens.js it claims to be.
+      pending: { main: '#9A5B00', bg: '#FBF0DC' },
     },
   },
   dark: {
@@ -113,6 +117,8 @@ export const colorTokens = {
     status: {
       found: { main: '#3DDCA6', bg: 'rgba(61,220,166,0.16)' },
       lost: { main: '#FF6B5E', bg: 'rgba(255,107,94,0.16)' },
+      // See the light-mode note.
+      pending: { main: '#F5B546', bg: 'rgba(245,181,70,0.16)' },
     },
   },
 };
