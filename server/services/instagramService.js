@@ -2,6 +2,15 @@ const axios = require('axios');
 const { buildListingCaption, resolveListingImage } = require('./socialCaption');
 const { GRAPH_BASE_URL, describeGraphError } = require('./graphApi');
 
+// Instagram's limits on what a media container may carry. Every one of them
+// is a refusal - the container fails and the listing never reaches the
+// account - so they are enforced before the call rather than discovered from
+// the error. The image side lives in services/imageWatermark.js; this is the
+// caption: 2,200 characters, and a trilingual caption carrying a 2,000
+// character description is well past it.
+// https://developers.facebook.com/docs/instagram-platform/content-publishing
+const CAPTION_MAX_LENGTH = 2200;
+
 class InstagramService {
   constructor() {
     this.igUserId = process.env.INSTAGRAM_ACCOUNT_ID;
@@ -96,7 +105,7 @@ class InstagramService {
     }
 
     const { imageUrl, isPlaceholder } = await resolveListingImage(post);
-    const caption = await buildListingCaption(post, { isPlaceholder });
+    const caption = await buildListingCaption(post, { isPlaceholder, maxLength: CAPTION_MAX_LENGTH });
 
     // Instagram publishing is a two-step Graph API flow: create a media
     // container from the image, then publish that container.

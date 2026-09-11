@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { cloudinary } = require('../config/cloudinary');
 const Post = require('../models/Post');
-const { watermarkImageBuffer, isAvailable: watermarkAvailable } = require('./imageWatermark');
+const { buildSocialImage, isAvailable: watermarkAvailable } = require('./imageWatermark');
 
 /**
  * The watermarked copy of a listing photo that Facebook and Instagram are
@@ -100,7 +100,7 @@ async function deleteSocialImage(post) {
 
 async function generate(post, sourceUrl) {
   const buffer = await downloadImage(sourceUrl);
-  const watermarked = await watermarkImageBuffer(buffer);
+  const watermarked = await buildSocialImage(buffer);
   const publicId = socialPublicId(post._id);
   const result = await uploadWatermarked(watermarked, publicId);
 

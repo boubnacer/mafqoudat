@@ -420,9 +420,18 @@ async function main() {
   for (const category of categories) {
     const color = legibleOnBackdrop(category.color);
     const svg = buildCard({ color, icon: category.icon });
-    const file = path.join(OUTPUT_DIR, `${category.code.toLowerCase()}.png`);
+    const file = path.join(OUTPUT_DIR, `${category.code.toLowerCase()}.jpg`);
 
-    await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(file);
+    // JPEG, not PNG, because these files exist to be published: Instagram's
+    // Content Publishing API accepts JPEG only and fails the container for
+    // anything else, which would take a photo-less listing off the account
+    // entirely. `flatten` is belt and braces - the card is opaque - and
+    // 4:4:4 keeps the wordmark's thin strokes off a chroma-subsampled grid.
+    await sharp(Buffer.from(svg))
+      .flatten({ background: BACKDROP })
+      .toColourspace('srgb')
+      .jpeg({ quality: 92, progressive: true, chromaSubsampling: '4:4:4' })
+      .toFile(file);
 
     const adjusted = color === category.color.toUpperCase() ? '' : ` (lightened from ${category.color})`;
     console.log(`  ${category.code.padEnd(12)} ${color}${adjusted}`);
