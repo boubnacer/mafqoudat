@@ -34,11 +34,20 @@ const DashLayout = () => {
         }}
       >
         <Sidebar />
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             backgroundColor: theme.custom.color.surfaceBase,
             maxWidth: '100%',
-            overflow: 'hidden',
+            // overflowX only (not the shorthand overflow: 'hidden') - the
+            // full shorthand makes this box its own scroll-container
+            // boundary per the CSS spec, which breaks position: sticky for
+            // any descendant (e.g. PostsList's desktop filter sidebar): a
+            // sticky element sticks relative to its *nearest* scroll-
+            // container ancestor, and this box never actually scrolls
+            // (auto height, nothing to overflow), so sticky resolved
+            // against it instead of the real scroller
+            // (#dash-scroll-container above) and just scrolled away.
+            overflowX: 'hidden',
           }}
         >
           <Navbar />
