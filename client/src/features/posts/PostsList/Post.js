@@ -757,6 +757,14 @@ const Post = ({ post, viewMode = "grid" }) => {
   const tone = foundLostStatus.isFound ? theme.custom.status.found : theme.custom.status.lost;
   const StatusIcon = foundLostStatus.isFound ? TaskAltOutlined : SearchOffOutlined;
 
+  // No-image icon backdrop: same soft per-category tint as above, blended
+  // across every category on a multi-category post (linear-gradient of each
+  // category's own tint) instead of showing only the first one.
+  const categoryTints = categoryStyles.map(cs => alpha(cs.main, isDarkMode ? 0.2 : 0.12));
+  const noImageBackground = categoryTints.length > 1
+    ? `linear-gradient(135deg, ${categoryTints.join(', ')})`
+    : categoryTints[0];
+
   const siteViews = readSiteViews(post);
   const socialStats = summarizeSocialStats(post);
   // Reactions/likes and comments are the same kind of activity whichever
@@ -793,7 +801,7 @@ const Post = ({ post, viewMode = "grid" }) => {
           aspectRatio: { xs: '4 / 3', sm: '1 / 1' },
           borderRadius: `${theme.custom.radius.xl}px`,
           overflow: 'hidden',
-          backgroundColor: post?.image ? 'transparent' : alpha(categoryStyle.main, isDarkMode ? 0.2 : 0.12),
+          background: post?.image ? 'transparent' : noImageBackground,
         }}
       >
         {post?.image && imageUrl ? (
