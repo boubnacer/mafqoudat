@@ -757,12 +757,17 @@ const Post = ({ post, viewMode = "grid" }) => {
   const tone = foundLostStatus.isFound ? theme.custom.status.found : theme.custom.status.lost;
   const StatusIcon = foundLostStatus.isFound ? TaskAltOutlined : SearchOffOutlined;
 
-  // No-image icon backdrop: same soft per-category tint as above, blended
-  // across every category on a multi-category post (linear-gradient of each
-  // category's own tint) instead of showing only the first one.
-  const categoryTints = categoryStyles.map(cs => alpha(cs.main, isDarkMode ? 0.2 : 0.12));
+  // No-image icon backdrop: same per-category tint as above, bumped up from
+  // the badge's 0.12/0.2 ratio (too faint stretched across the whole photo
+  // box) so it actually reads as color. Blended across every category on a
+  // multi-category post - a linear-gradient in reading direction, so it runs
+  // start-to-end the same way the icons row itself lays out (icons render in
+  // `categories` order inside a flex row that already reverses under
+  // `direction: rtl`, so mirroring the gradient's direction the same way
+  // keeps each stop under its own icon instead of just reversing the ramp).
+  const categoryTints = categoryStyles.map(cs => alpha(cs.main, isDarkMode ? 0.32 : 0.22));
   const noImageBackground = categoryTints.length > 1
-    ? `linear-gradient(135deg, ${categoryTints.join(', ')})`
+    ? `linear-gradient(${currentLanguage === 'ar' ? 'to left' : 'to right'}, ${categoryTints.join(', ')})`
     : categoryTints[0];
 
   const siteViews = readSiteViews(post);
