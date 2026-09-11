@@ -821,6 +821,15 @@ const SinglePostPage = ({
     ? exactLocation.trim()
     : null;
 
+  // No-image icon backdrop: same soft per-category tint as the Posts list
+  // card, blended across every category on a multi-category post
+  // (linear-gradient of each category's own tint) instead of showing only
+  // the first one.
+  const categoryTints = categoryStyles.map(cs => alpha(cs.main || theme.custom.color.brandPrimary, isDarkMode ? 0.2 : 0.12));
+  const noImageBackground = categoryTints.length > 1
+    ? `linear-gradient(135deg, ${categoryTints.join(', ')})`
+    : categoryTints[0];
+
   return (
     <Box
       sx={{
@@ -846,9 +855,7 @@ const SinglePostPage = ({
             {/* Image Section */}
             <Box sx={{
               position: 'relative',
-              backgroundColor: image
-                ? 'transparent'
-                : alpha(categoryStyles[0]?.main || theme.custom.color.brandPrimary, isDarkMode ? 0.2 : 0.12),
+              background: image ? 'transparent' : noImageBackground,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
