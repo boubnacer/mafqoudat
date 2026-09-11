@@ -881,6 +881,61 @@ this whole section exists to protect.
   publishes with, and — the part that matters — checks both directions between
   the server's code list and the generated files, since a code with no file
   behind it 404s and takes the listing off the Page entirely.
+- **A listing with a photo is published with a watermarked copy of it, and the
+  site keeps the clean one.** Off the site a photo travels without the page
+  around it — reshared, screenshotted, saved — so it carries the domain it came
+  from; on the site a mark across the picture would sit between a reader and the
+  object they are trying to recognise, which is the one thing a listing exists
+  to help them do. So the mark is on a second asset, never on `cloudinaryUrl`.
+  - **It is drawn from the outlined Cairo wordmark, not from a supplied PNG.**
+    [imageWatermark.js](server/services/imageWatermark.js) tiles
+    `server/assets/domainWordmark.svg` — the same outlined "mafqoudat.com"
+    `buildCategorySocialImages.js` sets on the category graphics, copied in
+    because the server cannot see `client/` — as an SVG `<pattern>` the size of
+    the photo. Vector, so the mark is rasterised at whatever size *this* photo
+    needs rather than a fixed bitmap being scaled up into a blur; outlined, so
+    it needs no font installed; one `<pattern>`, so the whole overlay is a
+    single rasterisation at the final resolution instead of one tile resampled
+    N times, each landing on a different subpixel phase. A domain nobody can
+    read is the only way this feature fails completely, so resolution is what
+    it spends on.
+  - **Two faces, not one flat 15% grey.** A single tone disappears into a photo
+    of the same tone — a pale mark on a white wall, a dark one on a night
+    shot — so each mark is a white face with a darker copy offset behind it.
+    Measured rather than eyeballed: `test-social-watermark` composites onto a
+    white ground and a black one and asserts a peak departure on both, plus a
+    mean shift low enough that the photo is still the subject.
+  - **Generated at publish time, not at upload.** Post creation has never
+    waited on social publishing and still does not; the publish path is already
+    queued, paced and retried, so a download, a composite and a second
+    Cloudinary upload cost nobody a slower request there. It also means every
+    listing created before this gets its mark the first time it is published,
+    rather than only new ones.
+  - **`socialImage.sourceUrl` is what it was stamped from.** A photo replaced
+    while the job is still queued would otherwise publish the mark of the old
+    picture; the comparison is what forces a restamp. The derivative lives at a
+    deterministic `mafqoudat/social/post-<id>` public id, so a regeneration
+    replaces its predecessor instead of accumulating, two jobs for one listing
+    cannot duplicate it, and the ordinary cleanup paths (delete a listing,
+    replace or remove its photo, purge an account) delete it alongside the
+    site's own asset.
+  - **Uploaded with no Cloudinary transformation, and always JPEG.** The mark is
+    thin, light-toned strokes over a photograph, which is exactly what a
+    re-encode smears first, so the bytes go up at the size and quality they were
+    written at (`quality: auto` explicitly not applied). JPEG is also the only
+    format Instagram's publishing endpoint documents — the site's own asset is
+    usually WebP, since `imageOptimizer` converts on upload.
+  - **A mark that cannot be made never costs the listing its publish.** No
+    Sharp, no Cloudinary credentials, a download or upload that failed — every
+    one of those answers null and the plain photo is published, because an
+    unmarked listing on the Page is a smaller loss than a listing that never
+    reaches it.
+  - **Offline check**: `npm run test-social-watermark` in `server/` — no DB, no
+    network; the images are generated in the test and axios, the uploader and
+    `models/Post` are stubbed. Covers legibility on both grounds, the size cap,
+    EXIF orientation, a transparent PNG flattening onto white rather than black,
+    restamping after a photo change, the two platform jobs sharing one
+    generation, and each failure answering null.
 
 ## Reach: post views + social engagement (web + mobile)
 

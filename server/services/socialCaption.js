@@ -3,6 +3,7 @@ const City = require('../models/City');
 const Category = require('../models/Category');
 const Country = require('../models/Country');
 const { categorySocialImagePath } = require('../config/categorySocialImages');
+const { ensureSocialImage } = require('./socialImageService');
 
 // One post, one caption, three stacked language blocks (ar/fr/en) separated
 // by a divider - there is no per-post language field to pick just one, and
@@ -100,7 +101,17 @@ const toHashtag = (label) => label && `#${label.replace(/[\s'"،.,-]/g, '')}`;
  */
 async function resolveListingImage(post) {
   const imageUrl = post.cloudinaryUrl || post.image;
-  if (imageUrl) return { imageUrl, isPlaceholder: false };
+  if (imageUrl) {
+    // The listing's own photo goes up watermarked with the domain, so a
+    // reader who meets it in a feed - or two shares further on, with the
+    // caption long gone - can still see where it came from. Only this copy
+    // carries the mark; the site keeps rendering the clean photo. A listing
+    // with no id is not a stored post (the offline checks pass plain
+    // objects), and a mark that could not be made answers null, in which case
+    // the plain photo is published rather than nothing.
+    const watermarked = post._id ? await ensureSocialImage(post) : null;
+    return { imageUrl: watermarked || imageUrl, isPlaceholder: false };
+  }
 
   const categoryId = (post.categories && post.categories.length > 0)
     ? post.categories[0]
