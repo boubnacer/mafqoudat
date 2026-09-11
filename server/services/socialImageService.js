@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { cloudinary } = require('../config/cloudinary');
 const Post = require('../models/Post');
-const { buildSocialImage, isAvailable: watermarkAvailable } = require('./imageWatermark');
+const { buildSocialImage, verifyPublishable, isAvailable: watermarkAvailable } = require('./imageWatermark');
 
 /**
  * The watermarked copy of a listing photo that Facebook and Instagram are
@@ -37,6 +37,10 @@ const SOCIAL_IMAGE_FOLDER = 'mafqoudat/social';
 // somehow exceeds it is published unmarked rather than holding the queue.
 const MAX_SOURCE_BYTES = 12 * 1024 * 1024;
 const DOWNLOAD_TIMEOUT_MS = 15000;
+
+// The verification re-download never needs to read more than Instagram's own
+// cap - a response bigger than that fails the check anyway.
+const MAX_BYTES_TO_VERIFY = 8 * 1024 * 1024;
 
 // Both platform jobs for one listing can be claimed in the same tick, and
 // each would otherwise generate the same derivative independently. The
@@ -98,11 +102,89 @@ async function deleteSocialImage(post) {
   }
 }
 
+/**
+ * Clears a listing's cached derivative on the post document without deleting
+ * the Cloudinary asset - called when a platform refuses the image itself
+ * (Instagram's "wrong media type" among them), so the next publish attempt
+ * regenerates rather than replaying the exact file that was just refused.
+ *
+ * `ensureSocialImage` only ever reuses a cached image, never re-validates
+ * one - by design, so a listing that has already published once is not
+ * re-downloaded and re-uploaded on every later retry. That means a bad
+ * derivative, once cached, would otherwise be served to every future publish
+ * and retry of this post forever, on every platform, since the cache has no
+ * way to know it was ever rejected. This is the way out of that: it does not
+ * delete the Cloudinary object (nothing else pointed at it may still be
+ * using it, e.g. Facebook's already-published copy), it just stops treating
+ * the cache entry as good.
+ */
+async function invalidateSocialImage(postId) {
+  if (!postId) return;
+  try {
+    await Post.updateOne({ _id: postId }, { $unset: { socialImage: '' } });
+  } catch (error) {
+    console.warn(`Could not invalidate the cached social image for post ${postId}: ${error.message}`);
+  }
+}
+
+/**
+ * Confirms the URL Meta will actually be given serves back what was just
+ * uploaded, rather than trusting Cloudinary's own response. Answers the
+ * decoded buffer on success so the caller does not fetch it a third time.
+ *
+ * Not paranoia for its own sake: this is the one step in the pipeline this
+ * file does not fully control (a Cloudinary account setting, a stale cache
+ * entry, a delivery quirk), and it is the difference between a listing
+ * failing loudly here - where the fix is to regenerate - and failing silently
+ * at Meta with a "wrong media type" error that gives no reason why.
+ */
+async function verifyUpload(url) {
+  const response = await axios.get(url, {
+    responseType: 'arraybuffer',
+    timeout: DOWNLOAD_TIMEOUT_MS,
+    maxContentLength: MAX_BYTES_TO_VERIFY,
+    maxBodyLength: MAX_BYTES_TO_VERIFY,
+  });
+  const buffer = Buffer.from(response.data);
+  await verifyPublishable(buffer);
+  return buffer;
+}
+
 async function generate(post, sourceUrl) {
   const buffer = await downloadImage(sourceUrl);
-  const watermarked = await buildSocialImage(buffer);
+
+  // The watermark overlay is the one step here that touches an asset outside
+  // Cloudinary and outside this pipeline's own control - a corrupt or missing
+  // `assets/domainWordmark.svg` throws inside `buildSocialImage`. That should
+  // cost a listing its mark, not its publish: everything else in the
+  // function (format, geometry, size) is what actually determines whether
+  // Instagram accepts the file, and is worth keeping regardless.
+  let watermarked;
+  let marked = true;
+  try {
+    watermarked = await buildSocialImage(buffer);
+  } catch (error) {
+    console.warn(`Social watermark overlay failed for post ${post._id}, publishing unmarked instead: ${error.message}`);
+    watermarked = await buildSocialImage(buffer, { watermark: false });
+    marked = false;
+  }
+
   const publicId = socialPublicId(post._id);
   const result = await uploadWatermarked(watermarked, publicId);
+
+  // Read back what Meta will actually be given. A mismatch here means the
+  // bytes this function built are not what is being served, which is
+  // information worth having in the logs the moment it happens rather than
+  // guessed at from a Graph refusal with no diagnostic content of its own.
+  try {
+    await verifyUpload(result.secure_url);
+  } catch (error) {
+    console.error(
+      `Social image verification failed for post ${post._id} at ${result.secure_url}: ${error.message}. `
+      + 'Not caching this URL - the plain photo will be published instead until this is resolved.',
+    );
+    throw error;
+  }
 
   const socialImage = {
     url: result.secure_url,
@@ -110,6 +192,7 @@ async function generate(post, sourceUrl) {
     // What it was made from. A listing whose photo is replaced before its
     // turn in the queue would otherwise publish the mark of the old one.
     sourceUrl,
+    watermarked: marked,
     createdAt: new Date(),
   };
 
@@ -148,4 +231,10 @@ async function ensureSocialImage(post) {
   return work;
 }
 
-module.exports = { ensureSocialImage, deleteSocialImage, socialPublicId, SOCIAL_IMAGE_FOLDER };
+module.exports = {
+  ensureSocialImage,
+  deleteSocialImage,
+  invalidateSocialImage,
+  socialPublicId,
+  SOCIAL_IMAGE_FOLDER,
+};

@@ -106,6 +106,17 @@ const MAX_ASPECT = 1.91;
 const MAX_BYTES = 8 * 1024 * 1024;
 const QUALITY_LADDER = [JPEG_QUALITY, 82, 72, 62];
 
+// Baseline, never progressive. Meta's own spec singles out "extended JPEG
+// formats such as MPO and JPS" as unsupported, and progressive-scan JPEGs are
+// a documented soft spot for exactly this class of automated fetcher (several
+// unrelated Meta-adjacent upload pipelines - WhatsApp Cloud API among them -
+// have the same baseline-only expectation even where it is not spelled out in
+// the public docs). A baseline encode costs nothing here: these files are
+// small and read once by a crawler, never progressively rendered by a person
+// scrolling a slow connection, which is the only case progressive encoding
+// was ever for.
+const JPEG_PROGRESSIVE = false;
+
 let wordmarkCache = null;
 
 /** The wordmark's own path data and intrinsic box, read once per process. */
@@ -260,7 +271,7 @@ async function buildBackdrop(source, frame) {
  * what an un-watermarked social copy is worth, and silently publishing one
  * would look exactly like success.
  */
-async function buildSocialImage(buffer) {
+async function buildSocialImage(buffer, { watermark = true } = {}) {
   if (!sharp) throw new Error('Sharp is not available');
 
   // Decoded to raw pixels once, rather than resized and composited in a
@@ -305,6 +316,12 @@ async function buildSocialImage(buffer) {
   // the stacking order - photo first, then the watermark over the whole
   // frame, bars included, since a mark that stopped at the edge of the photo
   // would announce where the padding starts.
+  //
+  // `watermark: false` skips only the last layer. It exists for
+  // socialImageService's second attempt when the full pipeline throws - a
+  // corrupt or unreadable wordmark asset should cost a listing its mark, not
+  // its whole publish, and the geometry/format compliance above is worth
+  // keeping either way.
   const layers = [];
   if (canvas) {
     layers.push({
@@ -313,22 +330,32 @@ async function buildSocialImage(buffer) {
       top: Math.round((frame.canvasHeight - frame.innerHeight) / 2),
     });
   }
-  layers.push({ input: Buffer.from(buildOverlaySvg(frame.canvasWidth, frame.canvasHeight)), blend: 'over' });
+  if (watermark) {
+    layers.push({ input: Buffer.from(buildOverlaySvg(frame.canvasWidth, frame.canvasHeight)), blend: 'over' });
+  }
 
   const base = canvas
     ? sharp(canvas.data, { raw: { width: canvas.info.width, height: canvas.info.height, channels: canvas.info.channels } })
     : sharp(photo);
 
-  const marked = await base.composite(layers).png().toBuffer();
+  // Nothing to composite (no padding, no mark) - `photo` is already the
+  // finished PNG buffer to re-encode below, no canvas involved.
+  const marked = layers.length > 0
+    ? await base.composite(layers).png().toBuffer()
+    : photo;
 
   // Quality is stepped down only if the encode somehow lands over the size
   // Instagram accepts - at these dimensions the first rung always wins, but
-  // "published smaller" beats "refused".
+  // "published smaller" beats "refused". Baseline, never progressive: Meta's
+  // own spec calls out "extended JPEG formats" as unsupported, and progressive
+  // scans are a documented soft spot for exactly this class of automated
+  // fetcher - there is no reader here to benefit from progressive rendering,
+  // only a crawler that has to decode the file in one pass.
   let output = null;
   for (const quality of QUALITY_LADDER) {
     // eslint-disable-next-line no-await-in-loop
     output = await sharp(marked)
-      .jpeg({ quality, progressive: true, chromaSubsampling: quality >= 82 ? '4:4:4' : '4:2:0' })
+      .jpeg({ quality, progressive: JPEG_PROGRESSIVE, chromaSubsampling: quality >= 82 ? '4:4:4' : '4:2:0' })
       .toBuffer();
     if (output.length <= MAX_BYTES) break;
   }
@@ -336,10 +363,47 @@ async function buildSocialImage(buffer) {
   return output;
 }
 
+/**
+ * Confirms a buffer actually satisfies Instagram's rules, rather than trusting
+ * that it does because this file built it.
+ *
+ * This exists for one reason: `buildSocialImage`'s output is only as good as
+ * what actually ends up hosted at the URL Meta is given, and that step - a
+ * Cloudinary upload - happens outside this file and outside sharp's control.
+ * A wrong `format` option, an account-level delivery setting, a stale cache
+ * entry under a reused public id - any of those could hand Instagram
+ * something other than the JPEG that was uploaded, and the first anyone would
+ * know is another refused publish with no way to tell why. socialImageService
+ * calls this on the bytes actually served back from the URL it just created,
+ * before trusting that URL for a listing.
+ */
+async function verifyPublishable(buffer) {
+  if (!sharp) throw new Error('Sharp is not available');
+  const metadata = await sharp(buffer, { failOn: 'none' }).metadata();
+  const problems = [];
+
+  if (metadata.format !== 'jpeg') problems.push(`format is ${metadata.format || 'unknown'}, not jpeg`);
+  if (metadata.space && metadata.space !== 'srgb') problems.push(`colour space is ${metadata.space}, not srgb`);
+  if (!metadata.width || !metadata.height) problems.push('has no readable dimensions');
+  if (metadata.width && (metadata.width < MIN_WIDTH || metadata.width > MAX_WIDTH)) {
+    problems.push(`width ${metadata.width} is outside ${MIN_WIDTH}-${MAX_WIDTH}`);
+  }
+  if (metadata.width && metadata.height) {
+    const ratio = metadata.width / metadata.height;
+    if (ratio < MIN_ASPECT - 0.01 || ratio > MAX_ASPECT + 0.01) {
+      problems.push(`aspect ratio ${ratio.toFixed(2)}:1 is outside ${MIN_ASPECT}-${MAX_ASPECT}`);
+    }
+  }
+  if (buffer.length > MAX_BYTES) problems.push(`${(buffer.length / 1024 / 1024).toFixed(1)} MB is over the 8 MB cap`);
+
+  if (problems.length > 0) throw new Error(`Not publishable to Instagram: ${problems.join('; ')}`);
+}
+
 module.exports = {
   buildSocialImage,
   buildOverlaySvg,
   resolveFrame,
+  verifyPublishable,
   isAvailable: () => !!sharp,
   LIMITS: { MAX_WIDTH, MIN_WIDTH, MIN_ASPECT, MAX_ASPECT, MAX_BYTES },
 };

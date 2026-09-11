@@ -2,10 +2,12 @@ const Post = require('../models/Post');
 const SocialPostJob = require('../models/SocialPostJob');
 const facebookService = require('./facebookService');
 const instagramService = require('./instagramService');
+const { invalidateSocialImage } = require('./socialImageService');
 const {
   describeGraphError,
   isRateLimitError,
   isPublishLimitError,
+  isMediaContentError,
   isPermissionError,
 } = require('./graphApi');
 
@@ -137,11 +139,18 @@ class SocialPublishQueue {
     posts = Post,
     publishers = DEFAULT_PUBLISHERS,
     now = () => Date.now(),
+    invalidateSocialImage: invalidateSocialImageFn = invalidateSocialImage,
   } = {}) {
     this.jobs = jobs;
     this.posts = posts;
     this.publishers = publishers;
     this.now = now;
+    // Same reasoning as `posts`/`jobs` above: the real implementation always
+    // writes through models/Post directly (it is a derived-asset cache, not
+    // part of a listing's own fields, so it does not belong on the injected
+    // `posts` collection's write surface), which the test harness has no way
+    // to observe or fake without this seam.
+    this.invalidateSocialImage = invalidateSocialImageFn;
     this.timer = null;
     // One tick at a time. A publish can outlast the tick interval (Instagram's
     // readiness polling alone can), and overlapping ticks would defeat pacing.
@@ -460,6 +469,37 @@ class SocialPublishQueue {
    */
   async handleFailure(job, platform, error) {
     const description = describeGraphError(error);
+
+    // The platform refused the image or caption itself, not the request's
+    // credentials - Meta nests these under the same `type: "OAuthException"`
+    // isPermissionError checks, so this has to run first or a bad photo gets
+    // logged as a scope problem, sending whoever reads it looking the wrong
+    // way. The cached derivative is invalidated so the next attempt (this
+    // job's own retry, or a manual --retry-failed) regenerates the image
+    // instead of resubmitting the exact file that was just rejected -
+    // ensureSocialImage only ever reuses a cache entry, it does not
+    // re-validate one, so a bad derivative would otherwise be served to
+    // every future attempt on this post, on both platforms, forever.
+    if (isMediaContentError(error)) {
+      await this.invalidateSocialImage(job.post);
+      const attempts = (job.attempts || 0) + 1;
+      if (attempts >= MAX_ATTEMPTS) {
+        await this.finishJob(job._id, { status: 'failed', attempts, lastError: description });
+        console.error(
+          `Social publish queue: ${platform} rejected the media for post ${job.post} after `
+          + `${attempts} attempt(s) - ${description}. The cached derivative was cleared; `
+          + 'a fresh one will be generated on the next publish attempt.'
+        );
+        return 'failed';
+      }
+      const backoff = Math.min(RETRY_BASE_MS * 2 ** (attempts - 1), RETRY_MAX_MS);
+      await this.requeueJob(job, new Date(this.now() + backoff), description, { countAttempt: true });
+      console.warn(
+        `Social publish queue: ${platform} rejected the media for post ${job.post} - ${description}. `
+        + 'Regenerating and retrying.'
+      );
+      return 'retry';
+    }
 
     if (isPublishLimitError(error)) {
       const until = new Date(this.now() + PUBLISH_LIMIT_COOLDOWN_MS);

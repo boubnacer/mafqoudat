@@ -79,6 +79,12 @@ const postSchema = new mongoose.Schema(
       url: { type: String, default: null },
       publicId: { type: String, default: null },
       sourceUrl: { type: String, default: null },
+      // False when the wordmark overlay itself failed and this is a plain,
+      // compliance-only re-encode (see services/socialImageService.js's
+      // watermark-optional fallback tier) - kept mainly for the offline
+      // check and for anyone reading a listing's record later; nothing
+      // currently branches on it.
+      watermarked: { type: Boolean, default: true },
       createdAt: { type: Date, default: null },
     },
     mainDate: {
