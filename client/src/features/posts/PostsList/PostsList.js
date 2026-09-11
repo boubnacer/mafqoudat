@@ -134,19 +134,6 @@ const PostsList = () => {
   const [draftLocalCategoryFilter, setDraftLocalCategoryFilter] = useState("all");
   const [draftSelectedCategories, setDraftSelectedCategories] = useState([]);
   const [draftSelectedCity, setDraftSelectedCity] = useState(null);
-  // The filter bar is fixed below the navbar so it never scrolls out of view;
-  // its height changes as active-filter chips appear/disappear (and per
-  // language/breakpoint), so a spacer of the same height is kept in the
-  // normal flow to reserve its space rather than letting content jump
-  // underneath it.
-  // A state-backed callback ref (not a plain useRef) because this component
-  // returns a loading skeleton first - the filter bar (and its DOM node)
-  // don't exist until the success branch renders, so the observer effect
-  // needs to react to the node actually appearing rather than only running
-  // once on mount.
-  const [filterBarNode, setFilterBarNode] = useState(null);
-  const filterBarRef = useCallback((node) => setFilterBarNode(node), []);
-  const [filterBarHeight, setFilterBarHeight] = useState(0);
   // Real rendered height of the fixed navbar, measured rather than guessed -
   // it differs by breakpoint (and can shift with font loading/i18n string
   // length), and the filter bar has to sit flush under it with no dead gap.
@@ -490,24 +477,6 @@ const PostsList = () => {
   }, [location.state, categoryFilter, navigate, location.pathname]);
 
 
-
-  // Track the fixed filter bar's rendered height (it changes as active-filter
-  // chips appear/disappear below it) so the spacer below can always reserve
-  // exactly that much space. Depends on filterBarNode (not a mount-only [])
-  // because the bar doesn't exist in the DOM until the query resolves and
-  // the success branch renders it.
-  useLayoutEffect(() => {
-    if (!filterBarNode || typeof ResizeObserver === 'undefined') return undefined;
-
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setFilterBarHeight(entry.contentRect.height);
-      }
-    });
-    observer.observe(filterBarNode);
-    return () => observer.disconnect();
-  }, [filterBarNode]);
 
   // Measure the real fixed navbar height rather than guessing a fixed rem
   // value - it differs by breakpoint and can shift with content/i18n, and
@@ -1649,157 +1618,91 @@ const PostsList = () => {
       );
     }
 
-    // ---- Mobile/tablet (below md): a single-row filter trigger fixed under
-    // the navbar, opening the filter fields in a Dialog instead of an inline
-    // dropdown - picks are staged and only take effect on Apply, so the grid
-    // below never reflows mid-pick. ----
+    // ---- Mobile/tablet (below md): filters live behind a floating pop-up
+    // launcher instead of a persistent bar pinned under the navbar - opening
+    // the filter fields in the same Dialog as before, picks are staged and
+    // only take effect on Apply, so the grid below never reflows mid-pick.
+    // Dropping the fixed bar frees the whole top of the page for content;
+    // the launcher stays reachable while scrolling as a floating pill. ----
     return (
       <>
         <SeoMeta pageKey="dashPosts" />
         <Box sx={{
-        p: { xs: 2, md: 4 },
-        pt: `${navbarClearance}px`,
+        p: 2,
+        pb: 12,
+        pt: `${navbarClearance + 16}px`,
         minHeight: "100vh",
         backgroundColor: theme.custom.color.postsListBackdrop
       }}>
-        {/* Filter bar is fixed flush below the navbar (top matches its
-            measured height, no extra gap) so it's always reachable while
-            scrolling. The spacer right after it reserves whatever height the
-            bar currently renders at (it grows when active-filter chips
-            appear), so page content is never covered by or jumps under the
-            fixed bar. */}
-        <Box
-          ref={filterBarRef}
-          sx={{
-            position: 'fixed',
-            top: `${navbarClearance}px`,
-            insetInlineStart: 0,
-            insetInlineEnd: 0,
-            zIndex: (t) => t.zIndex.appBar - 1,
-            backgroundColor: theme.custom.color.postsListBackdrop,
-            px: { xs: 2, md: 4 },
-            pt: 1,
-            pb: 2,
-          }}
-        >
+        {/* Active-filter chips - a slim strip in normal document flow (not
+            fixed), shown only once something is actually filtered, so a
+            first-time visitor sees a clean page and only the floating
+            launcher below. Scrolls away with the content on purpose; the
+            launcher pill is what stays reachable. */}
+        {hasActiveFilters && (
           <Box
             sx={{
-              p: { xs: 2, md: 3 },
-              position: 'relative',
-              overflow: 'hidden',
-              borderRadius: `${theme.custom.radius.lg}px`,
-              border: `1px solid ${alpha(brand, isDark ? 0.35 : 0.18)}`,
-              backgroundColor: theme.custom.color.surfaceRaised,
-              backgroundImage: `radial-gradient(120% 100% at ${glowOrigin}, ${alpha(brand, isDark ? 0.16 : 0.07)} 0%, transparent 55%)`,
-              boxShadow: `${theme.custom.elevation.e2}, 0 0 32px ${alpha(brand, isDark ? 0.16 : 0.08)}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              overflowX: 'auto',
+              mb: 2,
+              pb: 0.5,
+              '&::-webkit-scrollbar': { display: 'none' },
+              scrollbarWidth: 'none',
             }}
           >
-            <Box
-              onClick={handleOpenFilterDialog}
-              role="button"
-              tabIndex={0}
-              aria-haspopup="dialog"
-              aria-expanded={filterDialogOpen}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleOpenFilterDialog();
-                }
-              }}
+            <Typography
+              variant="caption"
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: 1.5,
-                mb: activeChipsNode ? 2 : 0,
-                cursor: 'pointer',
-                userSelect: 'none',
-                borderRadius: `${theme.custom.radius.sm}px`,
-                '&:focus-visible': {
-                  outline: `2px solid ${brand}`,
-                  outlineOffset: 2,
-                },
+                fontWeight: 700,
+                color: alpha(theme.custom.color.ink, 0.55),
+                flexShrink: 0,
+                textTransform: 'uppercase',
+                letterSpacing: 0.4,
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-                <Box
-                  sx={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: `${theme.custom.radius.sm}px`,
-                    backgroundImage: `linear-gradient(135deg, ${brand} 0%, ${lighten(brand, 0.45)} 100%)`,
-                    boxShadow: `0 0 16px ${alpha(brand, 0.4)}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  <FilterIcon sx={{ fontSize: 18, color: theme.palette.getContrastText(brand) }} />
-                </Box>
-                <Typography
-                  variant="h6"
-                  sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: { xs: '1rem', md: '1.1rem' } }}
-                >
-                  {t('filters')}
-                </Typography>
-                {activeFilterChips.length > 0 && (
-                  <Box
-                    sx={{
-                      minWidth: 20,
-                      height: 20,
-                      px: 0.5,
-                      borderRadius: '999px',
-                      backgroundColor: brand,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
-                      sx={{ fontWeight: 700, fontSize: '0.7rem', color: theme.palette.getContrastText(brand), lineHeight: 1 }}
-                    >
-                      {activeFilterChips.length}
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                {hasActiveFilters && (
-                  <Button
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleClearAllFilters();
-                    }}
-                    sx={{
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      borderRadius: `${theme.custom.radius.sm}px`,
-                      color: brand,
-                      '&:hover': { backgroundColor: alpha(brand, 0.08) },
-                    }}
-                  >
-                    {t('clearFilters')}
-                  </Button>
-                )}
-              </Box>
-            </Box>
-
-            {/* Active Filters Display - always visible below the trigger row
-                (not gated behind the dialog) so the current picks stay
-                readable while scrolling; removing one here still applies
-                immediately, same as before. */}
-            {activeChipsNode}
+              {t('filters')}
+            </Typography>
+            {activeFilterChips.map((chip, index) => (
+              <Chip
+                key={index}
+                label={chip.label}
+                onDelete={chip.onDelete}
+                size="small"
+                sx={{
+                  flexShrink: 0,
+                  borderRadius: '999px',
+                  height: 30,
+                  fontWeight: 600,
+                  backgroundColor: alpha(brand, isDark ? 0.16 : 0.08),
+                  border: `1px solid ${alpha(brand, isDark ? 0.35 : 0.22)}`,
+                  color: brand,
+                  '& .MuiChip-deleteIcon': {
+                    color: alpha(brand, 0.7),
+                    '&:hover': { color: brand },
+                  },
+                }}
+              />
+            ))}
+            <Button
+              size="small"
+              onClick={handleClearAllFilters}
+              sx={{
+                flexShrink: 0,
+                textTransform: 'none',
+                fontWeight: 600,
+                borderRadius: `${theme.custom.radius.sm}px`,
+                color: brand,
+                minWidth: 0,
+                px: 1,
+                '&:hover': { backgroundColor: alpha(brand, 0.08) },
+              }}
+            >
+              {t('clearFilters')}
+            </Button>
           </Box>
-        </Box>
-
-        {/* Spacer reserving the fixed filter bar's current height, plus a
-            little extra breathing room so post cards don't start flush
-            against its bottom edge. */}
-        <Box sx={{ height: filterBarHeight ? filterBarHeight + 16 : 0 }} />
+        )}
 
         {/* Filter Dialog - a compact, centered card (never full-screen/full-
             width), so it reads as an overlay rather than a page of its own.
@@ -1927,6 +1830,79 @@ const PostsList = () => {
 
         {/* Posts Content */}
         {mainArea}
+
+        {/* Floating filter launcher - the pop-up trigger itself. Fixed above
+            the page content (not the old full-width bar), pill-shaped with a
+            brand gradient so it reads as an action rather than a static
+            panel, and carries the active-filter count so the badge that used
+            to live in the top bar isn't lost. */}
+        <Box
+          component="button"
+          type="button"
+          onClick={handleOpenFilterDialog}
+          aria-haspopup="dialog"
+          aria-expanded={filterDialogOpen}
+          sx={{
+            position: 'fixed',
+            insetInlineEnd: 20,
+            bottom: 24,
+            zIndex: (t) => t.zIndex.appBar,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            border: 'none',
+            cursor: 'pointer',
+            font: 'inherit',
+            py: 1.25,
+            px: 2.25,
+            borderRadius: '999px',
+            backgroundImage: `linear-gradient(135deg, ${brand} 0%, ${lighten(brand, 0.15)} 100%)`,
+            boxShadow: `0 10px 28px ${alpha(brand, 0.45)}, 0 2px 10px ${alpha('#000000', isDark ? 0.45 : 0.18)}`,
+            transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+            '&:active': {
+              transform: 'scale(0.96)',
+            },
+            '&:focus-visible': {
+              outline: `2px solid ${theme.palette.getContrastText(brand)}`,
+              outlineOffset: 2,
+            },
+          }}
+        >
+          <FilterIcon sx={{ fontSize: 20, color: theme.palette.getContrastText(brand) }} />
+          <Typography
+            variant="button"
+            sx={{
+              fontWeight: 700,
+              color: theme.palette.getContrastText(brand),
+              textTransform: 'none',
+              fontSize: '0.9rem',
+              lineHeight: 1,
+            }}
+          >
+            {t('filters')}
+          </Typography>
+          {activeFilterChips.length > 0 && (
+            <Box
+              sx={{
+                minWidth: 20,
+                height: 20,
+                px: 0.5,
+                borderRadius: '999px',
+                backgroundColor: theme.palette.getContrastText(brand),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 800, fontSize: '0.7rem', color: brand, lineHeight: 1 }}
+              >
+                {activeFilterChips.length}
+              </Typography>
+            </Box>
+          )}
+        </Box>
       </Box>
       </>
     );
