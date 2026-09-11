@@ -894,43 +894,49 @@ const Post = ({ post, viewMode = "grid" }) => {
           </Typography>
         </Box>
 
-        {/* City: same white-pill treatment as the status badge above, on the
-            opposite end of the same top row (insetInlineEnd), so the pair
-            reads as one inline header - top-end in LTR, top-start in RTL.
-            Same size/radius as the status badge (radius.sm, not a full
-            pill) so the two match exactly - only the fill (white here vs.
-            tone.main there) tells them apart. */}
+        {/* Category: same white-pill treatment as the status badge above, on
+            the opposite end of the same top row (insetInlineEnd), so the
+            pair reads as one inline header - top-end in LTR, top-start in
+            RTL. Same size/radius as the status badge (radius.sm, not a full
+            pill) so the two match exactly - only the fill (translucent
+            per-category tint here vs. tone.main there) tells them apart. */}
         <Box
           sx={{
             position: 'absolute',
             top: 12,
             insetInlineEnd: 12,
             zIndex: 2,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: { xs: 0.5, sm: 0.75 },
-            px: { xs: 1.25, sm: 1.5 },
-            py: { xs: 0.5, sm: 0.625 },
-            backgroundColor: theme.custom.color.surfaceRaised,
-            borderRadius: `${theme.custom.radius.sm}px`,
-            boxShadow: theme.custom.elevation.e2,
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'flex-end',
+            gap: 0.75,
             maxWidth: '55%',
           }}
         >
-          <LocationIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: theme.custom.color.ink, flexShrink: 0 }} />
-          <Typography
-            sx={{
-              fontWeight: 700,
-              fontSize: { xs: '12px', sm: '13px' },
-              color: theme.custom.color.ink,
-              lineHeight: 1,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {cityName}
-          </Typography>
+          {categories.map((cat, index) => {
+            const catStyle = categoryStyles[index];
+            const catName = categoryNames[index];
+            return (
+              <Box
+                key={cat.code || index}
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  backgroundColor: alpha(catStyle.main, 0.1),
+                  border: `1px solid ${alpha(catStyle.main, 0.35)}`,
+                  color: catStyle.main,
+                  fontWeight: 700,
+                  fontSize: { xs: '12px', sm: '13px' },
+                  lineHeight: 1,
+                  borderRadius: `${theme.custom.radius.sm}px`,
+                  px: { xs: 1.25, sm: 1.5 },
+                  py: { xs: 0.5, sm: 0.625 },
+                }}
+              >
+                {catName}
+              </Box>
+            );
+          })}
         </Box>
 
         {post?.returned && <ResolvedBadge label={t('returned')} />}
@@ -972,33 +978,16 @@ const Post = ({ post, viewMode = "grid" }) => {
       </Box>
       </Box>
 
-      {/* Header: category chips. City moved up onto the photo as a pill
+      {/* Header: city. Category chips moved up onto the photo as a pill
           inline with the found/lost status badge (see above) - this row
-          used to also carry a second icon'd city line, now dropped since
-          the photo-overlay pill is the only city mention on the card. */}
+          used to carry the category chips, now carries the exact-location
+          line instead. */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: { xs: '0 16px', sm: '0 20px' }, pt: { xs: 1.5, sm: 2 } }}>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-          {categories.map((cat, index) => {
-            const catStyle = categoryStyles[index];
-            const catName = categoryNames[index];
-            return (
-              <Box
-                key={cat.code || index}
-                sx={{
-                  alignSelf: 'flex-start',
-                  backgroundColor: alpha(catStyle.main, 0.1),
-                  border: `1px solid ${alpha(catStyle.main, 0.35)}`,
-                  color: catStyle.main,
-                  fontWeight: 900,
-                  fontSize: 14,
-                  borderRadius: `${theme.custom.radius.sm}px`,
-                  padding: '7px 14px',
-                }}
-              >
-                {catName}
-              </Box>
-            );
-          })}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <LocationIcon sx={{ fontSize: 20, color: theme.custom.color.ink, flexShrink: 0 }} />
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: theme.custom.color.ink }}>
+            {cityName}
+          </Typography>
         </Box>
       </Box>
 
