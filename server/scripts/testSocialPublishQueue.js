@@ -263,6 +263,7 @@ let posts;
 let publishCalls;
 let publishBehaviour;
 let queue;
+let invalidateSocialImageCalls;
 
 const advance = (ms) => { clock += ms; };
 
@@ -293,6 +294,8 @@ const setup = ({ instagramConfigured = true } = {}) => {
     dailyLimit: platform === 'instagram' ? INSTAGRAM_DAILY_LIMIT : null,
   });
 
+  invalidateSocialImageCalls = [];
+
   queue = new SocialPublishQueue({
     jobs,
     posts,
@@ -301,6 +304,10 @@ const setup = ({ instagramConfigured = true } = {}) => {
       facebook: publisher('facebook', 'postId', true),
       instagram: publisher('instagram', 'mediaId', instagramConfigured),
     },
+    // The real implementation writes through models/Post directly (see
+    // socialPublishQueue.js's constructor comment), which this fake `posts`
+    // collection cannot observe - injected the same way `jobs`/`posts` are.
+    invalidateSocialImage: async (postId) => { invalidateSocialImageCalls.push(postId); },
   });
 };
 
@@ -478,6 +485,35 @@ const run = async () => {
 
   check('a permission error gives up immediately', (await queue.runOnce()).facebook, 'failed');
   check('rather than spending the rate-limit budget on retries', jobFor(denied._id, 'facebook').status, 'failed');
+
+  // -------------------------------------------------------------------------
+  console.log('\n--- a rejected image or caption regenerates instead of giving up like a permission error ---');
+  // Instagram nests "wrong media type" and similar content refusals under the
+  // exact same `type: "OAuthException"` a real permission problem uses, so
+  // this has to be classified and handled before the permission check above
+  // reaches it - otherwise it gets logged as a token problem and, worse, the
+  // exact same rejected derivative is replayed on every future retry, since
+  // ensureSocialImage only ever reuses a cached image, it never re-checks one.
+
+  setup();
+  const wrongMediaType = addPost();
+  await queue.enqueuePost(wrongMediaType);
+  publishBehaviour.instagram = async () => { throw graphFailure(9004, 'Only photo or video can be accepted as media type.', { error_subcode: 2207052 }); };
+
+  check('it is retried rather than failed outright', (await queue.runOnce()).instagram, 'retry');
+  const rejectedJob = jobFor(wrongMediaType._id, 'instagram');
+  check('the attempt is counted, same as any other retry', rejectedJob.attempts, 1);
+  check(
+    'and the cached derivative is cleared so the retry regenerates it',
+    invalidateSocialImageCalls,
+    [wrongMediaType._id],
+  );
+
+  advance(RETRY_BASE_MS);
+  await queue.runOnce();
+  advance(RETRY_BASE_MS * 2);
+  check(`it gives up after ${MAX_ATTEMPTS} attempts, same as any other content error`, (await queue.runOnce()).instagram, 'failed');
+  check('every attempt cleared the cache, not just the first', invalidateSocialImageCalls.length, MAX_ATTEMPTS);
 
   setup();
   const flaky = addPost();

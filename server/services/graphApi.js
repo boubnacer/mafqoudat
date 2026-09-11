@@ -41,13 +41,36 @@ const isInvalidMetricError = (error) => {
 };
 
 /**
+ * Instagram's media container refused the *content* it was given - wrong
+ * format, unfetchable URL, a caption it did not accept - rather than
+ * anything about who is asking. Meta nests these under `type: "OAuthException"`
+ * exactly like a real permission problem (see isPermissionError below), so
+ * this has to be checked first or a bad photo gets misreported as a bad
+ * token, which sends whoever reads the log looking in the wrong place.
+ *
+ * Not an exhaustive registry of Instagram's 220700x content codes - just the
+ * ones this app has actually hit. 2207052 is "Only photo or video can be
+ * accepted as media type" (the fetched URL was not usable as either), 2207010
+ * is caption-too-long (buildListingCaption caps for this, but a future
+ * regression should say what it is rather than "check your token scopes"),
+ * and 2207020 is an unreachable/invalid image_url. Extend this set rather
+ * than isPermissionError's catch-all if another one turns up.
+ */
+const isMediaContentError = (error) => {
+  const graph = graphError(error);
+  if (!graph) return false;
+  return [2207052, 2207010, 2207020].includes(graph.error_subcode);
+};
+
+/**
  * The token lacks the permission this edge needs (e.g. read_insights).
  *
  * Note for callers that also classify throttling: Meta returns its rate-limit
  * codes under `type: "OAuthException"` too, so this predicate answers true for
- * those as well. Check isRateLimitError/isPublishLimitError *first* - a
- * throttle that gets classified as a permission problem looks permanent and
- * stops work that would have succeeded minutes later.
+ * those as well. Check isRateLimitError/isPublishLimitError/isMediaContentError
+ * *first* - a throttle or a bad photo that gets classified as a permission
+ * problem looks permanent (or points at the wrong fix) and stops work that a
+ * retry, or a regenerated image, would have gotten through.
  */
 const isPermissionError = (error) => {
   const graph = graphError(error);
@@ -103,6 +126,7 @@ module.exports = {
   graphError,
   isMissingObjectError,
   isInvalidMetricError,
+  isMediaContentError,
   isPermissionError,
   isRateLimitError,
   isPublishLimitError,

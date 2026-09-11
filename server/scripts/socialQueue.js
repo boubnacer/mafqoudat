@@ -28,6 +28,7 @@ const Post = require('../models/Post');
 const SocialPostJob = require('../models/SocialPostJob');
 const socialPublishQueue = require('../services/socialPublishQueue');
 const { PLATFORMS, PUBLISHERS, TICK_MS } = require('../services/socialPublishQueue');
+const { invalidateSocialImage } = require('../services/socialImageService');
 
 const readFlag = (name) => process.argv.includes(`--${name}`);
 const readOption = (name, fallback) => {
@@ -123,13 +124,24 @@ const retryFailed = async (limit) => {
   const failed = await SocialPostJob.find({ status: 'failed' })
     .sort({ updatedAt: 1 })
     .limit(limit)
-    .select('_id')
+    .select('_id post')
     .lean();
 
   if (failed.length === 0) {
     console.log('No failed jobs to retry.');
     return;
   }
+
+  // Every failed job's cached derivative is cleared before requeueing, not
+  // only the ones this build's own classifier would recognise. A job that
+  // failed under an older deploy - including the exact incident this flag
+  // exists to fix - would otherwise still have the rejected image cached on
+  // its post, and ensureSocialImage only ever reuses a cache entry, it never
+  // re-validates one: without this, --retry-failed would requeue the job and
+  // it would fail again on the identical file. Deduplicated, since Facebook's
+  // and Instagram's jobs for the same listing share one derivative.
+  const postIds = [...new Set(failed.map((job) => String(job.post)))];
+  await Promise.all(postIds.map((postId) => invalidateSocialImage(postId)));
 
   // Attempts reset too: this is a deliberate decision that whatever refused
   // them has been dealt with, so the next failure should get the full backoff
@@ -139,6 +151,7 @@ const retryFailed = async (limit) => {
     { $set: { status: 'pending', attempts: 0, nextAttemptAt: new Date(), lockedAt: null, lastError: 'Re-queued by hand' } }
   );
 
+  console.log(`Cleared the cached social image for ${postIds.length} listing(s).`);
   console.log(`Re-queued ${result.modifiedCount} failed job(s).`);
 };
 

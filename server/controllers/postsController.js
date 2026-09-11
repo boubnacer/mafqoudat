@@ -1880,7 +1880,7 @@ const updatePost = async (req, res) => {
     post.image = null;
     post.cloudinaryUrl = null;
     post.cloudinaryPublicId = null;
-    post.set('socialImage', { url: null, publicId: null, sourceUrl: null, createdAt: null });
+    post.set('socialImage', { url: null, publicId: null, sourceUrl: null, watermarked: true, createdAt: null });
   }
 
   // Handle Cloudinary image data if available (from multer middleware) - a new
@@ -1894,7 +1894,7 @@ const updatePost = async (req, res) => {
     // compares `socialImage.sourceUrl` against the photo it is about to
     // publish, so a stale mark is never used.
     await deleteSocialImage(post);
-    post.set('socialImage', { url: null, publicId: null, sourceUrl: null, createdAt: null });
+    post.set('socialImage', { url: null, publicId: null, sourceUrl: null, watermarked: true, createdAt: null });
     post.cloudinaryUrl = req.cloudinaryResult.url;
     post.cloudinaryPublicId = req.cloudinaryResult.public_id;
     // Keep backward compatibility with image field

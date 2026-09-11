@@ -949,12 +949,34 @@ this whole section exists to protect.
   --retry-failed | --repair` ([socialQueue.js](server/scripts/socialQueue.js)).
   `--drain` runs the same worker from the command line, for a scheduler-only
   deployment or to push a backlog through after fixing what was refusing it.
+  `--retry-failed` also clears the cached watermarked derivative
+  (`Post.socialImage`, see **the watermark** below) for every listing it
+  requeues, not only ones this build's own classifier would recognise —
+  `ensureSocialImage` only ever reuses a cache entry, it never re-validates
+  one, so a job that failed on a bad image would otherwise be requeued
+  straight back onto the exact file that was just refused.
+- **A platform refusing the media itself is not a permission error, even
+  though Meta nests both under the same `type: "OAuthException"`.** Instagram
+  answers a wrong format, an unfetchable URL or a rejected caption with an
+  error indistinguishable in shape from a missing scope, and the first version
+  of this queue's classifier treated every such error as one — logging "check
+  FACEBOOK_PAGE_ACCESS_TOKEN's scopes" for a problem no token change could
+  fix, and worse, giving up on the job for good with the bad derivative still
+  cached, so even a corrected image was never tried. `isMediaContentError` in
+  [graphApi.js](server/services/graphApi.js) checks a short, non-exhaustive
+  list of Instagram's own content-refusal subcodes (2207052 "wrong media
+  type" among them — the one that surfaced this) *before* the permission
+  check, and `socialPublishQueue.js`'s `handleFailure` clears the post's
+  cached social image and retries it through the normal backoff ladder
+  instead of failing outright.
 - **Offline check**: `npm run test-social-queue` in `server/` — no DB, no
   network, no waiting: both collections are an in-memory fake, the publishers are
   stubs, and the clock is injected, so the 24h quota window is exercised in
   microseconds. Covers pacing, FIFO order, the quota deferral rolling over to the
-  next day, the platform-wide throttle stand-down, permission-vs-transient
-  classification, cancellation, stall recovery, and the two double-post guards.
+  next day, the platform-wide throttle stand-down, permission-vs-transient-vs-
+  media-content classification (and that the last one clears the cached
+  derivative on every attempt, not just the first), cancellation, stall
+  recovery, and the two double-post guards.
   `npm run test-social-images` covers which graphic a photo-less listing
   publishes with, and — the part that matters — checks both directions between
   the server's code list and the generated files, since a code with no file
@@ -997,10 +1019,18 @@ this whole section exists to protect.
     cannot duplicate it, and the ordinary cleanup paths (delete a listing,
     replace or remove its photo, purge an account) delete it alongside the
     site's own asset.
-  - **Uploaded with no Cloudinary transformation.** The mark is thin,
-    light-toned strokes over a photograph, which is exactly what a re-encode
-    smears first, so the bytes go up at the size and quality they were written
-    at (`quality: auto` explicitly not applied).
+  - **Uploaded with no Cloudinary transformation, and always baseline JPEG,
+    never progressive.** The mark is thin, light-toned strokes over a
+    photograph, which is exactly what a re-encode smears first, so the bytes
+    go up at the size and quality they were written at (`quality: auto`
+    explicitly not applied). Progressive is turned off explicitly
+    (`JPEG_PROGRESSIVE = false`) rather than left at sharp's default: Meta's
+    own spec singles out "extended JPEG formats" as unsupported, and
+    progressive-scan JPEGs are a documented soft spot for exactly this class
+    of automated fetcher elsewhere in the Meta ecosystem. A crawler reading a
+    file once has nothing to gain from progressive rendering anyway — that
+    encoding exists for a person watching a slow download paint in, which
+    never happens here.
   - **Instagram's publishing rules are the shape of the file, because it
     refuses rather than corrects.** Its Content Publishing API does not crop,
     convert or shrink what it is handed: a container built from anything
@@ -1037,19 +1067,47 @@ this whole section exists to protect.
     anyone act on the listing, and the way it is found — and keep the part a
     reader can already see on the site. Hashtags are capped at 30, Instagram's
     own limit, for the same reason.
-  - **A mark that cannot be made never costs the listing its publish.** No
-    Sharp, no Cloudinary credentials, a download or upload that failed — every
-    one of those answers null and the plain photo is published, because an
-    unmarked listing on the Page is a smaller loss than a listing that never
-    reaches it.
+  - **A mark that cannot be made never costs the listing its publish — but a
+    plain photo is never allowed to mean "whatever the site happened to
+    store."** No Sharp, no Cloudinary credentials, a download or upload that
+    failed — every one of those answers null and the plain (usually WebP)
+    photo is published, because an unmarked listing on the Page is a smaller
+    loss than a listing that never reaches it. But the wordmark overlay itself
+    failing (a corrupt or unreadable `assets/domainWordmark.svg`) is a
+    narrower problem than that, and `buildSocialImage(buffer, { watermark:
+    false })` is the answer to it: `socialImageService.generate` tries the
+    full pipeline first and, only if that specific step throws, retries with
+    the overlay skipped — every format/geometry/size rule above is still
+    enforced, `Post.socialImage.watermarked` records which happened, and the
+    listing still gets a compliant JPEG rather than falling all the way back
+    to whatever format the original upload is in.
+  - **The uploaded copy is read back and checked before it is ever trusted.**
+    Cloudinary accepting an upload is not proof Instagram can use it — a wrong
+    `format` option, a stale cache entry under a reused public id, an account
+    delivery setting — and the first version of this shipped without checking,
+    which is exactly how one production listing reached Instagram as
+    something other than the JPEG that was built for it and came back
+    "(#9004/2207052) Only photo or video can be accepted as media type" with
+    no way to tell why from the error alone. `verifyPublishable` in
+    `imageWatermark.js` re-decodes the bytes actually served from the new URL
+    and asserts every rule above holds; a mismatch is logged with specifics
+    (format, dimensions, size) and the URL is never cached on the post — the
+    caller falls back exactly as it does for a failed download or upload, and
+    the plain photo publishes instead of an unverified derivative.
   - **Offline check**: `npm run test-social-watermark` in `server/` — no DB, no
     network; the images are generated in the test and axios, the uploader and
-    `models/Post` are stubbed. Covers legibility on both grounds, the size cap,
-    EXIF orientation, a transparent PNG flattening onto white rather than black,
-    restamping after a photo change, the two platform jobs sharing one
-    generation, and each failure answering null — plus every shape a camera
-    produces coming out inside Instagram's rules. The caption cap and the
-    category graphics' own compliance are covered in `test-social-images`.
+    `models/Post` are stubbed (`imageWatermark.js` is fronted by a passthrough
+    stub too, so the watermark-optional fallback tier and the verification
+    step can each be driven independently of what the real implementations
+    do). Covers legibility on both grounds, the size cap, baseline-not-
+    progressive encoding, EXIF orientation, a transparent PNG flattening onto
+    white rather than black, restamping after a photo change, the two
+    platform jobs sharing one generation, a failed verification never caching
+    its URL, the watermark-only fallback still publishing a compliant image
+    and recording that it went out unmarked, and each failure answering null —
+    plus every shape a camera produces coming out inside Instagram's rules.
+    The caption cap and the category graphics' own compliance are covered in
+    `test-social-images`.
 
 ## Reach: post views + social engagement (web + mobile)
 

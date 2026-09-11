@@ -84,7 +84,28 @@ let download = async () => ({ data: await solidImage(600, 400, '#ffffff') });
 const axiosStub = { get: (...args) => { downloads += 1; return download(...args); } };
 
 const updates = [];
-const PostStub = { updateOne: async (filter, update) => { updates.push({ filter, update }); return { acknowledged: true }; } };
+const PostStub = {
+  updateOne: async (filter, update) => {
+    updates.push({ filter, update });
+    return { acknowledged: true };
+  },
+};
+
+// A passthrough in front of the real imageWatermark module, so
+// socialImageService.js's two-tier generation (watermark, then a plain
+// re-encode if the overlay itself throws) and its post-upload verification
+// can each be driven independently of what buildSocialImage/verifyPublishable
+// actually do - without disturbing the direct, real-implementation tests of
+// imageWatermark.js elsewhere in this file, which import it themselves and
+// never go through this indirection.
+const RealWatermark = require('../services/imageWatermark');
+let buildSocialImageImpl = (...args) => RealWatermark.buildSocialImage(...args);
+let verifyPublishableImpl = (...args) => RealWatermark.verifyPublishable(...args);
+const watermarkStub = {
+  buildSocialImage: (...args) => buildSocialImageImpl(...args),
+  verifyPublishable: (...args) => verifyPublishableImpl(...args),
+  isAvailable: () => RealWatermark.isAvailable(),
+};
 
 const originalLoad = Module._load;
 Module._load = function load(request, parent) {
@@ -92,6 +113,7 @@ Module._load = function load(request, parent) {
   if (fromService && request === '../config/cloudinary') return cloudinaryStub;
   if (fromService && request === '../models/Post') return PostStub;
   if (fromService && request === 'axios') return axiosStub;
+  if (fromService && request === './imageWatermark') return watermarkStub;
   // eslint-disable-next-line prefer-rest-params
   return originalLoad.apply(this, arguments);
 };
@@ -101,7 +123,7 @@ process.env.CLOUDINARY_API_KEY = 'key';
 process.env.CLOUDINARY_API_SECRET = 'secret';
 
 const { buildSocialImage, buildOverlaySvg, resolveFrame, LIMITS } = require('../services/imageWatermark');
-const { ensureSocialImage, deleteSocialImage, socialPublicId } = require('../services/socialImageService');
+const { ensureSocialImage, deleteSocialImage, invalidateSocialImage, socialPublicId } = require('../services/socialImageService');
 
 // ------------------------------------------------------------- test images
 function solidImage(width, height, color) {
@@ -165,6 +187,11 @@ async function run() {
   const whiteMeta = await sharp(markedWhite).metadata();
   check('the photo keeps its size', `${whiteMeta.width}x${whiteMeta.height}`, '900x700');
   check('and is published as a JPEG', whiteMeta.format, 'jpeg');
+  checkThat(
+    'baseline, never progressive',
+    whiteMeta.isProgressive === false,
+    'Meta\'s own fetchers are a documented soft spot for progressive-scan JPEGs',
+  );
 
   const onWhite = await peakDifference(white, markedWhite);
   const onBlack = await peakDifference(black, markedBlack);
@@ -392,6 +419,59 @@ async function run() {
   );
   check('no download attempted', downloads, 0);
   process.env.CLOUDINARY_CLOUD_NAME = savedCloudName;
+
+  console.log('\n-- when only the watermark itself fails --');
+  // A corrupt or unreadable assets/domainWordmark.svg should cost a listing
+  // its mark, not its publish - everything else buildSocialImage enforces
+  // (format, geometry, size) is what actually gets a post through Instagram's
+  // media container, and is worth keeping even without the overlay.
+  uploads.length = 0;
+  buildSocialImageImpl = async (buffer, options) => {
+    if (!options || options.watermark !== false) throw new Error('wordmark asset unreadable');
+    return solidImage(600, 400, '#557799');
+  };
+  const unmarkedResult = await ensureSocialImage({ _id: 'p7', cloudinaryUrl: 'https://cdn.example.com/g.jpg' });
+  checkThat(
+    'the listing still gets a compliant image',
+    unmarkedResult === uploadResult().secure_url,
+    'a broken overlay must not fall all the way back to the raw, possibly non-JPEG asset',
+  );
+  check('one upload, not a hard failure', uploads.length, 1);
+  const unmarkedUpdate = updates[updates.length - 1];
+  checkThat(
+    'and the post records that this one went out unmarked',
+    unmarkedUpdate.update.$set.socialImage.watermarked === false,
+    'so it is visible later, even though nothing currently branches on it',
+  );
+  buildSocialImageImpl = (...args) => RealWatermark.buildSocialImage(...args);
+
+  console.log('\n-- when the uploaded copy does not verify --');
+  // Cloudinary accepting the upload is not the same as Meta being able to use
+  // it - a wrong format, a stale cache entry, an account setting - so the URL
+  // is read back and checked before it is ever cached on the post.
+  uploads.length = 0;
+  updates.length = 0;
+  verifyPublishableImpl = async () => { throw new Error('served as image/webp, not image/jpeg'); };
+  const unverified = await ensureSocialImage({ _id: 'p8', cloudinaryUrl: 'https://cdn.example.com/h.jpg' });
+  check('the listing falls back to its plain photo rather than an unverified one', unverified, null);
+  check('the upload was attempted', uploads.length, 1);
+  check('but never cached on the post', updates.length, 0);
+  verifyPublishableImpl = (...args) => RealWatermark.verifyPublishable(...args);
+
+  console.log('\n-- invalidating a cached mark --');
+  // What socialPublishQueue calls when a platform refuses the media itself:
+  // ensureSocialImage only ever reuses a cache entry, it never re-validates
+  // one, so without this a bad derivative - once cached - would be served to
+  // every future attempt on this post, on every platform, forever.
+  updates.length = 0;
+  await invalidateSocialImage('p1');
+  check('one update', updates.length, 1);
+  checkThat('it clears the field rather than deleting the post', 'socialImage' in updates[0].update.$unset);
+  checkThat('and pins to the right post', updates[0].filter._id === 'p1');
+
+  updates.length = 0;
+  await invalidateSocialImage(null);
+  check('nothing to invalidate is a no-op', updates.length, 0);
 
   console.log('\n-- cleanup --');
   destroyed.length = 0;
