@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  Switch,
   useTheme,
   alpha,
 } from "@mui/material";
@@ -21,6 +22,8 @@ import {
   Delete as DeleteIcon,
   CloudUpload as CloudUploadIcon,
   Close as CloseIcon,
+  FaceRetouchingOffOutlined as FaceRedactedIcon,
+  FaceRetouchingNaturalOutlined as FaceVisibleIcon,
 } from '@mui/icons-material';
 import { useTranslation } from "../../../../utils/translations";
 
@@ -30,12 +33,23 @@ const WARNING_COUNTDOWN_SECONDS = 6;
 // warning dialog gated behind a 6-second countdown - the "Continue" action
 // only enables once the countdown reaches zero - before it hands off to the
 // existing file-picker flow (handleImageButtonClick/fileInputRef).
+// Arabic distinguishes a dual from a plural, so the count picks between three
+// strings rather than being interpolated into one - en/fr repeat their plural.
+const faceCountKey = (count) => {
+  if (count === 1) return 'faceBlurFoundOne';
+  if (count === 2) return 'faceBlurFoundTwo';
+  return 'faceBlurFoundMany';
+};
+
 const StepPhoto = ({
   getFoundLostType,
   imagePreview,
   selectedFileName,
   compressionInfo,
   isCompressing,
+  isScanningFaces,
+  faceRedaction,
+  onFaceRedactionToggle,
   fileInputRef,
   handleImageButtonClick,
   handleImageSelect,
@@ -218,6 +232,108 @@ const StepPhoto = ({
           hidden
           onChange={handleImageSelect}
         />
+
+        {/* Eye redaction. Detection runs on every photo (see
+            utils/faceRedaction.js); this panel only appears once it has
+            actually found a face, and the toggle swaps between the covered
+            copy and the author's original. */}
+        {isScanningFaces && (
+          <Box
+            sx={{
+              mt: 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.25,
+              px: 2,
+              py: 1.5,
+              borderRadius: `${theme.custom.radius.md}px`,
+              backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.04),
+            }}
+          >
+            <CircularProgress size={18} sx={{ color: accentColor }} />
+            <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
+              {t('faceBlurScanning')}
+            </Typography>
+          </Box>
+        )}
+
+        {!isScanningFaces && faceRedaction && (
+          <Box
+            sx={{
+              mt: 1,
+              display: 'flex',
+              alignItems: 'flex-start',
+              flexWrap: 'wrap',
+              gap: 1.5,
+              px: 2,
+              py: 1.75,
+              borderRadius: `${theme.custom.radius.md}px`,
+              backgroundColor: faceRedaction.enabled
+                ? alpha(accentColor, theme.palette.mode === 'dark' ? 0.16 : 0.08)
+                : alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.05),
+              transition: 'background-color 0.2s ease-in-out',
+            }}
+          >
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                flexShrink: 0,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: faceRedaction.enabled
+                  ? alpha(accentColor, 0.18)
+                  : alpha(theme.custom.color.ink, 0.08),
+                color: faceRedaction.enabled ? accentColor : theme.palette.text.secondary,
+              }}
+            >
+              {faceRedaction.enabled ? <FaceRedactedIcon fontSize="small" /> : <FaceVisibleIcon fontSize="small" />}
+            </Box>
+
+            <Box sx={{ flex: '1 1 200px', minWidth: 0 }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                {t(faceCountKey(faceRedaction.count), { count: faceRedaction.count })}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ display: 'block', mt: 0.25, color: theme.palette.text.secondary }}
+              >
+                {faceRedaction.enabled ? t('faceBlurOnHint') : t('faceBlurOffHint')}
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 600,
+                  color: faceRedaction.enabled ? accentColor : theme.palette.text.secondary,
+                }}
+              >
+                {t('faceBlurToggleLabel')}
+              </Typography>
+              <Switch
+                checked={faceRedaction.enabled}
+                onChange={(event) => onFaceRedactionToggle(event.target.checked)}
+                inputProps={{ 'aria-label': t('faceBlurToggleLabel') }}
+                // Stated from the token: an unstyled Switch takes its checked
+                // color from theme.js's legacy palette.primary, which is white
+                // in light mode.
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': { color: accentColor },
+                  '& .MuiSwitch-switchBase.Mui-checked:hover': {
+                    backgroundColor: alpha(accentColor, 0.08),
+                  },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                    backgroundColor: accentColor,
+                  },
+                }}
+              />
+            </Box>
+          </Box>
+        )}
 
         {selectedFileName && (
           <Typography

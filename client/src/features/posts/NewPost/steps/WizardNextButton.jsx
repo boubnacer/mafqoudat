@@ -6,7 +6,7 @@ import { useTranslation } from "../../../../utils/translations";
 // ReviewSubmitButton's brand gradient rather than MUI's unstyled `contained`
 // default, which falls back to theme.js's legacy palette.primary (near-black
 // in dark mode, near-white in light mode) and reads as an off-brand button.
-const WizardNextButton = ({ onClick }) => {
+const WizardNextButton = ({ onClick, disabled = false }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const brandPrimary = theme.custom.color.brandPrimary;
@@ -16,6 +16,7 @@ const WizardNextButton = ({ onClick }) => {
     <Button
       variant="contained"
       onClick={onClick}
+      disabled={disabled}
       sx={{
         textTransform: 'none',
         borderRadius: 2,
@@ -30,6 +31,13 @@ const WizardNextButton = ({ onClick }) => {
           boxShadow: `0 6px 20px ${alpha(brandPrimary, 0.4)}`,
           transform: 'translateY(-1px)',
           color: `${contrastText} !important`,
+        },
+        // Stated explicitly for the same reason as the enabled state above:
+        // MUI's default disabled colors come from the legacy palette.
+        '&.Mui-disabled': {
+          background: alpha(brandPrimary, 0.35),
+          color: `${alpha(contrastText, 0.75)} !important`,
+          boxShadow: 'none',
         },
         transition: 'all 0.2s ease-in-out',
       }}
