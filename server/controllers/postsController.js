@@ -6,6 +6,7 @@ const FoundLost = require("../models/FoundLost");
 const City = require("../models/City");
 const Report = require("../models/Report");
 const { deleteFromCloudinary } = require("../config/cloudinary");
+const { deleteSocialImage } = require("../services/socialImageService");
 const mongoose = require("mongoose");
 const TranslationService = require("../services/translationService");
 const socialPublishQueue = require("../services/socialPublishQueue");
@@ -1756,7 +1757,7 @@ const updatePost = async (req, res) => {
   }
 
   // Confirm post exists to update - only select fields needed for update
-  const post = await Post.findById(id).select('_id user country category categories city exactLocation contact returned foundLost description mainDate cloudinaryPublicId').exec();
+  const post = await Post.findById(id).select('_id user country category categories city exactLocation contact returned foundLost description mainDate cloudinaryPublicId socialImage').exec();
 
   if (!post) {
     return res.status(400).json({ message: "Post not found" });
@@ -1873,9 +1874,13 @@ const updatePost = async (req, res) => {
     if (post.cloudinaryPublicId) {
       await deleteFromCloudinary(post.cloudinaryPublicId);
     }
+    // The watermarked social copy is a derivative of that photo and has no
+    // reason to outlive it.
+    await deleteSocialImage(post);
     post.image = null;
     post.cloudinaryUrl = null;
     post.cloudinaryPublicId = null;
+    post.set('socialImage', { url: null, publicId: null, sourceUrl: null, createdAt: null });
   }
 
   // Handle Cloudinary image data if available (from multer middleware) - a new
@@ -1884,6 +1889,12 @@ const updatePost = async (req, res) => {
     if (post.cloudinaryPublicId) {
       await deleteFromCloudinary(post.cloudinaryPublicId);
     }
+    // Same for the social copy: it is stamped from the photo being replaced.
+    // Clearing it is what makes the publish path stamp the new one - it
+    // compares `socialImage.sourceUrl` against the photo it is about to
+    // publish, so a stale mark is never used.
+    await deleteSocialImage(post);
+    post.set('socialImage', { url: null, publicId: null, sourceUrl: null, createdAt: null });
     post.cloudinaryUrl = req.cloudinaryResult.url;
     post.cloudinaryPublicId = req.cloudinaryResult.public_id;
     // Keep backward compatibility with image field
@@ -1925,7 +1936,7 @@ const deletePost = async (req, res) => {
   }
 
   // Confirm post exists to delete - only select fields needed for deletion (cloudinary cleanup)
-  const post = await Post.findById(id).select('_id user cloudinaryPublicId').exec();
+  const post = await Post.findById(id).select('_id user cloudinaryPublicId socialImage').exec();
 
   if (!post) {
     return res.status(400).json({ message: "Post not found" });
@@ -1935,10 +1946,12 @@ const deletePost = async (req, res) => {
     return res.status(403).json({ message: "Not authorized to delete this post" });
   }
 
-  // Delete image from Cloudinary if it exists
+  // Delete image from Cloudinary if it exists, and the watermarked copy that
+  // was published to the Pages with it.
   if (post.cloudinaryPublicId) {
     await deleteFromCloudinary(post.cloudinaryPublicId);
   }
+  await deleteSocialImage(post);
 
   const result = await post.deleteOne();
 

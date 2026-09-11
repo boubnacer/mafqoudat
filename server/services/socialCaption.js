@@ -3,6 +3,7 @@ const City = require('../models/City');
 const Category = require('../models/Category');
 const Country = require('../models/Country');
 const { categorySocialImagePath } = require('../config/categorySocialImages');
+const { ensureSocialImage } = require('./socialImageService');
 
 // One post, one caption, three stacked language blocks (ar/fr/en) separated
 // by a divider - there is no per-post language field to pick just one, and
@@ -78,6 +79,15 @@ const IMAGE_NOT_AVAILABLE_TEXT = 'غير متاحة';
 
 const BLOCK_DIVIDER = '➖➖➖➖➖➖➖➖➖➖';
 
+// Instagram refuses a container carrying more than 30 hashtags. Facebook has
+// no such rule, but one caption is built for both and 30 tags is already far
+// past the point of diminishing returns, so the cap is applied either way.
+const MAX_HASHTAGS = 30;
+
+// What a shortened description ends with. Trimming is only ever reached on
+// Instagram, whose caption limit the caller passes in.
+const TRUNCATION_MARK = '…';
+
 // Hashtags can't contain spaces or punctuation - strip both.
 const toHashtag = (label) => label && `#${label.replace(/[\s'"،.,-]/g, '')}`;
 
@@ -100,7 +110,17 @@ const toHashtag = (label) => label && `#${label.replace(/[\s'"،.,-]/g, '')}`;
  */
 async function resolveListingImage(post) {
   const imageUrl = post.cloudinaryUrl || post.image;
-  if (imageUrl) return { imageUrl, isPlaceholder: false };
+  if (imageUrl) {
+    // The listing's own photo goes up watermarked with the domain, so a
+    // reader who meets it in a feed - or two shares further on, with the
+    // caption long gone - can still see where it came from. Only this copy
+    // carries the mark; the site keeps rendering the clean photo. A listing
+    // with no id is not a stored post (the offline checks pass plain
+    // objects), and a mark that could not be made answers null, in which case
+    // the plain photo is published rather than nothing.
+    const watermarked = post._id ? await ensureSocialImage(post) : null;
+    return { imageUrl: watermarked || imageUrl, isPlaceholder: false };
+  }
 
   const categoryId = (post.categories && post.categories.length > 0)
     ? post.categories[0]
@@ -147,7 +167,7 @@ function buildLocaleBlock(locale, data) {
  * Shared by facebookService and instagramService - both post the same
  * listing content, just through different Graph API endpoints.
  */
-async function buildListingCaption(post, { isPlaceholder = false } = {}) {
+async function buildListingCaption(post, { isPlaceholder = false, maxLength = null } = {}) {
   const categoryIds = (post.categories && post.categories.length > 0)
     ? post.categories
     : (post.category ? [post.category] : []);
@@ -163,18 +183,6 @@ async function buildListingCaption(post, { isPlaceholder = false } = {}) {
   const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
   const postUrl = `${siteUrl}/dash/posts/${post._id}`;
 
-  const blocks = LOCALES.map((locale) => buildLocaleBlock(locale, {
-    statusCode,
-    categoryLabel: categories.map((c) => c.labels?.[locale]).filter(Boolean).join(LOCALE_TEXT[locale].listSeparator),
-    countryLabel: country?.names?.[locale] || '',
-    cityLabel: city?.labels?.[locale] || '',
-    exactLocation: post.exactLocation,
-    mainDate: post.mainDate && post.mainDate.trim(),
-    isPlaceholder,
-    description: post.description,
-    postUrl,
-  }));
-
   // Caption is trilingual now, so the hashtags follow: one set per language
   // (city + every category), not just Arabic - a French or English reader
   // searching a hashtag should find the post too. A city/category whose
@@ -188,9 +196,63 @@ async function buildListingCaption(post, { isPlaceholder = false } = {}) {
     '#مفقودات',
     '#Mafqoudat',
     ...localizedHashtags.filter(Boolean),
-  ])].join(' ');
+  ])].slice(0, MAX_HASHTAGS).join(' ');
 
-  return `${blocks.join(`\n\n${BLOCK_DIVIDER}\n\n`)}\n\n${hashtags}`;
+  const compose = (description) => {
+    const blocks = LOCALES.map((locale) => buildLocaleBlock(locale, {
+      statusCode,
+      categoryLabel: categories.map((c) => c.labels?.[locale]).filter(Boolean).join(LOCALE_TEXT[locale].listSeparator),
+      countryLabel: country?.names?.[locale] || '',
+      cityLabel: city?.labels?.[locale] || '',
+      exactLocation: post.exactLocation,
+      mainDate: post.mainDate && post.mainDate.trim(),
+      isPlaceholder,
+      description,
+      postUrl,
+    }));
+
+    return `${blocks.join(`\n\n${BLOCK_DIVIDER}\n\n`)}\n\n${hashtags}`;
+  };
+
+  const caption = compose(post.description);
+  if (!maxLength || caption.length <= maxLength) return caption;
+
+  // Over the platform's limit. The description is the elastic part and the
+  // only one: the header says what was lost and where, the link is how anyone
+  // acts on it, and the hashtags are how it is found - cutting the string at
+  // its end would drop exactly those and keep the part a reader can already
+  // see on the site. And the description is repeated verbatim in all three
+  // language blocks (free text cannot be machine-translated reliably), so one
+  // character saved here is three off the caption.
+  //
+  // Binary search rather than a fixed budget: how much room the description
+  // has depends on the city, the country, the category list and the hashtags,
+  // all of which vary by an order of magnitude between listings.
+  const full = (post.description || '').trim();
+  const shorten = (length) => (length > 0 ? `${full.slice(0, length).trimEnd()}${TRUNCATION_MARK}` : '');
+
+  let low = 0;
+  let high = full.length;
+  let best = 0;
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    if (compose(shorten(mid)).length <= maxLength) {
+      best = mid;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+
+  const trimmed = compose(shorten(best));
+
+  // Even an empty description can overrun, given a maximum-length exact
+  // location and date in every block. Nothing left to negotiate at that
+  // point: a caption cut short still publishes, and a refused container
+  // does not.
+  return trimmed.length <= maxLength
+    ? trimmed
+    : `${trimmed.slice(0, maxLength - 1).trimEnd()}${TRUNCATION_MARK}`;
 }
 
 module.exports = { buildListingCaption, resolveListingImage };

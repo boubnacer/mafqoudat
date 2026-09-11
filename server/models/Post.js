@@ -66,6 +66,21 @@ const postSchema = new mongoose.Schema(
       required: false, // Changed from required to optional
       maxlength: [POST_LIMITS.imageUrl, `Image id cannot exceed ${POST_LIMITS.imageUrl} characters`],
     },
+    // The watermarked copy of the photo above, made by
+    // services/socialImageService.js for the Facebook/Instagram publish and
+    // used nowhere else. The site renders `cloudinaryUrl`: a listing is
+    // evidence of a lost object first, and a mark across it would sit between
+    // a reader and the thing they are trying to recognise. Off the site it is
+    // the other way round - the photo travels without the page around it, so
+    // it carries the domain it came from. `sourceUrl` is what it was stamped
+    // from, so a photo replaced before the listing is published is marked
+    // again rather than published with the old picture's copy.
+    socialImage: {
+      url: { type: String, default: null },
+      publicId: { type: String, default: null },
+      sourceUrl: { type: String, default: null },
+      createdAt: { type: Date, default: null },
+    },
     mainDate: {
       type: String,
       required: false, // Made optional

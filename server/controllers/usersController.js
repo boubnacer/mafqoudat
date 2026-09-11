@@ -9,6 +9,7 @@ const Report = require("../models/Report");
 const Contact = require("../models/Contact");
 const PasswordResetRequest = require("../models/PasswordResetRequest");
 const { deleteFromCloudinary } = require("../config/cloudinary");
+const { deleteSocialImage } = require("../services/socialImageService");
 const { cacheService } = require("../config/cache");
 const { issueSession, setRefreshCookie } = require("../utils/authSession");
 const { logEvents } = require("../middleware/logger");
@@ -470,7 +471,7 @@ const purgeUserData = async (user) => {
   // Posts first: their Cloudinary assets and every match/notification that
   // points at them have to go before the rows themselves do.
   const posts = await Post.find({ user: userId })
-    .select('_id cloudinaryPublicId')
+    .select('_id cloudinaryPublicId socialImage')
     .lean()
     .exec();
   const postIds = posts.map((post) => post._id);
@@ -481,6 +482,9 @@ const purgeUserData = async (user) => {
     if (post.cloudinaryPublicId) {
       await deleteFromCloudinary(post.cloudinaryPublicId);
     }
+    // The watermarked copy published to the Pages is a derivative of that
+    // photo and goes with it.
+    await deleteSocialImage(post);
   }
 
   if (postIds.length > 0) {
