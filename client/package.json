@@ -39,6 +39,7 @@
     "build": "react-scripts build",
     "build-map-data": "node --max-old-space-size=6144 scripts/buildMapData.js",
     "build-category-images": "node scripts/buildCategorySocialImages.js",
+    "sync-face-api": "node scripts/syncFaceApi.js",
     "postbuild": "node scripts/postbuild.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -121,6 +122,7 @@
     "npm": ">=8.0.0"
   },
   "devDependencies": {
+    "@vladmandic/face-api": "^1.7.15",
     "react-snap": "^1.23.0",
     "sharp": "^0.35.4",
     "source-map-explorer": "^2.5.3",

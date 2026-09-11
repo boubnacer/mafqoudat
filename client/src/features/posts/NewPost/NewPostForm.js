@@ -50,6 +50,7 @@ import ReviewSubmitButton from "./steps/ReviewSubmitButton";
 import { validateStep1, validateStep2, STEP_VALIDATORS, scrollToFirstErrorField } from "./wizardValidation";
 import { getCityDisplayName } from "./cityDisplay";
 import scrollToTop, { smoothScrollToTop } from "../../../utils/scrollToTop";
+import { redactFacesInImage } from "../../../utils/faceRedaction";
 
 // Maps each step's 1-based position (MUI auto-assigns `icon` = index + 1) to
 // the icon shown in its desktop rail badge.
@@ -91,6 +92,30 @@ const RailStepIcon = ({ active, completed, icon, iconRef }) => {
       {completed ? <CheckIcon fontSize="small" /> : <IconComponent fontSize="small" />}
     </Box>
   );
+};
+
+const categoryIdOf = (category) => String(category?.id || category?._id || "");
+
+// Whether the eye-redaction toggle starts on for a photo that has faces in it.
+// A missing-person appeal exists to be recognized, so covering the eyes there
+// would defeat the post - that is the one case where the feature does harm.
+// Everywhere else (a found person, an ID card, a bystander caught in the frame
+// of a lost-bag photo) privacy is the safer starting point, and the author can
+// still switch it off.
+const shouldRedactByDefault = ({ values, categories, flOptions }) => {
+  const direction = flOptions?.find((option) => option.id === values?.foundLost)?.code;
+  if (direction !== 'LOST') return true;
+
+  const selectedIds = new Set(
+    (values?.categories?.length ? values.categories : [values?.category])
+      .filter(Boolean)
+      .map(String)
+  );
+  const isMissingPersonPost = (categories || []).some(
+    (category) => category?.code === 'PERSON' && selectedIds.has(categoryIdOf(category))
+  );
+
+  return !isMissingPersonPost;
 };
 
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
@@ -138,6 +163,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [showImageDialog, setShowImageDialog] = useState(false);
+
+  // Eye redaction (utils/faceRedaction.js). Both variants of the photo are
+  // held here so the toggle can switch between them: the author's original is
+  // never discarded, and it is never silently replaced either - `enabled` only
+  // ever decides which of the two `selectedImage` currently points at.
+  const [faceRedaction, setFaceRedaction] = useState(null);
+  const [isScanningFaces, setIsScanningFaces] = useState(false);
+  // Monotonic token, same guard as the city search below: detection runs after
+  // an await, so a slow scan of a discarded photo must not overwrite the state
+  // of the one the author picked after it.
+  const imageSelectionIdRef = useRef(0);
 
   // New state for unified city dropdown
   const [citySearchQuery, setCitySearchQuery] = useState(""); // For search input inside dropdown
@@ -898,38 +934,105 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // dialog; it's now an always-visible inline notice on the Photo step
   // (S3), so the button just opens the file picker directly.
   const handleImageButtonClick = useCallback(() => {
-    if (isCompressing) return;
+    if (isCompressing || isScanningFaces) return;
     fileInputRef.current?.click();
-  }, [isCompressing, fileInputRef]);
+  }, [isCompressing, isScanningFaces, fileInputRef]);
+
+  // The size badge on the preview names the photo that will be uploaded, and
+  // redacting re-encodes it, so the figure has to follow whichever variant is
+  // currently active rather than keep reporting the one out of the compressor.
+  const syncCompressionInfo = useCallback((file) => {
+    setCompressionInfo((current) => {
+      if (!current) return current;
+      const originalSize = parseFloat(current.originalSize);
+      const compressedSize = file.size / 1024 / 1024;
+      return {
+        ...current,
+        compressedSize: compressedSize.toFixed(2),
+        compressionRatio: originalSize > 0
+          ? ((1 - compressedSize / originalSize) * 100).toFixed(1)
+          : current.compressionRatio,
+      };
+    });
+  }, []);
 
   // Handle image selection
   const handleImageSelect = useCallback(async (event) => {
     const file = event.currentTarget.files[0];
     if (!file) return;
 
+    const selectionId = imageSelectionIdRef.current + 1;
+    imageSelectionIdRef.current = selectionId;
+
     // Clear previous compression info
     setCompressionInfo(null);
-    
+    setFaceRedaction(null);
+
     try {
       const compressedFile = await compressImage(file);
+      if (imageSelectionIdRef.current !== selectionId) return;
+
       setSelectedImage(compressedFile);
       setSelectedFileName(compressedFile.name);
-      
+
       // Create preview URL
       const previewUrl = URL.createObjectURL(compressedFile);
       setImagePreview(previewUrl);
+
+      // Detection runs on the compressed file, so the covered pixels are the
+      // ones that get uploaded - there is no point at which an un-redacted
+      // copy exists downstream of this.
+      setIsScanningFaces(true);
+      const { faceCount, file: redactedFile } = await redactFacesInImage(compressedFile);
+      if (imageSelectionIdRef.current !== selectionId) return;
+      if (!faceCount || !redactedFile) return;
+
+      const enabled = shouldRedactByDefault({
+        values: formikRef.current?.values,
+        categories,
+        flOptions,
+      });
+      setFaceRedaction({
+        count: faceCount,
+        enabled,
+        original: compressedFile,
+        redacted: redactedFile,
+      });
+      if (enabled) {
+        setSelectedImage(redactedFile);
+        setSelectedFileName(redactedFile.name);
+        setImagePreview(URL.createObjectURL(redactedFile));
+        syncCompressionInfo(redactedFile);
+      }
     } catch (error) {
       console.error('Error processing image:', error);
+    } finally {
+      if (imageSelectionIdRef.current === selectionId) {
+        setIsScanningFaces(false);
+      }
     }
-  }, [compressImage]);
+  }, [compressImage, categories, flOptions, syncCompressionInfo]);
 
+  const handleFaceRedactionToggle = useCallback((enabled) => {
+    if (!faceRedaction) return;
+
+    const nextFile = enabled ? faceRedaction.redacted : faceRedaction.original;
+    setFaceRedaction({ ...faceRedaction, enabled });
+    setSelectedImage(nextFile);
+    setSelectedFileName(nextFile.name);
+    setImagePreview(URL.createObjectURL(nextFile));
+    syncCompressionInfo(nextFile);
+  }, [faceRedaction, syncCompressionInfo]);
 
   // Handle image removal
   const handleImageRemove = useCallback(() => {
+    imageSelectionIdRef.current += 1;
     setSelectedImage(null);
     setSelectedFileName("");
     setCompressionInfo(null);
-    
+    setFaceRedaction(null);
+    setIsScanningFaces(false);
+
     // Clean up preview URL
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
@@ -1287,6 +1390,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           selectedFileName={selectedFileName}
                           compressionInfo={compressionInfo}
                           isCompressing={isCompressing}
+                          isScanningFaces={isScanningFaces}
+                          faceRedaction={faceRedaction}
+                          onFaceRedactionToggle={handleFaceRedactionToggle}
                           fileInputRef={fileInputRef}
                           handleImageButtonClick={handleImageButtonClick}
                           handleImageSelect={handleImageSelect}
@@ -1294,7 +1400,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           handleImageDialogOpen={handleImageDialogOpen}
                         />
                         <WizardFooter onBack={() => goToStep(1)}>
-                          <WizardNextButton onClick={handleNextFromPhotoStep} />
+                          {/* Held until the scan finishes, so a fast click can't
+                              carry the un-redacted photo through to Review. */}
+                          <WizardNextButton
+                            onClick={handleNextFromPhotoStep}
+                            disabled={isCompressing || isScanningFaces}
+                          />
                         </WizardFooter>
                       </>
                     )}
