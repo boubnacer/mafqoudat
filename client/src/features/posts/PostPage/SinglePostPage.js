@@ -68,8 +68,8 @@ const mixHexColors = (colorA, colorB, ratio) => {
   return `rgb(${mix(r1, r2)}, ${mix(g1, g2)}, ${mix(b1, b2)})`;
 };
 
-// Neumorphic treatment shared by every badge that sits directly on the post
-// photo (status tag, date badge, resolved ribbon, no-image caption): a solid,
+// Neumorphic treatment shared by badges that sit directly on the post
+// photo (resolved ribbon, no-image caption): a solid,
 // fully opaque fill — never see-through, so the badge reads as its own
 // surface rather than a tint of whatever photo is behind it — carved with
 // the same soft-UI shadow pair as the "inner shadow" reference swatch this
@@ -88,11 +88,10 @@ const mixHexColors = (colorA, colorB, ratio) => {
 // outright wherever it's already a solid hex; dark mode's status.bg is a
 // translucent wash unusable on an opaque fill, so it's approximated with the
 // same gentle mix ratio there and for the warning fallback (whose own `bg`
-// is alpha-based in both modes). Badges with no type of their own (date,
-// no-image caption) call this with no tone and get plain, opaque
-// surfaceRaised. Either way the identity color still lives primarily in the
-// icon/label, same rule mobile's neumorphic surfaces (theme/neumorphism.js)
-// rest on.
+// is alpha-based in both modes). The no-image caption calls this with no
+// tone and gets plain, opaque surfaceRaised. Either way the identity color
+// still lives primarily in the icon/label, same rule mobile's neumorphic
+// surfaces (theme/neumorphism.js) rest on.
 const STATUS_TINT_RATIO = 0.11;
 
 const neumorphicOverlaySx = (theme, tone) => {
@@ -112,20 +111,15 @@ const neumorphicOverlaySx = (theme, tone) => {
   };
 };
 
-// Same signature as the post card DNA (Post.js/TrendingItem): this is the
-// single most load-bearing fact on the page, so it lives on the image, not
-// buried in a label:value row further down. Styling matches the Posts list
-// card's status tag exactly - solid tone.main fill, radius.sm, uppercase
-// contrast-text label - rather than this page's own neumorphic tint.
-const StatusTag = ({ tone, icon: Icon, label }) => {
+// Shared visual for a solid pill badge (icon + uppercase contrast-text
+// label) sitting directly on the post photo - solid tone.main fill,
+// radius.sm. Used by both the Lost/Found status tag and the category
+// tag(s), so they read as one badge language rather than two.
+const BadgeContent = ({ tone, icon: Icon, label }) => {
   const theme = useTheme();
   return (
     <Box
       sx={{
-        position: 'absolute',
-        top: 12,
-        insetInlineStart: 12,
-        zIndex: 3,
         display: 'inline-flex',
         alignItems: 'center',
         gap: 0.75,
@@ -152,35 +146,36 @@ const StatusTag = ({ tone, icon: Icon, label }) => {
   );
 };
 
-// Matches the Posts list card's date pill exactly - the reference design's
-// translucent '#78808E' scrim (not a design token; only exists on top of a
-// photo), fully rounded, white icon + text - instead of this page's own
-// neumorphic surfaceRaised tile.
-const DateBadge = ({ children }) => {
-  const theme = useTheme();
-  return (
-    <Box
-      sx={{
-        position: 'absolute',
-        top: 12,
-        insetInlineEnd: 12,
-        zIndex: 3,
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 0.75,
-        px: 1.5,
-        py: 0.625,
-        borderRadius: '999px',
-        backgroundColor: alpha('#78808E', 0.55),
-      }}
-    >
-      <TimeIcon sx={{ fontSize: 18, color: '#FFFFFF' }} />
-      <Typography sx={{ fontWeight: 700, fontSize: '13px', color: '#FFFFFF', lineHeight: 1 }}>
-        {children}
-      </Typography>
-    </Box>
-  );
-};
+// Same signature as the post card DNA (Post.js/TrendingItem): this is the
+// single most load-bearing fact on the page, so it lives on the image, not
+// buried in a label:value row further down.
+const StatusTag = ({ tone, icon, label }) => (
+  <Box sx={{ position: 'absolute', top: 12, insetInlineStart: 12, zIndex: 3 }}>
+    <BadgeContent tone={tone} icon={icon} label={label} />
+  </Box>
+);
+
+// The category badge(s) take the image's other top corner - the spot the
+// date used to sit in - styled identically to the status tag rather than a
+// bespoke chip. Stacked in a column for a multi-category post.
+const CategoryTags = ({ items }) => (
+  <Box
+    sx={{
+      position: 'absolute',
+      top: 12,
+      insetInlineEnd: 12,
+      zIndex: 3,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-end',
+      gap: 0.75,
+    }}
+  >
+    {items.map((item) => (
+      <BadgeContent key={item.code} tone={item.tone} icon={item.icon} label={item.label} />
+    ))}
+  </Box>
+);
 
 const ResolvedRibbon = ({ children }) => {
   const theme = useTheme();
@@ -498,13 +493,14 @@ const SinglePostPage = ({
     }
   }, [currentLanguage]);
 
-  const createdDate = useMemo(() => {
-    const timeAgo = formatDistanceToNow(new Date(createdAt), {
+  // Raw relative time, with no "Posted" prefix - the label lives on the
+  // InfoTile now, the same way "City"/"Country" label their own values.
+  const postedTimeAgo = useMemo(() => {
+    return formatDistanceToNow(new Date(createdAt), {
       addSuffix: true,
       locale
     });
-    return `${t('posted')} ${timeAgo}`;
-  }, [createdAt, locale, t]);
+  }, [createdAt, locale]);
 
   const isDarkMode = theme.palette.mode === 'dark';
 
@@ -575,6 +571,17 @@ const SinglePostPage = ({
       }
     });
   }, [categories, isDarkMode, theme.custom.color.brandPrimary]);
+
+  // The on-image category badge(s) - same shape as the Lost/Found status
+  // tag, one per category, tone taken from each category's own color.
+  const categoryBadges = useMemo(() => {
+    return categories.map((cat, index) => ({
+      code: cat.code || index,
+      icon: getCategoryIcon(cat.code),
+      label: categoryNames[index],
+      tone: { main: categoryStyles[index]?.main || theme.custom.color.brandPrimary },
+    }));
+  }, [categories, categoryNames, categoryStyles, theme.custom.color.brandPrimary]);
 
   // Extract city from location (show only city) - helper function
   const getCityFromLocation = useCallback((location) => {
@@ -872,7 +879,7 @@ const SinglePostPage = ({
                 icon={foundLostStatus.isFound ? TaskAltOutlined : SearchOffOutlined}
                 label={foundLostStatus.statusText}
               />
-              <DateBadge>{createdDate}</DateBadge>
+              <CategoryTags items={categoryBadges} />
 
               {image && imageUrl ? (
                 <LazyCardMedia
@@ -966,33 +973,14 @@ const SinglePostPage = ({
 
             {/* Content Section */}
             <Box sx={{ p: { xs: 3, md: 4 } }}>
-              {/* Category chips, icon + label like mobile's category pill. */}
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                {categories.map((cat, index) => {
-                  const CatIcon = getCategoryIcon(cat.code);
-                  return (
-                    <Chip
-                      key={cat.code || index}
-                      label={categoryNames[index]}
-                      size="small"
-                      icon={CatIcon ? <CatIcon sx={{ fontSize: '15px !important', color: `${categoryStyles[index].text} !important` }} /> : undefined}
-                      sx={{
-                        fontSize: '0.75rem',
-                        height: 26,
-                        backgroundColor: categoryStyles[index].background,
-                        color: categoryStyles[index].text,
-                        border: `1px solid ${alpha(categoryStyles[index].main, 0.4)}`,
-                        fontWeight: 600,
-                      }}
-                    />
-                  );
-                })}
-              </Box>
-
-              {/* Info grid — the single-value facts (where, when, how many people
-                  looked) as tinted tiles instead of a loose row of icon+text pairs.
-                  Mirrors mobile PostDetailScreen.js's InfoTile grid (Phase 14). */}
+              {/* Info grid — the single-value facts (when posted, where, when
+                  lost/found, how many people looked) as tinted tiles instead of a
+                  loose row of icon+text pairs or chips. Category now shows as an
+                  on-image badge above, in the spot "posted" used to occupy — this
+                  grid takes "posted" in exchange, styled like every other fact
+                  here. Mirrors mobile PostDetailScreen.js's InfoTile grid (Phase 14). */}
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 3 }}>
+                <InfoTile icon={TimeIcon} label={t('postedOn')} value={postedTimeAgo} />
                 {metaLocationLabel && (
                   <InfoTile icon={LocationIcon} label={t('location')} value={metaLocationLabel} fullWidth />
                 )}
