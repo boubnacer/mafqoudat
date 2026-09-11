@@ -17,7 +17,6 @@ import {
 } from "@mui/material";
 import {
   LocationOn as LocationIcon,
-  CalendarToday as CalendarIcon,
   Category as CategoryIcon,
   ArrowForward as ArrowIcon,
   AccessTime as TimeIcon,
@@ -143,22 +142,6 @@ const Post = ({ post, viewMode = "grid" }) => {
       return t('unknownDate');
     }
   }, [post?.createdAt, locale, t]);
-
-  // The exact date the card's calendar icon shows, distinct from `created`'s
-  // relative "posted X ago" phrasing. Prefers the listing's own free-text
-  // mainDate (when it was lost/found, as entered in DateEntryDialog); when a
-  // post doesn't carry one, falls back to the post's own createdAt formatted
-  // as a plain date, so the card never collapses to showing only the
-  // relative "posted" time.
-  const exactDateLabel = useMemo(() => {
-    if (post?.mainDate) return post.mainDate;
-    if (!post?.createdAt) return null;
-    try {
-      return format(new Date(post.createdAt), 'MMM d, yyyy', { locale });
-    } catch (error) {
-      return null;
-    }
-  }, [post?.mainDate, post?.createdAt, locale]);
 
   // Memoized found/lost status computation.
   // `foundLostValue` starts unset so the ObjectId-reference fallback below only
@@ -1006,10 +989,10 @@ const Post = ({ post, viewMode = "grid" }) => {
                   backgroundColor: alpha(catStyle.main, 0.1),
                   border: `1px solid ${alpha(catStyle.main, 0.35)}`,
                   color: catStyle.main,
-                  fontWeight: 800,
-                  fontSize: 13,
-                  borderRadius: '999px',
-                  padding: '5px 12px',
+                  fontWeight: 900,
+                  fontSize: 14,
+                  borderRadius: `${theme.custom.radius.sm}px`,
+                  padding: '7px 14px',
                 }}
               >
                 {catName}
@@ -1018,24 +1001,6 @@ const Post = ({ post, viewMode = "grid" }) => {
           })}
         </Box>
       </Box>
-
-      {/* Facts: the exact date (mainDate, or createdAt as a fallback so this
-          slot never goes empty). Start-aligned (start in LTR, end in RTL,
-          via flex-start on a direction-aware row) rather than centered.
-          When the listing went up (relative) moved onto the photo as its
-          own badge (see above) - not repeated here. View count isn't
-          repeated here either - it's already the first column of the
-          stats bar below. */}
-      {exactDateLabel && (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: { xs: '0 16px', sm: '0 20px' }, pt: { xs: 1, sm: 1.5 } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <CalendarIcon sx={{ fontSize: 20, color: theme.custom.color.ink }} />
-            <Typography sx={{ fontSize: 13, fontWeight: 700, color: theme.custom.color.ink }}>
-              {exactDateLabel}
-            </Typography>
-          </Box>
-        </Box>
-      )}
 
       {/* Stats bar: the same reach metrics ReachRow renders elsewhere,
           spelled out as a 3-column grid instead of an inline row. */}
