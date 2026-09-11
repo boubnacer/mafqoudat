@@ -1629,8 +1629,7 @@ const PostsList = () => {
         <SeoMeta pageKey="dashPosts" />
         <Box sx={{
         p: 2,
-        pb: 12,
-        pt: `${navbarClearance + 16}px`,
+        pt: `${navbarClearance + 76}px`,
         minHeight: "100vh",
         backgroundColor: theme.custom.color.postsListBackdrop
       }}>
@@ -1638,7 +1637,7 @@ const PostsList = () => {
             fixed), shown only once something is actually filtered, so a
             first-time visitor sees a clean page and only the floating
             launcher below. Scrolls away with the content on purpose; the
-            launcher pill is what stays reachable. */}
+            launcher tab is what stays reachable. */}
         {hasActiveFilters && (
           <Box
             sx={{
@@ -1831,11 +1830,13 @@ const PostsList = () => {
         {/* Posts Content */}
         {mainArea}
 
-        {/* Floating filter launcher - the pop-up trigger itself. Fixed above
-            the page content (not the old full-width bar), pill-shaped with a
-            brand gradient so it reads as an action rather than a static
-            panel, and carries the active-filter count so the badge that used
-            to live in the top bar isn't lost. */}
+        {/* Floating filter launcher - the pop-up trigger itself. Docked to
+            the start edge of the viewport right under the navbar, like a tab
+            sliding in from off-screen: flush (no radius) on the edge it
+            touches, rounded only on the protruding side. Fixed rather than
+            in-flow so it stays reachable while scrolling, and mirrors as a
+            unit in RTL via inset/border-radius logical properties rather
+            than a hand-picked side. */}
         <Box
           component="button"
           type="button"
@@ -1844,8 +1845,8 @@ const PostsList = () => {
           aria-expanded={filterDialogOpen}
           sx={{
             position: 'fixed',
-            insetInlineEnd: 20,
-            bottom: 24,
+            insetInlineStart: 0,
+            top: `${navbarClearance + 12}px`,
             zIndex: (t) => t.zIndex.appBar,
             display: 'flex',
             alignItems: 'center',
@@ -1854,13 +1855,17 @@ const PostsList = () => {
             cursor: 'pointer',
             font: 'inherit',
             py: 1.25,
-            px: 2.25,
-            borderRadius: '999px',
+            paddingInlineStart: 2.5,
+            paddingInlineEnd: 2.25,
+            borderStartStartRadius: 0,
+            borderEndStartRadius: 0,
+            borderStartEndRadius: `${theme.custom.radius.xl}px`,
+            borderEndEndRadius: `${theme.custom.radius.xl}px`,
             backgroundImage: `linear-gradient(135deg, ${brand} 0%, ${lighten(brand, 0.15)} 100%)`,
             boxShadow: `0 10px 28px ${alpha(brand, 0.45)}, 0 2px 10px ${alpha('#000000', isDark ? 0.45 : 0.18)}`,
             transition: 'transform 0.15s ease, box-shadow 0.15s ease',
             '&:active': {
-              transform: 'scale(0.96)',
+              transform: 'scale(0.97)',
             },
             '&:focus-visible': {
               outline: `2px solid ${theme.palette.getContrastText(brand)}`,
