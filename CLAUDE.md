@@ -812,16 +812,159 @@ this whole section exists to protect.
   spam systems look for regardless of any numeric limit. In all three cases the
   refusal was caught, logged and dropped: the listing existed on the site with
   no Page copy, no retry, and nothing anywhere recording that it had happened.
-- **Pacing is unconditional, the quota is a separate gate on top.** The worker
-  leaves at least `SOCIAL_QUEUE_MIN_INTERVAL_SECONDS` (30) between two publishes
-  on the same platform whether or not any limit is close — "burst until
-  something breaks, then slow down" is the behaviour being removed, so the fix
-  cannot be a limit check alone. Instagram's daily cap is then a second,
-  independent gate, and it **defers rather than drops**: when the window is
-  full, the remaining jobs are dated to when the oldest publish ages out of it
-  (+ a minute's buffer) and go up by themselves the next day. Facebook gets no
-  quota gate because it has no such cap — pacing plus the rate-limit cooldown is
-  what handles its budget.
+- **Pacing is unconditional, every limit is a separate gate on top.** The
+  worker leaves at least a per-platform floor between two publishes on the
+  same platform whether or not any limit is close — "burst until something
+  breaks, then slow down" is the behaviour being removed, so the fix cannot be
+  a limit check alone. Every gate above it **defers rather than drops**: the
+  jobs are dated to when a slot frees up (+ a minute's buffer) and go up by
+  themselves. In order of how much each one knows:
+  1. the interval, plus jitter redrawn after every publish — see below;
+  2. an **hourly** ceiling, `SOCIAL_QUEUE_IG_HOURLY_LIMIT` (5) and
+     `SOCIAL_QUEUE_FB_HOURLY_LIMIT` (10);
+  3. Instagram's rolling 24h cap, `SOCIAL_QUEUE_IG_DAILY_LIMIT` (25) —
+     Facebook has no published-post cap at all, only a call budget;
+  4. the account's own figure from Meta (`content_publishing_limit`, below);
+  5. the call budget Meta reports on every response (below).
+- **The interval is per-platform, not one shared number.** Each publisher
+  entry in `socialPublishQueue.js`'s `DEFAULT_PUBLISHERS` carries its own
+  `minIntervalMs`/`jitterMs`, and `runPlatform` paces off *that* platform's
+  pair — so tuning one platform's cadence can never move the other's. Facebook
+  stays at `SOCIAL_QUEUE_MIN_INTERVAL_SECONDS` (60) +
+  `SOCIAL_QUEUE_JITTER_SECONDS` (0–45), i.e. 60–105s. Instagram is deliberately
+  more conservative — `SOCIAL_QUEUE_IG_MIN_INTERVAL_SECONDS` (180) +
+  `SOCIAL_QUEUE_IG_JITTER_SECONDS` (0–120), i.e. 180–300s (3–5 minutes) —
+  because the one observed spam block (`error_subcode` 2207051) happened on
+  Instagram, at a cadence well inside its documented daily cap, and a fresh
+  Page/account has no posting history to fall back on. Bumped from a single
+  shared 60s floor after launch review specifically for this reason; kept as
+  two independent settings rather than one raised number so Facebook — which
+  never showed the problem and has no daily cap to begin with — is not slowed
+  down for an issue that was never its own.
+- **The hourly ceiling exists because the documented daily cap is not the
+  limit that actually bites.** 25 posts per 24h is what Meta publishes, but a
+  short interval alone can spend all 25 well inside an hour, and accounts are
+  reported blocked for suspected spam at around a dozen posts in one hour —
+  well under the documented cap, which is precisely why a daily gate alone
+  does not protect anything. At 5/hour Instagram takes five hours to reach its
+  daily allowance, which is the point. The ceilings and the interval are the
+  levers to reach for if a spam block ever happens; the log line for one says
+  so.
+- **And the pacing is jittered, because a perfect metronome is itself a
+  signal.** A fresh `Math.random()` draw after each publish, so two
+  consecutive posts are never exactly as far apart as the two before them. It
+  can only ever make the queue slower, never faster, and `random` is a
+  constructor seam so every pacing assertion in the offline check stays exact.
+- **Instagram's quota is asked for, not only counted.**
+  `GET /{ig-user-id}/content_publishing_limit` answers `quota_usage` and
+  `config.quota_total` for the *account*. The queue's own window count only
+  knows about posts this app published, so anything posted to the account by
+  hand — or by another tool — spends slots it never saw, and the first sign of
+  that was a listing refused with error code 9, costing an attempt and a full
+  cooldown. `quota_total` is also not always the 25 that gets quoted, so it is
+  better read than hardcoded. Cached five minutes in `instagramService` and
+  invalidated on every publish; unreachable or unanswerable means "carry on",
+  since the local count and Meta's own refusal both still stand behind it.
+- **Meta says how much budget is left on every response, and that is acted
+  on.** `x-app-usage` and `x-business-use-case-usage` carry `call_count`,
+  `total_cputime` and `total_time` as percentages of three separate ceilings,
+  any one of which throttles at 100, plus `estimated_time_to_regain_access` in
+  minutes once already blocked. `readRateLimitUsage` takes the highest figure
+  across every object in both headers; the platform stands down at
+  `SOCIAL_QUEUE_USAGE_PAUSE_PERCENT` (85). This is the only way to slow down
+  *before* being refused rather than after — and when a throttle does arrive
+  with `estimated_time_to_regain_access` set, that beats the configured
+  cooldown in both directions.
+- **Every write goes in a form-encoded body, never the query string.** This is
+  the likeliest cause of the "sometimes it doesn't reach Instagram" that this
+  pass started from. A caption here is trilingual and up to 2,200 characters,
+  most of them Arabic — six bytes each once percent-encoded — so the same
+  caption as a query parameter is a URL of well over ten kilobytes, past the
+  point where gateways and Graph itself refuse a request outright. And it
+  fails *by listing*, not always: a short one goes through and a long one does
+  not, depending on how long that listing's city and category names happen to
+  be, which is exactly the shape of "it usually works". Both publishers send
+  `application/x-www-form-urlencoded` bodies now, token included; bodies have
+  no such ceiling.
+- **Instagram does not accept an image, it accepts a URL and goes to fetch
+  it** — so a container is not publishable until Meta has finished downloading
+  and processing the photo, and publishing one that is still `IN_PROGRESS`
+  fails. The readiness poll used to be ten attempts two seconds apart: a
+  twenty-second budget, against Meta's own guidance to poll for up to five
+  minutes, and nowhere near enough for a multi-megabyte JPEG on a slow fetch.
+  It is `INSTAGRAM_CONTAINER_TIMEOUT_SECONDS` (300) now, on a ramped interval
+  (2s, backing off to `INSTAGRAM_CONTAINER_POLL_MAX_SECONDS`, 30) rather than
+  Meta's flat once-a-minute — almost every container is ready in seconds, and
+  waiting a full minute to notice would make every publish a minute long.
+- **The container's `status` is read alongside its `status_code`**, and all
+  five states are handled. `status_code` alone says only "ERROR"; the reason,
+  and the subcode the queue classifies on, are in the free-text `status`
+  string (`"...could not be created. (2207032)"`), which is what separates a
+  temporary download failure from a file Instagram will never accept — the
+  difference between resubmitting the same image and regenerating it. A
+  container error with no parseable subcode defaults to the *media* class, not
+  the credentials one: the synthetic error has to carry a subcode inside
+  Instagram's `2207xxx` range or the queue's classifier falls through to its
+  `OAuthException` catch-all and pauses a platform that is working.
+  `EXPIRED` (a container lives 24h) is terminal for that container; `PUBLISHED`
+  is the duplicate case below.
+- **Nothing is published twice, part two: a lost answer is not a refusal.**
+  Graph has no idempotency key, so a publish whose answer never came back — a
+  timeout, a reset, a process killed between the call and the write — is
+  indistinguishable from one that was refused, and the retry is how a listing
+  reaches the account twice. Three guards, in order of cost: `media_publish`
+  re-reads the container's own `status_code` before every retry and stops if
+  it says `PUBLISHED`; every attempt after the first asks the platform whether
+  the listing is already there (`findPublishedListing`, matching the listing's
+  own `/dash/posts/<id>` URL in a caption, which nothing else on the account
+  carries — Facebook looks in `/feed` and then in `/photos`, since a photo
+  story is not guaranteed to surface in the feed and `page_story_id` is the id
+  engagement lives on); and a failed lookup answers null rather than blocking
+  the publish, leaving exactly the behaviour that was there before it existed.
+  The lookup is skipped on a job that has never run, so the common case pays
+  nothing — and `--retry-failed` writes the `REQUEUED_BY_HAND` marker
+  precisely because it resets `attempts`, which would otherwise hide the fact
+  that the job has already been to the platform once.
+- **The failure taxonomy, and what each branch costs the job.** The split that
+  matters is *whose problem it is*. A limit, a throttle, a spam block or a
+  dead token belongs to the **platform**: the job is put back untouched, the
+  whole platform stands down, and no attempt is spent. Only a failure that is
+  the job's own costs an attempt. In order:
+  1. **spam block** (IG `2207051`, FB code 368) → stand down
+     `SOCIAL_QUEUE_SPAM_BLOCK_COOLDOWN_MINUTES` (360). Neither a rate limit
+     nor a bad file: nothing about the listing is wrong, and returning at the
+     same cadence is what turns a temporary block into a longer one;
+  2. **publishing cap** (code 9 / `2207042`) → the existing quota cooldown;
+  3. **throttle** (4/17/32/341/613, HTTP 429) → the rate-limit cooldown, or
+     `estimated_time_to_regain_access` when Meta states one;
+  4. **dead token** (code 190/102, session subcodes 458–492) → stand down
+     `SOCIAL_QUEUE_AUTH_COOLDOWN_MINUTES` (60);
+  5. **refused media** (a `2207xxx` subcode that is not one of the above and
+     not transient) → clear the cached derivative, retry on the backoff ladder;
+  6. **transient** (5xx, code 1/2, IG's `please try again` family —
+     `2207003` "timeout downloading media", `2207032`, `2207053` — and a
+     connection that never answered) → retry on the ladder, **keeping** the
+     derivative, since "please try again" says nothing is wrong with the file;
+  7. **missing scope** (code 10, 200–299) → stand down like a dead token;
+  8. anything else → retry on the ladder, then fail.
+- **A refused credential no longer fails the listing.** Both authorisation
+  branches above used to mark the job `failed` on the spot, on the reasoning
+  that retrying into a wall spends the rate-limit budget the rest of the queue
+  needs. That reasoning is right and the platform stand-down is what actually
+  implements it — but the *job* being terminal meant a token that went stale
+  overnight converted every listing posted overnight into a dead job needing a
+  manual `--retry-failed`, one at a time, at the pacing interval. The queue is
+  durable and `--status` shows it, so the listings now wait for the
+  credentials to be fixed and publish themselves.
+- **The media/permission split is a subcode *range*, not a list.** Every
+  Instagram content-publishing error is a `2207xxx` subcode and nothing else
+  is, so that range is what `isMediaContentError` tests — the alternative is a
+  hand-maintained registry Meta extends without announcing, and anything
+  missing from it falls through to the `OAuthException` catch-all and gets
+  reported as a token problem. For the same reason the queue uses
+  `isScopeError` (code 10, 200–299) rather than graphApi's broader
+  `isPermissionError` for its stand-down decision: a code 100 "Invalid
+  parameter" on one listing must not stop every listing behind it.
 - **The queue is a collection, not a library.**
   [SocialPostJob.js](server/models/SocialPostJob.js), one row per (post,
   platform), drained by [socialPublishQueue.js](server/services/socialPublishQueue.js).
@@ -852,10 +995,12 @@ this whole section exists to protect.
   queue needs.
 - **Classification order is load-bearing.** Meta returns its throttling codes
   (4/17/32/341/613) under `type: "OAuthException"`, so `graphApi.js`'s
-  long-standing `isPermissionError` answers true for them too. `handleFailure`
-  checks `isPublishLimitError` → `isRateLimitError` → `isPermissionError`, in
-  that order; reversed, every throttle would read as a permanent authorisation
-  problem. The predicate carries a comment saying so.
+  long-standing `isPermissionError` answers true for them too. So every check
+  in `handleFailure` is on a specific code or subcode, the ones describing a
+  temporary condition come first, and the authorisation checks come last —
+  reversed, every throttle would read as a permanent authorisation problem.
+  See **The failure taxonomy** below for the full order and what each branch
+  costs the job.
 - **`isPublishLimitError` exists even though the queue counts publishes
   itself.** The local count only knows about posts *this app* published;
   anything posted to the account by hand spends quota it never saw. The
@@ -945,8 +1090,17 @@ this whole section exists to protect.
   `unref()`ed so it never holds the process open — anything queued is durable and
   resumes on the next boot. `SOCIAL_QUEUE_ENABLED=false` turns social publishing
   off without touching post creation.
-- **Ops**: `npm run social-queue -- --status | --drain [--max=N] |
+- **Ops**: `npm run social-queue -- --status | --doctor | --drain [--max=N] |
   --retry-failed | --repair` ([socialQueue.js](server/scripts/socialQueue.js)).
+  `--doctor` is the pre-launch one: it checks everything a publish needs from
+  the outside world without publishing anything — is the token valid, **when
+  does it expire** (`debug_token`; a Page token derived from a user token
+  does, a System User token does not, and the difference is invisible until
+  auto-posting stops dead), does it carry `pages_manage_posts` /
+  `pages_read_engagement` / `instagram_basic` / `instagram_content_publish`,
+  do the Page and the Instagram account answer, how much publishing quota is
+  left, and can the category graphics actually be fetched as JPEG from
+  `CLIENT_URL`. Every one of those fails silently otherwise.
   `--drain` runs the same worker from the command line, for a scheduler-only
   deployment or to push a backlog through after fixing what was refusing it.
   `--retry-failed` also clears the cached watermarked derivative
@@ -962,12 +1116,9 @@ this whole section exists to protect.
   of this queue's classifier treated every such error as one — logging "check
   FACEBOOK_PAGE_ACCESS_TOKEN's scopes" for a problem no token change could
   fix, and worse, giving up on the job for good with the bad derivative still
-  cached, so even a corrected image was never tried. `isMediaContentError` in
-  [graphApi.js](server/services/graphApi.js) checks a short, non-exhaustive
-  list of Instagram's own content-refusal subcodes (2207052 "wrong media
-  type" among them — the one that surfaced this) *before* the permission
-  check, and `socialPublishQueue.js`'s `handleFailure` clears the post's
-  cached social image and retries it through the normal backoff ladder
+  cached, so even a corrected image was never tried. It is classified and
+  handled before the authorisation checks, and `handleFailure` clears the
+  post's cached social image and retries through the normal backoff ladder
   instead of failing outright.
 - **Offline check**: `npm run test-social-queue` in `server/` — no DB, no
   network, no waiting: both collections are an in-memory fake, the publishers are
@@ -976,11 +1127,20 @@ this whole section exists to protect.
   next day, the platform-wide throttle stand-down, permission-vs-transient-vs-
   media-content classification (and that the last one clears the cached
   derivative on every attempt, not just the first), cancellation, stall
-  recovery, and the two double-post guards.
+  recovery, the two double-post guards, and that Instagram's longer pacing
+  floor holds independently of Facebook's shorter one on the same clock.
   `npm run test-social-images` covers which graphic a photo-less listing
   publishes with, and — the part that matters — checks both directions between
   the server's code list and the generated files, since a code with no file
   behind it 404s and takes the listing off the Page entirely.
+  `npm run test-social-publish` covers the two Graph publish paths themselves
+  ([testSocialPublishFlow.js](server/scripts/testSocialPublishFlow.js)): axios
+  and the caption builder are stubbed and Instagram's polling intervals are
+  constructor options, so a five-minute readiness budget runs in
+  milliseconds. It covers the request-body rule, the container state machine
+  (IN_PROGRESS → FINISHED, ERROR with and without a parseable subcode,
+  EXPIRED, a budget that runs out), both duplicate paths, the usage headers
+  and the quota endpoint.
 - **A listing with a photo is published with a watermarked copy of it, and the
   site keeps the clean one.** Off the site a photo travels without the page
   around it — reshared, screenshotted, saved — so it carries the domain it came

@@ -19,6 +19,7 @@
     "test-input-validation": "node scripts/testInputValidation.js",
     "test-auth-session": "node scripts/testAuthSessionFixes.js",
     "test-social-queue": "node scripts/testSocialPublishQueue.js",
+    "test-social-publish": "node scripts/testSocialPublishFlow.js",
     "test-social-images": "node scripts/testSocialImages.js",
     "test-social-watermark": "node scripts/testSocialWatermark.js",
     "test-admin-panel": "node scripts/testAdminPanel.js",
