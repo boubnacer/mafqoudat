@@ -142,18 +142,45 @@ const PlatformBlock = ({ icon: Icon, name, tint, permalink, linkLabel, children 
   );
 };
 
+/**
+ * Whether a platform has anything to show here.
+ *
+ * A copy that exists counts, even with no numbers on it yet: engagement is read
+ * back on a schedule (server/services/socialStatsService.js), so a listing
+ * published moments ago has a live page copy and nothing to say about it - and
+ * that is exactly when its author arrives, from the "your listing is live on
+ * our Facebook page" notification. Showing the platform and its permalink
+ * answers them; showing nothing reads as if the listing was never shared. What
+ * is still never rendered is a *count* nobody measured - every Metric below
+ * drops itself when its value is null.
+ */
+const showsPlatform = (platform) => (
+  platform.interactions !== null || platform.views !== null || !!platform.permalink
+);
+
+/**
+ * Whether this section will render anything at all for a listing. Exported so
+ * a caller can decide whether to mount it - SinglePostPage uses it to avoid
+ * leaving an empty deep-link target behind for a listing whose copies never
+ * went up.
+ */
+export const hasSocialReach = (post) => {
+  const { facebook, instagram } = summarizeSocialStats(post);
+  return showsPlatform(facebook) || showsPlatform(instagram);
+};
+
 const SocialReach = ({ post }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const { facebook, instagram, hasStats } = summarizeSocialStats(post);
   const isDark = theme.palette.mode === 'dark';
 
-  // Nothing has been read back yet - say nothing rather than render a row of
-  // zeros that reads as "this listing is being ignored".
-  if (!hasStats) return null;
+  const showFacebook = showsPlatform(facebook);
+  const showInstagram = showsPlatform(instagram);
 
-  const showFacebook = facebook.interactions !== null || facebook.views !== null;
-  const showInstagram = instagram.interactions !== null || instagram.views !== null;
+  if (!showFacebook && !showInstagram) return null;
+
+  const awaitingNumbers = !hasStats;
   const brand = theme.custom.color.brandPrimary;
   // radial-gradient has no logical-property equivalent, so the glow's start
   // corner is picked from theme.direction instead of a fixed 0% 0%.
@@ -198,9 +225,14 @@ const SocialReach = ({ post }) => {
           >
             {t('socialReach')}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
             {t('socialReachNote')}
           </Typography>
+          {awaitingNumbers && (
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+              {t('socialReachPending')}
+            </Typography>
+          )}
         </Box>
       </Box>
 

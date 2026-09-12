@@ -20,14 +20,23 @@ const DEFAULT_PREFERENCES = {
   pushAlerts: true,
   minScore: 50,
   commentAlerts: true,
+  socialAlerts: true,
 };
 
-// Bound on how many rows the inbox pulls from each of the two notification
-// types before merging them into one time-sorted list in JS. True DB-level
-// $skip/$limit pagination isn't available once two differently-shaped sources
-// (grouped match leads, flat comment rows) have to interleave by time - so
-// each source is fetched up to this cap, merged, sorted, then sliced for the
-// requested page. `total`/`unreadCount` are exact regardless (separate count
+// Which page each social_published row is about, in the wording the reader
+// sees. The platform key stays the stable contract; the display name is the
+// platform's own and is not translated.
+const SOCIAL_PLATFORM_NAMES = {
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+};
+
+// Bound on how many rows the inbox pulls from each of the notification types
+// before merging them into one time-sorted list in JS. True DB-level
+// $skip/$limit pagination isn't available once differently-shaped sources
+// (grouped match leads, flat comment rows, flat social-publish rows) have to
+// interleave by time - so each source is fetched up to this cap, merged,
+// sorted, then sliced for the requested page. `total`/`unreadCount` are exact regardless (separate count
 // aggregations, unaffected by the cap); only the *items themselves* would go
 // missing on a page past this many combined groups+comments for one user,
 // which is not a real scenario at this product's scale (matchesEmailService's
@@ -332,6 +341,59 @@ const serializeCommentNotification = (row, language) => ({
   latestAt: row.createdAt,
 });
 
+// ---------------------------------------------------------------------------
+// Social publish notifications
+// ---------------------------------------------------------------------------
+
+/**
+ * "Your listing is now on our Facebook page / Instagram account" alerts - one
+ * flat row per platform, like comments rather than like matches.
+ *
+ * Not grouped by post even though a listing produces two of them: they arrive
+ * minutes to hours apart (the two publishes are separately paced jobs), each
+ * names a different page, and either can succeed while the other fails. Two
+ * rows is what actually happened; one row claiming both would have to wait for
+ * the slower platform and would still be unable to say that one of them is a
+ * failure.
+ *
+ * Unlike matches, a returned or resolved listing is *not* filtered out: the
+ * copy really is on that page whatever the listing has done since, and this is
+ * the reader's own post, not a lead to chase. The post only has to still
+ * exist, which the lookup's $unwind enforces on its own.
+ */
+const socialNotificationPipeline = (userId, { unreadOnly = false } = {}) => ([
+  {
+    $match: {
+      user: userId,
+      type: 'social_published',
+      isDismissed: false,
+      ...(unreadOnly ? { isRead: false } : {}),
+    },
+  },
+  { $sort: { createdAt: -1 } },
+  { $limit: MAX_ITEMS_PER_SOURCE },
+  ...postLookupStages('post', 'ownPost'),
+]);
+
+/**
+ * Localized, client-ready shape for one social publish notification.
+ *
+ * No permalink travels with the row: both clients open the listing's own reach
+ * section, which reads the links live off the post, so a copy deleted from the
+ * Page afterwards cannot leave a dead link behind in an inbox.
+ */
+const serializeSocialNotification = (row, language) => ({
+  kind: 'social',
+  id: String(row._id),
+  post: serializePost(postProjectionFromDoc(row, 'ownPost'), language),
+  platform: row.platform,
+  platformName: SOCIAL_PLATFORM_NAMES[row.platform] || row.platform,
+  status: row.socialStatus,
+  isRead: !!row.isRead,
+  createdAt: row.createdAt,
+  latestAt: row.createdAt,
+});
+
 /**
  * `postProjection` is written as an aggregation expression (field paths like
  * `$ownPost._id`), meant to run inside `$project`. The comment pipeline above
@@ -464,7 +526,30 @@ const loadCommentSource = async (userId, { unreadOnly, blockedIds }) => {
   };
 };
 
-// @desc   List the signed-in user's match alerts and comment alerts, newest first
+/** Social-publish rows and their counts. */
+const loadSocialSource = async (userId, { unreadOnly }) => {
+  const [rows, [counts]] = await Promise.all([
+    Notification.aggregate(socialNotificationPipeline(userId, { unreadOnly })),
+    Notification.aggregate([
+      { $match: { user: userId, type: 'social_published', isDismissed: false, ...(unreadOnly ? { isRead: false } : {}) } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          unread: { $sum: { $cond: [{ $eq: ['$isRead', false] }, 1, 0] } },
+        },
+      },
+    ]),
+  ]);
+
+  return {
+    rows,
+    total: counts?.total || 0,
+    unread: counts?.unread || 0,
+  };
+};
+
+// @desc   List the signed-in user's match, comment and social-publish alerts, newest first
 // @route  GET /notifications
 // @access Private
 const listNotifications = async (req, res) => {
@@ -477,20 +562,23 @@ const listNotifications = async (req, res) => {
 
     const blockedIds = await getBlockedUserIds(req.user);
 
-    const [matchSource, commentSource] = await Promise.all([
+    const [matchSource, commentSource, socialSource] = await Promise.all([
       loadMatchSource(userId, { unreadOnly, blockedIds }),
       loadCommentSource(userId, { unreadOnly, blockedIds }),
+      loadSocialSource(userId, { unreadOnly }),
     ]);
 
-    // Two differently-shaped sources (grouped match leads, flat comment rows)
-    // interleaved by their own newest activity - see MAX_ITEMS_PER_SOURCE for
-    // why this happens in JS instead of at the database.
+    // Differently-shaped sources (grouped match leads, flat comment rows, flat
+    // social-publish rows) interleaved by their own newest activity - see
+    // MAX_ITEMS_PER_SOURCE for why this happens in JS instead of at the
+    // database.
     const merged = [
       ...matchSource.groups.map((group) => serializeGroup(group, language)),
       ...commentSource.rows.map((row) => serializeCommentNotification(row, language)),
+      ...socialSource.rows.map((row) => serializeSocialNotification(row, language)),
     ].sort((a, b) => new Date(b.latestAt) - new Date(a.latestAt));
 
-    const total = matchSource.total + commentSource.total;
+    const total = matchSource.total + commentSource.total + socialSource.total;
     const start = (page - 1) * pageSize;
 
     return res.json({
@@ -500,7 +588,7 @@ const listNotifications = async (req, res) => {
       pageSize,
       total,
       totalPages: Math.max(1, Math.ceil(total / pageSize)),
-      unreadCount: matchSource.unread + commentSource.unread,
+      unreadCount: matchSource.unread + commentSource.unread + socialSource.unread,
     });
   } catch (error) {
     console.error('Error listing notifications:', error);
@@ -516,7 +604,7 @@ const getUnreadCount = async (req, res) => {
     const userId = new mongoose.Types.ObjectId(req.user);
     const blockedIds = await getBlockedUserIds(req.user);
 
-    const [[matchResult], [commentResult]] = await Promise.all([
+    const [[matchResult], [commentResult], [socialResult]] = await Promise.all([
       Notification.aggregate([
         ...notificationPipeline(userId, { unreadOnly: true, blockedIds }),
         { $count: 'value' },
@@ -525,11 +613,15 @@ const getUnreadCount = async (req, res) => {
         ...commentNotificationPipeline(userId, { unreadOnly: true, blockedIds }),
         { $count: 'value' },
       ]),
+      Notification.aggregate([
+        ...socialNotificationPipeline(userId, { unreadOnly: true }),
+        { $count: 'value' },
+      ]),
     ]);
 
     return res.json({
       success: true,
-      unreadCount: (matchResult?.value || 0) + (commentResult?.value || 0),
+      unreadCount: (matchResult?.value || 0) + (commentResult?.value || 0) + (socialResult?.value || 0),
     });
   } catch (error) {
     console.error('Error counting unread notifications:', error);
@@ -832,6 +924,9 @@ const updatePreferences = async (req, res) => {
     }
     if (typeof req.body.commentAlerts === 'boolean') {
       updates['notificationPreferences.commentAlerts'] = req.body.commentAlerts;
+    }
+    if (typeof req.body.socialAlerts === 'boolean') {
+      updates['notificationPreferences.socialAlerts'] = req.body.socialAlerts;
     }
     if (req.body.minScore !== undefined) {
       const minScore = Number(req.body.minScore);

@@ -117,6 +117,7 @@ const NotificationPreferencesPanel = () => {
   const emailAlerts = preferences.emailAlerts === true;
   const pushAlerts = preferences.pushAlerts !== false;
   const commentAlerts = preferences.commentAlerts !== false;
+  const socialAlerts = preferences.socialAlerts !== false;
   const minScore = typeof preferences.minScore === 'number' ? preferences.minScore : 50;
   const emailDisabled = !hasEmail || !matchAlerts;
   const pushSupported = pushPermission !== 'unsupported';
@@ -240,6 +241,21 @@ const NotificationPreferencesPanel = () => {
           onValueChange={(value) => save({ commentAlerts: value })}
           trackColor={{ false: `${tokens.ink}33`, true: `${tokens.brandPrimary}80` }}
           thumbColor={commentAlerts ? tokens.brandPrimary : undefined}
+        />
+      </View>
+
+      {/* Independent of the switches above, like they are of each other: this
+          one reports what the platform did with the reader's own listing. */}
+      <View style={styles.settingRow}>
+        <View style={styles.settingTextWrap}>
+          <Text style={[styles.settingTitle, textStyle]}>{t('notifPrefSocialAlerts')}</Text>
+          <Text style={[styles.settingDescription, textStyle]}>{t('notifPrefSocialAlertsDescription')}</Text>
+        </View>
+        <Switch
+          value={socialAlerts}
+          onValueChange={(value) => save({ socialAlerts: value })}
+          trackColor={{ false: `${tokens.ink}33`, true: `${tokens.brandPrimary}80` }}
+          thumbColor={socialAlerts ? tokens.brandPrimary : undefined}
         />
       </View>
     </View>

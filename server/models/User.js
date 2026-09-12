@@ -163,6 +163,14 @@ const userSchema = new mongoose.Schema({
     commentAlerts: {
       type: Boolean,
       default: true
+    },
+    // Master switch for "your listing is now on our Facebook page / Instagram
+    // account" alerts (in-app and push, no email copy). Independent of the two
+    // above: this one reports on something the platform itself did with the
+    // user's listing, not on someone else's activity.
+    socialAlerts: {
+      type: Boolean,
+      default: true
     }
   },
   // Expo push tokens for this user's devices, newest last.

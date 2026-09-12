@@ -268,6 +268,70 @@ const runComment = async () => {
   checkThat('falls back to generic wording without a username', anonMessage.body.startsWith('Someone commented:'), anonMessage.body);
 };
 
+// ---------------------------------------------------------------------------
+const runSocialPublish = async () => {
+  console.log('\n--- a social publish alert ---');
+  reset();
+  const delivered = await pushService.sendSocialPublishAlert({
+    user: { pushTokens: [token('a'), token('b', 'ar')] },
+    postId: 'post-1',
+    notificationId: 'n1',
+    platform: 'facebook',
+    status: 'published',
+  });
+
+  const [english, arabic] = lastMessages();
+  checkThat('reports delivery', delivered === true, '');
+  check('one message per device', lastMessages().length, 2);
+  check('names the platform rather than "social media"', english.title, 'Your listing is live on Facebook');
+  checkThat('the Arabic device reads Arabic', arabic.title.includes('Facebook') && arabic.title.startsWith('إعلانك'), arabic.title);
+  check(
+    'carries the listing and the section of it the alert is about',
+    english.data,
+    {
+      type: 'social_published',
+      notificationId: 'n1',
+      postId: 'post-1',
+      platform: 'facebook',
+      status: 'published',
+      section: 'social-reach',
+    }
+  );
+  checkThat(
+    'rides at normal priority - the listing is already live, nothing here is urgent',
+    english.priority === 'normal',
+    english.priority
+  );
+
+  reset();
+  await pushService.sendSocialPublishAlert({
+    user: { pushTokens: [token('a')] },
+    postId: 'post-1',
+    notificationId: 'n2',
+    platform: 'instagram',
+    status: 'failed',
+  });
+  const [failure] = lastMessages();
+  check('a failure says so, and names the platform that refused', failure.title, "We couldn't share your listing on Instagram");
+  checkThat(
+    'and says the listing itself is fine, which is the part that matters',
+    failure.body.includes('live on Mafqoudat'),
+    failure.body
+  );
+  check('the failed status travels with it', failure.data.status, 'failed');
+
+  reset();
+  const unknownPlatform = await pushService.sendSocialPublishAlert({
+    user: { pushTokens: [token('a')] },
+    postId: 'post-1',
+    notificationId: 'n3',
+    platform: 'threads',
+    status: 'published',
+  });
+  checkThat('a platform this build has no wording for sends nothing', unknownPlatform === false, '');
+  check('and makes no request', sent.length, 0);
+};
+
 (async () => {
   await runSingle();
   await runMirror();
@@ -277,6 +341,7 @@ const runComment = async () => {
   await runDeadDevice();
   await runDisabled();
   await runComment();
+  await runSocialPublish();
 
   console.log(`\n${checks - failures}/${checks} checks passed`);
   process.exit(failures === 0 ? 0 : 1);

@@ -37,7 +37,7 @@ import ReportPostSheet from '../components/ReportPostSheet';
 import PromotePostSheet from '../components/PromotePostSheet';
 import PostActionsSheet from '../components/PostActionsSheet';
 import PostMatchesSection from '../components/notifications/PostMatchesSection';
-import { SocialReachSection } from '../components/SocialReach';
+import { SocialReachSection, SOCIAL_REACH_SECTION, hasSocialReach } from '../components/SocialReach';
 import CommentsSection from '../components/CommentsSection';
 import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
@@ -47,6 +47,10 @@ import { formatRelativeTime } from '../utils/relativeTime';
 
 const TOAST_DURATION_MS = 3000;
 const SECTION_COUNT = 2;
+
+// Breathing room left above a section this screen was opened scrolled to, so
+// it reads as the top of something rather than as a cut-off page.
+const SECTION_SCROLL_MARGIN = 12;
 
 // Shaped like the real image + body block below (badge, resolved banner slot,
 // category chips, the location/date/description/contact sections).
@@ -168,7 +172,7 @@ const openLink = (url, t) => {
 };
 
 const PostDetailScreen = ({ navigation, route }) => {
-  const { id } = route.params || {};
+  const { id, section: requestedSection } = route.params || {};
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
   const { user, requireLogin } = useAuth();
@@ -191,6 +195,43 @@ const PostDetailScreen = ({ navigation, route }) => {
   const [toast, setToast] = useState('');
 
   const toastTimerRef = useRef(null);
+
+  // Opening this screen scrolled to one of its sections, which is how a social
+  // publish notification ("your listing is live on our Facebook page") lands
+  // the author on the reach breakdown rather than at the top of the post.
+  //
+  // Measured with onLayout rather than measureLayout: the section sits inside
+  // the body block, whose own onLayout reports where it starts within the
+  // scroll content, so the two offsets added together are the position to
+  // scroll to - no node handles, and no dependence on the current scroll
+  // offset the way measuring against the ScrollView itself would be.
+  const scrollRef = useRef(null);
+  const bodyTopRef = useRef(null);
+  const sectionTopRef = useRef(null);
+  const hasScrolledToSectionRef = useRef(false);
+
+  const scrollToRequestedSection = useCallback(() => {
+    if (requestedSection !== SOCIAL_REACH_SECTION) return;
+    if (hasScrolledToSectionRef.current) return;
+    if (bodyTopRef.current === null || sectionTopRef.current === null) return;
+    if (!scrollRef.current) return;
+
+    hasScrolledToSectionRef.current = true;
+    scrollRef.current.scrollTo({
+      y: Math.max(0, bodyTopRef.current + sectionTopRef.current - SECTION_SCROLL_MARGIN),
+      animated: true,
+    });
+  }, [requestedSection]);
+
+  const handleBodyLayout = useCallback((event) => {
+    bodyTopRef.current = event.nativeEvent.layout.y;
+    scrollToRequestedSection();
+  }, [scrollToRequestedSection]);
+
+  const handleReachLayout = useCallback((event) => {
+    sectionTopRef.current = event.nativeEvent.layout.y;
+    scrollToRequestedSection();
+  }, [scrollToRequestedSection]);
 
   const getSectionStyle = useStaggeredFadeIn(SECTION_COUNT, !isLoading);
 
@@ -465,6 +506,7 @@ const PostDetailScreen = ({ navigation, route }) => {
         }
       />
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -511,7 +553,7 @@ const PostDetailScreen = ({ navigation, route }) => {
           </View>
         </Animated.View>
 
-        <Animated.View style={[styles.body, getSectionStyle(1)]}>
+        <Animated.View style={[styles.body, getSectionStyle(1)]} onLayout={handleBodyLayout}>
           {isResolved && (
             <View style={[styles.resolvedBanner, { backgroundColor: tokens.status.found.bg }]}>
               <Ionicons name="ribbon-outline" size={16} color={tokens.status.found.main} />
@@ -607,8 +649,13 @@ const PostDetailScreen = ({ navigation, route }) => {
           </View>
 
           {/* What the auto-posted copies of this listing are doing on the
-              Facebook Page and the Instagram account. */}
-          <SocialReachSection post={post} />
+              Facebook Page and the Instagram account. Also where a social
+              publish notification lands - hence the measured wrapper. */}
+          {hasSocialReach(post) ? (
+            <View onLayout={handleReachLayout}>
+              <SocialReachSection post={post} />
+            </View>
+          ) : null}
 
           {/* Comment thread - the app's own comments merged with the ones
               left on the Facebook/Instagram copies. Public to read. Placed

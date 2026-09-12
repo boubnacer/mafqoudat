@@ -27,8 +27,10 @@ import { Ionicons } from '@expo/vector-icons';
 import AppHeader from '../components/AppHeader';
 import NotificationGroupCard from '../components/notifications/NotificationGroupCard';
 import CommentNotificationCard from '../components/notifications/CommentNotificationCard';
+import SocialPublishNotificationCard from '../components/notifications/SocialPublishNotificationCard';
 import NotificationPreferencesPanel from '../components/notifications/NotificationPreferencesPanel';
 import SkeletonBlock from '../components/SkeletonBlock';
+import { SOCIAL_REACH_SECTION } from '../components/SocialReach';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -199,6 +201,24 @@ const NotificationsScreen = ({ navigation }) => {
       }
     }
     navigation.navigate('PostDetailScreen', { id: item.post.id });
+  };
+
+  // A social-publish alert is about the reader's own listing, and the question
+  // it raises is "how is it doing on that page?" - so it opens the listing
+  // already scrolled to its reach section (PostDetailScreen reads `section`).
+  const handleOpenSocial = async (item) => {
+    if (!item.isRead) {
+      setGroups((current) =>
+        current.map((entry) => (entry.id === item.id ? { ...entry, isRead: true } : entry))
+      );
+      setUnreadCount((count) => Math.max(0, count - 1));
+      try {
+        await markNotificationRead(item.id);
+      } catch (error) {
+        refreshUnreadCount();
+      }
+    }
+    navigation.navigate('PostDetailScreen', { id: item.post.id, section: SOCIAL_REACH_SECTION });
   };
 
   const handleDismissComment = async (item) => {
@@ -375,7 +395,14 @@ const NotificationsScreen = ({ navigation }) => {
         data={isLoading ? [] : groups}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          item.kind === 'comment' ? (
+          item.kind === 'social' ? (
+            <SocialPublishNotificationCard
+              item={item}
+              onOpen={handleOpenSocial}
+              onDismiss={handleDismissComment}
+              isBusy={busyId === item.id}
+            />
+          ) : item.kind === 'comment' ? (
             <CommentNotificationCard
               item={item}
               onOpen={handleOpenComment}

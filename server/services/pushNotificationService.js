@@ -181,6 +181,41 @@ const COMMENT_COPY = {
   },
 };
 
+// Tray copy for "your listing reached our Facebook page / Instagram account".
+// The platform is named rather than pooled into "social media": one alert is
+// sent per platform as each publish lands, so a body that said "social media"
+// would read as a duplicate of the one that arrived minutes earlier.
+//
+// Same channel as the two above, for the same reason: all three are "something
+// happened with your listing", and a second Android channel would need its own
+// app-side registration for one more toggle the in-app socialAlerts preference
+// already covers.
+const PLATFORM_NAMES = {
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+};
+
+const SOCIAL_COPY = {
+  en: {
+    publishedTitle: (platform) => `Your listing is live on ${platform}`,
+    publishedBody: (platform) => `We shared your listing on our ${platform} page. Tap to see how it is doing.`,
+    failedTitle: (platform) => `We couldn't share your listing on ${platform}`,
+    failedBody: (platform) => `Your listing is live on Mafqoudat, but its ${platform} copy didn't go through. Tap for details.`,
+  },
+  fr: {
+    publishedTitle: (platform) => `Votre annonce est en ligne sur ${platform}`,
+    publishedBody: (platform) => `Nous avons partagé votre annonce sur notre page ${platform}. Appuyez pour voir sa portée.`,
+    failedTitle: (platform) => `Impossible de partager votre annonce sur ${platform}`,
+    failedBody: (platform) => `Votre annonce est bien en ligne sur Mafqoudat, mais sa copie ${platform} n'est pas passée. Appuyez pour les détails.`,
+  },
+  ar: {
+    publishedTitle: (platform) => `إعلانك منشور الآن على ${platform}`,
+    publishedBody: (platform) => `شاركنا إعلانك على صفحتنا على ${platform}. اضغط لمتابعة تفاعله.`,
+    failedTitle: (platform) => `تعذّرت مشاركة إعلانك على ${platform}`,
+    failedBody: (platform) => `إعلانك منشور على مفقودات، لكن نسخته على ${platform} لم تُنشر. اضغط للتفاصيل.`,
+  },
+};
+
 const COMMENT_SNIPPET_LENGTH = 60;
 
 const truncate = (text, length) => {
@@ -430,9 +465,78 @@ const sendCommentAlert = async ({ user, postId, commentId, notificationId, text,
   return accepted > 0;
 };
 
+// ---------------------------------------------------------------------------
+// Social publish alerts
+// ---------------------------------------------------------------------------
+
+/**
+ * One push to a listing's author when its copy reaches a platform, or when the
+ * queue gives up on that platform.
+ *
+ * No burst to collapse, unlike sendMatchAlert: there are exactly two of these
+ * per listing for its whole life (one per platform), they are minutes apart at
+ * the very least because of the queue's pacing, and each names a different
+ * page - so they are two distinct pieces of news rather than one repeated.
+ *
+ * @param {Object} params.user           Lean user doc, with pushTokens.
+ * @param {string} params.postId         The author's listing.
+ * @param {string} params.notificationId The in-app row, so the tap can mark it read.
+ * @param {string} params.platform       'facebook' | 'instagram'.
+ * @param {string} params.status         'published' | 'failed'.
+ * @returns {Promise<boolean>} whether anything was accepted for delivery.
+ */
+const sendSocialPublishAlert = async ({ user, postId, notificationId, platform, status }) => {
+  if (!isEnabled()) return false;
+
+  const platformName = PLATFORM_NAMES[platform];
+  if (!platformName) return false;
+
+  const tokens = (user?.pushTokens || []).filter((entry) => isValidPushToken(entry?.token));
+  if (tokens.length === 0) return false;
+
+  const published = status !== 'failed';
+  const data = {
+    type: 'social_published',
+    notificationId: String(notificationId),
+    postId: String(postId),
+    platform,
+    status: published ? 'published' : 'failed',
+    // Where on the listing the tap should land - the reach section is where
+    // both platforms' numbers and their permalinks are.
+    section: 'social-reach',
+  };
+
+  const messages = tokens.map((entry) => {
+    const language = resolveLanguage(entry.language);
+    const copy = SOCIAL_COPY[language];
+
+    return {
+      to: entry.token,
+      title: published ? copy.publishedTitle(platformName) : copy.failedTitle(platformName),
+      body: published ? copy.publishedBody(platformName) : copy.failedBody(platformName),
+      data,
+      sound: 'default',
+      // Deliberately below the match/comment alerts' 'high': nothing here is
+      // time-critical the way a lead on a lost item is - the listing is already
+      // live and the page copy is not going anywhere - so this can ride in
+      // Android's next batch rather than waking a device on its own.
+      priority: 'normal',
+      channelId: ANDROID_CHANNEL_ID,
+      // A week, rather than the two days a match or a comment gets: this is a
+      // status report on the author's own listing, still true whenever it
+      // arrives, and it does not go stale the way an unread lead does.
+      ttl: 7 * 24 * 60 * 60,
+    };
+  });
+
+  const accepted = await sendMessages(messages);
+  return accepted > 0;
+};
+
 module.exports = {
   sendMatchAlert,
   sendCommentAlert,
+  sendSocialPublishAlert,
   isValidPushToken,
   removeToken,
   ANDROID_CHANNEL_ID,

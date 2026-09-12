@@ -18,13 +18,13 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['match_found', 'new_comment'],
+      enum: ['match_found', 'new_comment', 'social_published'],
       default: 'match_found',
       required: true,
     },
     // The recipient's own post - the one they are being alerted about. Always
-    // set, whichever type this is: a match's counterpart or a comment both
-    // hang off the post the recipient owns.
+    // set, whichever type this is: a match's counterpart, a comment, or the
+    // social copy of it all hang off the post the recipient owns.
     post: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Post",
@@ -62,6 +62,25 @@ const notificationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Comment",
       required: function () { return this.type === 'new_comment'; },
+    },
+    // social_published only: which page the listing's copy went to, and how it
+    // ended. One row per platform rather than one row per post - the two
+    // publishes are independent jobs (services/socialPublishQueue.js) that
+    // resolve minutes or hours apart, and waiting for the slower one would
+    // hold back an alert whose whole value is telling the author their listing
+    // is live now.
+    platform: {
+      type: String,
+      enum: ['facebook', 'instagram'],
+      required: function () { return this.type === 'social_published'; },
+    },
+    // 'published' when the copy is up, 'failed' when the queue gave up on it.
+    // A job that is still waiting, retrying or paced writes nothing at all:
+    // only a terminal outcome is worth a notification.
+    socialStatus: {
+      type: String,
+      enum: ['published', 'failed'],
+      required: function () { return this.type === 'social_published'; },
     },
     isRead: {
       type: Boolean,
@@ -104,6 +123,15 @@ notificationSchema.index(
 notificationSchema.index(
   { user: 1, type: 1, comment: 1 },
   { unique: true, partialFilterExpression: { type: 'new_comment' } }
+);
+
+// One notification per post per platform. The queue retries, reclaims stalled
+// jobs and can be re-run by hand, so the same publish can legitimately be
+// recorded more than once - this is what keeps that from buzzing the author
+// twice for one listing reaching one page.
+notificationSchema.index(
+  { user: 1, type: 1, post: 1, platform: 1 },
+  { unique: true, partialFilterExpression: { type: 'social_published' } }
 );
 
 // Inbox listing.

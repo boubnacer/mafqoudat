@@ -58,6 +58,7 @@ const NotificationPreferences = () => {
   const matchAlerts = preferences.matchAlerts !== false;
   const emailAlerts = preferences.emailAlerts === true;
   const commentAlerts = preferences.commentAlerts !== false;
+  const socialAlerts = preferences.socialAlerts !== false;
   const canEmail = !!data.hasEmail;
 
   const save = (patch) => {
@@ -160,6 +161,23 @@ const NotificationPreferences = () => {
           />
         )}
         label={rowLabel(t('notifPrefCommentAlerts'), t('notifPrefCommentAlertsDescription'))}
+      />
+
+      <Divider sx={{ my: 1.5 }} />
+
+      {/* Independent of both switches above, for the same reason they are
+          independent of each other: this one reports on what the platform did
+          with the reader's own listing, not on anyone else's activity. */}
+      <FormControlLabel
+        sx={{ display: "flex", marginInlineStart: 0, marginInlineEnd: 0, justifyContent: "space-between", gap: 2 }}
+        labelPlacement="start"
+        control={(
+          <Switch
+            checked={socialAlerts}
+            onChange={(event) => save({ socialAlerts: event.target.checked })}
+          />
+        )}
+        label={rowLabel(t('notifPrefSocialAlerts'), t('notifPrefSocialAlertsDescription'))}
       />
     </Box>
   );

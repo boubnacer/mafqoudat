@@ -3,6 +3,7 @@ const SocialPostJob = require('../models/SocialPostJob');
 const facebookService = require('./facebookService');
 const instagramService = require('./instagramService');
 const { invalidateSocialImage } = require('./socialImageService');
+const socialPublishNotificationService = require('./socialPublishNotificationService');
 const {
   describeGraphError,
   isRateLimitError,
@@ -226,6 +227,7 @@ class SocialPublishQueue {
     // test that cannot pin it cannot assert on pacing at all.
     random = Math.random,
     invalidateSocialImage: invalidateSocialImageFn = invalidateSocialImage,
+    notifyAuthor = socialPublishNotificationService.notifyAuthor,
   } = {}) {
     this.jobs = jobs;
     this.posts = posts;
@@ -238,6 +240,10 @@ class SocialPublishQueue {
     // `posts` collection's write surface), which the test harness has no way
     // to observe or fake without this seam.
     this.invalidateSocialImage = invalidateSocialImageFn;
+    // Tells the listing's author what became of its social copy. Injected for
+    // the same reason as the line above: it writes through models/Notification
+    // and models/User, neither of which the offline harness has.
+    this.notifyAuthor = notifyAuthor;
     this.timer = null;
     // One tick at a time. A publish can outlast the tick interval (Instagram's
     // readiness polling alone can), and overlapping ticks would defeat pacing.
@@ -562,7 +568,7 @@ class SocialPublishQueue {
     try {
       result = await publisher.service.postNewListing(post);
     } catch (error) {
-      return this.handleFailure(job, platform, error);
+      return this.handleFailure(job, platform, error, post);
     }
 
     const publishedId = result?.[publisher.idKey];
@@ -622,7 +628,26 @@ class SocialPublishQueue {
       );
     }
 
+    await this.announce(post, platform, 'published');
+
     return outcome;
+  }
+
+  /**
+   * Tells the author what became of their listing's copy on one platform.
+   *
+   * Sent per platform as each job reaches a terminal state, never held back
+   * for the other one - see socialPublishNotificationService for why. Awaited
+   * only so a test can observe it; it swallows its own failures, and this
+   * catch is the second belt: a notification must never be able to turn a
+   * successful publish into a retried one.
+   */
+  async announce(post, platform, status) {
+    try {
+      await this.notifyAuthor({ post, platform, status });
+    } catch (error) {
+      console.error(`Social publish queue: notifying the author failed - ${error.message}`);
+    }
   }
 
   /**
@@ -658,7 +683,7 @@ class SocialPublishQueue {
    * a throttle or a bad token is the platform's and is handled above, without
    * ever costing an attempt.
    */
-  async retryOrFail(job, platform, description, { onGiveUp = null } = {}) {
+  async retryOrFail(job, platform, description, { onGiveUp = null, post = null } = {}) {
     const attempts = (job.attempts || 0) + 1;
 
     if (attempts >= MAX_ATTEMPTS) {
@@ -668,6 +693,11 @@ class SocialPublishQueue {
         + `${attempts} attempt(s) - ${description}`
         + (onGiveUp ? ` ${onGiveUp}` : '')
       );
+      // Giving up is the only failure the author hears about. A retry, a
+      // cooldown or a stand-down on credentials all still end in the listing
+      // going up by itself, and telling someone their post "failed" while the
+      // queue is still working on it would be wrong twice over.
+      if (post) await this.announce(post, platform, 'failed');
       return 'failed';
     }
 
@@ -694,7 +724,7 @@ class SocialPublishQueue {
    * that is this job's own - a refused image, a transient error, an
    * unrecognised one - costs an attempt.
    */
-  async handleFailure(job, platform, error) {
+  async handleFailure(job, platform, error, post = null) {
     const description = describeGraphError(error);
 
     // Meta thinks the posting *behaviour* looks like spam, independently of
@@ -751,6 +781,7 @@ class SocialPublishQueue {
       await this.invalidateSocialImage(job.post);
       const outcome = await this.retryOrFail(job, platform, description, {
         onGiveUp: 'The cached derivative was cleared; a fresh one will be generated on the next attempt.',
+        post,
       });
       if (outcome === 'retry') {
         console.warn(
@@ -770,7 +801,7 @@ class SocialPublishQueue {
     // image so it does *not* throw away a perfectly good derivative - "please
     // try again" says nothing is wrong with the file.
     if (isTransientError(error)) {
-      return this.retryOrFail(job, platform, description);
+      return this.retryOrFail(job, platform, description, { post });
     }
 
     // A token that is valid but was never granted the scope this edge needs.
@@ -783,7 +814,7 @@ class SocialPublishQueue {
       return this.standDownOnCredentials(job, platform, `Not permitted: ${description}`, description);
     }
 
-    return this.retryOrFail(job, platform, description);
+    return this.retryOrFail(job, platform, description, { post });
   }
 
   /**

@@ -209,6 +209,11 @@ export const unregisterForPushNotifications = async ({ revokeOnServer = true } =
   }
 };
 
+// Notification types this build knows what to do with. Anything else - a type
+// shipped by a server this app predates - resolves to null and is left alone
+// rather than guessed at.
+const HANDLED_TYPES = new Set(['match_found', 'new_comment', 'social_published']);
+
 /**
  * Where a tapped notification should land.
  *
@@ -223,12 +228,18 @@ export const unregisterForPushNotifications = async ({ revokeOnServer = true } =
  */
 export const resolveNotificationTarget = (response) => {
   const data = response?.notification?.request?.content?.data;
-  if (!data || (data.type !== 'match_found' && data.type !== 'new_comment')) return null;
+  if (!data || !HANDLED_TYPES.has(data.type)) return null;
 
   if (data.postId) {
     return {
       screen: 'PostDetailScreen',
-      params: { id: String(data.postId) },
+      params: {
+        id: String(data.postId),
+        // Social publish alerts carry the section of the listing they are
+        // about (its reach breakdown, where both platforms' numbers and
+        // permalinks live); every other type lands at the top of the post.
+        ...(data.section ? { section: String(data.section) } : {}),
+      },
       notificationId: data.notificationId ? String(data.notificationId) : null,
     };
   }

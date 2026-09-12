@@ -22,6 +22,8 @@ import {
 import { useTranslation } from "../../utils/translations";
 import NotificationGroupPreview from "./NotificationGroupPreview";
 import CommentNotificationItem from "./CommentNotificationItem";
+import SocialPublishNotificationItem from "./SocialPublishNotificationItem";
+import { SECTION_QUERY_PARAM, SOCIAL_REACH_SECTION } from "../../hooks/useSectionDeepLink";
 import {
   useGetUnreadNotificationCountQuery,
   useGetNotificationsQuery,
@@ -111,6 +113,21 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
       }
     }
     navigate(`/dash/posts/${item.post.id}`);
+    onNavigate?.();
+  }, [closePopover, markRead, navigate, onNavigate]);
+
+  // Same destination as the inbox row: the listing, scrolled to its reach
+  // section, which is what the alert is about.
+  const handleOpenSocial = useCallback(async (item) => {
+    closePopover();
+    if (!item.isRead) {
+      try {
+        await markRead(item.id).unwrap();
+      } catch (error) {
+        /* non-blocking */
+      }
+    }
+    navigate(`/dash/posts/${item.post.id}?${SECTION_QUERY_PARAM}=${SOCIAL_REACH_SECTION}`);
     onNavigate?.();
   }, [closePopover, markRead, navigate, onNavigate]);
 
@@ -232,7 +249,9 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
           )}
 
           {groups.map((item) => (
-            item.kind === 'comment' ? (
+            item.kind === 'social' ? (
+              <SocialPublishNotificationItem key={item.id} item={item} onOpen={handleOpenSocial} />
+            ) : item.kind === 'comment' ? (
               <CommentNotificationItem key={item.id} item={item} onOpen={handleOpenComment} />
             ) : (
               <NotificationGroupPreview key={item.id} group={item} onOpen={handleOpenGroup} />
