@@ -1409,16 +1409,24 @@ many hours later, and until now that happened entirely out of sight.
   ([useSectionDeepLink.js](client/src/hooks/useSectionDeepLink.js)), a `section`
   route param on mobile (`PostDetailScreen`), and the same `'social-reach'`
   string in the push payload's `section` field so both platforms land in the
-  same place. Web's hook handles the three things that break a naive
-  `scrollIntoView`: the section may not exist yet (it retries for 4s rather than
-  looking once), the lazy-loaded hero photo above it moves the page afterwards
-  (one correction pass, and only if the section actually drifted — never a
-  second unconditional jump at a reader who has since scrolled), and
-  `prefers-reduced-motion` gets placement instead of travel. It arrives with a
-  brief brand-colored ring, because landing mid-page with no explanation reads
-  as a mis-scroll. Mobile measures with two `onLayout`s (the body block's offset
-  plus the section's offset inside it) rather than `measureLayout` node handles
-  or a scroll listener.
+  same place. Web's hook handles the four things that break a naive
+  `scrollIntoView`: the section may not exist yet (it retries for up to 15s
+  rather than looking once — sized for the cold-start case below, not just a
+  slow API call), **a tap on a real push notification is a fresh document
+  load, not a client-side route change** (`push-sw.js`'s `notificationclick`
+  navigates via `Client.navigate`/`clients.openWindow`, so the bundle has to
+  download and boot and the post has to fetch before the section exists at
+  all — this is why the deep link worked instantly from an already-open tab
+  but did nothing on a phone tapping the actual notification until the retry
+  window was widened past the original 4s), the lazy-loaded hero photo above
+  the section keeps shifting the page on that same slow connection (a few
+  correction passes at 700ms/2s/4s, each a no-op unless the section actually
+  drifted — never an unconditional jump at a reader who has since scrolled),
+  and `prefers-reduced-motion` gets placement instead of travel. It arrives
+  with a brief brand-colored ring, because landing mid-page with no
+  explanation reads as a mis-scroll. Mobile measures with two `onLayout`s (the
+  body block's offset plus the section's offset inside it) rather than
+  `measureLayout` node handles or a scroll listener.
 - **The reach section now renders as soon as a copy exists**, numbers or not
   (web `SocialReach.jsx` and mobile `SocialReach.js`, both gated on
   `permalink || any count`). It used to render nothing until engagement had been
