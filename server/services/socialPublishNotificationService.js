@@ -34,7 +34,7 @@ const notifyAuthor = async ({ post, platform, status }) => {
     if (!PLATFORMS.includes(platform) || !STATUSES.includes(status)) return false;
 
     const author = await User.findById(post.user)
-      .select('pushTokens notificationPreferences isActive')
+      .select('pushTokens webPushSubscriptions notificationPreferences isActive')
       .lean();
     if (!author || author.isActive === false) return false;
 
@@ -59,7 +59,10 @@ const notifyAuthor = async ({ post, platform, status }) => {
       throw error;
     }
 
-    if (preferences.pushAlerts !== false && (author.pushTokens || []).length > 0) {
+    if (
+      preferences.pushAlerts !== false
+      && ((author.pushTokens || []).length > 0 || (author.webPushSubscriptions || []).length > 0)
+    ) {
       await pushNotificationService.sendSocialPublishAlert({
         user: author,
         postId: post._id,
