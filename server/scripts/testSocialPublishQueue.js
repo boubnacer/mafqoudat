@@ -41,7 +41,13 @@ const {
   PUBLISH_LIMIT_COOLDOWN_MS,
   LOCK_TIMEOUT_MS,
   DAILY_WINDOW_MS,
+  HOURLY_WINDOW_MS,
   QUOTA_BUFFER_MS,
+  SPAM_BLOCK_COOLDOWN_MS,
+  AUTH_COOLDOWN_MS,
+  USAGE_PAUSE_PERCENT,
+  PUBLISH_JITTER_MS,
+  REQUEUED_BY_HAND,
 } = require('../services/socialPublishQueue');
 
 let failures = 0;
@@ -252,10 +258,23 @@ const jobDefaults = () => ({
 
 /** A Graph API failure, shaped exactly as axios surfaces one. */
 const graphFailure = (code, message, extra = {}) => {
+  const { status, headers, ...graph } = extra;
   const error = new Error(message);
-  error.response = { status: extra.status || 400, data: { error: { code, message, type: 'OAuthException', ...extra } } };
+  error.response = {
+    status: status || 400,
+    headers: headers || {},
+    data: { error: { code, message, type: 'OAuthException', ...graph } },
+  };
   return error;
 };
+
+/** The usage headers Meta puts on every Graph response, success or not. */
+const usageHeaders = ({ percent = 0, regainMinutes = 0 } = {}) => ({
+  'x-app-usage': JSON.stringify({ call_count: percent, total_cputime: 0, total_time: 0 }),
+  'x-business-use-case-usage': JSON.stringify({
+    '1234': [{ type: 'pages', call_count: 0, total_cputime: 0, total_time: 0, estimated_time_to_regain_access: regainMinutes }],
+  }),
+});
 
 let clock;
 let jobs;
@@ -264,20 +283,37 @@ let publishCalls;
 let publishBehaviour;
 let queue;
 let invalidateSocialImageCalls;
+// What the platforms answer when asked whether a listing is already up, and
+// how much of their publishing quota is spent. Both are the real services'
+// way of telling the queue something it cannot know on its own.
+let alreadyPublished;
+let quotaBehaviour;
+let lookupCalls;
+let randomValue;
 
 const advance = (ms) => { clock += ms; };
 
-const setup = ({ instagramConfigured = true } = {}) => {
+/**
+ * The hourly ceiling is off unless a scenario asks for it. It is a real part
+ * of the production configuration, but every scenario below is about one
+ * thing, and a second window silently firing first would make several of them
+ * assert the wrong mechanism.
+ */
+const setup = ({ instagramConfigured = true, hourlyLimits = {} } = {}) => {
   clock = Date.parse('2026-01-01T00:00:00.000Z');
   const now = () => clock;
 
   jobs = new FakeCollection({ defaults: jobDefaults, clock: now });
   posts = new FakeCollection({ clock: now });
   publishCalls = [];
+  lookupCalls = [];
+  randomValue = 0;
   publishBehaviour = {
     facebook: async (post) => ({ postId: `fb_${post._id}`, permalink: `https://facebook.com/${post._id}` }),
     instagram: async (post) => ({ mediaId: `ig_${post._id}`, permalink: `https://instagram.com/${post._id}` }),
   };
+  alreadyPublished = { facebook: null, instagram: null };
+  quotaBehaviour = { instagram: null };
 
   const publisher = (platform, idKey, configured) => ({
     service: {
@@ -286,12 +322,22 @@ const setup = ({ instagramConfigured = true } = {}) => {
         publishCalls.push({ platform, post: post._id });
         return publishBehaviour[platform](post);
       },
+      findPublishedListing: async (post) => {
+        lookupCalls.push({ platform, post: post._id });
+        const found = alreadyPublished[platform];
+        return typeof found === 'function' ? found(post) : found;
+      },
+      // Only Instagram exposes a quota endpoint, so only Instagram's stub
+      // carries one - the queue has to cope with a platform that cannot
+      // answer the question at all.
+      ...(platform === 'instagram' ? { publishingQuota: async () => quotaBehaviour.instagram } : {}),
     },
     idKey,
     postIdPath: `social.${platform}.${idKey}`,
     postPermalinkPath: `social.${platform}.permalink`,
     postPostedAtPath: `social.${platform}.postedAt`,
     dailyLimit: platform === 'instagram' ? INSTAGRAM_DAILY_LIMIT : null,
+    hourlyLimit: hourlyLimits[platform] || null,
   });
 
   invalidateSocialImageCalls = [];
@@ -300,6 +346,9 @@ const setup = ({ instagramConfigured = true } = {}) => {
     jobs,
     posts,
     now,
+    // Pacing jitter is the one deliberately random thing in the queue;
+    // pinned here so every interval assertion below is exact.
+    random: () => randomValue,
     publishers: {
       facebook: publisher('facebook', 'postId', true),
       instagram: publisher('instagram', 'mediaId', instagramConfigured),
@@ -476,15 +525,68 @@ const run = async () => {
   );
 
   // -------------------------------------------------------------------------
-  console.log('\n--- a missing permission stops, a transient error retries ---');
+  console.log('\n--- credentials that are refused pause the platform and keep the work ---');
+  // A missing scope and an expired token both need a human, and until one
+  // acts every further call is a guaranteed refusal that spends the
+  // rate-limit budget the rest of the queue needs. But neither is the
+  // listing's fault: marking the job failed on the spot - which is what this
+  // used to do - meant a token that went stale overnight turned every
+  // listing posted overnight into a dead job needing a manual --retry-failed.
 
   setup();
-  const denied = addPost();
-  await queue.enqueuePost(denied);
+  const denied = [addPost(), addPost()];
+  for (const post of denied) await queue.enqueuePost(post);
   publishBehaviour.facebook = async () => { throw graphFailure(200, 'Permissions error'); };
 
-  check('a permission error gives up immediately', (await queue.runOnce()).facebook, 'failed');
-  check('rather than spending the rate-limit budget on retries', jobFor(denied._id, 'facebook').status, 'failed');
+  check('a permission error is read as a credentials problem', (await queue.runOnce()).facebook, 'auth');
+  const withheld = jobFor(denied[0]._id, 'facebook');
+  check('the listing keeps its place in the queue', withheld.status, 'pending');
+  check('and is not charged an attempt for it', withheld.attempts, 0);
+  check(
+    'it waits out the credentials cooldown',
+    new Date(withheld.nextAttemptAt).getTime(),
+    clock + AUTH_COOLDOWN_MS
+  );
+
+  const facebookCallsAtRefusal = publishCalls.filter((call) => call.platform === 'facebook').length;
+  advance(MIN_PUBLISH_INTERVAL_MS);
+  check('the whole platform stands down rather than each job finding out in turn', (await queue.runOnce()).facebook, 'paused');
+  check(
+    'so the second listing never reaches the refusing endpoint',
+    publishCalls.filter((call) => call.platform === 'facebook').length,
+    facebookCallsAtRefusal
+  );
+
+  publishBehaviour.facebook = async (post) => ({ postId: `fb_${post._id}`, permalink: null });
+  advance(AUTH_COOLDOWN_MS);
+  check('and both listings publish themselves once the token works again', (await queue.runOnce()).facebook, 'published');
+
+  setup();
+  const malformed = [addPost(), addPost()];
+  for (const post of malformed) await queue.enqueuePost(post);
+  publishBehaviour.facebook = async () => { throw graphFailure(100, 'Invalid parameter'); };
+
+  check('a bad request on one listing is that listing\'s problem', (await queue.runOnce()).facebook, 'retry');
+  check('it costs an attempt', jobFor(malformed[0]._id, 'facebook').attempts, 1);
+  check(
+    'and nothing behind it is held back',
+    new Date(jobFor(malformed[1]._id, 'facebook').nextAttemptAt).getTime() <= clock,
+    true
+  );
+
+  publishBehaviour.facebook = async (post) => ({ postId: `fb_${post._id}`, permalink: null });
+  advance(MIN_PUBLISH_INTERVAL_MS);
+  check('so the platform keeps working', (await queue.runOnce()).facebook, 'published');
+
+  setup();
+  const expiredToken = addPost();
+  await queue.enqueuePost(expiredToken);
+  publishBehaviour.instagram = async () => {
+    throw graphFailure(190, 'Error validating access token: Session has expired', { error_subcode: 463 });
+  };
+
+  check('an expired token is the same kind of problem', (await queue.runOnce()).instagram, 'auth');
+  check('and does not fail the listing either', jobFor(expiredToken._id, 'instagram').status, 'pending');
 
   // -------------------------------------------------------------------------
   console.log('\n--- a rejected image or caption regenerates instead of giving up like a permission error ---');
@@ -608,6 +710,229 @@ const run = async () => {
     publishCalls.filter((call) => call.platform === 'facebook').length,
     callsBeforeRerun
   );
+
+  // -------------------------------------------------------------------------
+  console.log('\n--- a retry asks the platform before it posts a second copy ---');
+  // Graph has no idempotency key, so a publish whose answer was lost - a
+  // timeout, a reset, a process killed between the call and the write - is
+  // indistinguishable from one that was refused. Retrying blind is exactly
+  // how a listing ends up on the account twice.
+
+  setup();
+  const lostAnswer = addPost();
+  await queue.enqueuePost(lostAnswer);
+  publishBehaviour.instagram = async () => { throw new Error('socket hang up'); };
+
+  check('the first attempt fails the way any transient error does', (await queue.runOnce()).instagram, 'retry');
+  check('and nothing was looked up, because nothing could have duplicated yet', lookupCalls.length, 0);
+
+  // It had in fact gone through; only the answer was lost.
+  alreadyPublished.instagram = (post) => ({ mediaId: `ig_${post._id}`, permalink: 'https://instagram.com/p/abc' });
+  const instagramCallsBeforeRetry = publishCalls.filter((call) => call.platform === 'instagram').length;
+  advance(RETRY_BASE_MS);
+
+  check('the retry recovers the existing post', (await queue.runOnce()).instagram, 'recovered');
+  check('it asked the account first', lookupCalls.filter((call) => call.platform === 'instagram').length, 1);
+  check(
+    'and published nothing further',
+    publishCalls.filter((call) => call.platform === 'instagram').length,
+    instagramCallsBeforeRetry
+  );
+  const recovered = jobFor(lostAnswer._id, 'instagram');
+  check('the job is closed out as done', recovered.status, 'done');
+  check('with the id the platform already had', recovered.publishedId, `ig_${lostAnswer._id}`);
+  check(
+    'and the listing carries it too',
+    postById(lostAnswer._id).social.instagram.mediaId,
+    `ig_${lostAnswer._id}`
+  );
+
+  setup();
+  const requeuedByHand = addPost();
+  await queue.enqueuePost(requeuedByHand);
+  // What scripts/socialQueue.js --retry-failed leaves behind. It resets
+  // `attempts`, which is exactly what would otherwise hide the fact that this
+  // job has already been to the platform once.
+  const handJob = jobFor(requeuedByHand._id, 'facebook');
+  handJob.attempts = 0;
+  handJob.lastError = REQUEUED_BY_HAND;
+  alreadyPublished.facebook = () => ({ postId: 'fb_from_a_lost_answer', permalink: null });
+
+  check('a hand-requeued job asks before republishing', (await queue.runOnce()).facebook, 'recovered');
+  check('even though its attempt count was reset', jobFor(requeuedByHand._id, 'facebook').publishedId, 'fb_from_a_lost_answer');
+  check('and nothing was sent to the platform', publishCalls.filter((call) => call.platform === 'facebook').length, 0);
+
+  // -------------------------------------------------------------------------
+  console.log('\n--- a transient failure keeps the derivative it was going to publish ---');
+  // Distinct from a refused image on purpose: Meta answering "please try
+  // again" says nothing is wrong with the file, and throwing it away costs a
+  // download, a composite and a second Cloudinary upload to rebuild an
+  // identical one.
+
+  setup();
+  const slowFetch = addPost();
+  await queue.enqueuePost(slowFetch);
+  publishBehaviour.instagram = async () => {
+    throw graphFailure(9004, 'Timeout downloading media, please try again.', { error_subcode: 2207003 });
+  };
+
+  check('a download timeout is retried', (await queue.runOnce()).instagram, 'retry');
+  check('and the cached image is left alone', invalidateSocialImageCalls, []);
+
+  // -------------------------------------------------------------------------
+  console.log('\n--- the hourly ceiling holds a backlog back before any daily cap does ---');
+  // The cap Meta documents is 25 per 24 hours, but accounts are reported
+  // blocked for suspected spam at around a dozen posts inside one hour. A
+  // daily limit alone permits the whole day's allowance inside twenty
+  // minutes, which is the shape that earns the block.
+
+  setup({ hourlyLimits: { instagram: 2 } });
+  const hourly = [addPost(), addPost(), addPost()];
+  for (const post of hourly) await queue.enqueuePost(post);
+
+  await queue.runOnce();
+  const firstHourlyPublishAt = clock;
+  advance(MIN_PUBLISH_INTERVAL_MS);
+  await queue.runOnce();
+  check('two publish inside the hour', publishCalls.filter((call) => call.platform === 'instagram').length, 2);
+
+  advance(MIN_PUBLISH_INTERVAL_MS);
+  check('the third is held back', (await queue.runOnce()).instagram, 'quota');
+  const heldForAnHour = jobFor(hourly[2]._id, 'instagram');
+  check('it is still queued, not failed', heldForAnHour.status, 'pending');
+  check('with no attempt counted against it', heldForAnHour.attempts, 0);
+  check(
+    'and is due once the oldest publish leaves the hour',
+    new Date(heldForAnHour.nextAttemptAt).getTime(),
+    firstHourlyPublishAt + HOURLY_WINDOW_MS + QUOTA_BUFFER_MS
+  );
+  check('while Facebook, which was given no ceiling here, is unaffected', publishCalls.filter((call) => call.platform === 'facebook').length, 3);
+
+  advance(HOURLY_WINDOW_MS);
+  check('it publishes by itself once the window rolls over', (await queue.runOnce()).instagram, 'published');
+
+  // -------------------------------------------------------------------------
+  console.log("\n--- the account's own quota is asked for, not just counted ---");
+  // The window counts above only know about posts this app published.
+  // Anything posted to the account by hand spends a slot nothing here ever
+  // saw, and the first sign of it used to be a refused listing.
+
+  setup();
+  const beyondAccountQuota = addPost();
+  await queue.enqueuePost(beyondAccountQuota);
+  quotaBehaviour.instagram = { used: 25, total: 25, windowSeconds: 86400 };
+
+  check('a full account quota defers instead of publishing into a refusal', (await queue.runOnce()).instagram, 'quota');
+  check('nothing was sent to the platform', publishCalls.filter((call) => call.platform === 'instagram').length, 0);
+  check('the listing is kept', jobFor(beyondAccountQuota._id, 'instagram').status, 'pending');
+  check('and no attempt was charged for it', jobFor(beyondAccountQuota._id, 'instagram').attempts, 0);
+
+  quotaBehaviour.instagram = { used: 24, total: 25, windowSeconds: 86400 };
+  advance(PUBLISH_LIMIT_COOLDOWN_MS);
+  check('and it goes up once a slot is free again', (await queue.runOnce()).instagram, 'published');
+
+  setup();
+  const unknowableQuota = addPost();
+  await queue.enqueuePost(unknowableQuota);
+  quotaBehaviour.instagram = null;
+  check('a platform that cannot answer the question is not held up by it', (await queue.runOnce()).instagram, 'published');
+
+  // -------------------------------------------------------------------------
+  console.log('\n--- Meta says how much budget is left on the way past, and that is acted on ---');
+
+  setup();
+  const nearTheCeiling = [addPost(), addPost()];
+  for (const post of nearTheCeiling) await queue.enqueuePost(post);
+  publishBehaviour.facebook = async (post) => ({
+    postId: `fb_${post._id}`,
+    permalink: null,
+    usage: { percent: USAGE_PAUSE_PERCENT, regainAccessMinutes: 0 },
+  });
+
+  check('the publish itself still succeeds', (await queue.runOnce()).facebook, 'published');
+  advance(MIN_PUBLISH_INTERVAL_MS);
+  check('but the platform stands down before being throttled', (await queue.runOnce()).facebook, 'paused');
+  check(
+    'and the queued listing waits it out rather than failing',
+    new Date(jobFor(nearTheCeiling[1]._id, 'facebook').nextAttemptAt).getTime(),
+    clock - MIN_PUBLISH_INTERVAL_MS + RATE_LIMIT_COOLDOWN_MS
+  );
+
+  setup();
+  const wellUnder = addPost();
+  await queue.enqueuePost(wellUnder);
+  publishBehaviour.facebook = async (post) => ({
+    postId: `fb_${post._id}`,
+    permalink: null,
+    usage: { percent: USAGE_PAUSE_PERCENT - 1, regainAccessMinutes: 0 },
+  });
+  await queue.runOnce();
+  advance(MIN_PUBLISH_INTERVAL_MS);
+  check('a platform with budget to spare is not paused', (await queue.runOnce()).facebook, 'idle');
+
+  // -------------------------------------------------------------------------
+  console.log("\n--- a throttle states its own wait, and that beats the configured one ---");
+
+  setup();
+  const throttledWithWait = addPost();
+  await queue.enqueuePost(throttledWithWait);
+  publishBehaviour.facebook = async () => {
+    throw graphFailure(4, 'Application request limit reached', {
+      headers: usageHeaders({ percent: 100, regainMinutes: 90 }),
+    });
+  };
+
+  check('it is still a rate limit', (await queue.runOnce()).facebook, 'rate-limited');
+  check(
+    'but the wait is the one Meta stated, not the default cooldown',
+    new Date(jobFor(throttledWithWait._id, 'facebook').nextAttemptAt).getTime(),
+    clock + 90 * 60 * 1000
+  );
+
+  // -------------------------------------------------------------------------
+  console.log('\n--- a spam block stands the platform down for hours, and keeps the listing ---');
+  // Neither a rate limit nor a bad file: nothing about the listing is wrong,
+  // and coming back at the same cadence is what turns a temporary block into
+  // a longer one.
+
+  setup();
+  const flagged = [addPost(), addPost()];
+  for (const post of flagged) await queue.enqueuePost(post);
+  publishBehaviour.instagram = async () => {
+    throw graphFailure(9004, 'The publishing action is suspected to be spam.', { error_subcode: 2207051 });
+  };
+
+  check('it is classified as a spam block, not a content error', (await queue.runOnce()).instagram, 'spam-blocked');
+  const blocked = jobFor(flagged[0]._id, 'instagram');
+  check('the listing is kept', blocked.status, 'pending');
+  check('with no attempt charged against it', blocked.attempts, 0);
+  check(
+    'and waits out the long cooldown',
+    new Date(blocked.nextAttemptAt).getTime(),
+    clock + SPAM_BLOCK_COOLDOWN_MS
+  );
+  check('the cached image is not thrown away over it', invalidateSocialImageCalls, []);
+  check(
+    'every other queued listing waits with it',
+    new Date(jobFor(flagged[1]._id, 'instagram').nextAttemptAt).getTime(),
+    clock + SPAM_BLOCK_COOLDOWN_MS
+  );
+
+  // -------------------------------------------------------------------------
+  console.log('\n--- publishes are not spaced on a perfect metronome ---');
+
+  setup();
+  const metronome = [addPost(), addPost()];
+  for (const post of metronome) await queue.enqueuePost(post);
+  randomValue = 0.5;
+
+  await queue.runOnce();
+  advance(MIN_PUBLISH_INTERVAL_MS);
+  check('the bare interval is no longer enough on its own', (await queue.runOnce()).facebook, 'paced');
+
+  advance(PUBLISH_JITTER_MS / 2);
+  check('the jitter drawn after the last publish is', queue.paceJitter.get('facebook'), PUBLISH_JITTER_MS / 2);
+  check('and the next one goes out once it has elapsed', (await queue.runOnce()).facebook, 'published');
 };
 
 run()
