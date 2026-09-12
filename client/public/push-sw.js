@@ -54,8 +54,15 @@ self.addEventListener('push', (event) => {
       data,
       // One notification per listing per kind, rather than a stack of them:
       // re-scoring a pair or a second alert about the same post replaces what
-      // is on screen instead of adding to it.
-      tag: data.type && data.postId ? `${data.type}:${data.postId}` : undefined,
+      // is on screen instead of adding to it. `platform` is folded in when
+      // present so a social-publish alert doesn't collapse into itself - the
+      // Facebook and Instagram alerts for the same post are the same type and
+      // the same postId, and without this they'd silently overwrite each
+      // other (the second replaces the first with no re-alert), which is
+      // exactly what "only one shows up" looks like from the tray.
+      tag: data.type && data.postId
+        ? `${data.type}:${data.postId}${data.platform ? `:${data.platform}` : ''}`
+        : undefined,
       // Arabic and French copy arrive as-is; the direction is the reader's,
       // and 'auto' is what lets the browser take it from the text itself
       // rather than from this file's own locale.
