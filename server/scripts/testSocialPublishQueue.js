@@ -24,6 +24,13 @@
 // numbers keep the scenarios legible; the production defaults are in
 // services/socialPublishQueue.js.
 process.env.SOCIAL_QUEUE_MIN_INTERVAL_SECONDS = '30';
+// Matched to Facebook's above rather than left at the (now higher)
+// production default, so every existing scenario below that advances the
+// clock by one shared amount and checks both platforms keeps working
+// unchanged. The dedicated "Instagram paces on its own, longer, floor"
+// scenario further down is what actually proves the two floors are
+// independent, using its own override rather than this shared value.
+process.env.SOCIAL_QUEUE_IG_MIN_INTERVAL_SECONDS = '30';
 process.env.SOCIAL_QUEUE_IG_DAILY_LIMIT = '3';
 process.env.SOCIAL_QUEUE_MAX_ATTEMPTS = '3';
 process.env.SOCIAL_QUEUE_RETRY_BASE_SECONDS = '60';
@@ -47,6 +54,8 @@ const {
   AUTH_COOLDOWN_MS,
   USAGE_PAUSE_PERCENT,
   PUBLISH_JITTER_MS,
+  INSTAGRAM_MIN_INTERVAL_MS,
+  INSTAGRAM_JITTER_MS,
   REQUEUED_BY_HAND,
 } = require('../services/socialPublishQueue');
 
@@ -298,8 +307,15 @@ const advance = (ms) => { clock += ms; };
  * of the production configuration, but every scenario below is about one
  * thing, and a second window silently firing first would make several of them
  * assert the wrong mechanism.
+ *
+ * `intervals` defaults every platform to the (env-driven) MIN_PUBLISH_INTERVAL_MS/
+ * PUBLISH_JITTER_MS pair, which the top-of-file env vars have set equal for
+ * both platforms - so every existing scenario that advances the clock by one
+ * shared amount and checks both platforms keeps working unchanged. Pass e.g.
+ * `{ instagram: { minIntervalMs: 300000, jitterMs: 0 } }` to prove the two
+ * floors are actually independent, as production's per-platform defaults are.
  */
-const setup = ({ instagramConfigured = true, hourlyLimits = {} } = {}) => {
+const setup = ({ instagramConfigured = true, hourlyLimits = {}, intervals = {} } = {}) => {
   clock = Date.parse('2026-01-01T00:00:00.000Z');
   const now = () => clock;
 
@@ -338,6 +354,10 @@ const setup = ({ instagramConfigured = true, hourlyLimits = {} } = {}) => {
     postPostedAtPath: `social.${platform}.postedAt`,
     dailyLimit: platform === 'instagram' ? INSTAGRAM_DAILY_LIMIT : null,
     hourlyLimit: hourlyLimits[platform] || null,
+    minIntervalMs: intervals[platform]?.minIntervalMs
+      ?? (platform === 'instagram' ? INSTAGRAM_MIN_INTERVAL_MS : MIN_PUBLISH_INTERVAL_MS),
+    jitterMs: intervals[platform]?.jitterMs
+      ?? (platform === 'instagram' ? INSTAGRAM_JITTER_MS : PUBLISH_JITTER_MS),
   });
 
   invalidateSocialImageCalls = [];
@@ -933,6 +953,37 @@ const run = async () => {
   advance(PUBLISH_JITTER_MS / 2);
   check('the jitter drawn after the last publish is', queue.paceJitter.get('facebook'), PUBLISH_JITTER_MS / 2);
   check('and the next one goes out once it has elapsed', (await queue.runOnce()).facebook, 'published');
+
+  // -------------------------------------------------------------------------
+  console.log("\n--- Instagram's pacing floor is its own, independent of Facebook's ---");
+  // Production gives Instagram a longer, separately configurable floor than
+  // Facebook (SOCIAL_QUEUE_IG_MIN_INTERVAL_SECONDS vs
+  // SOCIAL_QUEUE_MIN_INTERVAL_SECONDS) - the observed spam block happened on
+  // Instagram, well inside its documented daily cap, so it gets more room by
+  // default without slowing Facebook down for a problem that was never
+  // Facebook's. This is the one scenario that actually exercises two
+  // different floors at once, via `intervals`, rather than the env-matched
+  // default every other scenario relies on.
+
+  setup({ intervals: { instagram: { minIntervalMs: 300000, jitterMs: 0 } } });
+  const asymmetric = [addPost(), addPost()];
+  for (const post of asymmetric) await queue.enqueuePost(post);
+
+  await queue.runOnce();
+  advance(MIN_PUBLISH_INTERVAL_MS);
+  check(
+    "Facebook's shorter floor lets its second listing through",
+    (await queue.runOnce()).facebook,
+    'published'
+  );
+  check(
+    "but Instagram's longer floor is still holding, on the very same clock",
+    jobFor(asymmetric[1]._id, 'instagram').status,
+    'pending'
+  );
+
+  advance(300000 - MIN_PUBLISH_INTERVAL_MS);
+  check("and it publishes once Instagram's own floor has elapsed", (await queue.runOnce()).instagram, 'published');
 };
 
 run()

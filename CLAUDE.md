@@ -813,29 +813,43 @@ this whole section exists to protect.
   refusal was caught, logged and dropped: the listing existed on the site with
   no Page copy, no retry, and nothing anywhere recording that it had happened.
 - **Pacing is unconditional, every limit is a separate gate on top.** The
-  worker leaves at least `SOCIAL_QUEUE_MIN_INTERVAL_SECONDS` (60) between two
-  publishes on the same platform whether or not any limit is close — "burst
-  until something breaks, then slow down" is the behaviour being removed, so
-  the fix cannot be a limit check alone. Every gate above it **defers rather
-  than drops**: the jobs are dated to when a slot frees up (+ a minute's
-  buffer) and go up by themselves. In order of how much each one knows:
-  1. the interval, plus up to `SOCIAL_QUEUE_JITTER_SECONDS` (45) redrawn after
-     every publish — see the jitter note below;
+  worker leaves at least a per-platform floor between two publishes on the
+  same platform whether or not any limit is close — "burst until something
+  breaks, then slow down" is the behaviour being removed, so the fix cannot be
+  a limit check alone. Every gate above it **defers rather than drops**: the
+  jobs are dated to when a slot frees up (+ a minute's buffer) and go up by
+  themselves. In order of how much each one knows:
+  1. the interval, plus jitter redrawn after every publish — see below;
   2. an **hourly** ceiling, `SOCIAL_QUEUE_IG_HOURLY_LIMIT` (5) and
      `SOCIAL_QUEUE_FB_HOURLY_LIMIT` (10);
   3. Instagram's rolling 24h cap, `SOCIAL_QUEUE_IG_DAILY_LIMIT` (25) —
      Facebook has no published-post cap at all, only a call budget;
   4. the account's own figure from Meta (`content_publishing_limit`, below);
   5. the call budget Meta reports on every response (below).
+- **The interval is per-platform, not one shared number.** Each publisher
+  entry in `socialPublishQueue.js`'s `DEFAULT_PUBLISHERS` carries its own
+  `minIntervalMs`/`jitterMs`, and `runPlatform` paces off *that* platform's
+  pair — so tuning one platform's cadence can never move the other's. Facebook
+  stays at `SOCIAL_QUEUE_MIN_INTERVAL_SECONDS` (60) +
+  `SOCIAL_QUEUE_JITTER_SECONDS` (0–45), i.e. 60–105s. Instagram is deliberately
+  more conservative — `SOCIAL_QUEUE_IG_MIN_INTERVAL_SECONDS` (180) +
+  `SOCIAL_QUEUE_IG_JITTER_SECONDS` (0–120), i.e. 180–300s (3–5 minutes) —
+  because the one observed spam block (`error_subcode` 2207051) happened on
+  Instagram, at a cadence well inside its documented daily cap, and a fresh
+  Page/account has no posting history to fall back on. Bumped from a single
+  shared 60s floor after launch review specifically for this reason; kept as
+  two independent settings rather than one raised number so Facebook — which
+  never showed the problem and has no daily cap to begin with — is not slowed
+  down for an issue that was never its own.
 - **The hourly ceiling exists because the documented daily cap is not the
   limit that actually bites.** 25 posts per 24h is what Meta publishes, but a
-  60-second interval spends all 25 inside half an hour, and accounts are
-  reported blocked for suspected spam (`error_subcode` 2207051) at around a
-  dozen posts in one hour — well under the documented cap, which is precisely
-  why a daily gate alone does not protect anything. At 5/hour Instagram takes
-  five hours to reach its daily allowance, which is the point. Both ceilings
-  and the interval are the levers to reach for if a spam block ever happens;
-  the log line for one says so.
+  short interval alone can spend all 25 well inside an hour, and accounts are
+  reported blocked for suspected spam at around a dozen posts in one hour —
+  well under the documented cap, which is precisely why a daily gate alone
+  does not protect anything. At 5/hour Instagram takes five hours to reach its
+  daily allowance, which is the point. The ceilings and the interval are the
+  levers to reach for if a spam block ever happens; the log line for one says
+  so.
 - **And the pacing is jittered, because a perfect metronome is itself a
   signal.** A fresh `Math.random()` draw after each publish, so two
   consecutive posts are never exactly as far apart as the two before them. It
@@ -1113,7 +1127,8 @@ this whole section exists to protect.
   next day, the platform-wide throttle stand-down, permission-vs-transient-vs-
   media-content classification (and that the last one clears the cached
   derivative on every attempt, not just the first), cancellation, stall
-  recovery, and the two double-post guards.
+  recovery, the two double-post guards, and that Instagram's longer pacing
+  floor holds independently of Facebook's shorter one on the same clock.
   `npm run test-social-images` covers which graphic a photo-less listing
   publishes with, and — the part that matters — checks both directions between
   the server's code list and the generated files, since a code with no file

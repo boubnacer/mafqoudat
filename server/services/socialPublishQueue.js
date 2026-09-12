@@ -72,7 +72,10 @@ const readIntEnv = (name, fallback, { min, max }) => {
 
 // Minimum gap between two publishes on the same platform. The single most
 // important number here: it is what turns any burst, of any size, into a
-// steady trickle Meta has no reason to throttle.
+// steady trickle Meta has no reason to throttle. This is Facebook's floor;
+// Instagram has its own, separately below, because the two platforms have
+// shown different sensitivity in practice and a single shared number cannot
+// be tuned for one without moving the other.
 const MIN_PUBLISH_INTERVAL_MS = readIntEnv('SOCIAL_QUEUE_MIN_INTERVAL_SECONDS', 60, { min: 5, max: 3600 }) * 1000;
 
 // Up to this much extra, drawn fresh after every publish. Automated posting
@@ -80,6 +83,17 @@ const MIN_PUBLISH_INTERVAL_MS = readIntEnv('SOCIAL_QUEUE_MIN_INTERVAL_SECONDS', 
 // fast, this says "not identically every time". Costs nothing and cannot
 // make the queue faster, only slightly slower.
 const PUBLISH_JITTER_MS = readIntEnv('SOCIAL_QUEUE_JITTER_SECONDS', 45, { min: 0, max: 600 }) * 1000;
+
+// Instagram's own floor and jitter, intentionally more conservative than
+// Facebook's. The observed spam block (error_subcode 2207051) happened on
+// Instagram, at a cadence well inside its documented daily cap, and a fresh
+// Page/account has no posting history to fall back on - both are reasons to
+// give this platform more room than the default, not less. 180-300s (3-5
+// minutes) rather than 60-105s: still fast enough that a burst of listings
+// clears within the hourly ceiling below, slow enough that five posts land
+// spread across several minutes instead of bunched in the first one.
+const INSTAGRAM_MIN_INTERVAL_MS = readIntEnv('SOCIAL_QUEUE_IG_MIN_INTERVAL_SECONDS', 180, { min: 5, max: 3600 }) * 1000;
+const INSTAGRAM_JITTER_MS = readIntEnv('SOCIAL_QUEUE_IG_JITTER_SECONDS', 120, { min: 0, max: 600 }) * 1000;
 
 // The second pacing window, and the one Meta does not document.
 //
@@ -178,6 +192,8 @@ const DEFAULT_PUBLISHERS = {
     // call budget, which pacing plus the rate-limit cooldown is what handles.
     dailyLimit: null,
     hourlyLimit: FACEBOOK_HOURLY_LIMIT,
+    minIntervalMs: MIN_PUBLISH_INTERVAL_MS,
+    jitterMs: PUBLISH_JITTER_MS,
   },
   instagram: {
     service: instagramService,
@@ -187,6 +203,8 @@ const DEFAULT_PUBLISHERS = {
     postPostedAtPath: 'social.instagram.postedAt',
     dailyLimit: INSTAGRAM_DAILY_LIMIT,
     hourlyLimit: INSTAGRAM_HOURLY_LIMIT,
+    minIntervalMs: INSTAGRAM_MIN_INTERVAL_MS,
+    jitterMs: INSTAGRAM_JITTER_MS,
   },
 };
 
@@ -810,7 +828,7 @@ class SocialPublishQueue {
     const pausedUntil = this.pausedUntil.get(platform);
     if (pausedUntil && this.now() < pausedUntil) return 'paused';
 
-    const gap = MIN_PUBLISH_INTERVAL_MS + (this.paceJitter.get(platform) || 0);
+    const gap = publisher.minIntervalMs + (this.paceJitter.get(platform) || 0);
     const lastPublishAt = await this.lastPublishAt(platform);
     if (lastPublishAt !== null && this.now() - lastPublishAt < gap) return 'paced';
 
@@ -842,7 +860,7 @@ class SocialPublishQueue {
     // platform, so the next publish is not exactly MIN_PUBLISH_INTERVAL after
     // this one the way every publish before it was.
     if (outcome === 'published' || outcome === 'recovered') {
-      this.paceJitter.set(platform, Math.floor(this.random() * PUBLISH_JITTER_MS));
+      this.paceJitter.set(platform, Math.floor(this.random() * publisher.jitterMs));
     }
 
     return outcome;
@@ -889,10 +907,12 @@ class SocialPublishQueue {
     if (typeof this.timer.unref === 'function') this.timer.unref();
 
     console.log(
-      `Social publish queue started for ${this.configuredPlatforms().join(', ')} `
-      + `(one post per ${MIN_PUBLISH_INTERVAL_MS / 1000}s +up to ${PUBLISH_JITTER_MS / 1000}s per platform; `
-      + `Instagram ${INSTAGRAM_HOURLY_LIMIT}/h and ${INSTAGRAM_DAILY_LIMIT}/24h, `
-      + `Facebook ${FACEBOOK_HOURLY_LIMIT}/h)`
+      `Social publish queue started for ${this.configuredPlatforms().join(', ')} - `
+      + `Facebook: one post per ${MIN_PUBLISH_INTERVAL_MS / 1000}-`
+      + `${(MIN_PUBLISH_INTERVAL_MS + PUBLISH_JITTER_MS) / 1000}s, ${FACEBOOK_HOURLY_LIMIT}/h; `
+      + `Instagram: one post per ${INSTAGRAM_MIN_INTERVAL_MS / 1000}-`
+      + `${(INSTAGRAM_MIN_INTERVAL_MS + INSTAGRAM_JITTER_MS) / 1000}s, `
+      + `${INSTAGRAM_HOURLY_LIMIT}/h and ${INSTAGRAM_DAILY_LIMIT}/24h`
     );
     return true;
   }
@@ -911,6 +931,8 @@ module.exports.REQUEUED_BY_HAND = REQUEUED_BY_HAND;
 module.exports.PUBLISHERS = DEFAULT_PUBLISHERS;
 module.exports.MIN_PUBLISH_INTERVAL_MS = MIN_PUBLISH_INTERVAL_MS;
 module.exports.PUBLISH_JITTER_MS = PUBLISH_JITTER_MS;
+module.exports.INSTAGRAM_MIN_INTERVAL_MS = INSTAGRAM_MIN_INTERVAL_MS;
+module.exports.INSTAGRAM_JITTER_MS = INSTAGRAM_JITTER_MS;
 module.exports.HOURLY_WINDOW_MS = HOURLY_WINDOW_MS;
 module.exports.INSTAGRAM_HOURLY_LIMIT = INSTAGRAM_HOURLY_LIMIT;
 module.exports.FACEBOOK_HOURLY_LIMIT = FACEBOOK_HOURLY_LIMIT;
