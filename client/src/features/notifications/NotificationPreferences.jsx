@@ -14,6 +14,7 @@ import {
 import { useTranslation } from "../../utils/translations";
 import {
   getSubscriptionState,
+  isWebPushAvailable,
   requestSubscription,
   unsubscribe as unsubscribeFromWebPush,
 } from "../../utils/webPush";
@@ -46,7 +47,13 @@ const NotificationPreferences = () => {
 
   useEffect(() => {
     let active = true;
-    getSubscriptionState().then((state) => { if (active) setPushState(state); });
+    Promise.all([getSubscriptionState(), isWebPushAvailable()]).then(([state, available]) => {
+      if (!active) return;
+      // A deployment with no VAPID keys configured cannot send at all, so the
+      // row says the channel is unavailable rather than offering a button that
+      // would fire the browser's prompt and then register nothing.
+      setPushState(available ? state : 'unsupported');
+    });
     return () => { active = false; };
   }, []);
 

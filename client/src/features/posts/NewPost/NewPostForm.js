@@ -51,7 +51,7 @@ import { validateStep1, validateStep2, STEP_VALIDATORS, scrollToFirstErrorField 
 import { getCityDisplayName } from "./cityDisplay";
 import scrollToTop, { smoothScrollToTop } from "../../../utils/scrollToTop";
 import { redactFacesInImage } from "../../../utils/faceRedaction";
-import { shouldOfferWebPush, requestSubscription } from "../../../utils/webPush";
+import { canOfferWebPush, requestSubscription } from "../../../utils/webPush";
 import EnablePushDialog from "../../notifications/EnablePushDialog";
 
 // Maps each step's 1-based position (MUI auto-assigns `icon` = index + 1) to
@@ -591,10 +591,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
    * It never rejects and never blocks publishing: the listing is what the
    * author came to do, and a notification is an offer made alongside it.
    */
-  const offerBrowserNotifications = useCallback(() => {
-    if (!shouldOfferWebPush()) return Promise.resolve();
+  const offerBrowserNotifications = useCallback(async () => {
+    // Also false while this deployment has no VAPID keys configured - asking
+    // then would spend a permission decision on a channel that cannot send.
+    if (!(await canOfferWebPush())) return;
 
-    return new Promise((resolve) => {
+    await new Promise((resolve) => {
       pushAnswerRef.current = resolve;
       setShowPushDialog(true);
     });

@@ -1326,8 +1326,14 @@ Mafqoudat. Setup, env vars and debugging: [web-push.md](docs/web-push.md).
   no Push API at all until the site is installed to the Home Screen — so
   "cannot accept" and "will not accept" are indistinguishable from the page,
   and gating on it would lock those people out of posting entirely. Chrome also
-  penalizes sites that gate content behind permission prompts. `shouldOfferWebPush`
-  narrows the offer to a first-time, undecided, capable browser.
+  penalizes sites that gate content behind permission prompts. `canOfferWebPush`
+  narrows the offer to a first-time, undecided, capable browser **on a
+  deployment that has VAPID keys** — without that last check a site whose keys
+  are not configured yet still fires the browser's prompt and registers
+  nothing, spending a decision that can never be re-asked. The settings row
+  answers to `isWebPushAvailable` instead: someone who dismissed the one-time
+  offer must still be able to turn alerts on there, so only "can this work"
+  applies.
 - **The settings row is not a switch over an account preference.** The browser
   owns this permission, per origin and per profile, so the row in
   `NotificationPreferences` reads the permission *and* the subscription

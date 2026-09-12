@@ -104,12 +104,56 @@ const authHeaders = () => {
 
 /** The VAPID public key this deployment signs with, or '' when it has none. */
 const fetchPublicKey = async () => {
-  const response = await fetch(`${API_URL}/notifications/web-push-key`, {
-    headers: { ...authHeaders() },
-  });
-  if (!response.ok) return '';
-  const data = await response.json();
-  return data?.publicKey || '';
+  try {
+    const response = await fetch(`${API_URL}/notifications/web-push-key`, {
+      headers: { ...authHeaders() },
+    });
+    if (!response.ok) return '';
+    const data = await response.json();
+    return data?.publicKey || '';
+  } catch (error) {
+    // Unreachable API reads the same as an unconfigured one: no key, so no
+    // offer and no subscription. Never an error the caller has to handle.
+    return '';
+  }
+};
+
+// Asked once per page load. The answer is a deployment-level fact, not a
+// per-visitor one, and the offer below has to know it before deciding whether
+// to spend someone's permission decision.
+let publicKeyPromise = null;
+
+const getPublicKey = () => {
+  if (!publicKeyPromise) publicKeyPromise = fetchPublicKey();
+  return publicKeyPromise;
+};
+
+/**
+ * Whether to make the offer at all — `shouldOfferWebPush` plus the one thing
+ * the browser cannot tell us: whether this deployment can actually send.
+ *
+ * Without the key check, a site whose VAPID keys are not configured yet still
+ * shows the dialog, still fires the browser's prompt, and registers nothing —
+ * spending a decision that can never be re-asked (a denial is permanent) on a
+ * channel that does not exist. So the offer waits for the key.
+ */
+export const canOfferWebPush = async () => {
+  if (!shouldOfferWebPush()) return false;
+  return !!(await getPublicKey());
+};
+
+/**
+ * Whether browser alerts are available here at all — this browser can receive
+ * them and this deployment can send them.
+ *
+ * What the settings row needs, and deliberately not `canOfferWebPush`: someone
+ * who dismissed the one-time offer must still be able to turn alerts on from
+ * settings, so the "already asked" and "undecided" conditions do not apply
+ * there. Only "can this work" does.
+ */
+export const isWebPushAvailable = async () => {
+  if (!isWebPushSupported()) return false;
+  return !!(await getPublicKey());
 };
 
 /**
@@ -175,7 +219,7 @@ export const requestSubscription = async (language = 'en') => {
   if (permission !== 'granted') return permission;
 
   try {
-    const publicKey = await fetchPublicKey();
+    const publicKey = await getPublicKey();
     if (!publicKey) return 'failed';
 
     const registration = await registerServiceWorker();
