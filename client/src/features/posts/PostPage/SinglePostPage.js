@@ -177,6 +177,52 @@ const CategoryTags = ({ items }) => (
   </Box>
 );
 
+// No-image state only: the category icon sits on a soft frosted circle
+// (translucent surfaceRaised, blurred) instead of a solid-fill pill, with
+// the category name as plain text underneath it — same "frosted circle
+// reads against any hue" trick mobile's category bento cards use
+// (mobile/src/screens/HomeScreen.js Phase 15), needed here because the icon
+// and label take the category's own color directly on top of that same
+// color's tinted backdrop. The on-image corner badge (CategoryTags) still
+// carries this when there's a photo; it would be redundant stacked next to
+// this icon+label treatment, so it only renders when there's no photo to
+// pin it to instead.
+const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) => {
+  const theme = useTheme();
+  const haloColor = alpha(theme.custom.color.surfaceRaised, 0.9);
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+      <Box
+        sx={{
+          width: circleSize,
+          height: circleSize,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
+          backdropFilter: 'blur(6px)',
+        }}
+      >
+        <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />
+      </Box>
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: 700,
+          letterSpacing: 0.5,
+          textTransform: 'uppercase',
+          color,
+          textAlign: 'center',
+          textShadow: `-1px 0 ${haloColor}, 1px 0 ${haloColor}, 0 -1px ${haloColor}, 0 1px ${haloColor}, 0 0 6px ${haloColor}`,
+        }}
+      >
+        {label}
+      </Typography>
+    </Box>
+  );
+};
+
 const ResolvedRibbon = ({ children }) => {
   const theme = useTheme();
   return (
@@ -774,7 +820,7 @@ const SinglePostPage = ({
       : image;
   }, [image]);
 
-  // Memoized category icons for when there's no image - support multiple categories
+  // Memoized category icon+label data for when there's no image - support multiple categories
   const categoryIconsData = useMemo(() => {
     if (image) return []; // Only show icons when there's no image
 
@@ -789,10 +835,11 @@ const SinglePostPage = ({
       return {
         IconComponent,
         style: catStyle,
-        code: cat.code
+        code: cat.code,
+        label: categoryNames[index]
       };
     }).filter(Boolean); // Remove null entries
-  }, [image, categories, categoryStyles]);
+  }, [image, categories, categoryStyles, categoryNames]);
 
   // Sanitize contactPreferences and additionalContact to prevent React errors
   const sanitizedContactPreferences = useMemo(() => {
@@ -879,7 +926,7 @@ const SinglePostPage = ({
                 icon={foundLostStatus.isFound ? TaskAltOutlined : SearchOffOutlined}
                 label={foundLostStatus.statusText}
               />
-              <CategoryTags items={categoryBadges} />
+              {image && <CategoryTags items={categoryBadges} />}
 
               {image && imageUrl ? (
                 <LazyCardMedia
@@ -898,52 +945,33 @@ const SinglePostPage = ({
                 <Box
                   sx={{
                     display: 'flex',
-                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 1,
+                    gap: categoryIconsData.length === 1 ? 0 : { xs: 3, sm: 3.5, md: 4 },
+                    flexWrap: 'wrap',
                     padding: 2,
                     width: '100%',
                     height: { xs: 300, sm: 400, md: 500 },
                   }}
                 >
-                  {categoryIconsData.length === 1 ? (() => {
-                    const IconComponent = categoryIconsData[0].IconComponent;
-                    return (
-                      <IconComponent
-                        sx={{
-                          fontSize: { xs: '120px', sm: '150px', md: '180px' },
-                          color: categoryIconsData[0].style?.main || theme.palette.text.secondary,
-                          opacity: 0.85,
-                        }}
-                      />
-                    );
-                  })() : (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: { xs: 3, sm: 3.5, md: 4 },
-                        flexWrap: 'wrap',
-                        paddingTop: { xs: 2, sm: 2.5, md: 3 },
-                      }}
-                    >
-                      {categoryIconsData.slice(0, 4).map((iconData, idx) => {
-                        const IconComponent = iconData.IconComponent;
-                        return (
-                          <IconComponent
-                            key={iconData.code || idx}
-                            sx={{
-                              fontSize: { xs: '64px', sm: '80px', md: '96px' },
-                              color: iconData.style?.main || theme.palette.text.secondary,
-                              opacity: 0.85,
-                            }}
-                          />
-                        );
-                      })}
-                    </Box>
-                  )}
+                  {categoryIconsData.slice(0, 4).map((iconData, idx) => (
+                    <CategoryIconLabel
+                      key={iconData.code || idx}
+                      icon={iconData.IconComponent}
+                      label={iconData.label}
+                      color={iconData.style?.main || theme.palette.text.secondary}
+                      iconSize={
+                        categoryIconsData.length === 1
+                          ? { xs: '96px', sm: '120px', md: '144px' }
+                          : { xs: '44px', sm: '56px', md: '68px' }
+                      }
+                      circleSize={
+                        categoryIconsData.length === 1
+                          ? { xs: 132, sm: 164, md: 196 }
+                          : { xs: 68, sm: 84, md: 100 }
+                      }
+                    />
+                  ))}
                 </Box>
               ) : null}
 
