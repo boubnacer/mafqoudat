@@ -10,30 +10,28 @@ const { ensureSocialImage } = require('./socialImageService');
 // the Facebook Page / Instagram account serve the whole en/fr/ar audience.
 // Country/city/category names come from their own DB `labels`/`names`
 // (already fetched in full below, not projected to one language), so those
-// are real per-language translations. Free text the user actually typed
-// (exactLocation, mainDate, description) cannot be machine-translated
-// reliably, so it repeats verbatim in every block; only the surrounding
-// labels and "not provided" fallbacks are localized.
+// are real per-language translations. Each block is just a header line (what
+// was lost/found, category, country, city) and a link back to the listing -
+// the exact location, date, description and a "posted automatically" footer
+// used to fill this out too, but were cut on request: none of that is
+// something a reader searches by, and it only pushed the link and the
+// hashtags further down the post.
 const LOCALES = ['ar', 'fr', 'en'];
 
 // Matches client/src/utils/translations.js's "Post details translations"
-// block (noDescriptionProvided/exactLocation/exactDate/etc.) so the caption
-// reads the same as the site itself.
+// block (exactLocation/exactDate/etc.) so the header reads the same as the
+// site itself. The caption is intentionally just a header + contact line per
+// language now - the exact-location/date/description/footer lines that used
+// to fill this out were cut on request: they repeated free text nobody
+// searches by and pushed the link (the one actionable part of the post) and
+// the hashtags (how it's found) further down the feed card.
 const LOCALE_TEXT = {
   ar: {
     lostVerb: 'فقدان',
     foundVerb: 'عثور على',
     inCountry: 'بدولة',
     inCity: (city) => ` في مدينة ${city}`,
-    detailsHeading: 'التفاصيل :',
-    exactLocationLabel: 'المكان بالتحديد',
-    dateLabel: 'التاريخ بالتحديد',
-    imageLabel: 'الصورة',
-    descriptionHeading: 'الوصف :',
     contactHeading: 'للمزيد من المعلومات والتواصل :',
-    notAvailable: 'غير متاح',
-    noDescription: 'هذا المنشور لا يحتوي على وصف',
-    footer: 'تم نشر هذا الإعلان بشكل أوتوماتيكي من خلال موقع مفقودات\nmafqoudat.com',
     listSeparator: '، ',
   },
   fr: {
@@ -41,15 +39,7 @@ const LOCALE_TEXT = {
     foundVerb: 'Découverte de',
     inCountry: 'dans le pays',
     inCity: (city) => `, dans la ville de ${city}`,
-    detailsHeading: 'Détails :',
-    exactLocationLabel: 'Emplacement exact',
-    dateLabel: 'Date exacte',
-    imageLabel: 'Image',
-    descriptionHeading: 'Description :',
     contactHeading: "Pour plus d'informations et contact :",
-    notAvailable: 'Non disponible',
-    noDescription: "Ce post n'a pas de description",
-    footer: 'Cette annonce a été publiée automatiquement via le site Mafqoudat\nmafqoudat.com',
     listSeparator: ', ',
   },
   en: {
@@ -57,25 +47,12 @@ const LOCALE_TEXT = {
     foundVerb: 'Found',
     inCountry: 'in the country of',
     inCity: (city) => `, in the city of ${city}`,
-    detailsHeading: 'Details:',
-    exactLocationLabel: 'Exact Location',
-    dateLabel: 'Exact Date',
-    imageLabel: 'Image',
-    descriptionHeading: 'Description:',
     contactHeading: 'For more information & contact:',
-    notAvailable: 'Not available',
-    noDescription: 'This post has no description',
-    footer: 'This listing was posted automatically via the Mafqoudat website\nmafqoudat.com',
     listSeparator: ', ',
   },
 };
 
 const HEADER_EMOJI = { FOUND: '🟢', LOST: '🔴' };
-
-// Missing-image notice: Arabic word, Arabic block only - it reads as
-// broken embedded in an English/French sentence, so fr/en blocks omit
-// the image line entirely rather than mixing scripts.
-const IMAGE_NOT_AVAILABLE_TEXT = 'غير متاحة';
 
 const BLOCK_DIVIDER = '➖➖➖➖➖➖➖➖➖➖';
 
@@ -84,7 +61,21 @@ const BLOCK_DIVIDER = '➖➖➖➖➖➖➖➖➖➖';
 // past the point of diminishing returns, so the cap is applied either way.
 const MAX_HASHTAGS = 30;
 
-// What a shortened description ends with. Trimming is only ever reached on
+// Fixed SEO tags on every post, in addition to the per-post city/category
+// ones below - drawn from the same vocabulary the site's own SEO copy uses
+// (seoDefaultRegion / defaultSeo.title in seoConfig.js: "lost and found
+// platform", "Morocco and the Arab world"), so a search on any of these
+// general terms in ar/fr/en lands on the Page/account too, not just a search
+// for one city or category.
+const SEED_HASHTAGS = [
+  '#مفقودات', '#Mafqoudat',
+  '#مفقود', '#موجودات', '#مفقودين', '#العثور_على_مفقودات', '#المغرب', '#الوطن_العربي',
+  '#LostAndFound', '#Lost', '#Found', '#Missing', '#Morocco',
+  '#ObjetsPerdus', '#ObjetsTrouvés', '#PersonnesDisparues', '#Maroc',
+];
+
+// What a hard-truncated caption ends with, in the rare case even zero
+// hashtags don't bring it under the limit. Trimming is only ever reached on
 // Instagram, whose caption limit the caller passes in.
 const TRUNCATION_MARK = '…';
 
@@ -99,9 +90,11 @@ const toHashtag = (label) => label && `#${label.replace(/[\s'"،.,-]/g, '')}`;
  * icon - which says something about the item at a glance, unlike the generic
  * placeholder that graphic family started as.
  *
- * `isPlaceholder` stays true either way: the listing still has no photo of the
- * item, and the caption has to keep saying so, or a reader would take the
- * category icon for the thing that was lost.
+ * `isPlaceholder` stays true either way: the listing still has no photo of
+ * the item. It no longer changes the caption text (that per-locale "no photo"
+ * line was cut along with the rest of the details section - see LOCALE_TEXT),
+ * but is kept on the return value in case a future caller needs to tell a
+ * real photo from a category graphic.
  *
  * The category read is its own query rather than a share of the one
  * buildListingCaption makes - one indexed point read on a path that already
@@ -139,35 +132,20 @@ async function resolveListingImage(post) {
 
 function buildLocaleBlock(locale, data) {
   const t = LOCALE_TEXT[locale];
-  const {
-    statusCode, categoryLabel, countryLabel, cityLabel,
-    exactLocation, mainDate, isPlaceholder, description, postUrl,
-  } = data;
+  const { statusCode, categoryLabel, countryLabel, cityLabel, postUrl } = data;
 
   const verb = statusCode === 'FOUND' ? t.foundVerb : t.lostVerb;
   const emoji = HEADER_EMOJI[statusCode] || '📢';
   const header = `${emoji} ${verb} ${categoryLabel} ${t.inCountry} ${countryLabel}${cityLabel ? t.inCity(cityLabel) : ''}`;
 
-  const detailLines = [
-    `📍 ${t.exactLocationLabel}: ${exactLocation || t.notAvailable}`,
-    `📅 ${t.dateLabel}: ${mainDate || t.notAvailable}`,
-    isPlaceholder && locale === 'ar' && `🖼️ ${t.imageLabel}: ${IMAGE_NOT_AVAILABLE_TEXT}`,
-  ].filter(Boolean).join('\n');
-
-  return [
-    header,
-    `${t.detailsHeading}\n\n${detailLines}`,
-    `${t.descriptionHeading}\n${description || t.noDescription}`,
-    `👉 ${t.contactHeading}\n${postUrl}`,
-    t.footer,
-  ].join('\n\n');
+  return [header, `👉 ${t.contactHeading}\n${postUrl}`].join('\n\n\n');
 }
 
 /**
  * Shared by facebookService and instagramService - both post the same
  * listing content, just through different Graph API endpoints.
  */
-async function buildListingCaption(post, { isPlaceholder = false, maxLength = null } = {}) {
+async function buildListingCaption(post, { maxLength = null } = {}) {
   const categoryIds = (post.categories && post.categories.length > 0)
     ? post.categories
     : (post.category ? [post.category] : []);
@@ -183,60 +161,45 @@ async function buildListingCaption(post, { isPlaceholder = false, maxLength = nu
   const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
   const postUrl = `${siteUrl}/dash/posts/${post._id}`;
 
-  // Caption is trilingual now, so the hashtags follow: one set per language
-  // (city + every category), not just Arabic - a French or English reader
-  // searching a hashtag should find the post too. A city/category whose
-  // fr and en labels happen to be spelled the same (e.g. "Agadir") would
-  // otherwise repeat the identical tag - a Set collapses that.
+  // Caption is trilingual, so the per-post hashtags follow: one set per
+  // language (city + every category), not just Arabic - a French or English
+  // reader searching a hashtag should find the post too. A city/category
+  // whose fr and en labels happen to be spelled the same (e.g. "Agadir")
+  // would otherwise repeat the identical tag - a Set collapses that. These
+  // sit after the fixed SEED_HASHTAGS so a trim (below) drops the specific
+  // ones before the general-reach ones.
   const localizedHashtags = LOCALES.flatMap((locale) => [
     toHashtag(city?.labels?.[locale]),
     ...categories.map((c) => toHashtag(c.labels?.[locale])),
-  ]);
-  const hashtags = [...new Set([
-    '#مفقودات',
-    '#Mafqoudat',
-    ...localizedHashtags.filter(Boolean),
-  ])].slice(0, MAX_HASHTAGS).join(' ');
+  ]).filter(Boolean);
+  const allHashtags = [...new Set([...SEED_HASHTAGS, ...localizedHashtags])].slice(0, MAX_HASHTAGS);
 
-  const compose = (description) => {
-    const blocks = LOCALES.map((locale) => buildLocaleBlock(locale, {
-      statusCode,
-      categoryLabel: categories.map((c) => c.labels?.[locale]).filter(Boolean).join(LOCALE_TEXT[locale].listSeparator),
-      countryLabel: country?.names?.[locale] || '',
-      cityLabel: city?.labels?.[locale] || '',
-      exactLocation: post.exactLocation,
-      mainDate: post.mainDate && post.mainDate.trim(),
-      isPlaceholder,
-      description,
-      postUrl,
-    }));
+  const blocks = LOCALES.map((locale) => buildLocaleBlock(locale, {
+    statusCode,
+    categoryLabel: categories.map((c) => c.labels?.[locale]).filter(Boolean).join(LOCALE_TEXT[locale].listSeparator),
+    countryLabel: country?.names?.[locale] || '',
+    cityLabel: city?.labels?.[locale] || '',
+    postUrl,
+  }));
+  const body = blocks.join(`\n\n${BLOCK_DIVIDER}\n\n`);
 
-    return `${blocks.join(`\n\n${BLOCK_DIVIDER}\n\n`)}\n\n${hashtags}`;
-  };
+  const compose = (tags) => (tags.length ? `${body}\n\n\n${tags.join(' ')}` : body);
 
-  const caption = compose(post.description);
+  const caption = compose(allHashtags);
   if (!maxLength || caption.length <= maxLength) return caption;
 
-  // Over the platform's limit. The description is the elastic part and the
-  // only one: the header says what was lost and where, the link is how anyone
-  // acts on it, and the hashtags are how it is found - cutting the string at
-  // its end would drop exactly those and keep the part a reader can already
-  // see on the site. And the description is repeated verbatim in all three
-  // language blocks (free text cannot be machine-translated reliably), so one
-  // character saved here is three off the caption.
-  //
-  // Binary search rather than a fixed budget: how much room the description
-  // has depends on the city, the country, the category list and the hashtags,
-  // all of which vary by an order of magnitude between listings.
-  const full = (post.description || '').trim();
-  const shorten = (length) => (length > 0 ? `${full.slice(0, length).trimEnd()}${TRUNCATION_MARK}` : '');
-
+  // Over the platform's limit. With no free-text description in the caption
+  // anymore, the hashtags are the only elastic part left - the header says
+  // what was lost/found and where, and the link is how anyone acts on it, so
+  // cutting the string at its end would drop exactly those. Binary search how
+  // many tags fit, dropping from the end of the list (the per-post
+  // city/category tags) before the fixed brand/SEO ones at the front.
   let low = 0;
-  let high = full.length;
+  let high = allHashtags.length;
   let best = 0;
   while (low <= high) {
     const mid = Math.floor((low + high) / 2);
-    if (compose(shorten(mid)).length <= maxLength) {
+    if (compose(allHashtags.slice(0, mid)).length <= maxLength) {
       best = mid;
       low = mid + 1;
     } else {
@@ -244,12 +207,11 @@ async function buildListingCaption(post, { isPlaceholder = false, maxLength = nu
     }
   }
 
-  const trimmed = compose(shorten(best));
+  const trimmed = compose(allHashtags.slice(0, best));
 
-  // Even an empty description can overrun, given a maximum-length exact
-  // location and date in every block. Nothing left to negotiate at that
-  // point: a caption cut short still publishes, and a refused container
-  // does not.
+  // Even zero hashtags can overrun, given long enough category/city names in
+  // every block. Nothing left to negotiate at that point: a caption cut
+  // short still publishes, and a refused container does not.
   return trimmed.length <= maxLength
     ? trimmed
     : `${trimmed.slice(0, maxLength - 1).trimEnd()}${TRUNCATION_MARK}`;

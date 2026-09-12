@@ -148,9 +148,10 @@ async function run() {
 
   console.log('\n-- the caption Instagram will accept --');
   // 2,200 characters, and a container carrying more is refused outright. The
-  // caption is trilingual and repeats the author's description verbatim in
-  // every block (free text cannot be machine-translated reliably), so a
-  // listing with a long description is over the limit three times over.
+  // caption is just a header + contact line per language plus hashtags now -
+  // no free-text description - so the trim's only elastic part left is the
+  // hashtag list, dropped from the per-post (city/category) end first, ahead
+  // of the fixed brand/SEO tags at the front.
   const IG_LIMIT = 2200;
   const longPost = {
     _id: '507f1f77bcf86cd7994390aa',
@@ -165,35 +166,43 @@ async function run() {
 
   const unbounded = await buildListingCaption(longPost);
   checkThat(
-    'Facebook still gets the whole description',
-    unbounded.includes('broken zip. A black leather wallet'),
+    'the description no longer appears in the caption',
+    !unbounded.includes('broken zip'),
     `${unbounded.length} characters, no limit passed`,
   );
+  checkThat('the fixed SEO tags are there', unbounded.includes('#مفقودات') && unbounded.includes('#Mafqoudat'));
 
   const capped = await buildListingCaption(longPost, { maxLength: IG_LIMIT });
-  checkThat('the Instagram caption fits its limit', capped.length <= IG_LIMIT, `${capped.length} characters`);
-  checkThat('as close to it as the description allows', capped.length > IG_LIMIT - 120, `${capped.length} characters`);
-  checkThat('the description is what gives way', capped.includes('…'));
-  checkThat(
-    'the link survives the trim',
-    capped.includes(`/dash/posts/${longPost._id}`),
-    'cutting the caption at its end would drop the one line that lets anyone act on it',
-  );
-  checkThat('and so do the hashtags', capped.trimEnd().endsWith('#Mafqoudat') || capped.includes('#Mafqoudat'));
-  checkThat(
-    'all three languages are still there',
-    capped.includes('Perte de') && capped.includes('Lost') && capped.includes('فقدان'),
+  check(
+    'well under the real Instagram limit, nothing to trim',
+    capped,
+    unbounded,
   );
 
-  const shortPost = { ...longPost, description: 'A black leather wallet with a broken zip.' };
-  check(
-    'a caption already inside the limit is untouched',
-    await buildListingCaption(shortPost, { maxLength: IG_LIMIT }),
-    await buildListingCaption(shortPost),
+  // Force the trim path itself with a maxLength no real listing needs, since
+  // header + link + a normal hashtag count never gets near 2,200. Chosen
+  // above the header+link+divider body's own length so only the hashtags -
+  // the actual elastic part now - give way, not a language block.
+  const tightLimit = 600;
+  const tight = await buildListingCaption(longPost, { maxLength: tightLimit });
+  checkThat('a tight limit is honored', tight.length <= tightLimit, `${tight.length} characters`);
+  checkThat(
+    'the link survives the trim',
+    tight.includes(`/dash/posts/${longPost._id}`),
+    'cutting the caption at its end would drop the one line that lets anyone act on it',
+  );
+  checkThat(
+    'all three languages are still there',
+    tight.includes('Perte de') && tight.includes('Lost') && tight.includes('فقدان'),
+  );
+  checkThat(
+    'fewer hashtags than the untrimmed caption',
+    (tight.match(/#/g) || []).length < (unbounded.match(/#/g) || []).length,
+    `${(tight.match(/#/g) || []).length} vs ${(unbounded.match(/#/g) || []).length}`,
   );
 
   const manyCategories = {
-    ...shortPost,
+    ...longPost,
     categories: Object.keys(CATEGORY_IDS),
   };
   const tagged = await buildListingCaption(manyCategories, { maxLength: IG_LIMIT });
