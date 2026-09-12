@@ -114,6 +114,39 @@ const PlatformBlock = ({ styles, tokens, icon, tint, name, permalink, linkLabel,
 );
 
 /**
+ * Identifies this section as a navigation destination: PostDetailScreen scrolls
+ * here when it is given `section: SOCIAL_REACH_SECTION`, which is what a social
+ * publish notification (tapped in the inbox, or in the tray) passes. Same
+ * string the server puts in that push's `section` field and the same one web's
+ * ?section= link uses, so both platforms land in the same place.
+ */
+export const SOCIAL_REACH_SECTION = 'social-reach';
+
+/**
+ * Whether a platform has anything to show.
+ *
+ * A copy that exists counts, even with no numbers on it yet - mirrors
+ * client/src/features/posts/PostPage/SocialReach.jsx, and for the same reason:
+ * the author arrives here from the "your listing is live on our Facebook page"
+ * alert, before any engagement has been read back, and an empty screen would
+ * read as if the listing had never been shared. Each Metric still drops itself
+ * when its own value is null, so no count is invented.
+ */
+const showsPlatform = (platform) => (
+  platform.interactions !== null || platform.views !== null || !!platform.permalink
+);
+
+/**
+ * Whether this section will render anything for a listing. Exported so
+ * PostDetailScreen can skip mounting it - and so a social publish
+ * notification never scrolls to an empty spot on the page.
+ */
+export const hasSocialReach = (post) => {
+  const { facebook, instagram } = summarizeSocialStats(post);
+  return showsPlatform(facebook) || showsPlatform(instagram);
+};
+
+/**
  * The full per-platform breakdown, for the post detail screen.
  */
 export const SocialReachSection = ({ post }) => {
@@ -126,12 +159,10 @@ export const SocialReachSection = ({ post }) => {
 
   const { facebook, instagram, hasStats } = summarizeSocialStats(post);
 
-  // Nothing has been read back yet - say nothing rather than render a row of
-  // zeros that reads as "this listing is being ignored".
-  if (!hasStats) return null;
+  const showFacebook = showsPlatform(facebook);
+  const showInstagram = showsPlatform(instagram);
 
-  const showFacebook = facebook.interactions !== null || facebook.views !== null;
-  const showInstagram = instagram.interactions !== null || instagram.views !== null;
+  if (!showFacebook && !showInstagram) return null;
 
   return (
     <View style={styles.section}>
@@ -140,6 +171,9 @@ export const SocialReachSection = ({ post }) => {
         <Text style={[styles.sectionLabel, isRTL && styles.textRTL]}>{t('socialReach')}</Text>
       </View>
       <Text style={[styles.sectionNote, isRTL && styles.textRTL]}>{t('socialReachNote')}</Text>
+      {!hasStats ? (
+        <Text style={[styles.sectionNote, isRTL && styles.textRTL]}>{t('socialReachPending')}</Text>
+      ) : null}
 
       {showFacebook ? (
         <PlatformBlock

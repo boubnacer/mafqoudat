@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Box,
+  Button,
   Divider,
   FormControlLabel,
   Slider,
@@ -11,6 +12,12 @@ import {
   useTheme,
 } from "@mui/material";
 import { useTranslation } from "../../utils/translations";
+import {
+  getSubscriptionState,
+  isWebPushAvailable,
+  requestSubscription,
+  unsubscribe as unsubscribeFromWebPush,
+} from "../../utils/webPush";
 import {
   useGetNotificationPreferencesQuery,
   useUpdateNotificationPreferencesMutation,
@@ -26,7 +33,49 @@ import {
  */
 const NotificationPreferences = () => {
   const theme = useTheme();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+
+  // Browser notifications are the one setting here that is not the account's:
+  // the browser owns the permission, per origin and per profile, so this row
+  // reads and writes that rather than a preference on the server. Nothing else
+  // on this panel needs local state.
+  // 'unsupported' | 'blocked' | 'on' | 'off' - resolved from the permission and
+  // the subscription together, since a browser that granted permission and
+  // then turned alerts off here is still 'granted' and receiving nothing.
+  const [pushState, setPushState] = useState(null);
+  const [isChangingPush, setIsChangingPush] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([getSubscriptionState(), isWebPushAvailable()]).then(([state, available]) => {
+      if (!active) return;
+      // A deployment with no VAPID keys configured cannot send at all, so the
+      // row says the channel is unavailable rather than offering a button that
+      // would fire the browser's prompt and then register nothing.
+      setPushState(available ? state : 'unsupported');
+    });
+    return () => { active = false; };
+  }, []);
+
+  const handleEnablePush = useCallback(async () => {
+    setIsChangingPush(true);
+    try {
+      await requestSubscription(currentLanguage);
+      setPushState(await getSubscriptionState());
+    } finally {
+      setIsChangingPush(false);
+    }
+  }, [currentLanguage]);
+
+  const handleDisablePush = useCallback(async () => {
+    setIsChangingPush(true);
+    try {
+      await unsubscribeFromWebPush();
+      setPushState(await getSubscriptionState());
+    } finally {
+      setIsChangingPush(false);
+    }
+  }, []);
 
   const { data, isLoading, isError } = useGetNotificationPreferencesQuery();
   const [updatePreferences, { isError: isSaveError }] = useUpdateNotificationPreferencesMutation();
@@ -58,6 +107,7 @@ const NotificationPreferences = () => {
   const matchAlerts = preferences.matchAlerts !== false;
   const emailAlerts = preferences.emailAlerts === true;
   const commentAlerts = preferences.commentAlerts !== false;
+  const socialAlerts = preferences.socialAlerts !== false;
   const canEmail = !!data.hasEmail;
 
   const save = (patch) => {
@@ -161,6 +211,75 @@ const NotificationPreferences = () => {
         )}
         label={rowLabel(t('notifPrefCommentAlerts'), t('notifPrefCommentAlertsDescription'))}
       />
+
+      <Divider sx={{ my: 1.5 }} />
+
+      {/* Independent of both switches above, for the same reason they are
+          independent of each other: this one reports on what the platform did
+          with the reader's own listing, not on anyone else's activity. */}
+      <FormControlLabel
+        sx={{ display: "flex", marginInlineStart: 0, marginInlineEnd: 0, justifyContent: "space-between", gap: 2 }}
+        labelPlacement="start"
+        control={(
+          <Switch
+            checked={socialAlerts}
+            onChange={(event) => save({ socialAlerts: event.target.checked })}
+          />
+        )}
+        label={rowLabel(t('notifPrefSocialAlerts'), t('notifPrefSocialAlertsDescription'))}
+      />
+
+      <Divider sx={{ my: 1.5 }} />
+
+      {/* Browser notifications. Not a switch like the rows above, because this
+          one is not the account's setting to hold: the browser owns the
+          permission, per profile, and a blocked one cannot be re-asked from a
+          page at all - so the row says what this browser's state is and offers
+          the only action that state allows. */}
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+        {rowLabel(
+          t('notifPrefBrowserAlerts'),
+          pushState === 'blocked'
+            ? t('notifPrefBrowserAlertsBlocked')
+            : pushState === 'unsupported'
+              ? t('notifPrefBrowserAlertsUnsupported')
+              : t('notifPrefBrowserAlertsDescription'),
+          pushState === 'blocked' || pushState === 'unsupported'
+        )}
+
+        {pushState === 'on' && (
+          <Switch
+            checked
+            disabled={isChangingPush}
+            onChange={handleDisablePush}
+            inputProps={{ 'aria-label': t('notifPrefBrowserAlerts') }}
+          />
+        )}
+
+        {pushState === 'off' && (
+          <Button
+            size="small"
+            variant="contained"
+            disableElevation
+            disabled={isChangingPush}
+            onClick={handleEnablePush}
+            sx={{
+              flexShrink: 0,
+              textTransform: "none",
+              fontWeight: 700,
+              borderRadius: `${theme.custom.radius.md}px`,
+              // primary.main is white in light mode (legacy palette), so the
+              // colour is stated rather than inherited - same trap the admin
+              // console documents.
+              backgroundColor: theme.custom.color.brandPrimary,
+              color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+              "&:hover": { backgroundColor: theme.custom.color.brandPrimary },
+            }}
+          >
+            {t('notifPrefBrowserAlertsEnable')}
+          </Button>
+        )}
+      </Box>
     </Box>
   );
 };

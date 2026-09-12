@@ -50,7 +50,8 @@ import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
 import PromotionDialog from "../../../components/PromotionDialog";
 import ClaimItemDialog from "../../../components/ClaimItemDialog";
 import PostMatchesPanel from "../../notifications/PostMatchesPanel";
-import SocialReach from "./SocialReach";
+import { useSectionDeepLink, SOCIAL_REACH_SECTION } from "../../../hooks/useSectionDeepLink";
+import SocialReach, { hasSocialReach } from "./SocialReach";
 import CommentsSection from "./CommentsSection";
 
 // Blends two hex colors at `ratio` (0-1, share of colorA) into a solid,
@@ -402,6 +403,11 @@ const SinglePostPage = ({
   const [successMessage, setSuccessMessage] = useState('');
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [showClaimDialog, setShowClaimDialog] = useState(false);
+
+  // Arriving from a social-publish notification ("your listing is live on our
+  // Facebook page") lands on the reach section rather than at the top of the
+  // page - that alert exists to answer "and how is it doing?".
+  const reachSection = useSectionDeepLink(SOCIAL_REACH_SECTION);
 
   // Memoized event handlers
   const handleEdit = useCallback(() => {
@@ -1063,10 +1069,22 @@ const SinglePostPage = ({
                 </>
               )}
 
-              {/* Reach on the Pages this listing was mirrored to. Renders
-                  nothing until those numbers have actually been read back. */}
-              {(social || socialStats) && (
-                <Box sx={{ mt: 3 }}>
+              {/* Reach on the Pages this listing was mirrored to. Also the
+                  destination of the "your listing is on our Facebook page"
+                  notification, which links here with ?section=social-reach -
+                  hence the deep-link ref and the brief arrival highlight. */}
+              {hasSocialReach({ social, socialStats }) && (
+                <Box
+                  ref={reachSection.ref}
+                  sx={{
+                    mt: 3,
+                    borderRadius: `${theme.custom.radius.lg}px`,
+                    transition: 'box-shadow 0.4s ease',
+                    boxShadow: reachSection.isHighlighted
+                      ? `0 0 0 3px ${alpha(theme.custom.color.brandPrimary, 0.45)}`
+                      : 'none',
+                  }}
+                >
                   <SocialReach post={{ social, socialStats }} />
                 </Box>
               )}

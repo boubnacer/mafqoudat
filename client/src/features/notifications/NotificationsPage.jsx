@@ -28,6 +28,8 @@ import { useTranslation } from "../../utils/translations";
 import useTitle from "../../hooks/useTitle";
 import NotificationGroup from "./NotificationGroup";
 import CommentNotificationItem from "./CommentNotificationItem";
+import SocialPublishNotificationItem from "./SocialPublishNotificationItem";
+import { SECTION_QUERY_PARAM, SOCIAL_REACH_SECTION } from "../../hooks/useSectionDeepLink";
 import NotificationPreferences from "./NotificationPreferences";
 import {
   useGetNotificationsQuery,
@@ -109,7 +111,25 @@ const NotificationsPage = () => {
     navigate(`/dash/posts/${item.post.id}`);
   }, [markRead, navigate]);
 
-  const handleDismissComment = useCallback(async (item) => {
+  /**
+   * A social-publish alert is about the reader's own listing, and the question
+   * it raises is "how is it doing on that page?" - so it opens the listing
+   * scrolled to its reach section rather than at the top.
+   */
+  const handleOpenSocial = useCallback(async (item) => {
+    if (!item.isRead) {
+      try {
+        await markRead(item.id).unwrap();
+      } catch (error) {
+        /* opening the listing matters more than recording the read receipt */
+      }
+    }
+    navigate(`/dash/posts/${item.post.id}?${SECTION_QUERY_PARAM}=${SOCIAL_REACH_SECTION}`);
+  }, [markRead, navigate]);
+
+  // Every flat row (comment alerts, social-publish alerts) dismisses by its own
+  // notification id; only match rows need the per-pair handler above.
+  const handleDismissItem = useCallback(async (item) => {
     try {
       await dismissNotification(item.id).unwrap();
     } catch (error) {
@@ -268,12 +288,21 @@ const NotificationsPage = () => {
         {!isLoading && groups.length > 0 && (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, opacity: isFetching ? 0.6 : 1, transition: "opacity 0.2s ease" }}>
             {groups.map((item) => (
-              item.kind === 'comment' ? (
+              item.kind === 'social' ? (
+                <SocialPublishNotificationItem
+                  key={item.id}
+                  item={item}
+                  onOpen={handleOpenSocial}
+                  onDismiss={handleDismissItem}
+                  isDismissing={isDismissing}
+                  asCard
+                />
+              ) : item.kind === 'comment' ? (
                 <CommentNotificationItem
                   key={item.id}
                   item={item}
                   onOpen={handleOpenComment}
-                  onDismiss={handleDismissComment}
+                  onDismiss={handleDismissItem}
                   isDismissing={isDismissing}
                   asCard
                 />

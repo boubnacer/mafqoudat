@@ -292,6 +292,7 @@ let publishCalls;
 let publishBehaviour;
 let queue;
 let invalidateSocialImageCalls;
+let authorNotifications;
 // What the platforms answer when asked whether a listing is already up, and
 // how much of their publishing quota is spent. Both are the real services'
 // way of telling the queue something it cannot know on its own.
@@ -361,6 +362,7 @@ const setup = ({ instagramConfigured = true, hourlyLimits = {}, intervals = {} }
   });
 
   invalidateSocialImageCalls = [];
+  authorNotifications = [];
 
   queue = new SocialPublishQueue({
     jobs,
@@ -377,6 +379,14 @@ const setup = ({ instagramConfigured = true, hourlyLimits = {}, intervals = {} }
     // socialPublishQueue.js's constructor comment), which this fake `posts`
     // collection cannot observe - injected the same way `jobs`/`posts` are.
     invalidateSocialImage: async (postId) => { invalidateSocialImageCalls.push(postId); },
+    // Telling the author what became of their listing's copy writes through
+    // models/Notification and models/User, neither of which exists here -
+    // injected for the same reason, and recorded so the scenarios can assert
+    // exactly when the author does and does not hear about a publish.
+    notifyAuthor: async ({ post, platform, status }) => {
+      authorNotifications.push({ post: post?._id, platform, status });
+      return true;
+    },
   });
 };
 
@@ -654,6 +664,59 @@ const run = async () => {
   advance(RETRY_BASE_MS * 2);
   check(`it gives up after ${MAX_ATTEMPTS} attempts`, (await queue.runOnce()).facebook, 'failed');
   check('and says why', jobFor(flaky._id, 'facebook').lastError, 'socket hang up');
+
+  // -------------------------------------------------------------------------
+  console.log('\n--- the author is told what became of each copy, once per platform ---');
+  // The alert is per platform and per terminal outcome, never per attempt:
+  // a listing that is still being retried, or waiting out a cooldown, is
+  // still on its way up, and saying otherwise would be wrong while it is
+  // in flight and wrong again when it later succeeds.
+
+  setup();
+  const announced = addPost();
+  await queue.enqueuePost(announced);
+  await queue.runOnce();
+
+  check('both platforms report their own publish', authorNotifications, [
+    { post: announced._id, platform: 'facebook', status: 'published' },
+    { post: announced._id, platform: 'instagram', status: 'published' },
+  ]);
+
+  setup();
+  const stubborn = addPost();
+  await queue.enqueuePost(stubborn);
+  publishBehaviour.facebook = async () => { throw new Error('socket hang up'); };
+
+  await queue.runOnce();
+  check('a retry tells the author nothing', authorNotifications.filter((entry) => entry.platform === 'facebook'), []);
+
+  advance(RETRY_BASE_MS);
+  await queue.runOnce();
+  advance(RETRY_BASE_MS * 2);
+  check('and giving up is a failure', (await queue.runOnce()).facebook, 'failed');
+  check(
+    'which is the one failure the author hears about',
+    authorNotifications.filter((entry) => entry.platform === 'facebook'),
+    [{ post: stubborn._id, platform: 'facebook', status: 'failed' }],
+  );
+
+  setup();
+  const throttledByMeta = addPost();
+  await queue.enqueuePost(throttledByMeta);
+  publishBehaviour.instagram = async () => { throw graphFailure(4, 'Application request limit reached'); };
+  await queue.runOnce();
+  check(
+    'a platform-wide stand-down is not the listing failing, and says nothing',
+    authorNotifications.filter((entry) => entry.platform === 'instagram'),
+    [],
+  );
+
+  setup();
+  const goneBeforeItsTurn = addPost();
+  await queue.enqueuePost(goneBeforeItsTurn);
+  posts.docs.length = 0;
+  await queue.runOnce();
+  check('a cancelled listing is not announced either', authorNotifications, []);
 
   // -------------------------------------------------------------------------
   console.log('\n--- a listing that should no longer be published is not ---');
