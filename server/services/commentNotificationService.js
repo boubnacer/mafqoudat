@@ -21,7 +21,7 @@ const notifyPostOwner = async ({ post, comment, commenterId, commenterUsername }
     if (ownerId === String(commenterId)) return; // commenting on your own post notifies no one
 
     const owner = await User.findById(ownerId)
-      .select('pushTokens notificationPreferences isActive')
+      .select('pushTokens webPushSubscriptions notificationPreferences isActive')
       .lean();
     if (!owner || owner.isActive === false) return;
 
@@ -43,7 +43,10 @@ const notifyPostOwner = async ({ post, comment, commenterId, commenterUsername }
       throw error;
     }
 
-    if (preferences.pushAlerts !== false && (owner.pushTokens || []).length > 0) {
+    if (
+      preferences.pushAlerts !== false
+      && ((owner.pushTokens || []).length > 0 || (owner.webPushSubscriptions || []).length > 0)
+    ) {
       await pushNotificationService.sendCommentAlert({
         user: owner,
         postId: post._id,

@@ -500,7 +500,7 @@ const computeMatchesForPost = async (postId, { notify = true } = {}) => {
     ...accepted.map(({ candidate }) => String(candidate.user)),
   ])];
   const owners = await User.find({ _id: { $in: ownerIds } })
-    .select('_id email username notificationPreferences isActive pushTokens')
+    .select('_id email username notificationPreferences isActive pushTokens webPushSubscriptions')
     .lean();
   const ownersById = new Map(owners.map((owner) => [String(owner._id), owner]));
 
@@ -573,7 +573,10 @@ const computeMatchesForPost = async (postId, { notify = true } = {}) => {
       // created: upsertNotification returns null when it merely re-scored an
       // existing row, so a rescan of the same pair can never buzz a phone twice
       // for something the user has already seen.
-      if (preferences.pushAlerts !== false && (owner.pushTokens || []).length > 0) {
+      if (
+        preferences.pushAlerts !== false
+        && ((owner.pushTokens || []).length > 0 || (owner.webPushSubscriptions || []).length > 0)
+      ) {
         const queued = pushQueue.get(String(recipient.recipientId)) || {
           owner,
           ownPostCode: recipient.ownPostCode,
