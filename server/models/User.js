@@ -205,6 +205,49 @@ const userSchema = new mongoose.Schema({
       type: Date,
       default: Date.now
     }
+  }],
+  // Web Push subscriptions for this user's browsers, newest last.
+  //
+  // The browser twin of `pushTokens` above, and deliberately a separate array
+  // rather than another `platform` value on that one: a Web Push subscription
+  // is not a token but an endpoint URL plus two encryption keys, delivered by
+  // whatever push service the browser belongs to (FCM for Chrome, Mozilla's
+  // for Firefox, Apple's for Safari) and sent to with a completely different
+  // protocol than Expo's.
+  //
+  // Same per-device reasoning, same stored `language` (a push is composed
+  // server-side, with no request to read a language from), and the same
+  // migration problem: a shared computer can carry one browser subscription
+  // across two accounts, so registration clears the endpoint from every other
+  // user first. Dead subscriptions are pruned by webPushService when the push
+  // service answers 404/410.
+  webPushSubscriptions: [{
+    // The push service's URL for this browser. Unique per browser profile, and
+    // what identifies the subscription everywhere else.
+    endpoint: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    // The browser's own public key and auth secret, used to encrypt each
+    // payload so the push service in the middle cannot read it.
+    p256dh: {
+      type: String,
+      required: true
+    },
+    auth: {
+      type: String,
+      required: true
+    },
+    language: {
+      type: String,
+      enum: ['en', 'fr', 'ar'],
+      default: 'en'
+    },
+    lastSeenAt: {
+      type: Date,
+      default: Date.now
+    }
   }]
 }, {
   timestamps: true

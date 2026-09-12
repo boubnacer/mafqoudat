@@ -18,6 +18,7 @@
  */
 
 const axios = require('axios');
+const webpush = require('web-push');
 const User = require('../models/User');
 const pushService = require('../services/pushNotificationService');
 
@@ -62,14 +63,38 @@ axios.post = async (url, body) => {
   return { data: { data: tickets } };
 };
 
+// The browser transport reaches a push service through the web-push library
+// rather than axios, so it needs its own stub - and its own record of what a
+// browser would have received.
+const webPushSends = [];
+const prunedEndpoints = [];
+let nextWebPushError = null;
+
+webpush.sendNotification = async (subscription, payload, options) => {
+  if (nextWebPushError) {
+    const error = nextWebPushError;
+    nextWebPushError = null;
+    throw error;
+  }
+  webPushSends.push({
+    endpoint: subscription.endpoint,
+    payload: JSON.parse(payload),
+    options,
+  });
+  return { statusCode: 201 };
+};
+
 User.updateMany = async (filter) => {
-  prunedTokens.push(filter['pushTokens.token']);
+  if (filter['pushTokens.token']) prunedTokens.push(filter['pushTokens.token']);
+  if (filter['webPushSubscriptions.endpoint']) prunedEndpoints.push(filter['webPushSubscriptions.endpoint']);
   return { modifiedCount: 1 };
 };
 
 const reset = () => {
   sent.length = 0;
   prunedTokens.length = 0;
+  prunedEndpoints.length = 0;
+  nextWebPushError = null;
   nextTickets = null;
 };
 
@@ -332,6 +357,138 @@ const runSocialPublish = async () => {
   check('and makes no request', sent.length, 0);
 };
 
+// ---------------------------------------------------------------------------
+// Browser transport (Web Push)
+// ---------------------------------------------------------------------------
+
+/**
+ * The same three alerts, to a browser instead of a phone.
+ *
+ * What this pins is the part that has no counterpart on the Expo side and no
+ * way to fail loudly: a browser notification carries a URL rather than a
+ * screen name, so a wrong or missing `url` produces a notification that looks
+ * right and does nothing when clicked.
+ */
+const runWebPush = async () => {
+  console.log('\n--- browser push ---');
+
+  const subscription = (suffix, language = 'en') => ({
+    endpoint: `https://push.example.com/${suffix}`,
+    p256dh: 'BJ_p256dh_key',
+    auth: 'auth_secret',
+    language,
+  });
+
+  // Unconfigured first: the VAPID memo inside webPushService is set on the
+  // first successful configure, so "no keys" can only be exercised before the
+  // keys exist.
+  reset();
+  webPushSends.length = 0;
+  await pushService.sendMatchAlert({
+    user: { pushTokens: [], webPushSubscriptions: [subscription('a')] },
+    ownPostCode: 'LOST',
+    alerts: [alert('1')],
+  });
+  check('without VAPID keys, nothing is sent to a browser', webPushSends.length, 0);
+
+  const keys = webpush.generateVAPIDKeys();
+  process.env.VAPID_PUBLIC_KEY = keys.publicKey;
+  process.env.VAPID_PRIVATE_KEY = keys.privateKey;
+  process.env.VAPID_SUBJECT = 'mailto:contact@mafqoudat.com';
+  process.env.CLIENT_URL = 'https://mafqoudat.com';
+
+  reset();
+  webPushSends.length = 0;
+  const delivered = await pushService.sendMatchAlert({
+    user: {
+      pushTokens: [],
+      webPushSubscriptions: [subscription('a'), subscription('b', 'ar')],
+    },
+    ownPostCode: 'LOST',
+    alerts: [alert('1')],
+  });
+
+  checkThat('reports delivery with no device tokens at all', delivered === true, '');
+  check('one message per browser', webPushSends.length, 2);
+  check('the English browser reads English', webPushSends[0].payload.title, 'Possible match found');
+  check('the Arabic browser reads Arabic', webPushSends[1].payload.title, 'تطابق محتمل');
+  check(
+    'a single match links straight to the counterpart listing',
+    webPushSends[0].payload.data.url,
+    'https://mafqoudat.com/dash/posts/post-1'
+  );
+
+  reset();
+  webPushSends.length = 0;
+  await pushService.sendMatchAlert({
+    user: { pushTokens: [], webPushSubscriptions: [subscription('a')] },
+    ownPostCode: 'LOST',
+    alerts: [alert('1'), alert('2'), alert('3')],
+  });
+  check(
+    'a burst opens the inbox, which is the only screen that can show them all',
+    webPushSends[0].payload.data.url,
+    'https://mafqoudat.com/dash/notifications'
+  );
+
+  reset();
+  webPushSends.length = 0;
+  await pushService.sendCommentAlert({
+    user: { pushTokens: [], webPushSubscriptions: [subscription('a')] },
+    postId: 'post-9',
+    commentId: 'comment-1',
+    notificationId: 'n1',
+    text: 'Is this still available?',
+    commenterName: 'Yasmine',
+  });
+  check('a comment opens the post it is on', webPushSends[0].payload.data.url, 'https://mafqoudat.com/dash/posts/post-9');
+
+  reset();
+  webPushSends.length = 0;
+  await pushService.sendSocialPublishAlert({
+    user: { pushTokens: [], webPushSubscriptions: [subscription('a')] },
+    postId: 'post-9',
+    notificationId: 'n2',
+    platform: 'facebook',
+    status: 'published',
+  });
+  check(
+    'a social publish alert deep-links to the reach section',
+    webPushSends[0].payload.data.url,
+    'https://mafqoudat.com/dash/posts/post-9?section=social-reach'
+  );
+  check('and is held a week rather than two days', webPushSends[0].options.TTL, 7 * 24 * 60 * 60);
+
+  // A push service answering 410 means the browser is gone for good - an
+  // unpruned endpoint is a wasted send on every future alert, forever.
+  reset();
+  webPushSends.length = 0;
+  nextWebPushError = Object.assign(new Error('Gone'), { statusCode: 410 });
+  await pushService.sendCommentAlert({
+    user: { pushTokens: [], webPushSubscriptions: [subscription('dead')] },
+    postId: 'post-9',
+    commentId: 'comment-2',
+    notificationId: 'n3',
+    text: 'Hello',
+    commenterName: null,
+  });
+  check('a subscription reported gone is pruned', prunedEndpoints, ['https://push.example.com/dead']);
+
+  // Anything else is this delivery's problem, not the subscription's.
+  reset();
+  webPushSends.length = 0;
+  nextWebPushError = Object.assign(new Error('Too Many Requests'), { statusCode: 429 });
+  await pushService.sendCommentAlert({
+    user: { pushTokens: [], webPushSubscriptions: [subscription('busy')] },
+    postId: 'post-9',
+    commentId: 'comment-3',
+    notificationId: 'n4',
+    text: 'Hello',
+    commenterName: null,
+  });
+  check('a throttled delivery keeps the subscription', prunedEndpoints, []);
+};
+
 (async () => {
   await runSingle();
   await runMirror();
@@ -342,6 +499,7 @@ const runSocialPublish = async () => {
   await runDisabled();
   await runComment();
   await runSocialPublish();
+  await runWebPush();
 
   console.log(`\n${checks - failures}/${checks} checks passed`);
   process.exit(failures === 0 ? 0 : 1);

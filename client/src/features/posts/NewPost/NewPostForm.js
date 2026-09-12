@@ -51,6 +51,8 @@ import { validateStep1, validateStep2, STEP_VALIDATORS, scrollToFirstErrorField 
 import { getCityDisplayName } from "./cityDisplay";
 import scrollToTop, { smoothScrollToTop } from "../../../utils/scrollToTop";
 import { redactFacesInImage } from "../../../utils/faceRedaction";
+import { shouldOfferWebPush, requestSubscription } from "../../../utils/webPush";
+import EnablePushDialog from "../../notifications/EnablePushDialog";
 
 // Maps each step's 1-based position (MUI auto-assigns `icon` = index + 1) to
 // the icon shown in its desktop rail badge.
@@ -158,6 +160,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // values.country is the single source of truth (Formik); this ref just guards
   // the one-time initial city preload so it doesn't re-fire on every render.
   const hasInitializedCitiesRef = useRef(false);
+
+  // Browser-notification offer, made once per browser immediately before the
+  // first listing is published (see EnablePushDialog for why that moment). The
+  // resolver is held in a ref so handleSubmit can await the reader's answer;
+  // both buttons resolve it, and the listing is submitted either way.
+  const [showPushDialog, setShowPushDialog] = useState(false);
+  const [isRequestingPush, setIsRequestingPush] = useState(false);
+  const pushAnswerRef = useRef(null);
 
   // Image management state
   const [selectedImage, setSelectedImage] = useState(null);
@@ -570,6 +580,47 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, []);
 
+  /**
+   * Shows the browser-notification offer and waits for an answer.
+   *
+   * Resolves immediately — and the listing goes on unchanged — for every
+   * browser that cannot be asked: no Push API, permission already granted or
+   * already denied (no click can re-open a prompt a browser has recorded a
+   * "no" for), or an offer this browser has already answered once.
+   *
+   * It never rejects and never blocks publishing: the listing is what the
+   * author came to do, and a notification is an offer made alongside it.
+   */
+  const offerBrowserNotifications = useCallback(() => {
+    if (!shouldOfferWebPush()) return Promise.resolve();
+
+    return new Promise((resolve) => {
+      pushAnswerRef.current = resolve;
+      setShowPushDialog(true);
+    });
+  }, []);
+
+  const closePushDialog = useCallback(() => {
+    setShowPushDialog(false);
+    setIsRequestingPush(false);
+    const resolve = pushAnswerRef.current;
+    pushAnswerRef.current = null;
+    resolve?.();
+  }, []);
+
+  const handleEnablePush = useCallback(async () => {
+    setIsRequestingPush(true);
+    try {
+      // Fired from this click, because browsers refuse a permission prompt
+      // that does not come from a user gesture. Every outcome - granted,
+      // denied, or a subscription that could not be completed - continues to
+      // the listing; requestSubscription reports rather than throws.
+      await requestSubscription(currentLanguage);
+    } finally {
+      closePushDialog();
+    }
+  }, [closePushDialog, currentLanguage]);
+
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
     try {
       // Clear any previous validation errors
@@ -648,6 +699,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       if (selectedImage) {
         formData.append("image", selectedImage);
       }
+
+      // The offer comes after validation and before the listing is created, so
+      // a reader who has just described what they lost is asked while that is
+      // still the thing they are doing - and nobody is asked about a listing
+      // that was never going to be accepted. Publishing continues whatever
+      // they answer.
+      await offerBrowserNotifications();
 
       await addNewPost(formData);
     } catch (error) {
@@ -1703,6 +1761,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           navigate("/dash");
         }}
         isLostItem={isLostItem}
+      />
+
+      {/* Browser notifications, offered once, between validation and the
+          listing being created. Both buttons resolve the same promise
+          handleSubmit is waiting on, so the post follows either answer. */}
+      <EnablePushDialog
+        open={showPushDialog}
+        isWorking={isRequestingPush}
+        onEnable={handleEnablePush}
+        onSkip={closePushDialog}
       />
     </Box>
   );

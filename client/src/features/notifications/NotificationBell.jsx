@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Badge,
@@ -24,12 +24,18 @@ import NotificationGroupPreview from "./NotificationGroupPreview";
 import CommentNotificationItem from "./CommentNotificationItem";
 import SocialPublishNotificationItem from "./SocialPublishNotificationItem";
 import { SECTION_QUERY_PARAM, SOCIAL_REACH_SECTION } from "../../hooks/useSectionDeepLink";
+import { syncSubscription } from "../../utils/webPush";
 import {
   useGetUnreadNotificationCountQuery,
   useGetNotificationsQuery,
   useMarkNotificationReadMutation,
   useMarkAllNotificationsReadMutation,
 } from "./notificationsApiSlice";
+
+// Whether this page load has already re-registered the browser's push
+// subscription. The bell mounts once per navigation shell, but a remount must
+// not turn a repair into a request per page view.
+let subscriptionSynced = false;
 
 // How often the badge re-checks for new matches. Matching runs on post
 // creation, so a minute of latency is imperceptible while keeping this well
@@ -70,6 +76,17 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
 
   const [markRead] = useMarkNotificationReadMutation();
   const [markAllRead, { isLoading: isMarkingAll }] = useMarkAllNotificationsReadMutation();
+
+  // Re-register this browser's push subscription once per page load, for a
+  // reader who already granted permission. Push services rotate endpoints and
+  // the server prunes one the moment a delivery comes back "gone", so without
+  // a periodic re-register a browser can stop receiving alerts with nothing on
+  // either side saying so. Idempotent - the endpoint is the identity.
+  useEffect(() => {
+    if (subscriptionSynced) return;
+    subscriptionSynced = true;
+    syncSubscription(currentLanguage);
+  }, [currentLanguage]);
 
   const groups = data?.groups || [];
 

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 const Post = require('../models/Post');
 const Category = require('../models/Category');
+const webPushService = require('./webPushService');
 
 /**
  * Device push notifications for the mobile app.
@@ -195,6 +196,11 @@ const PLATFORM_NAMES = {
   instagram: 'Instagram',
 };
 
+// The listing section a social publish alert points at. A contract with both
+// clients: mobile's PostDetailScreen reads it as a route param, the web client
+// as a ?section= query parameter.
+const SOCIAL_REACH_SECTION = 'social-reach';
+
 const SOCIAL_COPY = {
   en: {
     publishedTitle: (platform) => `Your listing is live on ${platform}`,
@@ -334,6 +340,39 @@ const sendMessages = async (messages) => {
 };
 
 // ---------------------------------------------------------------------------
+// Browser transport
+// ---------------------------------------------------------------------------
+
+/**
+ * The same alert, to the same user's browsers.
+ *
+ * Every sender below composes its copy once and hands it to both transports:
+ * Expo for the app's devices, Web Push for the browsers. The two are different
+ * protocols with different subscriber shapes, so they cannot share a transport
+ * - but the wording, the recipient and the preference gate are one decision,
+ * made here, rather than two that can drift apart.
+ *
+ * A browser has no notification channel, no sound field and no priority, so
+ * only the copy, the payload and the TTL cross over. What it needs instead is
+ * `url`: a tap has to reach a page, where the app taps into a navigator.
+ */
+const sendToBrowsers = async (subscriptions, copyFor, data, options = {}) => {
+  if (!Array.isArray(subscriptions) || subscriptions.length === 0) return 0;
+  try {
+    return await webPushService.sendToSubscriptions(subscriptions, copyFor, data, options);
+  } catch (error) {
+    // webPushService swallows its own failures; this is the second belt, for
+    // the same reason every other transport has one.
+    console.error('[push] browser dispatch failed:', error?.message || error);
+    return 0;
+  }
+};
+
+const clientOrigin = () => (process.env.CLIENT_URL || '').replace(/\/+$/, '');
+
+const postUrl = (postId, query = '') => `${clientOrigin()}/dash/posts/${postId}${query}`;
+
+// ---------------------------------------------------------------------------
 // Match alerts
 // ---------------------------------------------------------------------------
 
@@ -358,7 +397,8 @@ const sendMatchAlert = async ({ user, ownPostCode, alerts }) => {
   if (!Array.isArray(alerts) || alerts.length === 0) return false;
 
   const tokens = (user?.pushTokens || []).filter((entry) => isValidPushToken(entry?.token));
-  if (tokens.length === 0) return false;
+  const subscriptions = user?.webPushSubscriptions || [];
+  if (tokens.length === 0 && subscriptions.length === 0) return false;
 
   const count = alerts.length;
 
@@ -406,8 +446,23 @@ const sendMatchAlert = async ({ user, ownPostCode, alerts }) => {
     };
   });
 
-  const accepted = await sendMessages(messages);
-  return accepted > 0;
+  const [accepted, acceptedOnWeb] = await Promise.all([
+    sendMessages(messages),
+    sendToBrowsers(subscriptions, (language) => {
+      const copy = COPY[language];
+      return {
+        title: count === 1 ? copy.singleTitle : copy.multiTitle(count),
+        body: count === 1
+          ? (ownPostCode === 'LOST' ? copy.singleLost : copy.singleFound)(categoryLabels?.[language])
+          : copy.multiBody,
+      };
+    }, {
+      ...data,
+      url: count === 1 ? postUrl(alerts[0].matchedPostId) : `${clientOrigin()}/dash/notifications`,
+    }),
+  ]);
+
+  return accepted > 0 || acceptedOnWeb > 0;
 };
 
 // ---------------------------------------------------------------------------
@@ -433,7 +488,8 @@ const sendCommentAlert = async ({ user, postId, commentId, notificationId, text,
   if (!isEnabled()) return false;
 
   const tokens = (user?.pushTokens || []).filter((entry) => isValidPushToken(entry?.token));
-  if (tokens.length === 0) return false;
+  const subscriptions = user?.webPushSubscriptions || [];
+  if (tokens.length === 0 && subscriptions.length === 0) return false;
 
   const snippet = truncate(text, COMMENT_SNIPPET_LENGTH);
   const data = {
@@ -461,8 +517,15 @@ const sendCommentAlert = async ({ user, postId, commentId, notificationId, text,
     };
   });
 
-  const accepted = await sendMessages(messages);
-  return accepted > 0;
+  const [accepted, acceptedOnWeb] = await Promise.all([
+    sendMessages(messages),
+    sendToBrowsers(subscriptions, (language) => {
+      const copy = COMMENT_COPY[language];
+      return { title: copy.title, body: copy.body(commenterName, snippet) };
+    }, { ...data, url: postUrl(postId) }),
+  ]);
+
+  return accepted > 0 || acceptedOnWeb > 0;
 };
 
 // ---------------------------------------------------------------------------
@@ -492,7 +555,8 @@ const sendSocialPublishAlert = async ({ user, postId, notificationId, platform, 
   if (!platformName) return false;
 
   const tokens = (user?.pushTokens || []).filter((entry) => isValidPushToken(entry?.token));
-  if (tokens.length === 0) return false;
+  const subscriptions = user?.webPushSubscriptions || [];
+  if (tokens.length === 0 && subscriptions.length === 0) return false;
 
   const published = status !== 'failed';
   const data = {
@@ -503,7 +567,7 @@ const sendSocialPublishAlert = async ({ user, postId, notificationId, platform, 
     status: published ? 'published' : 'failed',
     // Where on the listing the tap should land - the reach section is where
     // both platforms' numbers and their permalinks are.
-    section: 'social-reach',
+    section: SOCIAL_REACH_SECTION,
   };
 
   const messages = tokens.map((entry) => {
@@ -529,8 +593,25 @@ const sendSocialPublishAlert = async ({ user, postId, notificationId, platform, 
     };
   });
 
-  const accepted = await sendMessages(messages);
-  return accepted > 0;
+  const [accepted, acceptedOnWeb] = await Promise.all([
+    sendMessages(messages),
+    sendToBrowsers(
+      subscriptions,
+      (language) => {
+        const copy = SOCIAL_COPY[language];
+        return {
+          title: published ? copy.publishedTitle(platformName) : copy.failedTitle(platformName),
+          body: published ? copy.publishedBody(platformName) : copy.failedBody(platformName),
+        };
+      },
+      // The same reach section the in-app row opens, through the web client's
+      // own ?section= deep link (client/src/hooks/useSectionDeepLink.js).
+      { ...data, url: postUrl(postId, `?section=${SOCIAL_REACH_SECTION}`) },
+      { ttl: 7 * 24 * 60 * 60 },
+    ),
+  ]);
+
+  return accepted > 0 || acceptedOnWeb > 0;
 };
 
 module.exports = {

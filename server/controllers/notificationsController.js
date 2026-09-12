@@ -5,6 +5,7 @@ const Post = require("../models/Post");
 const User = require("../models/User");
 const matchingService = require("../services/matchingService");
 const pushNotificationService = require("../services/pushNotificationService");
+const webPushService = require("../services/webPushService");
 const { getBlockedUserIds } = require("../utils/blockedUsers");
 
 /**
@@ -50,6 +51,33 @@ const MAX_ITEMS_PER_SOURCE = 300;
 // than a real person signs in on, and the array keeps the newest.
 const MAX_PUSH_TOKENS_PER_USER = 10;
 const PUSH_PLATFORMS = ['android', 'ios'];
+
+// Same ceiling, same reasoning, for browsers: clearing site data or a
+// reinstalled profile mints a new subscription and the old one is only found
+// to be dead on the next send, so an account that has been through several
+// would otherwise accumulate endpoints indefinitely.
+const MAX_WEB_PUSH_SUBSCRIPTIONS_PER_USER = 10;
+
+// A push service's endpoint is an https URL of its choosing. Nothing else is
+// accepted: the server hands this URL straight to the push library, so an
+// unvalidated value is a request this server can be pointed at anything with.
+const isValidPushEndpoint = (value) => {
+  if (typeof value !== 'string' || value.length > 2000) return false;
+  try {
+    return new URL(value).protocol === 'https:';
+  } catch (error) {
+    return false;
+  }
+};
+
+// The browser's own keys, base64url. Bounded rather than parsed - web-push
+// decodes them itself, and a malformed pair only ever costs its own send.
+const isValidKey = (value, maxLength) => (
+  typeof value === 'string'
+  && value.length > 0
+  && value.length <= maxLength
+  && /^[A-Za-z0-9\-_=]+$/.test(value)
+);
 
 const resolveLanguage = (value) => (SUPPORTED_LANGUAGES.includes(value) ? value : 'en');
 
@@ -1051,6 +1079,102 @@ const unregisterPushToken = async (req, res) => {
   }
 };
 
+// ---------------------------------------------------------------------------
+// Web Push subscriptions
+// ---------------------------------------------------------------------------
+
+// @desc   The VAPID public key this deployment signs its browser pushes with
+// @route  GET /notifications/web-push-key
+// @access Private
+//
+// Served rather than built into the bundle: the key is public by definition
+// (every subscribing browser receives it), but the private half lives in the
+// server's environment, and shipping the pair as two separately-configured
+// values is how they drift - a client built against last month's key
+// subscribes to a service that then refuses every send. An empty string means
+// this deployment has no keys configured, which the client reads as "browser
+// alerts are not available here" rather than as an error.
+const getWebPushKey = async (req, res) => {
+  return res.json({
+    success: true,
+    publicKey: webPushService.isConfigured() ? webPushService.publicKey() : '',
+  });
+};
+
+// @desc   Register (or refresh) this browser's Web Push subscription
+// @route  POST /notifications/web-push-subscription
+// @access Private
+const registerWebPushSubscription = async (req, res) => {
+  try {
+    const { endpoint, keys } = req.body || {};
+    const language = resolveLanguage(req.body.language);
+
+    if (!isValidPushEndpoint(endpoint)) {
+      return res.status(400).json({ success: false, message: 'A valid https push endpoint is required' });
+    }
+    if (!isValidKey(keys?.p256dh, 200) || !isValidKey(keys?.auth, 100)) {
+      return res.status(400).json({ success: false, message: 'The subscription keys are missing or malformed' });
+    }
+
+    // A browser profile is a device, and a shared computer can carry one
+    // subscription across two accounts - exactly the case registerPushToken
+    // guards for the app. Without this, the previous account's match alerts
+    // keep arriving on a browser that now belongs to someone else, and the copy
+    // states what kind of listing it concerns.
+    await User.updateMany(
+      { 'webPushSubscriptions.endpoint': endpoint, _id: { $ne: req.user } },
+      { $pull: { webPushSubscriptions: { endpoint } } }
+    );
+
+    // Pull-then-push, like the token path: re-registering refreshes the
+    // language and lastSeenAt and moves the entry to the newest slot, with no
+    // second round trip to find out whether it was already there.
+    await User.updateOne({ _id: req.user }, { $pull: { webPushSubscriptions: { endpoint } } });
+    const updated = await User.updateOne(
+      { _id: req.user },
+      {
+        $push: {
+          webPushSubscriptions: {
+            $each: [{ endpoint, p256dh: keys.p256dh, auth: keys.auth, language, lastSeenAt: new Date() }],
+            $slice: -MAX_WEB_PUSH_SUBSCRIPTIONS_PER_USER,
+          },
+        },
+      }
+    );
+
+    if (updated.matchedCount === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error registering web push subscription:', error);
+    return res.status(500).json({ success: false, message: 'Failed to register the subscription' });
+  }
+};
+
+// @desc   Forget this browser's Web Push subscription
+// @route  DELETE /notifications/web-push-subscription
+// @access Private
+//
+// Called on sign out and when the reader turns browser alerts off. Same
+// privacy reasoning as unregisterPushToken: a shared computer must not keep
+// delivering one account's alerts to whoever signs in next.
+const unregisterWebPushSubscription = async (req, res) => {
+  try {
+    const endpoint = typeof req.body.endpoint === 'string' ? req.body.endpoint.trim() : '';
+    if (!endpoint) {
+      return res.status(400).json({ success: false, message: 'endpoint is required' });
+    }
+
+    await User.updateOne({ _id: req.user }, { $pull: { webPushSubscriptions: { endpoint } } });
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error unregistering web push subscription:', error);
+    return res.status(500).json({ success: false, message: 'Failed to unregister the subscription' });
+  }
+};
+
 module.exports = {
   listNotifications,
   getUnreadCount,
@@ -1064,4 +1188,7 @@ module.exports = {
   updatePreferences,
   registerPushToken,
   unregisterPushToken,
+  getWebPushKey,
+  registerWebPushSubscription,
+  unregisterWebPushSubscription,
 };

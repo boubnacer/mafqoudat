@@ -9,6 +9,7 @@
  */
 
 import { authStorage } from './authStorage';
+import { unsubscribe as unsubscribeFromWebPush } from './webPush';
 
 /**
  * Comprehensive logout function that handles all scenarios
@@ -26,6 +27,17 @@ export const performLogout = async (options = {}) => {
   } = options;
 
   try {
+    // Browser notifications go first, while the session still has a token to
+    // authenticate the DELETE with. Skipping it would leave this account's
+    // match alerts arriving on a computer the next person signs into - a
+    // privacy leak rather than noise, since the copy states what kind of
+    // listing it concerns. Never allowed to hold up the logout itself.
+    try {
+      await unsubscribeFromWebPush();
+    } catch (pushError) {
+      /* signing out matters more than tidying the subscription */
+    }
+
     // Always clear local state first to ensure user is logged out immediately
     const localCleanupSuccess = performLocalLogout();
     

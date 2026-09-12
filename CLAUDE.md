@@ -1269,6 +1269,78 @@ this whole section exists to protect.
     The caption cap and the category graphics' own compliance are covered in
     `test-social-images`.
 
+## Browser notifications (web)
+
+The Web Push half of the channel the mobile app has had since match alerts
+shipped: an alert that reaches someone who is not currently looking at
+Mafqoudat. Setup, env vars and debugging: [web-push.md](docs/web-push.md).
+
+- **A second transport, not a second feature.** All three alert kinds (match,
+  comment, social publish) already existed and already decided who gets one and
+  in what language; `pushNotificationService` now hands each composed message
+  to two transports — Expo for the app's devices,
+  [webPushService.js](server/services/webPushService.js) for the browsers —
+  rather than each channel owning its own copy of the wording and the
+  preference gate. They cannot share a transport (an Expo token and an endpoint
+  URL plus two encryption keys are different protocols), but the decision
+  behind the message is one.
+- **Subscriptions are their own array on `User`**, beside `pushTokens` and for
+  the same per-device reasons, including the stored `language` (a push is
+  composed server-side, with no request to read one from) and the same
+  cross-account migration guard — a shared computer can carry one browser
+  subscription across two accounts, so registering clears the endpoint from
+  every other user first. Dead endpoints are pruned on a `404`/`410`, and only
+  those: a `429` or a `500` is that delivery's problem, not the subscription's.
+- **The VAPID public key is served, not built in.** `GET
+  /notifications/web-push-key` answers it, and an empty string when the
+  deployment has no keys — which the client reads as "browser alerts are not
+  available here", not an error. Building it into the bundle as a second
+  environment variable is how the two halves drift: a client built against last
+  month's key subscribes to a service that then refuses every send.
+- **The service worker is not a PWA worker.**
+  [push-sw.js](client/public/push-sw.js) handles `push` and `notificationclick`
+  and nothing else — no `fetch` handler, no caching, no Workbox, and it is
+  copied verbatim out of `public/` rather than generated. A worker that started
+  intercepting requests would quietly become the thing that decides which
+  version of the site a visitor sees, which is a much larger commitment than
+  receiving a notification. A click reuses a tab already on the site and
+  navigates it rather than opening a second window.
+- **A browser notification carries a URL, not a screen name** — the one thing
+  with no counterpart on the Expo side, and the one that fails silently
+  (a notification that looks right and does nothing when clicked). So each
+  sender states it: a single match opens the counterpart listing, a burst opens
+  the inbox, a comment opens its post, and a social publish alert opens the
+  listing's reach section via the same `?section=` deep link the in-app row
+  uses. `npm run test-push` pins all four.
+- **The offer is made once, immediately before a first listing is published**
+  ([EnablePushDialog.jsx](client/src/features/notifications/EnablePushDialog.jsx),
+  awaited from `NewPostForm`'s `handleSubmit`). The moment is the argument:
+  someone who has just written down what they lost is, right then, a person who
+  wants to be told when it turns up. It is an explainer, and the browser's own
+  prompt is fired by its Enable button — a denial is permanent, so spending one
+  on a visitor who has not been told what it is for spends it badly.
+- **Publishing never depends on the answer.** The dialog resolves a promise
+  `handleSubmit` awaits, both buttons resolve it, and the listing is created
+  either way. A hard gate was considered and rejected: a browser that has
+  already denied notifications can never be prompted again, and iOS Safari has
+  no Push API at all until the site is installed to the Home Screen — so
+  "cannot accept" and "will not accept" are indistinguishable from the page,
+  and gating on it would lock those people out of posting entirely. Chrome also
+  penalizes sites that gate content behind permission prompts. `shouldOfferWebPush`
+  narrows the offer to a first-time, undecided, capable browser.
+- **The settings row is not a switch over an account preference.** The browser
+  owns this permission, per origin and per profile, so the row in
+  `NotificationPreferences` reads the permission *and* the subscription
+  together ('on' / 'off' / 'blocked' / 'unsupported') and offers only the
+  action that state allows — a browser that granted permission and then turned
+  alerts off here is still `granted` and receiving nothing, which the
+  permission alone cannot express.
+- **Re-registered once per page load** (`NotificationBell`), because push
+  services rotate endpoints and the server prunes one the moment a delivery
+  comes back "gone" — without it a browser can stop receiving alerts with
+  nothing on either side saying so. Signing out unsubscribes, server first
+  while the session still has a token.
+
 ## "Your listing is on our Facebook page" notifications (web + mobile)
 
 Tells a listing's author what became of its auto-posted copy. The publish is

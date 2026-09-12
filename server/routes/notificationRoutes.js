@@ -56,6 +56,20 @@ router.patch("/preferences", notificationActionLimiter, notificationsController.
 router.post("/push-token", notificationActionLimiter, notificationsController.registerPushToken);
 router.delete("/push-token", notificationActionLimiter, notificationsController.unregisterPushToken);
 
+// Web Push subscriptions (browsers). The same pair for the other transport -
+// an endpoint and its keys rather than a token, see models/User.js.
+router.get("/web-push-key", notificationsController.getWebPushKey);
+router.post(
+  "/web-push-subscription",
+  notificationActionLimiter,
+  notificationsController.registerWebPushSubscription
+);
+router.delete(
+  "/web-push-subscription",
+  notificationActionLimiter,
+  notificationsController.unregisterWebPushSubscription
+);
+
 // Inbox.
 router.get("/", notificationsController.listNotifications);
 router.patch("/read-all", notificationActionLimiter, notificationsController.markAllAsRead);
