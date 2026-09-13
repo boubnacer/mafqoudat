@@ -135,6 +135,16 @@ const hStageWidth = (rows) => HSTAGE.PAD_X * 2 + rows * HSTAGE.PILL_W + (rows - 
 // falls back to the zig-zag stage — which is the narrow/mobile view, unchanged.
 const HSTAGE_MIN_SCALE = 0.84;
 
+// Same fix as Phase 21 gave the zig-zag stage, for the same reason: on a
+// roomy /dash panel `wideScale` climbed toward 1 (the composition's full
+// native ~1302px width), reading oversized next to the three-sentence copy
+// inside it. This caps the *measured* width fed into that one scale formula
+// rather than adding a second scale knob, so every HSTAGE ratio still holds —
+// just smaller. Picked just above HSTAGE_MIN_SCALE's own floor (1150/1302 ≈
+// 0.883) so the wide stage renders close to its most compact readable size on
+// every desktop width instead of only at a narrow panel's edge.
+const WIDE_STAGE_MAX_WIDTH = 1150;
+
 // The pre-measurement guess: the wide stage at its floor scale, plus the
 // panel's own padding and page margins around it. Only ever used for the first
 // paint and the prerendered shell — the measured container width decides after
@@ -305,8 +315,12 @@ const Process = () => {
   // reference; it is used whenever the container can render it at
   // HSTAGE_MIN_SCALE or better, and below that the section falls back to the
   // zig-zag stage — which is the narrow/mobile view, unchanged, cap and all.
+  // WIDE_STAGE_MAX_WIDTH clamps the *measured* width the scale is computed
+  // from, so a roomy panel keeps the compact size instead of growing toward
+  // the composition's full native width.
   const wideWidth = hStageWidth(processSteps.length);
-  const wideScale = hostWidth ? Math.min(1, hostWidth / wideWidth) : 1;
+  const wideHostWidth = hostWidth ? Math.min(hostWidth, WIDE_STAGE_MAX_WIDTH) : 0;
+  const wideScale = wideHostWidth ? Math.min(1, wideHostWidth / wideWidth) : 1;
   const useWide = hostWidth ? wideScale >= HSTAGE_MIN_SCALE : isWideViewport;
 
   const socialLinks = [
