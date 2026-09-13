@@ -3,6 +3,7 @@ import { useGetCategoriesQuery, useGetCitiesQuery, useGetflOptionsQuery } from "
 import { useTranslation } from "../../../utils/translations";
 import Post from "./Post";
 import CategoryPickerField from "../../../components/CategoryPickerField";
+import TypePickerField from "../../../components/TypePickerField";
 import useTitle from "../../../hooks/useTitle";
 import { ErrorState } from "../../../components/LoadingStates";
 import PostsListSkeleton from "./PostsListSkeleton";
@@ -280,6 +281,29 @@ const PostsList = () => {
     }),
     refetchOnMountOrArgChange: 500,
   });
+
+  // Type (Found/Lost) dropdown options - "All" plus whatever the floptions
+  // collection has, each carrying the same tone/icon StepItem's foundLost
+  // picker uses, so TypePickerField can render its list items without any
+  // per-option branching of its own.
+  const typeOptions = useMemo(() => {
+    const allOption = { id: '', code: null, label: t('all'), tone: null, icon: null };
+    const sortedFlOptions = (flOptionsData || [])
+      .slice()
+      .sort((a, b) => (a.code === 'FOUND' ? -1 : b.code === 'FOUND' ? 1 : 0));
+    const mappedFlOptions = sortedFlOptions.map((option) => {
+      const isLost = option.code === 'LOST';
+      const isFound = option.code === 'FOUND';
+      return {
+        id: option.id,
+        code: option.code,
+        label: isLost ? t('lost') : isFound ? t('found') : (option.labels?.[currentLanguage] || option.code),
+        tone: isLost ? theme.custom.status.lost : isFound ? theme.custom.status.found : null,
+        icon: isLost ? SearchOffOutlined : isFound ? TaskAltOutlined : null,
+      };
+    });
+    return [allOption, ...mappedFlOptions];
+  }, [flOptionsData, currentLanguage, t, theme.custom.status]);
 
   // Get all cached cities for current country (for showing when focused)
   const allCachedCitiesForCountry = useMemo(() => {
@@ -1013,28 +1037,20 @@ const PostsList = () => {
     // radial-gradient has no logical-property equivalent, so the glow's start
     // corner is picked from theme.direction instead of a fixed 0% 0%.
     const glowOrigin = theme.direction === 'rtl' ? '100% 0%' : '0% 0%';
-    const filterFieldSx = {
+    // City field styling - the box-for-box twin of CategoryPickerField's/
+    // TypePickerField's trigger box (same height, radius, border alpha, muted
+    // icon, brand-on-focus border), applied to the Autocomplete's underlying
+    // TextField so every field in the panel shares one look.
+    const cityFieldSx = {
       '& .MuiOutlinedInput-root': {
-        borderRadius: `${theme.custom.radius.md}px`,
-        backgroundColor: alpha(brand, isDark ? 0.07 : 0.035),
-        transition: 'background-color 0.2s ease',
-        '& fieldset': { borderColor: alpha(brand, isDark ? 0.3 : 0.16) },
-        '&:hover fieldset': { borderColor: alpha(brand, isDark ? 0.5 : 0.32) },
-        '&.Mui-focused': { backgroundColor: alpha(brand, isDark ? 0.12 : 0.06) },
+        height: 56,
+        borderRadius: 2,
+        backgroundColor: theme.custom.color.surfaceRaised,
+        transition: 'border-color 0.2s ease',
+        '& fieldset': { borderColor: alpha(theme.custom.color.ink, isDark ? 0.3 : 0.2) },
+        '&:hover fieldset': { borderColor: alpha(theme.custom.color.ink, isDark ? 0.5 : 0.4) },
         '&.Mui-focused fieldset': { borderColor: brand, borderWidth: '1.5px' },
       },
-      '& .MuiInputLabel-root.Mui-focused': { color: brand },
-    };
-    const filterFieldIconBadgeSx = {
-      width: 26,
-      height: 26,
-      borderRadius: `${theme.custom.radius.sm}px`,
-      backgroundColor: alpha(brand, isDark ? 0.18 : 0.1),
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-      marginInlineEnd: 1,
     };
     const handleClearAllFilters = () => {
       handleClearTypeFilter();
@@ -1066,73 +1082,23 @@ const PostsList = () => {
     // promoted to applied state on Apply). Only one of the two layouts is
     // ever returned per render (isDesktop picks the branch), so building
     // both sets of nodes unconditionally here is harmless. ----
-    // Type (Found/Lost) filter - a small pill row rather than a dropdown,
-    // reusing the exact icon/tone vocabulary NewPostForm's StepItem uses for
-    // the same choice (status.found/status.lost tint-plus-solid-text, the
-    // TaskAltOutlined/SearchOffOutlined pair) so "Found"/"Lost" reads the
-    // same way whether you're posting or browsing.
-    const renderTypeFilterField = (activeFlId, onSelectType) => {
-      const typeOptions = [
-        { id: '', label: t('all'), code: null },
-        ...((flOptionsData || [])
-          .slice()
-          .sort((a, b) => (a.code === 'FOUND' ? -1 : b.code === 'FOUND' ? 1 : 0))
-          .map((option) => ({
-            id: option.id,
-            code: option.code,
-            label: option.code === 'LOST' ? t('lost') : option.code === 'FOUND' ? t('found') : (option.labels?.[currentLanguage] || option.code),
-          }))
-        ),
-      ];
-      return (
-        <Box>
-          <Typography variant="caption" sx={filterSectionLabelSx}>
-            {t('filterType')}
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {typeOptions.map((option) => {
-              const selected = activeFlId === option.id;
-              const tone = option.code === 'LOST'
-                ? theme.custom.status.lost
-                : option.code === 'FOUND'
-                  ? theme.custom.status.found
-                  : null;
-              const Icon = option.code === 'LOST' ? SearchOffOutlined : option.code === 'FOUND' ? TaskAltOutlined : null;
-              const selectedBg = tone ? tone.main : brand;
-              const idleBg = tone ? tone.bg : alpha(brand, isDark ? 0.14 : 0.07);
-              const idleColor = tone ? tone.main : brand;
-              return (
-                <Box
-                  key={option.id || 'all'}
-                  component="button"
-                  type="button"
-                  onClick={() => onSelectType(option.id)}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.6,
-                    border: 'none',
-                    cursor: 'pointer',
-                    font: 'inherit',
-                    px: 1.5,
-                    py: 0.75,
-                    borderRadius: '999px',
-                    fontWeight: 700,
-                    fontSize: '0.82rem',
-                    backgroundColor: selected ? selectedBg : idleBg,
-                    color: selected ? theme.palette.getContrastText(selectedBg) : idleColor,
-                    transition: 'background-color 0.15s ease, color 0.15s ease',
-                  }}
-                >
-                  {Icon && <Icon sx={{ fontSize: 16 }} />}
-                  {option.label}
-                </Box>
-              );
-            })}
-          </Box>
-        </Box>
-      );
-    };
+    // Type (Found/Lost) filter - a dropdown, the box-for-box twin of the
+    // category filter below (same trigger box, same caption label above it),
+    // so every field in the panel reads as one family.
+    const renderTypeFilterField = (activeFlId, onSelectType) => (
+      <Box>
+        <Typography variant="caption" sx={filterSectionLabelSx}>
+          {t('filterType')}
+        </Typography>
+        <TypePickerField
+          options={typeOptions}
+          value={activeFlId}
+          onChange={onSelectType}
+          placeholder={t('all')}
+          dataTestId="postsListTypeFilter"
+        />
+      </Box>
+    );
 
     // Category filter - the same CategoryPickerField NewPostForm's StepItem
     // uses (a tappable field opening a searchable checklist), replacing the
@@ -1158,6 +1124,10 @@ const PostsList = () => {
     };
 
     const renderCityFilterField = (activeCity, onCityChangeHandler, onCityInputChangeHandler) => (
+      <Box>
+      <Typography variant="caption" sx={filterSectionLabelSx}>
+        {t('city')}
+      </Typography>
       <Autocomplete
         fullWidth
         options={allCitiesData || []}
@@ -1245,7 +1215,6 @@ const PostsList = () => {
         renderInput={(params) => (
           <TextField
             {...params}
-            label={t('city')}
             placeholder={t('searchCityPlaceholder')}
             onFocus={(e) => {
               setCityInputFocused(true);
@@ -1262,23 +1231,22 @@ const PostsList = () => {
               ...params.InputProps,
               startAdornment: (
                 <>
-                  <Box sx={filterFieldIconBadgeSx}>
-                    <LocationOn sx={{ fontSize: 15, color: brand }} />
-                  </Box>
+                  <LocationOn fontSize="small" sx={{ color: alpha(theme.custom.color.ink, 0.6), flexShrink: 0 }} />
                   {params.InputProps.startAdornment}
                 </>
               ),
               endAdornment: (
                 <>
-                  {citiesLoading ? <CircularProgress color="inherit" size={20} sx={{ color: brand }} /> : null}
+                  {citiesLoading ? <CircularProgress size={18} sx={{ color: alpha(theme.custom.color.ink, 0.5) }} /> : null}
                   {params.InputProps.endAdornment}
                 </>
               ),
             }}
           />
         )}
-        sx={filterFieldSx}
+        sx={cityFieldSx}
       />
+      </Box>
     );
 
     // Row layout only ever kicked in at the "md" breakpoint or above, which
