@@ -1,4 +1,5 @@
 import { authStorage } from './authStorage';
+import { refreshSession } from './refreshClient';
 
 /**
  * Browser push notifications: permission, subscription, and keeping the server
@@ -118,13 +119,26 @@ const fetchPublicKey = async () => {
   }
 };
 
-// Asked once per page load. The answer is a deployment-level fact, not a
-// per-visitor one, and the offer below has to know it before deciding whether
-// to spend someone's permission decision.
+// Asked once per page load *once it has answered*. The answer is a
+// deployment-level fact, not a per-visitor one, and the offer below has to know
+// it before deciding whether to spend someone's permission decision.
+//
+// Only a real key is remembered. Caching an empty answer was the bug that made
+// browser alerts look unimplemented: the route used to require a bearer token,
+// so a request that landed while the access token was expired - during the
+// boot-time silent refresh, say - answered 401, and '' was then cached as
+// "this deployment cannot send" for the rest of the page load. The key route
+// is public now (server/routes/notificationRoutes.js), and a failure here is
+// retried rather than remembered either way.
 let publicKeyPromise = null;
 
 const getPublicKey = () => {
-  if (!publicKeyPromise) publicKeyPromise = fetchPublicKey();
+  if (!publicKeyPromise) {
+    publicKeyPromise = fetchPublicKey().then((key) => {
+      if (!key) publicKeyPromise = null;
+      return key;
+    });
+  }
   return publicKeyPromise;
 };
 
@@ -175,11 +189,25 @@ const registerServiceWorker = async () => {
   return navigator.serviceWorker.register(SERVICE_WORKER_PATH);
 };
 
+/**
+ * Stores this browser's subscription against the signed-in account.
+ *
+ * Retries once behind a silent session refresh on a 401. This route is a plain
+ * `fetch`, not an RTK Query endpoint, so it does not inherit apiSlice's
+ * refresh-and-retry - and an access token lives 30 minutes while a page can be
+ * open for hours. Without the retry, the once-per-page-load repair below
+ * silently gave up on exactly the long-lived tab it exists to repair, and the
+ * subscription quietly went stale.
+ */
 const saveSubscription = async (subscription, language) => {
   const payload = subscription.toJSON();
-  const response = await fetch(`${API_URL}/notifications/web-push-subscription`, {
+
+  const post = (token) => fetch(`${API_URL}/notifications/web-push-subscription`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({
       endpoint: payload.endpoint,
       keys: payload.keys,
@@ -189,7 +217,97 @@ const saveSubscription = async (subscription, language) => {
       language,
     }),
   });
-  return response.ok;
+
+  try {
+    const response = await post(authStorage.getAccessToken());
+    if (response.ok) return true;
+    if (response.status !== 401) return false;
+
+    const { accessToken } = await refreshSession();
+    if (!accessToken) return false;
+
+    const retried = await post(accessToken);
+    return retried.ok;
+  } catch (error) {
+    // Offline, or an API that is not answering. Nothing to report to the
+    // caller beyond "not saved" - see this file's header.
+    return false;
+  }
+};
+
+/**
+ * Whether an existing subscription was created with the key this deployment
+ * signs with now.
+ *
+ * A VAPID pair is bound into the subscription at creation time, so rotating the
+ * pair (or a browser that subscribed against a different environment - a
+ * staging build on the same origin) leaves a subscription the push service will
+ * accept from nobody. It looks completely healthy from the page: permission
+ * granted, a subscription object present, an endpoint stored on the account,
+ * and every send refused. Re-subscribing is the only repair.
+ */
+const matchesServerKey = (subscription, publicKey) => {
+  const applied = subscription?.options?.applicationServerKey;
+  if (!applied) return true; // Nothing to compare against; assume it is ours.
+
+  try {
+    const current = urlBase64ToUint8Array(publicKey);
+    const existing = new Uint8Array(applied);
+    if (existing.length !== current.length) return false;
+    return existing.every((byte, index) => byte === current[index]);
+  } catch (error) {
+    return true;
+  }
+};
+
+/**
+ * Makes sure this browser holds a subscription against the current VAPID key
+ * and that the server knows about it. Assumes permission is already granted.
+ *
+ * The one path that both `requestSubscription` (after the prompt) and
+ * `syncSubscription` (once per page load) go through, because "subscribe" and
+ * "repair" are the same operation: subscribing is idempotent, the endpoint is
+ * the identity, and re-registering only refreshes the row.
+ *
+ * @returns {Promise<boolean>} whether the server now holds this browser.
+ */
+const ensureSubscription = async (language) => {
+  try {
+    const publicKey = await getPublicKey();
+    if (!publicKey) return false;
+
+    const registration = await registerServiceWorker();
+    // `ready` rather than the registration itself: a worker that is installing
+    // has no active push manager yet, and subscribing against it throws.
+    await navigator.serviceWorker.ready;
+
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (subscription && !matchesServerKey(subscription, publicKey)) {
+      // Built for a key this deployment no longer signs with - unsubscribe and
+      // take a fresh one rather than storing an endpoint nothing can reach.
+      try {
+        await subscription.unsubscribe();
+      } catch (error) {
+        /* the re-subscribe below is what matters */
+      }
+      subscription = null;
+    }
+
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        // Required to be true by every browser: a push that shows no
+        // notification is what gets a site's permission revoked wholesale.
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+    }
+
+    return await saveSubscription(subscription, language);
+  } catch (error) {
+    console.warn('Web push subscription failed:', error?.message || error);
+    return false;
+  }
 };
 
 /**
@@ -218,52 +336,34 @@ export const requestSubscription = async (language = 'en') => {
   }
   if (permission !== 'granted') return permission;
 
-  try {
-    const publicKey = await getPublicKey();
-    if (!publicKey) return 'failed';
-
-    const registration = await registerServiceWorker();
-    // `ready` rather than the registration itself: a worker that is installing
-    // has no active push manager yet, and subscribing against it throws.
-    await navigator.serviceWorker.ready;
-
-    const subscription = await registration.pushManager.getSubscription()
-      || await registration.pushManager.subscribe({
-        // Required to be true by every browser: a push that shows no
-        // notification is what gets a site's permission revoked wholesale.
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey),
-      });
-
-    const saved = await saveSubscription(subscription, language);
-    return saved ? 'granted' : 'failed';
-  } catch (error) {
-    console.warn('Web push subscription failed:', error?.message || error);
-    return 'failed';
-  }
+  const subscribed = await ensureSubscription(language);
+  return subscribed ? 'granted' : 'failed';
 };
 
 /**
- * Re-registers an existing subscription, so the server keeps an endpoint this
- * browser still holds — and picks up a language change.
+ * Keeps the server in step with this browser, once per page load.
  *
- * Cheap and idempotent (the endpoint is the identity; re-registering refreshes
- * it in place), and it is what repairs the one case the flow above cannot: a
- * browser that subscribed while signed into another account, or whose row was
- * pruned after a delivery failure, is silently no longer reachable otherwise.
+ * Three things this repairs, all of which look identical from the page - a
+ * granted permission and no notifications ever arriving:
+ *
+ *  - the endpoint rotated, or the server pruned the row after a delivery came
+ *    back "gone", so the account no longer holds a reachable browser;
+ *  - permission was granted but no subscription was ever created. The New Post
+ *    offer cannot fix this one: it only fires while the permission is still
+ *    'default', so a browser that granted and then lost its subscription (site
+ *    data cleared, a failed first save, a sign-in on a browser that had granted
+ *    for another account) had no path back except the settings row;
+ *  - the subscription belongs to a superseded VAPID key.
+ *
+ * Subscribing here needs no user gesture, because permission is already given
+ * — the gesture requirement is on the prompt, not on `subscribe()`.
+ *
+ * @returns {Promise<boolean>} whether the server now holds this browser.
  */
 export const syncSubscription = async (language = 'en') => {
   if (!isWebPushSupported()) return false;
   if (Notification.permission !== 'granted') return false;
-
-  try {
-    const registration = await navigator.serviceWorker.getRegistration(SERVICE_WORKER_PATH);
-    const subscription = await registration?.pushManager.getSubscription();
-    if (!subscription) return false;
-    return await saveSubscription(subscription, language);
-  } catch (error) {
-    return false;
-  }
+  return ensureSubscription(language);
 };
 
 /**

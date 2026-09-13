@@ -362,6 +362,81 @@ const runSocialPublish = async () => {
 // ---------------------------------------------------------------------------
 
 /**
+ * Configuration diagnostics.
+ *
+ * Worth asserting because every failure in this transport is swallowed on
+ * purpose: a deployment with no VAPID keys behaves exactly like a working one
+ * that simply has no subscribers. describeConfiguration is the only thing that
+ * tells those two apart - at boot (server.js) and on demand (npm run
+ * doctor-push) - so if it ever starts answering "ok" for a misconfigured
+ * deployment, the channel is silently un-debuggable again.
+ *
+ * Runs before runWebPush because configure() memoizes its first success: once a
+ * valid pair has been accepted, "no keys" can never be exercised again in this
+ * process.
+ */
+const runWebPushConfiguration = async () => {
+  console.log('\n--- browser push configuration ---');
+
+  // A fresh copy, because configure() memoizes its first success and accepting
+  // a valid pair here would leave the real instance configured for the rest of
+  // the process - which is exactly what runWebPush's "no keys" case needs not
+  // to be. pushNotificationService captured the original at require time, so
+  // this copy is this function's alone; the cache entry is restored after.
+  const modulePath = require.resolve('../services/webPushService');
+  const original = require.cache[modulePath];
+  delete require.cache[modulePath];
+  const webPushService = require('../services/webPushService');
+
+  delete process.env.VAPID_PUBLIC_KEY;
+  delete process.env.VAPID_PRIVATE_KEY;
+  delete process.env.VAPID_SUBJECT;
+  delete process.env.WEB_PUSH_ENABLED;
+
+  let status = webPushService.describeConfiguration();
+  check('with no keys at all, the channel reports itself off', status.ok, false);
+  checkThat(
+    'and names both variables, so the fix does not need the source',
+    status.reason.includes('VAPID_PUBLIC_KEY') && status.reason.includes('VAPID_PRIVATE_KEY'),
+    status.reason
+  );
+
+  // A key that looks plausible but is not one. This is the failure that used to
+  // surface only as a single line in the log at the first send, hours later.
+  process.env.VAPID_PUBLIC_KEY = 'not-a-real-key';
+  process.env.VAPID_PRIVATE_KEY = 'not-a-real-key-either';
+  status = webPushService.describeConfiguration();
+  check('a malformed key pair is caught up front, not at the first send', status.ok, false);
+  checkThat('and says so in those terms', status.reason.includes('refused by web-push'), status.reason);
+
+  const keys = webpush.generateVAPIDKeys();
+  process.env.VAPID_PUBLIC_KEY = keys.publicKey;
+  process.env.VAPID_PRIVATE_KEY = keys.privateKey;
+
+  // No VAPID_SUBJECT, and a CLIENT_URL that is neither mailto: nor https: -
+  // every developer's localhost. setVapidDetails rejects it outright, which
+  // would take the whole channel down over a value that is only a contact
+  // address.
+  process.env.CLIENT_URL = 'http://localhost:3000';
+  status = webPushService.describeConfiguration();
+  check('a non-https CLIENT_URL does not take the channel down with it', status.ok, true);
+  check('it falls back to a mailto: subject', status.subject, 'mailto:contact@mafqoudat.com');
+
+  // WEB_PUSH_ENABLED is the kill switch, and has to win over a valid pair.
+  process.env.WEB_PUSH_ENABLED = 'false';
+  status = webPushService.describeConfiguration();
+  check('the kill switch outranks a perfectly good key pair', status.ok, false);
+  delete process.env.WEB_PUSH_ENABLED;
+
+  // Leave the process exactly as runWebPush expects to find it: no keys, and
+  // the real, still-unconfigured instance back in the module cache.
+  delete process.env.VAPID_PUBLIC_KEY;
+  delete process.env.VAPID_PRIVATE_KEY;
+  delete process.env.CLIENT_URL;
+  require.cache[modulePath] = original;
+};
+
+/**
  * The same three alerts, to a browser instead of a phone.
  *
  * What this pins is the part that has no counterpart on the Expo side and no
@@ -499,6 +574,7 @@ const runWebPush = async () => {
   await runDisabled();
   await runComment();
   await runSocialPublish();
+  await runWebPushConfiguration();
   await runWebPush();
 
   console.log(`\n${checks - failures}/${checks} checks passed`);

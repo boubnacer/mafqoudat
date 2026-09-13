@@ -440,8 +440,40 @@ mongoose.connection.once("open", () => {
   // starts here rather than at require time; does nothing when no Page or
   // Instagram account is configured.
   require("./services/socialPublishQueue").start();
+  logPushChannelStatus();
   server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
 });
+
+/**
+ * States, once, whether each push transport can actually send.
+ *
+ * Both are optional channels whose every failure is swallowed on purpose - a
+ * push that cannot be sent must never cost a match, a comment or a publish -
+ * which means an unconfigured deployment is indistinguishable at runtime from
+ * a configured one that simply has no subscribers. That is exactly how browser
+ * notifications can be "implemented" and silently off in production for weeks.
+ * One line at boot is the cheapest thing that makes the difference visible.
+ */
+function logPushChannelStatus() {
+  const expoEnabled = process.env.PUSH_NOTIFICATIONS_ENABLED !== "false";
+  console.log(
+    expoEnabled
+      ? "📱 Device push (Expo): on"
+      : "📱 Device push (Expo): OFF (PUSH_NOTIFICATIONS_ENABLED=false)"
+  );
+
+  try {
+    const webPush = require("./services/webPushService").describeConfiguration();
+    if (webPush.ok) {
+      console.log(`🌐 Browser push (Web Push): on - key ${webPush.publicKeyPreview}, subject ${webPush.subject}`);
+    } else {
+      console.warn(`🌐 Browser push (Web Push): OFF - ${webPush.reason}`);
+      console.warn("   Browsers will never receive a notification until this is fixed. See docs/web-push.md, or run: npm run doctor-push");
+    }
+  } catch (error) {
+    console.error("🌐 Browser push (Web Push): status unknown -", error?.message || error);
+  }
+}
 
 mongoose.connection.on("error", (err) => {
   console.error(err);

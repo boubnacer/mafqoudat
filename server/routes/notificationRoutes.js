@@ -21,7 +21,18 @@ const notificationActionLimiter = createRateLimiter({
   message: "Too many notification actions, please slow down",
 });
 
-// Nothing in this router is public: notifications and match leads are personal
+// The one public route here, and deliberately so: the VAPID public key is
+// public by definition - every browser that subscribes receives it, and it
+// authorises nothing on its own. Behind verifyJWT it had a failure mode out of
+// all proportion to that: the client asks for the key once per page load and
+// remembers the answer, so a request that landed while the access token was
+// expired (or during the boot-time silent refresh, or one rate-limited burst)
+// answered 401, and the client read that as "this deployment cannot send
+// browser notifications" for the rest of the page load - no offer on the New
+// Post form, and a settings row reporting the channel unavailable.
+router.get("/web-push-key", notificationsController.getWebPushKey);
+
+// Everything below is private: notifications and match leads are personal
 // data, and every handler scopes its query to req.user.
 router.use(verifyJWT);
 
@@ -57,8 +68,8 @@ router.post("/push-token", notificationActionLimiter, notificationsController.re
 router.delete("/push-token", notificationActionLimiter, notificationsController.unregisterPushToken);
 
 // Web Push subscriptions (browsers). The same pair for the other transport -
-// an endpoint and its keys rather than a token, see models/User.js.
-router.get("/web-push-key", notificationsController.getWebPushKey);
+// an endpoint and its keys rather than a token, see models/User.js. (The key
+// route itself is declared above verifyJWT - see the comment there.)
 router.post(
   "/web-push-subscription",
   notificationActionLimiter,

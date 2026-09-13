@@ -1085,7 +1085,10 @@ const unregisterPushToken = async (req, res) => {
 
 // @desc   The VAPID public key this deployment signs its browser pushes with
 // @route  GET /notifications/web-push-key
-// @access Private
+// @access Public - the key is public by definition (every subscribing browser
+//         receives it) and authorises nothing on its own. See the comment on
+//         the route declaration in routes/notificationRoutes.js for why being
+//         behind verifyJWT was actively harmful here.
 //
 // Served rather than built into the bundle: the key is public by definition
 // (every subscribing browser receives it), but the private half lives in the

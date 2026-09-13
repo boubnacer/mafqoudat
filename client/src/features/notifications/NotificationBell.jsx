@@ -32,10 +32,15 @@ import {
   useMarkAllNotificationsReadMutation,
 } from "./notificationsApiSlice";
 
-// Whether this page load has already re-registered the browser's push
-// subscription. The bell mounts once per navigation shell, but a remount must
-// not turn a repair into a request per page view.
-let subscriptionSynced = false;
+// The language this page load has already re-registered the browser's push
+// subscription for, once it succeeded. The bell mounts once per navigation
+// shell, but a remount must not turn a repair into a request per page view -
+// and a *failed* repair must not latch either, which is what a plain boolean
+// set before the call did: one attempt that landed on an expired access token,
+// a cold API or a service worker still installing left the browser
+// unregistered for the whole session with nothing retrying it.
+let syncedForLanguage = null;
+let syncInFlight = false;
 
 // How often the badge re-checks for new matches. Matching runs on post
 // creation, so a minute of latency is imperceptible while keeping this well
@@ -83,9 +88,18 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
   // a periodic re-register a browser can stop receiving alerts with nothing on
   // either side saying so. Idempotent - the endpoint is the identity.
   useEffect(() => {
-    if (subscriptionSynced) return;
-    subscriptionSynced = true;
-    syncSubscription(currentLanguage);
+    if (syncedForLanguage === currentLanguage || syncInFlight) return;
+    syncInFlight = true;
+    // Re-run for a language change too: the language a browser's alerts are
+    // written in is stored with the subscription, since a push is composed
+    // server-side with no request to read one from.
+    syncSubscription(currentLanguage)
+      .then((registered) => {
+        if (registered) syncedForLanguage = currentLanguage;
+      })
+      .finally(() => {
+        syncInFlight = false;
+      });
   }, [currentLanguage]);
 
   const groups = data?.groups || [];

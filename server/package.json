@@ -12,6 +12,7 @@
     "test": "node test-server.js",
     "test-matching": "node scripts/testMatchingScorer.js",
     "test-push": "node scripts/testPushNotifications.js",
+    "doctor-push": "node scripts/doctorPush.js",
     "test-social-stats": "node scripts/testSocialStats.js",
     "test-post-stats-overlay": "node scripts/testPostStatsOverlay.js",
     "test-facebook-webhook": "node scripts/testFacebookWebhook.js",
