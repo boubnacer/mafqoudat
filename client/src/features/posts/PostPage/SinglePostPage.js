@@ -158,11 +158,15 @@ const StatusTag = ({ tone, icon, label }) => (
 
 // The category badge(s) take the image's other top corner - the spot the
 // date used to sit in. Styled as the same translucent chip the Posts list
-// card uses for category (Post.js: alpha(color, 0.1) fill, alpha(color,
-// 0.35) border, colored text, no icon) rather than the status tag's solid
-// pill, so the two read as primary (status) vs. secondary (category) tags
-// on the same photo. Wraps instead of stacking so it stays compact next to
-// the status tag for a multi-category post.
+// card uses for category (Post.js: alpha(color, 0.35) border, colored text,
+// no icon) rather than the status tag's solid pill, so the two read as
+// primary (status) vs. secondary (category) tags on the same photo. The
+// fill is the category's own icon-backdrop color (categoryStyles[].background
+// - the same tint the no-image icon circle and Post.js's no-image box sit
+// on) rather than a fresh alpha(main, 0.1) mix, so the badge and the
+// category's icon backdrop read as one color everywhere on this page. Wraps
+// instead of stacking so it stays compact next to the status tag for a
+// multi-category post.
 const CategoryChip = ({ tone, label }) => {
   const theme = useTheme();
   return (
@@ -170,11 +174,11 @@ const CategoryChip = ({ tone, label }) => {
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
-        backgroundColor: alpha(tone.main, 0.1),
+        backgroundColor: tone.background,
         border: `1px solid ${alpha(tone.main, 0.35)}`,
         color: tone.main,
-        fontWeight: 700,
-        fontSize: { xs: '12px', sm: '13px' },
+        fontWeight: 800,
+        fontSize: { xs: '13px', sm: '14px' },
         lineHeight: 1,
         borderRadius: `${theme.custom.radius.sm}px`,
         px: { xs: 1.25, sm: 1.5 },
@@ -214,7 +218,7 @@ const CategoryTags = ({ items }) => (
 // (CategoryTags) still carries this when there's a photo; it would
 // duplicate this icon+label treatment stacked next to it, so it only
 // renders when there's no photo to pin it to instead.
-const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) => {
+const CategoryIconLabel = ({ icon: Icon, label, color, background, iconSize, circleSize }) => {
   const theme = useTheme();
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
@@ -232,7 +236,7 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
       >
         <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />
       </Box>
-      <CategoryChip tone={{ main: color }} label={label} />
+      <CategoryChip tone={{ main: color, background }} label={label} />
     </Box>
   );
 };
@@ -637,13 +641,16 @@ const SinglePostPage = ({
     });
   }, [categories, isDarkMode, theme.custom.color.brandPrimary]);
 
-  // The on-image category badge(s), one per category, tone taken from each
-  // category's own color.
+  // The on-image category badge(s), one per category, tone + fill taken
+  // from each category's own color/icon-backdrop.
   const categoryBadges = useMemo(() => {
     return categories.map((cat, index) => ({
       code: cat.code || index,
       label: categoryNames[index],
-      tone: { main: categoryStyles[index]?.main || theme.custom.color.brandPrimary },
+      tone: {
+        main: categoryStyles[index]?.main || theme.custom.color.brandPrimary,
+        background: categoryStyles[index]?.background || alpha(theme.custom.color.brandPrimary, 0.08),
+      },
     }));
   }, [categories, categoryNames, categoryStyles, theme.custom.color.brandPrimary]);
 
@@ -978,6 +985,7 @@ const SinglePostPage = ({
                       icon={iconData.IconComponent}
                       label={iconData.label}
                       color={iconData.style?.main || theme.palette.text.secondary}
+                      background={iconData.style?.background || alpha(theme.palette.text.secondary, 0.08)}
                       iconSize={
                         categoryIconsData.length === 1
                           ? { xs: '96px', sm: '120px', md: '144px' }
