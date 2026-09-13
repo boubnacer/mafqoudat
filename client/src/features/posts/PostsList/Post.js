@@ -110,6 +110,54 @@ const ResolvedBadge = ({ label }) => {
   );
 };
 
+// No-image state: category icon on a frosted circle backdrop with the
+// category name beneath it as a matching translucent pill, centered - same
+// treatment as SinglePostPage's CategoryIconLabel, so a photo-less post
+// reads the same on the listing card as it does on its own detail page.
+const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) => {
+  const theme = useTheme();
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+      <Box
+        sx={{
+          width: circleSize,
+          height: circleSize,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
+          backdropFilter: 'blur(6px)',
+        }}
+      >
+        <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />
+      </Box>
+      <Box
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
+          backdropFilter: 'blur(6px)',
+          color,
+          fontWeight: 800,
+          fontSize: { xs: '11px', sm: '12px' },
+          lineHeight: 1,
+          borderRadius: '999px',
+          px: { xs: 1, sm: 1.25 },
+          py: { xs: 0.5, sm: 0.5 },
+          textAlign: 'center',
+          maxWidth: 120,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {label}
+      </Box>
+    </Box>
+  );
+};
+
 const Post = ({ post, viewMode = "grid" }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:768px)");
@@ -371,10 +419,11 @@ const Post = ({ post, viewMode = "grid" }) => {
       return {
         IconComponent,
         style: catStyle,
-        code: cat.code
+        code: cat.code,
+        label: categoryNames[index]
       };
     }).filter(Boolean); // Remove null entries
-  }, [post?.image, categories, categoryStyles]);
+  }, [post?.image, categories, categoryStyles, categoryNames]);
 
   // Memoized error handler for image
   const handleImageError = useCallback((e) => {
@@ -505,55 +554,33 @@ const Post = ({ post, viewMode = "grid" }) => {
               <Box
                 sx={{
                   display: 'flex',
-                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 1,
+                  gap: categoryIconsData.length === 1 ? 0 : { xs: 1.5, sm: 2 },
+                  flexWrap: 'wrap',
                   padding: 2,
                   width: '100%',
                   height: '100%',
                 }}
               >
-                {categoryIconsData.length === 1 ? (() => {
-                  const IconComponent = categoryIconsData[0].IconComponent;
-                  return (
-                    <IconComponent
-                      sx={{
-                        fontSize: { xs: '64px', sm: '80px' },
-                        color: categoryIconsData[0].style?.main || theme.palette.text.secondary,
-                        opacity: 0.85,
-                        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                      }}
-                    />
-                  );
-                })() : (
-                  // Multiple icons - simple flex layout
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: { xs: 2, sm: 2.5 },
-                      flexWrap: 'wrap',
-                      paddingTop: { xs: 1, sm: 1.5 },
-                    }}
-                  >
-                    {categoryIconsData.slice(0, 4).map((iconData, idx) => {
-                      const IconComponent = iconData.IconComponent;
-                      return (
-                        <IconComponent
-                          key={iconData.code || idx}
-                          sx={{
-                            fontSize: { xs: '40px', sm: '48px' },
-                            color: iconData.style?.main || theme.palette.text.secondary,
-                            opacity: 0.85,
-                            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                          }}
-                        />
-                      );
-                    })}
-                  </Box>
-                )}
+                {categoryIconsData.slice(0, 4).map((iconData, idx) => (
+                  <CategoryIconLabel
+                    key={iconData.code || idx}
+                    icon={iconData.IconComponent}
+                    label={iconData.label}
+                    color={iconData.style?.main || theme.palette.text.secondary}
+                    iconSize={
+                      categoryIconsData.length === 1
+                        ? { xs: '40px', sm: '48px' }
+                        : { xs: '24px', sm: '28px' }
+                    }
+                    circleSize={
+                      categoryIconsData.length === 1
+                        ? { xs: 64, sm: 76 }
+                        : { xs: 44, sm: 52 }
+                    }
+                  />
+                ))}
               </Box>
             ) : null}
           </Box>
@@ -805,51 +832,33 @@ const Post = ({ post, viewMode = "grid" }) => {
           <Box
             sx={{
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 1,
+              gap: categoryIconsData.length === 1 ? 0 : { xs: 2, sm: 2.5 },
+              flexWrap: 'wrap',
               padding: 2,
               width: '100%',
               height: '100%',
             }}
           >
-            {categoryIconsData.length === 1 ? (() => {
-              const IconComponent = categoryIconsData[0].IconComponent;
-              return (
-                <IconComponent
-                  sx={{
-                    fontSize: { xs: '72px', sm: '88px' },
-                    color: categoryIconsData[0].style?.main || theme.palette.text.secondary,
-                    opacity: 0.85,
-                  }}
-                />
-              );
-            })() : (
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: { xs: 2.5, sm: 3 },
-                  flexWrap: 'wrap',
-                }}
-              >
-                {categoryIconsData.slice(0, 4).map((iconData, idx) => {
-                  const IconComponent = iconData.IconComponent;
-                  return (
-                    <IconComponent
-                      key={iconData.code || idx}
-                      sx={{
-                        fontSize: { xs: '44px', sm: '52px' },
-                        color: iconData.style?.main || theme.palette.text.secondary,
-                        opacity: 0.85,
-                      }}
-                    />
-                  );
-                })}
-              </Box>
-            )}
+            {categoryIconsData.slice(0, 4).map((iconData, idx) => (
+              <CategoryIconLabel
+                key={iconData.code || idx}
+                icon={iconData.IconComponent}
+                label={iconData.label}
+                color={iconData.style?.main || theme.palette.text.secondary}
+                iconSize={
+                  categoryIconsData.length === 1
+                    ? { xs: '56px', sm: '68px' }
+                    : { xs: '32px', sm: '40px' }
+                }
+                circleSize={
+                  categoryIconsData.length === 1
+                    ? { xs: 84, sm: 104 }
+                    : { xs: 56, sm: 68 }
+                }
+              />
+            ))}
           </Box>
         ) : null}
 
@@ -899,7 +908,11 @@ const Post = ({ post, viewMode = "grid" }) => {
             pair reads as one inline header - top-end in LTR, top-start in
             RTL. Same size/radius as the status badge (radius.sm, not a full
             pill) so the two match exactly - only the fill (translucent
-            per-category tint here vs. tone.main there) tells them apart. */}
+            per-category tint here vs. tone.main there) tells them apart.
+            Photo-only, same as SinglePostPage's CategoryTags: with no photo,
+            the centered CategoryIconLabel already carries the category
+            name, and stacking this pill on top of it would duplicate it. */}
+        {post?.image && (
         <Box
           sx={{
             position: 'absolute',
@@ -938,6 +951,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             );
           })}
         </Box>
+        )}
 
         {post?.returned && <ResolvedBadge label={t('returned')} />}
 
