@@ -834,7 +834,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: categoryIconsData.length === 1 ? 0 : { xs: 2, sm: 2.5 },
+              gap: categoryIconsData.length === 1 ? 0 : 2,
               flexWrap: 'wrap',
               padding: 2,
               width: '100%',
@@ -847,16 +847,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                 icon={iconData.IconComponent}
                 label={iconData.label}
                 color={iconData.style?.main || theme.palette.text.secondary}
-                iconSize={
-                  categoryIconsData.length === 1
-                    ? { xs: '56px', sm: '68px' }
-                    : { xs: '32px', sm: '40px' }
-                }
-                circleSize={
-                  categoryIconsData.length === 1
-                    ? { xs: 84, sm: 104 }
-                    : { xs: 56, sm: 68 }
-                }
+                iconSize={categoryIconsData.length === 1 ? '56px' : '32px'}
+                circleSize={categoryIconsData.length === 1 ? 84 : 56}
               />
             ))}
           </Box>
