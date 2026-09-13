@@ -433,7 +433,7 @@ const Process = () => {
         gsap.to(header, {
           autoAlpha: 1,
           y: 0,
-          duration: 0.5,
+          duration: 1,
           clearProps: "transform",
           scrollTrigger: { trigger: rootRef.current, scroller, start: "top 85%", once: true },
         });
@@ -441,7 +441,7 @@ const Process = () => {
         if (trail.length) {
           gsap.to(trail, {
             autoAlpha: 1,
-            duration: 0.7,
+            duration: 1.4,
             scrollTrigger: { trigger: trail[0], scroller, start: "top 88%", once: true },
           });
         }
@@ -464,25 +464,25 @@ const Process = () => {
             gsap.to(batch, {
               autoAlpha: 1,
               y: 0,
-              duration: 0.6,
-              stagger: 0.15,
-              ease: "power3.out",
+              duration: 1.3,
+              stagger: 0.4,
+              ease: "power2.out",
               clearProps: "transform",
             });
             gsap.to(pop(".processDisc"), {
               scale: 1,
-              duration: 0.55,
-              stagger: 0.15,
-              delay: 0.12,
-              ease: "back.out(1.9)",
+              duration: 1.1,
+              stagger: 0.4,
+              delay: 0.35,
+              ease: "back.out(1.7)",
               clearProps: "transform",
             });
             gsap.to(pop(".processNode"), {
               scale: 1,
-              duration: 0.5,
-              stagger: 0.15,
-              delay: 0.18,
-              ease: "back.out(1.9)",
+              duration: 1,
+              stagger: 0.4,
+              delay: 0.5,
+              ease: "back.out(1.7)",
               clearProps: "transform",
             });
           },
@@ -491,7 +491,7 @@ const Process = () => {
         gsap.to(social, {
           autoAlpha: 1,
           y: 0,
-          duration: 0.5,
+          duration: 1,
           clearProps: "transform",
           scrollTrigger: { trigger: social[0] || rootRef.current, scroller, start: "top 92%", once: true },
         });
