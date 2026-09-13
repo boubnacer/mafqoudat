@@ -959,7 +959,7 @@ const SinglePostPage = ({
                 icon={foundLostStatus.isFound ? TaskAltOutlined : SearchOffOutlined}
                 label={foundLostStatus.statusText}
               />
-              {image && <CategoryTags items={categoryBadges} />}
+              <CategoryTags items={categoryBadges} />
 
               {image && imageUrl ? (
                 <LazyCardMedia
