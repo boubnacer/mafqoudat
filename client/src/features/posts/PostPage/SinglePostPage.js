@@ -157,8 +157,35 @@ const StatusTag = ({ tone, icon, label }) => (
 );
 
 // The category badge(s) take the image's other top corner - the spot the
-// date used to sit in - styled identically to the status tag rather than a
-// bespoke chip. Stacked in a column for a multi-category post.
+// date used to sit in. Styled as the same translucent chip the Posts list
+// card uses for category (Post.js: alpha(color, 0.1) fill, alpha(color,
+// 0.35) border, colored text, no icon) rather than the status tag's solid
+// pill, so the two read as primary (status) vs. secondary (category) tags
+// on the same photo. Wraps instead of stacking so it stays compact next to
+// the status tag for a multi-category post.
+const CategoryChip = ({ tone, label }) => {
+  const theme = useTheme();
+  return (
+    <Box
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        backgroundColor: alpha(tone.main, 0.1),
+        border: `1px solid ${alpha(tone.main, 0.35)}`,
+        color: tone.main,
+        fontWeight: 700,
+        fontSize: { xs: '12px', sm: '13px' },
+        lineHeight: 1,
+        borderRadius: `${theme.custom.radius.sm}px`,
+        px: { xs: 1.25, sm: 1.5 },
+        py: { xs: 0.5, sm: 0.625 },
+      }}
+    >
+      {label}
+    </Box>
+  );
+};
+
 const CategoryTags = ({ items }) => (
   <Box
     sx={{
@@ -167,13 +194,14 @@ const CategoryTags = ({ items }) => (
       insetInlineEnd: 12,
       zIndex: 3,
       display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'flex-end',
+      flexWrap: 'wrap',
+      justifyContent: 'flex-end',
       gap: 0.75,
+      maxWidth: '60%',
     }}
   >
     {items.map((item) => (
-      <BadgeContent key={item.code} tone={item.tone} icon={item.icon} label={item.label} />
+      <CategoryChip key={item.code} tone={item.tone} label={item.label} />
     ))}
   </Box>
 );
@@ -624,12 +652,11 @@ const SinglePostPage = ({
     });
   }, [categories, isDarkMode, theme.custom.color.brandPrimary]);
 
-  // The on-image category badge(s) - same shape as the Lost/Found status
-  // tag, one per category, tone taken from each category's own color.
+  // The on-image category badge(s), one per category, tone taken from each
+  // category's own color.
   const categoryBadges = useMemo(() => {
     return categories.map((cat, index) => ({
       code: cat.code || index,
-      icon: getCategoryIcon(cat.code),
       label: categoryNames[index],
       tone: { main: categoryStyles[index]?.main || theme.custom.color.brandPrimary },
     }));
