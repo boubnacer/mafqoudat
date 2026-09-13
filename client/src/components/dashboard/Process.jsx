@@ -418,7 +418,7 @@ const Process = () => {
       const q = gsap.utils.selector(rootRef);
       const header = q(".processHeader");
       const cards = q(".processCard");
-      const trail = q(".processTrail");
+      const trail = q(".processTrailReveal");
       const social = q(".processSocial");
       const scroller = resolveScroller(rootRef.current);
 
@@ -442,12 +442,20 @@ const Process = () => {
         });
 
         if (trail.length) {
-          // Drawn dot by dot along the curve rather than faded in as one
-          // strip: DrawSVGPlugin honours the path's own dash pattern, so
-          // revealing its length from 0% to 100% at a steady (linear) pace
-          // makes the existing dots appear in sequence, tracing the S-curve.
+          // Drawn dot by dot along the curve, not faded in as one strip.
+          // DrawSVGPlugin can only reveal a path by replacing its dasharray
+          // with one continuous dash — animating it directly on the visible
+          // dotted path turned the trail into a solid growing line. So the
+          // reveal target (.processTrailReveal) is an invisible solid-stroke
+          // twin of the same curve, painted into an SVG <mask>; the VISIBLE
+          // path keeps its permanent fine dot pattern and is only exposed
+          // through the mask's growing corridor, which is what makes the
+          // existing dots appear one at a time as it sweeps past them.
+          // (Elements inside a <mask> aren't part of the painted tree, so
+          // they report no real screen position — the trigger is the
+          // section root instead of the reveal path itself.)
           const trailTl = gsap.timeline({
-            scrollTrigger: { trigger: trail[0], scroller, start: "top 88%", once: true },
+            scrollTrigger: { trigger: rootRef.current, scroller, start: "top 88%", once: true },
           });
           trailTl
             .to(trail, { drawSVG: "100%", duration: 2.2, ease: "none" })
@@ -553,14 +561,33 @@ const Process = () => {
             transform: isRtl ? "scaleX(-1)" : "none",
           }}
         >
+          {/* The visible path keeps its permanent dot pattern untouched —
+              DrawSVGPlugin can only reveal a path by replacing its dasharray
+              with one continuous dash, which is what turned the trail into a
+              solid growing line. So the dot texture is masked instead: an
+              invisible, solid-stroked twin of the same curve is what
+              DrawSVGPlugin draws, and its growing corridor is what exposes
+              the real dots underneath one at a time as it sweeps past them. */}
+          <defs>
+            <mask id="processTrailMask">
+              <path
+                className="processTrailReveal"
+                d={wideTrailPath.d}
+                fill="none"
+                stroke="#fff"
+                strokeWidth={HSTAGE.DOT_R * 2 + 4}
+                strokeLinecap="round"
+              />
+            </mask>
+          </defs>
           <path
-            className="processTrail"
             d={wideTrailPath.d}
             fill="none"
             stroke={alpha(ink, 0.34)}
             strokeWidth={HSTAGE.DOT_R * 2}
             strokeLinecap="round"
             strokeDasharray={`0.1 ${HSTAGE.DOT_GAP}`}
+            mask="url(#processTrailMask)"
           />
           <circle className="processTrailCap" cx={wideTrailPath.head.x} cy={wideTrailPath.head.y} r={HSTAGE.CAP_R} fill={alpha(ink, 0.42)} />
           <circle className="processTrailCap" cx={wideTrailPath.tail.x} cy={wideTrailPath.tail.y} r={HSTAGE.CAP_R} fill={alpha(ink, 0.42)} />
@@ -720,14 +747,26 @@ const Process = () => {
             transform: isRtl ? "scaleX(-1)" : "none",
           }}
         >
+          <defs>
+            <mask id="processTrailMask">
+              <path
+                className="processTrailReveal"
+                d={trailPath.d}
+                fill="none"
+                stroke="#fff"
+                strokeWidth={STAGE.DOT_R * 2 + 4}
+                strokeLinecap="round"
+              />
+            </mask>
+          </defs>
           <path
-            className="processTrail"
             d={trailPath.d}
             fill="none"
             stroke={alpha(ink, 0.34)}
             strokeWidth={STAGE.DOT_R * 2}
             strokeLinecap="round"
             strokeDasharray={`0.1 ${STAGE.DOT_GAP}`}
+            mask="url(#processTrailMask)"
           />
           <circle className="processTrailCap" cx={trailPath.mid} cy={trailPath.head} r={STAGE.CAP_R} fill={alpha(ink, 0.42)} />
           <circle className="processTrailCap" cx={trailPath.mid} cy={trailPath.tail} r={STAGE.CAP_R} fill={alpha(ink, 0.42)} />
