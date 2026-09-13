@@ -6,9 +6,10 @@
 // before the first tween runs, whichever component happens to mount first.
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { useGSAP } from "@gsap/react";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger);
+gsap.registerPlugin(useGSAP, ScrollTrigger, DrawSVGPlugin);
 
 // The site's animation baseline: everything else overrides from here, so a
 // tween that says nothing about duration or ease still feels like the rest.

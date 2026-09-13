@@ -428,7 +428,10 @@ const Process = () => {
         gsap.set(q(".processNode"), { scale: 0 });
         gsap.set(q(".processDisc"), { scale: 0 });
         gsap.set(social, { autoAlpha: 0, y: 16 });
-        if (trail.length) gsap.set(trail, { autoAlpha: 0 });
+        if (trail.length) {
+          gsap.set(trail, { drawSVG: "0%" });
+          gsap.set(q(".processTrailCap"), { autoAlpha: 0, scale: 0, transformOrigin: "center" });
+        }
 
         gsap.to(header, {
           autoAlpha: 1,
@@ -439,11 +442,16 @@ const Process = () => {
         });
 
         if (trail.length) {
-          gsap.to(trail, {
-            autoAlpha: 1,
-            duration: 1.4,
+          // Drawn dot by dot along the curve rather than faded in as one
+          // strip: DrawSVGPlugin honours the path's own dash pattern, so
+          // revealing its length from 0% to 100% at a steady (linear) pace
+          // makes the existing dots appear in sequence, tracing the S-curve.
+          const trailTl = gsap.timeline({
             scrollTrigger: { trigger: trail[0], scroller, start: "top 88%", once: true },
           });
+          trailTl
+            .to(trail, { drawSVG: "100%", duration: 2.2, ease: "none" })
+            .to(q(".processTrailCap"), { autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, "-=0.2");
         }
 
         // Each pill pops as IT crosses the viewport threshold, not the moment
@@ -497,9 +505,10 @@ const Process = () => {
         });
       } catch (error) {
         console.error("Process motion failed to initialise:", error);
-        gsap.set([...header, ...cards, ...q(".processNode"), ...q(".processDisc"), ...trail, ...social], {
-          clearProps: "all",
-        });
+        gsap.set(
+          [...header, ...cards, ...q(".processNode"), ...q(".processDisc"), ...trail, ...q(".processTrailCap"), ...social],
+          { clearProps: "all" }
+        );
       }
 
       const raf = requestAnimationFrame(() => ScrollTrigger.refresh());
@@ -531,7 +540,6 @@ const Process = () => {
       >
         {/* Decorative: mirrored wholesale in RTL since it carries no text. */}
         <Box
-          className="processTrail"
           aria-hidden="true"
           component="svg"
           viewBox={`0 0 ${wideWidth} ${HSTAGE.H}`}
@@ -546,6 +554,7 @@ const Process = () => {
           }}
         >
           <path
+            className="processTrail"
             d={wideTrailPath.d}
             fill="none"
             stroke={alpha(ink, 0.34)}
@@ -553,8 +562,8 @@ const Process = () => {
             strokeLinecap="round"
             strokeDasharray={`0.1 ${HSTAGE.DOT_GAP}`}
           />
-          <circle cx={wideTrailPath.head.x} cy={wideTrailPath.head.y} r={HSTAGE.CAP_R} fill={alpha(ink, 0.42)} />
-          <circle cx={wideTrailPath.tail.x} cy={wideTrailPath.tail.y} r={HSTAGE.CAP_R} fill={alpha(ink, 0.42)} />
+          <circle className="processTrailCap" cx={wideTrailPath.head.x} cy={wideTrailPath.head.y} r={HSTAGE.CAP_R} fill={alpha(ink, 0.42)} />
+          <circle className="processTrailCap" cx={wideTrailPath.tail.x} cy={wideTrailPath.tail.y} r={HSTAGE.CAP_R} fill={alpha(ink, 0.42)} />
         </Box>
 
         {processSteps.map((step, i) => {
@@ -698,7 +707,6 @@ const Process = () => {
       >
         {/* Decorative: mirrored wholesale in RTL since it carries no text. */}
         <Box
-          className="processTrail"
           aria-hidden="true"
           component="svg"
           viewBox={`0 0 ${STAGE.W} ${stageHeight}`}
@@ -713,6 +721,7 @@ const Process = () => {
           }}
         >
           <path
+            className="processTrail"
             d={trailPath.d}
             fill="none"
             stroke={alpha(ink, 0.34)}
@@ -720,8 +729,8 @@ const Process = () => {
             strokeLinecap="round"
             strokeDasharray={`0.1 ${STAGE.DOT_GAP}`}
           />
-          <circle cx={trailPath.mid} cy={trailPath.head} r={STAGE.CAP_R} fill={alpha(ink, 0.42)} />
-          <circle cx={trailPath.mid} cy={trailPath.tail} r={STAGE.CAP_R} fill={alpha(ink, 0.42)} />
+          <circle className="processTrailCap" cx={trailPath.mid} cy={trailPath.head} r={STAGE.CAP_R} fill={alpha(ink, 0.42)} />
+          <circle className="processTrailCap" cx={trailPath.mid} cy={trailPath.tail} r={STAGE.CAP_R} fill={alpha(ink, 0.42)} />
         </Box>
 
         {processSteps.map((step, i) => {
