@@ -140,10 +140,10 @@ const HSTAGE_MIN_SCALE = 0.84;
 // native ~1302px width), reading oversized next to the three-sentence copy
 // inside it. This caps the *measured* width fed into that one scale formula
 // rather than adding a second scale knob, so every HSTAGE ratio still holds —
-// just smaller. Picked just above HSTAGE_MIN_SCALE's own floor (1150/1302 ≈
-// 0.883) so the wide stage renders close to its most compact readable size on
-// every desktop width instead of only at a narrow panel's edge.
-const WIDE_STAGE_MAX_WIDTH = 1150;
+// just smaller. Sits right at HSTAGE_MIN_SCALE's own floor (1100/1302 ≈
+// 0.845, just above the 0.84 the body copy needs to stay ~11px) so the wide
+// stage renders at its most compact readable size on every desktop width.
+const WIDE_STAGE_MAX_WIDTH = 1100;
 
 // The pre-measurement guess: the wide stage at its floor scale, plus the
 // panel's own padding and page margins around it. Only ever used for the first
@@ -547,7 +547,7 @@ const Process = () => {
   }, [scale, wideScale, useWide]);
 
   const renderWideStage = () => (
-    <Box sx={{ position: "relative", width: "100%", height: HSTAGE.H * wideScale, overflow: "hidden", mt: 5 }}>
+    <Box sx={{ position: "relative", width: "100%", height: HSTAGE.H * wideScale, overflow: "hidden", mt: 3 }}>
       <Box
         sx={{
           position: "absolute",
@@ -923,7 +923,13 @@ const Process = () => {
         backgroundColor: surfaceRaised,
         borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
         boxShadow: theme.custom.elevation.e2,
-        padding: { xs: "1.5rem", sm: "2.5rem", md: "3rem" },
+        padding: { xs: "1.5rem", sm: "2.5rem", md: "2rem" },
+        // On a wide /dash column this panel used to stretch to the column's
+        // full width (up to ~1600px) with no ceiling of its own, which is
+        // most of why the section read oversized — not just the stage art
+        // inside it. Capped and centred instead of only shrinking the stage.
+        maxWidth: { xs: "100%", md: 1250 },
+        mx: "auto",
       }}
     >
       <Box sx={{ position: "relative", zIndex: 1 }}>
@@ -967,7 +973,7 @@ const Process = () => {
           )}
         </Box>
 
-        <Box className="processSocial" sx={{ mt: useWide ? 4.5 : { xs: 3.5, md: 3 } }}>
+        <Box className="processSocial" sx={{ mt: useWide ? 3 : { xs: 3.5, md: 3 } }}>
           <Typography
             variant="overline"
             sx={{ display: "block", fontWeight: 600, letterSpacing: 1, color: alpha(ink, 0.6), mb: 1.5, ...alignText("center") }}
