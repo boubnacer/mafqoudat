@@ -97,6 +97,30 @@ services:
       - key: REDIS_URL
         sync: false
 
+      # --- Push notifications ---
+      # Browser (Web Push) alerts. WITHOUT BOTH KEYS NO BROWSER EVER RECEIVES A
+      # NOTIFICATION - the client asks for the public key, gets an empty string,
+      # never offers to subscribe, and the server never sends. That failure is
+      # silent by design (a push must never cost a match, a comment or a
+      # publish), so the server states it at boot and `npm run doctor-push`
+      # reports it on demand. Generate the pair ONCE and keep it - every browser
+      # subscription is bound to the public key that created it:
+      #   cd server && node -e "console.log(require('web-push').generateVAPIDKeys())"
+      # Full walkthrough: docs/web-push.md
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      # mailto: or https: URL naming whoever operates the site; push services
+      # use it to reach a human about abusive sending.
+      - key: VAPID_SUBJECT
+        value: mailto:contact@mafqoudat.com
+      # Device (Expo) alerts for the mobile app. Optional: sends work without
+      # it, but it stops anyone holding a scraped push token sending as this
+      # project. See mobile/PUSH_NOTIFICATIONS.md.
+      - key: EXPO_ACCESS_TOKEN
+        sync: false
+
       # --- Misc ---
       - key: MAINTENANCE_MODE
         value: "false"

@@ -266,6 +266,11 @@ userSchema.index({ blockedUsers: 1 });
 // this device signed into?") and pruning a dead token does the same, so the
 // array's token field is the lookup key on both paths.
 userSchema.index({ "pushTokens.token": 1 });
+// The browser twin, and needed for the same two lookups: registration asks
+// "which account already holds this endpoint?" across every user, and pruning
+// a subscription the push service reported gone does the same. Without it both
+// are a full collection scan - and the pruning one runs inside the send loop.
+userSchema.index({ "webPushSubscriptions.endpoint": 1 });
 userSchema.index({ country: 1, isActive: 1 });
 userSchema.index({ role: 1, isActive: 1 });
 userSchema.index({ country: 1, role: 1, isActive: 1 });

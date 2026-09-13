@@ -42,30 +42,93 @@ const resolveLanguage = (value) => (SUPPORTED_LANGUAGES.includes(value) ? value 
  */
 let configured = null;
 
-const publicKey = () => process.env.VAPID_PUBLIC_KEY || '';
+const publicKey = () => (process.env.VAPID_PUBLIC_KEY || '').trim();
+
+const privateKey = () => (process.env.VAPID_PRIVATE_KEY || '').trim();
 
 const isConfigured = () => {
   if (process.env.WEB_PUSH_ENABLED === 'false') return false;
-  return !!(publicKey() && process.env.VAPID_PRIVATE_KEY);
+  return !!(publicKey() && privateKey());
+};
+
+/**
+ * The subject must be a mailto: or https: URL naming whoever operates this
+ * application; push services use it to reach a human about abusive sends.
+ *
+ * CLIENT_URL is the documented fallback, and it is an https: URL, so it is
+ * accepted as-is - but only if it really is one. A CLIENT_URL of
+ * `http://localhost:3000` (every developer's) is neither scheme, and
+ * `setVapidDetails` rejects it outright, which used to turn a local
+ * misconfiguration into "every browser push silently fails" with one line in
+ * the log at the first send and nothing at boot.
+ */
+const resolveSubject = () => {
+  const configuredSubject = (process.env.VAPID_SUBJECT || '').trim();
+  const candidate = configuredSubject || (process.env.CLIENT_URL || '').trim();
+  if (/^(mailto:|https:\/\/)/i.test(candidate)) return candidate;
+  return 'mailto:contact@mafqoudat.com';
 };
 
 const configure = () => {
   if (configured) return true;
   if (!isConfigured()) return false;
 
-  // The subject must be a mailto: or https: URL naming whoever operates this
-  // application; push services use it to reach a human about abusive sends.
-  const subject = process.env.VAPID_SUBJECT
-    || (process.env.CLIENT_URL ? process.env.CLIENT_URL : 'mailto:contact@mafqoudat.com');
-
   try {
-    webpush.setVapidDetails(subject, publicKey(), process.env.VAPID_PRIVATE_KEY);
+    webpush.setVapidDetails(resolveSubject(), publicKey(), privateKey());
     configured = true;
     return true;
   } catch (error) {
     console.error('[web-push] VAPID configuration failed:', error?.message || error);
     return false;
   }
+};
+
+/**
+ * What is and is not set up here, in a shape a human can read.
+ *
+ * Every failure in this file is deliberately silent at the call site - a push
+ * that cannot be sent must never cost a match, a comment or a publish - and
+ * that is exactly what made "the browser never buzzes" impossible to diagnose:
+ * an unconfigured deployment behaves identically to a configured one with no
+ * subscribers. So the state is stated once at boot (server.js) and on demand
+ * (`npm run doctor-push`), rather than inferred from silence.
+ *
+ * @returns {{ok: boolean, reason: string|null, subject: string|null, publicKeyPreview: string|null}}
+ */
+const describeConfiguration = () => {
+  if (process.env.WEB_PUSH_ENABLED === 'false') {
+    return { ok: false, reason: 'WEB_PUSH_ENABLED is set to "false"', subject: null, publicKeyPreview: null };
+  }
+
+  const missing = [];
+  if (!publicKey()) missing.push('VAPID_PUBLIC_KEY');
+  if (!privateKey()) missing.push('VAPID_PRIVATE_KEY');
+  if (missing.length > 0) {
+    return {
+      ok: false,
+      reason: `${missing.join(' and ')} not set - generate a pair with: node -e "console.log(require('web-push').generateVAPIDKeys())"`,
+      subject: null,
+      publicKeyPreview: null,
+    };
+  }
+
+  // Ask web-push itself rather than pattern-matching the keys: a truncated or
+  // standard-base64 key is accepted by every eyeball test and rejected here.
+  if (!configure()) {
+    return {
+      ok: false,
+      reason: 'the VAPID key pair was refused by web-push (malformed, truncated, or not a matching pair)',
+      subject: resolveSubject(),
+      publicKeyPreview: `${publicKey().slice(0, 12)}...`,
+    };
+  }
+
+  return {
+    ok: true,
+    reason: null,
+    subject: resolveSubject(),
+    publicKeyPreview: `${publicKey().slice(0, 12)}...`,
+  };
 };
 
 /** Drops one subscription from whatever account holds it. */
@@ -140,5 +203,6 @@ module.exports = {
   sendToSubscriptions,
   removeSubscription,
   isConfigured,
+  describeConfiguration,
   publicKey,
 };

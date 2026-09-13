@@ -57,15 +57,25 @@ const NotificationPreferences = () => {
     return () => { active = false; };
   }, []);
 
+  const { data, isLoading, isError } = useGetNotificationPreferencesQuery();
+  const [updatePreferences, { isError: isSaveError }] = useUpdateNotificationPreferencesMutation();
+
   const handleEnablePush = useCallback(async () => {
     setIsChangingPush(true);
     try {
-      await requestSubscription(currentLanguage);
+      const outcome = await requestSubscription(currentLanguage);
       setPushState(await getSubscriptionState());
+      // Turning this on while the account-level master is off subscribes a
+      // browser the server then refuses to send to, which looks exactly like a
+      // broken channel. Someone who just asked for browser alerts means to
+      // receive them.
+      if (outcome === 'granted' && data?.preferences?.pushAlerts === false) {
+        updatePreferences({ pushAlerts: true });
+      }
     } finally {
       setIsChangingPush(false);
     }
-  }, [currentLanguage]);
+  }, [currentLanguage, data?.preferences?.pushAlerts, updatePreferences]);
 
   const handleDisablePush = useCallback(async () => {
     setIsChangingPush(true);
@@ -76,9 +86,6 @@ const NotificationPreferences = () => {
       setIsChangingPush(false);
     }
   }, []);
-
-  const { data, isLoading, isError } = useGetNotificationPreferencesQuery();
-  const [updatePreferences, { isError: isSaveError }] = useUpdateNotificationPreferencesMutation();
 
   // Local mirror so the slider tracks the thumb while dragging; re-synced
   // whenever the server's value changes.
@@ -108,6 +115,12 @@ const NotificationPreferences = () => {
   const emailAlerts = preferences.emailAlerts === true;
   const commentAlerts = preferences.commentAlerts !== false;
   const socialAlerts = preferences.socialAlerts !== false;
+  // The account-level master over both push transports - the app's devices and
+  // this browser alike (server/services/pushNotificationService.js gates every
+  // sender on it). It only ever had a control in the mobile app, which left a
+  // subscribed browser that receives nothing looking perfectly healthy here:
+  // permission granted, the row reading "on", and every send refused upstream.
+  const pushAlerts = preferences.pushAlerts !== false;
   const canEmail = !!data.hasEmail;
 
   const save = (patch) => {
@@ -231,6 +244,23 @@ const NotificationPreferences = () => {
 
       <Divider sx={{ my: 1.5 }} />
 
+      {/* The master over both push transports. Above the browser row rather
+          than beside it because it outranks it: a browser can be subscribed
+          and still receive nothing while this is off. */}
+      <FormControlLabel
+        sx={{ display: "flex", marginInlineStart: 0, marginInlineEnd: 0, justifyContent: "space-between", gap: 2 }}
+        labelPlacement="start"
+        control={(
+          <Switch
+            checked={pushAlerts}
+            onChange={(event) => save({ pushAlerts: event.target.checked })}
+          />
+        )}
+        label={rowLabel(t('notifPrefPushAlerts'), t('notifPrefPushAlertsDescription'))}
+      />
+
+      <Divider sx={{ my: 1.5 }} />
+
       {/* Browser notifications. Not a switch like the rows above, because this
           one is not the account's setting to hold: the browser owns the
           permission, per profile, and a blocked one cannot be re-asked from a
@@ -243,7 +273,11 @@ const NotificationPreferences = () => {
             ? t('notifPrefBrowserAlertsBlocked')
             : pushState === 'unsupported'
               ? t('notifPrefBrowserAlertsUnsupported')
-              : t('notifPrefBrowserAlertsDescription'),
+              // A subscribed browser under a muted master is the one state that
+              // looks entirely correct and delivers nothing, so it says so.
+              : (pushState === 'on' && !pushAlerts)
+                ? t('notifPrefBrowserAlertsMuted')
+                : t('notifPrefBrowserAlertsDescription'),
           pushState === 'blocked' || pushState === 'unsupported'
         )}
 
