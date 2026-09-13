@@ -1589,10 +1589,14 @@ const PostsList = () => {
             sx={{
               width: 300,
               position: 'fixed',
-              top: `${navbarClearance + 16}px`,
+              // Pinned under the navbar in LTR; vertically centered on the
+              // edge in RTL instead - top-aligned crowded the navbar's own
+              // controls in Arabic the same way the mobile launcher did.
+              top: theme.direction === 'rtl' ? '50%' : `${navbarClearance + 16}px`,
+              transform: theme.direction === 'rtl' ? 'translateY(-50%)' : 'none',
               insetInlineStart: 32,
               zIndex: (t) => t.zIndex.appBar - 1,
-              maxHeight: `calc(100vh - ${navbarClearance + 32}px)`,
+              maxHeight: theme.direction === 'rtl' ? 'calc(100vh - 64px)' : `calc(100vh - ${navbarClearance + 32}px)`,
               overflowY: 'auto',
               p: 3,
               borderRadius: `${theme.custom.radius.lg}px`,
@@ -1887,14 +1891,12 @@ const PostsList = () => {
         {mainArea}
 
         {/* Floating filter launcher - the pop-up trigger itself. Docked to
-            the start edge of the viewport, like a tab sliding in from
-            off-screen: flush (no radius) on the edge it touches, rounded
-            only on the protruding side. Fixed rather than in-flow so it
-            stays reachable while scrolling, and mirrors as a unit in RTL via
-            inset/border-radius logical properties rather than a hand-picked
-            side. In RTL, it sits vertically centered on the edge rather than
-            pinned under the navbar - top-left read as crowding the navbar's
-            own controls in Arabic. */}
+            the start edge of the viewport right under the navbar, like a tab
+            sliding in from off-screen: flush (no radius) on the edge it
+            touches, rounded only on the protruding side. Fixed rather than
+            in-flow so it stays reachable while scrolling, and mirrors as a
+            unit in RTL via inset/border-radius logical properties rather
+            than a hand-picked side. */}
         <Box
           component="button"
           type="button"
@@ -1904,8 +1906,7 @@ const PostsList = () => {
           sx={{
             position: 'fixed',
             insetInlineStart: 0,
-            top: theme.direction === 'rtl' ? '50%' : `${navbarClearance + 12}px`,
-            transform: theme.direction === 'rtl' ? 'translateY(-50%)' : 'none',
+            top: `${navbarClearance + 12}px`,
             zIndex: (t) => t.zIndex.appBar,
             display: 'flex',
             alignItems: 'center',
@@ -1924,7 +1925,7 @@ const PostsList = () => {
             boxShadow: `0 10px 28px ${alpha(brand, 0.45)}, 0 2px 10px ${alpha('#000000', isDark ? 0.45 : 0.18)}`,
             transition: 'transform 0.15s ease, box-shadow 0.15s ease',
             '&:active': {
-              transform: theme.direction === 'rtl' ? 'translateY(-50%) scale(0.97)' : 'scale(0.97)',
+              transform: 'scale(0.97)',
             },
             '&:focus-visible': {
               outline: `2px solid ${theme.palette.getContrastText(brand)}`,
