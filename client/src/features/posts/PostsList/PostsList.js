@@ -1,7 +1,8 @@
 import { useGetPostsQuery } from "../postsApiSlice";
-import { useGetCategoriesQuery, useGetCitiesQuery } from "../../dependencies/dependenciesApiSlice";
+import { useGetCategoriesQuery, useGetCitiesQuery, useGetflOptionsQuery } from "../../dependencies/dependenciesApiSlice";
 import { useTranslation } from "../../../utils/translations";
 import Post from "./Post";
+import CategoryPickerField from "../../../components/CategoryPickerField";
 import useTitle from "../../../hooks/useTitle";
 import { ErrorState } from "../../../components/LoadingStates";
 import PostsListSkeleton from "./PostsListSkeleton";
@@ -17,8 +18,9 @@ import {
   Language,
   LocationOn,
   TuneRounded as FilterIcon,
-  CategoryOutlined as CategoryIcon,
   CloseRounded as CloseIcon,
+  TaskAltOutlined,
+  SearchOffOutlined,
 } from "@mui/icons-material";
 import {
   Button,
@@ -126,6 +128,11 @@ const PostsList = () => {
   const [viewMode, setViewMode] = useState("grid");
   const [localCategoryFilter, setLocalCategoryFilter] = useState("all");
   const [selectedCategories, setSelectedCategories] = useState([]); // Multiple categories filter
+  // Type (Found/Lost) filter - seeded from ?fl= the same way initialSearchTerm
+  // is, so a direct link (e.g. the navbar's found/lost links) lands with the
+  // right tab already selected in the panel, not just in the query.
+  const initialFlFilter = new URLSearchParams(window.location.search).get('fl') || "";
+  const [selectedFl, setSelectedFl] = useState(initialFlFilter);
   // Mobile/tablet filters open as a Dialog rather than an inline collapsible
   // panel - picks are staged in draft state below and only take effect (and
   // re-run the posts query) when the user presses Apply, so browsing the
@@ -134,6 +141,7 @@ const PostsList = () => {
   const [draftLocalCategoryFilter, setDraftLocalCategoryFilter] = useState("all");
   const [draftSelectedCategories, setDraftSelectedCategories] = useState([]);
   const [draftSelectedCity, setDraftSelectedCity] = useState(null);
+  const [draftSelectedFl, setDraftSelectedFl] = useState("");
   // Real rendered height of the fixed navbar, measured rather than guessed -
   // it differs by breakpoint (and can shift with font loading/i18n string
   // length), and the filter bar has to sit flush under it with no dead gap.
@@ -261,6 +269,18 @@ const PostsList = () => {
     refetchOnMountOrArgChange: 500, // 500ms debounce
   });
 
+  // Get found/lost options for the Type filter tab - same source NewPostForm
+  // reads, so the ids sent to the posts query match the ones the server
+  // actually stores (rather than the hardcoded ids NavLinks.jsx carries).
+  const { data: flOptionsData } = useGetflOptionsQuery({
+    language: currentLanguage
+  }, {
+    selectFromResult: ({ data }) => ({
+      data: data?.ids?.map((id) => data?.entities[id]) || [],
+    }),
+    refetchOnMountOrArgChange: 500,
+  });
+
   // Get all cached cities for current country (for showing when focused)
   const allCachedCitiesForCountry = useMemo(() => {
     if (!currentCountry) {
@@ -380,10 +400,20 @@ const PostsList = () => {
     return combined;
   }, [filteredCachedCities, citiesData]);
 
+  // Type (Found/Lost) filter is driven by selectedFl (the panel's own state),
+  // not urlFilter directly - this effect is what keeps it in sync whenever
+  // the URL's fl param changes from outside the panel (e.g. the navbar's
+  // found/lost links), the same way the mobile filter dialog stages its own
+  // draft before applying.
+  useEffect(() => {
+    setSelectedFl(urlFilter || '');
+    setPage(1);
+  }, [urlFilter]);
+
   // Memoize effectiveFl computation
   const effectiveFl = useMemo(() => {
-    return urlFilter || '';
-  }, [urlFilter]);
+    return selectedFl || '';
+  }, [selectedFl]);
 
   // Helper function to get city display name - prioritize current language
   // Match the Admin Panel logic: use labels directly, not pre-computed label
@@ -582,14 +612,24 @@ const PostsList = () => {
     setPage(1);
   }, []);
 
-  const handleCategoriesFilter = useCallback((event, newValue) => {
-    const categoryIds = newValue.map(cat => cat.id || cat._id || cat);
+  // CategoryPickerField (the same component NewPostForm's StepItem uses)
+  // hands back a plain array of category ids directly, unlike the Autocomplete
+  // it replaced here - no event/newValue to unwrap.
+  const handleCategoriesFilter = useCallback((categoryIds) => {
     setSelectedCategories(categoryIds);
-    // Clear single category filter when using multiple categories
-    if (categoryIds.length > 0) {
-      setLocalCategoryFilter("all");
-    }
+    setLocalCategoryFilter("all");
     setPage(1);
+  }, []);
+
+  // Type (Found/Lost) filter - flId is a floptions _id, or "" for "All".
+  const handleTypeFilter = useCallback((flId) => {
+    setSelectedFl(flId);
+    setPage(1);
+  }, []);
+
+  const handleClearTypeFilter = useCallback(() => {
+    setSelectedFl("");
+    smoothScrollToTop();
   }, []);
 
   // Shared by the live (desktop) and draft (mobile dialog) city selection
@@ -739,17 +779,23 @@ const PostsList = () => {
   }, []);
 
   // Draft twin of handleCategoriesFilter for the mobile filter dialog.
-  const handleDraftCategoriesFilter = useCallback((event, newValue) => {
-    const categoryIds = newValue.map(cat => cat.id || cat._id || cat);
+  const handleDraftCategoriesFilter = useCallback((categoryIds) => {
     setDraftSelectedCategories(categoryIds);
-    if (categoryIds.length > 0) {
-      setDraftLocalCategoryFilter("all");
-    }
+    setDraftLocalCategoryFilter("all");
+  }, []);
+
+  // Draft twin of handleTypeFilter for the mobile filter dialog.
+  const handleDraftTypeFilter = useCallback((flId) => {
+    setDraftSelectedFl(flId);
   }, []);
 
   const handleClearDraftCategoryFilter = useCallback(() => {
     setDraftLocalCategoryFilter("all");
     setDraftSelectedCategories([]);
+  }, []);
+
+  const handleClearDraftTypeFilter = useCallback(() => {
+    setDraftSelectedFl("");
   }, []);
 
   const handleClearDraftCityFilter = useCallback(() => {
@@ -765,9 +811,10 @@ const PostsList = () => {
     setDraftLocalCategoryFilter(localCategoryFilter);
     setDraftSelectedCategories(selectedCategories);
     setDraftSelectedCity(selectedCity);
+    setDraftSelectedFl(selectedFl);
     setCitySearchTerm(selectedCity ? getCityDisplayName(selectedCity) : "");
     setFilterDialogOpen(true);
-  }, [localCategoryFilter, selectedCategories, selectedCity, getCityDisplayName]);
+  }, [localCategoryFilter, selectedCategories, selectedCity, selectedFl, getCityDisplayName]);
 
   const handleCloseFilterDialog = useCallback(() => {
     setFilterDialogOpen(false);
@@ -776,12 +823,14 @@ const PostsList = () => {
   const handleResetDraftFilters = useCallback(() => {
     handleClearDraftCategoryFilter();
     handleClearDraftCityFilter();
-  }, [handleClearDraftCategoryFilter, handleClearDraftCityFilter]);
+    handleClearDraftTypeFilter();
+  }, [handleClearDraftCategoryFilter, handleClearDraftCityFilter, handleClearDraftTypeFilter]);
 
   const handleApplyFilters = useCallback(() => {
     setLocalCategoryFilter(draftLocalCategoryFilter);
     setSelectedCategories(draftSelectedCategories);
     setSelectedCity(draftSelectedCity);
+    setSelectedFl(draftSelectedFl);
     setCitySearchTerm(draftSelectedCity ? getCityDisplayName(draftSelectedCity) : "");
     setPage(1);
     setFilterDialogOpen(false);
@@ -791,7 +840,7 @@ const PostsList = () => {
     // real scroller is #dash-scroll-container, not window, so this has to go
     // through smoothScrollToTop rather than window.scrollTo.
     smoothScrollToTop();
-  }, [draftLocalCategoryFilter, draftSelectedCategories, draftSelectedCity, getCityDisplayName]);
+  }, [draftLocalCategoryFilter, draftSelectedCategories, draftSelectedCity, draftSelectedFl, getCityDisplayName]);
 
   const handleAddNewPost = useCallback(() => {
     if (!user.username) {
@@ -811,14 +860,14 @@ const PostsList = () => {
 
   // Check if we have active filters
   const hasActiveFilters = useMemo(() => {
-    return searchTerm || localCategoryFilter !== "all" || selectedCategories.length > 0 || selectedCity || sortBy !== "newest";
-  }, [searchTerm, localCategoryFilter, selectedCategories, selectedCity, sortBy]);
+    return searchTerm || localCategoryFilter !== "all" || selectedCategories.length > 0 || selectedCity || selectedFl || sortBy !== "newest";
+  }, [searchTerm, localCategoryFilter, selectedCategories, selectedCity, selectedFl, sortBy]);
 
   // Same check against the mobile dialog's staged (not-yet-applied) picks -
   // gates the dialog's own "Reset" button.
   const hasDraftFilters = useMemo(() => {
-    return draftLocalCategoryFilter !== "all" || draftSelectedCategories.length > 0 || draftSelectedCity;
-  }, [draftLocalCategoryFilter, draftSelectedCategories, draftSelectedCity]);
+    return draftLocalCategoryFilter !== "all" || draftSelectedCategories.length > 0 || draftSelectedCity || draftSelectedFl;
+  }, [draftLocalCategoryFilter, draftSelectedCategories, draftSelectedCity, draftSelectedFl]);
 
   // Get posts from API response (already filtered by country and found/lost)
   const filteredPosts = useMemo(() => {
@@ -826,23 +875,25 @@ const PostsList = () => {
     return data.postsWithUser;
   }, [data?.postsWithUser]);
 
-  // Memoize category options for the select dropdown
-  const categoryOptions = useMemo(() => {
-    return categoriesData?.map((category) => ({
-      id: category._id,
-      label: category.labels?.[currentLanguage] || category.code,
-      value: category._id
-    })) || [];
-  }, [categoriesData, currentLanguage]);
-
   // Memoize active filter chips data
   const activeFilterChips = useMemo(() => {
     const chips = [];
-    
+
     if (searchTerm) {
       chips.push({
         label: `Search: ${searchTerm}`,
         onDelete: handleClearSearch,
+      });
+    }
+
+    if (selectedFl) {
+      const flOption = flOptionsData?.find(opt => opt.id === selectedFl);
+      const typeLabel = flOption?.code === 'LOST' ? t('lost')
+        : flOption?.code === 'FOUND' ? t('found')
+        : flOption?.labels?.[currentLanguage] || flOption?.code || selectedFl;
+      chips.push({
+        label: `${t('filterType')}: ${typeLabel}`,
+        onDelete: handleClearTypeFilter,
       });
     }
 
@@ -881,7 +932,7 @@ const PostsList = () => {
     }
     
     return chips;
-  }, [searchTerm, selectedCity, localCategoryFilter, sortBy, categoriesData, currentLanguage, t, getCityDisplayName, handleClearSearch, handleClearCategoryFilter, handleClearCityFilter, handleClearSort]);
+  }, [searchTerm, selectedFl, flOptionsData, selectedCity, localCategoryFilter, selectedCategories, sortBy, categoriesData, currentLanguage, t, getCityDisplayName, handleClearSearch, handleClearTypeFilter, handleClearCategoryFilter, handleClearCityFilter, handleClearSort]);
 
   let content;
 
@@ -986,10 +1037,24 @@ const PostsList = () => {
       marginInlineEnd: 1,
     };
     const handleClearAllFilters = () => {
+      handleClearTypeFilter();
       handleClearCategoryFilter();
       handleClearCityFilter();
       handleClearSort();
       handleClearSearch();
+    };
+    // Small caption above a filter control - CategoryPickerField and the Type
+    // pills carry no built-in label the way an Autocomplete/TextField's own
+    // `label` prop did, so this keeps every section in the panel headed the
+    // same way.
+    const filterSectionLabelSx = {
+      display: 'block',
+      mb: 1,
+      fontWeight: 700,
+      fontSize: '0.72rem',
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+      color: alpha(theme.custom.color.ink, isDark ? 0.6 : 0.5),
     };
     // Falls back to the old approximate values only for the very first paint
     // before the navbar's real height has been measured.
@@ -1001,77 +1066,96 @@ const PostsList = () => {
     // promoted to applied state on Apply). Only one of the two layouts is
     // ever returned per render (isDesktop picks the branch), so building
     // both sets of nodes unconditionally here is harmless. ----
-    const renderCategoryFilterField = (activeCategories, activeSingleCategory, onCategoriesChange) => (
-      <Autocomplete
-        multiple
-        fullWidth
-        options={categoryOptions || []}
-        getOptionLabel={(option) => {
-          if (typeof option === 'string') {
-            const cat = categoryOptions.find(c => c.id === option || c.value === option);
-            return cat?.label || option;
-          }
-          return option.label || option.id || '';
-        }}
-        value={activeCategories.length > 0
-          ? categoryOptions.filter(cat => activeCategories.includes(cat.id || cat.value))
-          : (activeSingleCategory !== "all"
-              ? categoryOptions.filter(cat => (cat.id || cat.value) === activeSingleCategory)
-              : [])
-        }
-        onChange={onCategoriesChange}
-        isOptionEqualToValue={(option, value) => {
-          const optionId = option.id || option.value;
-          const valueId = value.id || value.value;
-          return optionId === valueId;
-        }}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label={t('category')}
-            placeholder={activeCategories.length === 0
-              ? (currentLanguage === 'ar' ? 'اختر الفئات...' : currentLanguage === 'fr' ? 'Sélectionner les catégories...' : 'Select categories...')
-              : ''
-            }
-            InputProps={{
-              ...params.InputProps,
-              startAdornment: (
-                <>
-                  <Box sx={filterFieldIconBadgeSx}>
-                    <CategoryIcon sx={{ fontSize: 15, color: brand }} />
-                  </Box>
-                  {params.InputProps.startAdornment}
-                </>
-              ),
-            }}
+    // Type (Found/Lost) filter - a small pill row rather than a dropdown,
+    // reusing the exact icon/tone vocabulary NewPostForm's StepItem uses for
+    // the same choice (status.found/status.lost tint-plus-solid-text, the
+    // TaskAltOutlined/SearchOffOutlined pair) so "Found"/"Lost" reads the
+    // same way whether you're posting or browsing.
+    const renderTypeFilterField = (activeFlId, onSelectType) => {
+      const typeOptions = [
+        { id: '', label: t('all'), code: null },
+        ...((flOptionsData || [])
+          .slice()
+          .sort((a, b) => (a.code === 'FOUND' ? -1 : b.code === 'FOUND' ? 1 : 0))
+          .map((option) => ({
+            id: option.id,
+            code: option.code,
+            label: option.code === 'LOST' ? t('lost') : option.code === 'FOUND' ? t('found') : (option.labels?.[currentLanguage] || option.code),
+          }))
+        ),
+      ];
+      return (
+        <Box>
+          <Typography variant="caption" sx={filterSectionLabelSx}>
+            {t('filterType')}
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {typeOptions.map((option) => {
+              const selected = activeFlId === option.id;
+              const tone = option.code === 'LOST'
+                ? theme.custom.status.lost
+                : option.code === 'FOUND'
+                  ? theme.custom.status.found
+                  : null;
+              const Icon = option.code === 'LOST' ? SearchOffOutlined : option.code === 'FOUND' ? TaskAltOutlined : null;
+              const selectedBg = tone ? tone.main : brand;
+              const idleBg = tone ? tone.bg : alpha(brand, isDark ? 0.14 : 0.07);
+              const idleColor = tone ? tone.main : brand;
+              return (
+                <Box
+                  key={option.id || 'all'}
+                  component="button"
+                  type="button"
+                  onClick={() => onSelectType(option.id)}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.6,
+                    border: 'none',
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    px: 1.5,
+                    py: 0.75,
+                    borderRadius: '999px',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    backgroundColor: selected ? selectedBg : idleBg,
+                    color: selected ? theme.palette.getContrastText(selectedBg) : idleColor,
+                    transition: 'background-color 0.15s ease, color 0.15s ease',
+                  }}
+                >
+                  {Icon && <Icon sx={{ fontSize: 16 }} />}
+                  {option.label}
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
+      );
+    };
+
+    // Category filter - the same CategoryPickerField NewPostForm's StepItem
+    // uses (a tappable field opening a searchable checklist), replacing the
+    // free-typing Autocomplete this used to be, so categories look and behave
+    // identically whether you're creating a listing or filtering the list.
+    const renderCategoryFilterField = (activeCategories, activeSingleCategory, onCategoriesChange) => {
+      const activeValue = activeCategories.length > 0
+        ? activeCategories
+        : (activeSingleCategory !== "all" ? [activeSingleCategory] : []);
+      return (
+        <Box>
+          <Typography variant="caption" sx={filterSectionLabelSx}>
+            {t('category')}
+          </Typography>
+          <CategoryPickerField
+            categories={categoriesData}
+            value={activeValue}
+            onChange={onCategoriesChange}
+            dataTestId="postsListCategoryFilter"
           />
-        )}
-        renderTags={(value, getTagProps) =>
-          value.map((option, index) => {
-            const { key, ...tagProps } = getTagProps({ index });
-            return (
-              <Chip
-                key={key}
-                label={option.label || option.id}
-                {...tagProps}
-                size="small"
-                sx={{
-                  borderRadius: '999px',
-                  backgroundColor: alpha(brand, isDark ? 0.18 : 0.1),
-                  color: brand,
-                  fontWeight: 600,
-                  '& .MuiChip-deleteIcon': {
-                    color: alpha(brand, 0.7),
-                    '&:hover': { color: brand },
-                  },
-                }}
-              />
-            );
-          })
-        }
-        sx={filterFieldSx}
-      />
-    );
+        </Box>
+      );
+    };
 
     const renderCityFilterField = (activeCity, onCityChangeHandler, onCityInputChangeHandler) => (
       <Autocomplete
@@ -1250,11 +1334,13 @@ const PostsList = () => {
 
     // Live (applied) nodes - used by the desktop sidebar, which has no
     // Apply step and edits the real filter state directly.
+    const typeFilterNode = renderTypeFilterField(selectedFl, handleTypeFilter);
     const categoryFilterNode = renderCategoryFilterField(selectedCategories, localCategoryFilter, handleCategoriesFilter);
     const cityFilterNode = renderCityFilterField(selectedCity, handleCityChange, handleCityInputChange);
     const cityNotFoundNode = renderCityNotFoundNode(selectedCity);
 
     // Draft (staged) nodes - used inside the mobile filter dialog.
+    const draftTypeFilterNode = renderTypeFilterField(draftSelectedFl, handleDraftTypeFilter);
     const draftCategoryFilterNode = renderCategoryFilterField(draftSelectedCategories, draftLocalCategoryFilter, handleDraftCategoriesFilter);
     const draftCityFilterNode = renderCityFilterField(draftSelectedCity, handleDraftCityChange, handleDraftCityInputChange);
     const draftCityNotFoundNode = renderCityNotFoundNode(draftSelectedCity);
@@ -1589,6 +1675,7 @@ const PostsList = () => {
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              {typeFilterNode}
               {categoryFilterNode}
               {cityFilterNode}
               {cityNotFoundNode}
@@ -1783,6 +1870,7 @@ const PostsList = () => {
 
           <DialogContent sx={{ px: 3, py: 0.5 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, py: 1.5 }}>
+              {draftTypeFilterNode}
               {draftCategoryFilterNode}
               {draftCityFilterNode}
               {draftCityNotFoundNode}
