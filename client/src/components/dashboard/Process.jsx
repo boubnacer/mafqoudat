@@ -49,8 +49,10 @@ const STAGE = {
   META_START: 628, // the STEP / numeral column, likewise
   META_W: 192,
   META_TOP: 26,
-  TITLE_FS: 23,
-  BODY_FS: 15,
+  // TITLE_FS is gone: the pill used to carry a title line above the
+  // description; now it carries only the description, so BODY_FS gets the
+  // room the title used to take, bumped from 15 to 17.
+  BODY_FS: 17,
   STEP_FS: 48,
   NUM_FS: 104,
   CAP: 150, // how far the trail runs past the first and last ring
@@ -104,8 +106,10 @@ const HSTAGE = {
   RING_GAP_UP: 51, // ring centre to the pill's top edge below it
   RING_RISE: 209, // between the upper and the lower ring line
   META_GAP: 56, // ring centre to the near edge of the STEP / numeral block
-  TITLE_FS: 17,
-  BODY_FS: 13,
+  // TITLE_FS is gone: the pill used to carry a title line above the
+  // description; now it carries only the description, so BODY_FS gets the
+  // room the title used to take, bumped from 13 to 15.
+  BODY_FS: 15,
   STEP_FS: 35,
   NUM_FS: 76,
   // The trail's two end tails run outward from the outer rings and rise only
@@ -299,10 +303,13 @@ const Process = () => {
   // where the deepest ramp stop would fall under 3:1 in dark mode.
   const onPanel = (color) => (isDark ? lighten(color, 0.3) : color);
 
+  // The pill used to carry both a short title and a longer description under
+  // it; now it carries only the (former) description, so each step states
+  // what actually happens instead of naming it and then explaining it twice.
   const processSteps = [
-    { icon: "share", text: t("shareToOurSocials"), description: t("shareToOurSocialsDesc"), color: ramp[0] },
-    { icon: "ad", text: t("makeAdvertising"), description: t("makeAdvertisingDesc"), color: ramp[1] },
-    { icon: "notif", text: t("wellNotifyYou"), description: t("wellNotifyYouDesc"), color: ramp[2] },
+    { icon: "share", text: t("shareToOurSocialsDesc"), color: ramp[0] },
+    { icon: "ad", text: t("makeAdvertisingDesc"), color: ramp[1] },
+    { icon: "notif", text: t("wellNotifyYouDesc"), color: ramp[2] },
   ];
 
   // The stage's height and its trail both come from the step count, so adding a
@@ -661,31 +668,18 @@ const Process = () => {
                 }}
               >
                 <Typography
-                  variant="h6"
-                  fontWeight={700}
-                  sx={{
-                    fontFamily: theme.custom.font.display,
-                    fontSize: HSTAGE.TITLE_FS,
-                    lineHeight: 1.25,
-                    mb: 0.625,
-                    color: pillText,
-                    ...alignText("center"),
-                  }}
-                >
-                  {step.text}
-                </Typography>
-                <Typography
-                  variant="body2"
+                  variant="body1"
+                  fontWeight={600}
                   sx={{
                     fontFamily: theme.custom.font.body,
                     fontSize: HSTAGE.BODY_FS,
                     lineHeight: 1.45,
-                    color: alpha(pillText, 0.92),
+                    color: pillText,
                     textWrap: "pretty",
-                    ...alignText("start"),
+                    ...alignText("center"),
                   }}
                 >
-                  {step.description}
+                  {step.text}
                 </Typography>
               </Box>
 
@@ -839,31 +833,18 @@ const Process = () => {
                 }}
               >
                 <Typography
-                  variant="h6"
-                  fontWeight={700}
-                  sx={{
-                    fontFamily: theme.custom.font.display,
-                    fontSize: STAGE.TITLE_FS,
-                    lineHeight: 1.25,
-                    mb: 0.875,
-                    color: pillText,
-                    ...alignText("center"),
-                  }}
-                >
-                  {step.text}
-                </Typography>
-                <Typography
-                  variant="body2"
+                  variant="body1"
+                  fontWeight={600}
                   sx={{
                     fontFamily: theme.custom.font.body,
                     fontSize: STAGE.BODY_FS,
                     lineHeight: 1.5,
-                    color: alpha(pillText, 0.92),
+                    color: pillText,
                     textWrap: "pretty",
-                    ...alignText("start"),
+                    ...alignText("center"),
                   }}
                 >
-                  {step.description}
+                  {step.text}
                 </Typography>
               </Box>
 
