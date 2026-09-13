@@ -964,8 +964,21 @@ const Process = () => {
             it has always had (the zig-zag is one fixed 820x916 composition,
             and an uncapped panel renders the full-size artwork, dwarfing the
             three-sentence copy inside it). xs/sm are narrower than that cap in
-            practice, so the mobile view is exactly what it was. */}
-        <Box ref={hostRef} sx={{ width: "100%" }}>
+            practice, so the mobile view is exactly what it was.
+
+            On xs it also bleeds 2rem into the card's own padding (leaving a
+            small gutter rather than cancelling it outright, so the pills'
+            rounded ends don't crowd the card's own rounded corner): `scale`
+            is one number, read straight off this element's measured width,
+            driving pill/disc/notch/ring/text together, so widening what
+            gets measured makes the whole composition — text included — a
+            little bigger, without touching any of the font-size-to-pill-
+            height ratios that keep the longest (French) description from
+            overflowing its fixed-height box. The negative margin only
+            shifts position, not the declared width, so it stays centered
+            while bleeding evenly on both sides; the card's own
+            `overflow: hidden` clips it at the corner regardless. */}
+        <Box ref={hostRef} sx={{ width: { xs: "calc(100% + 2rem)", sm: "100%" }, mx: { xs: "-1rem", sm: 0 } }}>
           {useWide ? (
             renderWideStage()
           ) : (
