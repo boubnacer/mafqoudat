@@ -2,14 +2,12 @@ import { useMemo, useState } from "react";
 import {
   Box,
   Typography,
-  TextField,
   Chip,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   IconButton,
-  InputAdornment,
   List,
   ListItemButton,
   ListItemIcon,
@@ -21,7 +19,6 @@ import {
 } from "@mui/material";
 import {
   Close as CloseIcon,
-  Search as SearchIcon,
   ExpandMore as ExpandMoreIcon,
   LocalOfferOutlined,
 } from "@mui/icons-material";
@@ -42,7 +39,6 @@ const CategoryPickerField = ({ categories, value, onChange, error, errorText, da
   const theme = useTheme();
   const { t, currentLanguage } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
   const [draftIds, setDraftIds] = useState([]);
 
   const selectedIds = useMemo(() => (Array.isArray(value) ? value.map(String) : []), [value]);
@@ -53,17 +49,9 @@ const CategoryPickerField = ({ categories, value, onChange, error, errorText, da
 
   const handleOpen = () => {
     setDraftIds(selectedIds);
-    setQuery("");
     setOpen(true);
   };
   const handleClose = () => setOpen(false);
-
-  const filteredCategories = useMemo(() => {
-    const list = categories || [];
-    const q = query.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter((cat) => getCategoryLabel(cat, currentLanguage).toLowerCase().includes(q));
-  }, [categories, query, currentLanguage]);
 
   const toggleDraftId = (id) => {
     setDraftIds((prev) => {
@@ -201,39 +189,8 @@ const CategoryPickerField = ({ categories, value, onChange, error, errorText, da
         </DialogTitle>
 
         <DialogContent sx={{ pt: 1 }}>
-          <TextField
-            fullWidth
-            size="small"
-            autoFocus
-            placeholder={t("searchCategories")}
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" sx={{ color: theme.palette.text.secondary }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              mb: 1,
-              // This app's legacy palette.primary is white in light mode / dark
-              // grey in dark mode (see theme.js), so the default focus border
-              // needs an explicit brand color override, same as elsewhere in
-              // this codebase's outlined TextFields.
-              "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                borderColor: theme.custom.color.brandPrimary,
-              },
-            }}
-          />
-
           <List sx={{ maxHeight: 360, overflowY: "auto" }}>
-            {filteredCategories.length === 0 && (
-              <Typography variant="body2" sx={{ textAlign: "center", color: theme.palette.text.secondary, py: 4 }}>
-                {t("noSearchResults")}
-              </Typography>
-            )}
-            {filteredCategories.map((cat) => {
+            {(categories || []).map((cat) => {
               const id = getCategoryId(cat);
               const checked = draftIds.includes(id);
               const Icon = cat.code ? getCategoryIcon(cat.code) : LocalOfferOutlined;

@@ -285,7 +285,10 @@ const PostsList = () => {
   // Type (Found/Lost) dropdown options - "All" plus whatever the floptions
   // collection has, each carrying the same tone/icon StepItem's foundLost
   // picker uses, so TypePickerField can render its list items without any
-  // per-option branching of its own.
+  // per-option branching of its own. Labels use their own typeFilterLost/
+  // typeFilterFound keys rather than the shared lost/found keys (which
+  // render every status tag app-wide) - this is the one surface asking for
+  // different Arabic wording ("مفقودات"/"موجودات") without touching those.
   const typeOptions = useMemo(() => {
     const allOption = { id: '', code: null, label: t('all'), tone: null, icon: null };
     const sortedFlOptions = (flOptionsData || [])
@@ -297,7 +300,7 @@ const PostsList = () => {
       return {
         id: option.id,
         code: option.code,
-        label: isLost ? t('lost') : isFound ? t('found') : (option.labels?.[currentLanguage] || option.code),
+        label: isLost ? t('typeFilterLost') : isFound ? t('typeFilterFound') : (option.labels?.[currentLanguage] || option.code),
         tone: isLost ? theme.custom.status.lost : isFound ? theme.custom.status.found : null,
         icon: isLost ? SearchOffOutlined : isFound ? TaskAltOutlined : null,
       };
@@ -911,12 +914,9 @@ const PostsList = () => {
     }
 
     if (selectedFl) {
-      const flOption = flOptionsData?.find(opt => opt.id === selectedFl);
-      const typeLabel = flOption?.code === 'LOST' ? t('lost')
-        : flOption?.code === 'FOUND' ? t('found')
-        : flOption?.labels?.[currentLanguage] || flOption?.code || selectedFl;
+      const typeOption = typeOptions.find(opt => opt.id === selectedFl);
       chips.push({
-        label: `${t('filterType')}: ${typeLabel}`,
+        label: `${t('filterType')}: ${typeOption?.label || selectedFl}`,
         onDelete: handleClearTypeFilter,
       });
     }
@@ -956,7 +956,7 @@ const PostsList = () => {
     }
     
     return chips;
-  }, [searchTerm, selectedFl, flOptionsData, selectedCity, localCategoryFilter, selectedCategories, sortBy, categoriesData, currentLanguage, t, getCityDisplayName, handleClearSearch, handleClearTypeFilter, handleClearCategoryFilter, handleClearCityFilter, handleClearSort]);
+  }, [searchTerm, selectedFl, typeOptions, selectedCity, localCategoryFilter, selectedCategories, sortBy, categoriesData, currentLanguage, t, getCityDisplayName, handleClearSearch, handleClearTypeFilter, handleClearCategoryFilter, handleClearCityFilter, handleClearSort]);
 
   let content;
 
@@ -1887,12 +1887,14 @@ const PostsList = () => {
         {mainArea}
 
         {/* Floating filter launcher - the pop-up trigger itself. Docked to
-            the start edge of the viewport right under the navbar, like a tab
-            sliding in from off-screen: flush (no radius) on the edge it
-            touches, rounded only on the protruding side. Fixed rather than
-            in-flow so it stays reachable while scrolling, and mirrors as a
-            unit in RTL via inset/border-radius logical properties rather
-            than a hand-picked side. */}
+            the start edge of the viewport, like a tab sliding in from
+            off-screen: flush (no radius) on the edge it touches, rounded
+            only on the protruding side. Fixed rather than in-flow so it
+            stays reachable while scrolling, and mirrors as a unit in RTL via
+            inset/border-radius logical properties rather than a hand-picked
+            side. In RTL, it sits vertically centered on the edge rather than
+            pinned under the navbar - top-left read as crowding the navbar's
+            own controls in Arabic. */}
         <Box
           component="button"
           type="button"
@@ -1902,7 +1904,8 @@ const PostsList = () => {
           sx={{
             position: 'fixed',
             insetInlineStart: 0,
-            top: `${navbarClearance + 12}px`,
+            top: theme.direction === 'rtl' ? '50%' : `${navbarClearance + 12}px`,
+            transform: theme.direction === 'rtl' ? 'translateY(-50%)' : 'none',
             zIndex: (t) => t.zIndex.appBar,
             display: 'flex',
             alignItems: 'center',
@@ -1921,7 +1924,7 @@ const PostsList = () => {
             boxShadow: `0 10px 28px ${alpha(brand, 0.45)}, 0 2px 10px ${alpha('#000000', isDark ? 0.45 : 0.18)}`,
             transition: 'transform 0.15s ease, box-shadow 0.15s ease',
             '&:active': {
-              transform: 'scale(0.97)',
+              transform: theme.direction === 'rtl' ? 'translateY(-50%) scale(0.97)' : 'scale(0.97)',
             },
             '&:focus-visible': {
               outline: `2px solid ${theme.palette.getContrastText(brand)}`,
