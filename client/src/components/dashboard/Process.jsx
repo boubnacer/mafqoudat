@@ -416,29 +416,90 @@ const Process = () => {
 
     mm.add("(prefers-reduced-motion: no-preference)", () => {
       const q = gsap.utils.selector(rootRef);
+      const header = q(".processHeader");
       const cards = q(".processCard");
-      const nodes = q(".processNode");
       const trail = q(".processTrail");
       const social = q(".processSocial");
       const scroller = resolveScroller(rootRef.current);
 
       try {
-        gsap.set(cards, { autoAlpha: 0, y: 24 });
-        gsap.set(nodes, { scale: 0 });
+        gsap.set(header, { autoAlpha: 0, y: 16 });
+        gsap.set(cards, { autoAlpha: 0, y: 28 });
+        gsap.set(q(".processNode"), { scale: 0 });
+        gsap.set(q(".processDisc"), { scale: 0 });
         gsap.set(social, { autoAlpha: 0, y: 16 });
         if (trail.length) gsap.set(trail, { autoAlpha: 0 });
 
-        const tl = gsap.timeline({
-          scrollTrigger: { trigger: rootRef.current, scroller, start: "top 80%", once: true },
+        gsap.to(header, {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.5,
+          clearProps: "transform",
+          scrollTrigger: { trigger: rootRef.current, scroller, start: "top 85%", once: true },
         });
 
-        tl.to(cards, { autoAlpha: 1, y: 0, duration: 0.55, stagger: 0.12, clearProps: "transform" })
-          .to(nodes, { scale: 1, duration: 0.5, ease: "back.out(1.8)", stagger: 0.12, clearProps: "transform" }, "<0.1")
-          .to(trail, { autoAlpha: 1, duration: 0.6 }, "<")
-          .to(social, { autoAlpha: 1, y: 0, duration: 0.5, clearProps: "transform" }, "-=0.2");
+        if (trail.length) {
+          gsap.to(trail, {
+            autoAlpha: 1,
+            duration: 0.7,
+            scrollTrigger: { trigger: trail[0], scroller, start: "top 88%", once: true },
+          });
+        }
+
+        // Each pill pops as IT crosses the viewport threshold, not the moment
+        // the section itself does — ScrollTrigger.batch groups triggers that
+        // fire close together and stands the rest apart. The wide desktop
+        // stage's three pills share one scroll position (side by side), so
+        // they land in one batch and stagger as a group; the narrow/mobile
+        // zig-zag stage spreads them down the page, so each pops on its own
+        // as the visitor actually scrolls to it instead of every step below
+        // the fold animating up front.
+        ScrollTrigger.batch(cards, {
+          scroller,
+          start: "top 85%",
+          once: true,
+          onEnter: (batch) => {
+            const pop = (selector) => batch.map((card) => card.querySelector(selector)).filter(Boolean);
+
+            gsap.to(batch, {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.6,
+              stagger: 0.15,
+              ease: "power3.out",
+              clearProps: "transform",
+            });
+            gsap.to(pop(".processDisc"), {
+              scale: 1,
+              duration: 0.55,
+              stagger: 0.15,
+              delay: 0.12,
+              ease: "back.out(1.9)",
+              clearProps: "transform",
+            });
+            gsap.to(pop(".processNode"), {
+              scale: 1,
+              duration: 0.5,
+              stagger: 0.15,
+              delay: 0.18,
+              ease: "back.out(1.9)",
+              clearProps: "transform",
+            });
+          },
+        });
+
+        gsap.to(social, {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.5,
+          clearProps: "transform",
+          scrollTrigger: { trigger: social[0] || rootRef.current, scroller, start: "top 92%", once: true },
+        });
       } catch (error) {
         console.error("Process motion failed to initialise:", error);
-        gsap.set([...cards, ...nodes, ...trail, ...social], { clearProps: "all" });
+        gsap.set([...header, ...cards, ...q(".processNode"), ...q(".processDisc"), ...trail, ...social], {
+          clearProps: "all",
+        });
       }
 
       const raf = requestAnimationFrame(() => ScrollTrigger.refresh());
@@ -579,6 +640,7 @@ const Process = () => {
               </Box>
 
               <Box
+                className="processDisc"
                 sx={{
                   ...disc(step.color, HSTAGE.DISC, false, { x: 5, y: 9, blur: 19 }),
                   insetInlineStart: pillStart + HSTAGE.DISC_CX - HSTAGE.DISC / 2,
@@ -744,6 +806,7 @@ const Process = () => {
               </Box>
 
               <Box
+                className="processDisc"
                 sx={{
                   ...disc(step.color, STAGE.DISC, !lead, { x: 7, y: 12, blur: 24 }),
                   insetInlineStart: discStart,
@@ -802,7 +865,7 @@ const Process = () => {
       }}
     >
       <Box sx={{ position: "relative", zIndex: 1 }}>
-        <Box sx={{ maxWidth: useWide ? 760 : 560, mx: "auto", mb: { xs: 2, md: 2 }, ...alignText("center") }}>
+        <Box className="processHeader" sx={{ maxWidth: useWide ? 760 : 560, mx: "auto", mb: { xs: 2, md: 2 }, ...alignText("center") }}>
           <Typography
             variant="overline"
             sx={{ display: "block", fontWeight: 600, letterSpacing: 1, color: alpha(ink, 0.6) }}
