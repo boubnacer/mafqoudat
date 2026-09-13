@@ -207,18 +207,15 @@ const CategoryTags = ({ items }) => (
 );
 
 // No-image state only: the category icon sits on a soft frosted circle
-// (translucent surfaceRaised, blurred) instead of a solid-fill pill, with
-// the category name as plain text underneath it — same "frosted circle
-// reads against any hue" trick mobile's category bento cards use
-// (mobile/src/screens/HomeScreen.js Phase 15), needed here because the icon
-// and label take the category's own color directly on top of that same
-// color's tinted backdrop. The on-image corner badge (CategoryTags) still
-// carries this when there's a photo; it would be redundant stacked next to
-// this icon+label treatment, so it only renders when there's no photo to
-// pin it to instead.
+// (translucent surfaceRaised, blurred), with the category name underneath
+// it as the same translucent chip (CategoryChip) used by the on-image
+// corner badge - a plain colored label with a halo text-shadow used to sit
+// here instead, which read as text, not a badge. The corner badge
+// (CategoryTags) still carries this when there's a photo; it would
+// duplicate this icon+label treatment stacked next to it, so it only
+// renders when there's no photo to pin it to instead.
 const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) => {
   const theme = useTheme();
-  const haloColor = alpha(theme.custom.color.surfaceRaised, 0.9);
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
       <Box
@@ -235,19 +232,7 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
       >
         <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />
       </Box>
-      <Typography
-        variant="body2"
-        sx={{
-          fontWeight: 700,
-          letterSpacing: 0.5,
-          textTransform: 'uppercase',
-          color,
-          textAlign: 'center',
-          textShadow: `-1px 0 ${haloColor}, 1px 0 ${haloColor}, 0 -1px ${haloColor}, 0 1px ${haloColor}, 0 0 6px ${haloColor}`,
-        }}
-      >
-        {label}
-      </Typography>
+      <CategoryChip tone={{ main: color }} label={label} />
     </Box>
   );
 };
@@ -959,7 +944,7 @@ const SinglePostPage = ({
                 icon={foundLostStatus.isFound ? TaskAltOutlined : SearchOffOutlined}
                 label={foundLostStatus.statusText}
               />
-              <CategoryTags items={categoryBadges} />
+              {image && <CategoryTags items={categoryBadges} />}
 
               {image && imageUrl ? (
                 <LazyCardMedia
