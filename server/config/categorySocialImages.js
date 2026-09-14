@@ -37,8 +37,14 @@ const CATEGORY_SOCIAL_IMAGE_CODES = new Set([
   'SPORTS',
   'TOYS',
   'CAMERAS',
+  'CHARGERS',
+  'UMBRELLAS',
+  'BICYCLES',
   'MONEY',
   'PERSON',
+  'MEDICAL',
+  'BABY',
+  'MUSIC',
   'OTHER',
 ]);
 

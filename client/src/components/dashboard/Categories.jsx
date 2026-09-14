@@ -1,7 +1,7 @@
 import { Box, Typography, useTheme, Grid, Card, CardContent, useMediaQuery, Button, alpha } from "@mui/material";
 import { useGetCategoriesQuery } from "../../features/dependencies/dependenciesApiSlice";
 import SkeletonBlock from "../SkeletonBlock";
-import { getCategoryIcon, getCategoryColor } from "../../config/categories";
+import { getCategoryIcon, getCategoryColor, sortCategoriesForBrowse } from "../../config/categories";
 import { useTranslation } from "../../utils/translations";
 import { useLanguage } from "../../utils/languageContext";
 import { useNavigate } from "react-router-dom";
@@ -79,10 +79,11 @@ const Categories = () => {
     );
   }
 
-  const hasMoreCategories = (categories?.length || 0) > CATEGORY_COLLAPSED_SMALL_COUNT;
+  const orderedCategories = sortCategoriesForBrowse(categories);
+  const hasMoreCategories = orderedCategories.length > CATEGORY_COLLAPSED_SMALL_COUNT;
   const visibleCategories = showAllCategories
-    ? categories
-    : (categories || []).slice(0, CATEGORY_COLLAPSED_SMALL_COUNT);
+    ? orderedCategories
+    : orderedCategories.slice(0, CATEGORY_COLLAPSED_SMALL_COUNT);
 
   return (
     <Box sx={{ py: 4 }}>

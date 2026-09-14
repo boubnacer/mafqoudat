@@ -12,7 +12,13 @@ import {
   CameraAltOutlined,
   PersonSearchOutlined,
   MoreHorizOutlined,
-  AccountBalanceWalletOutlined
+  AccountBalanceWalletOutlined,
+  CableOutlined,
+  UmbrellaOutlined,
+  PedalBikeOutlined,
+  MedicalServicesOutlined,
+  ChildFriendlyOutlined,
+  MusicNoteOutlined
 } from '@mui/icons-material';
 
 import BusinessCenterOutlinedIcon from '@mui/icons-material/BusinessCenterOutlined';
@@ -111,7 +117,30 @@ const JewelryIcon = ({ sx, ...props }) => (
   </svg>
 );
 
-// Category configuration with Material UI icons - Optimized for Lost & Found
+/**
+ * Category configuration - Optimized for Lost & Found.
+ *
+ * `color` is the category's accent: the icon itself everywhere, and the tint
+ * every surface washes behind it (`alpha(color, .12)` on web cards,
+ * `${color}1F`/`${color}33` on mobile's bento grid). `backgroundColor` is that
+ * same accent at 12% over white, kept as a literal for the older surfaces that
+ * read it directly - it is light-mode only, which is why newer work derives its
+ * own tint from `color` instead (see Phase 17's note in CLAUDE.md).
+ *
+ * Every accent is distinct: no two are nearer than ~11 CIEDE2000, which is what
+ * keeps two categories from reading as the same colour at a 20px icon. Several
+ * pairs used to share a hex outright (jewelry/headphones, clothing/sports/money,
+ * keys/toys) and two more were a step apart on one Material ramp. So the
+ * accents are a measured set, not a per-category pick: changing one means
+ * re-checking it against the other twenty-four, not just liking it on its own.
+ *
+ * `code` is the contract - the DB (server/models/Category.js) stores the same
+ * strings, and getCategoryConfig falls back to OTHER's grey for anything not
+ * listed here, so a category added to the DB alone renders as "other" with no
+ * error anywhere. mobile/src/config/categories.js mirrors this file 1:1 with
+ * Ionicons names, and server/config/categorySocialImages.js lists the codes a
+ * social card was generated for.
+ */
 export const CATEGORY_CONFIG = {
   ELECTRONICS: {
     icon: PhoneAndroidOutlined,
@@ -126,21 +155,21 @@ export const CATEGORY_CONFIG = {
     priority: 2
   },
   JEWELRY: {
-    icon: JewelryIcon,  // Changed from DiamondOutlinedIcon
+    icon: JewelryIcon,
     color: '#9C27B0',
-    backgroundColor: '#F3E5F5',
+    backgroundColor: '#F3E5F6',
     priority: 3
   },
   CLOTHING: {
     icon: CheckroomOutlined,
     color: '#4CAF50',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#EAF5EA',
     priority: 4
   },
   PETS: {
     icon: PetsOutlined,
     color: '#FF6B6B',
-    backgroundColor: '#FFEBEE',
+    backgroundColor: '#FFEDED',
     priority: 5
   },
   VEHICLES: {
@@ -150,82 +179,119 @@ export const CATEGORY_CONFIG = {
     priority: 6
   },
   KEYS: {
-    icon: KeysIcon,  // Changed from KeyOutlined
-    color: '#FF9800',
-    backgroundColor: '#FFF3E0',
+    icon: KeysIcon,
+    color: '#FB8C00',
+    backgroundColor: '#FFF1E0',
     priority: 7
   },
   WALLET: {
-    icon: AccountBalanceWalletOutlined,  // Changed from AccountBalanceWalletOutlined
-    color: '#FF5722',
-    backgroundColor: '#FBE9E7',
+    icon: AccountBalanceWalletOutlined,
+    color: '#BF360C',
+    backgroundColor: '#F7E7E2',
     priority: 8
   },
   BAGS: {
     icon: BusinessCenterOutlinedIcon,
-    color: '#8D6E63',
-    backgroundColor: '#EFEBE9',
+    color: '#827717',
+    backgroundColor: '#F0EFE3',
     priority: 9
   },
   WATCHES: {
     icon: WatchOutlined,
     color: '#2196F3',
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#E4F2FE',
     priority: 10
   },
   GLASSES: {
-    icon: GlassesIcon,  // Changed from RemoveRedEyeOutlined
+    icon: GlassesIcon,
     color: '#3F51B5',
     backgroundColor: '#E8EAF6',
     priority: 11
   },
   HEADPHONES: {
     icon: HeadphonesOutlined,
-    color: '#9C27B0',
-    backgroundColor: '#F3E5F5',
+    color: '#7E57C2',
+    backgroundColor: '#F0EBF8',
     priority: 12
   },
   BOOKS: {
     icon: MenuBookOutlined,
     color: '#5E35B1',
-    backgroundColor: '#EDE7F6',
+    backgroundColor: '#ECE7F6',
     priority: 13
   },
   SPORTS: {
     icon: SportsSoccerOutlined,
-    color: '#4CAF50',
-    backgroundColor: '#E8F5E9',
+    color: '#8BC34A',
+    backgroundColor: '#F1F8E9',
     priority: 14
   },
   TOYS: {
     icon: ToysOutlined,
-    color: '#FF9800',
-    backgroundColor: '#FFF3E0',
+    color: '#AFB42B',
+    backgroundColor: '#F5F6E6',
     priority: 15
   },
   CAMERAS: {
     icon: CameraAltOutlined,
-    color: '#00897B',
-    backgroundColor: '#E0F2F1',
+    color: '#0097A7',
+    backgroundColor: '#E0F3F4',
     priority: 16
   },
+  CHARGERS: {
+    icon: CableOutlined,
+    color: '#455A64',
+    backgroundColor: '#E9EBEC',
+    priority: 17
+  },
+  UMBRELLAS: {
+    icon: UmbrellaOutlined,
+    color: '#0277BD',
+    backgroundColor: '#E1EFF7',
+    priority: 18
+  },
+  BICYCLES: {
+    icon: PedalBikeOutlined,
+    color: '#009966',
+    backgroundColor: '#E0F3ED',
+    priority: 19
+  },
   MONEY: {
-    icon: MoneyIcon,  // Changed from AttachMoneyOutlined
-    color: '#4CAF50',
-    backgroundColor: '#E8F5E9',
+    icon: MoneyIcon,
+    color: '#2E7D32',
+    backgroundColor: '#E6EFE6',
     priority: 20
   },
   PERSON: {
     icon: PersonSearchOutlined,
     color: '#F44336',
-    backgroundColor: '#FFEBEE',
+    backgroundColor: '#FEE8E7',
     priority: 21
   },
+  MEDICAL: {
+    icon: MedicalServicesOutlined,
+    color: '#C2185B',
+    backgroundColor: '#F8E3EB',
+    priority: 23
+  },
+  BABY: {
+    icon: ChildFriendlyOutlined,
+    color: '#EC407A',
+    backgroundColor: '#FDE8EF',
+    priority: 24
+  },
+  MUSIC: {
+    icon: MusicNoteOutlined,
+    color: '#009688',
+    backgroundColor: '#E0F2F1',
+    priority: 25
+  },
+  // Always last: the catch-all a listing lands in when nothing above fits.
   OTHER: {
     icon: MoreHorizOutlined,
     color: '#9E9E9E',
-    backgroundColor: '#F5F5F5',
-    priority: 22
+    backgroundColor: '#F3F3F3',
+    priority: 99
   }
 };
 
@@ -250,6 +316,23 @@ export const getCategoryColor = (code) => {
 export const getCategoryBackgroundColor = (code) => {
   const config = getCategoryConfig(code);
   return config.backgroundColor;
+};
+
+/**
+ * Order for the "Browse by category" grids (dashboard web + mobile), which show
+ * only their first few tiles before a "show all" toggle.
+ *
+ * The categories API sorts alphabetically by the English label. That is right
+ * for a picker someone scans by name, and wrong here: alphabetically the first
+ * four tiles are Baby, Bag, Bicycle and Book, so the grid leads with the rarest
+ * things on the site and hides the ones people actually lose. This file's own
+ * priority is what those tiles follow instead. A code this file does not know
+ * sorts last with OTHER, and ties keep the API's alphabetical order.
+ */
+export const sortCategoriesForBrowse = (categories = []) => {
+  return [...categories].sort(
+    (a, b) => getCategoryConfig(a?.code).priority - getCategoryConfig(b?.code).priority
+  );
 };
 
 // Get all category codes
