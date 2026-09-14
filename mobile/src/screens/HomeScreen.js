@@ -16,7 +16,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import { useDashboardData } from '../hooks/useDashboardData';
-import { getCategoryConfig } from '../config/categories';
+import { getCategoryConfig, sortCategoriesForBrowse } from '../config/categories';
 import { API_BASE_URL } from '../config/api';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
@@ -473,7 +473,7 @@ const CategoryBentoGrid = ({ categories, currentLanguage, t, styles, tokens, isD
 
   if (!categories || categories.length === 0) return null;
 
-  const [featuredCategory, ...rest] = categories;
+  const [featuredCategory, ...rest] = sortCategoriesForBrowse(categories);
   const hasMore = rest.length > CATEGORY_COLLAPSED_SMALL_COUNT;
   const visibleSmall = expanded ? rest : rest.slice(0, CATEGORY_COLLAPSED_SMALL_COUNT);
   const rows = chunkPairs(visibleSmall);

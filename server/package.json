@@ -9,6 +9,7 @@
     "seed": "node scripts/seedData.js",
     "migrate": "node scripts/migrateData.js",
     "updateCountries": "node scripts/updateCountriesWithNames.js",
+    "sync-categories": "node scripts/sync-categories.js",
     "test": "node test-server.js",
     "test-matching": "node scripts/testMatchingScorer.js",
     "test-push": "node scripts/testPushNotifications.js",

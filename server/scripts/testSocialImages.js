@@ -235,6 +235,21 @@ async function run() {
     orphans.length ? `${orphans.join(', ')} missing from config/categorySocialImages.js` : `${files.length} files`,
   );
 
+  // The third direction. The two above hold this file and the assets together;
+  // this one holds them to the app. A category the client can draw but no card
+  // was generated for still publishes - with the generic "no image available"
+  // placeholder, on a listing whose category we knew all along.
+  const clientConfig = fs.readFileSync(path.resolve(__dirname, '../../client/src/config/categories.js'), 'utf8');
+  const drawnCodes = [...clientConfig.matchAll(/^ {2}(\w+):\s*\{$/gm)].map(([, code]) => code);
+  checkThat('the client category config was parsed', drawnCodes.length > 0, `${drawnCodes.length} codes`);
+
+  const undrawn = drawnCodes.filter((code) => !CATEGORY_SOCIAL_IMAGE_CODES.has(code));
+  checkThat(
+    'every category the app draws has a card of its own',
+    undrawn.length === 0,
+    undrawn.length ? `${undrawn.join(', ')} would publish the generic placeholder` : `${drawnCodes.length} codes`,
+  );
+
   console.log('\n-- the graphics Instagram will accept --');
   // Meta fetches these URLs itself. A PNG, a stray aspect ratio or a file
   // over its size cap is not a degraded post - the media container fails and
