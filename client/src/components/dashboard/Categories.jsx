@@ -1,4 +1,4 @@
-import { Box, Typography, useTheme, Grid, Card, CardContent, useMediaQuery, Button, alpha } from "@mui/material";
+import { Box, Typography, useTheme, Card, CardContent, useMediaQuery, Button, alpha } from "@mui/material";
 import { useGetCategoriesQuery } from "../../features/dependencies/dependenciesApiSlice";
 import SkeletonBlock from "../SkeletonBlock";
 import { getCategoryIcon, getCategoryColor, sortCategoriesForBrowse } from "../../config/categories";
@@ -10,16 +10,19 @@ import { useRef, useState } from "react";
 import { gsap, useGSAP } from "../../utils/gsapSetup";
 
 const CATEGORY_COLLAPSED_SMALL_COUNT = 4;
+const CATEGORY_COLLAPSED_DESKTOP_COUNT = 5;
 
 const Categories = () => {
   const { currentLanguage } = useLanguage();
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const isDark = theme.palette.mode === 'dark';
   const { t } = useTranslation();
   const [showAllCategories, setShowAllCategories] = useState(false);
   const gridRef = useRef(null);
+  const collapsedCount = isDesktop ? CATEGORY_COLLAPSED_DESKTOP_COUNT : CATEGORY_COLLAPSED_SMALL_COUNT;
 
   // Dash.js's reveal choreography (useDashboardMotion) staggers the cards
   // that exist when this section first scrolls into view. The ones "show all"
@@ -29,14 +32,14 @@ const Categories = () => {
     () => {
       if (!showAllCategories || !gridRef.current) return;
       const cards = gsap.utils.toArray(gridRef.current.querySelectorAll("[data-reveal-item]"));
-      const added = cards.slice(CATEGORY_COLLAPSED_SMALL_COUNT);
+      const added = cards.slice(collapsedCount);
       if (!added.length) return;
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         gsap.from(added, { autoAlpha: 0, y: 20, duration: 0.5, stagger: 0.06 });
       });
     },
-    { scope: gridRef, dependencies: [showAllCategories], revertOnUpdate: true }
+    { scope: gridRef, dependencies: [showAllCategories, collapsedCount], revertOnUpdate: true }
   );
   
   const { categories, isLoading, isFetching } = useGetCategoriesQuery({
@@ -65,30 +68,42 @@ const Categories = () => {
   if (!categories || isLoading || isFetching) {
     return (
       <Box sx={{ py: 4 }}>
-        <Grid container spacing={isMobile ? 2 : 3} justifyContent="center">
-          {Array.from({ length: CATEGORY_COLLAPSED_SMALL_COUNT }).map((_, i) => (
-            <Grid item xs={6} sm={6} md={3} key={i}>
-              <SkeletonBlock
-                radius={theme.custom.radius.lg}
-                sx={{ height: { xs: 120, sm: 135 } }}
-              />
-            </Grid>
+        <Box
+          sx={{
+            display: 'grid',
+            gap: isMobile ? 2 : 3,
+            gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' },
+          }}
+        >
+          {Array.from({ length: collapsedCount }).map((_, i) => (
+            <SkeletonBlock
+              key={i}
+              radius={theme.custom.radius.lg}
+              sx={{ height: { xs: 120, sm: 135 } }}
+            />
           ))}
-        </Grid>
+        </Box>
       </Box>
     );
   }
 
   const orderedCategories = sortCategoriesForBrowse(categories);
-  const hasMoreCategories = orderedCategories.length > CATEGORY_COLLAPSED_SMALL_COUNT;
+  const hasMoreCategories = orderedCategories.length > collapsedCount;
   const visibleCategories = showAllCategories
     ? orderedCategories
-    : orderedCategories.slice(0, CATEGORY_COLLAPSED_SMALL_COUNT);
+    : orderedCategories.slice(0, collapsedCount);
 
   return (
     <Box sx={{ py: 4 }}>
       <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
-        <Grid container spacing={2} ref={gridRef}>
+        <Box
+          ref={gridRef}
+          sx={{
+            display: 'grid',
+            gap: 2,
+            gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' },
+          }}
+        >
           {visibleCategories.map(({ _id, code, labels }) => {
             const IconComponent = getCategoryIcon(code);
             const iconColor = getCategoryColor(code);
@@ -97,7 +112,7 @@ const Categories = () => {
             const label = labels[currentLanguage] || labels.en;
 
             return (
-              <Grid item xs={6} sm={6} md={3} key={_id}>
+              <Box key={_id}>
                 <Box data-reveal-item="" sx={{ height: '100%' }}>
                   <Card
                     onClick={() => handleCategoryClick(_id)}
@@ -140,8 +155,9 @@ const Categories = () => {
                         p: { xs: 2.5, sm: 3 },
                         display: 'flex',
                         flexDirection: 'column',
-                        alignItems: 'flex-start',
-                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
                         height: '100%',
                       }}
                     >
@@ -172,6 +188,7 @@ const Categories = () => {
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: 'vertical',
                           overflow: 'hidden',
+                          textAlign: 'center',
                           fontSize: { xs: '13px', sm: '14px' },
                         }}
                       >
@@ -180,10 +197,10 @@ const Categories = () => {
                     </CardContent>
                   </Card>
                 </Box>
-              </Grid>
+              </Box>
             );
           })}
-        </Grid>
+        </Box>
       </Box>
 
       {hasMoreCategories && (
