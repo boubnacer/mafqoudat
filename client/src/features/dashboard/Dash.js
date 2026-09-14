@@ -131,6 +131,24 @@ const Dash = () => {
   // Mirrors LeftSide's panel chrome (theme.custom elevation/radius/ink)
   // instead of the old hardcoded-hex panel. Shared between the empty-state
   // and normal render paths below so the two never drift.
+  // Shared divider between homepage sections — same treatment for every
+  // gap on the page (header/RecentSection/QuickActions/Categories/Process/
+  // HelpSupport) rather than a one-off between just two of them.
+  const sectionDivider = (
+    <Box
+      data-reveal="divider"
+      mx={{ xs: 2, sm: 3, md: 4 }}
+      mb={4}
+      sx={{
+        height: 2,
+        background: theme.palette.mode === 'dark'
+          ? 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)'
+          : 'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
+        borderRadius: 1
+      }}
+    />
+  );
+
   const categoriesSection = (
     <Box mb={4} data-reveal="section">
       <DashRecents
@@ -390,25 +408,34 @@ const Dash = () => {
 
       {/* Show empty state if no posts, but still show stats above */}
       {hasNoData && (
-        <Box mb={4} data-reveal="section">
-          <DashboardEmptyStates.NoPosts 
-            country={currentCountry} 
-            countriesData={countriesData}
-            onCreatePost={handleCreateNewPost} 
-          />
-        </Box>
+        <>
+          {sectionDivider}
+          <Box mb={4} data-reveal="section">
+            <DashboardEmptyStates.NoPosts
+              country={currentCountry}
+              countriesData={countriesData}
+              onCreatePost={handleCreateNewPost}
+            />
+          </Box>
+        </>
       )}
 
       {/* Show Categories and Process sections when there are no posts */}
       {hasNoData && (
         <>
+          {sectionDivider}
+
           {/* Categories Section - Show when no posts */}
           {categoriesSection}
+
+          {sectionDivider}
 
           {/* Process Section - Show when no posts */}
           <Box mb={4} mx={{ xs: 1, sm: 2 }}>
             <Process />
           </Box>
+
+          {sectionDivider}
 
           {/* Help &Support Section - Show when no posts */}
           <Box mb={4} data-reveal="section">
@@ -420,19 +447,7 @@ const Dash = () => {
       {/* Only show content sections if there are posts */}
       {!hasNoData && (
         <>
-          {/* Section Divider */}
-          <Box 
-            data-reveal="divider"
-            mx={{ xs: 2, sm: 3, md: 4 }} 
-            mb={4}
-            sx={{
-              height: 2,
-              background: theme.palette.mode === 'dark'
-                ? 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)'
-                : 'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
-              borderRadius: 1
-            }}
-          />
+          {sectionDivider}
 
           {/* Recent Founds / Recent Losts - paired panels, side by side on
               desktop, stacked on mobile. Rendered together whenever the
@@ -466,25 +481,17 @@ const Dash = () => {
             />
           </Box>
 
-          {/* Section Divider */}
-          <Box 
-            data-reveal="divider"
-            mx={{ xs: 2, sm: 3, md: 4 }} 
-            mb={4}
-            sx={{
-              height: 2,
-              background: theme.palette.mode === 'dark'
-                ? 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)'
-                : 'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
-              borderRadius: 1
-            }}
-          />
+          {sectionDivider}
 
           {/* Quick Actions */}
           <QuickActions />
 
+          {sectionDivider}
+
           {/* Categories Section */}
           {categoriesSection}
+
+          {sectionDivider}
 
           {/* Process Section — deliberately not marked: Process runs its
               own local GSAP reveal, and a second one on the same nodes
@@ -492,6 +499,8 @@ const Dash = () => {
           <Box mb={4} mx={{ xs: 1, sm: 2 }}>
             <Process />
           </Box>
+
+          {sectionDivider}
 
           {/*  Help &Support Section */}
           <Box mb={4} data-reveal="section">
