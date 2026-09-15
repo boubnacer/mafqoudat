@@ -150,10 +150,11 @@ const CountrySelectionScreen = ({ navigation }) => {
   };
 
   const renderCountry = ({ item }) => {
-    const isSelected = selectedCountry?._id === item._id || 
-                      selectedCountry?.id === item.id ||
-                      selectedCountry === item._id ||
-                      selectedCountry === item.id;
+    // countryController.js projects `_id` with no `id` virtual, so both sides of
+    // an `.id` comparison are always undefined - that clause used to match every
+    // row instead of just the selected one.
+    const isSelected = selectedCountry?._id === item._id ||
+                      selectedCountry === item._id;
     
     return (
       <TouchableOpacity

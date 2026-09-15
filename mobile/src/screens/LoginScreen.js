@@ -152,7 +152,10 @@ const LoginScreen = ({ navigation }) => {
         setError(t('invalidCredentials'));
       }
     } catch (err) {
-      console.error('Login error:', err);
+      // Logging the whole AxiosError puts err.config.data - this form's
+      // emailOrPhone/password body - into release logcat (transform-remove-console
+      // keeps console.error in production, see babel.config.js).
+      console.error('Login error:', err.message, err.response?.status);
 
       // server/controllers/authcontroller.js rejects a password login on a
       // Google-only account with this exact code (400), before ever getting to
@@ -193,7 +196,7 @@ const LoginScreen = ({ navigation }) => {
         navigation.navigate('CountrySelection');
       } else if (!result.cancelled) {
         console.error('❌ Google sign in failed:', result.error);
-        setError(result.error || t('oauthError'));
+        setError(result.code === 'ACCOUNT_INACTIVE' ? t('accountInactive') : (result.error || t('oauthError')));
       }
     } catch (err) {
       console.error('Google login error:', err);
