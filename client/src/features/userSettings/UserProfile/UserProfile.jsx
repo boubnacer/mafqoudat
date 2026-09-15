@@ -84,10 +84,12 @@ const UserProfile = () => {
     country: '',
     firstName: '',
     lastName: '',
+    currentPassword: '',
     password: '',
     confirmPassword: '',
   });
 
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
@@ -103,6 +105,7 @@ const UserProfile = () => {
         country: user.country?._id || user.country || '',
         firstName: user.profile?.firstName || '',
         lastName: user.profile?.lastName || '',
+        currentPassword: '',
         password: '',
         confirmPassword: '',
       });
@@ -113,7 +116,7 @@ const UserProfile = () => {
   useEffect(() => {
     if (isSuccess) {
       setIsEditing(false);
-      setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
+      setFormData(prev => ({ ...prev, currentPassword: '', password: '', confirmPassword: '' }));
       setShowSuccessSnackbar(true); // Show success snackbar
       
       // Refetch user data and update localStorage
@@ -160,8 +163,11 @@ const UserProfile = () => {
     }
 
     if (formData.password) {
-      if (formData.password.length < 6) {
-        errors.password = t('passwordTooShort') || 'Password must be at least 6 characters';
+      if (!formData.currentPassword) {
+        errors.currentPassword = t('currentPasswordRequired') || 'Current password is required';
+      }
+      if (formData.password.length < 8 || !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+        errors.password = t('passwordTooShort') || 'Password must be at least 8 characters and include a lowercase letter, an uppercase letter, and a number';
       }
       if (formData.password !== formData.confirmPassword) {
         errors.confirmPassword = t('passwordsDoNotMatch') || 'Passwords do not match';
@@ -190,6 +196,7 @@ const UserProfile = () => {
     // Only include password if it was entered
     if (formData.password) {
       updateData.password = formData.password;
+      updateData.currentPassword = formData.currentPassword;
     }
 
     // Store the old country to check if it changed
@@ -224,6 +231,7 @@ const UserProfile = () => {
         country: user.country?._id || user.country || '',
         firstName: user.profile?.firstName || '',
         lastName: user.profile?.lastName || '',
+        currentPassword: '',
         password: '',
         confirmPassword: '',
       });
@@ -568,6 +576,45 @@ const UserProfile = () => {
                             {t('changePassword')} ({t('optional') || 'Optional'})
                           </Typography>
                         </Divider>
+                      </Grid>
+
+                      {/* Current Password - required to change it, since a valid
+                          access token alone must not be enough to lock the real
+                          owner out of their own account. */}
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label={t('currentPassword')}
+                          name="currentPassword"
+                          type={showCurrentPassword ? 'text' : 'password'}
+                          value={formData.currentPassword}
+                          onChange={handleChange}
+                          error={Boolean(validationErrors.currentPassword)}
+                          helperText={validationErrors.currentPassword}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <Lock />
+                              </InputAdornment>
+                            ),
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <IconButton
+                                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                  aria-label={showCurrentPassword ? t('hidePassword') : t('showPassword')}
+                                  edge="end"
+                                >
+                                  {showCurrentPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                              </InputAdornment>
+                            ),
+                          }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                            }
+                          }}
+                        />
                       </Grid>
 
                       {/* New Password */}

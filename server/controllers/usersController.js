@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const User = require("../models/User");
 const Post = require("../models/Post");
+const Comment = require("../models/Comment");
 const bcrypt = require("bcrypt");
 const Country = require("../models/Country");
 const Notification = require("../models/Notification");
@@ -11,17 +12,50 @@ const PasswordResetRequest = require("../models/PasswordResetRequest");
 const { deleteFromCloudinary } = require("../config/cloudinary");
 const { deleteSocialImage } = require("../services/socialImageService");
 const { cacheService } = require("../config/cache");
-const { issueSession, setRefreshCookie } = require("../utils/authSession");
+const {
+  issueSession,
+  setRefreshCookie,
+  readRefreshToken,
+  clearRefreshCookie,
+} = require("../utils/authSession");
+const { revokeRefreshSession } = require("../services/tokenStore");
+const { blacklistToken } = require("../middleware/jwtSecurity");
+const { validatePassword } = require("../config/passwordPolicy");
 const { logEvents } = require("../middleware/logger");
 
 // @desc Get all users
 // @route GET /users
 // @access Private
+// This queue's own account list on the free-tier cluster the admin console's
+// System page monitors, so it cannot be left to scan and $lookup the whole
+// collection forever as the user base grows. page/limit are optional so the
+// response shape (a plain array) never changes for the existing caller
+// (client's userSettings/usersApiSlice.js, which .map()s the body directly);
+// a request with no params simply gets the first DEFAULT_LIMIT accounts,
+// newest first, instead of everyone.
+const USERS_PAGE_DEFAULT_LIMIT = 200;
+const USERS_PAGE_MAX_LIMIT = 500;
+
 const getAllUsers = async (req, res) => {
   try {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const requestedLimit = parseInt(req.query.limit, 10);
+    const limit = Math.min(
+      Number.isFinite(requestedLimit) && requestedLimit > 0
+        ? requestedLimit
+        : USERS_PAGE_DEFAULT_LIMIT,
+      USERS_PAGE_MAX_LIMIT
+    );
+    const skip = (page - 1) * limit;
+
     // OPTIMIZED: Use aggregation with $lookup to avoid N+1 queries
-    // Handle null/invalid country references gracefully
+    // Handle null/invalid country references gracefully. $skip/$limit run
+    // before $lookup so the join never runs against more documents than the
+    // page actually needs.
     const usersWithCountry = await User.aggregate([
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
       {
         $lookup: {
           from: "countries",
@@ -111,6 +145,14 @@ const createNewUser = async (req, res) => {
   // Confirm data
   if (!username || !password || !country) {
     return res.status(400).json({ message: "All fields are required" });
+  }
+
+  // The only real gate: see config/passwordPolicy.js for why this can't be
+  // the schema's minlength, and why /auth/register's express-validator rule
+  // alone isn't enough (this is the /users route, which runs none).
+  const passwordPolicyError = validatePassword(password);
+  if (passwordPolicyError) {
+    return res.status(400).json({ message: passwordPolicyError, code: 'WEAK_PASSWORD' });
   }
 
   // Determine if username is email or phone (accept any non-empty input)
@@ -220,7 +262,7 @@ const createNewUser = async (req, res) => {
 // @access Private
 const updateUser = async (req, res) => {
   try {
-    const { id, username, password, country, email, phone, firstName, lastName } = req.body;
+    const { id, username, password, currentPassword, country, email, phone, firstName, lastName } = req.body;
 
     // Confirm data
     if (!id || !username || !country) {
@@ -303,17 +345,51 @@ const updateUser = async (req, res) => {
 
     // Only update password if provided AND user is not a Google OAuth user
     // Google OAuth users don't have passwords, so we should only set password for local auth users
+    let passwordChanged = false;
     if (password) {
+      const passwordPolicyError = validatePassword(password);
+      if (passwordPolicyError) {
+        return res.status(400).json({ message: passwordPolicyError, code: 'WEAK_PASSWORD' });
+      }
+
+      // A user who already has a password (every local-auth account, and any
+      // OAuth account that previously linked one) must prove they hold it
+      // before it can be replaced - otherwise a stolen access token alone is
+      // enough to lock the real owner out for good, with nothing to enter to
+      // get back in. An OAuth user setting a password for the very first time
+      // has nothing to verify against, so that case is unchanged.
+      if (user.password) {
+        if (!currentPassword) {
+          return res.status(400).json({
+            message: "Current password is required to change your password",
+            code: 'CURRENT_PASSWORD_REQUIRED',
+          });
+        }
+        const currentPasswordMatches = await bcrypt.compare(currentPassword, user.password);
+        if (!currentPasswordMatches) {
+          return res.status(401).json({
+            message: "Current password is incorrect",
+            code: 'CURRENT_PASSWORD_INVALID',
+          });
+        }
+      }
+
       // For Google OAuth users, allow setting a password (linking local auth)
       // For local auth users, update the password
       user.password = await bcrypt.hash(password, 12); // salt rounds
+      // Read by /auth/refresh (authcontroller.js) to reject every
+      // refresh/legacy-bootstrap session issued before this moment - the
+      // mechanism that actually revokes every other outstanding session, not
+      // just the one making this request.
+      user.passwordChangedAt = new Date();
+      passwordChanged = true;
     }
 
     const updatedUser = await user.save();
-    
+
     let response = { message: `${updatedUser.username} updated` };
-    
-    if (usernameChanged || countryChanged) {
+
+    if (usernameChanged || countryChanged || passwordChanged) {
       // issueSession, not generateTokens: every other credential-minting call
       // site (login, register, the three OAuth flows, /auth/refresh) goes
       // through it, and it is what pairs the access token with a refresh
@@ -504,6 +580,20 @@ const purgeUserData = async (user) => {
     ],
   });
 
+  // Comments this user wrote anywhere on the site, and the threads on their
+  // own posts (which are about to disappear below) - both would otherwise
+  // dangle: the first pointing at a user that no longer exists (renders as a
+  // permanently unattributed comment nobody can remove, per
+  // getPostComments' $lookup), the second at a post that no longer exists,
+  // exactly the orphaning admin single-listing deletion already guards
+  // against for the reverse case.
+  await Comment.deleteMany({
+    $or: [
+      { user: userId },
+      ...(postIds.length > 0 ? [{ post: { $in: postIds } }] : []),
+    ],
+  });
+
   const { deletedCount: deletedPosts = 0 } = await Post.deleteMany({ user: userId });
 
   // Matches that survived (both posts belonged to other people) keep their
@@ -576,6 +666,20 @@ const deleteMyAccount = async (req, res) => {
 
     const username = user.username;
     const { deletedPosts } = await purgeUserData(user);
+
+    // The account is gone - the credentials that got this request in the
+    // door must not keep working against an account that no longer exists.
+    // verifyJWT never loads the user from the database, so without this the
+    // access token that just deleted the account keeps authenticating (and
+    // populating req.user) until it naturally expires.
+    if (req.tokenId) {
+      await blacklistToken(req.tokenId, req.tokenExpiresAt ? req.tokenExpiresAt * 1000 : null);
+    }
+    const providedRefreshToken = readRefreshToken(req);
+    if (providedRefreshToken) {
+      await revokeRefreshSession(providedRefreshToken);
+    }
+    clearRefreshCookie(res);
 
     logEvents(
       `Account self-deleted: ${username} (${deletedPosts} posts removed)\t${req.method}\t${req.url}\t${req.ip}`,
