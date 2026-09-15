@@ -7,15 +7,20 @@
  * this overlay unmounts; if it hasn't, the same 503 re-arrives and nothing changes.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView } from 'react-native';
 import apiClient from '../api/apiService';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
+import { lightColors, darkColors } from '../theme/tokens';
 import { useTranslation } from '../utils/translations';
 
 const MaintenanceOverlay = ({ message, estimatedReturn }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
+  const { isDark } = useTheme();
+  const colors = isDark ? darkColors : lightColors;
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const isRTL = currentLanguage === 'ar';
   const [isRetrying, setIsRetrying] = useState(false);
 
@@ -55,10 +60,10 @@ const MaintenanceOverlay = ({ message, estimatedReturn }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -69,20 +74,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.textPrimary,
     marginBottom: 12,
     textAlign: 'center',
   },
   message: {
     fontSize: 15,
-    color: '#666',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 8,
   },
   estimatedReturn: {
     fontSize: 13,
-    color: '#999',
+    color: colors.placeholder,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -94,7 +99,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 8,
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
     minWidth: 140,
     alignItems: 'center',
   },

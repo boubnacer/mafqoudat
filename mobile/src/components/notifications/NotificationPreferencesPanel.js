@@ -122,7 +122,12 @@ const NotificationPreferencesPanel = () => {
   const emailDisabled = !hasEmail || !matchAlerts;
   const pushSupported = pushPermission !== 'unsupported';
   const pushBlocked = pushPermission === 'blocked';
-  const pushDisabled = !matchAlerts || pushBlocked;
+  // pushAlerts is the account-level master over every push kind (match,
+  // comment, social) - server/services/commentNotificationService.js and
+  // socialPublishNotificationService.js gate on pushAlerts alone, independent
+  // of matchAlerts. Tying this switch to matchAlerts as well made turning
+  // match alerts off block re-enabling push for comments/social too.
+  const pushDisabled = pushBlocked;
 
   // Turning the switch back on after the OS permission was never decided is the
   // natural moment to ask for it - the user has just said, in the app's own

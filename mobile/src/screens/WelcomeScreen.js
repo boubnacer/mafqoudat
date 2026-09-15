@@ -164,9 +164,14 @@ const WelcomeScreen = () => {
     'MR': { en: 'Mauritania', ar: 'موريتانيا', fr: 'Mauritanie' },
   };
 
-  // Fallback countries in case API fails
+  // Fallback shown only if /countries can't be reached. Not a real Mongo _id -
+  // a hardcoded production ObjectId here would bind the app to one specific
+  // database's row (and break the moment that row doesn't exist, e.g. a
+  // different environment). AuthContext.selectCountry recognizes this
+  // synthetic id and skips persisting it, so it never survives past this
+  // session once real country data is reachable again.
   const fallbackCountries = [
-    { _id: '68b0b774dcafb50aec949f4e', code: 'MA', label: 'Morocco', labels: { en: 'MA', ar: 'MA', fr: 'MA' }, names: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, flag: '🇲🇦', isActive: true },
+    { _id: 'fallback-ma', code: 'MA', label: 'Morocco', labels: { en: 'MA', ar: 'MA', fr: 'MA' }, names: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, flag: '🇲🇦', isActive: true },
   ];
 
   useEffect(() => {

@@ -82,6 +82,15 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
   const debounceRef = useRef(null);
   const requestIdRef = useRef(0);
 
+  // Only handleQueryChange clears the pending timer today, and only on the
+  // next keystroke - closing/unmounting the modal mid-debounce left it to
+  // fire anyway and call setSearchResults/setIsSearching after unmount.
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   useEffect(() => {
     if (!visible || !countryId) return;
     let isMounted = true;

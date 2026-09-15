@@ -7,26 +7,34 @@
  * fits that screen's layout.
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
+import { lightColors, darkColors } from '../theme/tokens';
 
-const DataStateView = ({ variant = 'empty', message, actionLabel, onAction, isRTL }) => (
-  <View style={styles.container}>
-    <Text style={[styles.message, variant === 'error' && styles.errorMessage, isRTL && styles.textRTL]}>
-      {message}
-    </Text>
-    {onAction ? (
-      <TouchableOpacity
-        style={[styles.button, variant === 'error' && styles.errorButton]}
-        onPress={onAction}
-      >
-        <Text style={styles.buttonText}>{actionLabel}</Text>
-      </TouchableOpacity>
-    ) : null}
-  </View>
-);
+const DataStateView = ({ variant = 'empty', message, actionLabel, onAction, isRTL }) => {
+  const { isDark } = useTheme();
+  const colors = isDark ? darkColors : lightColors;
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
-const styles = StyleSheet.create({
+  return (
+    <View style={styles.container}>
+      <Text style={[styles.message, variant === 'error' && styles.errorMessage, isRTL && styles.textRTL]}>
+        {message}
+      </Text>
+      {onAction ? (
+        <TouchableOpacity
+          style={[styles.button, variant === 'error' && styles.errorButton]}
+          onPress={onAction}
+        >
+          <Text style={styles.buttonText}>{actionLabel}</Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+};
+
+const createStyles = (colors) => StyleSheet.create({
   container: {
     padding: 32,
     alignItems: 'center',
@@ -34,12 +42,12 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 16,
-    color: '#999',
+    color: colors.placeholder,
     textAlign: 'center',
     marginBottom: 16,
   },
   errorMessage: {
-    color: '#c62828',
+    color: colors.danger,
   },
   textRTL: {
     textAlign: 'center',
@@ -48,10 +56,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
   },
   errorButton: {
-    backgroundColor: '#c62828',
+    backgroundColor: colors.danger,
   },
   buttonText: {
     color: '#fff',
