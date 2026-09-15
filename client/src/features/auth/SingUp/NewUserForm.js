@@ -89,8 +89,14 @@ const NewUserFormComponent = ({ countries }) => {
   const [errorCode, setErrorCode] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Validation patterns
-  const PWD_REGEX = /^[A-z0-9!@#$%]{4,12}$/;
+  // Validation patterns - mirrors the server's real policy
+  // (commonValidations.password in server/middleware/validation.js): 8-128
+  // chars, at least one lowercase, one uppercase and one digit. The previous
+  // /^[A-z0-9!@#$%]{4,12}$/ both admitted weaker passwords the server would
+  // reject (4 chars, no case/digit mix) and rejected stronger ones it would
+  // accept (anything over 12 chars, defeating password managers) - and
+  // `[A-z]` is a stray range that also matches [ \ ] ^ _ ` between 'Z' and 'a'.
+  const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,128}$/;
 
   // Retranslates automatically if the user switches language while the notice is showing
   const warningMessage = errorCode ? t(OAUTH_WARNING_MESSAGE_KEYS[errorCode]) : "";

@@ -55,6 +55,7 @@ import {
 } from "../app/state";
 import { useDispatch, useSelector } from "react-redux";
 import { useSendLogoutMutation } from "../features/auth/authApiSlice";
+import { unsubscribe as unsubscribeFromWebPush } from "../utils/webPush";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useGetCountriesQuery } from "../features/countries/countriesApiSlice";
@@ -372,6 +373,15 @@ const Navbar = () => {
   const currentCountryData = countriesToUse.find((c) => c._id === currentCountry) || countriesToUse[0];
 
   const [sendLogout, { isSuccess }] = useSendLogoutMutation();
+
+  // Unsubscribe this browser from match alerts before the server call, while
+  // the session still holds a token to authenticate the DELETE with -
+  // sendLogout's own success path only ran this on its broken fallback, so
+  // the common (successful) logout never dropped the subscription, leaving
+  // this account's alerts arriving on a computer the next person signs into.
+  const handleLogout = () => {
+    unsubscribeFromWebPush().finally(() => sendLogout());
+  };
 
   useEffect(() => {
     if (isSuccess) {
@@ -1000,7 +1010,7 @@ const Navbar = () => {
           <MenuItem
             onClick={() => {
               handleProfileClose();
-              sendLogout();
+              handleLogout();
             }}
           >
             <ListItemIcon>
@@ -1197,7 +1207,7 @@ const Navbar = () => {
               <DrawerRow
                 onClick={() => {
                   handleMobileDrawerClose();
-                  sendLogout();
+                  handleLogout();
                 }}
                 sx={{ mb: 0 }}
               >

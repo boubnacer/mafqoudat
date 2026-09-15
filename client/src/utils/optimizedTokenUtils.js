@@ -5,8 +5,10 @@ const tokenValidationCache = new Map();
 const CACHE_DURATION = 5000; // 5 seconds cache
 
 /**
- * Simplified token validation - only checks if token exists and is well-formed
- * Tokens are long-lived (30 days) so expiration checking is removed
+ * Token validation, cached briefly to avoid re-decoding on every render.
+ * Access tokens are short-lived (30 min by default, see server's
+ * JWT_ACCESS_EXPIRES_IN) and rotate on every silent refresh, so both the
+ * cache key and the result have to be per-token, not per-session.
  * @param {string} token - The JWT token to validate
  * @returns {Object} Validation result with caching
  */
@@ -15,18 +17,30 @@ export const getOptimizedTokenValidation = (token) => {
     return { isValid: false, reason: 'NO_TOKEN', decoded: null };
   }
 
-  // Check cache first
-  const cacheKey = token.substring(0, 20); // Use first 20 chars as cache key
+  // Check cache first. The full token is the key - every token this app
+  // issues is HS256, so its base64 header ("{"alg":"HS256","typ":"JWT"}")
+  // is identical across all of them, and any short shared prefix (the old
+  // first-20-chars key) collides every token together. That made this cache
+  // hand back one signed-in user's decoded payload - username, role,
+  // country - for whoever's token happened to populate the cache first
+  // within the 5s window, across a silent refresh or a second account
+  // signing in on the same tab.
+  const cacheKey = token;
   const cached = tokenValidationCache.get(cacheKey);
-  
+
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return cached.result;
   }
 
   try {
     const decoded = jwtDecode(token);
-    
-    // Token is valid if it can be decoded (no expiration checks needed)
+
+    // isValid intentionally does not check decoded.exp: this app never
+    // proactively refreshes before expiry (see useSessionBootstrap's
+    // one-shot boot refresh + apiSlice's reactive 401-triggered refresh), so
+    // gating selectIsAuthenticated on expiry here would flip an idle tab to
+    // "logged out" the moment the 30-minute access token lapses, ahead of
+    // the silent refresh that only runs off a real API call.
     const validationResult = { isValid: true, reason: 'TOKEN_VALID', decoded };
 
     // Cache the result

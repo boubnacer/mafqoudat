@@ -513,11 +513,33 @@ const PostsList = () => {
   useEffect(() => {
     if (categoriesError && !categoriesLoading) {
       console.error('Categories failed to load:', categoriesError);
-      // Try to reload after a delay
-      setTimeout(() => {
+
+      // Reload at most once per session. A sustained failure (e.g. a 429)
+      // otherwise reloads every 5s forever - each reload refetches
+      // categories, re-triggers the same error, and deepens the rate limit
+      // that caused it in the first place.
+      const RELOAD_ATTEMPTED_KEY = 'postsListCategoriesReloadAttempted';
+      let alreadyAttempted = false;
+      try {
+        alreadyAttempted = sessionStorage.getItem(RELOAD_ATTEMPTED_KEY) === 'true';
+      } catch (storageError) {
+        // Private windows/blocked storage: fall through and allow one attempt.
+      }
+
+      if (alreadyAttempted) return undefined;
+
+      const timer = setTimeout(() => {
+        try {
+          sessionStorage.setItem(RELOAD_ATTEMPTED_KEY, 'true');
+        } catch (storageError) {
+          /* best effort - worst case this reloads more than once */
+        }
         window.location.reload();
       }, 5000);
+
+      return () => clearTimeout(timer);
     }
+    return undefined;
   }, [categoriesError, categoriesLoading]);
 
   // Initialize category filter from navigation state - MOVED AFTER query hooks
