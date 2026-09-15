@@ -15,7 +15,26 @@ const userSchema = new mongoose.Schema({
       // Password is only required for local authentication
       return !this.authProvider || this.authProvider === 'local';
     },
-    minlength: 6
+    // Not the real policy gate: both write paths (usersController's
+    // createNewUser/updateUser) hash the password with bcrypt before ever
+    // assigning it here, so this validator only ever sees a 60-character
+    // hash and can never fail on a weak raw password. The actual policy is
+    // config/passwordPolicy.js, enforced in the controllers before hashing.
+    // This stays only as a floor against something assigning a raw string
+    // directly.
+    minlength: 8
+  },
+  // Set whenever the password changes (never on account creation - there is
+  // nothing to invalidate yet). authcontroller.js's /auth/refresh reads this:
+  // a refresh/legacy-bootstrap session issued before this timestamp is
+  // refused, which is what actually revokes every other outstanding session
+  // - a stolen refresh token can no longer rotate itself forever, and a
+  // stolen access token stops working the moment its own device tries to
+  // refresh (within one access-token lifetime, same propagation delay this
+  // app already accepts for a role change or a deactivation).
+  passwordChangedAt: {
+    type: Date,
+    default: null
   },
   email: {
     type: String,

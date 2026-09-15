@@ -1,6 +1,11 @@
 const { body, param, query, validationResult } = require('express-validator');
 const { logEvents } = require('./logger');
 const { FIELD_LIMITS } = require('../config/fieldLimits');
+const {
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_STRENGTH_REGEX,
+} = require('../config/passwordPolicy');
 
 const POST_LIMITS = FIELD_LIMITS.post;
 
@@ -122,11 +127,12 @@ const commonValidations = {
     .matches(/^[a-zA-Z0-9._-]+$/)
     .withMessage('Username can only contain letters, numbers, dots, underscores, and hyphens'),
   
-  // Password validation
+  // Password validation - see config/passwordPolicy.js for why the numbers
+  // live there and not here.
   password: (field) => body(field)
-    .isLength({ min: 8, max: 128 })
-    .withMessage('Password must be 8-128 characters')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .isLength({ min: PASSWORD_MIN_LENGTH, max: PASSWORD_MAX_LENGTH })
+    .withMessage(`Password must be ${PASSWORD_MIN_LENGTH}-${PASSWORD_MAX_LENGTH} characters`)
+    .matches(PASSWORD_STRENGTH_REGEX)
     .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number'),
   
   // Text content validation.

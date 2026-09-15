@@ -209,8 +209,10 @@ const readLegacyBootstrapUser = async (req) => {
   if (await isTokenBlacklisted(decoded.jti)) return null;
 
   // jti/exp come back so the caller can denylist this token the moment it has
-  // been traded in - see `refresh` below.
-  return { userId: decoded.UserInfo.usernameId, jti: decoded.jti, exp: decoded.exp };
+  // been traded in - see `refresh` below. iat comes back so a password change
+  // since this token was issued can refuse it the same way a rotated refresh
+  // session is refused.
+  return { userId: decoded.UserInfo.usernameId, jti: decoded.jti, exp: decoded.exp, iat: decoded.iat };
 };
 
 // @desc Exchange a refresh token (or a legacy long-lived access token) for a
@@ -222,6 +224,7 @@ const refresh = async (req, res) => {
 
   let userId = null;
   let legacyBootstrap = null;
+  let sessionIssuedAtMs = 0;
   if (providedRefreshToken) {
     // consumeRefreshSession deletes the session atomically - a stolen-and-replayed
     // refresh token fails here once the legitimate client has rotated.
@@ -236,6 +239,7 @@ const refresh = async (req, res) => {
       return refreshUnauthorized(res, "Refresh token is invalid or expired", "REFRESH_INVALID");
     }
     userId = session.userId;
+    sessionIssuedAtMs = session.createdAt || 0;
   } else {
     legacyBootstrap = await readLegacyBootstrapUser(req);
     if (!legacyBootstrap) {
@@ -244,13 +248,14 @@ const refresh = async (req, res) => {
       });
     }
     userId = legacyBootstrap.userId;
+    sessionIssuedAtMs = legacyBootstrap.iat ? legacyBootstrap.iat * 1000 : 0;
   }
 
   // Reload the user so the new access token carries their *current* role,
   // username and country - this is what makes an admin demotion effective
   // within one access-token lifetime instead of 30 days.
   const user = await User.findById(userId)
-    .select("_id username country role isActive")
+    .select("_id username country role isActive passwordChangedAt")
     .lean()
     .exec();
 
@@ -258,6 +263,26 @@ const refresh = async (req, res) => {
     // The account itself is gone or deactivated - no cookie any tab holds can
     // ever be good again, so clearing is correct here.
     return refreshUnauthorized(res, "Account is no longer active", "ACCOUNT_INACTIVE", {
+      clearCookie: true,
+    });
+  }
+
+  // A password change is the one lever a user who suspects their session was
+  // stolen actually has - it must do more than rotate the acting device's own
+  // session. Any refresh/legacy-bootstrap session issued before that change
+  // is refused here, which is what stops a stolen refresh token from rotating
+  // itself forever and forces every other device to a real re-login the next
+  // time it tries to refresh (within one access-token lifetime, same
+  // propagation delay already accepted above for a deactivation).
+  if (
+    user.passwordChangedAt &&
+    sessionIssuedAtMs < new Date(user.passwordChangedAt).getTime()
+  ) {
+    logEvents(
+      `Refresh rejected - session predates password change: ${user.username}\t${req.method}\t${req.url}\t${req.ip}`,
+      "errLog.log"
+    );
+    return refreshUnauthorized(res, "Session revoked - please sign in again", "SESSION_REVOKED", {
       clearCookie: true,
     });
   }
