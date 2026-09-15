@@ -128,15 +128,15 @@ const EditProfileScreen = ({ navigation, route }) => {
       navigation.goBack();
     } catch (err) {
       if (err.response?.status === 403) {
-        setSubmitError({ type: 'generic', message: t('notAuthorizedForPost') });
+        setSubmitError({ type: 'generic', message: t('notAuthorizedForProfile') });
       } else if (err.response?.status === 409) {
-        setSubmitError({ type: 'generic', message: err.response.data?.message || t('errorCreatingPostMessage') });
+        setSubmitError({ type: 'generic', message: err.response.data?.message || t('errorUpdatingProfileMessage') });
       } else if (err.response?.status === 400) {
-        setSubmitError({ type: 'validation', message: err.response.data?.message || t('errorCreatingPostMessage') });
+        setSubmitError({ type: 'validation', message: err.response.data?.message || t('errorUpdatingProfileMessage') });
       } else if (!err.response) {
         setSubmitError({ type: 'network', message: t('networkError') });
       } else {
-        setSubmitError({ type: 'generic', message: err.response?.data?.message || t('errorCreatingPostMessage') });
+        setSubmitError({ type: 'generic', message: err.response?.data?.message || t('errorUpdatingProfileMessage') });
       }
     } finally {
       setIsSubmitting(false);

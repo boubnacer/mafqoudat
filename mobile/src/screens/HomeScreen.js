@@ -17,7 +17,7 @@ import { useTranslation } from '../utils/translations';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { getCategoryConfig, sortCategoriesForBrowse } from '../config/categories';
-import { API_BASE_URL } from '../config/api';
+import { getImageUri } from '../utils/imageUri';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
 import DataStateView from '../components/DataStateView';
@@ -69,8 +69,6 @@ const SOCIAL_LINKS = [
     url: 'https://wa.me/212711621132',
   },
 ];
-
-const getImageUri = (image) => (image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : null);
 
 // Same scrim as web's RecentPosts.jsx card:
 // `linear-gradient(to top, rgba(0,0,0,.65) 0%, rgba(0,0,0,.05) 45%, rgba(0,0,0,.4) 100%)`.

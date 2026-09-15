@@ -13,7 +13,7 @@
  * the other two (Promise.allSettled, not Promise.all).
  */
 
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import apiClient from '../api/apiService';
 
 const ReferenceDataContext = createContext();
@@ -94,7 +94,7 @@ export const ReferenceDataProvider = ({ children }) => {
     };
   }, [loadReferenceData]);
 
-  const getCities = async (countryId) => {
+  const getCities = useCallback(async (countryId) => {
     if (!countryId) return [];
     if (citiesCacheRef.current[countryId]) {
       return citiesCacheRef.current[countryId];
@@ -108,12 +108,15 @@ export const ReferenceDataProvider = ({ children }) => {
       console.error('Error loading cities:', error);
       return [];
     }
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({ floptions, categories, countries, isLoading, error, retry: loadReferenceData, getCities }),
+    [floptions, categories, countries, isLoading, error, loadReferenceData, getCities]
+  );
 
   return (
-    <ReferenceDataContext.Provider
-      value={{ floptions, categories, countries, isLoading, error, retry: loadReferenceData, getCities }}
-    >
+    <ReferenceDataContext.Provider value={value}>
       {children}
     </ReferenceDataContext.Provider>
   );

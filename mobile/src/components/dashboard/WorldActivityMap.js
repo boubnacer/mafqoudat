@@ -311,35 +311,45 @@ const WorldActivityMap = ({
   const ready = !isLoading && !!geoFeatures;
   const scale = boxSize && boxSize.width ? boxSize.width / MAP_WIDTH : 1;
 
-  const cityPoints = ready
-    ? cities
-        .map((city) => {
-          const point = projection([city.lon, city.lat]);
-          if (!point) return null;
-          const [x, y] = point;
-          return { city, x, y, r: CITY_DOT_RADIUS };
-        })
-        .filter(Boolean)
-    : [];
+  const cityPoints = useMemo(
+    () =>
+      ready
+        ? cities
+            .map((city) => {
+              const point = projection([city.lon, city.lat]);
+              if (!point) return null;
+              const [x, y] = point;
+              return { city, x, y, r: CITY_DOT_RADIUS };
+            })
+            .filter(Boolean)
+        : [],
+    [ready, cities, projection]
+  );
 
   // The dots stay exactly on their coordinates; only the names move. See
   // utils/cityLabelLayout.js (mirrored from web) - labels walk outwards from
   // their dot until they find room, take a leader line back once they have left
   // its side, and are dropped rather than stacked when the map is too crowded.
   // Mobile has no "+N today" badges, so there are no obstacles to route around
-  // beyond the dots and the other labels.
-  const cityLabels = layoutCityLabels({
-    points: cityPoints.map(({ city, x, y }) => ({
-      x,
-      y,
-      name: city.name,
-      weight: city.count || 0,
-    })),
-    width: MAP_WIDTH,
-    height: MAP_HEIGHT,
-    dotRadius: CITY_DOT_RADIUS,
-    fontSize: CITY_LABEL_FONT_SIZE,
-  });
+  // beyond the dots and the other labels. Everything else feeding this map's
+  // render is memoized above; this walk is the same per-render cost the rest
+  // of the pipeline was already spared.
+  const cityLabels = useMemo(
+    () =>
+      layoutCityLabels({
+        points: cityPoints.map(({ city, x, y }) => ({
+          x,
+          y,
+          name: city.name,
+          weight: city.count || 0,
+        })),
+        width: MAP_WIDTH,
+        height: MAP_HEIGHT,
+        dotRadius: CITY_DOT_RADIUS,
+        fontSize: CITY_LABEL_FONT_SIZE,
+      }),
+    [cityPoints]
+  );
 
   // Always the same outer node (loading placeholder and loaded content are
   // both children of it) so `onLayout` reliably fires on first mount and

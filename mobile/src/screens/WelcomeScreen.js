@@ -25,12 +25,12 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
 import apiClient from '../api/apiService';
-import { API_BASE_URL } from '../config/api';
 import { colorTokens, radiusTokens } from '../theme/tokens';
 import { getCategoryConfig } from '../config/categories';
 import LanguageDropdown from '../components/LanguageDropdown';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
+import { getImageUri } from '../utils/imageUri';
 
 // Transparent in-app mark - see the note in components/AppHeader.js for why
 // this is not assets/icon.png.
@@ -54,8 +54,6 @@ const getFanGeometry = (index, count) => {
   const isFront = offset === 0;
   return { tilt: offset * 6, lift: isFront ? -14 : Math.abs(offset) * 16, zIndex: 10 - Math.abs(offset), isFront };
 };
-
-const getHeroImageUri = (image) => (image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : null);
 
 // getAllPosts's aggregation returns a Categories array (new format) with a
 // Category/categoryname fallback for legacy posts — same helpers as
@@ -412,7 +410,7 @@ const WelcomeScreen = () => {
     const tone = found ? tokens.status.found : tokens.status.lost;
     const categoryConfig = getCategoryConfig(getHeroCategoryInfo(item)?.code);
     const categoryLabel = getHeroCategoryLabel(item, currentLanguage);
-    const imageUri = getHeroImageUri(item.image);
+    const imageUri = getImageUri(item.image);
     let cityLabel = getHeroCityLabelBase(item, currentLanguage);
     if (!cityLabel && item?.exactLocation) {
       const first = item.exactLocation.split(',')[0].split('(')[0].replace(/\d+/g, '').trim();
@@ -570,7 +568,6 @@ const WelcomeScreen = () => {
                   keyExtractor={(item) => item._id || item.id || item.code}
                   style={styles.countryList}
                   contentContainerStyle={styles.countryListContent}
-                  maxHeight={200}
                   nestedScrollEnabled
                 />
               </View>

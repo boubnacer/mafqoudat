@@ -13,14 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTranslation } from '../../utils/translations';
-import { API_BASE_URL } from '../../config/api';
 import { colorTokens, radiusTokens, fontFamilies } from '../../theme/tokens';
 import { logical, row } from '../../utils/rtl';
-
-// Same rule the post screens use: the API returns an absolute Cloudinary URL
-// for anything uploaded since Cloudinary was adopted, and a server-relative
-// path for older rows.
-const getImageUri = (image) => (image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : null);
+import { getImageUri } from '../../utils/imageUri';
 
 // The thumbnail is outlined rather than raised, matching the confidence badge
 // and reason chips it sits beside in MatchMeta.js.

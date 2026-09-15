@@ -23,12 +23,28 @@ import { useTheme } from '../context/ThemeContext';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
-const CountryPickerModal = ({ visible, onClose, onSelect, selectedCountryId, t, currentLanguage, isRTL }) => {
+const CountryPickerModal = ({
+  visible,
+  onClose,
+  onSelect,
+  selectedCountryId,
+  t,
+  currentLanguage,
+  isRTL,
+  countries: providedCountries,
+}) => {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
   const { colors } = theme;
 
-  const [countries, setCountries] = useState([]);
+  // AppHeader already holds the full list via ReferenceDataContext (fetched
+  // once per session and cached there) - fetching it again here on every open
+  // wasted a request. SignUpScreen has no ReferenceDataProvider (it lives in
+  // the unauthenticated stack), so it doesn't pass this prop and this modal
+  // keeps fetching its own copy for that caller.
+  const hasProvidedCountries = Array.isArray(providedCountries);
+
+  const [fetchedCountries, setFetchedCountries] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [query, setQuery] = useState('');
@@ -38,6 +54,7 @@ const CountryPickerModal = ({ visible, onClose, onSelect, selectedCountryId, t, 
       setQuery('');
       return;
     }
+    if (hasProvidedCountries) return;
 
     let isMounted = true;
     const loadCountries = async () => {
@@ -57,7 +74,7 @@ const CountryPickerModal = ({ visible, onClose, onSelect, selectedCountryId, t, 
           countriesList = response.data.data;
         }
 
-        if (isMounted) setCountries(countriesList);
+        if (isMounted) setFetchedCountries(countriesList);
       } catch (error) {
         console.error('Error loading countries:', error);
         if (isMounted) setLoadError(t('errorLoadingCountries'));
@@ -71,7 +88,9 @@ const CountryPickerModal = ({ visible, onClose, onSelect, selectedCountryId, t, 
       isMounted = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, currentLanguage]);
+  }, [visible, currentLanguage, hasProvidedCountries]);
+
+  const countries = hasProvidedCountries ? providedCountries : fetchedCountries;
 
   const filteredCountries = useMemo(() => {
     const trimmed = query.trim().toLowerCase();

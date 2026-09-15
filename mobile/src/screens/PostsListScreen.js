@@ -26,7 +26,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import apiClient from '../api/apiService';
-import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
+import { API_ENDPOINTS } from '../config/api';
+import { getImageUri } from '../utils/imageUri';
 import { storage } from '../utils/storage';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
@@ -72,8 +73,6 @@ const PostsListSkeleton = ({ styles, tokens }) => (
     ))}
   </View>
 );
-
-const getImageUri = (image) => (image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : null);
 
 // Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
 // as RN shadow/elevation props - same shadow color/opacity the web cards use.

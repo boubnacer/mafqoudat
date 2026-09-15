@@ -3,7 +3,7 @@
  * Mirrors: client/src/utils/languageContext.js
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { I18nManager, NativeModules, TurboModuleRegistry } from 'react-native';
 import * as Updates from 'expo-updates';
 import RNRestart from 'react-native-restart';
@@ -171,24 +171,28 @@ export const LanguageProvider = ({ children }) => {
     }
   };
 
-  const dismissDirectionChangeNotice = () => setDirectionChangeNotice(false);
+  const dismissDirectionChangeNotice = useCallback(() => setDirectionChangeNotice(false), []);
 
   // Only ever called from a user tap (the direction-change dialog's "Reopen app"
   // button). This is the one place the native preferences are written, and it
   // writes them for the language the app is about to boot into.
-  const restartApp = async () => {
+  const restartApp = useCallback(async () => {
     commitDirectionPreferences(wantsRTL(currentLanguage));
     const ok = await restartNow();
     if (!ok) revertDirectionPreferences();
     return ok;
-  };
+    // restartNow is a plain closure recreated every render but stateless
+    // (it only ever touches the stable setRestartUnavailable setter), so
+    // omitting it here can't leave this stale.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLanguage]);
 
   /**
    * Set language and save to storage
    * @param {string} language - Language code (en, fr, ar)
    * @returns {boolean} Success status
    */
-  const setLanguage = async (language) => {
+  const setLanguage = useCallback(async (language) => {
     try {
       if (languageStorage.isSupportedLanguage(language)) {
         const success = await languageStorage.setLanguage(language);
@@ -207,7 +211,20 @@ export const LanguageProvider = ({ children }) => {
       console.error('Error setting language:', error);
       return false;
     }
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      currentLanguage,
+      setLanguage,
+      directionChangeNotice,
+      dismissDirectionChangeNotice,
+      // Offer the restart button only while we still believe it can work.
+      canRestartNatively: canRestartNatively && !restartUnavailable,
+      restartApp,
+    }),
+    [currentLanguage, setLanguage, directionChangeNotice, dismissDirectionChangeNotice, restartUnavailable, restartApp]
+  );
 
   if (!isInitialized) {
     // Return a loading state or null while initializing
@@ -215,17 +232,7 @@ export const LanguageProvider = ({ children }) => {
   }
 
   return (
-    <LanguageContext.Provider
-      value={{
-        currentLanguage,
-        setLanguage,
-        directionChangeNotice,
-        dismissDirectionChangeNotice,
-        // Offer the restart button only while we still believe it can work.
-        canRestartNatively: canRestartNatively && !restartUnavailable,
-        restartApp,
-      }}
-    >
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

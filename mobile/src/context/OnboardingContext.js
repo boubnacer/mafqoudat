@@ -5,7 +5,7 @@
  * Mirrors: src/context/ThemeContext.js
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { onboardingStorage } from '../utils/onboardingStorage';
 
 const OnboardingContext = createContext();
@@ -29,10 +29,15 @@ export const OnboardingProvider = ({ children }) => {
     initialize();
   }, []);
 
-  const completeOnboarding = async () => {
+  const completeOnboarding = useCallback(async () => {
     await onboardingStorage.setHasSeenOnboarding();
     setHasSeenOnboarding(true);
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({ hasSeenOnboarding, completeOnboarding }),
+    [hasSeenOnboarding, completeOnboarding]
+  );
 
   if (!isInitialized) {
     // Avoids a flash of Welcome/Onboarding before the persisted flag loads.
@@ -40,7 +45,7 @@ export const OnboardingProvider = ({ children }) => {
   }
 
   return (
-    <OnboardingContext.Provider value={{ hasSeenOnboarding, completeOnboarding }}>
+    <OnboardingContext.Provider value={value}>
       {children}
     </OnboardingContext.Provider>
   );

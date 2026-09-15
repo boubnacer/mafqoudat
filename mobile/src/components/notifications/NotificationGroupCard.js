@@ -17,21 +17,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTranslation } from '../../utils/translations';
-import { API_BASE_URL } from '../../config/api';
 import { colorTokens, radiusTokens, fontFamilies } from '../../theme/tokens';
 import { logical, row, needsDirectionFlip } from '../../utils/rtl';
 import { ConfidenceBadge } from './MatchMeta';
 import NotificationCard from './NotificationCard';
 import { getGroupHeadlineKey } from './matchDisplay';
+import { getImageUri } from '../../utils/imageUri';
 
 // How many counterparts show before the group has to be expanded. Three is
 // enough to judge whether the batch is worth opening without turning one
 // listing's leads into a full screen of scrolling.
 const COLLAPSED_COUNT = 3;
-
-// Same rule the post screens use: absolute Cloudinary URL for anything recent,
-// server-relative path for older rows.
-const getImageUri = (image) => (image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : null);
 
 const NotificationGroupCard = ({ group, onOpenMatch, onDismissMatch, busyId }) => {
   const { isDark } = useTheme();

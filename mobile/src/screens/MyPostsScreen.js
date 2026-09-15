@@ -29,7 +29,8 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import apiClient from '../api/apiService';
-import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
+import { API_ENDPOINTS } from '../config/api';
+import { getImageUri } from '../utils/imageUri';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -121,8 +122,6 @@ const getElevation = (isDark, level = 1) =>
         shadowRadius: 2,
         elevation: 2,
       };
-
-const getImageUri = (image) => (image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : null);
 
 const isFoundType = (item) => item?.foundLost?.code !== 'LOST';
 
