@@ -29,7 +29,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 if (response.status === 500) {
                     return { 
                         status: 500, 
-                        data: { message: "Failed to load users. Please try again." } 
+                        data: { message: response?.data?.message || "Failed to load users. Please try again." } 
                     };
                 }
                 return response;
@@ -54,13 +54,13 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 if (response.status === 404) {
                     return { 
                         status: 404, 
-                        data: { message: "User not found." } 
+                        data: { message: response?.data?.message || "User not found." } 
                     };
                 }
                 if (response.status === 500) {
                     return { 
                         status: 500, 
-                        data: { message: "Failed to load user. Please try again." } 
+                        data: { message: response?.data?.message || "Failed to load user. Please try again." } 
                     };
                 }
                 return response;
@@ -80,19 +80,19 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 if (response.status === 400) {
                     return { 
                         status: 400, 
-                        data: { message: "Invalid user data. Please check your input." } 
+                        data: { message: response?.data?.message || "Invalid user data. Please check your input." } 
                     };
                 }
                 if (response.status === 409) {
                     return { 
                         status: 409, 
-                        data: { message: "User already exists. Please sign in." } 
+                        data: { message: response?.data?.message || "User already exists. Please sign in." } 
                     };
                 }
                 if (response.status === 500) {
                     return { 
                         status: 500, 
-                        data: { message: "Failed to create user. Please try again." } 
+                        data: { message: response?.data?.message || "Failed to create user. Please try again." } 
                     };
                 }
                 return response;
@@ -114,19 +114,19 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 if (response.status === 400) {
                     return { 
                         status: 400, 
-                        data: { message: "Invalid user data. Please check your input." } 
+                        data: { message: response?.data?.message || "Invalid user data. Please check your input." } 
                     };
                 }
                 if (response.status === 409) {
                     return { 
                         status: 409, 
-                        data: { message: "Username already exists." } 
+                        data: { message: response?.data?.message || "Username already exists." } 
                     };
                 }
                 if (response.status === 500) {
                     return { 
                         status: 500, 
-                        data: { message: "Failed to update user. Please try again." } 
+                        data: { message: response?.data?.message || "Failed to update user. Please try again." } 
                     };
                 }
                 return response;
@@ -185,13 +185,13 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 if (response.status === 400) {
                     return {
                         status: 400,
-                        data: { message: "Username confirmation does not match." }
+                        data: { message: response?.data?.message || "Username confirmation does not match." }
                     };
                 }
                 if (response.status === 500) {
                     return {
                         status: 500,
-                        data: { message: "Failed to delete account. Please try again." }
+                        data: { message: response?.data?.message || "Failed to delete account. Please try again." }
                     };
                 }
                 return response;
@@ -213,13 +213,13 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 if (response.status === 400) {
                     return { 
                         status: 400, 
-                        data: { message: "Invalid user ID." } 
+                        data: { message: response?.data?.message || "Invalid user ID." } 
                     };
                 }
                 if (response.status === 500) {
                     return { 
                         status: 500, 
-                        data: { message: "Failed to delete user. Please try again." } 
+                        data: { message: response?.data?.message || "Failed to delete user. Please try again." } 
                     };
                 }
                 return response;

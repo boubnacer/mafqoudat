@@ -31,9 +31,9 @@ export const contactApiSlice = apiSlice.injectEndpoints({
           };
         }
         if (response.status === 500) {
-          return { 
-            status: 500, 
-            data: { message: "Server error. Please try again later." } 
+          return {
+            status: 500,
+            data: { message: response.data?.message || "Server error. Please try again later." }
           };
         }
         return response;

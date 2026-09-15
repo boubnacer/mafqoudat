@@ -20,13 +20,38 @@ const debugLog = (message, data = null) => {
   }
 };
 
+/**
+ * Decode a JWT's payload without verifying it - enough to read the claims the
+ * UI needs. Raw `atob()` only understands the standard base64 alphabet
+ * (`+`/`/`), while a JWT's payload segment is base64url (`-`/`_`, no
+ * padding) - so a plain `atob(token.split('.')[1])` throws or silently
+ * mis-decodes for any token whose payload happens to contain one of those
+ * two characters, which is most of them. This is the one place in the app
+ * that does the `-`/`_` -> `+`/`/` swap and re-pads before decoding; every
+ * other decode in this file, and in authSlice.js/authApiSlice.js/
+ * logoutUtils.js, goes through this instead of calling atob() directly.
+ */
+export const decodeTokenPayload = (token) => {
+  try {
+    const segment = token?.split('.')[1];
+    if (!segment) return null;
+
+    const base64 = segment.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    return JSON.parse(atob(padded));
+  } catch (error) {
+    return null;
+  }
+};
+
 // Helper function to extract user data from token
 const extractUserFromToken = (token) => {
   try {
     if (!token) return null;
-    
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    
+
+    const payload = decodeTokenPayload(token);
+    if (!payload) return null;
+
     if (payload.UserInfo) {
       return {
         _id: payload.UserInfo.usernameId,
@@ -410,7 +435,8 @@ class AuthStorageManager {
       
       if (hasToken) {
         try {
-          const decoded = JSON.parse(atob(authState.token.split('.')[1]));
+          const decoded = decodeTokenPayload(authState.token);
+          if (!decoded) throw new Error('Token could not be decoded');
           const currentTime = Date.now() / 1000;
           tokenValid = decoded.exp && decoded.exp > currentTime;
           
@@ -482,7 +508,8 @@ class AuthStorageManager {
       let tokenValid = false;
       if (authState.token) {
         try {
-          const decoded = JSON.parse(atob(authState.token.split('.')[1]));
+          const decoded = decodeTokenPayload(authState.token);
+          if (!decoded) throw new Error('Token could not be decoded');
           hasUserData = !!decoded.UserInfo;
           
           // Check if token is not expired
@@ -596,10 +623,17 @@ class LanguageStorageManager {
    */
   static getCurrentLanguage() {
     try {
-      return localStorage.getItem(LANGUAGE_KEYS.LANGUAGE) || 'en';
+      // 'ar', not 'en': utils/languageUtils.js has its own getCurrentLanguage()
+      // reading the same 'language' key, and every other fallback in the
+      // language stack (languageContext.js's resolveLanguage, its initial
+      // useState, its catch block) already defaults to 'ar' - this was the
+      // one place still answering 'en' for an unset key, which is also a
+      // valid SUPPORTED_LANGUAGES entry, so it silently won as the app's
+      // real first-visit default instead of 'ar'.
+      return localStorage.getItem(LANGUAGE_KEYS.LANGUAGE) || 'ar';
     } catch (error) {
       console.error('Failed to get current language:', error);
-      return 'en';
+      return 'ar';
     }
   }
 

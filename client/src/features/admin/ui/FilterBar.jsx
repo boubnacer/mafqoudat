@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -13,6 +13,12 @@ import { SearchOutlined, FilterAltOffOutlined } from '@mui/icons-material';
 import { useTranslation } from '../../../utils/translations';
 import { actionButtonSx, inputSx } from './adminSx';
 
+// How long to wait after the last keystroke before actually calling
+// search.onChange. Every one of this bar's four callers (Moderation, Users,
+// Posts, Support) wires it straight into a $regex query, so without this the
+// field fired one request per keystroke.
+const SEARCH_DEBOUNCE_MS = 350;
+
 /**
  * The filter row every list page shares.
  *
@@ -23,6 +29,31 @@ import { actionButtonSx, inputSx } from './adminSx';
  */
 const FilterBar = ({ search, selects = [], onClear, hasActiveFilters, children }) => {
   const { t } = useTranslation();
+
+  // Debounced locally rather than by each of the four pages separately - one
+  // fix here covers all of them, and the field still feels instant to type
+  // in since it's this local state, not the debounced onChange, that drives
+  // the TextField's value.
+  const [localSearchValue, setLocalSearchValue] = useState(search?.value || '');
+
+  // Stay in sync with an external reset (e.g. "Clear filters", or a filter
+  // change elsewhere that clears the search too).
+  useEffect(() => {
+    setLocalSearchValue(search?.value || '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search?.value]);
+
+  useEffect(() => {
+    if (!search) return undefined;
+    if (localSearchValue === (search.value || '')) return undefined;
+
+    const timer = setTimeout(() => {
+      search.onChange(localSearchValue);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localSearchValue]);
 
   return (
     <Box
@@ -37,8 +68,8 @@ const FilterBar = ({ search, selects = [], onClear, hasActiveFilters, children }
       {search ? (
         <TextField
           size="small"
-          value={search.value}
-          onChange={(event) => search.onChange(event.target.value)}
+          value={localSearchValue}
+          onChange={(event) => setLocalSearchValue(event.target.value)}
           placeholder={search.placeholder}
           sx={(theme) => ({
             ...inputSx(theme),

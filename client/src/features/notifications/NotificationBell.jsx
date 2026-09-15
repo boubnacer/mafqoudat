@@ -42,6 +42,21 @@ import {
 let syncedForLanguage = null;
 let syncInFlight = false;
 
+// These two flags are module-level, so they outlive a sign-out - and
+// performLogout()/performLocalLogout() (utils/logoutUtils.js) never reset
+// them. Without this, syncing once for 'en' under account A left
+// syncedForLanguage === 'en' standing after sign-out; account B signing in
+// with the browser still on 'en' then skipped re-registration entirely
+// (the guard above only compares language, not account), so the new
+// account's push subscription was never (re-)registered - not until this
+// tab happened to change language, or a hard reload cleared module state.
+// authStorage.performLocalLogout() dispatches this on every logout path.
+if (typeof window !== 'undefined') {
+  window.addEventListener('authLogout', () => {
+    syncedForLanguage = null;
+  });
+}
+
 // How often the badge re-checks for new matches. Matching runs on post
 // creation, so a minute of latency is imperceptible while keeping this well
 // clear of the API's rate limits.

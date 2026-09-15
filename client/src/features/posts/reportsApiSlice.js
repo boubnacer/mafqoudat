@@ -9,8 +9,6 @@ export const reportsApiSlice = apiSlice.injectEndpoints({
         body: reportData,
       }),
       invalidatesTags: ["Post"],
-      // Add timeout configuration
-      timeout: 30000, // 30 seconds timeout
     }),
   }),
 });

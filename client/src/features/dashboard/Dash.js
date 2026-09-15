@@ -14,6 +14,7 @@ import SeoMeta from "../../components/SeoMeta";
 // Custom hook
 import { useDashboard } from "../../hooks/useDashboard";
 import { useDashboardMotion } from "./useDashboardMotion";
+import { useGetflOptionsQuery } from "../dependencies/dependenciesApiSlice";
 
 // Components
 import LeftSide from "../../components/dashboard/LeftSide";
@@ -26,9 +27,6 @@ import HelpSupportSection from "../../components/dashboard/HelpSupportSection";
 import DashRecents from "../../components/dashboard/DashRecents";
 import DashboardSkeleton from "../../components/dashboard/DashboardSkeleton";
 
-// Updated FoundLost IDs from the database
-const lostsId = "68b708a085dd243c40a90826"; // LOST
-const foundsId = "68b708a085dd243c40a90825"; // FOUND
 
 const Dash = () => {
   const theme = useTheme();
@@ -51,6 +49,24 @@ const Dash = () => {
     currentCountry,
     countriesData,
   } = useDashboard();
+
+  // The FoundLost options' own database ids, for the "see all" links below -
+  // these used to be hardcoded ObjectIds copied from a database dump
+  // ("Updated FoundLost IDs from the database"), which breaks silently the
+  // moment that collection is ever reseeded (the DB, not this file, is what
+  // actually assigns these ids). Read live instead, off the same query the
+  // rest of the app already uses for this data.
+  const { data: flOptionsData } = useGetflOptionsQuery({ language: currentLanguage });
+  const foundsId = useMemo(() => (
+    flOptionsData?.ids
+      ?.map((id) => flOptionsData.entities[id])
+      .find((option) => option?.code === 'FOUND')?.id
+  ), [flOptionsData]);
+  const lostsId = useMemo(() => (
+    flOptionsData?.ids
+      ?.map((id) => flOptionsData.entities[id])
+      .find((option) => option?.code === 'LOST')?.id
+  ), [flOptionsData]);
 
   // Root of the animated page. The reveal choreography lives in
   // useDashboardMotion and finds its targets through the data-reveal

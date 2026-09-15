@@ -77,21 +77,21 @@ export const systemSettingsApiSlice = apiSlice.injectEndpoints({
         // Provide user-friendly error messages
         if (error.status === 401) {
           return {
-            message: 'Authentication required. Please log in as admin.',
+            message: error.data?.message || 'Authentication required. Please log in as admin.',
             status: 401
           };
         }
-        
+
         if (error.status === 403) {
           return {
-            message: 'Admin privileges required to view system settings.',
+            message: error.data?.message || 'Admin privileges required to view system settings.',
             status: 403
           };
         }
-        
+
         if (error.status === 500) {
           return {
-            message: 'Server error while fetching system settings. Please try again later.',
+            message: error.data?.message || 'Server error while fetching system settings. Please try again later.',
             status: 500
           };
         }
@@ -174,21 +174,21 @@ export const systemSettingsApiSlice = apiSlice.injectEndpoints({
         
         if (error.status === 401) {
           return {
-            message: 'Authentication required. Please log in as admin.',
+            message: error.data?.message || 'Authentication required. Please log in as admin.',
             status: 401
           };
         }
-        
+
         if (error.status === 403) {
           return {
-            message: 'Admin privileges required to update maintenance mode.',
+            message: error.data?.message || 'Admin privileges required to update maintenance mode.',
             status: 403
           };
         }
-        
+
         if (error.status === 500) {
           return {
-            message: 'Server error while updating maintenance mode. Please try again later.',
+            message: error.data?.message || 'Server error while updating maintenance mode. Please try again later.',
             status: 500
           };
         }

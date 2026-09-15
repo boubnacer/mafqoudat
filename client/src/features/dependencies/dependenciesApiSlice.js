@@ -1,6 +1,15 @@
 import { createEntityAdapter } from "@reduxjs/toolkit";
 import { apiSlice } from "../../app/api/apiSlice";
 
+// Every endpoint below used to carry a `retry`/`retryDelay` pair meant to
+// back off and retry on a 429. Neither is a real RTK Query endpoint option -
+// the library's actual retry mechanism wraps the baseQuery itself
+// (`retry(fetchBaseQuery(...))` from '@reduxjs/toolkit/query/react'), which
+// apiSlice.js never does - so these fields were silently ignored on every
+// request and never retried anything. Removed rather than wired up for real:
+// that's a baseQuery-level decision affecting every endpoint at once, not a
+// per-endpoint patch.
+
 const dependenciesAdapter = createEntityAdapter({});
 
 const initialState = dependenciesAdapter.getInitialState();
@@ -19,15 +28,6 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
           return response.status === 200 && !result.isError;
         },
       }),
-      // Add retry logic for rate limit errors
-      retry: (failureCount, error) => {
-        if (error?.status === 429) {
-          // Retry up to 3 times for rate limit errors with exponential backoff
-          return failureCount < 3;
-        }
-        return failureCount < 2;
-      },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       transformResponse: (responseData) => {
         // Handle both old and new response formats
         const flOptions = responseData.data || responseData;
@@ -42,7 +42,7 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
         if (response.status === 500) {
           return { 
             status: 500, 
-            data: { message: "Failed to load post types. Please try again." } 
+            data: { message: response?.data?.message || "Failed to load post types. Please try again." } 
           };
         }
         return response;
@@ -57,7 +57,7 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
       },
       // Add cache key based on language to ensure proper cache invalidation
       serializeQueryArgs: ({ queryArgs }) => {
-        return `${queryArgs.language || 'en'}-${queryArgs.active || true}`;
+        return `${queryArgs.language || 'en'}-${queryArgs.active === false ? 'false' : 'true'}`;
       },
     }),
 
@@ -74,15 +74,6 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
           return response.status === 200 && !result.isError;
         },
       }),
-      // Add retry logic for rate limit errors
-      retry: (failureCount, error) => {
-        if (error?.status === 429) {
-          // Retry up to 3 times for rate limit errors with exponential backoff
-          return failureCount < 3;
-        }
-        return failureCount < 2;
-      },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       transformResponse: (responseData) => {
         // Handle both old and new response formats
         const countries = responseData.data || responseData;
@@ -97,7 +88,7 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
         if (response.status === 500) {
           return { 
             status: 500, 
-            data: { message: "Failed to load countries. Please try again." } 
+            data: { message: response?.data?.message || "Failed to load countries. Please try again." } 
           };
         }
         return response;
@@ -112,7 +103,7 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
       },
       // Add cache key based on language and nocache to ensure proper cache invalidation
       serializeQueryArgs: ({ queryArgs }) => {
-        return `${queryArgs.language || 'en'}-${queryArgs.search || ''}-${queryArgs.active || true}-${queryArgs.nocache || false}`;
+        return `${queryArgs.language || 'en'}-${queryArgs.search || ''}-${queryArgs.active === false ? 'false' : 'true'}-${queryArgs.nocache || false}`;
       },
     }),
 
@@ -128,15 +119,6 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
           return response.status === 200 && !result.isError;
         },
       }),
-      // Add retry logic for rate limit errors
-      retry: (failureCount, error) => {
-        if (error?.status === 429) {
-          // Retry up to 3 times for rate limit errors with exponential backoff
-          return failureCount < 3;
-        }
-        return failureCount < 2;
-      },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       transformResponse: (responseData) => {
         // Handle both old and new response formats
         const categories = responseData.data || responseData;
@@ -151,7 +133,7 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
         if (response.status === 500) {
           return { 
             status: 500, 
-            data: { message: "Failed to load categories. Please try again." } 
+            data: { message: response?.data?.message || "Failed to load categories. Please try again." } 
           };
         }
         return response;
@@ -166,7 +148,7 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
       },
       // Add cache key based on language and nocache to ensure proper cache invalidation
       serializeQueryArgs: ({ queryArgs }) => {
-        return `${queryArgs.language || 'en'}-${queryArgs.active || true}-${queryArgs.nocache || false}`;
+        return `${queryArgs.language || 'en'}-${queryArgs.active === false ? 'false' : 'true'}-${queryArgs.nocache || false}`;
       },
     }),
 
@@ -182,19 +164,19 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
         if (response.status === 400) {
           return { 
             status: 400, 
-            data: { message: "Invalid country data. Please check your input." } 
+            data: { message: response?.data?.message || "Invalid country data. Please check your input." } 
           };
         }
         if (response.status === 409) {
           return { 
             status: 409, 
-            data: { message: "Country already exists." } 
+            data: { message: response?.data?.message || "Country already exists." } 
           };
         }
         if (response.status === 500) {
           return { 
             status: 500, 
-            data: { message: "Failed to create country. Please try again." } 
+            data: { message: response?.data?.message || "Failed to create country. Please try again." } 
           };
         }
         return response;
@@ -214,19 +196,19 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
         if (response.status === 400) {
           return { 
             status: 400, 
-            data: { message: "Invalid category data. Please check your input." } 
+            data: { message: response?.data?.message || "Invalid category data. Please check your input." } 
           };
         }
         if (response.status === 409) {
           return { 
             status: 409, 
-            data: { message: "Category already exists." } 
+            data: { message: response?.data?.message || "Category already exists." } 
           };
         }
         if (response.status === 500) {
           return { 
             status: 500, 
-            data: { message: "Failed to create category. Please try again." } 
+            data: { message: response?.data?.message || "Failed to create category. Please try again." } 
           };
         }
         return response;
@@ -264,7 +246,7 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
         if (response.status === 500) {
           return { 
             status: 500, 
-            data: { message: "Failed to load cities. Please try again." } 
+            data: { message: response?.data?.message || "Failed to load cities. Please try again." } 
           };
         }
         return response;
@@ -279,7 +261,7 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
       },
       // Add cache key based on language to ensure proper cache invalidation
       serializeQueryArgs: ({ queryArgs }) => {
-        return `${queryArgs.language || 'en'}-${queryArgs.search || ''}-${queryArgs.active || true}-${queryArgs.countryId || ''}-${queryArgs.countryCode || ''}`;
+        return `${queryArgs.language || 'en'}-${queryArgs.search || ''}-${queryArgs.active === false ? 'false' : 'true'}-${queryArgs.countryId || ''}-${queryArgs.countryCode || ''}`;
       },
     }),
 
@@ -295,19 +277,19 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
         if (response.status === 400) {
           return { 
             status: 400, 
-            data: { message: "Invalid post type data. Please check your input." } 
+            data: { message: response?.data?.message || "Invalid post type data. Please check your input." } 
           };
         }
         if (response.status === 409) {
           return { 
             status: 409, 
-            data: { message: "Post type already exists." } 
+            data: { message: response?.data?.message || "Post type already exists." } 
           };
         }
         if (response.status === 500) {
           return { 
             status: 500, 
-            data: { message: "Failed to create post type. Please try again." } 
+            data: { message: response?.data?.message || "Failed to create post type. Please try again." } 
           };
         }
         return response;

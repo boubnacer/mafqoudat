@@ -121,7 +121,7 @@ const shouldRedactByDefault = ({ values, categories, flOptions }) => {
 };
 
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
-  const [addNewPost, { isSuccess, isError, error }] = useAddNewPostMutation();
+  const [addNewPost, { isSuccess, isError, error, reset: resetAddNewPost }] = useAddNewPostMutation();
   const { t, currentLanguage } = useTranslation();
   const token = useSelector(selectCurrentToken);
   
@@ -709,10 +709,25 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // they answer.
       await offerBrowserNotifications();
 
-      await addNewPost(formData);
+      // .unwrap() is what makes a 400 actually land in the catch below -
+      // without it this promise never rejects (RTK Query mutations resolve
+      // to {data} or {error} either way), so a failed submit fell straight
+      // through to the render's `if (isError) return <...>` further down,
+      // which replaces the entire wizard - every step's state - with a dead-
+      // end error screen instead of the recoverable inline message below.
+      await addNewPost(formData).unwrap();
     } catch (error) {
       console.error('Error in handleSubmit:', error);
-      setStatus({ error: error.message });
+      // An unwrapped RTK Query rejection is the server's own error shape
+      // ({ status, data: { message } }, from postsApiSlice's
+      // transformErrorResponse), not a plain Error - .message on it is
+      // undefined.
+      setStatus({ error: error?.data?.message || error?.message || t('errorCreatingPostMessage') });
+      // Clears the mutation's own isError, which the component's
+      // `if (isError) return ...` branch also reacts to - without this the
+      // inline status message above would render for one tick and then the
+      // wizard would still get replaced by that hard error screen.
+      resetAddNewPost();
     } finally {
       setSubmitting(false);
     }

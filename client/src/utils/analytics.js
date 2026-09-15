@@ -13,8 +13,14 @@ import {
   startConsentListener,
 } from './consent';
 
-// Use environment variable if available, otherwise fallback to hardcoded ID
-const GA_MEASUREMENT_ID = process.env.REACT_APP_GA_MEASUREMENT_ID || 'G-6CHWS73F4W';
+// No hardcoded fallback: an unset REACT_APP_GA_MEASUREMENT_ID means this
+// deployment cannot send to GA, same "no signal = not configured" rule
+// consent.js's FC_PUBLISHER_ID follows. The old fallback was a real
+// production Measurement ID, so any deployment that forgot to set the env
+// var - a preview build, a fork, a misconfigured staging env - silently sent
+// its traffic into the production property's real analytics instead of
+// nowhere. `initializeGA` below already no-ops when this is falsy.
+const GA_MEASUREMENT_ID = process.env.REACT_APP_GA_MEASUREMENT_ID;
 let isGAInitialized = false;
 let loadPromise = null;
 

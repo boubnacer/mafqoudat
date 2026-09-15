@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { authStorage } from "../../utils/authStorage";
+import { authStorage, decodeTokenPayload } from "../../utils/authStorage";
 import { getOptimizedTokenValidation } from "../../utils/optimizedTokenUtils";
 import { ensureGlobalStateWithUserCountry } from "../../utils/globalStateInitializer";
 
@@ -9,20 +9,6 @@ const DEBUG_AUTH = false;
 // Debug logging function
 const debugLog = (message, data = null) => {
   // Debug logging disabled for production
-};
-
-// Decode a JWT's payload without verifying it - enough to read the claims the UI
-// needs. Handles base64url (`-`/`_`), which raw atob() rejects.
-const decodeTokenPayload = (token) => {
-  try {
-    const segment = token?.split('.')[1];
-    if (!segment) return null;
-
-    const base64 = segment.replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(atob(base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')));
-  } catch (error) {
-    return null;
-  }
 };
 
 // Whether a stored token is already past its `exp`. Only a definite answer counts as

@@ -242,8 +242,13 @@ ${subtitle ? `    <p>${escapeHtml(subtitle)}</p>\n` : ''}    <nav><ul>${nav}</ul
 };
 
 const renderArticleBody = (post, localized, t) => {
+  // t(key) || key, same as the nav links' own label lookup further down (and
+  // src/components/Pages/Blog.jsx / BlogPostPage.jsx's real client-side
+  // rendering of these same tagKeys) - this used to print the raw key
+  // ("tagLostWallet") instead of translating it, on every prerendered
+  // article page, all three languages.
   const tagsHtml = post.tagKeys
-    .map((key) => `<li>${escapeHtml(key)}</li>`)
+    .map((key) => `<li>${escapeHtml(t(key) || key)}</li>`)
     .join('');
   // The two links out are new: an article that linked nowhere left a crawler
   // that arrived from search with no route into the listings the article is
