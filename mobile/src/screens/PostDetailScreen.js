@@ -570,7 +570,10 @@ const PostDetailScreen = ({ navigation, route }) => {
               return (
                 <View
                   key={cat._id || cat.code}
-                  style={[styles.categoryChip, { backgroundColor: config.backgroundColor }]}
+                  style={[
+                    styles.categoryChip,
+                    { backgroundColor: isDark ? `${config.color}33` : config.backgroundColor },
+                  ]}
                 >
                   <Ionicons name={config.icon} size={13} color={config.color} style={styles.categoryChipIcon} />
                   <Text style={[styles.categoryChipText, { color: config.color }]}>{label}</Text>

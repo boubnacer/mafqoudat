@@ -243,12 +243,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Called by WelcomeScreen once the user picks a country. Flips hasCountry,
-  // which drives RootNavigator (App.js) to swap from the pre-country
-  // AuthNavigator into the guest-eligible AppNavigator (landing on Home)
-  // without any manual navigation call.
+  // A real Mongo _id, the only kind worth remembering across restarts - not
+  // OnboardingScreen's/WelcomeScreen's synthetic offline-fallback ids (e.g.
+  // 'fallback-ma'), which resolve to nothing on the server. Persisting one of
+  // those made every later /posts?currentCountry=... query come back empty,
+  // permanently, since nothing ever re-resolves a real country afterwards.
+  const isPersistableCountryId = (countryId) => /^[a-fA-F0-9]{24}$/.test(countryId || '');
+
+  // Called by WelcomeScreen/OnboardingScreen once the user picks a country.
+  // Flips hasCountry, which drives RootNavigator (App.js) to swap from the
+  // pre-country AuthNavigator into the guest-eligible AppNavigator (landing
+  // on Home) without any manual navigation call. hasCountry flips regardless
+  // of persistence so an offline first launch can still proceed this session;
+  // a synthetic id just won't survive a restart, which is the point.
   const selectCountry = async (countryId) => {
-    await storage.setCurrentCountry(countryId);
+    if (isPersistableCountryId(countryId)) {
+      await storage.setCurrentCountry(countryId);
+    }
     setHasCountry(true);
   };
 
@@ -351,7 +362,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: result.error });
-      return { success: false, error: result.error };
+      return { success: false, error: result.error, code: result.code };
     } catch (error) {
       console.error('❌ Complete Google registration error:', error);
       const errorMessage = error.message || 'Failed to complete registration';
@@ -424,7 +435,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: result.error });
-      return { success: false, error: result.error };
+      return { success: false, error: result.error, code: result.code };
     } catch (error) {
       console.error('❌ Complete Facebook registration error:', error);
       const errorMessage = error.message || 'Failed to complete registration';
@@ -507,9 +518,9 @@ export const AuthProvider = ({ children }) => {
     resetToLogin();
   };
 
-  const clearError = () => {
+  const clearError = useCallback(() => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
-  };
+  }, []);
 
   // PATCH /users mints a fresh accessToken whenever username or country changes
   // (the JWT embeds both) - screens that trigger that (e.g. EditProfileScreen)

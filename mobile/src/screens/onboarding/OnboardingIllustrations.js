@@ -37,10 +37,17 @@ const shadowSm = {
 };
 
 // -- Shared animation drivers -----------------------------------------------
+// Module-scope, not a default parameter - `Easing.inOut(Easing.ease)` called
+// as a default arg builds a new function every time useBackAndForth is
+// invoked without an explicit easing, which then sits in the effect's dep
+// array below and restarted every one of the ten illustration loops on every
+// render of the parent (e.g. each keystroke in slide 5's country search).
+const DEFAULT_BACK_AND_FORTH_EASING = Easing.inOut(Easing.ease);
+
 // A value bouncing 0 -> 1 -> 0 (each leg = halfDuration), for symmetric
 // keyframes that return to their start state at 50% (bob, itemFloat,
 // checkPulse, pinBounce, funnelPulse, chipFloat*, magSweep).
-const useBackAndForth = (halfDuration, easing = Easing.inOut(Easing.ease)) => {
+const useBackAndForth = (halfDuration, easing = DEFAULT_BACK_AND_FORTH_EASING) => {
   const value = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const loop = Animated.loop(

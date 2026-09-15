@@ -35,6 +35,10 @@ import AppHeader from '../components/AppHeader';
 import SelectModal from '../components/SelectModal';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
+// Same rule SignUpScreen.js enforces at registration - kept in sync so a
+// changed password is never weaker than a newly-registered one.
+const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+
 const EditProfileScreen = ({ navigation, route }) => {
   const { user } = route.params || {};
   const { refreshSession } = useAuth();
@@ -74,7 +78,7 @@ const EditProfileScreen = ({ navigation, route }) => {
     const errors = {};
     if (!countryId) errors.country = true;
     if (newPassword || confirmPassword) {
-      if (newPassword.length < 6) errors.newPassword = t('passwordTooShort');
+      if (!PASSWORD_REGEX.test(newPassword)) errors.newPassword = t('passwordRequirements');
       else if (newPassword !== confirmPassword) errors.confirmPassword = t('passwordsDoNotMatch');
     }
     return errors;

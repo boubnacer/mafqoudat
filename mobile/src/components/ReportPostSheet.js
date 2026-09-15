@@ -20,6 +20,8 @@ import {
 } from 'react-native';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
+import { useTheme } from '../context/ThemeContext';
+import { lightColors, darkColors } from '../theme/tokens';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const REPORT_REASONS = [
@@ -38,7 +40,9 @@ const ReportPostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) =>
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const styles = useMemo(() => createStyles(isRTL), [isRTL]);
+  const { isDark } = useTheme();
+  const colors = isDark ? darkColors : lightColors;
+  const styles = useMemo(() => createStyles(isRTL, colors), [isRTL, colors]);
   const textStyle = isRTL ? styles.textRTL : null;
 
   const resetAndClose = () => {
@@ -138,7 +142,7 @@ const ReportPostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) =>
               placeholder={
                 selectedReason === 'other' ? t('describeReasonPlaceholder') : t('additionalDetailsPlaceholder')
               }
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.placeholder}
               value={details}
               onChangeText={setDetails}
               multiline
@@ -176,7 +180,7 @@ const ReportPostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) =>
 // differs from the one native is already mirroring - see that file. Do NOT
 // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
 // cancels out native mirroring once forceRTL has taken effect on relaunch.
-const createStyles = (isRTL) => StyleSheet.create({
+const createStyles = (isRTL, colors) => StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -186,7 +190,7 @@ const createStyles = (isRTL) => StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   sheet: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     maxHeight: '85%',
@@ -198,33 +202,33 @@ const createStyles = (isRTL) => StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.border,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.textPrimary,
   },
   closeButton: {
     padding: 4,
   },
   closeButtonText: {
     fontSize: 18,
-    color: '#666',
+    color: colors.textSecondary,
   },
   body: {
     paddingHorizontal: 16,
   },
   description: {
     fontSize: 14,
-    color: '#666',
+    color: colors.textSecondary,
     marginTop: 16,
     marginBottom: 8,
   },
   sectionLabel: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#999',
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     marginTop: 16,
     marginBottom: 8,
@@ -238,44 +242,44 @@ const createStyles = (isRTL) => StyleSheet.create({
     marginBottom: 6,
   },
   reasonRowSelected: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: colors.primarySoft,
   },
   radioOuter: {
     width: 20,
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#999',
+    borderColor: colors.textSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     ...logical(isRTL, { marginEnd: 12 }),
   },
   radioOuterSelected: {
-    borderColor: '#2196F3',
+    borderColor: colors.primary,
   },
   radioInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
   },
   reasonText: {
     fontSize: 15,
-    color: '#333',
+    color: colors.textPrimary,
     flex: 1,
   },
   detailsInput: {
     minHeight: 80,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.inputBackground,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
-    color: '#333',
+    color: colors.textPrimary,
     textAlignVertical: 'top',
   },
   errorText: {
-    color: '#c62828',
+    color: colors.danger,
     fontSize: 14,
     marginTop: 12,
   },
@@ -288,19 +292,19 @@ const createStyles = (isRTL) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: colors.border,
   },
   cancelButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#2196F3',
+    borderColor: colors.primary,
     alignItems: 'center',
     ...logical(isRTL, { marginEnd: 8 }),
   },
   cancelButtonText: {
-    color: '#2196F3',
+    color: colors.primary,
     fontWeight: 'bold',
     fontSize: 15,
   },
@@ -308,7 +312,7 @@ const createStyles = (isRTL) => StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     borderRadius: 8,
-    backgroundColor: '#c62828',
+    backgroundColor: colors.danger,
     alignItems: 'center',
   },
   submitButtonDisabled: {
