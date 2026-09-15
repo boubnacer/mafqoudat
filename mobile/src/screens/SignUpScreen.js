@@ -173,7 +173,10 @@ const SignUpScreen = ({ navigation }) => {
         setError(t('networkError'));
       }
     } catch (err) {
-      console.error('Sign up error:', err);
+      // Logging the whole AxiosError puts err.config.data - this form's
+      // password in plaintext - into release logcat (transform-remove-console
+      // keeps console.error in production, see babel.config.js).
+      console.error('Sign up error:', err.message, err.response?.status);
 
       // usersController.createNewUser responds with a plain { message, code } body
       // (no simpleAuthErrorHandler wrapper, unlike /auth's login) - read it directly.
@@ -215,7 +218,7 @@ const SignUpScreen = ({ navigation }) => {
       } else if (result.pending) {
         navigation.navigate('CountrySelection');
       } else if (!result.cancelled) {
-        setError(result.error || t('oauthError'));
+        setError(result.code === 'ACCOUNT_INACTIVE' ? t('accountInactive') : (result.error || t('oauthError')));
       }
     } catch (err) {
       console.error('Google sign up error:', err);

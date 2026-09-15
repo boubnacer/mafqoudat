@@ -442,7 +442,11 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
       foundLost,
       contact: contact.trim(),
       exactLocation: exactLocation.trim(),
-      exactDate: exactDateText.trim(),
+      // postsController.js's create path reads exactDate, its update path reads
+      // mainDate (mirrors web's NewPostForm.js vs EditPostForm.js) - sending the
+      // wrong key on edit means the server's undefined-check skips the field and
+      // silently keeps the post's old date.
+      ...(isEdit ? { mainDate: exactDateText.trim() } : { exactDate: exactDateText.trim() }),
       description: description.trim(),
       // Matches the web form's current submission (NewPostForm.js/EditPostForm.js)
       // so posts behave identically regardless of platform; fixing the underlying

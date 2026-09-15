@@ -316,7 +316,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: authResult.error });
-      return { success: false, error: authResult.error };
+      return { success: false, error: authResult.error, code: authResult.code };
     } catch (error) {
       console.error('❌ Google sign in error:', error);
       const errorMessage = error.message || 'Failed to sign in with Google';
