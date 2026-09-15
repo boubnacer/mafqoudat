@@ -12,6 +12,11 @@ const TranslationService = require("../services/translationService");
 const socialPublishQueue = require("../services/socialPublishQueue");
 const matchingService = require("../services/matchingService");
 const { cacheService } = require("../config/cache");
+// Every $regex built from the client-supplied `search` term goes through
+// escapeRegex. The term reaches three fields on three separate code paths and
+// none of them escaped it, so a 200-character catastrophic-backtracking pattern
+// (the length cap in middleware/validation.js is the only bound on it) was
+// evaluated against every listing's description on an unauthenticated route.
 const { escapeRegex } = require("../utils/regexUtils");
 const {
   getBlockedUserIdsForRequest,
@@ -125,9 +130,9 @@ const getAllPosts = async (req, res) => {
       const existingOr = match.$or;
       match.$or = [
         ...existingOr,
-        { exactLocation: { $regex: search, $options: 'i' } },
-        { contact: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
+        { exactLocation: { $regex: escapeRegex(search), $options: 'i' } },
+        { contact: { $regex: escapeRegex(search), $options: 'i' } },
+        { description: { $regex: escapeRegex(search), $options: 'i' } }
       ];
     }
   }
@@ -139,9 +144,9 @@ const getAllPosts = async (req, res) => {
   // Handle search - combine with category $or if it exists
   if (search) {
     const searchConditions = [
-      { exactLocation: { $regex: search, $options: 'i' } },
-      { contact: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } }
+      { exactLocation: { $regex: escapeRegex(search), $options: 'i' } },
+      { contact: { $regex: escapeRegex(search), $options: 'i' } },
+      { description: { $regex: escapeRegex(search), $options: 'i' } }
     ];
     
     if (match.$or) {
@@ -662,9 +667,9 @@ const getFilteredPosts = async (req, res) => {
     // Handle search - combine with category $or if it exists
     if (search) {
       const searchConditions = [
-        { exactLocation: { $regex: search, $options: 'i' } },
-        { contact: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
+        { exactLocation: { $regex: escapeRegex(search), $options: 'i' } },
+        { contact: { $regex: escapeRegex(search), $options: 'i' } },
+        { description: { $regex: escapeRegex(search), $options: 'i' } }
       ];
       
       if (match.$or) {

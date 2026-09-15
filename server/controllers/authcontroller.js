@@ -47,7 +47,7 @@ const login = async (req, res) => {
   try {
     foundUser = await User.findOne(searchQuery)
       .collation({ locale: "en", strength: 2 })
-      .select('_id username password country role email phone authProvider').exec();
+      .select('_id username password country role email phone authProvider isActive').exec();
   } catch (dbError) {
     console.error('Database error during login:', dbError);
     throw createAuthError('DATABASE_ERROR', 'Database connection error', {
@@ -61,6 +61,26 @@ const login = async (req, res) => {
   if (!foundUser) {
     throw createAuthError('INVALID_CREDENTIALS', 'Invalid credentials', {
       emailOrPhone,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+  }
+
+  // A deactivated account may not start a new session, whatever it presents.
+  //
+  // /auth/refresh has always enforced this, which is what makes a deactivation
+  // take hold within one access-token lifetime - but refresh is the one path a
+  // deactivated user has no need of. Logging in again minted a brand new
+  // session, so the admin console's deactivate lever (controllers/
+  // adminController.js) held for exactly one token lifetime and then reversed
+  // itself. Same ACCOUNT_INACTIVE contract both clients already key off.
+  if (foundUser.isActive === false) {
+    logEvents(
+      `Login refused - account deactivated: ${foundUser.username}\t${req.method}\t${req.url}\t${req.ip}`,
+      "errLog.log"
+    );
+    throw createAuthError('ACCOUNT_INACTIVE', 'Account is no longer active', {
+      username: foundUser.username,
       ip: req.ip,
       userAgent: req.get('User-Agent')
     });

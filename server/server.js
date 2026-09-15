@@ -55,7 +55,7 @@ const {
   apiSecurityHeaders 
 } = require("./middleware/securityHeaders");
 const { sanitizeInput } = require("./middleware/validation");
-const { general: generalRateLimit, dynamicRateLimiter, visitorSession: visitorSessionRateLimit } = require("./middleware/rateLimiting");
+const { general: generalRateLimit, visitorSession: visitorSessionRateLimit } = require("./middleware/rateLimiting");
 const dbSecurity = require("./middleware/dbSecurity");
 // Use unified cache system only
 const { initRedis, scheduleCacheWarming } = require("./config/unifiedCache");

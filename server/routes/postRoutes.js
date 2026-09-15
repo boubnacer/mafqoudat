@@ -42,6 +42,25 @@ const conditionalImageUploadLimit = (req, res, next) => {
   next();
 };
 
+// The search limiter guards the one expensive thing these routes can be asked
+// to do - a $regex scan across exactLocation/contact/description - so it is
+// applied only to requests that actually carry a search term. Applying it to
+// every listing read would throttle ordinary browsing and pagination at 30/min
+// per IP, and this platform's networks are CGNAT-heavy enough that one address
+// is routinely many unrelated people (see middleware/rateLimiting.js).
+//
+// It had been commented out entirely on all three routes with a note to
+// re-enable before production. The regex terms are escaped at the controller
+// now (controllers/postsController.js), so this is defence in depth rather
+// than the only thing standing in front of a scan.
+const conditionalSearchLimit = (req, res, next) => {
+  const term = req.query?.search;
+  if (typeof term === 'string' && term.trim() !== '') {
+    return searchRateLimit(req, res, next);
+  }
+  next();
+};
+
 // Public routes - still reachable by guests, but optionalAuth identifies a
 // signed-in viewer so the controller can drop posts by users they have blocked.
 // It has to run BEFORE the cache middleware: those key on the viewer, and a key
@@ -54,7 +73,7 @@ const conditionalImageUploadLimit = (req, res, next) => {
 // merged in fresh regardless of which path produced the rest of the response.
 router.route("/")
   .get(
-    // searchRateLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
+    conditionalSearchLimit,
     optionalAuth,
     commonValidations.pagination(),
     commonValidations.searchQuery(),
@@ -66,7 +85,7 @@ router.route("/")
 
 router.route("/filtered")
   .get(
-    // searchRateLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
+    conditionalSearchLimit,
     optionalAuth,
     commonValidations.pagination(),
     commonValidations.searchQuery(),
@@ -79,7 +98,7 @@ router.route("/filtered")
 router.route("/user")
   .get(
     verifyJWT,
-    // searchRateLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
+    conditionalSearchLimit,
     commonValidations.pagination(),
     commonValidations.searchQuery(),
     validateRequest,

@@ -273,86 +273,15 @@ const requireRole = (requiredRole) => {
 // Admin-only middleware
 const requireAdmin = requireRole('admin');
 
-// Permission-based access control middleware
-const requirePermission = (requiredPermission) => {
-  return (req, res, next) => {
-    // This would need to be implemented based on your permission system
-    // For now, we'll assume admin role has all permissions
-    if (req.role === 'admin') {
-      return next();
-    }
-
-    // Add your permission validation logic here
-    // Example: Check if user.permissions includes requiredPermission
-    if (!req.userPermissions || !req.userPermissions.includes(requiredPermission)) {
-      logEvents(
-        `Permission Access Denied: Required ${requiredPermission}\t${req.method}\t${req.url}\t${req.ip}`,
-        "errLog.log"
-      );
-      return res.status(403).json({
-        message: `Access denied. Required permission: ${requiredPermission}`,
-        isError: true,
-        code: 'INSUFFICIENT_PERMISSION'
-      });
-    }
-
-    next();
-  };
-};
-
-// Multiple permissions middleware
-const requireAnyPermission = (permissions) => {
-  return (req, res, next) => {
-    if (req.role === 'admin') {
-      return next();
-    }
-
-    const hasPermission = permissions.some(permission => 
-      req.userPermissions && req.userPermissions.includes(permission)
-    );
-
-    if (!hasPermission) {
-      logEvents(
-        `Permission Access Denied: Required any of ${permissions.join(', ')}\t${req.method}\t${req.url}\t${req.ip}`,
-        "errLog.log"
-      );
-      return res.status(403).json({
-        message: `Access denied. Required any of: ${permissions.join(', ')}`,
-        isError: true,
-        code: 'INSUFFICIENT_PERMISSIONS'
-      });
-    }
-
-    next();
-  };
-};
-
-// All permissions middleware
-const requireAllPermissions = (permissions) => {
-  return (req, res, next) => {
-    if (req.role === 'admin') {
-      return next();
-    }
-
-    const hasAllPermissions = permissions.every(permission => 
-      req.userPermissions && req.userPermissions.includes(permission)
-    );
-
-    if (!hasAllPermissions) {
-      logEvents(
-        `Permission Access Denied: Required all of ${permissions.join(', ')}\t${req.method}\t${req.url}\t${req.ip}`,
-        "errLog.log"
-      );
-      return res.status(403).json({
-        message: `Access denied. Required all of: ${permissions.join(', ')}`,
-        isError: true,
-        code: 'INSUFFICIENT_PERMISSIONS'
-      });
-    }
-
-    next();
-  };
-};
+// Permission-based access control was removed here.
+//
+// requirePermission / requireAnyPermission / requireAllPermissions all gated on
+// req.userPermissions, which nothing in this codebase has ever assigned - so
+// every one of them denied every non-admin unconditionally, and admins passed
+// only via the `req.role === 'admin'` short-circuit above the check. Nothing
+// imported them. They were an interface for a permission system that does not
+// exist; roles (requireRole/requireAdmin) are what this app actually has.
+// Reinstate from git history alongside a real permission source, never alone.
 
 // Token validation middleware (for optional authentication)
 const optionalAuth = (req, res, next) => {
@@ -420,9 +349,6 @@ module.exports = {
   // New middleware exports
   requireRole,
   requireAdmin,
-  requirePermission,
-  requireAnyPermission,
-  requireAllPermissions,
   optionalAuth,
   authRateLimit,
   logoutRateLimit

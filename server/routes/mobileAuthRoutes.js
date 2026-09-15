@@ -133,6 +133,22 @@ router.post('/google/mobile', authRateLimit, async (req, res) => {
       ]
     }).select('-password');
 
+    // Same deactivation guard as the password login and the browser OAuth
+    // flows - see controllers/authcontroller.js. Native mobile sign-in mints a
+    // session directly and never reaches /auth/refresh, which was the only
+    // place isActive had ever been enforced.
+    if (existingUser && existingUser.isActive === false) {
+      logEvents(
+        `Mobile Google OAuth refused - account deactivated: ${existingUser.username}\t${req.method}\t${req.url}\t${req.ip}`,
+        'errLog.log'
+      );
+      return res.status(401).json({
+        message: 'Account is no longer active',
+        isError: true,
+        code: 'ACCOUNT_INACTIVE'
+      });
+    }
+
     if (existingUser) {
       // Update last login and ensure Google ID is set
       existingUser.lastLogin = new Date();

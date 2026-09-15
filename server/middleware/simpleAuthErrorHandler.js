@@ -42,6 +42,12 @@ const getStatusCode = (code) => {
   const statusCodes = {
     'VALIDATION_ERROR': 400,
     'INVALID_CREDENTIALS': 401,
+    // A deactivated account is an authentication failure, not a server fault.
+    // Without this entry the fallthrough below answers 500, and both clients
+    // key their "this account can no longer sign in" handling off a 401
+    // carrying this code - the same code /auth/refresh already answers with
+    // (see controllers/authcontroller.js).
+    'ACCOUNT_INACTIVE': 401,
     'OAUTH_USER': 400,
     'DATABASE_ERROR': 503,
     'SERVER_ERROR': 500,

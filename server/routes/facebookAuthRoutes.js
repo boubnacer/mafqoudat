@@ -138,6 +138,16 @@ const processFacebookCallback = async (req, res) => {
       return `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}&provider=facebook`;
     }
 
+    // Same deactivation guard as the password login and the other two OAuth
+    // entry points - see controllers/authcontroller.js.
+    if (user && user._id && user.isActive === false) {
+      logEvents(
+        `Facebook OAuth refused - account deactivated: ${user.username}\t${req.method}\t${req.url}\t${req.ip}`,
+        'errLog.log'
+      );
+      return `${frontendUrl}/login?error=account_inactive`;
+    }
+
     // Existing user - generate session and redirect
     if (user && user._id) {
       try {

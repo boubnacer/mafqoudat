@@ -1,4 +1,4 @@
-const { verifyAccessToken } = require("./jwtSecurity");
+const { verifyAccessToken, isTokenBlacklisted } = require("./jwtSecurity");
 
 /**
  * Populates req.user/req.username/req.country/req.role when the request carries
@@ -28,6 +28,14 @@ const { verifyAccessToken } = require("./jwtSecurity");
  * calling jwt.verify here, so the issuer/audience/algorithm options can never
  * drift from the ones verifyJWT enforces. Async because that helper is - the
  * one caller of this (postViewTracker) is already async.
+ *
+ * The revocation denylist is checked here too, for the same reason verifyJWT
+ * checks it: logging out must actually end the session everywhere, not only on
+ * the routes that reject anonymous callers. Without this a logged-out (or
+ * stolen-and-revoked) token kept identifying its owner on every optionalAuth
+ * route - the public listings, the comments read, the view tracker - for the
+ * rest of the access token's lifetime. A revoked token is treated exactly like
+ * no token at all: the request continues as a guest.
  */
 const readBearerUserInfo = async (req) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
@@ -35,7 +43,9 @@ const readBearerUserInfo = async (req) => {
 
   try {
     const decoded = await verifyAccessToken(authHeader.split(" ")[1]);
-    return decoded?.UserInfo?.usernameId ? decoded.UserInfo : null;
+    if (!decoded?.UserInfo?.usernameId) return null;
+    if (!decoded.jti || (await isTokenBlacklisted(decoded.jti))) return null;
+    return decoded.UserInfo;
   } catch (err) {
     return null;
   }

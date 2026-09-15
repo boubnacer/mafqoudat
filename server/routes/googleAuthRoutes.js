@@ -123,6 +123,19 @@ router.get('/google/callback',
         }
       }
 
+      // A deactivated account may not start a new session here either. The
+      // password path and both other OAuth entry points carry the same guard;
+      // /auth/refresh has always enforced it, but an OAuth sign-in mints a new
+      // session and never reaches refresh, so without this a deactivation held
+      // for one access-token lifetime and then reversed itself.
+      if (user && user._id && user.isActive === false) {
+        logEvents(
+          `Google OAuth refused - account deactivated: ${user.username}\t${req.method}\t${req.url}\t${req.ip}`,
+          'errLog.log'
+        );
+        return res.redirect(`${frontendUrl}/login?error=account_inactive`);
+      }
+
       // Existing user - generate JWT and redirect
       if (user && user._id) {
         try {

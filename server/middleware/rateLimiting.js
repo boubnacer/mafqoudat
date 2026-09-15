@@ -202,10 +202,15 @@ const rateLimiters = {
   })
 };
 
-// Dynamic rate limiter based on user role
+// Dynamic rate limiter based on user role.
+//
+// The role is on req.role, not req.user: verifyJWT attaches the account id as
+// req.user (a string) and the role separately (middleware/jwtSecurity.js). The
+// old `req.user?.role` therefore read undefined on every request, including an
+// admin's, and every caller silently fell through to the lenient `public`
+// bucket - the opposite of what a role-aware limiter is for.
 const dynamicRateLimiter = (req, res, next) => {
-  // Get user role from JWT token if available
-  const userRole = req.user?.role || 'anonymous';
+  const userRole = req.role || 'anonymous';
   
   let limiter;
   switch (userRole) {

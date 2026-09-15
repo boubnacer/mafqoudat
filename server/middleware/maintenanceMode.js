@@ -10,11 +10,21 @@ const { logEvents } = require("./logger");
  * Allows admin users to bypass maintenance mode for system management
  */
 
-// Cache for database maintenance mode check (10 second TTL)
+// Cache for database maintenance mode check (10 second TTL, 5 while the
+// database is unreachable and the environment variable is standing in).
+//
+// The TTL is stored per cached result rather than mutated on the shared cache
+// object: the fallback path used to assign maintenanceCache.ttl = 5000 and
+// nothing ever put it back, so a single transient database error permanently
+// halved the cache window for the life of the process - doubling SystemSettings
+// reads on every request forever, long after the database had recovered.
+const CACHE_TTL_MS = 10000;
+const FALLBACK_CACHE_TTL_MS = 5000;
+
 let maintenanceCache = {
   data: null,
   timestamp: 0,
-  ttl: 10000 // 10 seconds in milliseconds
+  ttl: CACHE_TTL_MS
 };
 
 /**
@@ -43,7 +53,8 @@ const checkMaintenanceMode = async () => {
     // Cache the result
     maintenanceCache.data = result;
     maintenanceCache.timestamp = now;
-    
+    maintenanceCache.ttl = CACHE_TTL_MS;
+
     return result;
   } catch (dbError) {
     // Database query failed, fall back to environment variable
@@ -56,10 +67,11 @@ const checkMaintenanceMode = async () => {
       source: 'environment'
     };
 
-    // Cache the fallback result for a shorter time (5 seconds)
+    // Cache the fallback result for a shorter time, so the database is retried
+    // sooner - and restored to the normal window by the success path above.
     maintenanceCache.data = result;
     maintenanceCache.timestamp = now;
-    maintenanceCache.ttl = 5000; // Shorter TTL for fallback
+    maintenanceCache.ttl = FALLBACK_CACHE_TTL_MS;
 
     return result;
   }

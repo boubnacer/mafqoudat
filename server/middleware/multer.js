@@ -16,6 +16,45 @@ try {
 // Memory-optimized storage configuration
 const storage = multer.memoryStorage();
 
+// Magic-byte signatures for the formats fileFilter claims to allow.
+//
+// fileFilter can only see what the client chose to tell us: `file.mimetype` is
+// taken verbatim from the multipart part header, and the extension check below
+// it is skipped entirely when the filename carries no extension. So a file of
+// any kind, sent as `Content-Type: image/jpeg` under a name like `blob`,
+// passed every check. multer's fileFilter runs before any bytes are buffered,
+// so the only place this can be answered is uploadToCloudinaryMiddleware,
+// where req.file.buffer exists.
+const IMAGE_SIGNATURES = [
+  { mime: 'image/jpeg', test: (b) => b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
+  {
+    mime: 'image/png',
+    test: (b) =>
+      b.length >= 8 &&
+      b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47 &&
+      b[4] === 0x0d && b[5] === 0x0a && b[6] === 0x1a && b[7] === 0x0a,
+  },
+  { mime: 'image/gif', test: (b) => b.length >= 6 && b.toString('ascii', 0, 6).match(/^GIF8[79]a$/) !== null },
+  {
+    mime: 'image/webp',
+    test: (b) =>
+      b.length >= 12 &&
+      b.toString('ascii', 0, 4) === 'RIFF' &&
+      b.toString('ascii', 8, 12) === 'WEBP',
+  },
+];
+
+// The real format of the bytes, or null when they are not an image we accept.
+// Deliberately answers on the content alone and ignores the declared mimetype:
+// the two disagreeing is normal and harmless (a phone labelling a JPEG
+// image/jpg, a client re-encoding to WebP without relabelling), while the
+// content not being an image at all is the thing worth refusing.
+const detectImageType = (buffer) => {
+  if (!Buffer.isBuffer(buffer)) return null;
+  const match = IMAGE_SIGNATURES.find((signature) => signature.test(buffer));
+  return match ? match.mime : null;
+};
+
 // Enhanced file filter with security checks
 const fileFilter = (req, file, cb) => {
   // Check file type - only allow common image MIME types
@@ -124,6 +163,17 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
         });
       }
 
+      // The only check on this path that the uploader does not control. See
+      // detectImageType above for why the declared mimetype cannot carry it.
+      const detectedType = detectImageType(req.file.buffer);
+      if (!detectedType) {
+        return res.status(400).json({
+          error: 'Invalid file type! Allowed: image/jpeg, image/png, image/gif, image/webp',
+          isError: true
+        });
+      }
+      req.file.detectedMimeType = detectedType;
+
       // Generate secure filename with hash
       const fileHash = crypto.createHash('sha256').update(req.file.buffer).digest('hex').substring(0, 16);
       const sanitizedOriginalName = req.file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -193,4 +243,4 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = { upload, uploadWithFields, uploadToCloudinaryMiddleware };
+module.exports = { upload, uploadWithFields, uploadToCloudinaryMiddleware, detectImageType };

@@ -157,11 +157,19 @@ const dbSecurity = {
     return complexity;
   },
 
-  // Query validation middleware
-  validateQuery: (req, res, next) => {
-    // Validate ObjectIds in params
+  // Route-level ObjectId validation.
+  //
+  // This used to live inside validateQuery, which server.js mounts with
+  // app.use() - and an application-level middleware never has route params:
+  // req.params is populated by the router layer that matched a path pattern,
+  // so at app level it is always {} and the loop below matched nothing on
+  // every request the app has ever served. It read as a guard and validated
+  // nothing. Split out so it can be mounted where it actually works (on a
+  // router, after a path with :id in it); wiring it onto individual routes is
+  // a separate decision from making it functional.
+  validateObjectIdParams: (req, res, next) => {
     const idParams = ['id', 'userId', 'postId', 'categoryId', 'countryId', 'cityId'];
-    
+
     for (const param of idParams) {
       if (req.params[param] && !dbSecurity.validateObjectId(req.params[param])) {
         return res.status(400).json({
@@ -170,7 +178,12 @@ const dbSecurity = {
         });
       }
     }
-    
+
+    next();
+  },
+
+  // Query validation middleware
+  validateQuery: (req, res, next) => {
     // Sanitize query parameters
     if (req.query) {
       req.query = dbSecurity.sanitizeQuery(req.query);
