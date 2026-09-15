@@ -20,7 +20,7 @@
  * "navigate once the right navigator is mounted" machinery.
  */
 
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { useAuth } from './AuthContext';
 import { useLanguage } from './LanguageContext';
@@ -171,8 +171,13 @@ export const NotificationsProvider = ({ children }) => {
     return () => subscription.remove();
   }, [isSignedIn, refreshUnreadCount]);
 
+  const value = useMemo(
+    () => ({ unreadCount, refreshUnreadCount, setUnreadCount }),
+    [unreadCount, refreshUnreadCount]
+  );
+
   return (
-    <NotificationsContext.Provider value={{ unreadCount, refreshUnreadCount, setUnreadCount }}>
+    <NotificationsContext.Provider value={value}>
       {children}
     </NotificationsContext.Provider>
   );

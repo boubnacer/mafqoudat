@@ -184,13 +184,19 @@ const SignUpScreen = ({ navigation }) => {
       const serverMessage = serverBody?.message;
       const serverCode = serverBody?.code;
 
+      // serverCode is checked first - usersController.createNewUser now sends
+      // one alongside each message (EMAIL_EXISTS/PHONE_EXISTS/ACCOUNT_EXISTS,
+      // matching the existing OAUTH_USER pattern) - so this can't silently
+      // fall through to the generic networkError case the moment the raw
+      // English message text is ever reworded server-side. The message
+      // checks stay as a fallback for a server that predates the code.
       if (serverCode === 'OAUTH_USER' || serverMessage === 'OAUTH_EMAIL_EXISTS') {
         setError(t('oauthEmailExists'));
-      } else if (serverMessage === 'Email already exists') {
+      } else if (serverCode === 'EMAIL_EXISTS' || serverMessage === 'Email already exists') {
         setError(t('emailAlreadyExists'));
-      } else if (serverMessage === 'Phone number already exists') {
+      } else if (serverCode === 'PHONE_EXISTS' || serverMessage === 'Phone number already exists') {
         setError(t('phoneAlreadyExists'));
-      } else if (serverMessage === 'Email or phone number already exists') {
+      } else if (serverCode === 'ACCOUNT_EXISTS' || serverMessage === 'Email or phone number already exists') {
         setError(t('accountAlreadyExists'));
       } else if (err.response?.status === 429) {
         setError(t('tooManyAttempts'));

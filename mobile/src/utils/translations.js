@@ -248,6 +248,7 @@ export const translations = {
     postCreatedSuccessfully: "Post Created Successfully!",
     errorCreatingPost: "Error Creating Post",
     errorCreatingPostMessage: "An error occurred while creating the post",
+    errorUpdatingProfileMessage: "An error occurred while updating the profile",
     postingLimitReached: "You've reached the posting limit. Please try again later.",
     retry: "Retry",
     thisFieldRequired: "This field is required",
@@ -311,6 +312,7 @@ export const translations = {
     failedToDeletePost: "Failed to delete post. Please try again.",
     failedToMarkReturned: "Failed to update post. Please try again.",
     notAuthorizedForPost: "You're not authorized to modify this post.",
+    notAuthorizedForProfile: "You're not authorized to modify this profile.",
     noMyPosts: "You haven't posted anything yet.",
 
     // Profile / Settings
@@ -794,6 +796,7 @@ export const translations = {
     postCreatedSuccessfully: "Publication créée avec succès !",
     errorCreatingPost: "Erreur lors de la création de la publication",
     errorCreatingPostMessage: "Une erreur s'est produite lors de la création de la publication",
+    errorUpdatingProfileMessage: "Une erreur s'est produite lors de la mise à jour du profil",
     postingLimitReached: "Vous avez atteint la limite de publication. Veuillez réessayer plus tard.",
     retry: "Réessayer",
     thisFieldRequired: "Ce champ est requis",
@@ -857,6 +860,7 @@ export const translations = {
     failedToDeletePost: "Échec de la suppression. Veuillez réessayer.",
     failedToMarkReturned: "Échec de la mise à jour. Veuillez réessayer.",
     notAuthorizedForPost: "Vous n'êtes pas autorisé à modifier cette publication.",
+    notAuthorizedForProfile: "Vous n'êtes pas autorisé à modifier ce profil.",
     noMyPosts: "Vous n'avez encore rien publié.",
 
     // Profile / Settings
@@ -1351,6 +1355,7 @@ export const translations = {
     postCreatedSuccessfully: "تم إنشاء المنشور بنجاح!",
     errorCreatingPost: "خطأ في إنشاء المنشور",
     errorCreatingPostMessage: "حدث خطأ أثناء إنشاء المنشور",
+    errorUpdatingProfileMessage: "حدث خطأ أثناء تحديث الملف الشخصي",
     postingLimitReached: "لقد وصلت إلى حد النشر. يرجى المحاولة مرة أخرى لاحقًا.",
     retry: "إعادة المحاولة",
     thisFieldRequired: "هذا الحقل مطلوب",
@@ -1414,6 +1419,7 @@ export const translations = {
     failedToDeletePost: "فشل حذف المنشور. يرجى المحاولة مرة أخرى.",
     failedToMarkReturned: "فشل تحديث المنشور. يرجى المحاولة مرة أخرى.",
     notAuthorizedForPost: "غير مصرح لك بتعديل هذا المنشور.",
+    notAuthorizedForProfile: "غير مصرح لك بتعديل هذا الملف الشخصي.",
     noMyPosts: "لم تنشر أي شيء بعد.",
 
     // Profile / Settings

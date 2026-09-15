@@ -185,6 +185,7 @@ const RootNavigator = () => {
   const { isActive, message, estimatedReturn } = useMaintenance();
   const { colors, isDark } = useTheme();
   const { refreshUnreadCount } = useNotifications();
+  const { t } = useTranslation();
 
   // A country pick (even without signing in) is enough to unlock guest
   // browsing - only a user who has never chosen one gets funneled through
@@ -308,7 +309,7 @@ const RootNavigator = () => {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading...</Text>
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>{t('loading')}</Text>
       </View>
     );
   }
@@ -317,7 +318,7 @@ const RootNavigator = () => {
     <NavigationContainer
       ref={navigationRef}
       theme={getNavigationTheme(colors, isDark)}
-      fallback={<Text>Loading...</Text>}
+      fallback={<Text>{t('loading')}</Text>}
       linking={linking}
     >
       {showAppShell ? <AppNavigator /> : <AuthNavigator />}

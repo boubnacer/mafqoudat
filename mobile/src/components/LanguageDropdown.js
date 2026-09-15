@@ -3,7 +3,7 @@
  * A dropdown/picker style language selector
  */
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -26,7 +26,7 @@ const languages = [
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const LanguageDropdown = ({ style, compact = false, onOpen, closeSignal }) => {
+const LanguageDropdown = ({ style }) => {
   const { currentLanguage, setLanguage } = useLanguage();
   const theme = useTheme();
   const isRTL = currentLanguage === 'ar';
@@ -36,20 +36,21 @@ const LanguageDropdown = ({ style, compact = false, onOpen, closeSignal }) => {
   const buttonRef = useRef(null);
   const [buttonLayout, setButtonLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
-  // Lets a parent that coordinates multiple overlays (e.g. AppHeader, keeping
-  // this, the country picker, and the overflow menu mutually exclusive) force
-  // this dropdown closed by changing closeSignal - this component still owns
-  // dropdownVisible itself, so existing self-managed usages are unaffected.
-  useEffect(() => {
-    if (closeSignal === undefined) return;
-    setDropdownVisible(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [closeSignal]);
-
   const toggleDropdown = () => {
-    const next = !dropdownVisible;
-    setDropdownVisible(next);
-    if (next) onOpen?.();
+    if (dropdownVisible) {
+      setDropdownVisible(false);
+      return;
+    }
+    // measureInWindow, not onLayout: the button's onLayout gives coordinates
+    // relative to its own parent, but this dropdown renders inside a Modal,
+    // which mounts at the root of the app with its own screen-absolute
+    // coordinate system - positioning against the parent-relative value
+    // placed the menu wrong anywhere this component sits inside another
+    // container with its own offset (e.g. a header with padding).
+    buttonRef.current?.measureInWindow((x, y, width, height) => {
+      setButtonLayout({ x, y, width, height });
+      setDropdownVisible(true);
+    });
   };
 
   const handleLanguageChange = async (languageCode) => {
@@ -65,34 +66,23 @@ const LanguageDropdown = ({ style, compact = false, onOpen, closeSignal }) => {
 
   const currentLang = languages.find(lang => lang.code === currentLanguage);
 
-  // Measure button position when it becomes visible
-  const onButtonLayout = (event) => {
-    const { x, y, width, height } = event.nativeEvent.layout;
-    setButtonLayout({ x, y, width, height });
-  };
-
   return (
     <>
-      <View 
-        style={[styles.container, style]} 
+      <View
+        style={[styles.container, style]}
         ref={buttonRef}
-        onLayout={onButtonLayout}
       >
         <TouchableOpacity
-          style={compact ? styles.compactButton : styles.dropdownButton}
+          style={styles.dropdownButton}
           onPress={toggleDropdown}
           activeOpacity={0.7}
           accessibilityLabel={currentLang?.nativeName || currentLanguage.toUpperCase()}
         >
-          <Text style={compact ? styles.compactFlag : styles.flag}>{currentLang?.flag || '🌐'}</Text>
-          {!compact && (
-            <>
-              <Text style={styles.languageText}>
-                {currentLang?.nativeName || currentLanguage.toUpperCase()}
-              </Text>
-              <Text style={styles.arrow}>{dropdownVisible ? '▲' : '▼'}</Text>
-            </>
-          )}
+          <Text style={styles.flag}>{currentLang?.flag || '🌐'}</Text>
+          <Text style={styles.languageText}>
+            {currentLang?.nativeName || currentLanguage.toUpperCase()}
+          </Text>
+          <Text style={styles.arrow}>{dropdownVisible ? '▲' : '▼'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -186,22 +176,6 @@ const createStyles = ({ colors, spacing, radii, fontSizes }, isRTL) => StyleShee
     color: colors.textSecondary,
     fontSize: 10,
     ...logical(isRTL, { marginStart: spacing.sm }),
-  },
-  // Icon-only trigger for use inside colored bars (e.g. AppHeader), where the
-  // full flag+name+arrow button would be too wide and its inputBackground/border
-  // styling would clash with the bar's own color.
-  compactButton: {
-    width: 36,
-    height: 36,
-    borderRadius: radii.full,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  compactFlag: {
-    fontSize: fontSizes.md,
   },
   modalOverlay: {
     flex: 1,

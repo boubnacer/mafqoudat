@@ -6,17 +6,22 @@
  * would flash the banner for a moment before NetInfo finishes its first check.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import NetInfo from '@react-native-community/netinfo';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
+import { lightColors, darkColors } from '../theme/tokens';
 import { useTranslation } from '../utils/translations';
 
 const OfflineBanner = () => {
   const insets = useSafeAreaInsets();
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
+  const { isDark } = useTheme();
+  const colors = isDark ? darkColors : lightColors;
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const isRTL = currentLanguage === 'ar';
   const [isOffline, setIsOffline] = useState(false);
 
@@ -36,14 +41,14 @@ const OfflineBanner = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   banner: {
     position: 'absolute',
     top: 0,
     start: 0,
     end: 0,
     zIndex: 999,
-    backgroundColor: '#c62828',
+    backgroundColor: colors.danger,
     paddingBottom: 8,
     paddingHorizontal: 16,
   },

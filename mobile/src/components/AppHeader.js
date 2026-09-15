@@ -218,6 +218,7 @@ const AppHeader = ({
         t={t}
         currentLanguage={currentLanguage}
         isRTL={isRTL}
+        countries={countries}
       />
 
       {showMenu ? (

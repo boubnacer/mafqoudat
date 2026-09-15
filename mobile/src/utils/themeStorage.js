@@ -8,7 +8,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const THEME_KEY = 'themeMode';
 const SUPPORTED_MODES = ['system', 'light', 'dark'];
-const DEFAULT_MODE = 'light';
+// Matches ThemeContext's own initial useState('system') - a first-ever launch
+// (nothing stored yet) should follow the OS setting, not force light mode on
+// a device whose user has dark mode on everywhere else.
+const DEFAULT_MODE = 'system';
 
 export const themeStorage = {
   /**

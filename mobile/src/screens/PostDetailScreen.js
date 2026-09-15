@@ -24,7 +24,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import apiClient from '../api/apiService';
-import { API_ENDPOINTS, API_BASE_URL, WEB_BASE_URL } from '../config/api';
+import { API_ENDPOINTS, WEB_BASE_URL } from '../config/api';
+import { getImageUri } from '../utils/imageUri';
 import { getCategoryConfig } from '../config/categories';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -313,11 +314,7 @@ const PostDetailScreen = ({ navigation, route }) => {
     );
   }
 
-  const imageUri = post.image
-    ? post.image.startsWith('http')
-      ? post.image
-      : `${API_BASE_URL}/${post.image}`
-    : null;
+  const imageUri = getImageUri(post.image);
 
   const floption = Array.isArray(post.Floptions) && post.Floptions.length > 0 ? post.Floptions[0] : null;
   const foundLostCode = (floption?.code || '').toUpperCase();

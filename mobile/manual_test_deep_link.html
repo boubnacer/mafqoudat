@@ -38,18 +38,18 @@
     
     <div class="status" id="status">Ready to test...</div>
     
-    <button class="button" onclick="testDeepLink('token')">
-        Test with Token
+    <button class="button" onclick="testDeepLink('code')">
+        Test with Code
     </button>
-    
+
     <button class="button" onclick="testDeepLink('pendingToken')">
         Test with Pending Token
     </button>
-    
+
     <button class="button" onclick="testDeepLink('error')">
         Test with Error
     </button>
-    
+
     <h3>Instructions:</h3>
     <ol>
         <li>Open this page on your mobile device</li>
@@ -58,10 +58,17 @@
         <li>The app should open automatically</li>
         <li>Check the app console logs for deep link messages</li>
     </ol>
-    
+
     <h3>Expected Deep Links:</h3>
+    <p>The OAuth callback stopped putting the access/refresh token pair
+    directly in the URL - see server/utils/oauthExchange.js and
+    mobile/src/utils/oauthExchange.js. A successful sign-in now hands the app
+    a one-time opaque <code>code</code>, traded server-side for the real
+    tokens via <code>POST /auth/mobile-exchange</code>; a real <code>token</code>
+    parameter is never sent on this deep link anymore, so this page no longer
+    tests that shape.</p>
     <ul>
-        <li><code>mafqoudat://auth/callback?token=test123</code></li>
+        <li><code>mafqoudat://auth/callback?code=test123</code></li>
         <li><code>mafqoudat://auth/callback?pendingToken=test456</code></li>
         <li><code>mafqoudat://auth/callback?error=test_error</code></li>
     </ul>
@@ -72,8 +79,8 @@
             let deepLink = 'mafqoudat://auth/callback?';
             
             switch(type) {
-                case 'token':
-                    deepLink += 'token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.test';
+                case 'code':
+                    deepLink += 'code=test-opaque-code-123';
                     break;
                 case 'pendingToken':
                     deepLink += 'pendingToken=pending_test_12345';

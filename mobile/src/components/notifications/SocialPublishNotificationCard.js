@@ -24,12 +24,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTranslation } from '../../utils/translations';
-import { API_BASE_URL } from '../../config/api';
+import { getImageUri } from '../../utils/imageUri';
 import { colorTokens, radiusTokens, fontFamilies } from '../../theme/tokens';
 import { logical, row, needsDirectionFlip } from '../../utils/rtl';
 import { formatRelativeTime } from '../../utils/relativeTime';
-
-const getImageUri = (image) => (image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : null);
 
 const PLATFORM_ICONS = {
   facebook: 'logo-facebook',

@@ -133,7 +133,7 @@ const createNewUser = async (req, res) => {
           code: 'OAUTH_USER'
         });
       }
-      return res.status(409).json({ message: "Email already exists" });
+      return res.status(409).json({ message: "Email already exists", code: 'EMAIL_EXISTS' });
     }
   }
 
@@ -145,7 +145,7 @@ const createNewUser = async (req, res) => {
       .exec();
 
     if (duplicatePhone) {
-      return res.status(409).json({ message: "Phone number already exists" });
+      return res.status(409).json({ message: "Phone number already exists", code: 'PHONE_EXISTS' });
     }
   }
 
@@ -157,7 +157,7 @@ const createNewUser = async (req, res) => {
     .exec();
 
   if (duplicateUsername) {
-    return res.status(409).json({ message: "Email or phone number already exists" });
+    return res.status(409).json({ message: "Email or phone number already exists", code: 'ACCOUNT_EXISTS' });
   }
 
   // Hash password
