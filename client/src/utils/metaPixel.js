@@ -11,7 +11,14 @@
 
 import { hasAdConsent, onConsentChange, startConsentListener } from './consent';
 
-const PIXEL_ID = process.env.REACT_APP_FB_PIXEL_ID || '822628638471721';
+// No hardcoded fallback: an unset REACT_APP_FB_PIXEL_ID means this
+// deployment cannot send to the Pixel, the same "no signal = not
+// configured" rule utils/analytics.js's GA_MEASUREMENT_ID and consent.js's
+// FC_PUBLISHER_ID already follow. The old fallback was a real production
+// Pixel ID, so any deployment that forgot to set the env var - a preview
+// build, a fork, a misconfigured staging env - silently sent its traffic
+// into the production account's real analytics instead of nowhere.
+const PIXEL_ID = process.env.REACT_APP_FB_PIXEL_ID;
 let isPixelInitialized = false;
 
 const loadPixelScript = () => {
@@ -32,7 +39,7 @@ const loadPixelScript = () => {
 };
 
 const activatePixel = () => {
-  if (isPixelInitialized || typeof window === 'undefined') {
+  if (isPixelInitialized || typeof window === 'undefined' || !PIXEL_ID) {
     return;
   }
 
@@ -47,7 +54,7 @@ const activatePixel = () => {
  * same as initializeGA - it loads nothing by itself.
  */
 export const initializeMetaPixel = () => {
-  if (typeof window === 'undefined') {
+  if (typeof window === 'undefined' || !PIXEL_ID) {
     return;
   }
 
@@ -55,12 +62,27 @@ export const initializeMetaPixel = () => {
 
   if (hasAdConsent()) {
     activatePixel();
-    return;
   }
 
+  // Consent can change in both directions after this runs. A visitor who
+  // grants later gets the pixel activated for the first time (the branch
+  // above only fires immediately if consent was already granted at start-up).
+  // One who withdraws after granting has to actually stop the pixel from
+  // sending data, not just never be activated again - the old version of
+  // this listener only ever checked "granted", so a withdrawal here did
+  // nothing and the already-loaded pixel just kept firing. fbq's own
+  // 'consent' command (distinct from the Consent Mode v2 signals consent.js
+  // publishes, which only Google's gtag understands) is Meta's documented
+  // way to pause/resume a pixel that is already loaded.
   onConsentChange(() => {
     if (hasAdConsent()) {
-      activatePixel();
+      if (isPixelInitialized) {
+        window.fbq('consent', 'grant');
+      } else {
+        activatePixel();
+      }
+    } else if (isPixelInitialized) {
+      window.fbq('consent', 'revoke');
     }
   });
 };

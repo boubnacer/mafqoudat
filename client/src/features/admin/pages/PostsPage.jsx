@@ -545,6 +545,10 @@ const PostsPage = () => {
         title={t('deleteListingTitle')}
         description={t('deleteListingBody')}
         confirmLabel={t('deletePost')}
+        // Deleting a listing is irreversible (it takes its comment thread and
+        // reports with it), same as deleting an account - see UsersPage.jsx's
+        // requireTyped on deleteUser.
+        requireTyped={postTitle(confirmDelete, '')}
         isLoading={deleting}
       />
     </>

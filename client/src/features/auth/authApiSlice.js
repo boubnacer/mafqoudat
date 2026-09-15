@@ -1,16 +1,17 @@
 import { apiSlice } from "../../app/api/apiSlice";
 import { logOut, setCredentials } from "./authSlice";
 import { setCurrentCountry } from "../../app/state/index";
-import { authStorage } from "../../utils/authStorage";
+import { authStorage, decodeTokenPayload } from "../../utils/authStorage";
 import { performLogout } from "../../utils/logoutUtils";
 
 // Helper function to extract user data from token
 const extractUserFromToken = (token) => {
   try {
     if (!token) return null;
-    
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    
+
+    const payload = decodeTokenPayload(token);
+    if (!payload) return null;
+
     if (payload.UserInfo) {
       return {
         _id: payload.UserInfo.usernameId,
@@ -47,19 +48,19 @@ export const authApiSlice = apiSlice.injectEndpoints({
         if (response.status === 400) {
           return { 
             status: 400, 
-            data: { message: "Invalid username or password" } 
+            data: { message: response?.data?.message || "Invalid username or password" } 
           };
         }
         if (response.status === 401) {
           return { 
             status: 401, 
-            data: { message: "Unauthorized access" } 
+            data: { message: response?.data?.message || "Unauthorized access" } 
           };
         }
         if (response.status === 500) {
           return { 
             status: 500, 
-            data: { message: "Server error. Please try again later." } 
+            data: { message: response?.data?.message || "Server error. Please try again later." } 
           };
         }
         return response;

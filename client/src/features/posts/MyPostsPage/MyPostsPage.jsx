@@ -13,7 +13,8 @@ import {
   useMediaQuery,
   Skeleton,
   Container,
-  Paper
+  Paper,
+  alpha
 } from '@mui/material';
 import { 
   PersonOutline, 
@@ -136,35 +137,39 @@ const MyPostsPage = () => {
                 startIcon={<ArrowBack />}
                 onClick={handleGoBack}
                 sx={{
-                  color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
+                  color: theme.custom.color.ink,
                   '&:hover': {
-                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                    backgroundColor: alpha(theme.custom.color.ink, 0.1),
                   },
                 }}
               >
                 {t('back')}
               </Button>
-              <PersonOutline sx={{ 
-                color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2c3e50', 
+              <PersonOutline sx={{
+                color: theme.custom.color.brandPrimary,
                 fontSize: '32px'
               }} />
               <Typography
                 variant="h4"
                 sx={{
-                  color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
+                  color: theme.custom.color.ink,
                   fontWeight: 700,
                   fontSize: { xs: '24px', sm: '32px' }
                 }}
               >
                 {t('myPosts')}
               </Typography>
-              <Chip 
-                label={userPosts.length} 
-                color="primary" 
+              <Chip
+                label={userPosts.length}
                 size="small"
                 sx={{
                   fontWeight: 700,
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  // Not color="primary": palette.primary.main is #FFFFFF in
+                  // light mode (see the other fixes in this file), which
+                  // would render a white chip with white-on-white text.
+                  backgroundColor: theme.custom.color.brandPrimary,
+                  color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
                 }}
               />
             </Box>
@@ -173,10 +178,12 @@ const MyPostsPage = () => {
               startIcon={<Add />}
               onClick={handleCreatePost}
               sx={{
-                background: 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)',
-                boxShadow: '0 3px 5px 2px rgba(76, 175, 80, .3)',
+                backgroundColor: theme.custom.color.brandPrimary,
+                color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+                boxShadow: `0 3px 5px 2px ${alpha(theme.custom.color.brandPrimary, 0.3)}`,
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #66BB6A 30%, #81C784 90%)',
+                  backgroundColor: theme.custom.color.brandPrimary,
+                  opacity: 0.9,
                 },
                 display: { xs: 'none', sm: 'flex' },
               }}
@@ -219,14 +226,16 @@ const MyPostsPage = () => {
                 startIcon={<Add />}
                 onClick={handleCreatePost}
                 sx={{
-                  background: 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)',
-                  boxShadow: '0 3px 5px 2px rgba(76, 175, 80, .3)',
+                  backgroundColor: theme.custom.color.brandPrimary,
+                  color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+                  boxShadow: `0 3px 5px 2px ${alpha(theme.custom.color.brandPrimary, 0.3)}`,
                   px: 4,
                   py: 1.5,
                   '&:hover': {
-                    background: 'linear-gradient(45deg, #66BB6A 30%, #81C784 90%)',
+                    backgroundColor: theme.custom.color.brandPrimary,
+                    opacity: 0.9,
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 6px 10px 2px rgba(76, 175, 80, .4)',
+                    boxShadow: `0 6px 10px 2px ${alpha(theme.custom.color.brandPrimary, 0.4)}`,
                   },
                 }}
               >
@@ -248,7 +257,7 @@ const MyPostsPage = () => {
                         boxShadow: theme.palette.mode === 'dark'
                           ? '0 4px 12px rgba(0,0,0,0.3)'
                           : '0 4px 12px rgba(0,0,0,0.1)',
-                        backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                        backgroundColor: theme.custom.color.surfaceRaised,
                         border: theme.palette.mode === 'dark' 
                           ? '1px solid rgba(255,255,255,0.1)'
                           : '1px solid rgba(0,0,0,0.1)',
@@ -270,7 +279,7 @@ const MyPostsPage = () => {
                           alt={String(post.title || post.categoryname || 'Unknown Item')}
                           sx={{ 
                             objectFit: post.image && typeof post.image === 'string' ? 'cover' : 'contain',
-                            backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#f5f5f5'
+                            backgroundColor: theme.custom.color.surfaceBase
                           }}
                         />
                         <Chip
@@ -282,10 +291,14 @@ const MyPostsPage = () => {
                             top: 12,
                             right: 12,
                             fontWeight: 600,
-                            backgroundColor: String(post.floptionName) === 'found' 
-                              ? (theme.palette.mode === 'dark' ? '#2e7d32' : '#4caf50')
-                              : (theme.palette.mode === 'dark' ? '#d32f2f' : '#f44336'),
-                            color: '#ffffff'
+                            backgroundColor: String(post.floptionName) === 'found'
+                              ? theme.custom.status.found.main
+                              : theme.custom.status.lost.main,
+                            color: theme.palette.getContrastText(
+                              String(post.floptionName) === 'found'
+                                ? theme.custom.status.found.main
+                                : theme.custom.status.lost.main
+                            )
                           }}
                         />
                       </Box>
@@ -299,7 +312,7 @@ const MyPostsPage = () => {
                             fontSize: '18px',
                             fontWeight: 600,
                             mb: 1.5,
-                            color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
+                            color: theme.custom.color.ink,
                             lineHeight: 1.3,
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
@@ -364,11 +377,11 @@ const MyPostsPage = () => {
                               flex: 1,
                               fontSize: '13px',
                               py: 0.75,
-                              borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2c3e50',
-                              color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2c3e50',
+                              borderColor: theme.custom.color.brandPrimary,
+                              color: theme.custom.color.brandPrimary,
                               '&:hover': {
-                                borderColor: theme.palette.mode === 'dark' ? '#66BB6A' : '#34495e',
-                                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(44, 62, 80, 0.1)',
+                                borderColor: theme.custom.color.brandPrimary,
+                                backgroundColor: alpha(theme.custom.color.brandPrimary, 0.1),
                               },
                             }}
                           >
@@ -383,11 +396,11 @@ const MyPostsPage = () => {
                               flex: 1,
                               fontSize: '13px',
                               py: 0.75,
-                              borderColor: theme.palette.mode === 'dark' ? '#FF9800' : '#2c3e50',
-                              color: theme.palette.mode === 'dark' ? '#FF9800' : '#2c3e50',
+                              borderColor: theme.custom.status.pending.main,
+                              color: theme.custom.status.pending.main,
                               '&:hover': {
-                                borderColor: theme.palette.mode === 'dark' ? '#FFB74D' : '#34495e',
-                                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 152, 0, 0.1)' : 'rgba(44, 62, 80, 0.1)',
+                                borderColor: theme.custom.status.pending.main,
+                                backgroundColor: alpha(theme.custom.status.pending.main, 0.1),
                               },
                             }}
                           >
@@ -419,12 +432,14 @@ const MyPostsPage = () => {
                     height: 56,
                     minWidth: 56,
                     borderRadius: '50%',
-                    background: 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)',
-                    boxShadow: '0 4px 12px rgba(76, 175, 80, .4)',
+                    backgroundColor: theme.custom.color.brandPrimary,
+                    color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+                    boxShadow: `0 4px 12px ${alpha(theme.custom.color.brandPrimary, 0.4)}`,
                     '&:hover': {
-                      background: 'linear-gradient(45deg, #66BB6A 30%, #81C784 90%)',
+                      backgroundColor: theme.custom.color.brandPrimary,
+                      opacity: 0.9,
                       transform: 'scale(1.1)',
-                      boxShadow: '0 6px 16px rgba(76, 175, 80, .5)',
+                      boxShadow: `0 6px 16px ${alpha(theme.custom.color.brandPrimary, 0.5)}`,
                     }
                   }}
                 >

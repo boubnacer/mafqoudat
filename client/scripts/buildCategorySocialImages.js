@@ -427,10 +427,17 @@ async function main() {
     // anything else, which would take a photo-less listing off the account
     // entirely. `flatten` is belt and braces - the card is opaque - and
     // 4:4:4 keeps the wordmark's thin strokes off a chroma-subsampled grid.
+    // progressive: false (baseline), same as server/services/imageWatermark.js's
+    // documented JPEG_PROGRESSIVE rule for the exact same Instagram publish
+    // path - these category fallbacks go out through the identical
+    // content_publishing container as a watermarked photo whenever a
+    // listing has no photo of its own, and Meta's spec singles out
+    // progressive-scan JPEGs as an unsupported "extended" format for that
+    // fetcher.
     await sharp(Buffer.from(svg))
       .flatten({ background: BACKDROP })
       .toColourspace('srgb')
-      .jpeg({ quality: 92, progressive: true, chromaSubsampling: '4:4:4' })
+      .jpeg({ quality: 92, progressive: false, chromaSubsampling: '4:4:4' })
       .toFile(file);
 
     const adjusted = color === category.color.toUpperCase() ? '' : ` (lightened from ${category.color})`;

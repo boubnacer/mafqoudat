@@ -38,7 +38,7 @@ import {
   quietButtonSx,
   useAdminToast,
 } from '../ui';
-import { formatDateTime, formatRelative, truncate } from '../adminFormat';
+import { formatDateTime, formatRelative, truncate, postTitle } from '../adminFormat';
 import { useAdminOverview } from '../AdminLayout';
 
 /**
@@ -756,6 +756,9 @@ const ModerationPage = () => {
                         title: t('deleteListingTitle'),
                         description: t('deleteListingBody'),
                         confirmLabel: t('deletePost'),
+                        // Irreversible, same as deleteUser - see UsersPage.jsx's
+                        // requireTyped and PostsPage.jsx's own delete dialog.
+                        requireTyped: postTitle(selected.postId, ''),
                         onConfirm: async () => {
                           try {
                             await deletePost(selected.postId._id).unwrap();
@@ -786,6 +789,7 @@ const ModerationPage = () => {
         title={confirm?.title}
         description={confirm?.description}
         confirmLabel={confirm?.confirmLabel}
+        requireTyped={confirm?.requireTyped}
         isLoading={deletingPost}
       />
     </>

@@ -56,7 +56,13 @@ const isSessionFailure = (url, error) => {
 const baseQuery = fetchBaseQuery({
   baseUrl: process.env.REACT_APP_API_URL || "http://localhost:3500",
   credentials: "include", // important, to send the cookie back to the server along with the token
-  timeout: 30000, // 30 seconds timeout for slow connections
+  // `timeout` is a real fetchBaseQuery option, but only from RTK Query 1.9 -
+  // this app is pinned to "@reduxjs/toolkit": "1.8.4" (see package-lock.json),
+  // where it is an unrecognized field fetchBaseQuery silently ignores. No
+  // request here has ever actually timed out at 30s; removed rather than
+  // left looking like it does something. A real fetch timeout needs either
+  // the RTK upgrade or a manual AbortController in a custom baseQuery -
+  // either is a bigger, deliberate change than this fix.
   prepareHeaders: async (headers, { getState }) => {
     const token = getState().auth.token;
 

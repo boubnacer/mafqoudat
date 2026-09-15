@@ -7,7 +7,7 @@
  * - Always ensures local state is cleared
  */
 
-import { authStorage } from './authStorage';
+import { authStorage, decodeTokenPayload } from './authStorage';
 import { unsubscribe as unsubscribeFromWebPush } from './webPush';
 
 // Same pattern as refreshClient.js: a plain fetch needs the API origin
@@ -130,15 +130,12 @@ export const performLocalLogout = () => {
  */
 export const isTokenExpired = (token) => {
   if (!token) return true;
-  
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const currentTime = Math.floor(Date.now() / 1000);
-    return payload.exp < currentTime;
-  } catch (error) {
-    console.error('Error checking token expiration:', error);
-    return true; // Assume expired if we can't parse it
-  }
+
+  const payload = decodeTokenPayload(token);
+  if (!payload || typeof payload.exp !== 'number') return true;
+
+  const currentTime = Math.floor(Date.now() / 1000);
+  return payload.exp < currentTime;
 };
 
 /**

@@ -126,7 +126,6 @@ const PostsList = () => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialSearchTerm);
   const [sortBy, setSortBy] = useState("newest");
-  const [viewMode, setViewMode] = useState("grid");
   const [localCategoryFilter, setLocalCategoryFilter] = useState("all");
   const [selectedCategories, setSelectedCategories] = useState([]); // Multiple categories filter
   // Type (Found/Lost) filter - seeded from ?fl= the same way initialSearchTerm
@@ -488,9 +487,10 @@ const PostsList = () => {
     // Skip the query if dependencies are not ready or store is not ready
     // Remove the categoriesData?.length requirement to prevent infinite loading
     skip: !storeReady || !currentCountry || categoriesLoading,
-    // Add retry logic
-    retry: 3,
-    retryDelay: 1000,
+    // `retry`/`retryDelay` are not real useGetPostsQuery hook options (RTK
+    // Query's retry wraps the baseQuery, not a per-call option) - removed
+    // rather than left as dead config, same as postsApiSlice.js's endpoint
+    // definitions.
     // Force refetch when fl changes
     refetchOnFocus: false,
     refetchOnReconnect: false
@@ -799,10 +799,6 @@ const PostsList = () => {
     setPage(1);
     smoothScrollToTop();
   }, []);
-
-  const handleViewModeChange = useCallback(() => {
-    setViewMode(viewMode === "grid" ? "list" : "grid");
-  }, [viewMode]);
 
   const handleMore = useCallback(() => navigate("/dash/posts"), [navigate]);
 
@@ -1365,11 +1361,9 @@ const PostsList = () => {
     // sidebar (the grid's breakpoints are viewport-width based, not
     // container-based, so the column count has to account for the ~300px
     // the sidebar takes out of the available width by itself). ----
-    const gridColumns = viewMode === "grid"
-      ? (isDesktop
-          ? { md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)", xl: "repeat(3, 1fr)" }
-          : { xs: "repeat(1, 1fr)", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)", lg: "repeat(4, 1fr)", xl: "repeat(4, 1fr)" })
-      : "repeat(1, 1fr)";
+    const gridColumns = isDesktop
+      ? { md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)", xl: "repeat(3, 1fr)" }
+      : { xs: "repeat(1, 1fr)", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)", lg: "repeat(4, 1fr)", xl: "repeat(4, 1fr)" };
 
     const mainArea = filteredPosts?.length ? (
       <>
@@ -1394,7 +1388,6 @@ const PostsList = () => {
               <Post
                 key={post._id}
                 post={post}
-                viewMode={viewMode}
               />
             ))}
           </Box>

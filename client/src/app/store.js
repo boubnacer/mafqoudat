@@ -18,7 +18,10 @@ export const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(apiSlice.middleware),
-  devTools: true,
+  // Unconditionally true exposed state.auth.token (the live access token) to
+  // Redux DevTools in production too - anyone with the extension installed
+  // could read a signed-in visitor's Bearer token straight out of the store.
+  devTools: process.env.NODE_ENV !== 'production',
 });
 
 setupListeners(store.dispatch);
