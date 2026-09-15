@@ -78,7 +78,12 @@ const OAuthCallback = () => {
         size={60}
         sx={{
           mb: 3,
-          color: theme?.palette?.primary?.main || '#667eea',
+          // palette.primary.main is #FFFFFF in light mode (legacy
+          // pre-token palette), and truthy - so the `|| '#667eea'` fallback
+          // never fires and this rendered a white spinner on the pale
+          // gradient behind it. theme.custom.color.brandPrimary is the
+          // actual brand token.
+          color: theme.custom.color.brandPrimary,
         }}
       />
       <Typography

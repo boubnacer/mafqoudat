@@ -110,6 +110,21 @@ const NotificationPreferences = () => {
     return <Alert severity="error">{t('notifPreferencesLoadError')}</Alert>;
   }
 
+  // palette.primary.main is #FFFFFF in light mode (legacy pre-token
+  // palette - see the admin console's adminSx.js for the same trap), so a
+  // Switch/Slider with no explicit colour renders a white thumb/track on a
+  // white card and an invisible slider. Stated explicitly, same as the
+  // Button below.
+  const brandControlSx = {
+    '& .MuiSwitch-switchBase.Mui-checked': {
+      color: theme.custom.color.brandPrimary,
+    },
+    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+      backgroundColor: theme.custom.color.brandPrimary,
+    },
+  };
+  const brandSliderSx = { color: theme.custom.color.brandPrimary };
+
   const preferences = data.preferences || {};
   const matchAlerts = preferences.matchAlerts !== false;
   const emailAlerts = preferences.emailAlerts === true;
@@ -159,6 +174,7 @@ const NotificationPreferences = () => {
           <Switch
             checked={matchAlerts}
             onChange={(event) => save({ matchAlerts: event.target.checked })}
+            sx={brandControlSx}
           />
         )}
         label={rowLabel(t('notifPrefMatchAlerts'), t('notifPrefMatchAlertsDescription'))}
@@ -174,6 +190,7 @@ const NotificationPreferences = () => {
             checked={emailAlerts && canEmail}
             disabled={!canEmail || !matchAlerts}
             onChange={(event) => save({ emailAlerts: event.target.checked })}
+            sx={brandControlSx}
           />
         )}
         label={rowLabel(
@@ -202,6 +219,7 @@ const NotificationPreferences = () => {
             onChange={(event, value) => setMinScore(value)}
             onChangeCommitted={(event, value) => save({ minScore: value })}
             aria-label={t('notifPrefMinScore')}
+            sx={brandSliderSx}
           />
         </Box>
         <Typography sx={{ fontSize: "0.78rem", color: "text.secondary" }}>
@@ -220,6 +238,7 @@ const NotificationPreferences = () => {
           <Switch
             checked={commentAlerts}
             onChange={(event) => save({ commentAlerts: event.target.checked })}
+            sx={brandControlSx}
           />
         )}
         label={rowLabel(t('notifPrefCommentAlerts'), t('notifPrefCommentAlertsDescription'))}
@@ -237,6 +256,7 @@ const NotificationPreferences = () => {
           <Switch
             checked={socialAlerts}
             onChange={(event) => save({ socialAlerts: event.target.checked })}
+            sx={brandControlSx}
           />
         )}
         label={rowLabel(t('notifPrefSocialAlerts'), t('notifPrefSocialAlertsDescription'))}
@@ -254,6 +274,7 @@ const NotificationPreferences = () => {
           <Switch
             checked={pushAlerts}
             onChange={(event) => save({ pushAlerts: event.target.checked })}
+            sx={brandControlSx}
           />
         )}
         label={rowLabel(t('notifPrefPushAlerts'), t('notifPrefPushAlertsDescription'))}
@@ -287,6 +308,7 @@ const NotificationPreferences = () => {
             disabled={isChangingPush}
             onChange={handleDisablePush}
             inputProps={{ 'aria-label': t('notifPrefBrowserAlerts') }}
+            sx={brandControlSx}
           />
         )}
 

@@ -59,10 +59,21 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         }
         return response;
       },
-      providesTags: ["Post"],
+      // Bare "Post" only matches a bare-"Post" invalidation - every mutation
+      // below invalidates the id-scoped { type: "Post", id: "LIST" }/{ id }
+      // shape instead, which RTK Query never matches against this provider,
+      // so create/update/delete/mark-returned all left this list showing
+      // stale data until the 60s cache expiry.
+      providesTags: (result) =>
+        result?.postsWithUser
+          ? [
+              { type: "Post", id: "LIST" },
+              ...result.postsWithUser.map((post) => ({ type: "Post", id: post._id })),
+            ]
+          : [{ type: "Post", id: "LIST" }],
       // Add cache key based on language to ensure proper cache invalidation
       serializeQueryArgs: ({ queryArgs }) => {
-        const categoryKey = queryArgs.categoryIds && queryArgs.categoryIds.length > 0 
+        const categoryKey = queryArgs.categoryIds && queryArgs.categoryIds.length > 0
           ? (Array.isArray(queryArgs.categoryIds) ? queryArgs.categoryIds.join(',') : queryArgs.categoryIds)
           : (queryArgs.categoryId || '');
         return `${queryArgs.page || 1}-${queryArgs.pageSize || 10}-${queryArgs.fl || 'all'}-${queryArgs.currentCountry || ''}-${categoryKey}-${queryArgs.cityId || ''}-${queryArgs.search || ''}-${queryArgs.language || 'en'}`;
@@ -95,7 +106,10 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         }
         return response;
       },
-      providesTags: ["Post"],
+      // id-scoped, so updatePost/deletePost/markPostAsReturned's own
+      // { type: "Post", id: arg.id } invalidation actually reaches it - see
+      // the getPosts note above.
+      providesTags: (result, error, arg) => [{ type: "Post", id: arg.postId }],
       // Add cache key based on language to ensure proper cache invalidation
       serializeQueryArgs: ({ queryArgs }) => {
         return `${queryArgs.postId || ''}-${queryArgs.language || 'en'}`;

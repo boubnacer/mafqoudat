@@ -2,18 +2,38 @@
 
 // Clean up unused localStorage items
 export const cleanupLocalStorage = () => {
+  // This ran on every App.js mount and deleted anything not listed here -
+  // the list had drifted badly behind the keys the app actually persists,
+  // so nearly every one-time flag and cross-page handoff got wiped and
+  // silently re-ran/re-asked on the very next load: the push-notification
+  // "ask once" offer (webPushAsked), the one-time language migration flag,
+  // the post-login/post-country-selection/post-language-change redirect
+  // targets, the stored user snapshot and login-redirect message
+  // (utils/authStorage.js's AUTH_KEYS), the visitor session id backup, and
+  // redux-persist's own persist:root/persist:auth state.
   const allowedKeys = [
     'accessToken',
     'isLoggedIn',
+    'userData', // authStorage.js AUTH_KEYS.USER_DATA
+    'redirectAfterLogin', // authStorage.js AUTH_KEYS.REDIRECT_AFTER_LOGIN / useRedirectAfterLogin
+    'loginRedirectMessage', // authStorage.js AUTH_KEYS.LOGIN_REDIRECT_MESSAGE
     'language',
     'currentCountry',
     'globalState', // Added to preserve Redux global state
-    'cachedCities' // Added to preserve cached cities for city search
+    'cachedCities', // Added to preserve cached cities for city search
+    'webPushAsked', // utils/webPush.js - "offer once" flag
+    'languageMigrationCompleted', // utils/languageMigration.js - one-time flag
+    'preserveAuthAfterLanguageChange', // utils/authStorage.js - language-change handoff
+    'languageChangeRedirectUrl', // utils/authStorage.js - language-change handoff
+    'redirectAfterCountrySelection',
+    'isLanguageChanging',
+    'visitorSessionId' // utils/visitorSessionSync.js
   ];
 
   // Keys that should be preserved based on pattern (not exact match)
   const preservedPatterns = [
-    'viewedNotifications_' // Preserve notification tracking keys
+    'viewedNotifications_', // Preserve notification tracking keys
+    'persist:' // redux-persist's own persist:root / persist:auth entries
   ];
 
   // Get all localStorage keys
