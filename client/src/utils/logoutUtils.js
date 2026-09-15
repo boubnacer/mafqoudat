@@ -3,13 +3,18 @@
  * 
  * This utility provides a comprehensive logout function that handles various scenarios:
  * - Valid tokens (server-side logout with token blacklisting)
- * - Expired/invalid tokens (fallback logout)
  * - Network failures (client-side cleanup)
  * - Always ensures local state is cleared
  */
 
 import { authStorage } from './authStorage';
 import { unsubscribe as unsubscribeFromWebPush } from './webPush';
+
+// Same pattern as refreshClient.js: a plain fetch needs the API origin
+// itself, not a relative path - vercel.json only rewrites a handful of
+// specific paths, and a wrong one here silently 404s to index.html instead
+// of ever reaching the server.
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3500';
 
 /**
  * Comprehensive logout function that handles all scenarios
@@ -38,21 +43,31 @@ export const performLogout = async (options = {}) => {
       /* signing out matters more than tidying the subscription */
     }
 
+    // Read the token before clearing local state below - performLocalLogout()
+    // wipes it from storage, and the server call needs it in the Authorization
+    // header to revoke the right refresh session.
+    const accessToken = authStorage.getAccessToken();
+
     // Always clear local state first to ensure user is logged out immediately
     const localCleanupSuccess = performLocalLogout();
-    
+
     if (forceClientSide || !localCleanupSuccess) {
       // If forced client-side or local cleanup failed, we're done
       if (onSuccess) onSuccess('Client-side logout completed');
       return true;
     }
 
-    // Attempt server-side logout with valid token
+    // Attempt server-side logout with the captured token, so the server can
+    // revoke its refresh session - otherwise it stays live for the full
+    // REFRESH_TOKEN_EXPIRES_IN window even though the client looks logged out.
+    // There is no fallback route on the server (no verifyJWT on /auth/logout -
+    // see server/routes/authRoutes.js - it authenticates whatever Bearer token
+    // is presented itself, so this is the only call needed).
     try {
-      const response = await fetch('/api/auth/logout', {
+      const response = await fetch(`${API_URL}/auth/logout`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${authStorage.getAccessToken()}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
           // Required by server/middleware/csrfGuard.js on /auth/logout.
           'X-Requested-With': 'XMLHttpRequest'
@@ -67,28 +82,11 @@ export const performLogout = async (options = {}) => {
         throw new Error(`Server logout failed: ${response.status}`);
       }
     } catch (serverError) {
-      console.warn('Server-side logout failed, attempting fallback:', serverError);
-      
-      // Attempt fallback logout (no JWT required)
-      try {
-        const fallbackResponse = await fetch('/api/auth/logout-fallback', {
-          method: 'POST',
-          headers: { 'X-Requested-With': 'XMLHttpRequest' },
-          credentials: 'include'
-        });
-
-        if (fallbackResponse.ok) {
-          if (onSuccess) onSuccess('Fallback logout completed');
-          return true;
-        } else {
-          throw new Error(`Fallback logout failed: ${fallbackResponse.status}`);
-        }
-      } catch (fallbackError) {
-        console.warn('Fallback logout also failed:', fallbackError);
-        // Even if both server attempts fail, local cleanup was successful
-        if (onSuccess) onSuccess('Client-side logout completed (server unavailable)');
-        return true;
-      }
+      console.warn('Server-side logout failed, refresh session may remain live until it expires:', serverError);
+      // Local cleanup already succeeded, so the user is logged out here
+      // regardless - the server just never got told to revoke its side.
+      if (onSuccess) onSuccess('Client-side logout completed (server unavailable)');
+      return true;
     }
   } catch (error) {
     console.error('Logout process failed:', error);
