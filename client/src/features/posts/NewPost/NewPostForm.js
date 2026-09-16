@@ -48,7 +48,7 @@ import WizardFooter from "./steps/WizardFooter";
 import WizardNextButton from "./steps/WizardNextButton";
 import ReviewSubmitButton from "./steps/ReviewSubmitButton";
 import { validateStep1, validateStep2, VALIDATOR_BY_STEP_KEY, scrollToFirstErrorField } from "./wizardValidation";
-import { isDocumentsListing } from "./documentCategory";
+import { isDocumentsListing, getNonDocumentCategories } from "./documentCategory";
 import { getCityDisplayName } from "./cityDisplay";
 import scrollToTop, { smoothScrollToTop } from "../../../utils/scrollToTop";
 import { redactFacesInImage } from "../../../utils/faceRedaction";
@@ -127,17 +127,28 @@ const shouldRedactByDefault = ({ values, categories, flOptions }) => {
   return !isMissingPersonPost;
 };
 
-// Formik owns the values; the wizard shell around it needs one boolean out of
-// them - whether this listing is about documents, which decides whether there
-// is a Photo step at all. A one-line subscriber is what carries it out,
-// rather than lifting the whole category selection into component state.
+// Formik owns the values; the wizard shell around it needs two facts out of
+// them - whether this listing is about documents (which is what asks for a
+// title and the name on it) and what else it is about (which is what decides
+// whether there is a Photo step at all). A one-line subscriber is what carries
+// them out, rather than lifting the whole category selection into component
+// state.
 const DocumentsModeSync = ({ categories, onChange }) => {
   const { values } = useFormikContext();
   const documentsListing = isDocumentsListing(categories, values);
+  // Joined rather than passed as an array: the parent only re-renders when the
+  // *set* changes, and a fresh array every render would fire the effect every
+  // render.
+  const otherCategoryIds = getNonDocumentCategories(categories, values)
+    .map((category) => String(category.id || category._id))
+    .join(',');
 
   useEffect(() => {
-    onChange(documentsListing);
-  }, [documentsListing, onChange]);
+    onChange({
+      documentsListing,
+      otherCategoryIds: otherCategoryIds ? otherCategoryIds.split(',') : [],
+    });
+  }, [documentsListing, otherCategoryIds, onChange]);
 
   return null;
 };
@@ -166,11 +177,25 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [fieldErrors, setFieldErrors] = useState({});
   // Wizard step state (component state only - not persisted, see C5)
   const [activeStep, setActiveStep] = useState(0);
-  // Set by DocumentsModeSync from the chosen categories. A DOCUMENTS listing
-  // publishes no photo at all, so the Photo step is removed from the wizard
-  // rather than left in place with its upload hidden - a step that exists only
-  // to say "nothing to do here" is worse than no step.
+  // Set by DocumentsModeSync from the chosen categories. A listing that is
+  // *only* about documents publishes no photo at all, so the Photo step is
+  // removed from the wizard rather than left in place with its upload hidden -
+  // a step that exists only to say "nothing to do here" is worse than no step.
+  // A listing that also carries another category (a wallet found with papers
+  // in it) keeps the step: the photo is of the wallet, and StepPhoto says so.
   const [documentsMode, setDocumentsMode] = useState(false);
+  const [otherCategoryIds, setOtherCategoryIds] = useState([]);
+  const handleDocumentsModeChange = useCallback(({ documentsListing, otherCategoryIds: nextOtherIds }) => {
+    setDocumentsMode(documentsListing);
+    setOtherCategoryIds(nextOtherIds);
+  }, []);
+  // Documents and nothing else - the only case with no photo.
+  const documentsOnlyMode = documentsMode && otherCategoryIds.length === 0;
+  // The categories a photo on this listing would be *of*, named in the notice
+  // on the Photo step so "photograph the other thing" is not left abstract.
+  const photoSubjectLabels = (categories || [])
+    .filter((category) => otherCategoryIds.includes(String(category.id || category._id)))
+    .map((category) => category.labels?.[currentLanguage] || category.label || category.code);
   const [maxStepReached, setMaxStepReached] = useState(0);
   // Tracks whether the last step change was a forward or backward move, so
   // the step transition animation can slide the right way (purely visual).
@@ -371,7 +396,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const steps = [
     { key: 'item', label: t('wizardStepItemTitle'), subtitle: t('wizardStepItemSubtitle') },
     { key: 'location', label: t('wizardStepLocationTitle'), subtitle: t('wizardStepLocationSubtitle') },
-    ...(documentsMode
+    ...(documentsOnlyMode
       ? []
       : [{ key: 'photo', label: t('wizardStepPhotoTitle'), subtitle: t('wizardStepPhotoSubtitle') }]),
     { key: 'rest', label: t('wizardStepReviewTitle'), subtitle: t('wizardStepReviewSubtitle') },
@@ -771,7 +796,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // Only append image if present - and never on a documents listing, whose
       // Photo step does not exist. The effect that removes the step clears the
       // photo too; this is the backstop, on the one path that would publish it.
-      if (selectedImage && !documentsMode) {
+      if (selectedImage && !documentsOnlyMode) {
         formData.append("image", selectedImage);
       }
 
@@ -1195,11 +1220,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // reader standing on what is now past the end is brought back onto the
   // last real step.
   useEffect(() => {
-    if (!documentsMode) return;
+    if (!documentsOnlyMode) return;
     handleImageRemove();
     setActiveStep((current) => Math.min(current, DOCUMENTS_STEP_COUNT - 1));
     setMaxStepReached((current) => Math.min(current, DOCUMENTS_STEP_COUNT - 1));
-  }, [documentsMode, handleImageRemove]);
+  }, [documentsOnlyMode, handleImageRemove]);
 
   // Handle image dialog open/close
   const handleImageDialogOpen = useCallback(() => {
@@ -1340,7 +1365,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             <Form>
               {/* Mirrors "is this a documents listing?" out of Formik, which
                   is what removes the Photo step. */}
-              <DocumentsModeSync categories={categories} onChange={setDocumentsMode} />
+              <DocumentsModeSync categories={categories} onChange={handleDocumentsModeChange} />
               <Box
                 sx={{
                   display: { xs: 'block', sm: 'flex' },
@@ -1553,6 +1578,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       <>
                         <StepPhoto
                           getFoundLostType={getFoundLostType}
+                          documentsMode={documentsMode}
+                          photoSubjectLabels={photoSubjectLabels}
                           imagePreview={imagePreview}
                           selectedFileName={selectedFileName}
                           compressionInfo={compressionInfo}
@@ -1590,6 +1617,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           cityDisplayValue={cityDisplayValue}
                           imagePreview={imagePreview}
                           documentsMode={documentsMode}
+                          documentsOnlyMode={documentsOnlyMode}
                           onEditStep={(stepKey) => handleStepClick(stepIndexOf(stepKey))}
                         />
                         <WizardFooter onBack={() => goToPreviousStep('rest')} stackOnMobile>

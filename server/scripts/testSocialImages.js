@@ -78,6 +78,25 @@ const FoundLostStub = { findById: () => stubQuery({ code: 'LOST' }) };
 const CityStub = { findById: () => stubQuery({ labels: { ar: 'الدار البيضاء', fr: 'Casablanca', en: 'Casablanca' } }) };
 const CountryStub = { findById: () => stubQuery({ names: { ar: 'المغرب', fr: 'Maroc', en: 'Morocco' } }) };
 
+// The document titles a DOCUMENTS listing names instead of carrying a photo.
+const DOCUMENT_TYPES = {
+  '507f1f77bcf86cd7994390d1': {
+    _id: '507f1f77bcf86cd7994390d1',
+    labels: { ar: 'جواز السفر', fr: 'Passeport', en: 'Passport' },
+  },
+  '507f1f77bcf86cd7994390d2': {
+    _id: '507f1f77bcf86cd7994390d2',
+    labels: { ar: 'بطاقة الهوية الوطنية', fr: "Carte nationale d'identité", en: 'National identity card' },
+  },
+};
+const DocumentTypeStub = {
+  find: ({ _id: { $in: ids } }) => stubQuery(
+    // Deliberately answered in the reverse of the order asked for, which is
+    // what a $in query is free to do - the caption has to re-walk the ids.
+    ids.map((id) => DOCUMENT_TYPES[String(id)]).filter(Boolean).reverse(),
+  ),
+};
+
 const originalLoad = Module._load;
 Module._load = function load(request, parent) {
   const fromCaption = parent && parent.filename && parent.filename.endsWith('services/socialCaption.js');
@@ -85,6 +104,7 @@ Module._load = function load(request, parent) {
   if (fromCaption && request === '../models/FoundLost') return FoundLostStub;
   if (fromCaption && request === '../models/City') return CityStub;
   if (fromCaption && request === '../models/Country') return CountryStub;
+  if (fromCaption && request === '../models/DocumentType') return DocumentTypeStub;
   // eslint-disable-next-line prefer-rest-params
   return originalLoad.apply(this, arguments);
 };
@@ -171,6 +191,48 @@ async function run() {
     `${unbounded.length} characters, no limit passed`,
   );
   checkThat('the fixed SEO tags are there', unbounded.includes('#مفقودات') && unbounded.includes('#Mafqoudat'));
+
+  // A documents listing publishes no photo of what was lost, so the header is
+  // where a reader learns which papers these are, and the name on them is what
+  // their owner recognises. Everything else about the caption is unchanged.
+  const documentsPost = {
+    _id: '507f1f77bcf86cd7994390ab',
+    foundLost: 'fl',
+    city: 'c1',
+    country: 'co1',
+    categories: ['507f1f77bcf86cd799439011'],
+    documentTypes: ['507f1f77bcf86cd7994390d1', '507f1f77bcf86cd7994390d2'],
+    documentOwnerName: { ar: 'محمد العلوي', latin: 'Mohamed Alaoui' },
+  };
+  const documentsCaption = await buildListingCaption(documentsPost);
+  checkThat(
+    'the document titles follow the category in every language',
+    documentsCaption.includes('(جواز السفر، بطاقة الهوية الوطنية)')
+      && documentsCaption.includes("(Passeport, Carte nationale d'identité)")
+      && documentsCaption.includes('(Passport, National identity card)'),
+    'a header that could be any of twenty titles tells a reader nothing',
+  );
+  checkThat(
+    'each block carries the name in its own script',
+    documentsCaption.includes('الاسم على الوثيقة: محمد العلوي')
+      && documentsCaption.includes('Nom figurant sur le document: Mohamed Alaoui')
+      && documentsCaption.includes('Name on the document: Mohamed Alaoui'),
+  );
+
+  const onlyLatinName = await buildListingCaption({
+    ...documentsPost,
+    documentOwnerName: { ar: '', latin: 'Mohamed Alaoui' },
+  });
+  checkThat(
+    'a block falls back to the other script rather than dropping the name',
+    onlyLatinName.includes('الاسم على الوثيقة: Mohamed Alaoui'),
+  );
+
+  checkThat(
+    'an ordinary listing gains no document clause and no name line',
+    !unbounded.includes('(') && !unbounded.includes('👤'),
+    'only documents listings change shape',
+  );
 
   const capped = await buildListingCaption(longPost, { maxLength: IG_LIMIT });
   check(

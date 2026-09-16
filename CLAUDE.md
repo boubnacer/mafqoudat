@@ -572,6 +572,13 @@ one attachment that does more harm than good. The eye-redaction pass above
 covers faces in a photo; it cannot cover the text on an ID card, and the text
 is the leak.
 
+- **The photo goes away only when documents are *all* it is about.** A wallet
+  found with papers inside it is still a wallet, and the photo of the wallet is
+  what its owner recognises - so a listing that also carries another category
+  keeps its Photo step, and both forms show a notice naming those other
+  categories: photograph the bag, keep the papers out of the frame or cover
+  them. `isDocumentsOnlyListing` is what decides the step; `isDocumentsListing`
+  still decides the title and the name, which are asked for either way.
 - **The Photo step is removed, not emptied.** The New Post wizard's steps are a
   list built per listing, not a fixed four
   ([documentCategory.js](client/src/features/posts/NewPost/documentCategory.js)
@@ -651,9 +658,23 @@ is the leak.
   drops unknown, inactive or malformed ids and caps the list at six (the few
   papers lost together, not an inventory); the listing is the thing being
   saved. `usageCount` is incremented fire-and-forget.
-- **The edit screens hide the upload too.** Both `EditPostForm.js` and mobile's
-  shared `PostForm` — an edit screen that offered the photo field back is
-  exactly how a picture of an ID card would reach the site anyway.
+- **The edit screens follow the same rule.** Both `EditPostForm.js` and
+  mobile's shared `PostForm` hide the upload on a documents-only listing — an
+  edit screen that offered the photo field back is exactly how a picture of an
+  ID card would reach the site anyway — and show the same "photograph the other
+  thing" notice on a mixed one.
+- **The auto-posted copy names the documents in its header.**
+  [socialCaption.js](server/services/socialCaption.js) puts the titles in
+  parentheses right after the category in each of the three language blocks
+  ("🔴 Lost Document (Passport, National identity card) in the country of…")
+  and adds one line with the name on them, each block in its own script,
+  falling back to the other when only one was written. Nothing else about the
+  caption moves: same emoji, verb, country/city clause, link and hashtags, and
+  a listing with no document types gains neither line. Without it a documents
+  listing in a feed is indistinguishable from any of the other nineteen titles
+  — and it publishes no photo, so the header is all a scroller gets. The ids
+  are re-walked in the author's order, since a `$in` query is free to answer in
+  any. Covered by `npm run test-social-images`.
 - **Offline check**: `npm run test-document-types` in `server/` — no DB, no
   network. Covers the seed config's own consistency, the three-language
   listing in priority order, script-folded search, contributing a title,

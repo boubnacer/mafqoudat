@@ -52,10 +52,11 @@ import {
   AdminPanelSettingsOutlined,
   TaskAltOutlined,
   SearchOffOutlined,
-  CalendarMonth as CalendarMonthIcon
+  CalendarMonth as CalendarMonthIcon,
+  LockOutlined
 } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
-import { isDocumentsListing } from "../NewPost/documentCategory";
+import { isDocumentsListing, isDocumentsOnlyListing, getNonDocumentCategories } from "../NewPost/documentCategory";
 import DateEntryDialog from "../../../components/DateEntryDialog";
 import useAuth from "../../../hooks/useAuth";
 import CategoryPickerField from "../../../components/CategoryPickerField";
@@ -2956,12 +2957,14 @@ if (typeof document !== 'undefined') {
                 </Box>
                 </EditableSection>
 
-                {/* Image Section - never for a documents listing. The New
-                    Post wizard drops its Photo step for those (see
-                    NewPost/documentCategory.js), and an edit screen that
-                    offered the upload back would be the way a photo of an ID
-                    card reaches the site anyway. */}
-                {!isDocumentsListing(categories, values) && (
+                {/* Image Section - never on a listing that is only about
+                    documents. The New Post wizard drops its Photo step for
+                    those (see NewPost/documentCategory.js), and an edit screen
+                    that offered the upload back would be the way a photo of an
+                    ID card reaches the site anyway. A listing that also
+                    carries another category keeps the field, with the same
+                    "photograph the other thing" notice the wizard shows. */}
+                {!isDocumentsOnlyListing(categories, values) && (
                 <EditableSection
                   theme={theme}
                   icon={PhotoCamera}
@@ -3180,6 +3183,35 @@ if (typeof document !== 'undefined') {
                   >
                     {t('imageOptionalMessage')}
                   </Typography>
+
+                  {/* Same rule as the wizard's Photo step: the photo is of the
+                      other thing, and the papers stay out of the frame. */}
+                  {isDocumentsListing(categories, values) && (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 1.25,
+                        mt: 2,
+                        p: 1.5,
+                        borderRadius: 2,
+                        backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.08),
+                      }}
+                    >
+                      <LockOutlined fontSize="small" sx={{ color: theme.custom.color.brandPrimary, mt: 0.25 }} />
+                      <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
+                        {(() => {
+                          const labels = getNonDocumentCategories(categories, values)
+                            .map((category) => category.labels?.[currentLanguage] || category.label || category.code);
+                          return labels.length
+                            ? t('photoDocumentsMixedNotice', {
+                                categories: labels.join(currentLanguage === 'ar' ? '، ' : ', '),
+                              })
+                            : t('photoDocumentsMixedNoticeGeneric');
+                        })()}
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
                 </EditableSection>
                 )}

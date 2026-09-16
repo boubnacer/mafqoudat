@@ -45,7 +45,7 @@ import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataCon
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens, radiusTokens, fontFamilies, lightColors, darkColors } from '../theme/tokens';
 import { getCategoryConfig } from '../config/categories';
-import { isDocumentsListing } from '../config/documentCategory';
+import { isDocumentsListing, getNonDocumentCategories } from '../config/documentCategory';
 import { fetchDocumentTypes, createDocumentType } from '../api/documentTypesApi';
 import CityPickerModal from './CityPickerModal';
 import SelectModal from './SelectModal';
@@ -329,6 +329,10 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   // Whether this listing is about documents, which is what removes the Photo
   // step and asks for a document title instead.
   const documentsMode = isDocumentsListing(categories, selectedCategoryIds);
+  // The other things this listing is about - what a photo on it would be *of*.
+  // Documents and nothing else is the only case with no photo at all.
+  const photoSubjectCategories = getNonDocumentCategories(categories, selectedCategoryIds);
+  const documentsOnlyMode = documentsMode && photoSubjectCategories.length === 0;
   const MAX_DOCUMENT_TYPES = 6;
 
   // Loaded lazily, the first time a listing is filed under DOCUMENTS. A failed
@@ -362,25 +366,25 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   // publish none, which is the whole point of the category behaving
   // differently.
   useEffect(() => {
-    if (documentsMode) {
+    if (documentsOnlyMode) {
       setImageAsset(null);
       setImageRemoved(isEdit);
-    } else if (selectedDocumentTypeIds.length > 0) {
+    } else if (!documentsMode && selectedDocumentTypeIds.length > 0) {
       setSelectedDocumentTypeIds([]);
       setDocumentOwnerNameAr('');
       setDocumentOwnerNameLatin('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [documentsMode]);
+  }, [documentsMode, documentsOnlyMode]);
 
   // The steps shift when the Photo step goes: a reader standing on what is
   // now past the end (including edit mode, which opens on the last step) is
   // brought back onto the last real one.
   useEffect(() => {
-    if (!documentsMode) return;
+    if (!documentsOnlyMode) return;
     setActiveStep((current) => Math.min(current, DOCUMENTS_STEP_COUNT - 1));
     setMaxStepReached((current) => Math.min(current, DOCUMENTS_STEP_COUNT - 1));
-  }, [documentsMode]);
+  }, [documentsOnlyMode]);
 
   const handleConfirmDocumentTypes = (ids) => {
     setSelectedDocumentTypeIds(ids);
@@ -669,8 +673,8 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
       postData: buildPostData(),
       // Never a photo on a documents listing - the effect above already
       // cleared it, this is the backstop on the one path that would upload it.
-      imageAsset: documentsMode ? null : imageAsset,
-      imageRemoved: isEdit ? (documentsMode ? true : imageRemoved) : false,
+      imageAsset: documentsOnlyMode ? null : imageAsset,
+      imageRemoved: isEdit ? (documentsOnlyMode ? true : imageRemoved) : false,
     });
   };
 
@@ -708,7 +712,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
     { key: 'location', title: t('wizardStepLocationTitle'), subtitle: t('wizardStepLocationSubtitle') },
     // No Photo step for a documents listing - it publishes none by design, and
     // a step that exists only to say "nothing to do here" is worse than none.
-    ...(documentsMode
+    ...(documentsOnlyMode
       ? []
       : [{ key: 'photo', title: t('wizardStepPhotoTitle'), subtitle: t('wizardStepPhotoSubtitle') }]),
     { key: 'review', title: t('wizardStepReviewTitle'), subtitle: t('wizardStepReviewSubtitle') },
@@ -1053,6 +1057,23 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
           <View style={styles.section}>
             <Text style={[styles.sectionLabel, textStyle]}>{t('itemImage')}</Text>
             <Text style={[styles.helperText, textStyle]}>{t('imageOptionalMessage')}</Text>
+            {/* A wallet found with papers in it keeps its photo - but the
+                photo is of the wallet. Naming the other categories is what
+                makes "leave the documents out" concrete. */}
+            {documentsMode ? (
+              <View style={styles.documentNotice}>
+                <Ionicons name="lock-closed-outline" size={18} color={tokens.brandPrimary} />
+                <Text style={[styles.documentNoticeText, textStyle]}>
+                  {photoSubjectCategories.length
+                    ? t('photoDocumentsMixedNotice', {
+                        categories: photoSubjectCategories
+                          .map((category) => getLocalizedLabel(category, currentLanguage))
+                          .join(isRTL ? '، ' : ', '),
+                      })
+                    : t('photoDocumentsMixedNoticeGeneric')}
+                </Text>
+              </View>
+            ) : null}
             {displayImageUri ? (
               <View>
                 <Image source={{ uri: displayImageUri }} style={styles.imagePreview} resizeMode="cover" />
@@ -1129,9 +1150,9 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               ) : null}
             </ReviewSection>
 
-            {/* A documents listing has no Photo step to review, and says
-                instead why there is none. */}
-            {documentsMode ? (
+            {/* A listing that is only about documents has no Photo step to
+                review, and says instead why there is none. */}
+            {documentsOnlyMode ? (
               <View style={styles.documentNotice}>
                 <Ionicons name="lock-closed-outline" size={18} color={tokens.brandPrimary} />
                 <Text style={[styles.documentNoticeText, textStyle]}>{t('documentPrivacyNotice')}</Text>

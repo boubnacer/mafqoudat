@@ -24,6 +24,7 @@ import {
   Close as CloseIcon,
   FaceRetouchingOffOutlined as FaceRedactedIcon,
   FaceRetouchingNaturalOutlined as FaceVisibleIcon,
+  LockOutlined,
 } from '@mui/icons-material';
 import { useTranslation } from "../../../../utils/translations";
 
@@ -43,6 +44,10 @@ const faceCountKey = (count) => {
 
 const StepPhoto = ({
   getFoundLostType,
+  // Set when the listing also carries DOCUMENTS: the photo is of the other
+  // thing (the wallet, the bag), and the papers have to stay out of the frame.
+  documentsMode,
+  photoSubjectLabels,
   imagePreview,
   selectedFileName,
   compressionInfo,
@@ -129,6 +134,33 @@ const StepPhoto = ({
         >
           {t('imageOptionalMessage')}
         </Typography>
+
+        {/* A wallet found with papers in it is still a wallet, so this listing
+            keeps its photo - but the photo is of the wallet. Naming the other
+            categories here is what makes "leave the documents out" concrete
+            rather than a general instruction nobody reads. */}
+        {documentsMode && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 1.25,
+              mb: 2,
+              p: 1.5,
+              borderRadius: 2,
+              backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.08),
+            }}
+          >
+            <LockOutlined fontSize="small" sx={{ color: theme.custom.color.brandPrimary, mt: 0.25 }} />
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
+              {photoSubjectLabels?.length
+                ? t('photoDocumentsMixedNotice', {
+                    categories: photoSubjectLabels.join(currentLanguage === 'ar' ? '، ' : ', '),
+                  })
+                : t('photoDocumentsMixedNoticeGeneric')}
+            </Typography>
+          </Box>
+        )}
 
         {imagePreview ? (
           /* Preview - rounded card with an overlay remove button */
