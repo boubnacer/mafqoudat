@@ -5,7 +5,7 @@ import { useAddNewPostMutation } from "../postsApiSlice";
 import { useSelector } from "react-redux";
 import { selectCurrentToken } from "../../auth/authSlice";
 import * as Yup from "yup";
-import { Formik, Form } from "formik";
+import { Formik, Form, useFormikContext } from "formik";
 import imageCompression from "browser-image-compression";
 import { lighten, alpha } from "@mui/material/styles";
 import {
@@ -47,30 +47,34 @@ import StepTransition from "./steps/StepTransition";
 import WizardFooter from "./steps/WizardFooter";
 import WizardNextButton from "./steps/WizardNextButton";
 import ReviewSubmitButton from "./steps/ReviewSubmitButton";
-import { validateStep1, validateStep2, STEP_VALIDATORS, scrollToFirstErrorField } from "./wizardValidation";
+import { validateStep1, validateStep2, VALIDATOR_BY_STEP_KEY, scrollToFirstErrorField } from "./wizardValidation";
+import { isDocumentsListing } from "./documentCategory";
 import { getCityDisplayName } from "./cityDisplay";
 import scrollToTop, { smoothScrollToTop } from "../../../utils/scrollToTop";
 import { redactFacesInImage } from "../../../utils/faceRedaction";
 import { canOfferWebPush, requestSubscription } from "../../../utils/webPush";
 import EnablePushDialog from "../../notifications/EnablePushDialog";
 
-// Maps each step's 1-based position (MUI auto-assigns `icon` = index + 1) to
-// the icon shown in its desktop rail badge.
+// The icon shown in each step's desktop rail badge, keyed by the step itself.
+// It used to be keyed by the step's 1-based position (MUI auto-assigns
+// `icon` = index + 1), which stopped working the moment the list of steps
+// became conditional: a DOCUMENTS listing has no Photo step, and the last
+// step would have taken the camera badge.
 const RAIL_STEP_ICONS = {
-  1: HelpOutlineIcon,
-  2: LocationOnIcon,
-  3: PhotoCameraIcon,
-  4: FactCheckIcon,
+  item: HelpOutlineIcon,
+  location: LocationOnIcon,
+  photo: PhotoCameraIcon,
+  rest: FactCheckIcon,
 };
 
 // Custom step icon for the desktop rail: a circular badge colored from the
 // Phase 1 brand token, swapping to a checkmark once a step is completed.
 // Purely presentational - `active`/`completed` are the same booleans MUI's
 // Stepper already derives from activeStep/maxStepReached.
-const RailStepIcon = ({ active, completed, icon, iconRef }) => {
+const RailStepIcon = ({ active, completed, stepKey, iconRef }) => {
   const theme = useTheme();
   const accent = theme.custom.color.brandPrimary;
-  const IconComponent = RAIL_STEP_ICONS[icon] || HelpOutlineIcon;
+  const IconComponent = RAIL_STEP_ICONS[stepKey] || HelpOutlineIcon;
 
   return (
     <Box
@@ -96,6 +100,9 @@ const RailStepIcon = ({ active, completed, icon, iconRef }) => {
   );
 };
 
+// item + location + review: the wizard's length once the Photo step is gone.
+const DOCUMENTS_STEP_COUNT = 3;
+
 const categoryIdOf = (category) => String(category?.id || category?._id || "");
 
 // Whether the eye-redaction toggle starts on for a photo that has faces in it.
@@ -118,6 +125,21 @@ const shouldRedactByDefault = ({ values, categories, flOptions }) => {
   );
 
   return !isMissingPersonPost;
+};
+
+// Formik owns the values; the wizard shell around it needs one boolean out of
+// them - whether this listing is about documents, which decides whether there
+// is a Photo step at all. A one-line subscriber is what carries it out,
+// rather than lifting the whole category selection into component state.
+const DocumentsModeSync = ({ categories, onChange }) => {
+  const { values } = useFormikContext();
+  const documentsListing = isDocumentsListing(categories, values);
+
+  useEffect(() => {
+    onChange(documentsListing);
+  }, [documentsListing, onChange]);
+
+  return null;
 };
 
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
@@ -144,6 +166,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [fieldErrors, setFieldErrors] = useState({});
   // Wizard step state (component state only - not persisted, see C5)
   const [activeStep, setActiveStep] = useState(0);
+  // Set by DocumentsModeSync from the chosen categories. A DOCUMENTS listing
+  // publishes no photo at all, so the Photo step is removed from the wizard
+  // rather than left in place with its upload hidden - a step that exists only
+  // to say "nothing to do here" is worse than no step.
+  const [documentsMode, setDocumentsMode] = useState(false);
   const [maxStepReached, setMaxStepReached] = useState(0);
   // Tracks whether the last step change was a forward or backward move, so
   // the step transition animation can slide the right way (purely visual).
@@ -337,13 +364,21 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [fetchCitiesByCountry, currentLanguage]);
 
-  // Wizard step labels, in step order.
+  // Wizard step labels, in step order. The Photo step is absent for a
+  // DOCUMENTS listing (see documentCategory.js), so everything below addresses
+  // a step by its key and looks its position up - a step's index is no longer
+  // its identity.
   const steps = [
     { key: 'item', label: t('wizardStepItemTitle'), subtitle: t('wizardStepItemSubtitle') },
     { key: 'location', label: t('wizardStepLocationTitle'), subtitle: t('wizardStepLocationSubtitle') },
-    { key: 'photo', label: t('wizardStepPhotoTitle'), subtitle: t('wizardStepPhotoSubtitle') },
+    ...(documentsMode
+      ? []
+      : [{ key: 'photo', label: t('wizardStepPhotoTitle'), subtitle: t('wizardStepPhotoSubtitle') }]),
     { key: 'rest', label: t('wizardStepReviewTitle'), subtitle: t('wizardStepReviewSubtitle') },
   ];
+
+  const stepIndexOf = (key) => steps.findIndex((step) => step.key === key);
+  const activeStepKey = steps[Math.min(activeStep, steps.length - 1)]?.key;
 
   // Measures each rail badge's edges (relative to the rail container) so the
   // connector line drawn below is built from one segment per gap between
@@ -411,11 +446,27 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     smoothScrollToTop();
   };
 
+  // Moving between steps by name rather than by number: which step follows
+  // which depends on whether this listing has a Photo step at all.
+  const goToNextStep = (fromKey) => {
+    const nextIndex = Math.min(stepIndexOf(fromKey) + 1, steps.length - 1);
+    goToStep(nextIndex);
+    setMaxStepReached((m) => Math.max(m, nextIndex));
+  };
+
+  const goToPreviousStep = (fromKey) => {
+    goToStep(Math.max(stepIndexOf(fromKey) - 1, 0));
+  };
+
   // Gate moving from step 1 ("What happened") to the next step behind its
   // per-step validators (S2). Reuses the same fieldErrors + scroll-to-error
   // mechanism as the original single-page handleSubmit validation.
   const handleNextFromItemStep = (values, setStatus) => {
-    const { missingFields, fieldErrors: newFieldErrors } = validateStep1(values, t);
+    const { missingFields, fieldErrors: newFieldErrors } = validateStep1(values, t, {
+      // A documents listing carries no photo, so its document title is the
+      // only thing that says what was lost - required, like the category.
+      requiresDocumentTitle: isDocumentsListing(categories, values),
+    });
 
     if (missingFields.length > 0) {
       const errorMessage = `${t('fillRequiredFields')}: ${missingFields.join(', ')}`;
@@ -427,8 +478,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
     setStatus(null);
     setFieldErrors({});
-    goToStep(1);
-    setMaxStepReached((m) => Math.max(m, 1));
+    goToNextStep('item');
   };
 
   // Gate moving from step 2 ("Where & when") to the next step (S2).
@@ -445,21 +495,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
     setStatus(null);
     setFieldErrors({});
-    goToStep(2);
-    setMaxStepReached((m) => Math.max(m, 2));
+    goToNextStep('location');
   };
 
-  // Step 3 ("Photo") has no required fields (S2), so Next just advances.
+  // The Photo step has no required fields (S2), so Next just advances.
   const handleNextFromPhotoStep = () => {
     setFieldErrors({});
-    goToStep(3);
-    setMaxStepReached((m) => Math.max(m, 3));
+    goToNextStep('photo');
   };
 
   // A user can click back to any already-validated step, but never jump
   // ahead of the furthest step they've passed validation for (S1).
   const handleStepClick = (index) => {
-    if (index <= maxStepReached) {
+    if (index >= 0 && index <= maxStepReached) {
       goToStep(index);
     }
   };
@@ -488,6 +536,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     contact: "",
     categories: [], // Changed to array for multiple categories
     category: "", // Keep for backward compatibility during transition
+    // Which documents a DOCUMENTS listing is about - the field that stands in
+    // for the photo those listings never carry (see documentCategory.js).
+    documentTypes: [],
     foundLost: getDefaultFoundLost(),
     city: "",
     exactLocation: "",
@@ -641,8 +692,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const newFieldErrors = {};
       let earliestFailingStep = null;
 
-      STEP_VALIDATORS.forEach((validateStep, stepIndex) => {
-        const stepResult = validateStep(values, t);
+      // Walks the steps this listing actually has - a documents listing has no
+      // Photo step, so a fixed list of four validators would point the reader
+      // at the wrong step when one of the others fails.
+      steps.forEach((step, stepIndex) => {
+        const validateStep = VALIDATOR_BY_STEP_KEY[step.key];
+        if (!validateStep) return;
+        const stepResult = validateStep(values, t, {
+          requiresDocumentTitle: isDocumentsListing(categories, values),
+        });
         if (stepResult.missingFields.length > 0) {
           missingFields.push(...stepResult.missingFields);
           Object.assign(newFieldErrors, stepResult.fieldErrors);
@@ -680,7 +738,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         exactDate: values.exactDate, // This gets stored as mainDate in the server
         contact: values.contact,
         description: values.description || "",
-        contactPreferences: { whatsapp: true }
+        contactPreferences: { whatsapp: true },
+        // Only a documents listing carries these, and only a documents
+        // listing is allowed to: they are what identifies the item on a
+        // listing that publishes no photo of it.
+        documentTypes: documentsMode ? (values.documentTypes || []) : [],
       };
       
       // Handle city - check if it's an API city or database city
@@ -697,8 +759,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const postDataString = JSON.stringify(postData);
       formData.append("postData", postDataString);
       
-      // Only append image if present
-      if (selectedImage) {
+      // Only append image if present - and never on a documents listing, whose
+      // Photo step does not exist. The effect that removes the step clears the
+      // photo too; this is the backstop, on the one path that would publish it.
+      if (selectedImage && !documentsMode) {
         formData.append("image", selectedImage);
       }
 
@@ -1115,6 +1179,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [imagePreview]);
 
+  // Turning a listing into a documents listing removes the Photo step, so
+  // anything already picked there has to go with it - otherwise a photo
+  // chosen before the category was set would be uploaded by a listing whose
+  // whole point is that it publishes none. The step indices move too, so a
+  // reader standing on what is now past the end is brought back onto the
+  // last real step.
+  useEffect(() => {
+    if (!documentsMode) return;
+    handleImageRemove();
+    setActiveStep((current) => Math.min(current, DOCUMENTS_STEP_COUNT - 1));
+    setMaxStepReached((current) => Math.min(current, DOCUMENTS_STEP_COUNT - 1));
+  }, [documentsMode, handleImageRemove]);
+
   // Handle image dialog open/close
   const handleImageDialogOpen = useCallback(() => {
     setShowImageDialog(true);
@@ -1252,6 +1329,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
             return (
             <Form>
+              {/* Mirrors "is this a documents listing?" out of Formik, which
+                  is what removes the Photo step. */}
+              <DocumentsModeSync categories={categories} onChange={setDocumentsMode} />
               <Box
                 sx={{
                   display: { xs: 'block', sm: 'flex' },
@@ -1357,7 +1437,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         >
                           <StepLabel
                             StepIconComponent={RailStepIcon}
-                            StepIconProps={{ iconRef: (el) => { railIconRefs.current[index] = el; } }}
+                            StepIconProps={{
+                              stepKey: step.key,
+                              iconRef: (el) => { railIconRefs.current[index] = el; },
+                            }}
                             optional={
                               <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
                                 {step.subtitle}
@@ -1378,10 +1461,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
                   <Box sx={{ mb: 3 }}>
                     <Typography variant="h5" sx={{ fontWeight: 700, color: accentColor, fontSize: '1.4rem' }}>
-                      {steps[activeStep].label}
+                      {steps[Math.min(activeStep, steps.length - 1)].label}
                     </Typography>
                     <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.5 }}>
-                      {steps[activeStep].subtitle}
+                      {steps[Math.min(activeStep, steps.length - 1)].subtitle}
                     </Typography>
                   </Box>
 
@@ -1413,7 +1496,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   )}
 
                   <StepTransition stepKey={activeStep} direction={stepDirection}>
-                    {activeStep === 0 && (
+                    {activeStepKey === 'item' && (
                       <>
                         <StepItem
                           flOptions={flOptions}
@@ -1428,7 +1511,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       </>
                     )}
 
-                    {activeStep === 1 && (
+                    {activeStepKey === 'location' && (
                       <>
                         <StepLocation
                           countries={countries}
@@ -1451,13 +1534,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           handleCitySearchChange={handleCitySearchChange}
                           handleCitySelect={handleCitySelect}
                         />
-                        <WizardFooter onBack={() => goToStep(0)}>
+                        <WizardFooter onBack={() => goToPreviousStep('location')}>
                           <WizardNextButton onClick={() => handleNextFromLocationStep(values, setStatus)} />
                         </WizardFooter>
                       </>
                     )}
 
-                    {activeStep === 2 && (
+                    {activeStepKey === 'photo' && (
                       <>
                         <StepPhoto
                           getFoundLostType={getFoundLostType}
@@ -1474,7 +1557,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           handleImageRemove={handleImageRemove}
                           handleImageDialogOpen={handleImageDialogOpen}
                         />
-                        <WizardFooter onBack={() => goToStep(1)}>
+                        <WizardFooter onBack={() => goToPreviousStep('photo')}>
                           {/* Held until the scan finishes, so a fast click can't
                               carry the un-redacted photo through to Review. */}
                           <WizardNextButton
@@ -1485,7 +1568,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       </>
                     )}
 
-                    {activeStep === 3 && (
+                    {activeStepKey === 'rest' && (
                       <>
                         <StepReview
                           flOptions={flOptions}
@@ -1497,9 +1580,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           getCountryLabel={getCountryLabel}
                           cityDisplayValue={cityDisplayValue}
                           imagePreview={imagePreview}
-                          onEditStep={handleStepClick}
+                          documentsMode={documentsMode}
+                          onEditStep={(stepKey) => handleStepClick(stepIndexOf(stepKey))}
                         />
-                        <WizardFooter onBack={() => goToStep(2)} stackOnMobile>
+                        <WizardFooter onBack={() => goToPreviousStep('rest')} stackOnMobile>
                           <ReviewSubmitButton />
                         </WizardFooter>
                       </>

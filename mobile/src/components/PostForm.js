@@ -30,6 +30,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   Keyboard,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -44,6 +45,8 @@ import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataCon
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens, radiusTokens, fontFamilies, lightColors, darkColors } from '../theme/tokens';
 import { getCategoryConfig } from '../config/categories';
+import { isDocumentsListing } from '../config/documentCategory';
+import { fetchDocumentTypes, createDocumentType } from '../api/documentTypesApi';
 import CityPickerModal from './CityPickerModal';
 import SelectModal from './SelectModal';
 import DateEntryModal, { formatDateValue } from './DateEntryModal';
@@ -131,6 +134,9 @@ const buildInitialCityValue = (post, lang) => {
   };
 };
 
+// item + location + review: the form's length once the Photo step is gone.
+const DOCUMENTS_STEP_COUNT = 3;
+
 const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLabel, onSubmit }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
@@ -168,6 +174,24 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   const [imageAsset, setImageAsset] = useState(null);
   const [imageRemoved, setImageRemoved] = useState(false);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
+
+  // Document titles: what a DOCUMENTS listing names in place of the photo it
+  // never carries (see config/documentCategory.js). Fetched only when that
+  // category is actually chosen - every other listing never asks for the list.
+  const [documentTypes, setDocumentTypes] = useState([]);
+  const [documentTypesLoading, setDocumentTypesLoading] = useState(false);
+  const [documentTypesFailed, setDocumentTypesFailed] = useState(false);
+  const [selectedDocumentTypeIds, setSelectedDocumentTypeIds] = useState(
+    Array.isArray(initialPost?.DocumentTypes)
+      ? initialPost.DocumentTypes.map((documentType) => String(documentType._id))
+      : []
+  );
+  const [documentPickerVisible, setDocumentPickerVisible] = useState(false);
+  const [otherDocumentVisible, setOtherDocumentVisible] = useState(false);
+  const [otherDocumentArabic, setOtherDocumentArabic] = useState('');
+  const [otherDocumentLatin, setOtherDocumentLatin] = useState('');
+  const [otherDocumentError, setOtherDocumentError] = useState('');
+  const [isSavingOtherDocument, setIsSavingOtherDocument] = useState(false);
 
   const [typePickerVisible, setTypePickerVisible] = useState(false);
   const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
@@ -300,6 +324,119 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
     if (ids.length > 0) clearFieldError('categories');
   };
 
+  // Whether this listing is about documents, which is what removes the Photo
+  // step and asks for a document title instead.
+  const documentsMode = isDocumentsListing(categories, selectedCategoryIds);
+  const MAX_DOCUMENT_TYPES = 6;
+
+  // Loaded lazily, the first time a listing is filed under DOCUMENTS. A failed
+  // load is reported rather than retried in a loop: the reader can reopen the
+  // picker, which asks again.
+  useEffect(() => {
+    if (!documentsMode || documentTypes.length > 0 || documentTypesLoading) return;
+
+    let isMounted = true;
+    setDocumentTypesLoading(true);
+    setDocumentTypesFailed(false);
+    fetchDocumentTypes()
+      .then((rows) => {
+        if (isMounted) setDocumentTypes(rows);
+      })
+      .catch(() => {
+        if (isMounted) setDocumentTypesFailed(true);
+      })
+      .finally(() => {
+        if (isMounted) setDocumentTypesLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentsMode]);
+
+  // Leaving the documents category behind takes its titles with it, and
+  // choosing it drops whatever photo was already picked - those listings
+  // publish none, which is the whole point of the category behaving
+  // differently.
+  useEffect(() => {
+    if (documentsMode) {
+      setImageAsset(null);
+      setImageRemoved(isEdit);
+    } else if (selectedDocumentTypeIds.length > 0) {
+      setSelectedDocumentTypeIds([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentsMode]);
+
+  // The steps shift when the Photo step goes: a reader standing on what is
+  // now past the end (including edit mode, which opens on the last step) is
+  // brought back onto the last real one.
+  useEffect(() => {
+    if (!documentsMode) return;
+    setActiveStep((current) => Math.min(current, DOCUMENTS_STEP_COUNT - 1));
+    setMaxStepReached((current) => Math.min(current, DOCUMENTS_STEP_COUNT - 1));
+  }, [documentsMode]);
+
+  const handleConfirmDocumentTypes = (ids) => {
+    setSelectedDocumentTypeIds(ids);
+    setDocumentPickerVisible(false);
+    if (ids.length > 0) clearFieldError('documentTypes');
+  };
+
+  const resetOtherDocumentForm = () => {
+    setOtherDocumentArabic('');
+    setOtherDocumentLatin('');
+    setOtherDocumentError('');
+  };
+
+  const handleSaveOtherDocument = async () => {
+    const arabic = otherDocumentArabic.trim();
+    const latin = otherDocumentLatin.trim();
+
+    if (!arabic || !latin) {
+      setOtherDocumentError(t('documentTitleBothNamesRequired'));
+      return;
+    }
+    if (!/[\u0600-\u06FF]/.test(arabic)) {
+      setOtherDocumentError(t('documentTitleArabicScriptRequired'));
+      return;
+    }
+    if (!/[A-Za-z\u00C0-\u024F]/.test(latin)) {
+      setOtherDocumentError(t('documentTitleLatinScriptRequired'));
+      return;
+    }
+
+    setOtherDocumentError('');
+    setIsSavingOtherDocument(true);
+    try {
+      // A title already saved under another spelling comes back as the
+      // existing row, so both outcomes end the same way: it is in the list
+      // and ticked.
+      const created = await createDocumentType({ arabicLabel: arabic, latinLabel: latin });
+      if (created?._id) {
+        setDocumentTypes((prev) => (
+          prev.some((documentType) => String(documentType._id) === String(created._id))
+            ? prev
+            : [...prev, created]
+        ));
+        setSelectedDocumentTypeIds((prev) => (
+          prev.includes(String(created._id)) || prev.length >= MAX_DOCUMENT_TYPES
+            ? prev
+            : [...prev, String(created._id)]
+        ));
+        clearFieldError('documentTypes');
+      }
+      setOtherDocumentVisible(false);
+      resetOtherDocumentForm();
+    } catch (error) {
+      const fieldMessage = error?.response?.data?.fields?.[0]?.message;
+      setOtherDocumentError(fieldMessage || error?.response?.data?.message || t('documentTitleSaveFailed'));
+    } finally {
+      setIsSavingOtherDocument(false);
+    }
+  };
+
   const handleSelectCountry = (id) => {
     if (id === countryId) return;
     setCountryId(id);
@@ -380,6 +517,9 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
     const errors = {};
     if (!foundLost) errors.foundLost = true;
     if (selectedCategoryIds.length === 0) errors.categories = true;
+    // A documents listing carries no photo, so its document title is the only
+    // thing that says what was lost - required, like the category.
+    if (documentsMode && selectedDocumentTypeIds.length === 0) errors.documentTypes = true;
     return errors;
   };
   const validateLocationStep = () => {
@@ -396,7 +536,14 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
     if (!contact.trim()) errors.contact = true;
     return errors;
   };
-  const STEP_VALIDATORS = [validateItemStep, validateLocationStep, () => ({}), validateReviewStep];
+  // Keyed by step, not by position: a documents listing has no Photo step, so
+  // a step's index is no longer its identity.
+  const VALIDATOR_BY_STEP_KEY = {
+    item: validateItemStep,
+    location: validateLocationStep,
+    photo: () => ({}),
+    review: validateReviewStep,
+  };
 
   const goToStep = (index) => {
     setActiveStep(index);
@@ -409,7 +556,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   };
 
   const handleNextStep = () => {
-    const errors = STEP_VALIDATORS[activeStep]();
+    const errors = (VALIDATOR_BY_STEP_KEY[activeStepKey] || (() => ({})))();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setValidationError(t('pleaseCompleteRequiredFields'));
@@ -429,8 +576,9 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
 
   // Only lets the user jump back to a step they've already passed validation
   // for, never ahead of it (used by the Review step's per-section Edit link).
-  const handleEditStep = (index) => {
-    if (index <= maxStepReached) goToStep(index);
+  const handleEditStep = (stepKey) => {
+    const index = stepIndexOf(stepKey);
+    if (index >= 0 && index <= maxStepReached) goToStep(index);
   };
 
   const buildPostData = () => {
@@ -452,6 +600,9 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
       // so posts behave identically regardless of platform; fixing the underlying
       // contactPreferences bug is out of scope here.
       contactPreferences: { whatsapp: true },
+      // Only a documents listing carries these, and only it is allowed to:
+      // they identify an item whose photo is deliberately never published.
+      documentTypes: documentsMode ? selectedDocumentTypeIds : [],
     };
 
     if (cityValue) {
@@ -488,9 +639,9 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setValidationError(t('pleaseCompleteRequiredFields'));
-      if (Object.keys(itemErrors).length > 0) goToStep(0);
-      else if (Object.keys(locationErrors).length > 0) goToStep(1);
-      else goToStep(3);
+      if (Object.keys(itemErrors).length > 0) goToStep(stepIndexOf('item'));
+      else if (Object.keys(locationErrors).length > 0) goToStep(stepIndexOf('location'));
+      else goToStep(stepIndexOf('review'));
       return;
     }
 
@@ -498,8 +649,10 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
     setValidationError(null);
     onSubmit({
       postData: buildPostData(),
-      imageAsset,
-      imageRemoved: isEdit ? imageRemoved : false,
+      // Never a photo on a documents listing - the effect above already
+      // cleared it, this is the backstop on the one path that would upload it.
+      imageAsset: documentsMode ? null : imageAsset,
+      imageRemoved: isEdit ? (documentsMode ? true : imageRemoved) : false,
     });
   };
 
@@ -535,9 +688,19 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   const steps = [
     { key: 'item', title: t('wizardStepItemTitle'), subtitle: t('wizardStepItemSubtitle') },
     { key: 'location', title: t('wizardStepLocationTitle'), subtitle: t('wizardStepLocationSubtitle') },
-    { key: 'photo', title: t('wizardStepPhotoTitle'), subtitle: t('wizardStepPhotoSubtitle') },
+    // No Photo step for a documents listing - it publishes none by design, and
+    // a step that exists only to say "nothing to do here" is worse than none.
+    ...(documentsMode
+      ? []
+      : [{ key: 'photo', title: t('wizardStepPhotoTitle'), subtitle: t('wizardStepPhotoSubtitle') }]),
     { key: 'review', title: t('wizardStepReviewTitle'), subtitle: t('wizardStepReviewSubtitle') },
   ];
+
+  const stepIndexOf = (key) => steps.findIndex((step) => step.key === key);
+  const activeStepKey = steps[Math.min(activeStep, steps.length - 1)]?.key;
+  const selectedDocumentTypes = documentTypes.filter(
+    (documentType) => selectedDocumentTypeIds.includes(String(documentType._id))
+  );
 
   const selectedCountry = countries.find((c) => (c._id || c.id) === countryId) || null;
   const countryLabel = selectedCountry
@@ -573,8 +736,8 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.stepHeader}>
-          <Text style={[styles.stepTitle, textStyle]}>{steps[activeStep].title}</Text>
-          <Text style={[styles.stepSubtitle, textStyle]}>{steps[activeStep].subtitle}</Text>
+          <Text style={[styles.stepTitle, textStyle]}>{steps[Math.min(activeStep, steps.length - 1)].title}</Text>
+          <Text style={[styles.stepSubtitle, textStyle]}>{steps[Math.min(activeStep, steps.length - 1)].subtitle}</Text>
         </View>
 
         {bannerMessage ? (
@@ -588,7 +751,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
           </View>
         ) : null}
 
-        {activeStep === 0 && (
+        {activeStepKey === 'item' && (
           <>
             <View style={styles.section}>
               <Text style={[styles.sectionLabel, textStyle]}>
@@ -657,6 +820,50 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               {fieldErrors.categories ? <Text style={styles.fieldError}>{t('thisFieldRequired')}</Text> : null}
             </View>
 
+            {documentsMode ? (
+              <View style={styles.section}>
+                <Text style={[styles.sectionLabel, textStyle]}>
+                  {t('documentTitleFieldLabel')}
+                  <Text style={styles.requiredMark}> *</Text>
+                </Text>
+                <Text style={[styles.helperText, textStyle]}>{t('documentTitleFieldHint')}</Text>
+                <FieldButton
+                  styles={styles}
+                  isRTL={isRTL}
+                  label={selectedDocumentTypes.map((d) => getLocalizedLabel(d, currentLanguage)).join(', ')}
+                  placeholder={documentTypesLoading ? t('loading') : t('selectDocumentTitle')}
+                  error={fieldErrors.documentTypes}
+                  onPress={() => setDocumentPickerVisible(true)}
+                  leading={<Ionicons name="document-text-outline" size={18} color={`${tokens.ink}99`} />}
+                  badge={selectedDocumentTypes.length > 0 ? String(selectedDocumentTypes.length) : null}
+                />
+                {documentTypesFailed ? (
+                  <Text style={styles.fieldError}>{t('documentTitlesLoadFailed')}</Text>
+                ) : null}
+                {fieldErrors.documentTypes ? (
+                  <Text style={styles.fieldError}>{t('documentTitleRequired')}</Text>
+                ) : null}
+
+                <TouchableOpacity
+                  style={styles.otherDocumentButton}
+                  onPress={() => {
+                    resetOtherDocumentForm();
+                    setOtherDocumentVisible(true);
+                  }}
+                >
+                  <Ionicons name="add-circle-outline" size={18} color={tokens.brandPrimary} />
+                  <Text style={[styles.otherDocumentButtonText, textStyle]}>{t('otherDocument')}</Text>
+                </TouchableOpacity>
+
+                {/* Why these listings have no photo, said where the choice
+                    that replaces it is made. */}
+                <View style={styles.documentNotice}>
+                  <Ionicons name="lock-closed-outline" size={18} color={tokens.brandPrimary} />
+                  <Text style={[styles.documentNoticeText, textStyle]}>{t('documentPrivacyNotice')}</Text>
+                </View>
+              </View>
+            ) : null}
+
             <View style={styles.section} onLayout={handleFieldLayout('description')}>
               <Text style={[styles.sectionLabel, textStyle]}>
                 {t('description')} ({t('optional')})
@@ -684,7 +891,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
           </>
         )}
 
-        {activeStep === 1 && (
+        {activeStepKey === 'location' && (
           <>
             <View style={styles.section}>
               <Text style={[styles.sectionLabel, textStyle]}>
@@ -779,7 +986,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
           </>
         )}
 
-        {activeStep === 2 && (
+        {activeStepKey === 'photo' && (
           <View style={styles.section}>
             <Text style={[styles.sectionLabel, textStyle]}>{t('itemImage')}</Text>
             <Text style={[styles.helperText, textStyle]}>{t('imageOptionalMessage')}</Text>
@@ -817,19 +1024,26 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
           </View>
         )}
 
-        {activeStep === 3 && (
+        {activeStepKey === 'review' && (
           <>
-            <ReviewSection styles={styles} title={steps[0].title} onEdit={() => handleEditStep(0)} t={t}>
+            <ReviewSection styles={styles} title={steps[0].title} onEdit={() => handleEditStep('item')} t={t}>
               <ReviewRow styles={styles} label={t('postType')} value={typeLabel || '-'} />
               <ReviewRow
                 styles={styles}
                 label={t('categories')}
                 value={selectedCategories.map((c) => getLocalizedLabel(c, currentLanguage)).join(', ') || '-'}
               />
+              {documentsMode ? (
+                <ReviewRow
+                  styles={styles}
+                  label={t('documentTitles')}
+                  value={selectedDocumentTypes.map((d) => getLocalizedLabel(d, currentLanguage)).join(', ') || '-'}
+                />
+              ) : null}
               {description ? <ReviewRow styles={styles} label={t('description')} value={description} /> : null}
             </ReviewSection>
 
-            <ReviewSection styles={styles} title={steps[1].title} onEdit={() => handleEditStep(1)} t={t}>
+            <ReviewSection styles={styles} title={steps[1].title} onEdit={() => handleEditStep('location')} t={t}>
               <ReviewRow styles={styles} label={t('country')} value={countryLabel || '-'} />
               <ReviewRow styles={styles} label={t('city')} value={cityValue?.label || '-'} />
               <ReviewRow styles={styles} label={t('location')} value={exactLocation || '-'} />
@@ -842,13 +1056,22 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               ) : null}
             </ReviewSection>
 
-            <ReviewSection styles={styles} title={steps[2].title} onEdit={() => handleEditStep(2)} t={t}>
-              {displayImageUri ? (
-                <Image source={{ uri: displayImageUri }} style={styles.reviewImage} resizeMode="cover" />
-              ) : (
-                <Text style={styles.reviewMuted}>{t('wizardReviewNoImage')}</Text>
-              )}
-            </ReviewSection>
+            {/* A documents listing has no Photo step to review, and says
+                instead why there is none. */}
+            {documentsMode ? (
+              <View style={styles.documentNotice}>
+                <Ionicons name="lock-closed-outline" size={18} color={tokens.brandPrimary} />
+                <Text style={[styles.documentNoticeText, textStyle]}>{t('documentPrivacyNotice')}</Text>
+              </View>
+            ) : (
+              <ReviewSection styles={styles} title={steps[2].title} onEdit={() => handleEditStep('photo')} t={t}>
+                {displayImageUri ? (
+                  <Image source={{ uri: displayImageUri }} style={styles.reviewImage} resizeMode="cover" />
+                ) : (
+                  <Text style={styles.reviewMuted}>{t('wizardReviewNoImage')}</Text>
+                )}
+              </ReviewSection>
+            )}
 
             <View style={styles.section} onLayout={handleFieldLayout('contact')}>
               <Text style={[styles.sectionLabel, textStyle]}>
@@ -950,6 +1173,93 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
         confirmLabel={t('confirm')}
         isRTL={isRTL}
       />
+
+      <SelectModal
+        visible={documentPickerVisible}
+        onClose={() => setDocumentPickerVisible(false)}
+        title={t('selectDocumentTitle')}
+        searchPlaceholder={t('searchDocumentTitle')}
+        noResultsText={t('noDocumentTitleFound')}
+        options={documentTypes}
+        getId={(documentType) => String(documentType._id)}
+        getLabel={(documentType) => getLocalizedLabel(documentType, currentLanguage)}
+        renderLeading={() => (
+          <Ionicons name="document-text-outline" size={18} color={tokens.brandPrimary} />
+        )}
+        multiple
+        selectedIds={selectedDocumentTypeIds}
+        onConfirm={handleConfirmDocumentTypes}
+        maxSelected={MAX_DOCUMENT_TYPES}
+        confirmLabel={t('confirm')}
+        isRTL={isRTL}
+      />
+
+      {/* "Other document": a title the list does not carry yet. Both scripts
+          are asked for, because what is written here is saved for everyone and
+          a title in one language only is unreadable to half the site. */}
+      <Modal
+        visible={otherDocumentVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          if (!isSavingOtherDocument) setOtherDocumentVisible(false);
+        }}
+      >
+        <View style={styles.otherDocumentBackdrop}>
+          <View style={styles.otherDocumentSheet}>
+            <Text style={[styles.otherDocumentTitle, textStyle]}>{t('otherDocument')}</Text>
+            <Text style={[styles.otherDocumentHint, textStyle]}>{t('otherDocumentHint')}</Text>
+
+            <Text style={[styles.otherDocumentLabel, textStyle]}>{t('documentNameArabic')}</Text>
+            <TextInput
+              style={[styles.textInput, styles.textRTL]}
+              placeholder={t('documentNameArabicPlaceholder')}
+              placeholderTextColor={`${tokens.ink}80`}
+              value={otherDocumentArabic}
+              onChangeText={setOtherDocumentArabic}
+              maxLength={80}
+            />
+
+            <Text style={[styles.otherDocumentLabel, textStyle]}>{t('documentNameLatin')}</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder={t('documentNameLatinPlaceholder')}
+              placeholderTextColor={`${tokens.ink}80`}
+              value={otherDocumentLatin}
+              onChangeText={setOtherDocumentLatin}
+              maxLength={80}
+            />
+
+            {otherDocumentError ? (
+              <Text style={styles.fieldError}>{otherDocumentError}</Text>
+            ) : null}
+
+            <View style={styles.otherDocumentActions}>
+              <TouchableOpacity
+                style={styles.otherDocumentCancel}
+                onPress={() => {
+                  if (isSavingOtherDocument) return;
+                  setOtherDocumentVisible(false);
+                  resetOtherDocumentForm();
+                }}
+              >
+                <Text style={styles.otherDocumentCancelText}>{t('cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.otherDocumentSave}
+                onPress={handleSaveOtherDocument}
+                disabled={isSavingOtherDocument}
+              >
+                {isSavingOtherDocument ? (
+                  <ActivityIndicator size="small" color={tokens.surfaceRaised} />
+                ) : (
+                  <Text style={styles.otherDocumentSaveText}>{t('addDocumentTitle')}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <SelectModal
         visible={countryPickerVisible}
@@ -1369,6 +1679,99 @@ const createStyles = (tokens, legacy, isDark, isRTL) => {
       fontFamily: fontFamilies.body,
       fontSize: 14,
       textAlign: 'center',
+    },
+    // Document titles (see config/documentCategory.js). Brand-tinted rather
+    // than the warning tone: nothing is wrong here, the form is explaining
+    // what it does with these listings.
+    documentNotice: {
+      flexDirection: row(isRTL),
+      alignItems: 'flex-start',
+      gap: 10,
+      marginTop: 12,
+      padding: 12,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.brandPrimary}${isDark ? '29' : '14'}`,
+    },
+    documentNoticeText: {
+      flex: 1,
+      fontFamily: fontFamilies.body,
+      fontSize: 12,
+      lineHeight: 18,
+      color: `${tokens.ink}CC`,
+    },
+    otherDocumentButton: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      gap: 8,
+      marginTop: 10,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.brandPrimary}${isDark ? '24' : '0F'}`,
+    },
+    otherDocumentButtonText: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 13,
+      color: tokens.brandPrimary,
+    },
+    otherDocumentBackdrop: {
+      flex: 1,
+      justifyContent: 'center',
+      padding: 20,
+      backgroundColor: 'rgba(0,0,0,0.45)',
+    },
+    otherDocumentSheet: {
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.lg,
+      padding: 20,
+    },
+    otherDocumentTitle: {
+      fontFamily: fontFamilies.display,
+      fontSize: 17,
+      color: tokens.ink,
+      marginBottom: 6,
+    },
+    otherDocumentHint: {
+      fontFamily: fontFamilies.body,
+      fontSize: 12,
+      lineHeight: 18,
+      color: `${tokens.ink}99`,
+      marginBottom: 14,
+    },
+    otherDocumentLabel: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 13,
+      color: tokens.ink,
+      marginBottom: 6,
+    },
+    otherDocumentActions: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      gap: 10,
+      marginTop: 16,
+    },
+    otherDocumentCancel: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: radiusTokens.md,
+    },
+    otherDocumentCancelText: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 14,
+      color: `${tokens.ink}99`,
+    },
+    otherDocumentSave: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderRadius: radiusTokens.md,
+      backgroundColor: tokens.brandPrimary,
+    },
+    otherDocumentSaveText: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 14,
+      color: tokens.surfaceRaised,
     },
     warningBanner: {
       backgroundColor: legacy.warningBackground,

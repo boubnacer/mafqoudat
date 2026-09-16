@@ -89,6 +89,13 @@ export const API_ENDPOINTS = {
     COMMENT: (id, commentId) => `/posts/${id}/comments/${commentId}`,
     REPORT_COMMENT: (id, commentId) => `/posts/${id}/comments/${commentId}/report`,
   },
+  // The document titles a DOCUMENTS listing names instead of carrying a photo
+  // (server/config/documentTypes.js). Listing is public; adding a title needs
+  // a session, since the row it creates is shown to everyone.
+  DOCUMENT_TYPES: {
+    LIST: "/document-types",
+    CREATE: "/document-types",
+  },
   PROMOTION: {
     REQUEST: "/promotion/request",
   },

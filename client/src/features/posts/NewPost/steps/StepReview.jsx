@@ -7,9 +7,10 @@ import {
   useTheme,
   alpha,
 } from "@mui/material";
-import { Edit as EditIcon } from '@mui/icons-material';
+import { Edit as EditIcon, LockOutlined } from '@mui/icons-material';
 import Textfield from "../../../../components/Textfield";
 import { useTranslation } from "../../../../utils/translations";
+import { useGetDocumentTypesQuery } from "../../../dependencies/documentTypesApiSlice";
 import RequiredMark from "./RequiredMark";
 
 // Step 4 "Contact & review": contact field + a read-only, definition-list
@@ -26,6 +27,7 @@ const StepReview = ({
   getCountryLabel,
   cityDisplayValue,
   imagePreview,
+  documentsMode,
   onEditStep,
 }) => {
   const { values } = useFormikContext();
@@ -46,25 +48,39 @@ const StepReview = ({
     .map((cat) => cat.labels?.[currentLanguage] || cat.label || cat.code)
     .join(', ');
 
+  // Only fetched for a documents listing; RTK Query serves it from the cache
+  // the picker on step 1 already filled.
+  const { data: documentTypes = [] } = useGetDocumentTypesQuery(undefined, { skip: !documentsMode });
+  const documentTypeLabels = (values.documentTypes || [])
+    .map((id) => documentTypes.find((documentType) => String(documentType.id || documentType._id) === String(id)))
+    .filter(Boolean)
+    .map((documentType) => documentType.labels?.[currentLanguage] || documentType.labels?.en || documentType.code)
+    .join(', ');
+
   const selectedCountry = countries.find((c) => c._id === values.country) || null;
   const countryLabel = selectedCountry ? `${getCountryLabel(selectedCountry)} (${selectedCountry.code})` : '';
 
   return (
     <Box display="flex" flexDirection="column" gap={3}>
-      <ReviewSection title={t('wizardStepItemTitle')} onEdit={() => onEditStep(0)}>
+      <ReviewSection title={t('wizardStepItemTitle')} onEdit={() => onEditStep('item')}>
         <ReviewRow label={t('haveYouLostOrFoundSomething')} value={foundLostLabel} />
         <ReviewRow label={t('category')} value={categoryLabels || '-'} />
+        {documentsMode && (
+          <ReviewRow label={t('documentTitles')} value={documentTypeLabels || '-'} />
+        )}
         {values.description && <ReviewRow label={t('description')} value={values.description} />}
       </ReviewSection>
 
-      <ReviewSection title={t('wizardStepLocationTitle')} onEdit={() => onEditStep(1)}>
+      <ReviewSection title={t('wizardStepLocationTitle')} onEdit={() => onEditStep('location')}>
         <ReviewRow label={t('country')} value={countryLabel || '-'} />
         <ReviewRow label={t('city')} value={cityDisplayValue || '-'} />
         <ReviewRow label={t('exactLocation')} value={values.exactLocation} />
         {values.exactDate && <ReviewRow label={t('exactDateFound')} value={values.exactDate} />}
       </ReviewSection>
 
-      <ReviewSection title={t('wizardStepPhotoTitle')} onEdit={() => onEditStep(2)}>
+      {/* A documents listing has no Photo step to review or to jump back to. */}
+      {!documentsMode && (
+      <ReviewSection title={t('wizardStepPhotoTitle')} onEdit={() => onEditStep('photo')}>
         {imagePreview ? (
           <Box
             component="img"
@@ -78,6 +94,30 @@ const StepReview = ({
           </Typography>
         )}
       </ReviewSection>
+      )}
+
+      {documentsMode && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 1.25,
+            p: 1.5,
+            borderRadius: 2,
+            backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.08),
+          }}
+        >
+          <LockOutlined fontSize="small" sx={{ color: theme.custom.color.brandPrimary, mt: 0.25 }} />
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+              {t('documentPhotoDisabledTitle')}
+            </Typography>
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+              {t('documentPhotoDisabledMessage')}
+            </Typography>
+          </Box>
+        </Box>
+      )}
 
       {/* Contact Information Section */}
       <Typography

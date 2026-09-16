@@ -28,6 +28,16 @@ const postSchema = new mongoose.Schema(
       required: true,
       ref: "Category",
     }],
+    // Which document titles a DOCUMENTS listing names ("passport", "carte
+    // grise"). Empty on every other listing. This is what a documents listing
+    // carries instead of a photo: publishing a picture of someone's identity
+    // papers hands their name, number and address to every reader, so the
+    // New Post wizard hides the photo step for these and asks for the title
+    // instead. See config/documentTypes.js.
+    documentTypes: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "DocumentType",
+    }],
     // Legacy single category field - kept for backward compatibility during migration
     category: {
       type: mongoose.Schema.Types.ObjectId,

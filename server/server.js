@@ -242,6 +242,7 @@ app.use("/countries", require("./routes/countryRoutes"));
 app.use("/cities", require("./routes/cityRoutes"));
 app.use("/floptions", require("./routes/flOptionsRoutes"));
 app.use("/categories", require("./routes/categoryRoute"));
+app.use("/document-types", require("./routes/documentTypeRoutes"));
 app.use("/contact", require("./routes/contactRoutes"));
 app.use("/cities-public", require("./routes/citiesPublicRoutes"));
 app.use("/dependencies", require("./routes/dependenciesRoutes"));
@@ -434,6 +435,13 @@ mongoose.connection.once("open", () => {
   // to this one model, not a blanket syncIndexes() over every collection.
   require("./models/Notification").syncIndexes().catch((err) => {
     console.error("Failed to sync Notification indexes:", err?.message || err);
+  });
+  // The document-title vocabulary's duplicate check is a unique index on
+  // normalizedLabels (models/DocumentType.js), and it is what stops two
+  // readers contributing the same title at the same moment - so the index has
+  // to exist on a deployment that predates it, not only on a fresh one.
+  require("./models/DocumentType").syncIndexes().catch((err) => {
+    console.error("Failed to sync DocumentType indexes:", err?.message || err);
   });
   // Drains the Facebook/Instagram publishing queue, one post at a time per
   // platform (services/socialPublishQueue.js). Needs the database, so it

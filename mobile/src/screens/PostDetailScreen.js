@@ -349,6 +349,13 @@ const PostDetailScreen = ({ navigation, route }) => {
   // headline needed on top of both.
   const metaLocationLabel = post.exactLocation && post.exactLocation !== cityLabel ? post.exactLocation : null;
 
+  // The document titles a DOCUMENTS listing names. Those listings publish no
+  // photo by design (see config/documentCategory.js), so this is what says
+  // what was lost.
+  const documentTypeNames = (Array.isArray(post.DocumentTypes) ? post.DocumentTypes : [])
+    .filter((documentType) => documentType && (documentType.labels || documentType.code))
+    .map((documentType) => getLocalizedLabel(documentType, currentLanguage) || documentType.code);
+
   const description = post.description && post.description.trim() ? post.description.trim() : t('noDescriptionProvided');
   const dateValue = post.mainDate && String(post.mainDate).trim() ? String(post.mainDate) : t('noDateProvided');
 
@@ -637,6 +644,24 @@ const PostDetailScreen = ({ navigation, route }) => {
               />
             ) : null}
           </View>
+
+          {documentTypeNames.length > 0 ? (
+            <View style={styles.section}>
+              <View style={styles.documentTypesBox}>
+                <View style={styles.descriptionHeader}>
+                  <Ionicons name="document-text-outline" size={18} color={tokens.brandPrimary} />
+                  <Text style={[styles.sectionTitle, isRTL && styles.textRTL]}>{t('documentTitles')}</Text>
+                </View>
+                <View style={styles.documentTypesRow}>
+                  {documentTypeNames.map((label) => (
+                    <View key={label} style={styles.documentTypePill}>
+                      <Text style={styles.documentTypePillText}>{label}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            </View>
+          ) : null}
 
           <View style={styles.section}>
             <View style={styles.descriptionBox}>
@@ -1036,6 +1061,29 @@ const createStyles = (tokens, isRTL, isDark) =>
       padding: 14,
       borderRadius: radiusTokens.md,
       backgroundColor: `${tokens.ink}0A`,
+    },
+    // Brand-tinted rather than the description's neutral wash: on a listing
+    // with no photo, this block is the subject.
+    documentTypesBox: {
+      padding: 14,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.brandPrimary}${isDark ? '29' : '14'}`,
+    },
+    documentTypesRow: {
+      flexDirection: row(isRTL),
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    documentTypePill: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: radiusTokens.sm,
+      backgroundColor: `${tokens.brandPrimary}${isDark ? '3D' : '1F'}`,
+    },
+    documentTypePillText: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 13,
+      color: tokens.brandPrimary,
     },
     descriptionHeader: {
       flexDirection: row(isRTL),
