@@ -55,9 +55,11 @@ import {
   CalendarMonth as CalendarMonthIcon
 } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
+import { isDocumentsListing } from "../NewPost/documentCategory";
 import DateEntryDialog from "../../../components/DateEntryDialog";
 import useAuth from "../../../hooks/useAuth";
 import CategoryPickerField from "../../../components/CategoryPickerField";
+import DocumentTypePickerField from "../../../components/DocumentTypePickerField";
 import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
 
 // CSS keyframes for loading animations will be injected in useEffect
@@ -1247,6 +1249,11 @@ if (typeof document !== 'undefined') {
       return "";
     })(),
     exactLocation: post?.exactLocation || "",
+    // The document titles a DOCUMENTS listing names, in place of the photo it
+    // never carries (see NewPost/documentCategory.js).
+    documentTypes: Array.isArray(post?.DocumentTypes)
+      ? post.DocumentTypes.map((documentType) => String(documentType._id))
+      : [],
     exactDate: post?.mainDate || "", // Add mainDate field as exactDate
     description: post?.description || "",
     // image: null, // For new image uploads - temporarily disabled
@@ -1330,6 +1337,14 @@ if (typeof document !== 'undefined') {
         missingFields.push(t('category'));
         newFieldErrors.category = t('required');
       }
+      // A documents listing publishes no photo, so its title is the only
+      // thing saying what was lost - required here as it is on the New Post
+      // wizard.
+      if (isDocumentsListing(categories, values)
+        && !(Array.isArray(values.documentTypes) && values.documentTypes.length > 0)) {
+        missingFields.push(t('documentTitles'));
+        newFieldErrors.documentTypes = t('documentTitleRequired');
+      }
       if (!selectedCountry) {
         missingFields.push(t('country'));
         newFieldErrors.country = t('required');
@@ -1362,6 +1377,8 @@ if (typeof document !== 'undefined') {
             fieldToScroll = document.querySelector('[data-testid="foundLost"]');
           } else if (missingFields.includes(t('category'))) {
             fieldToScroll = document.querySelector('[data-testid="category"]');
+          } else if (missingFields.includes(t('documentTitles'))) {
+            fieldToScroll = document.querySelector('[data-testid="documentTypes"]');
           } else if (missingFields.includes(t('country'))) {
             fieldToScroll = document.querySelector('[data-testid="country-select"]');
           } else if (missingFields.includes(t('city'))) {
@@ -1413,7 +1430,10 @@ if (typeof document !== 'undefined') {
         contact: values.contact,
         description: values.description || "",
         returned: values.returned || false, // Add the returned field
-        contactPreferences: { whatsapp: true }
+        contactPreferences: { whatsapp: true },
+        // Sent on every update, empty included: a listing moved out of the
+        // documents category has to lose its titles, not keep them invisibly.
+        documentTypes: isDocumentsListing(categories, values) ? (values.documentTypes || []) : [],
       };
 
       // Handle image - include new image if selected or mark for removal
@@ -1995,6 +2015,48 @@ if (typeof document !== 'undefined') {
                     errorText={fieldErrors.category}
                     dataTestId="category"
                   />
+
+                  {/* Documents carry a title instead of a photo, and the
+                      owner has to be able to correct it here - the alternative
+                      is deleting the listing and writing it again. */}
+                  {isDocumentsListing(categories, values) && (
+                    <Box sx={{ mt: 3 }}>
+                      <FormLabel
+                        htmlFor="documentTypes"
+                        sx={{
+                          mb: 1,
+                          display: "block",
+                          fontWeight: 600,
+                          fontSize: '1.15rem',
+                          color: theme.palette.text.primary
+                        }}
+                      >
+                        {t('documentTitleFieldLabel')} *
+                      </FormLabel>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          mb: 1,
+                          display: "block",
+                          fontSize: '1rem',
+                          color: theme.palette.text.secondary,
+                          fontWeight: 500
+                        }}
+                      >
+                        {t('documentTitleFieldHint')}
+                      </Typography>
+                      <DocumentTypePickerField
+                        value={values.documentTypes || []}
+                        onChange={(documentTypeIds) => {
+                          setFieldValue('documentTypes', documentTypeIds);
+                          clearFieldError('documentTypes');
+                        }}
+                        error={!!fieldErrors.documentTypes}
+                        errorText={fieldErrors.documentTypes}
+                        dataTestId="documentTypes"
+                      />
+                    </Box>
+                  )}
                 </Box>
                 </EditableSection>
 
@@ -2805,7 +2867,12 @@ if (typeof document !== 'undefined') {
                 </Box>
                 </EditableSection>
 
-                {/* Image Section */}
+                {/* Image Section - never for a documents listing. The New
+                    Post wizard drops its Photo step for those (see
+                    NewPost/documentCategory.js), and an edit screen that
+                    offered the upload back would be the way a photo of an ID
+                    card reaches the site anyway. */}
+                {!isDocumentsListing(categories, values) && (
                 <EditableSection
                   theme={theme}
                   icon={PhotoCamera}
@@ -3026,6 +3093,7 @@ if (typeof document !== 'undefined') {
                   </Typography>
                 </Box>
                 </EditableSection>
+                )}
 
                 {/* Status Section - Only visible for admin */}
                 {role === 'admin' && (

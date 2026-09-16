@@ -166,6 +166,7 @@ export const apiSlice = createApi({
     "Dashboard",
     "FlOptions",
     "Category",
+    "DocumentType",
     "SystemSettings",
     "Notification",
     "PostMatch",

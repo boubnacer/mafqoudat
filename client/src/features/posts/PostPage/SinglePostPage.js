@@ -396,6 +396,9 @@ const SinglePostPage = ({
   Category,
   // Categories array from aggregation (new format)
   Categories,
+  // The document titles a DOCUMENTS listing names (server/config/documentTypes.js).
+  // These listings publish no photo, so this is what says what was lost.
+  DocumentTypes,
   // API transformation fields
   foundLostLabel,
   // Refetch function
@@ -607,6 +610,16 @@ const SinglePostPage = ({
 
     return cats.length > 0 ? cats : [{ code: 'OTHER', labels: null, _id: null }];
   }, [Categories, Category, categoryname]);
+
+  // The document titles this listing names, in the reader's language. Empty
+  // for every listing that is not about documents.
+  const documentTypeNames = useMemo(() => (
+    (Array.isArray(DocumentTypes) ? DocumentTypes : [])
+      .filter((documentType) => documentType && (documentType.labels || documentType.code))
+      .map((documentType) => (
+        documentType.labels?.[currentLanguage] || documentType.labels?.en || documentType.code
+      ))
+  ), [DocumentTypes, currentLanguage]);
 
   // Memoized category display names computation
   const categoryNames = useMemo(() => {
@@ -1042,6 +1055,37 @@ const SinglePostPage = ({
                 {countryDisplayName && <InfoTile icon={CountryIcon} label={t('country')} value={countryDisplayName} />}
                 {typeof views === 'number' && <InfoTile icon={ViewIcon} label={t('views')} value={views} />}
               </Box>
+
+              {/* The documents this listing is about. It sits above the
+                  description, and above where a photo would be discussed,
+                  because on these listings it is the only thing that says
+                  what was lost - they carry no photo by design. */}
+              {documentTypeNames.length > 0 && (
+                <Box
+                  sx={{
+                    mb: 3,
+                    p: { xs: 1.75, md: 2.25 },
+                    borderRadius: `${theme.custom.radius.md}px`,
+                    backgroundColor: alpha(theme.custom.color.brandPrimary, isDarkMode ? 0.16 : 0.08),
+                  }}
+                >
+                  <SectionHeading icon={DescriptionSectionIcon}>{t('documentTitles')}</SectionHeading>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {documentTypeNames.map((label) => (
+                      <Chip
+                        key={label}
+                        label={label}
+                        sx={{
+                          borderRadius: `${theme.custom.radius.sm}px`,
+                          fontWeight: 600,
+                          color: theme.custom.color.brandPrimary,
+                          backgroundColor: alpha(theme.custom.color.brandPrimary, isDarkMode ? 0.24 : 0.12),
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
 
               {/* Description */}
               <Box

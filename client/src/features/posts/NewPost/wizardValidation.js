@@ -6,15 +6,20 @@
 const FIELD_TESTID = {
   foundLost: 'foundLost',
   category: 'category',
+  documentTypes: 'documentTypes',
   country: 'country-select',
   city: 'city-select',
   exactLocation: 'exactLocation',
   contact: 'contact',
 };
 
-const PRIORITY_ORDER = ['foundLost', 'category', 'country', 'city', 'exactLocation', 'contact'];
+const PRIORITY_ORDER = ['foundLost', 'category', 'documentTypes', 'country', 'city', 'exactLocation', 'contact'];
 
-export const validateStep1 = (values, t) => {
+// `requiresDocumentTitle` is set by the caller when the chosen categories
+// include DOCUMENTS: those listings carry no photo, so the document's own
+// title is the only thing identifying what was lost, and it is required for
+// exactly the same reason a category is.
+export const validateStep1 = (values, t, { requiresDocumentTitle = false } = {}) => {
   const missingFields = [];
   const fieldErrors = {};
 
@@ -29,6 +34,11 @@ export const validateStep1 = (values, t) => {
   if (selectedCategories.length === 0) {
     missingFields.push(t('category'));
     fieldErrors.category = t('required');
+  }
+
+  if (requiresDocumentTitle && !(Array.isArray(values.documentTypes) && values.documentTypes.length > 0)) {
+    missingFields.push(t('documentTitles'));
+    fieldErrors.documentTypes = t('documentTitleRequired');
   }
 
   return { missingFields, fieldErrors };
@@ -75,6 +85,16 @@ export const validateStep4 = (values, t) => {
 // All per-step validators, in step order - used by the final safety net on
 // submit (S2) to re-check everything and jump to the earliest offending step.
 export const STEP_VALIDATORS = [validateStep1, validateStep2, validateStep3, validateStep4];
+
+// The same validators keyed by step, because the wizard's steps are no longer
+// a fixed list: a DOCUMENTS listing has no Photo step at all, so a step's
+// position is not its identity anymore (see documentCategory.js).
+export const VALIDATOR_BY_STEP_KEY = {
+  item: validateStep1,
+  location: validateStep2,
+  photo: validateStep3,
+  rest: validateStep4,
+};
 
 // Scrolls to and focuses the first field with an error, matching the
 // original handleSubmit scroll-and-focus behavior. Scrolls

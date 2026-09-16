@@ -10,10 +10,12 @@ import {
   useTheme,
   alpha,
 } from "@mui/material";
-import { TaskAltOutlined, SearchOffOutlined } from "@mui/icons-material";
+import { TaskAltOutlined, SearchOffOutlined, LockOutlined } from "@mui/icons-material";
 import Textfield from "../../../../components/Textfield";
 import CategoryPickerField from "../../../../components/CategoryPickerField";
+import DocumentTypePickerField from "../../../../components/DocumentTypePickerField";
 import { useTranslation } from "../../../../utils/translations";
+import { isDocumentsListing } from "../documentCategory";
 import RequiredMark from "./RequiredMark";
 
 // Labeling helper mirrors the one SelectOption used internally, so the
@@ -30,6 +32,10 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
   const { values, setFieldValue } = useFormikContext();
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
+
+  // Documents are the one category that changes what this step asks for: no
+  // photo later on, and the document's own title here instead.
+  const documentsSelected = isDocumentsListing(categories, values);
 
   return (
     <Box display="flex" flexDirection="column" gap={3}>
@@ -204,6 +210,65 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
           dataTestId="category"
         />
       </Box>
+
+      {documentsSelected && (
+        <Box data-testid="documentTypesBlock">
+          <FormLabel
+            htmlFor="documentTypes"
+            sx={{
+              mb: 1,
+              display: "block",
+              fontWeight: 600,
+              fontSize: '1.15rem',
+              color: theme.palette.text.primary
+            }}
+          >
+            {t('documentTitleFieldLabel')}<RequiredMark />
+          </FormLabel>
+          <Typography
+            variant="caption"
+            sx={{
+              mb: 1,
+              display: "block",
+              fontSize: '1rem',
+              color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
+              fontWeight: 500
+            }}
+          >
+            {t('documentTitleFieldHint')}
+          </Typography>
+          <DocumentTypePickerField
+            value={values.documentTypes || []}
+            onChange={(documentTypeIds) => {
+              setFieldValue('documentTypes', documentTypeIds);
+              clearFieldError('documentTypes');
+            }}
+            error={!!fieldErrors.documentTypes}
+            errorText={fieldErrors.documentTypes}
+            dataTestId="documentTypes"
+          />
+
+          {/* The wizard drops its Photo step for these listings, and a step
+              that simply disappears reads as a bug - so it is said here, at
+              the moment the choice is made. */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 1.25,
+              mt: 1.5,
+              p: 1.5,
+              borderRadius: 2,
+              backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.08),
+            }}
+          >
+            <LockOutlined fontSize="small" sx={{ color: theme.custom.color.brandPrimary, mt: 0.25 }} />
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
+              {t('documentPrivacyNotice')}
+            </Typography>
+          </Box>
+        </Box>
+      )}
 
       {/* Item Details Section */}
       <Typography

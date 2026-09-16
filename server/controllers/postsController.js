@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Country = require("../models/Country");
 const Category = require("../models/Category");
 const FoundLost = require("../models/FoundLost");
+const DocumentType = require("../models/DocumentType");
 const City = require("../models/City");
 const Report = require("../models/Report");
 const { deleteFromCloudinary } = require("../config/cloudinary");
@@ -415,6 +416,18 @@ const getPost = async (req, res) => {
       {
         $match: { _id: new mongoose.Types.ObjectId(id) }
       },
+      // Lookup the document titles a DOCUMENTS listing names. Only the detail
+      // read joins them: they are what a reader judges the listing by once
+      // they have opened it, and the listing pipelines are already the
+      // expensive queries on this collection.
+      {
+        $lookup: {
+          from: "documenttypes",
+          localField: "documentTypes",
+          foreignField: "_id",
+          as: "DocumentTypes",
+        },
+      },
       // Lookup categories array (new format)
       {
         $lookup: {
@@ -510,6 +523,52 @@ const getPost = async (req, res) => {
           updatedAt: 1,
           username: "$User.username",
           // Categories array (new format)
+          // Kept in the order the listing stores them, which is the order
+          // the author ticked them in - $lookup answers in the foreign
+          // collection's own order, so the ids are re-walked here.
+          DocumentTypes: {
+            // A title deleted since the listing was written maps to null and
+            // is dropped, rather than leaving an empty chip on the page.
+            $filter: {
+              input: {
+                $map: {
+                  input: { $ifNull: ["$documentTypes", []] },
+                  as: "wantedId",
+                  in: {
+                    $let: {
+                      vars: {
+                        match: {
+                          $arrayElemAt: [
+                            {
+                              $filter: {
+                                input: { $ifNull: ["$DocumentTypes", []] },
+                                as: "doc",
+                                cond: { $eq: ["$$doc._id", "$$wantedId"] },
+                              },
+                            },
+                            0,
+                          ],
+                        },
+                      },
+                      in: {
+                        $cond: {
+                          if: { $ifNull: ["$$match", false] },
+                          then: {
+                            _id: "$$match._id",
+                            code: "$$match.code",
+                            labels: "$$match.labels",
+                          },
+                          else: null,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              as: "entry",
+              cond: { $ne: ["$$entry", null] },
+            },
+          },
           Categories: {
             $cond: {
               if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
@@ -1178,6 +1237,57 @@ const normalizeContactPreferences = (raw) => {
   return Object.keys(normalized).length > 0 ? normalized : { ...DEFAULT_CONTACT_PREFERENCES };
 };
 
+// A listing can name a handful of papers lost together (an ID inside a wallet
+// with a driving licence and a car registration), not an inventory.
+const MAX_DOCUMENT_TYPES = 6;
+
+/**
+ * Turns the document titles a client sent into ObjectIds it may actually
+ * store: valid ids, existing and active rows, deduplicated, capped.
+ *
+ * A title that no longer exists is dropped rather than failing the write - the
+ * listing itself is the thing being saved, and losing one label is a smaller
+ * loss than refusing the post. Anything genuinely malformed is dropped for the
+ * same reason.
+ */
+const resolveDocumentTypeIds = async (raw) => {
+  if (!Array.isArray(raw) || raw.length === 0) return [];
+
+  const candidates = [...new Set(
+    raw
+      .map((value) => String(value?._id || value?.id || value || ''))
+      .filter((value) => mongoose.Types.ObjectId.isValid(value))
+  )].slice(0, MAX_DOCUMENT_TYPES);
+
+  if (candidates.length === 0) return [];
+
+  const found = await DocumentType.find({ _id: { $in: candidates }, isActive: true })
+    .select('_id')
+    .lean()
+    .exec();
+
+  const existing = new Set(found.map((doc) => String(doc._id)));
+  // Kept in the order the client sent them - that is the order the reader
+  // ticked the boxes in, and it is what both front ends render.
+  return candidates
+    .filter((id) => existing.has(id))
+    .map((id) => new mongoose.Types.ObjectId(id));
+};
+
+/**
+ * Bumps `usageCount` on the titles a listing named. Fire-and-forget: this is a
+ * statistic about the vocabulary, and a failed increment must never turn a
+ * created listing into a failed request.
+ */
+const recordDocumentTypeUsage = (ids) => {
+  if (!Array.isArray(ids) || ids.length === 0) return;
+  DocumentType.updateMany({ _id: { $in: ids } }, { $inc: { usageCount: 1 } })
+    .exec()
+    .catch((error) => {
+      console.error('Failed to record document type usage:', error?.message || error);
+    });
+};
+
 // @desc Create new post
 // @route POST /posts
 // @access Private
@@ -1185,7 +1295,7 @@ const createNewPost = async (req, res) => {
   
   try {
     // Use parsed data from validation middleware if available, otherwise parse from req.body
-    let postData, user, country, category, categories, contact, foundLost, city, cityData, exactLocation, exactDate, description, contactPreferences;
+    let postData, user, country, category, categories, contact, foundLost, city, cityData, exactLocation, exactDate, description, contactPreferences, documentTypes;
     
     if (req.parsedPostData) {
       // Use data parsed by validation middleware
@@ -1202,6 +1312,7 @@ const createNewPost = async (req, res) => {
       exactDate = postData.exactDate;
       description = postData.description;
       contactPreferences = postData.contactPreferences;
+      documentTypes = postData.documentTypes;
     } else if (req.body.postData) {
       // Fallback: parse from postData JSON field
       postData = JSON.parse(req.body.postData);
@@ -1217,6 +1328,7 @@ const createNewPost = async (req, res) => {
       exactDate = postData.exactDate;
       description = postData.description;
       contactPreferences = postData.contactPreferences;
+      documentTypes = postData.documentTypes;
     } else {
       // Legacy format: individual fields
       user = req.body.user;
@@ -1231,6 +1343,7 @@ const createNewPost = async (req, res) => {
       exactDate = req.body.exactDate;
       description = req.body.description;
       contactPreferences = req.body.contactPreferences;
+      documentTypes = req.body.documentTypes;
     }
     
     
@@ -1452,6 +1565,13 @@ const createNewPost = async (req, res) => {
     contactPreferences: normalizeContactPreferences(contactPreferences),
   };
 
+   // The document titles a DOCUMENTS listing names, in place of the photo it
+   // is not allowed to carry.
+   const resolvedDocumentTypes = await resolveDocumentTypeIds(documentTypes);
+   if (resolvedDocumentTypes.length > 0) {
+     newPostData.documentTypes = resolvedDocumentTypes;
+   }
+
      // Handle city field - cityId is already processed above
    if (cityId) {
      newPostData.city = cityId;
@@ -1491,6 +1611,9 @@ const createNewPost = async (req, res) => {
       } catch (queueError) {
         console.error(`Failed to queue social publishing for post ${post._id}:`, queueError.message);
       }
+
+      // Statistic only, and never on the request's critical path.
+      recordDocumentTypeUsage(resolvedDocumentTypes);
 
       // Look for counterparts on the opposite side (lost <-> found) and alert
       // both owners. Deferred and self-contained: a matching failure must never
@@ -1672,6 +1795,7 @@ const updatePost = async (req, res) => {
     description,
     mainDate,
     image,
+    documentTypes,
   } = requestData;
 
   // Determine which category field to use - prefer categories array, fallback to category
@@ -1762,7 +1886,7 @@ const updatePost = async (req, res) => {
   }
 
   // Confirm post exists to update - only select fields needed for update
-  const post = await Post.findById(id).select('_id user country category categories city exactLocation contact returned foundLost description mainDate cloudinaryPublicId socialImage').exec();
+  const post = await Post.findById(id).select('_id user country category categories documentTypes city exactLocation contact returned foundLost description mainDate cloudinaryPublicId socialImage').exec();
 
   if (!post) {
     return res.status(400).json({ message: "Post not found" });
@@ -1796,6 +1920,13 @@ const updatePost = async (req, res) => {
   
   // Update legacy category field (first category for backward compatibility)
   post.category = primaryCategory;
+
+  // Document titles, when the client sent the field at all. An update that
+  // omits it leaves whatever the listing already names alone, the same way
+  // every other optional field here behaves.
+  if (documentTypes !== undefined) {
+    post.documentTypes = await resolveDocumentTypeIds(documentTypes);
+  }
   if (city !== undefined) {
     // Convert string ObjectId to actual ObjectId if needed
     if (typeof city === 'string' && city.match(/^[0-9a-fA-F]{24}$/)) {
