@@ -115,7 +115,7 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
-  // Same floptions source PostsListScreen/PostFilterSheet use (ReferenceDataContext,
+  // Same floptions source PostsListScreen/PostFilterDialog use (ReferenceDataContext,
   // fetched once app-wide) - looked up by code rather than mapping floptions in
   // API order, so Lost always precedes Found regardless of backend ordering.
   const lostOption = floptions.find((fl) => fl.code === 'LOST');

@@ -24,6 +24,7 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
@@ -36,14 +37,14 @@ import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataCon
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import { getCategoryConfig } from '../config/categories';
-import PostFilterSheet from '../components/PostFilterSheet';
+import PostFilterDialog from '../components/PostFilterDialog';
 import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
 import { PostReachRow } from '../components/SocialReach';
 import GradientHeading from '../components/GradientHeading';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
-import { logical, row, needsDirectionFlip } from '../utils/rtl';
+import { logical, row, alignStart, needsDirectionFlip } from '../utils/rtl';
 import { formatRelativeTime } from '../utils/relativeTime';
 
 const SEARCH_DEBOUNCE_MS = 400;
@@ -73,6 +74,19 @@ const PostsListSkeleton = ({ styles, tokens }) => (
     ))}
   </View>
 );
+
+/** Mixes a hex color toward white - RN has no equivalent of MUI's lighten(),
+ * which the web filter launcher pill uses for its gradient fill. */
+const lighten = (hex, amount) => {
+  const value = hex.replace('#', '');
+  const channel = (index) => {
+    const start = parseInt(value.slice(index * 2, index * 2 + 2), 16);
+    return Math.round(start + (255 - start) * amount)
+      .toString(16)
+      .padStart(2, '0');
+  };
+  return `#${channel(0)}${channel(1)}${channel(2)}`;
+};
 
 // Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
 // as RN shadow/elevation props - same shadow color/opacity the web cards use.
@@ -142,7 +156,7 @@ const PostsListScreen = ({ navigation, route }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
   const { signOut } = useAuth();
-  const { floptions, categories, countries, getCities } = useReferenceData();
+  const { floptions, categories, getCities } = useReferenceData();
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const isRTL = currentLanguage === 'ar';
@@ -167,7 +181,7 @@ const PostsListScreen = ({ navigation, route }) => {
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
   const [selectedCityId, setSelectedCityId] = useState(null);
   const [selectedCityLabel, setSelectedCityLabel] = useState('');
-  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
 
   const requestIdRef = useRef(0);
   const abortControllerRef = useRef(null);
@@ -476,15 +490,43 @@ const PostsListScreen = ({ navigation, route }) => {
   const selectedFloption = floptions.find((fl) => fl._id === selectedFl);
   const selectedCategoryChips = categories.filter((cat) => selectedCategoryIds.includes(cat._id));
 
-  const filterButton = (
-    <TouchableOpacity style={styles.filterButton} onPress={() => setFilterSheetVisible(true)}>
-      <Ionicons name="options-outline" size={16} color={tokens.brandPrimary} />
-      <Text style={styles.filterButtonText}>{t('filters')}</Text>
-      {activeFilterCount > 0 ? (
-        <View style={styles.filterBadge}>
-          <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
-        </View>
-      ) : null}
+  // Commits the filter dialog's staged draft into the applied filters (which
+  // is what the posts query reads) and closes it - mirrors web's
+  // handleApplyFilters. selectedFl still goes through handleSelectFl so it
+  // stays persisted the same way a chip removal or HeaderMenu pick would.
+  const handleApplyFilters = ({ fl, categoryIds, cityId, cityLabel }) => {
+    handleSelectFl(fl);
+    setSelectedCategoryIds(categoryIds);
+    setSelectedCityId(cityId);
+    setSelectedCityLabel(cityLabel || '');
+    setFilterDialogOpen(false);
+  };
+
+  // Floating filter launcher - mirrors web's mobile/tablet pop-up launcher: a
+  // pill docked to the inline-start edge (flush there, rounded on the
+  // protruding side) rather than a control inside the navbar/header.
+  const filterLauncher = (
+    <TouchableOpacity
+      style={styles.filterLauncher}
+      onPress={() => setFilterDialogOpen(true)}
+      activeOpacity={0.85}
+      accessibilityRole="button"
+      accessibilityLabel={t('filters')}
+    >
+      <LinearGradient
+        colors={[tokens.brandPrimary, lighten(tokens.brandPrimary, 0.15)]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.filterLauncherFill}
+      >
+        <Ionicons name="options" size={16} color="#FFFFFF" />
+        <Text style={styles.filterLauncherText}>{t('filters')}</Text>
+        {activeFilterCount > 0 ? (
+          <View style={styles.filterLauncherBadge}>
+            <Text style={styles.filterLauncherBadgeText}>{activeFilterCount}</Text>
+          </View>
+        ) : null}
+      </LinearGradient>
     </TouchableOpacity>
   );
 
@@ -582,7 +624,6 @@ const PostsListScreen = ({ navigation, route }) => {
         title={t('posts')}
         countryId={countryId}
         onSelectCountry={handleSelectCountry}
-        rightActions={filterButton}
         onBack={() => navigation.goBack()}
       />
 
@@ -591,6 +632,8 @@ const PostsListScreen = ({ navigation, route }) => {
       ) : (
         <>
           <Animated.View style={getSectionStyle(0)}>
+            <View style={styles.filterLauncherRow}>{filterLauncher}</View>
+
             <View style={styles.searchRow}>
               <Ionicons name="search-outline" size={18} color={`${tokens.ink}80`} style={styles.searchIcon} />
               <TextInput
@@ -768,26 +811,21 @@ const PostsListScreen = ({ navigation, route }) => {
         </>
       )}
 
-      <PostFilterSheet
-        visible={filterSheetVisible}
-        onClose={() => setFilterSheetVisible(false)}
+      <PostFilterDialog
+        visible={filterDialogOpen}
+        onClose={() => setFilterDialogOpen(false)}
+        onApply={handleApplyFilters}
         t={t}
         currentLanguage={currentLanguage}
         isRTL={isRTL}
         floptions={floptions}
         categories={categories}
-        countries={countries}
         getCities={getCities}
         countryId={countryId}
-        onSelectCountry={handleSelectCountry}
-        selectedFl={selectedFl}
-        onSelectFl={handleSelectFl}
-        selectedCategoryIds={selectedCategoryIds}
-        onToggleCategory={handleToggleCategory}
-        onClearCategories={() => setSelectedCategoryIds([])}
-        selectedCityId={selectedCityId}
-        onSelectCity={handleSelectCity}
-        onClearAll={handleClearAllFilters}
+        appliedSelectedFl={selectedFl}
+        appliedSelectedCategoryIds={selectedCategoryIds}
+        appliedSelectedCityId={selectedCityId}
+        appliedSelectedCityLabel={selectedCityLabel}
       />
     </View>
   );
@@ -832,35 +870,58 @@ const createStyles = (tokens, isRTL, isDark) =>
     // differs from the one native is already mirroring - see that file. Do NOT
     // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
     // cancels out native mirroring once forceRTL has taken effect on relaunch.
-    filterButton: {
+    // Floating filter launcher - mirrors web's pop-up trigger: a pill docked
+    // to the inline-start edge like a tab sliding in from off-screen, flush
+    // (no radius) on the edge it touches and rounded only on the protruding
+    // side. In-flow rather than position: fixed (RN has no scroll-fixed
+    // overlay the way the web page does, and the screen has no separate
+    // fixed navbar to clear), so it sits right above the search row instead.
+    filterLauncherRow: {
+      paddingTop: 4,
+      paddingBottom: 8,
+    },
+    filterLauncher: {
+      alignSelf: alignStart(isRTL),
+      ...logical(isRTL, {
+        borderTopStartRadius: 0,
+        borderBottomStartRadius: 0,
+        borderTopEndRadius: radiusTokens.xl,
+        borderBottomEndRadius: radiusTokens.xl,
+      }),
+      ...getElevation(isDark, 2),
+    },
+    filterLauncherFill: {
       flexDirection: row(isRTL),
       alignItems: 'center',
-      gap: 6,
-      paddingHorizontal: 14,
-      height: 36,
-      borderRadius: radiusTokens.md,
-      backgroundColor: tokens.surfaceRaised,
-      ...getElevation(isDark, 1),
+      gap: 8,
+      paddingVertical: 10,
+      ...logical(isRTL, {
+        paddingStart: 20,
+        paddingEnd: 18,
+        borderTopStartRadius: 0,
+        borderBottomStartRadius: 0,
+        borderTopEndRadius: radiusTokens.xl,
+        borderBottomEndRadius: radiusTokens.xl,
+      }),
     },
-    filterButtonText: {
-      fontFamily: fontFamilies.bodySemiBold,
-      color: tokens.brandPrimary,
-      fontSize: 13,
-    },
-    filterBadge: {
-      ...logical(isRTL, { marginEnd: 2 }),
-      borderRadius: radiusTokens.sm,
-      minWidth: 18,
-      height: 18,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 4,
-      backgroundColor: tokens.brandPrimary,
-    },
-    filterBadgeText: {
-      fontSize: 11,
+    filterLauncherText: {
       fontFamily: fontFamilies.bodySemiBold,
       color: '#FFFFFF',
+      fontSize: 14,
+    },
+    filterLauncherBadge: {
+      minWidth: 20,
+      height: 20,
+      borderRadius: 10,
+      paddingHorizontal: 5,
+      backgroundColor: '#FFFFFF',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    filterLauncherBadgeText: {
+      fontSize: 11,
+      fontFamily: fontFamilies.bodySemiBold,
+      color: tokens.brandPrimary,
     },
     activeFiltersRow: {
       paddingTop: 10,
@@ -872,8 +933,10 @@ const createStyles = (tokens, isRTL, isDark) =>
     activeChip: {
       flexDirection: row(isRTL),
       alignItems: 'center',
-      backgroundColor: `${tokens.brandPrimary}1F`,
+      backgroundColor: `${tokens.brandPrimary}${isDark ? '29' : '14'}`,
       borderRadius: radiusTokens.xl,
+      borderWidth: 1,
+      borderColor: `${tokens.brandPrimary}${isDark ? '59' : '38'}`,
       paddingHorizontal: 12,
       paddingVertical: 6,
       ...logical(isRTL, { marginEnd: 8 }),
@@ -1127,7 +1190,7 @@ const createStyles = (tokens, isRTL, isDark) =>
 
     // Pagination footer - 5-posts-per-page prev/next controls, mirrors the
     // web PostsList.js "Page X of Y" + Pagination footer bar.
-    // Manually driven by isRTL (see filterButton above) so prev/next swap
+    // Manually driven by isRTL (see filterLauncher above) so prev/next swap
     // sides, and each button's own icon/label order flips, immediately on a
     // live language switch rather than only after an app restart.
     paginationBar: {
