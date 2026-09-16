@@ -1,32 +1,27 @@
 /**
- * Post Filter Sheet
- * Bottom-sheet modal for browsing filters: post type, country, categories, city.
- * Selections apply immediately (parent recomposes the query); this component only
- * owns the sheet's own UI state (open/closed, per-field search text, fetched city list).
+ * Post Filter Dialog
+ * Mirrors the mobile/tablet filter panel in
+ * client/src/features/posts/PostsList/PostsList.js: a centered "SaaS panel"
+ * card (brand-tinted border/glow, gradient header icon) rather than a
+ * sliding bottom sheet, holding Type/Category/City only - country lives in
+ * AppHeader's own picker on this screen, exactly as on web the country
+ * selector is outside this panel.
  *
- * Country/Categories/City are each a dropdown field (accordion-style, inline
- * within this sheet rather than a nested Modal - the app deliberately keeps
- * only one overlay open at a time, see AppHeader/HeaderMenu) - mirrors the web
- * app's Autocomplete-driven category/city filters in
- * client/src/features/posts/PostsList/PostsList.js: categories is multi-select
- * with removable chips, city is single-select. Only one dropdown is open at a
- * time.
+ * Same staged-draft logic as web: opening the dialog seeds its own draft
+ * state from whatever is currently applied, every field inside edits that
+ * draft, and nothing reaches the posts query until Apply is pressed. Reset
+ * only clears the draft; Cancel/backdrop/close discard it untouched.
  *
- * Country and City carry a search box (their lists are long); Categories does
- * not - it is a plain checkbox list, since the set is short enough to scan and
- * a search box there only cost the user the soft keyboard over the options.
+ * Country and City each carried a search box on the old bottom sheet;
+ * Category was a plain checkbox list (no search - the set is short enough to
+ * scan and a search box only cost the user the keyboard over the options).
+ * Category and City keep that shape here. Country's accordion + search
+ * plumbing was dropped along with the field itself.
  *
- * Keyboard: the search inputs do NOT autofocus, so opening a dropdown always
- * shows its options first and the keyboard appears only when the user taps the
- * search box. When it does open, the same three-part treatment PostForm uses
- * (keyboardHeight padding + per-field offsets + scroll-into-view) keeps the
- * open dropdown above it - Android under edge-to-edge never resizes the window
- * for the keyboard, so without this the option list sits behind it.
- *
- * Post type (All/Lost/Found) is the first, most prominent section - it writes
- * through the same selectedFl/onSelectFl prop pair the active-filter chip and
- * HeaderMenu's Browse section use, so there's a single source of truth no
- * matter which surface changes it.
+ * Keyboard: search inputs do NOT autofocus, so opening a dropdown always
+ * shows its options first. When the keyboard does appear, the same
+ * three-part treatment PostForm uses (keyboard-height padding + per-field
+ * offsets + scroll-into-view) keeps the open dropdown above it.
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -44,20 +39,31 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
-const ALL_OPTION_ID = '__all__';
-
-// Breathing room left above a dropdown scrolled into view, so its section label
-// stays visible rather than sitting flush against the sheet header.
+// Breathing room left above a dropdown scrolled into view, so its section
+// label stays visible rather than sitting flush against the dialog header.
 const FIELD_SCROLL_MARGIN = 12;
 
-// Mirrors PostsListScreen's getElevation (client's designTokens.js elevationTokens
-// as RN shadow/elevation props) so the sheet and its raised controls read as the
-// same depth language as the rest of the app.
+/** Mixes a hex color toward white - RN has no equivalent of MUI's lighten(),
+ * which the web panel uses for its gradient/glow accents. */
+const lighten = (hex, amount) => {
+  const value = hex.replace('#', '');
+  const channel = (index) => {
+    const start = parseInt(value.slice(index * 2, index * 2 + 2), 16);
+    return Math.round(start + (255 - start) * amount)
+      .toString(16)
+      .padStart(2, '0');
+  };
+  return `#${channel(0)}${channel(1)}${channel(2)}`;
+};
+
+// Mirrors PostsListScreen's own getElevation (client's designTokens.js
+// elevationTokens as RN shadow/elevation props).
 const getElevation = (isDark, level = 1) =>
   level === 2
     ? {
@@ -76,9 +82,9 @@ const getElevation = (isDark, level = 1) =>
       };
 
 // Accordion-style dropdown: a header row showing the current value (or
-// placeholder) toggles an inline option list, optionally preceded by a search
-// box. Reused for country (single-select + search), categories (multi-select,
-// checkbox rows, no search) and city (single-select + search).
+// placeholder) toggles an inline option list, optionally preceded by a
+// search box. Reused for categories (multi-select, checkbox rows, no
+// search) and city (single-select + search).
 const DropdownField = ({
   label,
   placeholder,
@@ -92,7 +98,6 @@ const DropdownField = ({
   isSelected,
   onSelectOption,
   getOptionLabel,
-  renderOptionLeading,
   noResultsText,
   loading,
   searchable = true,
@@ -159,12 +164,11 @@ const DropdownField = ({
                   const selected = isSelected(option);
                   return (
                     <TouchableOpacity
-                      key={option.id ?? ALL_OPTION_ID}
+                      key={option.id ?? 'all'}
                       style={[styles.dropdownOption, selected && styles.dropdownOptionSelected]}
                       onPress={() => onSelectOption(option)}
                       activeOpacity={0.75}
                     >
-                      {renderOptionLeading ? renderOptionLeading(option) : null}
                       <Text
                         style={[styles.dropdownOptionText, textStyle, selected && styles.dropdownOptionTextSelected]}
                         numberOfLines={1}
@@ -172,8 +176,6 @@ const DropdownField = ({
                         {getOptionLabel(option)}
                       </Text>
                       {multiSelect ? (
-                        // Same checkbox as SelectModal's multi-select rows, so a
-                        // tickable list reads the same wherever it appears.
                         <View style={[styles.optionCheckbox, selected && styles.optionCheckboxChecked]}>
                           {selected ? <Ionicons name="checkmark" size={13} color={tokens.surfaceRaised} /> : null}
                         </View>
@@ -192,46 +194,60 @@ const DropdownField = ({
   );
 };
 
-const PostFilterSheet = ({
+const cityLabelFor = (cities, cityId, currentLanguage) => {
+  const match = cities.find((city) => (city.id || city._id) === cityId);
+  return match ? getLocalizedLabel(match, currentLanguage) : '';
+};
+
+const PostFilterDialog = ({
   visible,
   onClose,
+  onApply,
   t,
   currentLanguage,
   isRTL,
   floptions,
   categories,
-  countries,
   getCities,
   countryId,
-  onSelectCountry,
-  selectedFl,
-  onSelectFl,
-  selectedCategoryIds,
-  onToggleCategory,
-  onClearCategories,
-  selectedCityId,
-  onSelectCity,
-  onClearAll,
+  appliedSelectedFl,
+  appliedSelectedCategoryIds,
+  appliedSelectedCityId,
+  appliedSelectedCityLabel,
 }) => {
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
+  const brand = tokens.brandPrimary;
   const [cities, setCities] = useState([]);
   const [citiesLoading, setCitiesLoading] = useState(false);
 
+  // Draft state - seeded from the applied filters whenever the dialog opens,
+  // and never written back until Apply is pressed.
+  const [draftFl, setDraftFl] = useState('');
+  const [draftCategoryIds, setDraftCategoryIds] = useState([]);
+  const [draftCityId, setDraftCityId] = useState(null);
+  const [citySearchTerm, setCitySearchTerm] = useState('');
+
   // Only one dropdown open at a time - opening one closes whichever else was open.
   const [openField, setOpenField] = useState(null);
-  const [countryQuery, setCountryQuery] = useState('');
-  const [citySearch, setCitySearch] = useState('');
 
-  // Keyboard handling, same three-part treatment as PostForm (see the note
-  // there): pad the scroll content by the keyboard height so scrollTo isn't
-  // clamped short, record each field's offset on layout, and scroll the open
-  // field to the top of the body whenever it opens or its search box focuses.
   const bodyRef = useRef(null);
   const fieldOffsets = useRef({});
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const styles = useMemo(() => createStyles({ tokens, isDark, isRTL }), [tokens, isDark, isRTL]);
+
+  // Seed the draft from whatever is currently applied every time the dialog
+  // opens - same as web's handleOpenFilterDialog.
+  useEffect(() => {
+    if (!visible) return;
+    setDraftFl(appliedSelectedFl || '');
+    setDraftCategoryIds(appliedSelectedCategoryIds || []);
+    setDraftCityId(appliedSelectedCityId || null);
+    setCitySearchTerm(appliedSelectedCityLabel || '');
+    setOpenField(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -252,8 +268,6 @@ const PostFilterSheet = ({
     bodyRef.current?.scrollTo({ y: Math.max(y - FIELD_SCROLL_MARGIN, 0), animated: true });
   };
 
-  // Re-runs once the keyboard padding has been committed and the sheet has
-  // finished shrinking, so the offset isn't clamped by a stale content height.
   useEffect(() => {
     if (keyboardHeight === 0 || !openField) return undefined;
     const timer = setTimeout(() => scrollFieldIntoView(openField), 50);
@@ -265,9 +279,6 @@ const PostFilterSheet = ({
     fieldOffsets.current[field] = event.nativeEvent.layout.y;
   };
 
-  // Dismiss explicitly rather than relying on the Modal unmount to blur the
-  // focused search box - on Android the keyboard otherwise stays up over the
-  // posts list the sheet just closed onto.
   const handleClose = () => {
     Keyboard.dismiss();
     onClose();
@@ -289,33 +300,43 @@ const PostFilterSheet = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, countryId]);
 
-  // Collapse every dropdown and clear its search text whenever the sheet closes,
-  // so reopening it always starts from the post-type section, not mid-search.
-  useEffect(() => {
-    if (!visible) {
-      setOpenField(null);
-      setCountryQuery('');
-      setCitySearch('');
-    }
-  }, [visible]);
-
   const toggleField = (field) => {
     const next = openField === field ? null : field;
     setOpenField(next);
-    // Moving between fields leaves the previous field's search box focused
-    // otherwise, so the keyboard would stay up over the newly opened list.
     Keyboard.dismiss();
     if (next) {
-      // After the panel has rendered, so the content is tall enough to scroll to.
       setTimeout(() => scrollFieldIntoView(next), 60);
     }
   };
 
-  const filteredCountries = countryQuery.trim()
-    ? countries.filter((country) =>
-        getLocalizedLabel(country, currentLanguage).toLowerCase().includes(countryQuery.trim().toLowerCase())
-      )
-    : countries;
+  const handleToggleDraftCategory = (id) => {
+    setDraftCategoryIds((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
+  };
+
+  const handleSelectDraftCity = (city) => {
+    if (city) {
+      setDraftCityId(city.id);
+      setCitySearchTerm(city.label);
+    } else {
+      setDraftCityId(null);
+      setCitySearchTerm('');
+    }
+  };
+
+  const handleReset = () => {
+    setDraftFl('');
+    setDraftCategoryIds([]);
+    setDraftCityId(null);
+    setCitySearchTerm('');
+  };
+
+  const handleApply = () => {
+    Keyboard.dismiss();
+    const cityLabel = draftCityId ? cityLabelFor(cities, draftCityId, currentLanguage) || citySearchTerm : '';
+    onApply({ fl: draftFl, categoryIds: draftCategoryIds, cityId: draftCityId, cityLabel });
+  };
+
+  const hasDraftFilters = Boolean(draftFl || draftCategoryIds.length > 0 || draftCityId);
 
   // No search box on categories: the list is short enough to scan, and the
   // keyboard it raised covered the options themselves.
@@ -323,11 +344,14 @@ const PostFilterSheet = ({
     id: cat._id,
     label: getLocalizedLabel(cat, currentLanguage),
   }))];
-  const selectedCategoryChips = categories.filter((cat) => selectedCategoryIds.includes(cat._id));
+  const selectedCategoryChips = categories.filter((cat) => draftCategoryIds.includes(cat._id));
+  const categoryDisplayValue = selectedCategoryChips.length > 0
+    ? selectedCategoryChips.map((cat) => getLocalizedLabel(cat, currentLanguage)).join(', ')
+    : '';
 
-  const filteredCities = citySearch.trim()
+  const filteredCities = citySearchTerm.trim() && draftCityId == null
     ? cities.filter((city) =>
-        getLocalizedLabel(city, currentLanguage).toLowerCase().includes(citySearch.trim().toLowerCase())
+        getLocalizedLabel(city, currentLanguage).toLowerCase().includes(citySearchTerm.trim().toLowerCase())
       )
     : cities;
   const cityOptions = [{ id: null, label: t('allCities') }, ...filteredCities.map((city) => ({
@@ -335,19 +359,12 @@ const PostFilterSheet = ({
     label: getLocalizedLabel(city, currentLanguage),
   }))];
 
-  const selectedCountry = countries.find((c) => (c._id || c.id) === countryId);
-  const selectedCountryLabel = selectedCountry ? getLocalizedLabel(selectedCountry, currentLanguage) : '';
-
-  const categoryDisplayValue = selectedCategoryChips.length > 0
-    ? selectedCategoryChips.map((cat) => getLocalizedLabel(cat, currentLanguage)).join(', ')
-    : '';
-
   // Looked up by code (not floptions.map order) so it's always All -> Lost ->
-  // Found regardless of how the backend returns them.
+  // Found regardless of how the backend returns them - same as web's typeOptions.
   const lostOption = floptions.find((fl) => fl.code === 'LOST');
   const foundOption = floptions.find((fl) => fl.code === 'FOUND');
   const postTypeOptions = [
-    { id: '', label: t('all'), tone: tokens.brandPrimary, icon: 'apps-outline' },
+    { id: '', label: t('all'), tone: brand, icon: 'apps-outline' },
     lostOption && {
       id: lostOption._id,
       label: getLocalizedLabel(lostOption, currentLanguage),
@@ -365,18 +382,30 @@ const PostFilterSheet = ({
   const textStyle = isRTL ? styles.textRTL : null;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <KeyboardAvoidingView
-        style={styles.overlay}
-        behavior="padding"
-      >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
+      <KeyboardAvoidingView style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={handleClose} />
-        <View style={styles.sheet}>
-          <View style={styles.grabHandle} />
+        <View style={styles.card}>
           <View style={styles.header}>
-            <Text style={[styles.headerTitle, textStyle]}>{t('filters')}</Text>
-            <TouchableOpacity onPress={handleClose} style={styles.closeButton} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('close')}>
-              <Ionicons name="close" size={20} color={`${tokens.ink}CC`} />
+            <View style={styles.headerLeft}>
+              <LinearGradient
+                colors={[brand, lighten(brand, 0.45)]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.headerIcon}
+              >
+                <Ionicons name="options" size={18} color="#FFFFFF" />
+              </LinearGradient>
+              <Text style={[styles.headerTitle, textStyle]}>{t('filters')}</Text>
+            </View>
+            <TouchableOpacity
+              onPress={handleClose}
+              style={styles.closeButton}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('close')}
+            >
+              <Ionicons name="close" size={18} color={`${tokens.ink}CC`} />
             </TouchableOpacity>
           </View>
 
@@ -390,7 +419,7 @@ const PostFilterSheet = ({
             <Text style={[styles.sectionLabel, textStyle, styles.firstSectionLabel]}>{t('postType')}</Text>
             <View style={styles.postTypeRow}>
               {postTypeOptions.map((option) => {
-                const isSelected = selectedFl === option.id;
+                const isSelected = draftFl === option.id;
                 return (
                   <TouchableOpacity
                     key={option.id || 'all'}
@@ -399,7 +428,7 @@ const PostFilterSheet = ({
                       { borderColor: option.tone },
                       isSelected && { backgroundColor: option.tone, ...getElevation(isDark, 1) },
                     ]}
-                    onPress={() => onSelectFl(option.id)}
+                    onPress={() => setDraftFl(option.id)}
                     activeOpacity={0.8}
                   >
                     <Ionicons
@@ -409,10 +438,7 @@ const PostFilterSheet = ({
                       style={styles.postTypeOptionIcon}
                     />
                     <Text
-                      style={[
-                        styles.postTypeOptionText,
-                        { color: isSelected ? '#FFFFFF' : option.tone },
-                      ]}
+                      style={[styles.postTypeOptionText, { color: isSelected ? '#FFFFFF' : option.tone }]}
                       numberOfLines={1}
                     >
                       {option.label}
@@ -423,36 +449,6 @@ const PostFilterSheet = ({
             </View>
 
             <DropdownField
-              label={t('country')}
-              placeholder={t('selectCountry')}
-              searchPlaceholder={t('searchCountry')}
-              displayValue={selectedCountryLabel}
-              isOpen={openField === 'country'}
-              onToggle={() => toggleField('country')}
-              query={countryQuery}
-              onQueryChange={setCountryQuery}
-              options={filteredCountries.map((c) => ({ id: c._id || c.id, label: getLocalizedLabel(c, currentLanguage), flag: c.flag }))}
-              isSelected={(option) => option.id === countryId}
-              onSelectOption={(option) => {
-                onSelectCountry(option.id);
-                setOpenField(null);
-                setCountryQuery('');
-                Keyboard.dismiss();
-              }}
-              getOptionLabel={(option) => option.label}
-              renderOptionLeading={(option) =>
-                option.flag ? <Text style={styles.optionFlag}>{option.flag}</Text> : null
-              }
-              noResultsText={t('countryNoResults')}
-              compactList={keyboardHeight > 0}
-              onLayout={handleFieldLayout('country')}
-              onSearchFocus={() => scrollFieldIntoView('country')}
-              styles={styles}
-              tokens={tokens}
-              isRTL={isRTL}
-            />
-
-            <DropdownField
               label={t('categories')}
               placeholder={t('selectCategories')}
               displayValue={categoryDisplayValue}
@@ -461,12 +457,12 @@ const PostFilterSheet = ({
               options={categoryOptions}
               searchable={false}
               multiSelect
-              isSelected={(option) => (option.id === null ? selectedCategoryIds.length === 0 : selectedCategoryIds.includes(option.id))}
+              isSelected={(option) => (option.id === null ? draftCategoryIds.length === 0 : draftCategoryIds.includes(option.id))}
               onSelectOption={(option) => {
                 if (option.id === null) {
-                  onClearCategories();
+                  setDraftCategoryIds([]);
                 } else {
-                  onToggleCategory(option.id);
+                  handleToggleDraftCategory(option.id);
                 }
               }}
               getOptionLabel={(option) => option.label}
@@ -482,10 +478,10 @@ const PostFilterSheet = ({
                   <TouchableOpacity
                     key={cat._id}
                     style={styles.selectedChip}
-                    onPress={() => onToggleCategory(cat._id)}
+                    onPress={() => handleToggleDraftCategory(cat._id)}
                   >
                     <Text style={styles.selectedChipText}>{getLocalizedLabel(cat, currentLanguage)}</Text>
-                    <Ionicons name="close" size={13} color={tokens.brandPrimary} />
+                    <Ionicons name="close" size={13} color={brand} />
                   </TouchableOpacity>
                 ))}
               </View>
@@ -495,21 +491,16 @@ const PostFilterSheet = ({
               label={t('city')}
               placeholder={t('allCities')}
               searchPlaceholder={t('searchCity')}
-              displayValue={selectedCityId ? selectedCityLabelFor(cities, selectedCityId, currentLanguage) : ''}
+              displayValue={draftCityId ? cityLabelFor(cities, draftCityId, currentLanguage) : ''}
               isOpen={openField === 'city'}
               onToggle={() => toggleField('city')}
-              query={citySearch}
-              onQueryChange={setCitySearch}
+              query={citySearchTerm}
+              onQueryChange={setCitySearchTerm}
               options={cityOptions}
-              isSelected={(option) => (option.id === null ? !selectedCityId : selectedCityId === option.id)}
+              isSelected={(option) => (option.id === null ? !draftCityId : draftCityId === option.id)}
               onSelectOption={(option) => {
-                if (option.id === null) {
-                  onSelectCity(null);
-                } else {
-                  onSelectCity({ id: option.id, label: option.label });
-                }
+                handleSelectDraftCity(option.id === null ? null : { id: option.id, label: option.label });
                 setOpenField(null);
-                setCitySearch('');
                 Keyboard.dismiss();
               }}
               getOptionLabel={(option) => option.label}
@@ -525,11 +516,23 @@ const PostFilterSheet = ({
           </ScrollView>
 
           <View style={styles.footer}>
-            <TouchableOpacity style={styles.clearButton} onPress={onClearAll} activeOpacity={0.75}>
-              <Text style={styles.clearButtonText}>{t('clearFilters')}</Text>
+            <TouchableOpacity
+              style={[styles.resetButton, !hasDraftFilters && styles.resetButtonDisabled]}
+              onPress={handleReset}
+              disabled={!hasDraftFilters}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.resetButtonText}>{t('clearFilters')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.doneButton} onPress={handleClose} activeOpacity={0.85}>
-              <Text style={styles.doneButtonText}>{t('done')}</Text>
+            <TouchableOpacity style={styles.applyButtonWrap} onPress={handleApply} activeOpacity={0.85}>
+              <LinearGradient
+                colors={[brand, lighten(brand, 0.15)]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.applyButton}
+              >
+                <Text style={styles.applyButtonText}>{t('applyFilters')}</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
@@ -538,60 +541,59 @@ const PostFilterSheet = ({
   );
 };
 
-// selectedCityLabel is tracked by the parent (PostsListScreen) from the moment
-// of selection, but that value can go stale after a country switch clears the
-// fetched city list - falling back to a fresh lookup here keeps the header in
-// sync with whatever `cities` currently holds.
-const selectedCityLabelFor = (cities, selectedCityId, currentLanguage) => {
-  const match = cities.find((city) => (city.id || city._id) === selectedCityId);
-  return match ? getLocalizedLabel(match, currentLanguage) : '';
-};
-
 const createStyles = ({ tokens, isDark, isRTL }) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
-      justifyContent: 'flex-end',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
     },
     backdrop: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0,0,0,0.4)',
+      backgroundColor: isDark ? 'rgba(0,0,0,0.65)' : 'rgba(0,0,0,0.4)',
     },
-    sheet: {
-      backgroundColor: tokens.surfaceRaised,
-      borderTopLeftRadius: radiusTokens.xl,
-      borderTopRightRadius: radiusTokens.xl,
+    // The "SaaS panel" card - surfaceRaised + a brand-tinted border, mirroring
+    // web's glowing Dialog PaperProps (a true CSS radial-gradient glow has no
+    // RN equivalent, so the border + shadow alone carry the brand accent).
+    card: {
+      width: '100%',
+      maxWidth: 420,
       maxHeight: '85%',
-      paddingBottom: 16,
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.xl,
+      borderWidth: 1,
+      borderColor: `${tokens.brandPrimary}${isDark ? '59' : '24'}`,
+      overflow: 'hidden',
       ...getElevation(isDark, 2),
     },
-    grabHandle: {
-      alignSelf: 'center',
-      width: 36,
-      height: 4,
-      borderRadius: 2,
-      marginTop: 10,
-      backgroundColor: `${tokens.ink}26`,
-    },
-    // Direction-dependent styles go through the helpers in utils/rtl.js
-    // (row()/logical()), which compensate only when the language's direction
-    // differs from the one native is already mirroring - see that file. Do NOT
-    // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
-    // cancels out native mirroring once forceRTL has taken effect on relaunch.
     header: {
       flexDirection: row(isRTL),
-      justifyContent: 'space-between',
       alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 10,
       paddingHorizontal: 20,
-      paddingTop: 14,
-      paddingBottom: 18,
-      borderBottomWidth: 1,
-      borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+      paddingTop: 20,
+      paddingBottom: 14,
+    },
+    headerLeft: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      gap: 10,
+      flexShrink: 1,
+    },
+    headerIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: radiusTokens.sm,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     headerTitle: {
       fontFamily: fontFamilies.display,
-      fontSize: 20,
+      fontSize: 18,
       color: tokens.ink,
+      flexShrink: 1,
     },
     closeButton: {
       width: 32,
@@ -613,11 +615,11 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       color: `${tokens.ink}99`,
       textTransform: 'uppercase',
       letterSpacing: 0.4,
-      marginTop: 22,
+      marginTop: 20,
       marginBottom: 8,
     },
     firstSectionLabel: {
-      marginTop: 16,
+      marginTop: 4,
     },
     postTypeRow: {
       flexDirection: 'row',
@@ -638,14 +640,13 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
     postTypeOptionText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 14,
+      fontSize: 13,
     },
     textRTL: {
       textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
     },
 
-    // Dropdown field (accordion)
     dropdownField: {
       marginBottom: 4,
     },
@@ -659,7 +660,6 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       backgroundColor: tokens.surfaceBase,
       borderWidth: 1,
       borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
-      ...getElevation(isDark, 1),
     },
     dropdownHeaderActive: {
       borderColor: tokens.brandPrimary,
@@ -704,13 +704,10 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       paddingVertical: 20,
     },
     dropdownList: {
-      maxHeight: 220,
+      maxHeight: 200,
     },
-    // With the keyboard up the sheet has far less room, and a list taller than
-    // that room can't be scrolled past from inside itself (it's a nested
-    // ScrollView) - shortening it keeps the whole list reachable.
     dropdownListCompact: {
-      maxHeight: 160,
+      maxHeight: 140,
     },
     dropdownOption: {
       flexDirection: row(isRTL),
@@ -741,9 +738,6 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       fontSize: 13,
       color: `${tokens.ink}80`,
     },
-    optionFlag: {
-      fontSize: 16,
-    },
     optionCheckbox: {
       width: 20,
       height: 20,
@@ -758,7 +752,6 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       borderColor: tokens.brandPrimary,
     },
 
-    // Selected category chips (mirrors web's Autocomplete renderTags)
     chipsRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -781,39 +774,47 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
 
     footer: {
-      flexDirection: 'row',
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      gap: 10,
       paddingHorizontal: 20,
       paddingTop: 14,
+      paddingBottom: 20,
       borderTopWidth: 1,
       borderTopColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
-    clearButton: {
-      flex: 1,
-      paddingVertical: 14,
-      borderRadius: radiusTokens.xl,
-      borderWidth: 1.5,
+    resetButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 13,
+      borderRadius: radiusTokens.md,
+      borderWidth: 1,
       borderColor: tokens.brandPrimary,
       alignItems: 'center',
-      ...logical(isRTL, { marginEnd: 10 }),
     },
-    clearButtonText: {
+    resetButtonDisabled: {
+      opacity: 0.4,
+    },
+    resetButtonText: {
       color: tokens.brandPrimary,
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 14,
     },
-    doneButton: {
+    applyButtonWrap: {
       flex: 1,
-      paddingVertical: 14,
-      borderRadius: radiusTokens.xl,
-      backgroundColor: tokens.brandPrimary,
-      alignItems: 'center',
+      borderRadius: radiusTokens.md,
+      overflow: 'hidden',
       ...getElevation(isDark, 1),
     },
-    doneButtonText: {
+    applyButton: {
+      paddingVertical: 13,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    applyButtonText: {
       color: '#FFFFFF',
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 14,
     },
   });
 
-export default PostFilterSheet;
+export default PostFilterDialog;

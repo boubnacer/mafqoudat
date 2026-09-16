@@ -284,6 +284,38 @@ Reuse these, don't invent new card/panel treatment — now house style:
     heading is short, the two shared a line. That is the one narrow-view pixel that moved:
     LTR is byte-identical to Phase 21 at every width below the wide stage's floor.
 
+- Phase 24 — mobile `PostsListScreen.js`'s filter brought to parity with web's
+  mobile/tablet posts-list filter panel (Phase 17's `PostsList.js`): done. The
+  screen's filter trigger moved out of `AppHeader`'s top bar (a plain pill
+  inline among the bell/theme/menu buttons) to a floating launcher pill docked
+  to the inline-start edge, flush there and rounded only on the protruding
+  side — the same "tab sliding in from off-screen" shape as web's fixed
+  pop-up launcher, minus `position: fixed` (RN has no scroll-fixed overlay
+  the way the page does, and this screen has no separate fixed navbar to
+  clear), so it sits in-flow right above the search row instead.
+  [PostFilterDialog.js](mobile/src/components/PostFilterDialog.js) replaces
+  `PostFilterSheet.js`'s sliding bottom sheet with a centered "SaaS panel"
+  card (`surfaceRaised` + brand-tinted border + elevation, gradient header
+  icon and Apply button via `expo-linear-gradient` — RN has no CSS
+  radial-gradient glow, so the border+shadow alone carry the brand accent
+  web's Dialog glow gives), and adopts the same staged-draft logic as web's
+  Dialog: opening it seeds a local draft from whatever is currently applied,
+  every field edits that draft, and nothing reaches the posts query until
+  Apply is pressed — Reset only clears the draft, and Cancel/backdrop/close
+  discard it untouched. The old sheet applied every pick immediately (no
+  Apply step) and additionally carried a Country field with its own search;
+  Country is dropped from the panel entirely, matching web (country isn't
+  part of the posts-list filter there — it's `AppHeader`'s own picker, which
+  this screen already wires through `countryId`/`onSelectCountry`). Category
+  and City keep their existing accordion-with-checklist / accordion-with-
+  search shape (already the functional equivalent of web's `CategoryPickerField`
+  tappable-checklist and `Autocomplete`), staged the same way. The active-filter
+  chip strip above the list (unchanged in structure) picked up a border to
+  match web's tinted-chip look. `applyFilters` was added to
+  [translations.js](mobile/src/utils/translations.js) in all three languages;
+  `postType`'s existing "Type" wording already matched web's `filterType`
+  caption, so no new key was needed there.
+
 ## The category taxonomy (web + mobile + server)
 
 Twenty-five categories, held in four places that can each drift from the others.
