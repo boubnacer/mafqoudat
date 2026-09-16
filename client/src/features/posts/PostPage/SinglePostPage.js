@@ -399,6 +399,9 @@ const SinglePostPage = ({
   // The document titles a DOCUMENTS listing names (server/config/documentTypes.js).
   // These listings publish no photo, so this is what says what was lost.
   DocumentTypes,
+  // And the name written on the document, in both scripts - what its owner
+  // recognises it by, and what a searcher types in.
+  documentOwnerName,
   // API transformation fields
   foundLostLabel,
   // Refetch function
@@ -620,6 +623,15 @@ const SinglePostPage = ({
         documentType.labels?.[currentLanguage] || documentType.labels?.en || documentType.code
       ))
   ), [DocumentTypes, currentLanguage]);
+
+  // Both spellings of the name on the document, in the order the reader is
+  // most likely to read them: their own language first.
+  const documentOwnerNames = useMemo(() => {
+    const ar = (documentOwnerName?.ar || '').trim();
+    const latin = (documentOwnerName?.latin || '').trim();
+    const ordered = currentLanguage === 'ar' ? [ar, latin] : [latin, ar];
+    return ordered.filter(Boolean);
+  }, [documentOwnerName, currentLanguage]);
 
   // Memoized category display names computation
   const categoryNames = useMemo(() => {
@@ -1084,6 +1096,22 @@ const SinglePostPage = ({
                       />
                     ))}
                   </Box>
+
+                  {documentOwnerNames.length > 0 && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography
+                        variant="overline"
+                        sx={{ display: 'block', fontWeight: 600, letterSpacing: 1, color: 'text.secondary' }}
+                      >
+                        {t('documentOwner')}
+                      </Typography>
+                      {documentOwnerNames.map((name) => (
+                        <Typography key={name} variant="body1" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                          {name}
+                        </Typography>
+                      ))}
+                    </Box>
+                  )}
                 </Box>
               )}
 

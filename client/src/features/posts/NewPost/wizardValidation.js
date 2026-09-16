@@ -7,13 +7,20 @@ const FIELD_TESTID = {
   foundLost: 'foundLost',
   category: 'category',
   documentTypes: 'documentTypes',
+  documentOwnerName: 'documentOwnerName',
   country: 'country-select',
   city: 'city-select',
   exactLocation: 'exactLocation',
   contact: 'contact',
 };
 
-const PRIORITY_ORDER = ['foundLost', 'category', 'documentTypes', 'country', 'city', 'exactLocation', 'contact'];
+const PRIORITY_ORDER = ['foundLost', 'category', 'documentTypes', 'documentOwnerName', 'country', 'city', 'exactLocation', 'contact'];
+
+// Checked by script rather than by alphabet, so accents and Arabic diacritics
+// pass: the point is only that the Arabic field is not holding a Latin name
+// and vice versa, which is how one of the two ends up useless to search.
+const HAS_ARABIC = /\p{Script=Arabic}/u;
+const HAS_LATIN = /\p{Script=Latin}/u;
 
 // `requiresDocumentTitle` is set by the caller when the chosen categories
 // include DOCUMENTS: those listings carry no photo, so the document's own
@@ -36,9 +43,26 @@ export const validateStep1 = (values, t, { requiresDocumentTitle = false } = {})
     fieldErrors.category = t('required');
   }
 
-  if (requiresDocumentTitle && !(Array.isArray(values.documentTypes) && values.documentTypes.length > 0)) {
-    missingFields.push(t('documentTitles'));
-    fieldErrors.documentTypes = t('documentTitleRequired');
+  if (requiresDocumentTitle) {
+    if (!(Array.isArray(values.documentTypes) && values.documentTypes.length > 0)) {
+      missingFields.push(t('documentTitles'));
+      fieldErrors.documentTypes = t('documentTitleRequired');
+    }
+
+    // The name on the document is required for the same reason the title is:
+    // with no photo published, these two fields are the whole listing.
+    const ownerAr = values.documentOwnerName?.ar?.trim() || '';
+    const ownerLatin = values.documentOwnerName?.latin?.trim() || '';
+    if (!ownerAr || !ownerLatin) {
+      missingFields.push(t('documentOwnerSectionTitle'));
+      fieldErrors.documentOwnerName = t('documentOwnerNameRequired');
+    } else if (!HAS_ARABIC.test(ownerAr)) {
+      missingFields.push(t('documentOwnerSectionTitle'));
+      fieldErrors.documentOwnerName = t('documentOwnerNameArabicScriptRequired');
+    } else if (!HAS_LATIN.test(ownerLatin)) {
+      missingFields.push(t('documentOwnerSectionTitle'));
+      fieldErrors.documentOwnerName = t('documentOwnerNameLatinScriptRequired');
+    }
   }
 
   return { missingFields, fieldErrors };

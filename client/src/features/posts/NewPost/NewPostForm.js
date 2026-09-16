@@ -537,8 +537,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     categories: [], // Changed to array for multiple categories
     category: "", // Keep for backward compatibility during transition
     // Which documents a DOCUMENTS listing is about - the field that stands in
-    // for the photo those listings never carry (see documentCategory.js).
+    // for the photo those listings never carry (see documentCategory.js) -
+    // and the name written on them, which is what an owner recognises their
+    // own document by when there is no picture of it.
     documentTypes: [],
+    documentOwnerName: { ar: "", latin: "" },
     foundLost: getDefaultFoundLost(),
     city: "",
     exactLocation: "",
@@ -743,6 +746,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         // listing is allowed to: they are what identifies the item on a
         // listing that publishes no photo of it.
         documentTypes: documentsMode ? (values.documentTypes || []) : [],
+        documentOwnerName: documentsMode
+          ? {
+              ar: values.documentOwnerName?.ar?.trim() || '',
+              latin: values.documentOwnerName?.latin?.trim() || '',
+            }
+          : { ar: '', latin: '' },
       };
       
       // Handle city - check if it's an API city or database city

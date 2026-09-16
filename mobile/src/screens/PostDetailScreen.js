@@ -352,6 +352,14 @@ const PostDetailScreen = ({ navigation, route }) => {
   // The document titles a DOCUMENTS listing names. Those listings publish no
   // photo by design (see config/documentCategory.js), so this is what says
   // what was lost.
+  // Both spellings of the name on the document, the reader's own language
+  // first - on a listing with no photo this is what an owner recognises.
+  const documentOwnerNames = (() => {
+    const ar = (post.documentOwnerName?.ar || '').trim();
+    const latin = (post.documentOwnerName?.latin || '').trim();
+    return (isRTL ? [ar, latin] : [latin, ar]).filter(Boolean);
+  })();
+
   const documentTypeNames = (Array.isArray(post.DocumentTypes) ? post.DocumentTypes : [])
     .filter((documentType) => documentType && (documentType.labels || documentType.code))
     .map((documentType) => getLocalizedLabel(documentType, currentLanguage) || documentType.code);
@@ -659,6 +667,19 @@ const PostDetailScreen = ({ navigation, route }) => {
                     </View>
                   ))}
                 </View>
+
+                {documentOwnerNames.length > 0 ? (
+                  <View style={styles.documentOwnerBlock}>
+                    <Text style={[styles.documentOwnerLabel, isRTL && styles.textRTL]}>
+                      {t('documentOwner')}
+                    </Text>
+                    {documentOwnerNames.map((name) => (
+                      <Text key={name} style={[styles.documentOwnerValue, isRTL && styles.textRTL]}>
+                        {name}
+                      </Text>
+                    ))}
+                  </View>
+                ) : null}
               </View>
             </View>
           ) : null}
@@ -1079,6 +1100,22 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingVertical: 6,
       borderRadius: radiusTokens.sm,
       backgroundColor: `${tokens.brandPrimary}${isDark ? '3D' : '1F'}`,
+    },
+    documentOwnerBlock: {
+      marginTop: 12,
+    },
+    documentOwnerLabel: {
+      fontFamily: fontFamilies.body,
+      fontSize: 11,
+      letterSpacing: 0.8,
+      textTransform: 'uppercase',
+      color: `${tokens.ink}99`,
+      marginBottom: 2,
+    },
+    documentOwnerValue: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 15,
+      color: tokens.ink,
     },
     documentTypePillText: {
       fontFamily: fontFamilies.bodyMedium,
