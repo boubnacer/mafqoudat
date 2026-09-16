@@ -2,6 +2,7 @@ const FoundLost = require('../models/FoundLost');
 const City = require('../models/City');
 const Category = require('../models/Category');
 const Country = require('../models/Country');
+const DocumentType = require('../models/DocumentType');
 const { categorySocialImagePath } = require('../config/categorySocialImages');
 const { ensureSocialImage } = require('./socialImageService');
 
@@ -33,6 +34,7 @@ const LOCALE_TEXT = {
     inCity: (city) => ` في مدينة ${city}`,
     contactHeading: 'للمزيد من المعلومات والتواصل :',
     listSeparator: '، ',
+    ownerHeading: 'الاسم على الوثيقة',
   },
   fr: {
     lostVerb: 'Perte de',
@@ -41,6 +43,7 @@ const LOCALE_TEXT = {
     inCity: (city) => `, dans la ville de ${city}`,
     contactHeading: "Pour plus d'informations et contact :",
     listSeparator: ', ',
+    ownerHeading: 'Nom figurant sur le document',
   },
   en: {
     lostVerb: 'Lost',
@@ -49,6 +52,7 @@ const LOCALE_TEXT = {
     inCity: (city) => `, in the city of ${city}`,
     contactHeading: 'For more information & contact:',
     listSeparator: ', ',
+    ownerHeading: 'Name on the document',
   },
 };
 
@@ -132,13 +136,29 @@ async function resolveListingImage(post) {
 
 function buildLocaleBlock(locale, data) {
   const t = LOCALE_TEXT[locale];
-  const { statusCode, categoryLabel, countryLabel, cityLabel, postUrl } = data;
+  const { statusCode, categoryLabel, documentLabels, ownerName, countryLabel, cityLabel, postUrl } = data;
 
   const verb = statusCode === 'FOUND' ? t.foundVerb : t.lostVerb;
   const emoji = HEADER_EMOJI[statusCode] || '📢';
-  const header = `${emoji} ${verb} ${categoryLabel} ${t.inCountry} ${countryLabel}${cityLabel ? t.inCity(cityLabel) : ''}`;
+  // A documents listing publishes no photo of what was lost, so the header is
+  // the only place a reader scrolling a feed learns *which* papers these are:
+  // "Lost documents (passport, driving licence)" rather than a line that could
+  // be any of twenty titles. The names go in parentheses right after the
+  // category, so everything else about the header - the emoji, the verb, the
+  // country and city clause - is untouched.
+  const documentsClause = documentLabels && documentLabels.length > 0
+    ? ` (${documentLabels.join(t.listSeparator)})`
+    : '';
+  const header = `${emoji} ${verb} ${categoryLabel}${documentsClause} ${t.inCountry} ${countryLabel}${cityLabel ? t.inCity(cityLabel) : ''}`;
 
-  return [header, `👉 ${t.contactHeading}\n${postUrl}`].join('\n\n\n');
+  // And the name written on them, which is what its owner recognises the
+  // listing by - the same reason the site itself asks for it. Only ever
+  // present on a documents listing, so no other caption gains a line.
+  const ownerLine = ownerName ? `👤 ${t.ownerHeading}: ${ownerName}` : null;
+
+  return [header, ownerLine, `👉 ${t.contactHeading}\n${postUrl}`]
+    .filter(Boolean)
+    .join('\n\n\n');
 }
 
 /**
@@ -150,12 +170,25 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
     ? post.categories
     : (post.category ? [post.category] : []);
 
-  const [foundLost, city, categories, country] = await Promise.all([
+  const documentTypeIds = Array.isArray(post.documentTypes) ? post.documentTypes : [];
+
+  const [foundLost, city, categories, country, documentTypes] = await Promise.all([
     FoundLost.findById(post.foundLost).select('code').lean(),
     post.city ? City.findById(post.city).select('labels').lean() : Promise.resolve(null),
     categoryIds.length > 0 ? Category.find({ _id: { $in: categoryIds } }).select('labels').lean() : Promise.resolve([]),
     post.country ? Country.findById(post.country).select('names').lean() : Promise.resolve(null),
+    documentTypeIds.length > 0
+      ? DocumentType.find({ _id: { $in: documentTypeIds } }).select('labels').lean()
+      : Promise.resolve([]),
   ]);
+
+  // Rendered in the order the author picked them, which a $in query does not
+  // preserve - the same re-walk the detail read does.
+  const orderedDocumentTypes = documentTypeIds
+    .map((id) => documentTypes.find((documentType) => String(documentType._id) === String(id)))
+    .filter(Boolean);
+  const ownerNameAr = (post.documentOwnerName?.ar || '').trim();
+  const ownerNameLatin = (post.documentOwnerName?.latin || '').trim();
 
   const statusCode = foundLost?.code;
   const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
@@ -177,6 +210,15 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
   const blocks = LOCALES.map((locale) => buildLocaleBlock(locale, {
     statusCode,
     categoryLabel: categories.map((c) => c.labels?.[locale]).filter(Boolean).join(LOCALE_TEXT[locale].listSeparator),
+    documentLabels: orderedDocumentTypes
+      .map((documentType) => documentType.labels?.[locale] || documentType.labels?.en)
+      .filter(Boolean),
+    // Each block gets the name in its own script, falling back to the other
+    // one when only that was written - an Arabic block with a Latin name still
+    // beats no name at all on a listing whose photo nobody will ever see.
+    ownerName: orderedDocumentTypes.length > 0
+      ? (locale === 'ar' ? (ownerNameAr || ownerNameLatin) : (ownerNameLatin || ownerNameAr))
+      : '',
     countryLabel: country?.names?.[locale] || '',
     cityLabel: city?.labels?.[locale] || '',
     postUrl,

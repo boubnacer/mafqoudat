@@ -1023,6 +1023,8 @@ export const translations = {
     documentOwnerNameArabicScriptRequired: "The Arabic name must be written in Arabic letters.",
     documentOwnerNameLatinScriptRequired: "The Latin name must be written in Latin letters.",
     documentOwner: "Name on the document",
+    photoDocumentsMixedNotice: "Photograph only the {categories} — keep the documents out of the frame, or cover them. A photo of an official document shows its holder's name and number to everyone who opens the listing.",
+    photoDocumentsMixedNoticeGeneric: "Photograph only the item itself — keep the documents out of the frame, or cover them. A photo of an official document shows its holder's name and number to everyone who opens the listing.",
 
     // Form fields
     description: "Description",
@@ -3203,6 +3205,8 @@ export const translations = {
     documentOwnerNameArabicScriptRequired: "Le nom arabe doit être écrit en lettres arabes.",
     documentOwnerNameLatinScriptRequired: "Le nom latin doit être écrit en lettres latines.",
     documentOwner: "Nom figurant sur le document",
+    photoDocumentsMixedNotice: "Photographiez uniquement {categories} — laissez les documents hors du cadre, ou masquez-les. La photo d'un document officiel montre le nom et le numéro de son titulaire à toute personne qui ouvre l'annonce.",
+    photoDocumentsMixedNoticeGeneric: "Photographiez uniquement l'objet lui-même — laissez les documents hors du cadre, ou masquez-les. La photo d'un document officiel montre le nom et le numéro de son titulaire à toute personne qui ouvre l'annonce.",
     
     // Form fields
     description: "Description",
@@ -5345,6 +5349,8 @@ export const translations = {
     documentOwnerNameArabicScriptRequired: "يجب كتابة الاسم العربي بحروف عربية.",
     documentOwnerNameLatinScriptRequired: "يجب كتابة الاسم اللاتيني بحروف لاتينية.",
     documentOwner: "الاسم المكتوب على الوثيقة",
+    photoDocumentsMixedNotice: "صوّر {categories} فقط — واترك الوثائق خارج الصورة أو قم بتغطيتها. صورة وثيقة رسمية تكشف اسم صاحبها ورقمها لكل من يفتح الإعلان.",
+    photoDocumentsMixedNoticeGeneric: "صوّر الغرض نفسه فقط — واترك الوثائق خارج الصورة أو قم بتغطيتها. صورة وثيقة رسمية تكشف اسم صاحبها ورقمها لكل من يفتح الإعلان.",
     
     // Form fields
     description: "الوصف",

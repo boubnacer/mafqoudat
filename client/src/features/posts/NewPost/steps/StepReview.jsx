@@ -28,6 +28,7 @@ const StepReview = ({
   cityDisplayValue,
   imagePreview,
   documentsMode,
+  documentsOnlyMode,
   onEditStep,
 }) => {
   const { values } = useFormikContext();
@@ -87,8 +88,9 @@ const StepReview = ({
         {values.exactDate && <ReviewRow label={t('exactDateFound')} value={values.exactDate} />}
       </ReviewSection>
 
-      {/* A documents listing has no Photo step to review or to jump back to. */}
-      {!documentsMode && (
+      {/* A listing that is only about documents has no Photo step to review or
+          to jump back to; one that also carries another category still does. */}
+      {!documentsOnlyMode && (
       <ReviewSection title={t('wizardStepPhotoTitle')} onEdit={() => onEditStep('photo')}>
         {imagePreview ? (
           <Box
@@ -105,7 +107,7 @@ const StepReview = ({
       </ReviewSection>
       )}
 
-      {documentsMode && (
+      {documentsOnlyMode && (
         <Box
           sx={{
             display: 'flex',
