@@ -1254,6 +1254,10 @@ if (typeof document !== 'undefined') {
     documentTypes: Array.isArray(post?.DocumentTypes)
       ? post.DocumentTypes.map((documentType) => String(documentType._id))
       : [],
+    documentOwnerName: {
+      ar: post?.documentOwnerName?.ar || "",
+      latin: post?.documentOwnerName?.latin || "",
+    },
     exactDate: post?.mainDate || "", // Add mainDate field as exactDate
     description: post?.description || "",
     // image: null, // For new image uploads - temporarily disabled
@@ -1340,10 +1344,25 @@ if (typeof document !== 'undefined') {
       // A documents listing publishes no photo, so its title is the only
       // thing saying what was lost - required here as it is on the New Post
       // wizard.
-      if (isDocumentsListing(categories, values)
-        && !(Array.isArray(values.documentTypes) && values.documentTypes.length > 0)) {
-        missingFields.push(t('documentTitles'));
-        newFieldErrors.documentTypes = t('documentTitleRequired');
+      if (isDocumentsListing(categories, values)) {
+        if (!(Array.isArray(values.documentTypes) && values.documentTypes.length > 0)) {
+          missingFields.push(t('documentTitles'));
+          newFieldErrors.documentTypes = t('documentTitleRequired');
+        }
+        // The name on the document, same rule as the New Post wizard: with no
+        // photo published, the title and this name are the whole listing.
+        const ownerAr = values.documentOwnerName?.ar?.trim() || '';
+        const ownerLatin = values.documentOwnerName?.latin?.trim() || '';
+        if (!ownerAr || !ownerLatin) {
+          missingFields.push(t('documentOwnerSectionTitle'));
+          newFieldErrors.documentOwnerName = t('documentOwnerNameRequired');
+        } else if (!/\p{Script=Arabic}/u.test(ownerAr)) {
+          missingFields.push(t('documentOwnerSectionTitle'));
+          newFieldErrors.documentOwnerName = t('documentOwnerNameArabicScriptRequired');
+        } else if (!/\p{Script=Latin}/u.test(ownerLatin)) {
+          missingFields.push(t('documentOwnerSectionTitle'));
+          newFieldErrors.documentOwnerName = t('documentOwnerNameLatinScriptRequired');
+        }
       }
       if (!selectedCountry) {
         missingFields.push(t('country'));
@@ -1379,6 +1398,8 @@ if (typeof document !== 'undefined') {
             fieldToScroll = document.querySelector('[data-testid="category"]');
           } else if (missingFields.includes(t('documentTitles'))) {
             fieldToScroll = document.querySelector('[data-testid="documentTypes"]');
+          } else if (missingFields.includes(t('documentOwnerSectionTitle'))) {
+            fieldToScroll = document.querySelector('[data-testid="documentOwnerName"]');
           } else if (missingFields.includes(t('country'))) {
             fieldToScroll = document.querySelector('[data-testid="country-select"]');
           } else if (missingFields.includes(t('city'))) {
@@ -1434,6 +1455,12 @@ if (typeof document !== 'undefined') {
         // Sent on every update, empty included: a listing moved out of the
         // documents category has to lose its titles, not keep them invisibly.
         documentTypes: isDocumentsListing(categories, values) ? (values.documentTypes || []) : [],
+        documentOwnerName: isDocumentsListing(categories, values)
+          ? {
+              ar: values.documentOwnerName?.ar?.trim() || '',
+              latin: values.documentOwnerName?.latin?.trim() || '',
+            }
+          : { ar: '', latin: '' },
       };
 
       // Handle image - include new image if selected or mark for removal
@@ -2054,6 +2081,68 @@ if (typeof document !== 'undefined') {
                         error={!!fieldErrors.documentTypes}
                         errorText={fieldErrors.documentTypes}
                         dataTestId="documentTypes"
+                      />
+
+                      <FormLabel
+                        htmlFor="documentOwnerNameAr"
+                        sx={{
+                          mt: 3,
+                          mb: 1,
+                          display: "block",
+                          fontWeight: 600,
+                          fontSize: '1.15rem',
+                          color: theme.palette.text.primary
+                        }}
+                      >
+                        {t('documentOwnerSectionTitle')} *
+                      </FormLabel>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          mb: 1.5,
+                          display: "block",
+                          fontSize: '1rem',
+                          color: theme.palette.text.secondary,
+                          fontWeight: 500
+                        }}
+                      >
+                        {t('documentOwnerSectionHint')}
+                      </Typography>
+                      <TextField
+                        fullWidth
+                        id="documentOwnerNameAr"
+                        data-testid="documentOwnerName"
+                        label={t('documentOwnerNameArabic')}
+                        placeholder={t('documentOwnerNameArabicPlaceholder')}
+                        value={values.documentOwnerName?.ar || ''}
+                        onChange={(event) => {
+                          setFieldValue('documentOwnerName', {
+                            ...(values.documentOwnerName || {}),
+                            ar: event.target.value,
+                          });
+                          clearFieldError('documentOwnerName');
+                        }}
+                        error={!!fieldErrors.documentOwnerName}
+                        inputProps={{ dir: 'rtl', maxLength: 100 }}
+                        sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                      />
+                      <TextField
+                        fullWidth
+                        id="documentOwnerNameLatin"
+                        label={t('documentOwnerNameLatin')}
+                        placeholder={t('documentOwnerNameLatinPlaceholder')}
+                        value={values.documentOwnerName?.latin || ''}
+                        onChange={(event) => {
+                          setFieldValue('documentOwnerName', {
+                            ...(values.documentOwnerName || {}),
+                            latin: event.target.value,
+                          });
+                          clearFieldError('documentOwnerName');
+                        }}
+                        error={!!fieldErrors.documentOwnerName}
+                        helperText={fieldErrors.documentOwnerName || ''}
+                        inputProps={{ dir: 'ltr', maxLength: 100 }}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                       />
                     </Box>
                   )}

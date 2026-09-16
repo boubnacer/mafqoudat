@@ -133,7 +133,12 @@ const getAllPosts = async (req, res) => {
         ...existingOr,
         { exactLocation: { $regex: escapeRegex(search), $options: 'i' } },
         { contact: { $regex: escapeRegex(search), $options: 'i' } },
-        { description: { $regex: escapeRegex(search), $options: 'i' } }
+        { description: { $regex: escapeRegex(search), $options: 'i' } },
+        // The name on a lost document is the field its owner searches by -
+        // these listings carry no photo and often no description worth
+        // matching, so leaving it out of the search made them unfindable.
+        { 'documentOwnerName.ar': { $regex: escapeRegex(search), $options: 'i' } },
+        { 'documentOwnerName.latin': { $regex: escapeRegex(search), $options: 'i' } }
       ];
     }
   }
@@ -147,7 +152,10 @@ const getAllPosts = async (req, res) => {
     const searchConditions = [
       { exactLocation: { $regex: escapeRegex(search), $options: 'i' } },
       { contact: { $regex: escapeRegex(search), $options: 'i' } },
-      { description: { $regex: escapeRegex(search), $options: 'i' } }
+      { description: { $regex: escapeRegex(search), $options: 'i' } },
+      // See above: a documents listing is found by the name on the document.
+      { 'documentOwnerName.ar': { $regex: escapeRegex(search), $options: 'i' } },
+      { 'documentOwnerName.latin': { $regex: escapeRegex(search), $options: 'i' } }
     ];
     
     if (match.$or) {
@@ -526,6 +534,7 @@ const getPost = async (req, res) => {
           // Kept in the order the listing stores them, which is the order
           // the author ticked them in - $lookup answers in the foreign
           // collection's own order, so the ids are re-walked here.
+          documentOwnerName: 1,
           DocumentTypes: {
             // A title deleted since the listing was written maps to null and
             // is dropped, rather than leaving an empty chip on the page.
@@ -728,7 +737,11 @@ const getFilteredPosts = async (req, res) => {
       const searchConditions = [
         { exactLocation: { $regex: escapeRegex(search), $options: 'i' } },
         { contact: { $regex: escapeRegex(search), $options: 'i' } },
-        { description: { $regex: escapeRegex(search), $options: 'i' } }
+        { description: { $regex: escapeRegex(search), $options: 'i' } },
+        // See getAllPosts: a documents listing is found by the name on the
+        // document, not by a description it usually does not have.
+        { 'documentOwnerName.ar': { $regex: escapeRegex(search), $options: 'i' } },
+        { 'documentOwnerName.latin': { $regex: escapeRegex(search), $options: 'i' } }
       ];
       
       if (match.$or) {
@@ -1275,6 +1288,18 @@ const resolveDocumentTypeIds = async (raw) => {
 };
 
 /**
+ * The owner name on a document listing, as the two trimmed strings the schema
+ * stores. Anything that is not a string is dropped rather than refused - the
+ * listing is the thing being saved, and the schema's own maxlength is the
+ * backstop on length.
+ */
+const resolveDocumentOwnerName = (raw) => {
+  const read = (value) => (typeof value === 'string' ? value.trim() : '');
+  if (!raw || typeof raw !== 'object') return { ar: '', latin: '' };
+  return { ar: read(raw.ar), latin: read(raw.latin) };
+};
+
+/**
  * Bumps `usageCount` on the titles a listing named. Fire-and-forget: this is a
  * statistic about the vocabulary, and a failed increment must never turn a
  * created listing into a failed request.
@@ -1295,7 +1320,7 @@ const createNewPost = async (req, res) => {
   
   try {
     // Use parsed data from validation middleware if available, otherwise parse from req.body
-    let postData, user, country, category, categories, contact, foundLost, city, cityData, exactLocation, exactDate, description, contactPreferences, documentTypes;
+    let postData, user, country, category, categories, contact, foundLost, city, cityData, exactLocation, exactDate, description, contactPreferences, documentTypes, documentOwnerName;
     
     if (req.parsedPostData) {
       // Use data parsed by validation middleware
@@ -1313,6 +1338,7 @@ const createNewPost = async (req, res) => {
       description = postData.description;
       contactPreferences = postData.contactPreferences;
       documentTypes = postData.documentTypes;
+      documentOwnerName = postData.documentOwnerName;
     } else if (req.body.postData) {
       // Fallback: parse from postData JSON field
       postData = JSON.parse(req.body.postData);
@@ -1329,6 +1355,7 @@ const createNewPost = async (req, res) => {
       description = postData.description;
       contactPreferences = postData.contactPreferences;
       documentTypes = postData.documentTypes;
+      documentOwnerName = postData.documentOwnerName;
     } else {
       // Legacy format: individual fields
       user = req.body.user;
@@ -1344,6 +1371,7 @@ const createNewPost = async (req, res) => {
       description = req.body.description;
       contactPreferences = req.body.contactPreferences;
       documentTypes = req.body.documentTypes;
+      documentOwnerName = req.body.documentOwnerName;
     }
     
     
@@ -1570,6 +1598,9 @@ const createNewPost = async (req, res) => {
    const resolvedDocumentTypes = await resolveDocumentTypeIds(documentTypes);
    if (resolvedDocumentTypes.length > 0) {
      newPostData.documentTypes = resolvedDocumentTypes;
+     // The name on the paper, which is what a reader recognises their own
+     // document by when there is no photo of it.
+     newPostData.documentOwnerName = resolveDocumentOwnerName(documentOwnerName);
    }
 
      // Handle city field - cityId is already processed above
@@ -1796,6 +1827,7 @@ const updatePost = async (req, res) => {
     mainDate,
     image,
     documentTypes,
+    documentOwnerName,
   } = requestData;
 
   // Determine which category field to use - prefer categories array, fallback to category
@@ -1886,7 +1918,7 @@ const updatePost = async (req, res) => {
   }
 
   // Confirm post exists to update - only select fields needed for update
-  const post = await Post.findById(id).select('_id user country category categories documentTypes city exactLocation contact returned foundLost description mainDate cloudinaryPublicId socialImage').exec();
+  const post = await Post.findById(id).select('_id user country category categories documentTypes documentOwnerName city exactLocation contact returned foundLost description mainDate cloudinaryPublicId socialImage').exec();
 
   if (!post) {
     return res.status(400).json({ message: "Post not found" });
@@ -1926,6 +1958,11 @@ const updatePost = async (req, res) => {
   // every other optional field here behaves.
   if (documentTypes !== undefined) {
     post.documentTypes = await resolveDocumentTypeIds(documentTypes);
+    // Cleared along with the titles when a listing stops being about
+    // documents - a name with nothing to attach it to is just a name.
+    post.documentOwnerName = post.documentTypes.length > 0
+      ? resolveDocumentOwnerName(documentOwnerName)
+      : { ar: '', latin: '' };
   }
   if (city !== undefined) {
     // Convert string ObjectId to actual ObjectId if needed

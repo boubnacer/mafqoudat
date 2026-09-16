@@ -595,6 +595,32 @@ is the leak.
   collection because the list is meant to grow from use: a reader who cannot
   find their title adds it and it is there for the next person, which a file
   shipped with the build cannot do.
+- **The seed rows are created on boot, not by an ops step.** The picker is the
+  only way to file a DOCUMENTS listing and it lists what the collection holds,
+  so an empty collection is not a degraded feature - it is a form nobody can
+  complete, and the symptom (no rows, a search that finds nothing) says nothing
+  about the cause. `services/documentTypeSeeder.js` runs on the
+  `mongoose.connection` open event, creates only the codes that are missing,
+  and never touches an existing row: a title an admin retired stays retired and
+  a contributed one survives every deploy. `npm run sync-document-types` is
+  still the deliberate tool for inspecting that vocabulary; this is the floor
+  under it.
+- **"Add new document" is the last thing inside the list's own scroller**, under
+  a "Can't find the document in the list?" line - not a footer beneath it. A
+  reader reaches for it only after scanning the list, which is exactly where
+  scrolling leaves them. Its two fields say which script each one wants by
+  example (بطاقة / Card), because "Latin letters" alone is not a reliable
+  instruction to give someone typing in Arabic.
+- **Every documents listing also carries the name written on the document**
+  (`Post.documentOwnerName`, `{ ar, latin }`, required on both forms). With no
+  photo published, a page of "national identity card" listings is otherwise
+  indistinguishable row by row: the name is what an owner recognises their own
+  document by, and the field a searcher types their own name into - so both
+  listing queries search it alongside description, location and contact. Both
+  scripts are asked for, and each is script-checked, for the same reason the
+  titles are: a Moroccan document carries both spellings and a reader may know
+  only one of them. It is cleared whenever a listing stops being about
+  documents.
 - **"Other document" asks for both scripts, and refuses one written in the
   wrong one.** What is contributed is shown to everyone, so a title saved only
   in French is unreadable to half the site — and a French title typed into the
@@ -632,7 +658,9 @@ is the leak.
   network. Covers the seed config's own consistency, the three-language
   listing in priority order, script-folded search, contributing a title,
   both duplicate paths (the lookup and a lost index race), the two
-  wrong-script refusals, and a deactivated title staying retired.
+  wrong-script refusals, a deactivated title staying retired, and the
+  boot-time seeding (an empty collection filled once, a second boot creating
+  nothing, a retired title not reactivated, a contributed title untouched).
   `npm run sync-document-types [-- --apply]` creates the seeded rows on a
   deployment and never deletes or relabels anything — every contributed title
   lives in that same collection.

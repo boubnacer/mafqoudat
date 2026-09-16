@@ -7,6 +7,7 @@ import {
   Select,
   MenuItem,
   FormControl,
+  TextField,
   useTheme,
   alpha,
 } from "@mui/material";
@@ -247,6 +248,76 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
             errorText={fieldErrors.documentTypes}
             dataTestId="documentTypes"
           />
+
+          {/* The name on the paper. With no photo published, this is the
+              field that lets an owner recognise their own document in a list
+              of otherwise identical "national identity card" listings - and
+              the field a searcher types their own name into. Both scripts,
+              because Moroccan papers carry both and a reader may know only
+              one of them. */}
+          <Box sx={{ mt: 3 }} data-testid="documentOwnerNameBlock">
+            <FormLabel
+              htmlFor="documentOwnerNameAr"
+              sx={{
+                mb: 1,
+                display: "block",
+                fontWeight: 600,
+                fontSize: '1.15rem',
+                color: theme.palette.text.primary
+              }}
+            >
+              {t('documentOwnerSectionTitle')}<RequiredMark />
+            </FormLabel>
+            <Typography
+              variant="caption"
+              sx={{
+                mb: 1.5,
+                display: "block",
+                fontSize: '1rem',
+                color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
+                fontWeight: 500
+              }}
+            >
+              {t('documentOwnerSectionHint')}
+            </Typography>
+
+            <TextField
+              fullWidth
+              id="documentOwnerNameAr"
+              data-testid="documentOwnerName"
+              label={t('documentOwnerNameArabic')}
+              placeholder={t('documentOwnerNameArabicPlaceholder')}
+              value={values.documentOwnerName?.ar || ''}
+              onChange={(event) => {
+                setFieldValue('documentOwnerName', {
+                  ...(values.documentOwnerName || {}),
+                  ar: event.target.value,
+                });
+                clearFieldError('documentOwnerName');
+              }}
+              error={!!fieldErrors.documentOwnerName}
+              inputProps={{ dir: 'rtl', maxLength: 100 }}
+              sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            />
+            <TextField
+              fullWidth
+              id="documentOwnerNameLatin"
+              label={t('documentOwnerNameLatin')}
+              placeholder={t('documentOwnerNameLatinPlaceholder')}
+              value={values.documentOwnerName?.latin || ''}
+              onChange={(event) => {
+                setFieldValue('documentOwnerName', {
+                  ...(values.documentOwnerName || {}),
+                  latin: event.target.value,
+                });
+                clearFieldError('documentOwnerName');
+              }}
+              error={!!fieldErrors.documentOwnerName}
+              helperText={fieldErrors.documentOwnerName || ''}
+              inputProps={{ dir: 'ltr', maxLength: 100 }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            />
+          </Box>
 
           {/* The wizard drops its Photo step for these listings, and a step
               that simply disappears reads as a bug - so it is said here, at

@@ -38,6 +38,26 @@ const postSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "DocumentType",
     }],
+    // The name printed on the document, as its owner wrote it - in Arabic and
+    // in Latin letters, because the same name is spelled both ways on Moroccan
+    // papers and a searcher may know only one of them. On a listing that
+    // publishes no photo this is what lets someone recognise their own
+    // document, so it is asked for on every DOCUMENTS listing and empty on
+    // every other.
+    documentOwnerName: {
+      ar: {
+        type: String,
+        trim: true,
+        default: "",
+        maxlength: [POST_LIMITS.documentOwnerName, `Name cannot exceed ${POST_LIMITS.documentOwnerName} characters`],
+      },
+      latin: {
+        type: String,
+        trim: true,
+        default: "",
+        maxlength: [POST_LIMITS.documentOwnerName, `Name cannot exceed ${POST_LIMITS.documentOwnerName} characters`],
+      },
+    },
     // Legacy single category field - kept for backward compatibility during migration
     category: {
       type: mongoose.Schema.Types.ObjectId,

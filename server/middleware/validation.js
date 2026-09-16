@@ -206,6 +206,12 @@ const assertPostTextLengths = (postData) => {
   check('description', postData.description, POST_LIMITS.description, 'Description');
   check('mainDate', postData.mainDate, POST_LIMITS.mainDate, 'Date');
 
+  // The name on a lost document, sent as { ar, latin } by both clients.
+  if (postData.documentOwnerName && typeof postData.documentOwnerName === 'object') {
+    check('documentOwnerName.ar', postData.documentOwnerName.ar, POST_LIMITS.documentOwnerName, 'Name in Arabic');
+    check('documentOwnerName.latin', postData.documentOwnerName.latin, POST_LIMITS.documentOwnerName, 'Name in Latin letters');
+  }
+
   if (Array.isArray(postData.tags)) {
     for (const tag of postData.tags) {
       check('tags', tag, POST_LIMITS.tag, 'Tag');

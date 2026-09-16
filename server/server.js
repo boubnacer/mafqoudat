@@ -440,9 +440,16 @@ mongoose.connection.once("open", () => {
   // normalizedLabels (models/DocumentType.js), and it is what stops two
   // readers contributing the same title at the same moment - so the index has
   // to exist on a deployment that predates it, not only on a fresh one.
-  require("./models/DocumentType").syncIndexes().catch((err) => {
-    console.error("Failed to sync DocumentType indexes:", err?.message || err);
-  });
+  require("./models/DocumentType").syncIndexes()
+    .then(() => require("./services/documentTypeSeeder").ensureDocumentTypesSeeded())
+    .then((result) => {
+      if (result?.created > 0) {
+        console.log(`Seeded ${result.created} document title(s)`);
+      }
+    })
+    .catch((err) => {
+      console.error("Failed to prepare DocumentType collection:", err?.message || err);
+    });
   // Drains the Facebook/Instagram publishing queue, one post at a time per
   // platform (services/socialPublishQueue.js). Needs the database, so it
   // starts here rather than at require time; does nothing when no Page or

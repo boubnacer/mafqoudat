@@ -68,6 +68,15 @@ const StepReview = ({
         {documentsMode && (
           <ReviewRow label={t('documentTitles')} value={documentTypeLabels || '-'} />
         )}
+        {documentsMode && (
+          <ReviewRow
+            label={t('documentOwner')}
+            value={[values.documentOwnerName?.ar, values.documentOwnerName?.latin]
+              .map((name) => (name || '').trim())
+              .filter(Boolean)
+              .join(' — ') || '-'}
+          />
+        )}
         {values.description && <ReviewRow label={t('description')} value={values.description} />}
       </ReviewSection>
 

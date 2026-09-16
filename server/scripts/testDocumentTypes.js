@@ -106,13 +106,15 @@ const DocumentTypeStub = {
 
 const originalLoad = Module._load;
 Module._load = function (request, parent) {
-  const fromController = parent && parent.filename
-    && parent.filename.endsWith('controllers/documentTypesController.js');
-  if (fromController && request === '../models/DocumentType') return DocumentTypeStub;
+  const fromDocumentTypeModule = parent && parent.filename
+    && (parent.filename.endsWith('controllers/documentTypesController.js')
+      || parent.filename.endsWith('services/documentTypeSeeder.js'));
+  if (fromDocumentTypeModule && request === '../models/DocumentType') return DocumentTypeStub;
   return originalLoad.apply(this, arguments);
 };
 
 const { getDocumentTypes, createDocumentType } = require('../controllers/documentTypesController');
+const { ensureDocumentTypesSeeded } = require('../services/documentTypeSeeder');
 const { DEFAULT_DOCUMENT_TYPES } = require('../config/documentTypes');
 
 // ------------------------------------------------------------------ harness
@@ -156,6 +158,41 @@ const run = async () => {
     'no two seeded titles share a normalized spelling',
     new Set(normalizedSeeds).size === normalizedSeeds.length,
     'a collision would make one of them unsavable behind the unique index'
+  );
+
+  // --- the boot-time seeding, which is what stops the picker being empty on a
+  // deployment nobody ran a script against.
+  rows = [];
+  nextId = 1;
+  const firstBoot = await ensureDocumentTypesSeeded();
+  checkThat(
+    'an empty collection is seeded on boot',
+    firstBoot.created === DEFAULT_DOCUMENT_TYPES.length,
+    `${firstBoot.created} created`
+  );
+  const secondBoot = await ensureDocumentTypesSeeded();
+  checkThat('a second boot creates nothing', secondBoot.created === 0);
+
+  // A title an admin retired must not come back on the next deploy, and a
+  // contributed title must survive one.
+  rows.find((row) => row.code === 'PASSPORT').isActive = false;
+  rows.push({
+    _id: 'contributed-1',
+    code: 'CUSTOM_LIBRARY_CARD_ABC12',
+    labels: { ar: 'بطاقة المكتبة', en: 'Library card', fr: 'Library card' },
+    priority: 0,
+    isActive: true,
+    isCustom: true,
+    normalizedLabels: buildNormalizedLabels({ ar: 'بطاقة المكتبة', en: 'Library card', fr: 'Library card' }),
+  });
+  await ensureDocumentTypesSeeded();
+  checkThat(
+    'seeding does not reactivate a retired title',
+    rows.find((row) => row.code === 'PASSPORT').isActive === false
+  );
+  checkThat(
+    'and leaves contributed titles alone',
+    rows.some((row) => row.code === 'CUSTOM_LIBRARY_CARD_ABC12')
   );
 
   seed();

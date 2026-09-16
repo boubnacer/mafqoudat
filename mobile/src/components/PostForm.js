@@ -186,6 +186,8 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
       ? initialPost.DocumentTypes.map((documentType) => String(documentType._id))
       : []
   );
+  const [documentOwnerNameAr, setDocumentOwnerNameAr] = useState(initialPost?.documentOwnerName?.ar || '');
+  const [documentOwnerNameLatin, setDocumentOwnerNameLatin] = useState(initialPost?.documentOwnerName?.latin || '');
   const [documentPickerVisible, setDocumentPickerVisible] = useState(false);
   const [otherDocumentVisible, setOtherDocumentVisible] = useState(false);
   const [otherDocumentArabic, setOtherDocumentArabic] = useState('');
@@ -365,6 +367,8 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
       setImageRemoved(isEdit);
     } else if (selectedDocumentTypeIds.length > 0) {
       setSelectedDocumentTypeIds([]);
+      setDocumentOwnerNameAr('');
+      setDocumentOwnerNameLatin('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentsMode]);
@@ -520,6 +524,17 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
     // A documents listing carries no photo, so its document title is the only
     // thing that says what was lost - required, like the category.
     if (documentsMode && selectedDocumentTypeIds.length === 0) errors.documentTypes = true;
+    // The name on the document, required for the same reason the title is:
+    // with no photo published, those two fields are the whole listing.
+    if (documentsMode) {
+      const ownerAr = documentOwnerNameAr.trim();
+      const ownerLatin = documentOwnerNameLatin.trim();
+      if (!ownerAr || !ownerLatin
+        || !/[\u0600-\u06FF]/.test(ownerAr)
+        || !/[A-Za-z\u00C0-\u024F]/.test(ownerLatin)) {
+        errors.documentOwnerName = true;
+      }
+    }
     return errors;
   };
   const validateLocationStep = () => {
@@ -603,6 +618,9 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
       // Only a documents listing carries these, and only it is allowed to:
       // they identify an item whose photo is deliberately never published.
       documentTypes: documentsMode ? selectedDocumentTypeIds : [],
+      documentOwnerName: documentsMode
+        ? { ar: documentOwnerNameAr.trim(), latin: documentOwnerNameLatin.trim() }
+        : { ar: '', latin: '' },
     };
 
     if (cityValue) {
@@ -840,10 +858,16 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
                 {documentTypesFailed ? (
                   <Text style={styles.fieldError}>{t('documentTitlesLoadFailed')}</Text>
                 ) : null}
+                {!documentTypesLoading && !documentTypesFailed && documentTypes.length === 0 ? (
+                  <Text style={[styles.helperText, textStyle]}>{t('noDocumentTitlesYet')}</Text>
+                ) : null}
                 {fieldErrors.documentTypes ? (
                   <Text style={styles.fieldError}>{t('documentTitleRequired')}</Text>
                 ) : null}
 
+                <Text style={[styles.helperText, styles.cantFindDocumentText, textStyle]}>
+                  {t('cantFindDocument')}
+                </Text>
                 <TouchableOpacity
                   style={styles.otherDocumentButton}
                   onPress={() => {
@@ -852,8 +876,47 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
                   }}
                 >
                   <Ionicons name="add-circle-outline" size={18} color={tokens.brandPrimary} />
-                  <Text style={[styles.otherDocumentButtonText, textStyle]}>{t('otherDocument')}</Text>
+                  <Text style={[styles.otherDocumentButtonText, textStyle]}>{t('addNewDocument')}</Text>
                 </TouchableOpacity>
+
+                {/* The name on the paper. With no photo published, this is
+                    what lets an owner recognise their own document among
+                    otherwise identical "national identity card" listings -
+                    and what a searcher types their own name into. */}
+                <Text style={[styles.sectionLabel, styles.documentOwnerLabel, textStyle]}>
+                  {t('documentOwnerSectionTitle')}
+                  <Text style={styles.requiredMark}> *</Text>
+                </Text>
+                <Text style={[styles.helperText, textStyle]}>{t('documentOwnerSectionHint')}</Text>
+                <TextInput
+                  style={[styles.textInput, styles.textRTL, fieldErrors.documentOwnerName && styles.inputError]}
+                  placeholder={t('documentOwnerNameArabicPlaceholder')}
+                  placeholderTextColor={`${tokens.ink}80`}
+                  value={documentOwnerNameAr}
+                  onChangeText={(text) => {
+                    setDocumentOwnerNameAr(text);
+                    clearFieldError('documentOwnerName');
+                  }}
+                  maxLength={100}
+                />
+                <TextInput
+                  style={[
+                    styles.textInput,
+                    styles.documentOwnerLatinInput,
+                    fieldErrors.documentOwnerName && styles.inputError,
+                  ]}
+                  placeholder={t('documentOwnerNameLatinPlaceholder')}
+                  placeholderTextColor={`${tokens.ink}80`}
+                  value={documentOwnerNameLatin}
+                  onChangeText={(text) => {
+                    setDocumentOwnerNameLatin(text);
+                    clearFieldError('documentOwnerName');
+                  }}
+                  maxLength={100}
+                />
+                {fieldErrors.documentOwnerName ? (
+                  <Text style={styles.fieldError}>{t('documentOwnerNameRequired')}</Text>
+                ) : null}
 
                 {/* Why these listings have no photo, said where the choice
                     that replaces it is made. */}
@@ -1040,6 +1103,16 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
                   value={selectedDocumentTypes.map((d) => getLocalizedLabel(d, currentLanguage)).join(', ') || '-'}
                 />
               ) : null}
+              {documentsMode ? (
+                <ReviewRow
+                  styles={styles}
+                  label={t('documentOwner')}
+                  value={[documentOwnerNameAr, documentOwnerNameLatin]
+                    .map((name) => name.trim())
+                    .filter(Boolean)
+                    .join(' — ') || '-'}
+                />
+              ) : null}
               {description ? <ReviewRow styles={styles} label={t('description')} value={description} /> : null}
             </ReviewSection>
 
@@ -1207,10 +1280,11 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
       >
         <View style={styles.otherDocumentBackdrop}>
           <View style={styles.otherDocumentSheet}>
-            <Text style={[styles.otherDocumentTitle, textStyle]}>{t('otherDocument')}</Text>
+            <Text style={[styles.otherDocumentTitle, textStyle]}>{t('addNewDocument')}</Text>
             <Text style={[styles.otherDocumentHint, textStyle]}>{t('otherDocumentHint')}</Text>
 
             <Text style={[styles.otherDocumentLabel, textStyle]}>{t('documentNameArabic')}</Text>
+            <Text style={[styles.otherDocumentFieldHint, textStyle]}>{t('documentNameArabicHelper')}</Text>
             <TextInput
               style={[styles.textInput, styles.textRTL]}
               placeholder={t('documentNameArabicPlaceholder')}
@@ -1221,6 +1295,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
             />
 
             <Text style={[styles.otherDocumentLabel, textStyle]}>{t('documentNameLatin')}</Text>
+            <Text style={[styles.otherDocumentFieldHint, textStyle]}>{t('documentNameLatinHelper')}</Text>
             <TextInput
               style={styles.textInput}
               placeholder={t('documentNameLatinPlaceholder')}
@@ -1698,6 +1773,22 @@ const createStyles = (tokens, legacy, isDark, isRTL) => {
       fontSize: 12,
       lineHeight: 18,
       color: `${tokens.ink}CC`,
+    },
+    cantFindDocumentText: {
+      marginTop: 14,
+      marginBottom: 6,
+    },
+    documentOwnerLabel: {
+      marginTop: 20,
+    },
+    documentOwnerLatinInput: {
+      marginTop: 10,
+    },
+    otherDocumentFieldHint: {
+      fontFamily: fontFamilies.body,
+      fontSize: 11,
+      color: `${tokens.ink}99`,
+      marginBottom: 6,
     },
     otherDocumentButton: {
       flexDirection: row(isRTL),

@@ -382,156 +382,180 @@ const DocumentTypePickerField = ({ value, onChange, error, errorText, dataTestId
           )}
 
           {!isLoading && !isError && (
-            <List sx={{ maxHeight: fullScreen ? "none" : 320, overflowY: "auto", py: 0 }}>
-              {filtered.map((documentType) => {
-                const id = getDocumentId(documentType);
-                const checked = draftIds.includes(id);
-                return (
-                  <ListItemButton
-                    key={id}
-                    onClick={() => toggleDraftId(id)}
-                    disabled={!checked && atLimit}
-                    sx={{
-                      borderRadius: 2,
-                      mb: 0.5,
-                      backgroundColor: checked
-                        ? alpha(theme.custom.color.brandPrimary, theme.palette.mode === "dark" ? 0.18 : 0.08)
-                        : "transparent",
-                    }}
-                  >
-                    <ListItemText
-                      primary={getDocumentLabel(documentType, currentLanguage)}
-                      primaryTypographyProps={{ fontWeight: checked ? 700 : 500 }}
-                    />
-                    {/* This app's legacy palette.primary.main is white in light
-                        mode (see theme.js), so color="primary" would render an
-                        invisible checked box - the brand color is explicit. */}
-                    <Checkbox
-                      checked={checked}
-                      edge="end"
-                      tabIndex={-1}
-                      disableRipple
-                      sx={{
-                        color: alpha(theme.custom.color.ink, 0.4),
-                        "&.Mui-checked": { color: theme.custom.color.brandPrimary },
-                      }}
-                    />
-                  </ListItemButton>
-                );
-              })}
-
-              {filtered.length === 0 && (
-                <Typography
-                  variant="body2"
-                  sx={{ textAlign: "center", py: 3, color: theme.palette.text.secondary }}
-                >
-                  {t("noDocumentTitleFound")}
-                </Typography>
-              )}
-            </List>
-          )}
-
-          {atLimit && (
-            <Typography variant="caption" sx={{ display: "block", mt: 0.5, color: theme.palette.warning.main }}>
-              {t("maxDocumentTitlesReached", { max: MAX_DOCUMENT_TYPES })}
-            </Typography>
-          )}
-
-          <Divider sx={{ my: 2 }} />
-
-          {/* "Other document": the way the vocabulary grows. What is written
-              here is saved for everyone, so it asks for both scripts - a title
-              added in one language only would be unreadable to half the site. */}
-          {!showOtherForm ? (
-            <Button
-              fullWidth
-              onClick={() => setShowOtherForm(true)}
-              startIcon={<AddCircleOutlineRounded />}
+            <Box
               sx={{
-                justifyContent: "flex-start",
-                borderRadius: 2,
-                py: 1.25,
-                px: 1.5,
-                fontWeight: 700,
-                color: theme.custom.color.brandPrimary,
-                backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === "dark" ? 0.14 : 0.06),
-                "&:hover": {
-                  backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === "dark" ? 0.2 : 0.12),
-                },
+                maxHeight: fullScreen ? "none" : 380,
+                overflowY: fullScreen ? "visible" : "auto",
+                // The add-new affordance is the last thing inside the scroller,
+                // not a footer under it: a reader only reaches for it after
+                // scanning the whole list, which is where scrolling leaves them.
+                pr: 0.5,
               }}
             >
-              {t("otherDocument")}
-            </Button>
-          ) : (
-            <Collapse in appear>
-              <Box
-                sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === "dark" ? 0.12 : 0.04),
-                }}
-              >
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
-                  {t("otherDocument")}
-                </Typography>
-                <Typography variant="caption" sx={{ display: "block", mb: 1.5, color: theme.palette.text.secondary }}>
-                  {t("otherDocumentHint")}
-                </Typography>
+              <List sx={{ py: 0 }}>
+                {filtered.map((documentType) => {
+                  const id = getDocumentId(documentType);
+                  const checked = draftIds.includes(id);
+                  return (
+                    <ListItemButton
+                      key={id}
+                      onClick={() => toggleDraftId(id)}
+                      disabled={!checked && atLimit}
+                      sx={{
+                        borderRadius: 2,
+                        mb: 0.5,
+                        backgroundColor: checked
+                          ? alpha(theme.custom.color.brandPrimary, theme.palette.mode === "dark" ? 0.18 : 0.08)
+                          : "transparent",
+                      }}
+                    >
+                      <ListItemText
+                        primary={getDocumentLabel(documentType, currentLanguage)}
+                        primaryTypographyProps={{ fontWeight: checked ? 700 : 500 }}
+                      />
+                      {/* This app's legacy palette.primary.main is white in light
+                          mode (see theme.js), so color="primary" would render an
+                          invisible checked box - the brand color is explicit. */}
+                      <Checkbox
+                        checked={checked}
+                        edge="end"
+                        tabIndex={-1}
+                        disableRipple
+                        sx={{
+                          color: alpha(theme.custom.color.ink, 0.4),
+                          "&.Mui-checked": { color: theme.custom.color.brandPrimary },
+                        }}
+                      />
+                    </ListItemButton>
+                  );
+                })}
 
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={arabicLabel}
-                  onChange={(event) => setArabicLabel(event.target.value)}
-                  label={t("documentNameArabic")}
-                  placeholder={t("documentNameArabicPlaceholder")}
-                  inputProps={{ dir: "rtl", maxLength: 80 }}
-                  sx={{ mb: 1.5, "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                />
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={latinLabel}
-                  onChange={(event) => setLatinLabel(event.target.value)}
-                  label={t("documentNameLatin")}
-                  placeholder={t("documentNameLatinPlaceholder")}
-                  inputProps={{ dir: "ltr", maxLength: 80 }}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                />
-
-                {customError && (
-                  <Typography variant="caption" sx={{ display: "block", mt: 1, color: theme.palette.error.main }}>
-                    {customError}
+                {filtered.length === 0 && (
+                  <Typography
+                    variant="body2"
+                    sx={{ textAlign: "center", py: 3, color: theme.palette.text.secondary }}
+                  >
+                    {search ? t("noDocumentTitleFound") : t("noDocumentTitlesYet")}
                   </Typography>
                 )}
+              </List>
 
-                <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+              {atLimit && (
+                <Typography variant="caption" sx={{ display: "block", mb: 1, color: theme.palette.warning.main }}>
+                  {t("maxDocumentTitlesReached", { max: MAX_DOCUMENT_TYPES })}
+                </Typography>
+              )}
+
+              <Divider sx={{ my: 1.5 }} />
+
+              {/* Adding a title is how the vocabulary grows. What is written
+                  here is saved for everyone, so it asks for both scripts - a
+                  title added in one language only would be unreadable to half
+                  the site. */}
+              {!showOtherForm ? (
+                <Box sx={{ pb: 0.5 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ mb: 1, color: theme.palette.text.secondary, fontWeight: 500 }}
+                  >
+                    {t("cantFindDocument")}
+                  </Typography>
                   <Button
-                    onClick={handleAddCustom}
-                    disabled={isCreating}
-                    variant="contained"
+                    fullWidth
+                    onClick={() => setShowOtherForm(true)}
+                    startIcon={<AddCircleOutlineRounded />}
                     sx={{
-                      flex: 1,
+                      justifyContent: "flex-start",
                       borderRadius: 2,
+                      py: 1.25,
+                      px: 1.5,
                       fontWeight: 700,
                       textTransform: "none",
-                      backgroundColor: theme.custom.color.brandPrimary,
-                      color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
-                      "&:hover": { backgroundColor: theme.custom.color.brandPrimary },
+                      color: theme.custom.color.brandPrimary,
+                      backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === "dark" ? 0.14 : 0.06),
+                      "&:hover": {
+                        backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === "dark" ? 0.2 : 0.12),
+                      },
                     }}
                   >
-                    {isCreating ? <CircularProgress size={20} sx={{ color: "inherit" }} /> : t("addDocumentTitle")}
-                  </Button>
-                  <Button
-                    onClick={resetOtherForm}
-                    disabled={isCreating}
-                    sx={{ borderRadius: 2, fontWeight: 600, textTransform: "none", color: theme.palette.text.secondary }}
-                  >
-                    {t("cancel")}
+                    {t("addNewDocument")}
                   </Button>
                 </Box>
-              </Box>
-            </Collapse>
+              ) : (
+                <Collapse in appear>
+                  <Box
+                    sx={{
+                      p: 2,
+                      mb: 0.5,
+                      borderRadius: 2,
+                      backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === "dark" ? 0.12 : 0.04),
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+                      {t("addNewDocument")}
+                    </Typography>
+                    <Typography variant="caption" sx={{ display: "block", mb: 1.5, color: theme.palette.text.secondary }}>
+                      {t("otherDocumentHint")}
+                    </Typography>
+
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={arabicLabel}
+                      onChange={(event) => setArabicLabel(event.target.value)}
+                      label={t("documentNameArabic")}
+                      placeholder={t("documentNameArabicPlaceholder")}
+                      helperText={t("documentNameArabicHelper")}
+                      inputProps={{ dir: "rtl", maxLength: 80 }}
+                      sx={{ mb: 1.5, "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+                    />
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={latinLabel}
+                      onChange={(event) => setLatinLabel(event.target.value)}
+                      label={t("documentNameLatin")}
+                      placeholder={t("documentNameLatinPlaceholder")}
+                      helperText={t("documentNameLatinHelper")}
+                      inputProps={{ dir: "ltr", maxLength: 80 }}
+                      sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+                    />
+
+                    {customError && (
+                      <Typography variant="caption" sx={{ display: "block", mt: 1, color: theme.palette.error.main }}>
+                        {customError}
+                      </Typography>
+                    )}
+
+                    <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+                      <Button
+                        onClick={handleAddCustom}
+                        disabled={isCreating}
+                        variant="contained"
+                        sx={{
+                          flex: 1,
+                          borderRadius: 2,
+                          fontWeight: 700,
+                          textTransform: "none",
+                          backgroundColor: theme.custom.color.brandPrimary,
+                          color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+                          "&:hover": { backgroundColor: theme.custom.color.brandPrimary },
+                        }}
+                      >
+                        {isCreating ? <CircularProgress size={20} sx={{ color: "inherit" }} /> : t("addDocumentTitle")}
+                      </Button>
+                      <Button
+                        onClick={resetOtherForm}
+                        disabled={isCreating}
+                        sx={{ borderRadius: 2, fontWeight: 600, textTransform: "none", color: theme.palette.text.secondary }}
+                      >
+                        {t("cancel")}
+                      </Button>
+                    </Box>
+                  </Box>
+                </Collapse>
+              )}
+            </Box>
           )}
         </DialogContent>
 

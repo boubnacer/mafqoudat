@@ -28,6 +28,11 @@ const FIELD_LIMITS = {
     // Free-text date written by the client's DateEntryDialog ("12 mars 2024"),
     // parsed by utils/postDates.js.
     mainDate: 100,
+    // The name written on a lost document, in Arabic and in Latin letters.
+    // A person's full name as it appears on an ID card - long enough for a
+    // four-part Arabic name, short enough that a description cannot be filed
+    // as one.
+    documentOwnerName: 100,
     // Digits and separators.
     promotionPhoneNumber: 30,
     tag: 50,
