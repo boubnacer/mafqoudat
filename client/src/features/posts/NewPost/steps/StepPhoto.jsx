@@ -21,6 +21,7 @@ import {
 import {
   Delete as DeleteIcon,
   CloudUpload as CloudUploadIcon,
+  PhotoCamera as PhotoCameraIcon,
   Close as CloseIcon,
   FaceRetouchingOffOutlined as FaceRedactedIcon,
   FaceRetouchingNaturalOutlined as FaceVisibleIcon,
@@ -65,6 +66,12 @@ const StepPhoto = ({
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
   const accentColor = theme.custom.color.brandPrimary;
+
+  // Found means the item is in the reporter's hands right now, so the camera
+  // opens directly - that's what proves they actually have it. Lost means
+  // they no longer have the item, so this can only ever be a photo they
+  // already had - the ordinary gallery/file picker.
+  const isFoundItem = getFoundLostType(values.foundLost) === 'FOUND';
 
   const [showWarningDialog, setShowWarningDialog] = useState(false);
   const [countdown, setCountdown] = useState(WARNING_COUNTDOWN_SECONDS);
@@ -241,15 +248,17 @@ const StepPhoto = ({
           >
             {isCompressing ? (
               <CircularProgress size={32} sx={{ color: accentColor }} />
+            ) : isFoundItem ? (
+              <PhotoCameraIcon sx={{ fontSize: 40, color: theme.palette.text.secondary }} />
             ) : (
               <CloudUploadIcon sx={{ fontSize: 40, color: theme.palette.text.secondary }} />
             )}
             <Typography sx={{ fontWeight: 600, mt: 1, color: theme.palette.text.primary }}>
-              {isCompressing ? t('compressingImage') : t('chooseFile')}
+              {isCompressing ? t('compressingImage') : t(isFoundItem ? 'chooseFileFound' : 'chooseFile')}
             </Typography>
             {!isCompressing && (
               <Typography variant="caption" sx={{ display: 'block', color: theme.palette.text.secondary, mt: 0.5 }}>
-                {t('wizardDropzoneHint')}
+                {t(isFoundItem ? 'wizardDropzoneHintFound' : 'wizardDropzoneHint')}
               </Typography>
             )}
           </Box>
@@ -261,6 +270,12 @@ const StepPhoto = ({
           name="image"
           type="file"
           accept="image/*"
+          // FOUND: force the camera open directly (the reporter has the item
+          // in hand right now, so proof is a fresh photo, not a pick from an
+          // old gallery). LOST: no capture attribute, so this stays the
+          // ordinary picker - the reporter no longer has the item, so any
+          // photo has to already exist somewhere on their device.
+          capture={isFoundItem ? 'environment' : undefined}
           hidden
           onChange={handleImageSelect}
         />

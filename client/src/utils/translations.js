@@ -928,6 +928,7 @@ export const translations = {
     specifyItemTypeFound: "Please specify the type of item you found",
     addItemImage: "Add Item Image",
     chooseFile: "Choose File",
+    chooseFileFound: "Take Photo",
     compressingImage: "Compressing...",
     imageCompressionInfo: "Images will be automatically compressed for faster upload and better performance.",
     compressionSuccess: "Image compressed successfully for faster upload",
@@ -981,6 +982,7 @@ export const translations = {
     wizardEdit: "Edit",
     wizardReviewNoImage: "No image added",
     wizardDropzoneHint: "Click or drag a photo here",
+    wizardDropzoneHintFound: "Take a photo now — it shows you actually have the item",
     wizardRequiredMark: "required",
     // Document titles (DOCUMENTS listings carry a title instead of a photo)
     documentTitles: "Document",
@@ -3110,6 +3112,7 @@ export const translations = {
     specifyItemTypeFound: "Veuillez spécifier le type d'objet que vous avez trouvé",
     addItemImage: "Ajouter une image de l'objet",
     chooseFile: "Choisir un fichier",
+    chooseFileFound: "Prendre une photo",
     compressingImage: "Compression...",
     imageCompressionInfo: "Les images seront automatiquement compressées pour un téléchargement plus rapide et de meilleures performances.",
     compressionSuccess: "Image compressée avec succès pour un téléchargement plus rapide",
@@ -3163,6 +3166,7 @@ export const translations = {
     wizardEdit: "Modifier",
     wizardReviewNoImage: "Aucune image ajoutée",
     wizardDropzoneHint: "Cliquez ou déposez une photo ici",
+    wizardDropzoneHintFound: "Prenez une photo maintenant — elle prouve que vous avez bien l'objet",
     wizardRequiredMark: "obligatoire",
     // Titres de documents (les annonces DOCUMENTS portent un titre, pas une photo)
     documentTitles: "Document",
@@ -5254,6 +5258,7 @@ export const translations = {
     specifyItemTypeFound: "يرجى تحديد نوع الغرض الذي وجدته",
     addItemImage: "إضافة صورة للغرض",
     chooseFile: "اختر ملف",
+    chooseFileFound: "التقط صورة",
     compressingImage: "جاري الضغط...",
     imageCompressionInfo: "سيتم ضغط الصور تلقائياً لتحميل أسرع وأداء أفضل.",
     compressionSuccess: "تم ضغط الصورة بنجاح لتحميل أسرع",
@@ -5307,6 +5312,7 @@ export const translations = {
     wizardEdit: "تعديل",
     wizardReviewNoImage: "لم تتم إضافة صورة",
     wizardDropzoneHint: "انقر أو اسحب صورة هنا",
+    wizardDropzoneHintFound: "التقط صورة الآن — فهذا يثبت أن الغرض بحوزتك فعلاً",
     wizardRequiredMark: "مطلوب",
     // عناوين الوثائق (إعلانات الوثائق تحمل عنوان الوثيقة بدل الصورة)
     documentTitles: "الوثيقة",
