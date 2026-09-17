@@ -1628,7 +1628,7 @@ if (typeof document !== 'undefined') {
         >
           <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
             <img
-              src="/maflogoSVG.svg"
+              src="/maflogoSVG.svg?v=2"
               alt="Loading..."
               style={{
                 width: '100%',

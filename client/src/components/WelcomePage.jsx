@@ -646,7 +646,7 @@ const WelcomePage = () => {
     <>
       <Box
         component="img"
-        src="/maflogoSVG.svg"
+        src="/maflogoSVG.svg?v=2"
         alt="Mafqoudat"
         sx={{
           height: { xs: '38px', md: '48px' },
