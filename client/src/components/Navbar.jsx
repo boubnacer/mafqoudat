@@ -88,14 +88,14 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 const LogoButton = styled(Button)(({ theme }) => ({
-  padding: "6px 10px 6px 6px",
+  padding: "8px 12px 8px 8px",
   borderRadius: theme.custom.radius.md,
   background: "transparent",
   minWidth: "auto",
   boxShadow: "none",
   display: "flex",
   alignItems: "center",
-  gap: "10px",
+  gap: "12px",
   "&:hover": {
     background: alpha(theme.custom.color.ink, 0.04),
     boxShadow: "none",
@@ -106,8 +106,8 @@ const LogoButton = styled(Button)(({ theme }) => ({
 }));
 
 const BrandMark = styled(Box)(({ theme }) => ({
-  width: 34,
-  height: 34,
+  width: 42,
+  height: 42,
   borderRadius: theme.custom.radius.md,
   backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
   display: "flex",
@@ -116,8 +116,8 @@ const BrandMark = styled(Box)(({ theme }) => ({
   flexShrink: 0,
   transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
   "& img": {
-    width: 18,
-    height: 18,
+    width: 22,
+    height: 22,
   },
 }));
 
@@ -603,7 +603,7 @@ const Navbar = () => {
               src="/maflogoSVG.svg"
               alt={t("brandName")}
               loading="lazy"
-              style={{ height: "auto", maxHeight: "28px", width: "auto" }}
+              style={{ height: "auto", maxHeight: "35px", width: "auto" }}
             />
           </LogoButton>
         </Box>
