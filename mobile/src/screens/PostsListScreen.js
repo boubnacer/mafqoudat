@@ -878,9 +878,11 @@ const createStyles = (tokens, isRTL, isDark) =>
     // differs from the one native is already mirroring - see that file. Do NOT
     // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
     // cancels out native mirroring once forceRTL has taken effect on relaunch.
-    // Floating filter launcher: docked to the inline-start edge, rounded
-    // there and flush (no radius) on the inline-end side - i.e. the right
-    // edge is square in LTR, and that mirrors to the left edge in RTL.
+    // Floating filter launcher: docked to the inline-start edge, matching
+    // web's mobile/tablet pop-up launcher - flush (no radius) there, since
+    // that's the edge it touches, rounded only on the inline-end side that
+    // protrudes into the screen. I.e. the left edge is square in LTR, and
+    // that mirrors to the right edge in RTL.
     filterLauncherRow: {
       paddingTop: 4,
       paddingBottom: 8,
@@ -888,10 +890,10 @@ const createStyles = (tokens, isRTL, isDark) =>
     filterLauncher: {
       alignSelf: alignStart(isRTL),
       ...logical(isRTL, {
-        borderTopStartRadius: radiusTokens.xl,
-        borderBottomStartRadius: radiusTokens.xl,
-        borderTopEndRadius: 0,
-        borderBottomEndRadius: 0,
+        borderTopStartRadius: 0,
+        borderBottomStartRadius: 0,
+        borderTopEndRadius: radiusTokens.xl,
+        borderBottomEndRadius: radiusTokens.xl,
       }),
       ...getElevation(isDark, 2),
     },
@@ -903,10 +905,10 @@ const createStyles = (tokens, isRTL, isDark) =>
       ...logical(isRTL, {
         paddingStart: 20,
         paddingEnd: 18,
-        borderTopStartRadius: radiusTokens.xl,
-        borderBottomStartRadius: radiusTokens.xl,
-        borderTopEndRadius: 0,
-        borderBottomEndRadius: 0,
+        borderTopStartRadius: 0,
+        borderBottomStartRadius: 0,
+        borderTopEndRadius: radiusTokens.xl,
+        borderBottomEndRadius: radiusTokens.xl,
       }),
     },
     filterLauncherText: {
