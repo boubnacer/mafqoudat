@@ -757,10 +757,12 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
         contentContainerStyle={[styles.content, keyboardHeight > 0 && { paddingBottom: keyboardHeight }]}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.stepHeader}>
-          <Text style={[styles.stepTitle, textStyle]}>{steps[Math.min(activeStep, steps.length - 1)].title}</Text>
-          <Text style={[styles.stepSubtitle, textStyle]}>{steps[Math.min(activeStep, steps.length - 1)].subtitle}</Text>
-        </View>
+        {activeStepKey !== 'item' && (
+          <View style={styles.stepHeader}>
+            <Text style={[styles.stepTitle, textStyle]}>{steps[Math.min(activeStep, steps.length - 1)].title}</Text>
+            <Text style={[styles.stepSubtitle, textStyle]}>{steps[Math.min(activeStep, steps.length - 1)].subtitle}</Text>
+          </View>
+        )}
 
         {bannerMessage ? (
           <View style={styles.errorBanner}>
@@ -775,6 +777,8 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
 
         {activeStepKey === 'item' && (
           <>
+            <Text style={[styles.stepTitle, textStyle, styles.basicInformationTitle]}>{t('basicInformation')}</Text>
+
             <View style={styles.section}>
               <Text style={[styles.sectionLabel, textStyle]}>
                 {t('postType')}
@@ -844,11 +848,17 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
 
             {documentsMode ? (
               <View style={styles.section}>
+                {/* Why these listings have no photo, said once, where the
+                    reader is making the choice that replaces it. */}
+                <View style={styles.documentNotice}>
+                  <Ionicons name="lock-closed-outline" size={18} color={tokens.brandPrimary} />
+                  <Text style={[styles.documentNoticeText, textStyle]}>{t('documentPrivacyNotice')}</Text>
+                </View>
+
                 <Text style={[styles.sectionLabel, textStyle]}>
                   {t('documentTitleFieldLabel')}
                   <Text style={styles.requiredMark}> *</Text>
                 </Text>
-                <Text style={[styles.helperText, textStyle]}>{t('documentTitleFieldHint')}</Text>
                 <FieldButton
                   styles={styles}
                   isRTL={isRTL}
@@ -921,13 +931,6 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
                 {fieldErrors.documentOwnerName ? (
                   <Text style={styles.fieldError}>{t('documentOwnerNameRequired')}</Text>
                 ) : null}
-
-                {/* Why these listings have no photo, said where the choice
-                    that replaces it is made. */}
-                <View style={styles.documentNotice}>
-                  <Ionicons name="lock-closed-outline" size={18} color={tokens.brandPrimary} />
-                  <Text style={[styles.documentNoticeText, textStyle]}>{t('documentPrivacyNotice')}</Text>
-                </View>
               </View>
             ) : null}
 
@@ -935,14 +938,9 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               <Text style={[styles.sectionLabel, textStyle]}>
                 {t('description')} ({t('optional')})
               </Text>
-              <Text style={[styles.helperText, textStyle]}>
-                {isFoundType ? t('descriptionOptionalFoundMessage') : t('descriptionOptionalLostMessage')}
-              </Text>
-              {isFoundType ? (
-                <View style={styles.warningBanner}>
-                  <Text style={[styles.warningBannerText, textStyle]}>{t('descriptionSensitiveInfoWarning')}</Text>
-                </View>
-              ) : null}
+              <View style={styles.warningBanner}>
+                <Text style={[styles.warningBannerText, textStyle]}>{t('descriptionSensitiveInfoWarning')}</Text>
+              </View>
               <TextInput
                 style={[styles.textInput, styles.textArea, textStyle]}
                 placeholder={t('descriptionPlaceholder')}
@@ -1055,7 +1053,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
 
         {activeStepKey === 'photo' && (
           <View style={styles.section}>
-            <Text style={[styles.sectionLabel, textStyle]}>{t('itemImage')}</Text>
+            <Text style={[styles.sectionLabel, textStyle]}>{t('uploadPhotoLabel')}</Text>
             <Text style={[styles.helperText, textStyle]}>{t('imageOptionalMessage')}</Text>
             {/* A wallet found with papers in it keeps its photo - but the
                 photo is of the wallet. Naming the other categories is what
@@ -1501,6 +1499,9 @@ const createStyles = (tokens, legacy, isDark, isRTL) => {
       paddingBottom: 24,
     },
     stepHeader: {
+      marginBottom: 16,
+    },
+    basicInformationTitle: {
       marginBottom: 16,
     },
     stepTitle: {
