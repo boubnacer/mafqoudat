@@ -306,7 +306,7 @@ export const AuthHeader = ({ eyebrow, title, subtitle, tagline }) => {
   const wordmark = (
     <Box
       component="img"
-      src="/maflogoSVG.svg"
+      src="/maflogoSVG.svg?v=2"
       alt="Mafqoudat"
       sx={{
         height: { xs: 36, md: 56 },

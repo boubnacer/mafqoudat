@@ -600,7 +600,7 @@ const Navbar = () => {
               <img src="/maficonSVG.svg" alt="" loading="lazy" />
             </BrandMark>
             <img
-              src="/maflogoSVG.svg"
+              src="/maflogoSVG.svg?v=2"
               alt={t("brandName")}
               loading="lazy"
               style={{ height: "auto", maxHeight: "35px", width: "auto" }}
