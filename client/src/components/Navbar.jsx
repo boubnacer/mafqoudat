@@ -95,29 +95,9 @@ const LogoButton = styled(Button)(({ theme }) => ({
   boxShadow: "none",
   display: "flex",
   alignItems: "center",
-  gap: "12px",
   "&:hover": {
     background: alpha(theme.custom.color.ink, 0.04),
     boxShadow: "none",
-    "& .brand-mark": {
-      transform: "rotate(-6deg) scale(1.06)",
-    },
-  },
-}));
-
-const BrandMark = styled(Box)(({ theme }) => ({
-  width: 42,
-  height: 42,
-  borderRadius: theme.custom.radius.md,
-  backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flexShrink: 0,
-  transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-  "& img": {
-    width: 22,
-    height: 22,
   },
 }));
 
@@ -596,14 +576,11 @@ const Navbar = () => {
         {/* Left: brand only */}
         <Box sx={{ display: "flex", alignItems: "center", justifySelf: "start", minWidth: 0 }}>
           <LogoButton onClick={onGoHomeClicked}>
-            <BrandMark className="brand-mark">
-              <img src="/maficonSVG.svg" alt="" loading="lazy" />
-            </BrandMark>
             <img
               src="/maflogoSVG.svg?v=2"
               alt={t("brandName")}
               loading="lazy"
-              style={{ height: "auto", maxHeight: "35px", width: "auto" }}
+              style={{ height: "auto", maxHeight: "42px", width: "auto" }}
             />
           </LogoButton>
         </Box>
