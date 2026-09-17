@@ -14,15 +14,19 @@
  * reaction and an impression in someone's feed are three different units, and
  * one merged total would state a measurement nobody took.
  *
- * Nothing here draws a border. The per-platform blocks are tinted cards with
- * their counts as chips inside; like Phase 10's stats panel, the sub-elements
- * go flat once a filled parent is carrying the separation, so no shadow is
- * used on this screen's reach section at all.
+ * SocialReachSection is reskinned to match web's SocialReach.jsx "SaaS panel"
+ * look: the whole section is one glowing card (surfaceRaised + brand-tinted
+ * border + shadow, mirroring PostFilterDialog's own card treatment - RN has no
+ * radial-gradient glow, so border+shadow carry the accent), a gradient icon
+ * badge heads it, and each platform block/chip is tinted from that platform's
+ * own color instead of a flat neutral fill. This is a deliberate departure
+ * from Phase 9's "parent borderless/shadowless" rule, same as PostFilterDialog's.
  */
 
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
@@ -34,6 +38,30 @@ import { summarizeSocialStats, readSiteViews } from '../utils/socialStats';
 // place the palette is not ours to choose.
 const FACEBOOK_TINT = '#1877F2';
 const INSTAGRAM_TINT = '#E1306C';
+// The header badge's violet-to-pink gradient is a one-off decorative accent
+// (mirrors client's SocialReach.jsx "SaaS panel" reskin), not a token.
+const HEADER_GRADIENT_ACCENT = '#EC4899';
+
+// Mirrors PostFilterDialog's own local getElevation (client's designTokens.js
+// elevationTokens as RN shadow/elevation props) - a true CSS radial-gradient
+// glow has no RN equivalent, so the brand-tinted border + this shadow are what
+// carry the "SaaS panel" accent web's card gets from its glow.
+const getElevation = (isDark, level = 1) =>
+  level === 2
+    ? {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: isDark ? 0.5 : 0.14,
+        shadowRadius: 24,
+        elevation: 8,
+      }
+    : {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.4 : 0.08,
+        shadowRadius: 6,
+        elevation: 3,
+      };
 
 /**
  * The compact pair shown on a post card: visits to this listing in the app,
@@ -48,7 +76,7 @@ export const PostReachRow = ({ post }) => {
   const { t } = useTranslation();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const isRTL = currentLanguage === 'ar';
-  const styles = createStyles({ tokens, isRTL });
+  const styles = createStyles({ tokens, isRTL, isDark });
 
   const siteViews = readSiteViews(post);
   const { interactions } = summarizeSocialStats(post);
@@ -75,25 +103,42 @@ export const PostReachRow = ({ post }) => {
   );
 };
 
-// One count, as a chip. Chips rather than a loose run of icon+text: the
-// detail page shows up to six of them per platform, and unseparated they
-// wrapped into a paragraph of numbers nobody could scan.
-const Metric = ({ styles, tokens, icon, value, label }) => {
+// One count, as a pill tinted from its platform's own color - mirrors client's
+// SocialReach.jsx Metric chip (fill + border at the platform's tint rather than
+// a flat neutral chip), so Facebook's numbers and Instagram's read as belonging
+// to their own block even at a glance.
+const Metric = ({ styles, icon, value, label, tint, isDark }) => {
   if (value === null) return null;
   return (
-    <View style={styles.metric}>
-      <Ionicons name={icon} size={13} color={`${tokens.ink}99`} />
+    <View
+      style={[
+        styles.metric,
+        {
+          backgroundColor: `${tint}${isDark ? '29' : '14'}`,
+          borderColor: `${tint}${isDark ? '59' : '38'}`,
+        },
+      ]}
+    >
+      <Ionicons name={icon} size={13} color={tint} />
       <Text style={styles.metricValue}>{value}</Text>
       <Text style={styles.metricText}>{label}</Text>
     </View>
   );
 };
 
-const PlatformBlock = ({ styles, tokens, icon, tint, name, permalink, linkLabel, children }) => (
-  <View style={styles.platformBlock}>
+const PlatformBlock = ({ styles, tokens, isDark, icon, tint, name, permalink, linkLabel, children }) => (
+  <View
+    style={[
+      styles.platformBlock,
+      {
+        backgroundColor: `${tint}${isDark ? '1A' : '0D'}`,
+        borderColor: `${tint}${isDark ? '4D' : '2E'}`,
+      },
+    ]}
+  >
     <View style={styles.platformHeader}>
-      <View style={[styles.platformIcon, { backgroundColor: `${tint}1F` }]}>
-        <Ionicons name={icon} size={15} color={tint} />
+      <View style={[styles.platformIcon, { backgroundColor: `${tint}29` }]}>
+        <Ionicons name={icon} size={16} color={tint} />
       </View>
       <Text style={styles.platformName}>{name}</Text>
       {permalink ? (
@@ -155,7 +200,7 @@ export const SocialReachSection = ({ post }) => {
   const { t } = useTranslation();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const isRTL = currentLanguage === 'ar';
-  const styles = createStyles({ tokens, isRTL });
+  const styles = createStyles({ tokens, isRTL, isDark });
 
   const { facebook, instagram, hasStats } = summarizeSocialStats(post);
 
@@ -167,30 +212,40 @@ export const SocialReachSection = ({ post }) => {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Ionicons name="stats-chart-outline" size={18} color={tokens.ink} />
-        <Text style={[styles.sectionLabel, isRTL && styles.textRTL]}>{t('socialReach')}</Text>
+        <LinearGradient
+          colors={[tokens.brandPrimary, HEADER_GRADIENT_ACCENT]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.sectionIcon}
+        >
+          <Ionicons name="stats-chart" size={18} color="#FFFFFF" />
+        </LinearGradient>
+        <View style={styles.sectionHeaderText}>
+          <Text style={[styles.sectionLabel, isRTL && styles.textRTL]}>{t('socialReach')}</Text>
+          <Text style={[styles.sectionNote, isRTL && styles.textRTL]}>{t('socialReachNote')}</Text>
+          {!hasStats ? (
+            <Text style={[styles.sectionNote, isRTL && styles.textRTL]}>{t('socialReachPending')}</Text>
+          ) : null}
+        </View>
       </View>
-      <Text style={[styles.sectionNote, isRTL && styles.textRTL]}>{t('socialReachNote')}</Text>
-      {!hasStats ? (
-        <Text style={[styles.sectionNote, isRTL && styles.textRTL]}>{t('socialReachPending')}</Text>
-      ) : null}
 
       {showFacebook ? (
         <PlatformBlock
           styles={styles}
           tokens={tokens}
+          isDark={isDark}
           icon="logo-facebook"
           tint={FACEBOOK_TINT}
           name="Facebook"
           permalink={facebook.unavailable ? null : facebook.permalink}
           linkLabel={t('viewOnFacebook')}
         >
-          <Metric styles={styles} tokens={tokens} icon="eye-outline" value={facebook.views} label={t('viewsLabel')} />
-          <Metric styles={styles} tokens={tokens} icon="thumbs-up-outline" value={facebook.reactions} label={t('reactions')} />
-          <Metric styles={styles} tokens={tokens} icon="chatbubble-outline" value={facebook.comments} label={t('comments')} />
-          <Metric styles={styles} tokens={tokens} icon="share-social-outline" value={facebook.shares} label={t('shares')} />
-          <Metric styles={styles} tokens={tokens} icon="people-outline" value={facebook.engagedUsers} label={t('engagedUsers')} />
-          <Metric styles={styles} tokens={tokens} icon="link-outline" value={facebook.clicks} label={t('clicks')} />
+          <Metric styles={styles} isDark={isDark} tint={FACEBOOK_TINT} icon="eye-outline" value={facebook.views} label={t('viewsLabel')} />
+          <Metric styles={styles} isDark={isDark} tint={FACEBOOK_TINT} icon="thumbs-up-outline" value={facebook.reactions} label={t('reactions')} />
+          <Metric styles={styles} isDark={isDark} tint={FACEBOOK_TINT} icon="chatbubble-outline" value={facebook.comments} label={t('comments')} />
+          <Metric styles={styles} isDark={isDark} tint={FACEBOOK_TINT} icon="share-social-outline" value={facebook.shares} label={t('shares')} />
+          <Metric styles={styles} isDark={isDark} tint={FACEBOOK_TINT} icon="people-outline" value={facebook.engagedUsers} label={t('engagedUsers')} />
+          <Metric styles={styles} isDark={isDark} tint={FACEBOOK_TINT} icon="link-outline" value={facebook.clicks} label={t('clicks')} />
         </PlatformBlock>
       ) : null}
 
@@ -198,23 +253,24 @@ export const SocialReachSection = ({ post }) => {
         <PlatformBlock
           styles={styles}
           tokens={tokens}
+          isDark={isDark}
           icon="logo-instagram"
           tint={INSTAGRAM_TINT}
           name="Instagram"
           permalink={instagram.unavailable ? null : instagram.permalink}
           linkLabel={t('viewOnInstagram')}
         >
-          <Metric styles={styles} tokens={tokens} icon="eye-outline" value={instagram.views} label={t('viewsLabel')} />
-          <Metric styles={styles} tokens={tokens} icon="heart-outline" value={instagram.likes} label={t('likes')} />
-          <Metric styles={styles} tokens={tokens} icon="chatbubble-outline" value={instagram.comments} label={t('comments')} />
-          <Metric styles={styles} tokens={tokens} icon="bookmark-outline" value={instagram.saved} label={t('saved')} />
+          <Metric styles={styles} isDark={isDark} tint={INSTAGRAM_TINT} icon="eye-outline" value={instagram.views} label={t('viewsLabel')} />
+          <Metric styles={styles} isDark={isDark} tint={INSTAGRAM_TINT} icon="heart-outline" value={instagram.likes} label={t('likes')} />
+          <Metric styles={styles} isDark={isDark} tint={INSTAGRAM_TINT} icon="chatbubble-outline" value={instagram.comments} label={t('comments')} />
+          <Metric styles={styles} isDark={isDark} tint={INSTAGRAM_TINT} icon="bookmark-outline" value={instagram.saved} label={t('saved')} />
         </PlatformBlock>
       ) : null}
     </View>
   );
 };
 
-const createStyles = ({ tokens, isRTL }) => StyleSheet.create({
+const createStyles = ({ tokens, isRTL, isDark }) => StyleSheet.create({
   reachRow: {
     flexDirection: row(isRTL),
     alignItems: 'center',
@@ -235,14 +291,35 @@ const createStyles = ({ tokens, isRTL }) => StyleSheet.create({
     color: tokens.brandPrimary,
   },
 
+  // The "SaaS panel" card - surfaceRaised + a brand-tinted border, mirroring
+  // web's glowing card (client's SocialReach.jsx). A true CSS radial-gradient
+  // glow has no RN equivalent, so the border + shadow alone carry the accent,
+  // same treatment as PostFilterDialog's card.
   section: {
     marginTop: 20,
+    padding: 16,
+    borderRadius: radiusTokens.lg,
+    backgroundColor: tokens.surfaceRaised,
+    borderWidth: 1,
+    borderColor: `${tokens.brandPrimary}${isDark ? '59' : '2E'}`,
+    ...getElevation(isDark, 2),
   },
   sectionHeader: {
     flexDirection: row(isRTL),
-    alignItems: 'center',
-    gap: 8,
+    alignItems: 'flex-start',
+    gap: 10,
     marginBottom: 4,
+  },
+  sectionIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: radiusTokens.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionHeaderText: {
+    flex: 1,
+    gap: 2,
   },
   sectionLabel: {
     fontFamily: fontFamilies.display,
@@ -257,16 +334,15 @@ const createStyles = ({ tokens, isRTL }) => StyleSheet.create({
     color: `${tokens.ink}99`,
     textAlign: isRTL ? 'right' : 'left',
   },
-  // Each platform is its own tinted card now. Two headings and two loose
-  // metric runs stacked on a flat surface read as one undifferentiated block
-  // of text; the fill is what tells Facebook's numbers from Instagram's.
-  // Phase 9 still holds - fill only, no border and no shadow on the card.
+  // Each platform is its own tinted-by-color block (backgroundColor/borderColor
+  // set inline per platform in PlatformBlock, mirroring client's SocialReach.jsx
+  // alpha(tint, ...) fills) rather than a flat neutral card.
   platformBlock: {
     gap: 10,
     marginTop: 10,
     padding: 12,
     borderRadius: radiusTokens.md,
-    backgroundColor: `${tokens.ink}0A`,
+    borderWidth: 1,
   },
   platformHeader: {
     flexDirection: row(isRTL),
@@ -274,8 +350,8 @@ const createStyles = ({ tokens, isRTL }) => StyleSheet.create({
     gap: 8,
   },
   platformIcon: {
-    width: 28,
-    height: 28,
+    width: 30,
+    height: 30,
     borderRadius: radiusTokens.sm,
     alignItems: 'center',
     justifyContent: 'center',
@@ -289,10 +365,12 @@ const createStyles = ({ tokens, isRTL }) => StyleSheet.create({
   // Icon-only: the platform it opens is named on the same row, and the full
   // "View on Facebook/Instagram" wording is on the accessibility label.
   platformLink: {
-    width: 28,
-    height: 28,
+    width: 30,
+    height: 30,
     borderRadius: radiusTokens.sm,
-    backgroundColor: `${tokens.brandPrimary}1F`,
+    backgroundColor: `${tokens.brandPrimary}24`,
+    borderWidth: 1,
+    borderColor: `${tokens.brandPrimary}4D`,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -304,14 +382,16 @@ const createStyles = ({ tokens, isRTL }) => StyleSheet.create({
     columnGap: 8,
     rowGap: 8,
   },
+  // Full pill, tinted from the platform's own color (backgroundColor/
+  // borderColor set inline in Metric) - mirrors web's chip.
   metric: {
     flexDirection: row(isRTL),
     alignItems: 'center',
     gap: 5,
     paddingHorizontal: 9,
     paddingVertical: 6,
-    borderRadius: radiusTokens.sm,
-    backgroundColor: tokens.surfaceRaised,
+    borderRadius: 999,
+    borderWidth: 1,
   },
   metricValue: {
     fontFamily: fontFamilies.bodySemiBold,

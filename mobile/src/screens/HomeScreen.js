@@ -29,7 +29,7 @@ import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
 import { alignEnd, alignStart, logical, needsDirectionFlip, row } from '../utils/rtl';
 import { formatRelativeTime } from '../utils/relativeTime';
 
-const SECTION_COUNT = 6;
+const SECTION_COUNT = 7;
 
 // Horizontal padding of the scroll content - kept as a constant so the
 // header's map backdrop can cancel it out and bleed to the screen edges.
@@ -542,6 +542,103 @@ const EmptyStateCallout = ({ t, styles, onCreatePost }) => (
 // that sinks when pressed. The brand tint behind the icons is gone with the
 // fill - a tinted circle would break the one rule the effect rests on (element
 // and background share a tone), so the brand color is carried by the icon.
+// Mirrors client/src/components/dashboard/QuickActions.jsx's mobile (xs)
+// column layout: a glass-styled panel (own hairline border + blurred-color
+// blobs - the same documented Phase 8 exception web's version carries,
+// since a hairline edge is what reads as "glass" here, not a container the
+// border-removal pass was ever meant to touch) holding a "browse before you
+// post" nudge + Search Items pill, then Report Lost / Report Found as two
+// independent status-toned rows (never a merged panel - they need to read
+// as pressable buttons). Search Items routes to the plain posts list
+// (mirrors web's goToSearch -> `/dash/posts`, no filter); the two report
+// actions hand off to NewPostScreen with an initialType, which resolves it
+// to the matching floption id exactly the way web's `?type=lost|found`
+// query param does.
+const QuickActionsSection = ({ t, styles, tokens, isDark, isRTL, onSearch, onReportLost, onReportFound }) => {
+  const primaryActions = [
+    {
+      key: 'lost',
+      title: t('reportLostItem'),
+      description: t('reportLostItemDesc'),
+      icon: 'search-outline',
+      tone: tokens.status.lost,
+      onPress: onReportLost,
+    },
+    {
+      key: 'found',
+      title: t('reportFoundItem'),
+      description: t('reportFoundItemDesc'),
+      icon: 'checkmark-circle-outline',
+      tone: tokens.status.found,
+      onPress: onReportFound,
+    },
+  ];
+
+  return (
+    <View style={styles.quickActionsPanel}>
+      <GlowBlob
+        color={tokens.brandPrimary}
+        opacity={isDark ? 0.3 : 0.22}
+        size={220}
+        style={logical(isRTL, { top: -80, start: -70 })}
+      />
+      <GlowBlob
+        color={tokens.brandLogo}
+        opacity={isDark ? 0.3 : 0.22}
+        size={220}
+        style={logical(isRTL, { bottom: -90, end: -70 })}
+      />
+
+      <View style={styles.quickActionsHeader}>
+        <Text style={styles.quickActionsTitle}>{t('quickActions')}</Text>
+        <Text style={styles.quickActionsSubtitle}>{t('quickActionsDesc')}</Text>
+      </View>
+
+      <View style={styles.quickActionsNudge}>
+        <View style={[styles.quickActionsNudgeTextRow, { flexDirection: row(isRTL) }]}>
+          <Ionicons name="information-circle-outline" size={20} color={tokens.brandPrimary} />
+          <Text style={styles.quickActionsNudgeText}>{t('browseBeforePostTip')}</Text>
+        </View>
+        <TouchableOpacity
+          style={[styles.quickActionsSearchButton, { flexDirection: row(isRTL) }]}
+          onPress={onSearch}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="search" size={18} color="#FFFFFF" />
+          <Text style={styles.quickActionsSearchButtonText}>{t('searchItems')}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.quickActionsButtons}>
+        {primaryActions.map((item) => (
+          <TouchableOpacity
+            key={item.key}
+            style={[
+              styles.quickActionCard,
+              { flexDirection: row(isRTL), backgroundColor: item.tone.bg, borderColor: `${item.tone.main}59` },
+            ]}
+            onPress={item.onPress}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.quickActionIcon, { backgroundColor: `${item.tone.main}33`, borderColor: `${item.tone.main}59` }]}>
+              <Ionicons name={item.icon} size={26} color={item.tone.main} />
+            </View>
+            <View style={styles.quickActionTextWrap}>
+              <Text style={styles.quickActionTitle}>{item.title}</Text>
+              <Text style={styles.quickActionDescription}>{item.description}</Text>
+            </View>
+            <Ionicons
+              name={isRTL ? 'chevron-back' : 'chevron-forward'}
+              size={16}
+              color={item.tone.main}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+};
+
 const SocialSection = ({ t, styles, isDark }) => (
   <NeumorphicSurface isDark={isDark} radius={radiusTokens.lg} contentStyle={styles.socialPanel}>
     <Text style={styles.socialTitle}>{t('followUsTitle')}</Text>
@@ -605,6 +702,7 @@ const HomeScreen = ({ navigation }) => {
   const goToPosts = (params) => navigation.navigate('PostsListScreen', params);
   const goToPost = (id) => navigation.navigate('PostDetailScreen', { id });
   const goToNewPost = () => navigation.navigate('NewPost');
+  const goToNewPostType = (initialType) => navigation.navigate('NewPost', { initialType });
 
   const currentCountryCode = useMemo(() => {
     const match = (countries || []).find((c) => (c._id || c.id) === countryId);
@@ -732,6 +830,19 @@ const HomeScreen = ({ navigation }) => {
         ) : null}
 
         <Animated.View style={[styles.section, animatedSectionStyle(3)]}>
+          <QuickActionsSection
+            t={t}
+            styles={styles}
+            tokens={tokens}
+            isDark={isDark}
+            isRTL={isRTL}
+            onSearch={() => goToPosts()}
+            onReportLost={() => goToNewPostType('lost')}
+            onReportFound={() => goToNewPostType('found')}
+          />
+        </Animated.View>
+
+        <Animated.View style={[styles.section, animatedSectionStyle(4)]}>
           <Panel title={t('browseByCategory')} styles={styles}>
             {/* Same two-blob corner treatment as web's Dash.js `categoryBlob`
                 wrapping its Categories.jsx in DashRecents - brandLogo at the
@@ -761,11 +872,11 @@ const HomeScreen = ({ navigation }) => {
           </Panel>
         </Animated.View>
 
-        <Animated.View style={[styles.section, animatedSectionStyle(4)]}>
+        <Animated.View style={[styles.section, animatedSectionStyle(5)]}>
           <SocialSection t={t} styles={styles} isDark={isDark} />
         </Animated.View>
 
-        <Animated.View style={[styles.section, styles.lastSection, animatedSectionStyle(5)]}>
+        <Animated.View style={[styles.section, styles.lastSection, animatedSectionStyle(6)]}>
           <SafetyFooter t={t} styles={styles} />
         </Animated.View>
       </ScrollView>
@@ -1119,6 +1230,107 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontSize: 14,
       color: `${tokens.ink}99`,
       textAlign: isRTL ? 'right' : 'left',
+    },
+
+    // Quick Actions - 1:1 port of web's QuickActions.jsx mobile (xs) column
+    // layout. This panel and its two action cards deliberately keep a
+    // hairline border, same as web's version - the one documented exception
+    // to the platform-wide no-border rule, since a border is what makes this
+    // read as glass/a pressable card rather than a plain container.
+    quickActionsPanel: {
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.lg,
+      borderWidth: 1,
+      borderColor: `${tokens.brandPrimary}2E`,
+      padding: 20,
+      overflow: 'hidden',
+      ...getElevation(isDark, 1),
+    },
+    quickActionsHeader: {
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    quickActionsTitle: {
+      fontFamily: fontFamilies.display,
+      fontSize: 22,
+      color: tokens.ink,
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    quickActionsSubtitle: {
+      fontFamily: fontFamilies.body,
+      fontSize: 14,
+      color: `${tokens.ink}A6`,
+      textAlign: 'center',
+    },
+    quickActionsNudge: {
+      backgroundColor: `${tokens.surfaceBase}${isDark ? '88' : 'B3'}`,
+      borderWidth: 1,
+      borderColor: `${tokens.brandPrimary}2E`,
+      borderRadius: radiusTokens.md,
+      padding: 14,
+      gap: 12,
+      marginBottom: 20,
+    },
+    quickActionsNudgeTextRow: {
+      alignItems: 'flex-start',
+      gap: 8,
+    },
+    quickActionsNudgeText: {
+      flex: 1,
+      fontFamily: fontFamilies.body,
+      fontSize: 13,
+      lineHeight: 18,
+      color: `${tokens.ink}CC`,
+    },
+    quickActionsSearchButton: {
+      alignSelf: alignStart(isRTL),
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 18,
+      paddingVertical: 10,
+      borderRadius: 999,
+      backgroundColor: tokens.brandPrimary,
+      ...getElevation(isDark, 1),
+    },
+    quickActionsSearchButtonText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 14,
+      color: '#FFFFFF',
+    },
+    quickActionsButtons: {
+      gap: 12,
+    },
+    quickActionCard: {
+      alignItems: 'center',
+      gap: 14,
+      padding: 16,
+      borderRadius: radiusTokens.lg,
+      borderWidth: 1,
+    },
+    quickActionIcon: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      borderWidth: 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    quickActionTextWrap: {
+      flex: 1,
+      minWidth: 0,
+    },
+    quickActionTitle: {
+      fontFamily: fontFamilies.display,
+      fontSize: 16,
+      color: tokens.ink,
+      marginBottom: 2,
+    },
+    quickActionDescription: {
+      fontFamily: fontFamilies.body,
+      fontSize: 13,
+      color: `${tokens.ink}A6`,
+      lineHeight: 17,
     },
 
     // Categories - uniform 2-up grid (see CategoryGridCard/CategoryGrid
