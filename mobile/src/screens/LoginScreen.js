@@ -10,8 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image,
 } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -23,15 +23,15 @@ import { IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 import { navigateAfterLogin } from '../navigation/afterLogin';
 import { GoogleGlyph, FacebookGlyph } from '../components/AuthSocialGlyphs';
+import { MAF_LOGO_XML } from '../assets/mafLogoXml';
 
 // Mirrors client/src/features/auth/SingUp/NewUserForm.js's own patterns, so the
 // mobile and web apps agree on what counts as a plausible email/phone.
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[+]?[\d\s\-()]{7,20}$/;
 
-// Same wordmark AppHeader uses in place of a text brand name.
-const BRAND_WORDMARK = require('../../assets/mafWordmark.png');
-const WORDMARK_RATIO = 984 / 213;
+// Same logo lockup AppHeader uses in place of a text brand name.
+const LOGO_RATIO = 328 / 95;
 
 const LoginScreen = ({ navigation }) => {
   const {
@@ -256,10 +256,11 @@ const LoginScreen = ({ navigation }) => {
       >
         <View style={styles.content}>
           <View style={styles.brandSection}>
-            <Image
-              source={BRAND_WORDMARK}
+            <SvgXml
+              xml={MAF_LOGO_XML}
+              width={styles.brandWordmarkImg.width}
+              height={styles.brandWordmarkImg.height}
               style={styles.brandWordmarkImg}
-              resizeMode="contain"
               accessibilityLabel={t('brandName')}
             />
             <Text style={[styles.tagline, textStyle]}>{t('loginToAccount')}</Text>
@@ -431,7 +432,7 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
   },
   brandWordmarkImg: {
     height: 34,
-    width: 34 * WORDMARK_RATIO,
+    width: 34 * LOGO_RATIO,
     marginTop: 32,
     marginBottom: 6,
   },
