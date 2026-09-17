@@ -246,6 +246,19 @@
       ]
     },
     {
+      "source": "/(maflogoSVG|maficonSVG)\\.svg",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/svg+xml"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/(.*)\\.ico",
       "headers": [
         {
