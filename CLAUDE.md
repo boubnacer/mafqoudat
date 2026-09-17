@@ -292,7 +292,7 @@ Reuse these, don't invent new card/panel treatment — now house style:
   side — the same "tab sliding in from off-screen" shape as web's fixed
   pop-up launcher, minus `position: fixed` (RN has no scroll-fixed overlay
   the way the page does, and this screen has no separate fixed navbar to
-  clear), so it sits in-flow right above the search row instead.
+  clear), so it sits in-flow at the top of the list instead.
   [PostFilterDialog.js](mobile/src/components/PostFilterDialog.js) replaces
   `PostFilterSheet.js`'s sliding bottom sheet with a centered "SaaS panel"
   card (`surfaceRaised` + brand-tinted border + elevation, gradient header
@@ -315,6 +315,27 @@ Reuse these, don't invent new card/panel treatment — now house style:
   [translations.js](mobile/src/utils/translations.js) in all three languages;
   `postType`'s existing "Type" wording already matched web's `filterType`
   caption, so no new key was needed there.
+
+  A first pass at this phase also ported the *card* to what Phase 17/18's own
+  notes above describe (a centred stack with a gradient city headline and a
+  circular open action) and left a search bar on the screen - both wrong: the
+  actual `Post.js`/`PostsList.js` on `main` had moved on from that design
+  without this file's phase notes catching up, and `PostsList.js` has never
+  rendered a search box at all (`?search=` is only ever seeded from a URL
+  param, for Google's sitelinks searchbox). Corrected in the same phase:
+  `PostsListScreen.js`'s card is now the photo-top block the real `Post.js`
+  renders - status pill and category pill(s) overlaid at the photo's top
+  corners, a resolved badge and a "posted X ago" scrim pill at its bottom
+  corners, the no-image state's centred `CategoryIconLabel`(s) on a
+  per-category tint - then a plain city row (location pin + bold text, no
+  gradient), then a 3-column stats bar (site views / reactions / comments,
+  read via the existing `summarizeSocialStats`/`readSiteViews` mirror in
+  [socialStats.js](mobile/src/utils/socialStats.js), the same numbers
+  `Post.js` computes rather than the more elaborate `PostReachRow`). The
+  search bar (state, debounce, the visible `TextInput` row, its active-filter
+  chip) was removed outright rather than left wired to nothing. `GradientHeading`
+  is no longer used by this screen (still used elsewhere - Phase 18's note
+  above about it stands for wherever it's still rendered).
 
 ## The category taxonomy (web + mobile + server)
 
