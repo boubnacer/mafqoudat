@@ -38,11 +38,13 @@ const SCREEN_PADDING = 16;
 // surface needs the matching corner radius as a prop, not just in a style.
 const SOCIAL_CIRCLE_SIZE = 56;
 
-// Bento category grid: one large "featured" cell (first category) plus small
-// cells, 2 per row. Collapsed view caps at featured + 4 small, matching the
-// count web's Categories.jsx shows before its own "show all" toggle.
+// "Browse by category" grid, ported 1:1 from web's Categories.jsx (Phase 15's
+// neumorphic bento layout was replaced with this on request, for exact parity
+// with the /dash mobile-responsive view): a uniform 2-up grid, no featured
+// cell, collapsed to CATEGORY_COLLAPSED_SMALL_COUNT cards (web's own
+// `CATEGORY_COLLAPSED_SMALL_COUNT` for its `xs`/`sm` breakpoint) with a
+// "show all" toggle.
 const CATEGORY_COLLAPSED_SMALL_COUNT = 4;
-const CATEGORY_GHOST_ICON_SIZE = 132;
 
 // Same accounts as client/src/components/Footer/DashFooter.js's socialLinks -
 // kept in sync manually since the mobile app has no shared config module yet.
@@ -412,17 +414,15 @@ const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tok
   );
 };
 
-// "Browse by category" bento cell. Card fill is a translucent tint of the
-// category's own accent color (same `${hex}NN`-suffix alpha convention used
-// elsewhere in this file, e.g. recentEmptyText/emptyCalloutText below) - the
-// same "solid accent, translucent tint of that accent as background" pairing
-// `theme.custom.status` already uses for found/lost, just keyed off
-// CATEGORY_CONFIG instead. `featured` renders the first category full-width
-// and taller, with a large low-opacity ghost icon bleeding off the trailing
-// corner; small cells are the same shape at half width. Icon badge behind the
-// icon is a frosted white/black circle rather than another tint, so it reads
-// against every category color without a per-category badge color to pick.
-const CategoryBentoCard = ({ category, currentLanguage, styles, isDark, isRTL, featured, onPress }) => {
+// One category cell - a plain tint of the category's own accent color (same
+// `${hex}NN`-suffix alpha convention used elsewhere in this file, e.g.
+// recentEmptyText/emptyCalloutText below), a frosted circular icon badge and
+// a centered label. Exact port of web's Categories.jsx card: same tint alpha
+// (0x1F light / 0x33 dark, i.e. MUI's alpha(color, 0.12/0.2)), same badge
+// treatment, same centered layout - no "featured" variant, every cell is the
+// same size, matching the uniform 2-up grid web renders at its own
+// mobile/tablet breakpoint.
+const CategoryGridCard = ({ category, currentLanguage, styles, isDark, onPress }) => {
   const config = getCategoryConfig(category.code);
   const tint = `${config.color}${isDark ? '33' : '1F'}`;
   const badgeBg = isDark ? 'rgba(0,0,0,0.28)' : 'rgba(255,255,255,0.55)';
@@ -431,24 +431,12 @@ const CategoryBentoCard = ({ category, currentLanguage, styles, isDark, isRTL, f
     <TouchableOpacity
       activeOpacity={0.85}
       onPress={onPress}
-      style={[
-        styles.bentoCard,
-        featured ? styles.bentoCardFeatured : styles.bentoCardSmall,
-        { backgroundColor: tint, alignItems: alignStart(isRTL) },
-      ]}
+      style={[styles.categoryCard, { backgroundColor: tint }]}
     >
-      {featured ? (
-        <Ionicons
-          name={config.icon}
-          size={CATEGORY_GHOST_ICON_SIZE}
-          color={config.color}
-          style={[styles.bentoGhostIcon, logical(isRTL, { end: -28, bottom: -22 })]}
-        />
-      ) : null}
-      <View style={[styles.bentoIconBadge, featured && styles.bentoIconBadgeFeatured, { backgroundColor: badgeBg }]}>
-        <Ionicons name={config.icon} size={featured ? 26 : 20} color={config.color} />
+      <View style={[styles.categoryIconBadge, { backgroundColor: badgeBg }]}>
+        <Ionicons name={config.icon} size={20} color={config.color} />
       </View>
-      <Text style={[styles.bentoLabel, featured && styles.bentoLabelFeatured]} numberOfLines={2}>
+      <Text style={styles.categoryLabel} numberOfLines={2}>
         {getLocalizedLabel(category, currentLanguage)}
       </Text>
     </TouchableOpacity>
@@ -461,47 +449,36 @@ const chunkPairs = (items) => {
   return rows;
 };
 
-// Featured card (first category) + a 2-up grid of the rest, collapsed to
-// CATEGORY_COLLAPSED_SMALL_COUNT small cells with a "show all" toggle -
-// mirrors web's Categories.jsx (categories.slice(0, 4) + showAllCategories
-// state) rather than truncating the list into a scroll, since the whole
-// point of the bento shape is a fixed, non-scrolling arrangement.
-const CategoryBentoGrid = ({ categories, currentLanguage, t, styles, tokens, isDark, isRTL, onPressCategory }) => {
+// 2-up grid of every category, collapsed to CATEGORY_COLLAPSED_SMALL_COUNT
+// cells with a "show all" toggle - exact port of web's Categories.jsx
+// (sortCategoriesForBrowse + categories.slice(0, collapsedCount) +
+// showAllCategories state).
+const CategoryGrid = ({ categories, currentLanguage, t, styles, tokens, isDark, isRTL, onPressCategory }) => {
   const [expanded, setExpanded] = useState(false);
 
   if (!categories || categories.length === 0) return null;
 
-  const [featuredCategory, ...rest] = sortCategoriesForBrowse(categories);
-  const hasMore = rest.length > CATEGORY_COLLAPSED_SMALL_COUNT;
-  const visibleSmall = expanded ? rest : rest.slice(0, CATEGORY_COLLAPSED_SMALL_COUNT);
-  const rows = chunkPairs(visibleSmall);
+  const ordered = sortCategoriesForBrowse(categories);
+  const hasMore = ordered.length > CATEGORY_COLLAPSED_SMALL_COUNT;
+  const visible = expanded ? ordered : ordered.slice(0, CATEGORY_COLLAPSED_SMALL_COUNT);
+  const rows = chunkPairs(visible);
 
   return (
     <View>
-      <View style={styles.bentoGrid}>
-        <CategoryBentoCard
-          category={featuredCategory}
-          currentLanguage={currentLanguage}
-          styles={styles}
-          isDark={isDark}
-          isRTL={isRTL}
-          featured
-          onPress={() => onPressCategory(featuredCategory)}
-        />
+      <View style={styles.categoryGrid}>
         {rows.map((pair) => (
-          <View key={pair[0]._id} style={[styles.bentoRow, { flexDirection: row(isRTL) }]}>
+          <View key={pair[0]._id} style={[styles.categoryRow, { flexDirection: row(isRTL) }]}>
             {pair.map((cat) => (
-              <CategoryBentoCard
+              <CategoryGridCard
                 key={cat._id}
                 category={cat}
                 currentLanguage={currentLanguage}
                 styles={styles}
                 isDark={isDark}
-                isRTL={isRTL}
                 onPress={() => onPressCategory(cat)}
               />
             ))}
-            {pair.length === 1 ? <View style={styles.bentoSpacer} /> : null}
+            {pair.length === 1 ? <View style={styles.categorySpacer} /> : null}
           </View>
         ))}
       </View>
@@ -512,7 +489,7 @@ const CategoryBentoGrid = ({ categories, currentLanguage, t, styles, tokens, isD
           hitSlop={8}
         >
           <Text style={styles.showMoreText}>{expanded ? t('showLess') : t('showAllCategories')}</Text>
-          <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color={tokens.brandPrimary} />
+          <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={18} color={tokens.ink} />
         </TouchableOpacity>
       ) : null}
     </View>
@@ -714,7 +691,7 @@ const HomeScreen = ({ navigation }) => {
 
         <Animated.View style={[styles.section, animatedSectionStyle(3)]}>
           <Text style={styles.sectionTitle}>{t('browseByCategory')}</Text>
-          <CategoryBentoGrid
+          <CategoryGrid
             categories={categories}
             currentLanguage={currentLanguage}
             t={t}
@@ -1095,79 +1072,64 @@ const createStyles = (tokens, isRTL, isDark) =>
       textAlign: isRTL ? 'right' : 'left',
     },
 
-    // Categories - bento grid (see CategoryBentoCard/CategoryBentoGrid
-    // above). No border/shadow on the cells themselves per the platform-wide
-    // no-border rule - separation comes from each cell's own color tint
-    // against the page background, not elevation.
-    bentoGrid: {
-      gap: 12,
+    // Categories - uniform 2-up grid (see CategoryGridCard/CategoryGrid
+    // above), 1:1 port of web's Categories.jsx card at its own mobile/tablet
+    // breakpoint: radius.lg cells, centered content, no border/shadow per the
+    // platform-wide no-border rule - separation comes from each cell's own
+    // color tint against the page background, not elevation.
+    categoryGrid: {
+      gap: 16,
     },
-    bentoRow: {
-      gap: 12,
+    categoryRow: {
+      gap: 16,
     },
-    bentoCard: {
-      borderRadius: radiusTokens.xl,
-      padding: 16,
-      overflow: 'hidden',
-      justifyContent: 'space-between',
-    },
-    bentoCardFeatured: {
-      minHeight: 168,
-      width: '100%',
-    },
-    bentoCardSmall: {
-      minHeight: 110,
+    categoryCard: {
       flex: 1,
+      minHeight: 120,
+      borderRadius: radiusTokens.lg,
+      padding: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    // Matches an odd-numbered trailing row so the last small cell keeps its
+    // Matches an odd-numbered trailing row so the last cell keeps its
     // half-width instead of stretching to fill the row alone.
-    bentoSpacer: {
+    categorySpacer: {
       flex: 1,
     },
-    bentoGhostIcon: {
-      position: 'absolute',
-      opacity: 0.14,
-    },
-    bentoIconBadge: {
+    categoryIconBadge: {
       width: 40,
       height: 40,
       borderRadius: 20,
       justifyContent: 'center',
       alignItems: 'center',
-    },
-    bentoIconBadgeFeatured: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
+      marginBottom: 12,
     },
     // Plain `isRTL ? 'right' : 'left'` would be wrong here - see sectionTitle
     // above for why: RN swaps explicit left/right back once native RTL
     // mirroring is on, so needsDirectionFlip is what actually lands this on
-    // the right edge in Arabic both mid-session and after a relaunch.
-    bentoLabel: {
+    // the right edge in Arabic both mid-session and after a relaunch. Web's
+    // card centers its label regardless of direction, so this does too.
+    categoryLabel: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 14,
+      fontSize: 13,
       color: tokens.ink,
-      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
-    },
-    bentoLabelFeatured: {
-      fontFamily: fontFamilies.display,
-      fontSize: 20,
-      color: tokens.ink,
-      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
+      textAlign: 'center',
     },
     showMoreButton: {
       alignSelf: 'center',
       alignItems: 'center',
       gap: 6,
-      marginTop: 14,
+      marginTop: 16,
       paddingVertical: 8,
-      paddingHorizontal: 14,
+      paddingHorizontal: 24,
+      borderRadius: radiusTokens.sm,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: `${tokens.ink}3D`,
     },
     showMoreText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 13,
-      color: tokens.brandPrimary,
+      fontSize: 14,
+      color: tokens.ink,
     },
 
     // Empty state callout

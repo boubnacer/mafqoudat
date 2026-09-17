@@ -337,6 +337,28 @@ Reuse these, don't invent new card/panel treatment — now house style:
   is no longer used by this screen (still used elsewhere - Phase 18's note
   above about it stands for wherever it's still rendered).
 
+- Phase 25 — mobile `HomeScreen.js`'s "Browse by category" section reverted from
+  Phase 15's neumorphic bento grid to an exact port of web's `Categories.jsx`
+  card, on explicit request for strict parity with the `/dash` mobile-responsive
+  view: done. `CategoryBentoCard`/`CategoryBentoGrid` (a featured full-width tile
+  plus small half-width cells with a bleeding ghost icon) are replaced by
+  `CategoryGridCard`/`CategoryGrid` — every cell the same size, a plain tint of
+  the category's own accent color (`${hex}1F`/`${hex}33`, i.e. web's
+  `alpha(color, 0.12/0.2)`), a centered frosted circular icon badge and a
+  centered label, in a uniform 2-up grid with no featured cell. Collapsed count
+  stays 4 (`CATEGORY_COLLAPSED_SMALL_COUNT`, unchanged — already web's own
+  count at its `xs`/`sm` breakpoint), and the "show all"/"show less" toggle is
+  now web's outlined-pill shape (`radius.sm`, `ink` border at ~24% alpha, `ink`
+  text/chevron) instead of the bento grid's borderless brand-colored text link.
+  This is a deliberate reversal of Phase 15's own reasoning ("categories are the
+  one place a per-category accent color is the point" for staying off the token
+  system) — the accent-tint-as-background idea survives (it's what web's own
+  card already does), but the featured/bento layout and neumorphic-adjacent
+  bespoke shape are gone in favor of matching web exactly, cell for cell. Rest
+  of Phase 15's grid mechanics (`sortCategoriesForBrowse` for priority order,
+  `chunkPairs` for 2-up rows, an odd trailing row's spacer) carry over unchanged
+  since web does the same thing structurally.
+
 ## The category taxonomy (web + mobile + server)
 
 Twenty-five categories, held in four places that can each drift from the others.
