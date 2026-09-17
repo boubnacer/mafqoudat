@@ -843,17 +843,33 @@ const HomeScreen = ({ navigation }) => {
         </Animated.View>
 
         <Animated.View style={[styles.section, animatedSectionStyle(4)]}>
-          <Text style={styles.sectionTitle}>{t('browseByCategory')}</Text>
-          <CategoryGrid
-            categories={categories}
-            currentLanguage={currentLanguage}
-            t={t}
-            styles={styles}
-            tokens={tokens}
-            isDark={isDark}
-            isRTL={isRTL}
-            onPressCategory={(cat) => goToPosts({ initialCategoryId: cat._id })}
-          />
+          <Panel title={t('browseByCategory')} styles={styles}>
+            {/* Same two-blob corner treatment as web's Dash.js `categoryBlob`
+                wrapping its Categories.jsx in DashRecents - brandLogo at the
+                top-end corner, brandPrimary at the bottom-start. */}
+            <GlowBlob
+              color={tokens.brandLogo}
+              opacity={isDark ? 0.28 : 0.2}
+              size={260}
+              style={logical(isRTL, { top: -90, end: -70 })}
+            />
+            <GlowBlob
+              color={tokens.brandPrimary}
+              opacity={isDark ? 0.28 : 0.2}
+              size={260}
+              style={logical(isRTL, { bottom: -110, start: -70 })}
+            />
+            <CategoryGrid
+              categories={categories}
+              currentLanguage={currentLanguage}
+              t={t}
+              styles={styles}
+              tokens={tokens}
+              isDark={isDark}
+              isRTL={isRTL}
+              onPressCategory={(cat) => goToPosts({ initialCategoryId: cat._id })}
+            />
+          </Panel>
         </Animated.View>
 
         <Animated.View style={[styles.section, animatedSectionStyle(5)]}>
@@ -885,19 +901,6 @@ const createStyles = (tokens, isRTL, isDark) =>
     lastSection: {
       marginBottom: 8,
     },
-    sectionTitle: {
-      fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 20,
-      color: tokens.ink,
-      marginBottom: 14,
-      // Plain `isRTL ? 'right' : 'left'` is wrong here: RN swaps explicit
-      // left/right textAlign back once native RTL mirroring is on
-      // (I18nManager.doLeftAndRightSwapInRTL) - see posterCategoryLabel/
-      // posterDateText below for the same gotcha. needsDirectionFlip
-      // compensates so this lands on the right edge in Arabic either way.
-      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
-    },
-
     // Dashboard header: the statistics panel layered over a chrome-less
     // world activity map (see the comment above their render).
     headerStack: {
