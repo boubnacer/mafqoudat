@@ -21,6 +21,7 @@ import { getImageUri } from '../utils/imageUri';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
 import DataStateView from '../components/DataStateView';
+import GlowBlob from '../components/GlowBlob';
 import NeumorphicSurface from '../components/NeumorphicSurface';
 import SkeletonBlock from '../components/SkeletonBlock';
 import WorldActivityMap from '../components/dashboard/WorldActivityMap';
@@ -249,10 +250,26 @@ const BigStatCard = ({ icon, title, value, description, tone, cardStyle, styles 
   </View>
 );
 
-const StatsSection = ({ data, isLoading, t, styles, tokens, onFoundPress, onLostPress }) => {
+// Same glass-blob family as web's LeftSide.jsx/QuickActions.jsx/
+// RecentSection.jsx/HelpSupportSection.jsx/Dash.js: a single very faint
+// brandPrimary glow tucked into the panel's top-start corner, at the same
+// fraction of strength LeftSide.jsx uses (this panel is bare/transparent
+// per Phase 10, not a filled card, so a bolder blob would read as a stray
+// smudge rather than a tint).
+const StatsSection = ({ data, isLoading, t, styles, tokens, isDark, isRTL, onFoundPress, onLostPress }) => {
+  const statsBlob = (
+    <GlowBlob
+      color={tokens.brandPrimary}
+      opacity={isDark ? 0.14 : 0.1}
+      size={190}
+      style={logical(isRTL, { top: -30, start: -40 })}
+    />
+  );
+
   if (isLoading && !data) {
     return (
       <Panel title={t('statistics')} style={styles.statsPanelGlass} styles={styles}>
+        {statsBlob}
         <SkeletonBlock tokens={tokens} style={styles.foundLostSkeleton} />
         <View style={styles.bigStatsRow}>
           <SkeletonBlock tokens={tokens} style={styles.bigStatSkeleton} />
@@ -264,6 +281,7 @@ const StatsSection = ({ data, isLoading, t, styles, tokens, onFoundPress, onLost
 
   return (
     <Panel title={t('statistics')} style={styles.statsPanelGlass} styles={styles}>
+      {statsBlob}
       <FoundLostStrip data={data} t={t} styles={styles} tokens={tokens} onFoundPress={onFoundPress} onLostPress={onLostPress} />
       <View style={styles.bigStatsRow}>
         <BigStatCard
@@ -369,11 +387,21 @@ const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isR
   );
 };
 
-const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tokens, isRTL, onSeeAll, onPressItem }) => {
+const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tokens, isRTL, isDark, onSeeAll, onPressItem }) => {
   const title = type === 'found' ? t('recentFounds') : t('recentLosts');
+  const tone = tokens.status[type].main;
 
   return (
     <Panel styles={styles}>
+      {/* Same glass-blob family as StatsSection above - one corner only,
+          reusing this panel's own found/lost tone rather than the generic
+          brand color, matching web's RecentSection.jsx. */}
+      <GlowBlob
+        color={tone}
+        opacity={isDark ? 0.22 : 0.16}
+        size={180}
+        style={logical(isRTL, { top: -50, end: -35 })}
+      />
       <SectionHeader
         title={title}
         icon={type === 'found' ? 'checkmark-circle-outline' : 'search-outline'}
@@ -626,6 +654,16 @@ const HomeScreen = ({ navigation }) => {
             TrendingSection has been retired - this header now covers the
             space it and StatsSection used to share. */}
         <Animated.View style={[animatedSectionStyle(0), styles.headerStack]}>
+          {/* Same glass-blob family as the panels below - mirrors Dash.js's
+              mobile-branch mapBlob (brandLogo, the map's own accent color per
+              CLAUDE.md's world-activity-map notes) tucked into the header's
+              top-end corner. */}
+          <GlowBlob
+            color={tokens.brandLogo}
+            opacity={isDark ? 0.16 : 0.1}
+            size={200}
+            style={logical(isRTL, { top: -20, end: -40 })}
+          />
           {!hasNoData && (
             <View style={styles.mapBackdrop} pointerEvents="none">
               <WorldActivityMap
@@ -644,6 +682,8 @@ const HomeScreen = ({ navigation }) => {
             t={t}
             styles={styles}
             tokens={tokens}
+            isDark={isDark}
+            isRTL={isRTL}
             onFoundPress={() => goToPosts({ initialFl: foundOption?._id || '' })}
             onLostPress={() => goToPosts({ initialFl: lostOption?._id || '' })}
           />
@@ -663,6 +703,7 @@ const HomeScreen = ({ navigation }) => {
             styles={styles}
             tokens={tokens}
             isRTL={isRTL}
+            isDark={isDark}
             onSeeAll={() => goToPosts({ initialFl: foundOption?._id || '' })}
             onPressItem={goToPost}
           />
@@ -678,6 +719,7 @@ const HomeScreen = ({ navigation }) => {
             styles={styles}
             tokens={tokens}
             isRTL={isRTL}
+            isDark={isDark}
             onSeeAll={() => goToPosts({ initialFl: lostOption?._id || '' })}
             onPressItem={goToPost}
           />
@@ -783,6 +825,10 @@ const createStyles = (tokens, isRTL, isDark) =>
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
       padding: 20,
+      // Clips the corner glow (GlowBlob) to the panel's own rounded shape,
+      // matching web's `overflow: 'hidden'` card treatment for this same
+      // glass-blob family.
+      overflow: 'hidden',
     },
     panelTitleCentered: {
       fontFamily: fontFamilies.display,
