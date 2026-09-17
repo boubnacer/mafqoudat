@@ -1,11 +1,12 @@
 /**
  * Posts List Screen
- * Mirrors: client/src/features/posts/PostsList/PostsList.js
- * Card visuals mirror the same "post card DNA" used on HomeScreen's trending
- * card / client's PublicPostsPage: surfaceRaised + radius.lg card, a
- * borderStart accent bar in the post's status color, a solid status tag
- * overlay on the image, and a translucent date badge - see CLAUDE.md's
- * "Established component patterns" section.
+ * Mirrors: client/src/features/posts/PostsList/PostsList.js and its card,
+ * client/src/features/posts/PostsList/Post.js. The card is a photo-top
+ * block (status pill + category pill(s) overlaid at its top corners, a
+ * resolved badge and a "posted X ago" pill overlaid at its bottom corners),
+ * then the city with a location pin, then a 3-column stats bar (site views /
+ * reactions / comments). No search bar - web's PostsList.js has none either;
+ * `?search=` only ever gets seeded from a URL param there.
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -19,7 +20,6 @@ import {
   RefreshControl,
   TouchableOpacity,
   Image,
-  TextInput,
   ScrollView,
   Animated,
 } from 'react-native';
@@ -41,35 +41,26 @@ import PostFilterDialog from '../components/PostFilterDialog';
 import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
-import { PostReachRow } from '../components/SocialReach';
-import GradientHeading from '../components/GradientHeading';
+import { summarizeSocialStats, readSiteViews } from '../utils/socialStats';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
 import { logical, row, alignStart, needsDirectionFlip } from '../utils/rtl';
 import { formatRelativeTime } from '../utils/relativeTime';
 
-const SEARCH_DEBOUNCE_MS = 400;
 const PAGE_SIZE = 5;
 const SECTION_COUNT = 2;
 const SKELETON_CARD_COUNT = 3;
 
-// Shaped like the real postCard below - header row, headline, inset media,
-// then the copy lines - but with neutral blocks, since the skeleton doesn't
-// know the post type (or its city) yet.
+// Shaped like the real postCard below - the inset photo block, then the city
+// line, then the stats bar - with neutral blocks, since the skeleton doesn't
+// know the post type (or its city) yet. No search-bar placeholder: the
+// screen has no search bar, mirroring web's PostsList.js.
 const PostsListSkeleton = ({ styles, tokens }) => (
   <View style={styles.skeletonWrap}>
-    <SkeletonBlock tokens={tokens} style={styles.searchSkeleton} />
     {Array.from({ length: SKELETON_CARD_COUNT }).map((_, i) => (
       <View key={i} style={styles.postCardSkeleton}>
-        <View style={styles.headerRowSkeleton}>
-          <SkeletonBlock tokens={tokens} style={styles.statusTagSkeleton} />
-          <SkeletonBlock tokens={tokens} style={styles.openActionSkeleton} />
-        </View>
-        <SkeletonBlock tokens={tokens} style={styles.titleLineSkeleton} />
-        <SkeletonBlock tokens={tokens} style={styles.postMediaSkeleton} />
-        <View style={styles.postContentSkeleton}>
-          <SkeletonBlock tokens={tokens} style={styles.bodyLineSkeleton} />
-          <SkeletonBlock tokens={tokens} style={styles.bodyLineShortSkeleton} />
-        </View>
+        <SkeletonBlock tokens={tokens} style={styles.photoSkeleton} />
+        <SkeletonBlock tokens={tokens} style={styles.cityLineSkeleton} />
+        <SkeletonBlock tokens={tokens} style={styles.statsBarSkeleton} />
       </View>
     ))}
   </View>
@@ -109,19 +100,53 @@ const getElevation = (isDark, level = 1) =>
 
 // getAllPosts's aggregation returns a Categories array (new format) with a
 // Category/categoryname fallback for legacy posts - same shape the dashboard
-// aggregation projects (see server/controllers/postsController.js).
-const getCategoryInfo = (item) => {
-  if (Array.isArray(item?.Categories) && item.Categories.length > 0) return item.Categories[0];
-  if (item?.Category?.code) return item.Category;
-  if (item?.categoryname) return { code: item.categoryname, labels: null };
-  return null;
+// aggregation projects (see server/controllers/postsController.js), and the
+// same shape client/src/features/posts/PostsList/Post.js's own `categories`
+// reads, since a listing can carry more than one. Never empty, same as web's
+// own fallback - a post with nothing resolvable still gets one OTHER entry,
+// so callers never have to special-case a zero-length list.
+const getCategoriesList = (item) => {
+  if (Array.isArray(item?.Categories) && item.Categories.length > 0) return item.Categories;
+  if (item?.Category?.code) return [item.Category];
+  if (item?.categoryname) return [{ code: item.categoryname, labels: null }];
+  return [{ code: 'OTHER', labels: null }];
 };
 
-const getCategoryLabel = (item, currentLanguage) => {
-  const cat = getCategoryInfo(item);
-  if (!cat) return null;
-  return cat.labels ? cat.labels[currentLanguage] || cat.labels.en || cat.code : cat.code;
-};
+// No-image state: category icon on a frosted circle backdrop with the
+// category name beneath it as a matching pill, centered - mirrors web
+// Post.js's CategoryIconLabel. Sized up when it's the only category on the
+// card, same as web's single-vs-multiple split.
+const CategoryIconLabel = ({ icon, label, color, single, tokens }) => (
+  <View style={{ alignItems: 'center', gap: 6 }}>
+    <View
+      style={{
+        width: single ? 72 : 48,
+        height: single ? 72 : 48,
+        borderRadius: 999,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: `${tokens.surfaceRaised}8C`,
+      }}
+    >
+      <Ionicons name={icon} size={single ? 40 : 26} color={color} />
+    </View>
+    <Text
+      numberOfLines={1}
+      style={{
+        maxWidth: 110,
+        backgroundColor: `${tokens.surfaceRaised}8C`,
+        color,
+        fontFamily: fontFamilies.bodySemiBold,
+        fontSize: single ? 12 : 11,
+        borderRadius: 999,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+      }}
+    >
+      {label}
+    </Text>
+  </View>
+);
 
 // city here can be an object ({ labels, code, ... }) or absent - never a bare
 // ObjectId string like the dashboard aggregation's city field.
@@ -174,8 +199,6 @@ const PostsListScreen = ({ navigation, route }) => {
   const getSectionStyle = useStaggeredFadeIn(SECTION_COUNT, hasLoadedOnce);
 
   const [countryId, setCountryId] = useState(null);
-  const [searchText, setSearchText] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedFl, setSelectedFl] = useState('');
   const [isFlRestored, setIsFlRestored] = useState(false);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
@@ -270,15 +293,7 @@ const PostsListScreen = ({ navigation, route }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route.params?.initialCategoryId]);
 
-  // Debounce free-text search input.
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchText.trim());
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [searchText]);
-
-  // Any filter/search/country/language change resets to page 1 and recomposes the query.
+  // Any filter/country/language change resets to page 1 and recomposes the query.
   // Waits on isFlRestored too, so the very first fetch already carries the
   // restored post-type filter instead of firing once with the default ('')
   // and again once storage resolves.
@@ -286,7 +301,7 @@ const PostsListScreen = ({ navigation, route }) => {
     if (!countryId || !isFlRestored) return;
     loadPosts(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countryId, isFlRestored, selectedFl, selectedCategoryIds, selectedCityId, debouncedSearch, currentLanguage]);
+  }, [countryId, isFlRestored, selectedFl, selectedCategoryIds, selectedCityId, currentLanguage]);
 
   // Regaining focus (e.g. returning from creating a post, from a post's detail
   // screen, or from changing the account country in EditProfileScreen) re-syncs
@@ -318,7 +333,7 @@ const PostsListScreen = ({ navigation, route }) => {
         isActive = false;
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [countryId, selectedFl, selectedCategoryIds, selectedCityId, debouncedSearch, currentLanguage])
+    }, [countryId, selectedFl, selectedCategoryIds, selectedCityId, currentLanguage])
   );
 
   const loadPosts = async (pageNum, isRefresh = false) => {
@@ -348,7 +363,6 @@ const PostsListScreen = ({ navigation, route }) => {
           currentCountry: countryId,
           ...(selectedCategoryIds.length > 0 && { categoryIds: selectedCategoryIds.join(',') }),
           ...(selectedCityId && { cityId: selectedCityId }),
-          ...(debouncedSearch && { search: debouncedSearch }),
           language: currentLanguage || 'en',
         },
       });
@@ -477,13 +491,9 @@ const PostsListScreen = ({ navigation, route }) => {
     setSelectedCategoryIds([]);
     setSelectedCityId(null);
     setSelectedCityLabel('');
-    setSearchText('');
-    setDebouncedSearch('');
   };
 
-  const isFilterActive = Boolean(
-    selectedFl || selectedCategoryIds.length > 0 || selectedCityId || debouncedSearch
-  );
+  const isFilterActive = Boolean(selectedFl || selectedCategoryIds.length > 0 || selectedCityId);
   const activeFilterCount =
     (selectedFl ? 1 : 0) + selectedCategoryIds.length + (selectedCityId ? 1 : 0);
 
@@ -534,9 +544,31 @@ const PostsListScreen = ({ navigation, route }) => {
     const found = isFoundType(item, floptions);
     const tone = found ? tokens.status.found : tokens.status.lost;
     const imageUri = getImageUri(item.image);
-    const categoryConfig = getCategoryConfig(getCategoryInfo(item)?.code);
-    const categoryLabel = getCategoryLabel(item, currentLanguage);
+    const categoriesList = getCategoriesList(item);
+    const categoryConfigs = categoriesList.map((cat) => getCategoryConfig(cat.code));
+    const categoryLabels = categoriesList.map((cat) =>
+      cat.labels ? cat.labels[currentLanguage] || cat.labels.en || cat.code : cat.code
+    );
     const cityLabel = getCityLabel(item, currentLanguage);
+
+    // Same three-number stats bar as web Post.js - site views alongside
+    // reactions/comments combined across Facebook + Instagram (never summed
+    // with views: a page visit and a social impression are different units).
+    const siteViews = readSiteViews(item);
+    const socialStats = summarizeSocialStats(item);
+    const combineCounts = (a, b) => (a === null && b === null ? null : (a || 0) + (b || 0));
+    const reactionsCount = combineCounts(socialStats.facebook.reactions, socialStats.instagram.likes);
+    const commentsCount = combineCounts(socialStats.facebook.comments, socialStats.instagram.comments);
+    const statsBarItems = [
+      { key: 'views', label: t('viewsLabel'), value: siteViews },
+      { key: 'reactions', label: t('reactions'), value: reactionsCount },
+      { key: 'comments', label: t('comments'), value: commentsCount },
+    ];
+
+    // No-image backdrop: a translucent tint of the category's own color(s),
+    // blended across every category on a multi-category post - mirrors web's
+    // noImageBackground gradient.
+    const noImageTints = categoryConfigs.map((cfg) => `${cfg.color}${isDark ? '52' : '38'}`);
 
     return (
       <TouchableOpacity
@@ -544,75 +576,111 @@ const PostsListScreen = ({ navigation, route }) => {
         activeOpacity={0.9}
         onPress={() => navigation.navigate('PostDetailScreen', { id: item?._id || item?.id })}
       >
-        {/* Header row: what kind of listing this is, and how to open it. */}
-        <View style={styles.cardHeaderRow}>
-          <View style={[styles.statusTag, { backgroundColor: tone.main }]}>
-            <Ionicons name={found ? 'checkmark-circle' : 'search'} size={13} color="#FFFFFF" />
-            <Text style={styles.statusTagText}>{found ? t('found') : t('lost')}</Text>
-          </View>
-          <View style={styles.openAction}>
-            <Ionicons
-              name="arrow-forward"
-              size={18}
-              color="#FFFFFF"
-              style={needsDirectionFlip(isRTL) ? styles.openActionIconRTL : styles.openActionIcon}
-            />
-          </View>
-        </View>
+        {/* Photo: the card's top block, inset from the card's own edges. */}
+        <View style={styles.photoWrap}>
+          <View style={styles.photoBox}>
+            {imageUri ? (
+              <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
+            ) : (
+              <>
+                {noImageTints.length > 1 ? (
+                  <LinearGradient
+                    colors={noImageTints}
+                    start={{ x: isRTL ? 1 : 0, y: 0 }}
+                    end={{ x: isRTL ? 0 : 1, y: 0 }}
+                    style={StyleSheet.absoluteFill}
+                  />
+                ) : (
+                  <View style={[StyleSheet.absoluteFill, { backgroundColor: noImageTints[0] }]} />
+                )}
+                <View style={styles.categoryIconsWrap}>
+                  {categoriesList.slice(0, 4).map((cat, index) => (
+                    <CategoryIconLabel
+                      key={cat.code || index}
+                      icon={categoryConfigs[index].icon}
+                      label={categoryLabels[index]}
+                      color={categoryConfigs[index].color}
+                      single={categoriesList.length <= 1}
+                      tokens={tokens}
+                    />
+                  ))}
+                </View>
+              </>
+            )}
 
-        {/* The city, as the card's headline. */}
-        {cityLabel ? <GradientHeading text={cityLabel} fontSize={26} style={styles.cardTitle} /> : null}
-
-        {/* Media, inset inside the card rather than bleeding to its edges. */}
-        <View style={styles.postMedia}>
-          {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
-          ) : (
-            <View style={[styles.postImagePlaceholder, { backgroundColor: `${categoryConfig.color}1F` }]}>
-              <Ionicons name={categoryConfig.icon} size={44} color={categoryConfig.color} />
+            {/* Status: found/lost, solid tone.main pill, top-start. */}
+            <View style={[styles.statusTag, { backgroundColor: tone.main }]}>
+              <Ionicons name={found ? 'checkmark-circle' : 'search'} size={16} color="#FFFFFF" />
+              <Text style={styles.statusTagText}>{found ? t('found') : t('lost')}</Text>
             </View>
-          )}
-        </View>
 
-        <View style={styles.postContent}>
-          {/* Where it was lost or found - the city is already the headline, so
-              this is the line that narrows it down to a street or a landmark. */}
-          {item.exactLocation ? (
-            <Text style={styles.exactLocationText} numberOfLines={2}>
-              {item.exactLocation}
-            </Text>
-          ) : null}
-
-          {categoryLabel ? (
-            <View style={[styles.categoryPill, { backgroundColor: `${categoryConfig.color}${isDark ? '33' : '1F'}` }]}>
-              <Ionicons name={categoryConfig.icon} size={13} color={categoryConfig.color} />
-              <Text style={[styles.categoryPillText, { color: categoryConfig.color }]} numberOfLines={1}>
-                {categoryLabel}
-              </Text>
-            </View>
-          ) : null}
-
-          {/* When the item was lost or found, and when the listing went up. */}
-          <View style={styles.factsRow}>
-            {item.mainDate && String(item.mainDate).trim() ? (
-              <View style={styles.infoRow}>
-                <Ionicons name="calendar-outline" size={14} color={`${tokens.ink}99`} />
-                <Text style={styles.infoRowText} numberOfLines={1}>
-                  {item.mainDate}
-                </Text>
+            {/* Category pill(s), top-end - photo-only, same as web: with no
+                photo the centered CategoryIconLabel above already carries the
+                category name, and stacking this on top would duplicate it. */}
+            {imageUri ? (
+              <View style={styles.categoryBadgesWrap}>
+                {categoriesList.map((cat, index) => (
+                  <View
+                    key={cat.code || index}
+                    style={[
+                      styles.categoryBadge,
+                      {
+                        backgroundColor: `${categoryConfigs[index].color}${isDark ? '33' : '1F'}`,
+                        borderColor: `${categoryConfigs[index].color}59`,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.categoryBadgeText, { color: categoryConfigs[index].color }]}
+                      numberOfLines={1}
+                    >
+                      {categoryLabels[index]}
+                    </Text>
+                  </View>
+                ))}
               </View>
             ) : null}
-            <View style={styles.infoRow}>
-              <Ionicons name="time-outline" size={14} color={`${tokens.ink}99`} />
-              <Text style={styles.infoRowText} numberOfLines={1}>
+
+            {/* Resolved/returned - dashboard-specific, bottom-start. */}
+            {item.returned ? (
+              <View style={styles.resolvedBadge}>
+                <Ionicons name="checkmark-circle" size={14} color="#FFFFFF" />
+                <Text style={styles.resolvedBadgeText}>{t('returned')}</Text>
+              </View>
+            ) : null}
+
+            {/* Date posted, bottom-end. */}
+            <View style={styles.dateBadge}>
+              <Ionicons name="time-outline" size={14} color="#FFFFFF" />
+              <Text style={styles.dateBadgeText} numberOfLines={1}>
                 {formatRelativeTime(item.createdAt, t, currentLanguage)}
               </Text>
             </View>
           </View>
+        </View>
 
-          <View style={styles.reachWrap}>
-            <PostReachRow post={item} />
+        {/* City, below the photo. */}
+        {cityLabel ? (
+          <View style={styles.cityRow}>
+            <Ionicons name="location" size={18} color={tokens.ink} />
+            <Text style={styles.cityText} numberOfLines={1}>
+              {cityLabel}
+            </Text>
           </View>
+        ) : null}
+
+        {/* Stats bar: the same reach metrics as web's, spelled out as a
+            3-column grid. */}
+        <View style={styles.statsBar}>
+          {statsBarItems.map((stat, index) => (
+            <View
+              key={stat.key}
+              style={[styles.statsBarCell, index < statsBarItems.length - 1 && styles.statsBarCellDivider]}
+            >
+              <Text style={styles.statsBarLabel}>{stat.label}</Text>
+              <Text style={styles.statsBarValue}>{stat.value !== null ? stat.value : '—'}</Text>
+            </View>
+          ))}
         </View>
       </TouchableOpacity>
     );
@@ -634,18 +702,6 @@ const PostsListScreen = ({ navigation, route }) => {
           <Animated.View style={getSectionStyle(0)}>
             <View style={styles.filterLauncherRow}>{filterLauncher}</View>
 
-            <View style={styles.searchRow}>
-              <Ionicons name="search-outline" size={18} color={`${tokens.ink}80`} style={styles.searchIcon} />
-              <TextInput
-                style={[styles.searchInput, isRTL && styles.textRTL]}
-                placeholder={t('searchPlaceholder')}
-                placeholderTextColor={`${tokens.ink}66`}
-                value={searchText}
-                onChangeText={setSearchText}
-                autoCapitalize="none"
-              />
-            </View>
-
             {isFilterActive ? (
               <View style={styles.activeFiltersRow}>
                 <ScrollView
@@ -653,18 +709,6 @@ const PostsListScreen = ({ navigation, route }) => {
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.activeFiltersContent}
                 >
-                  {debouncedSearch ? (
-                    <TouchableOpacity
-                      style={styles.activeChip}
-                      onPress={() => {
-                        setSearchText('');
-                        setDebouncedSearch('');
-                      }}
-                    >
-                      <Text style={styles.activeChipText}>"{debouncedSearch}"</Text>
-                      <Text style={styles.activeChipRemove}>✕</Text>
-                    </TouchableOpacity>
-                  ) : null}
                   {selectedFloption ? (
                     <TouchableOpacity style={styles.activeChip} onPress={() => handleSelectFl('')}>
                       <Text style={styles.activeChipText}>{getLocalizedLabel(selectedFloption, currentLanguage)}</Text>
@@ -837,30 +881,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       flex: 1,
       backgroundColor: tokens.postsListBackdrop,
     },
-    searchRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingTop: 12,
-      backgroundColor: tokens.postsListBackdrop,
-    },
-    searchIcon: {
-      position: 'absolute',
-      ...logical(isRTL, { start: 28 }),
-      zIndex: 1,
-    },
-    searchInput: {
-      flex: 1,
-      height: 44,
-      backgroundColor: tokens.surfaceRaised,
-      borderRadius: radiusTokens.md,
-      ...logical(isRTL, { paddingStart: 40, paddingEnd: 16 }),
-      fontFamily: fontFamilies.body,
-      fontSize: 15,
-      color: tokens.ink,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
-    },
     textRTL: {
       textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
       writingDirection: 'rtl',
@@ -875,7 +895,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     // (no radius) on the edge it touches and rounded only on the protruding
     // side. In-flow rather than position: fixed (RN has no scroll-fixed
     // overlay the way the web page does, and the screen has no separate
-    // fixed navbar to clear), so it sits right above the search row instead.
+    // fixed navbar to clear), so it sits at the top of the list instead.
     filterLauncherRow: {
       paddingTop: 4,
       paddingBottom: 8,
@@ -983,17 +1003,13 @@ const createStyles = (tokens, isRTL, isDark) =>
       padding: 16,
     },
 
-    // Initial-load skeleton - shaped like the search row + a handful of
-    // postCard-shaped placeholders below, so the transition into real
-    // content doesn't jump. Visible immediately (see useStaggeredFadeIn),
-    // the real content is what fades/slides in once hasLoadedOnce flips.
+    // Initial-load skeleton - shaped like a handful of postCard-shaped
+    // placeholders (photo block, city line, stats bar), so the transition
+    // into real content doesn't jump. Visible immediately (see
+    // useStaggeredFadeIn), the real content is what fades/slides in once
+    // hasLoadedOnce flips.
     skeletonWrap: {
       padding: 16,
-    },
-    searchSkeleton: {
-      height: 44,
-      borderRadius: radiusTokens.md,
-      marginBottom: 16,
     },
     postCardSkeleton: {
       backgroundColor: tokens.surfaceRaised,
@@ -1002,98 +1018,47 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingBottom: 14,
       overflow: 'hidden',
     },
-    headerRowSkeleton: {
-      flexDirection: row(isRTL),
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 14,
-      paddingTop: 14,
+    photoSkeleton: {
+      margin: 10,
+      aspectRatio: 4 / 3,
+      borderRadius: radiusTokens.xl,
     },
-    statusTagSkeleton: {
-      width: 78,
-      height: 26,
-      borderRadius: radiusTokens.sm,
-    },
-    openActionSkeleton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-    },
-    titleLineSkeleton: {
-      height: 26,
-      width: '55%',
-      alignSelf: 'center',
-      marginTop: 14,
-      marginBottom: 12,
-    },
-    postMediaSkeleton: {
-      marginHorizontal: 14,
-      height: 200,
-      borderRadius: radiusTokens.lg,
-    },
-    postContentSkeleton: {
-      paddingHorizontal: 14,
-      paddingTop: 14,
-      alignItems: 'center',
-      gap: 10,
-    },
-    bodyLineSkeleton: {
-      height: 13,
-      width: '80%',
-    },
-    bodyLineShortSkeleton: {
-      height: 13,
+    cityLineSkeleton: {
+      height: 16,
       width: '45%',
+      marginTop: 4,
+      marginHorizontal: 16,
+    },
+    statsBarSkeleton: {
+      height: 56,
+      borderRadius: 18,
+      marginHorizontal: 16,
+      marginTop: 14,
     },
 
-    // Post card - mirrors the redesigned web card in
-    // client/src/features/posts/PostsList/Post.js: one centred stack of status
-    // badge + open action, the city as a gradient headline, the photo inset
-    // inside the card, then the copy. Phase 8/9 still hold - the card itself is
-    // borderless and shadowless, and the badges/pills inside it are what carry
-    // depth. The screen behind it uses postsListBackdrop (not plain
+    // Post card - mirrors the actual web card in
+    // client/src/features/posts/PostsList/Post.js: the photo leads as an
+    // inset top block with the status/category badges, a resolved badge and
+    // a "posted X ago" pill overlaid on it, then a plain city row, then a
+    // 3-column stats bar. Phase 8/9 still hold - the card itself is
+    // borderless and shadowless, and the badges/pills inside it are what
+    // carry depth. The screen behind it uses postsListBackdrop (not plain
     // surfaceBase) so this plain-white card stands out from it.
     postCard: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.xl,
       marginBottom: 16,
-      paddingBottom: 14,
+      paddingBottom: 10,
       overflow: 'hidden',
     },
-    cardHeaderRow: {
-      flexDirection: row(isRTL),
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 14,
-      paddingTop: 14,
+    photoWrap: {
+      padding: 10,
     },
-    cardTitle: {
-      marginTop: 14,
-      marginBottom: 12,
-      paddingHorizontal: 14,
-    },
-    // The open action: the card opens on press anyway, this is the affordance
-    // that says so. Ionicons has no north-east arrow, so the forward arrow is
-    // rotated - and mirrored with the direction, like the web card's.
-    openAction: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: tokens.brandPrimary,
-      ...getElevation(isDark, 1),
-    },
-    openActionIcon: {
-      transform: [{ rotate: '-45deg' }],
-    },
-    openActionIconRTL: {
-      transform: [{ rotate: '45deg' }, { scaleX: -1 }],
-    },
-    postMedia: {
-      marginHorizontal: 14,
-      height: 200,
-      borderRadius: radiusTokens.lg,
+    photoBox: {
+      position: 'relative',
+      width: '100%',
+      aspectRatio: 4 / 3,
+      borderRadius: radiusTokens.xl,
       overflow: 'hidden',
       backgroundColor: tokens.surfaceBase,
     },
@@ -1101,77 +1066,139 @@ const createStyles = (tokens, isRTL, isDark) =>
       width: '100%',
       height: '100%',
     },
-    postImagePlaceholder: {
-      width: '100%',
-      height: '100%',
-      justifyContent: 'center',
+    categoryIconsWrap: {
+      ...StyleSheet.absoluteFillObject,
+      flexDirection: 'row',
+      flexWrap: 'wrap',
       alignItems: 'center',
+      justifyContent: 'center',
+      gap: 16,
+      padding: 12,
     },
+    // Status: solid tone.main pill, top-start overlay on the photo.
     statusTag: {
+      position: 'absolute',
+      top: 10,
+      ...logical(isRTL, { start: 10 }),
       flexDirection: row(isRTL),
       alignItems: 'center',
-      gap: 4,
-      paddingHorizontal: 10,
+      gap: 5,
+      paddingHorizontal: 11,
       paddingVertical: 6,
       borderRadius: radiusTokens.sm,
       ...getElevation(isDark, 1),
     },
     statusTagText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 11,
+      fontSize: 12,
       color: '#FFFFFF',
       textTransform: 'uppercase',
     },
-    postContent: {
-      paddingHorizontal: 14,
-      paddingTop: 14,
-      alignItems: 'center',
-      gap: 10,
-    },
-    // config/categories.js only carries a light-mode backgroundColor, which
-    // reads as a near-white pill on a dark card, so the pill washes the
-    // category's own color instead (same fix as the web card).
-    categoryPill: {
-      flexDirection: row(isRTL),
-      alignItems: 'center',
+    // Category pill(s): same top row as the status tag, opposite end -
+    // translucent per-category tint, config/categories.js's backgroundColor
+    // being light-mode-only is why this washes the category's own color
+    // instead (same fix as the web card).
+    categoryBadgesWrap: {
+      position: 'absolute',
+      top: 10,
+      ...logical(isRTL, { end: 10 }),
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'flex-end',
       gap: 6,
-      paddingHorizontal: 12,
-      paddingVertical: 7,
-      borderRadius: radiusTokens.md,
-      ...getElevation(isDark, 1),
+      maxWidth: '55%',
     },
-    categoryPillText: {
+    categoryBadge: {
+      borderWidth: 1,
+      borderRadius: radiusTokens.sm,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+    },
+    categoryBadgeText: {
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 12,
     },
-    exactLocationText: {
-      fontFamily: fontFamilies.body,
-      fontSize: 13,
-      lineHeight: 19,
-      color: `${tokens.ink}B8`,
-      textAlign: 'center',
-    },
-    factsRow: {
-      flexDirection: row(isRTL),
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexWrap: 'wrap',
-      gap: 14,
-    },
-    infoRow: {
+    // Resolved/returned - bottom-start overlay, opposite the date pill.
+    resolvedBadge: {
+      position: 'absolute',
+      bottom: 10,
+      ...logical(isRTL, { start: 10 }),
       flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 5,
-      flexShrink: 1,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: radiusTokens.sm,
+      backgroundColor: tokens.status.found.main,
     },
-    infoRowText: {
-      fontFamily: fontFamilies.body,
-      fontSize: 12,
-      color: `${tokens.ink}99`,
-      flexShrink: 1,
+    resolvedBadgeText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 11,
+      color: '#FFFFFF',
     },
-    reachWrap: {
+    // Date posted: translucent grey scrim pill, bottom-end overlay - same
+    // '#78808E' scrim the web card uses (the reference design's own
+    // translucent overlay color, not a design token - it exists only on top
+    // of a photo).
+    dateBadge: {
+      position: 'absolute',
+      bottom: 10,
+      ...logical(isRTL, { end: 10 }),
+      flexDirection: row(isRTL),
       alignItems: 'center',
+      gap: 5,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 999,
+      backgroundColor: '#78808E8C',
+    },
+    dateBadgeText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 12,
+      color: '#FFFFFF',
+    },
+    // City, below the photo - a plain row (pin icon + bold text), not a
+    // headline treatment: the actual web card doesn't gradient-style it.
+    cityRow: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      gap: 5,
+      paddingHorizontal: 16,
+      paddingTop: 10,
+    },
+    cityText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 14,
+      color: tokens.ink,
+      flexShrink: 1,
+    },
+    // Stats bar: site views / reactions / comments, a 3-column grid -
+    // mirrors web's reach metrics spelled out the same way.
+    statsBar: {
+      flexDirection: 'row',
+      borderRadius: 18,
+      backgroundColor: tokens.surfaceBase,
+      marginHorizontal: 6,
+      marginTop: 12,
+      paddingVertical: 10,
+    },
+    statsBarCell: {
+      flex: 1,
+      alignItems: 'center',
+      gap: 3,
+    },
+    statsBarCellDivider: {
+      ...logical(isRTL, { borderEndWidth: StyleSheet.hairlineWidth, borderEndColor: `${tokens.ink}1A` }),
+    },
+    statsBarLabel: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 11,
+      color: `${tokens.ink}99`,
+    },
+    statsBarValue: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 15,
+      color: tokens.brandLogo,
     },
 
     errorContainer: {
