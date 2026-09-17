@@ -35,7 +35,6 @@ import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react'
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   FlatList,
@@ -48,6 +47,7 @@ import {
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SvgXml } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -66,6 +66,7 @@ import {
   FilterIllustration,
   SecureIllustration,
 } from './OnboardingIllustrations';
+import { MAF_LOGO_XML } from '../../assets/mafLogoXml';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SLIDE_COUNT = 5;
@@ -120,16 +121,13 @@ const HORIZONTAL_DOMINANCE = 1.5;
 // the release thresholds and the progress dots.
 const clampIndex = (index) => Math.min(SLIDE_COUNT - 1, Math.max(0, index));
 
-// Same wordmark image LoginScreen/SignUpScreen/AppHeader use in place of a
-// text brand name.
-const BRAND_WORDMARK = require('../../../assets/mafWordmark.png');
-const WORDMARK_RATIO = 984 / 213;
-
-// Arabic rendering of the brand name, paired under the English wordmark image
-// on the first slide's lockup - a brand asset, not language-driven UI copy, so
-// it stays fixed the same way the wordmark image itself does not swap per
-// currentLanguage.
-const BRAND_WORDMARK_AR = 'مفقودات';
+// Slide 1's lockup is the full maflogoSVG.svg wordmark (Latin "MAFQOUDAT"
+// plus the Arabic "مفقودات" baked into the logo itself, hanging from the
+// search-glass handle) rather than the separate wordmark image + hardcoded
+// Arabic text LoginScreen/SignUpScreen/AppHeader still pair - those three
+// keep the plain wordmark image, this slide is the one place the unified
+// logo asset belongs.
+const LOGO_RATIO = 328 / 95;
 
 const LANGUAGE_CHIPS = [
   { code: 'en', nativeName: 'English' },
@@ -424,13 +422,13 @@ const OnboardingScreen = () => {
 
   const renderLanguageSlide = () => (
     <View style={styles.slideContent}>
-      <Image
-        source={BRAND_WORDMARK}
-        resizeMode="contain"
+      <SvgXml
+        xml={MAF_LOGO_XML}
+        width={styles.brandLogo.width}
+        height={styles.brandLogo.height}
+        style={styles.brandLogo}
         accessibilityLabel={t('brandName')}
-        style={styles.brandWordmarkImg}
       />
-      <Text style={styles.brandWordmarkAr}>{BRAND_WORDMARK_AR}</Text>
 
       <View style={styles.illustrationHolder}>
         <WelcomeMascotIllustration isDark={isDark} />
@@ -780,19 +778,12 @@ const createStyles = (tokens, mirrorRows) =>
       direction: 'ltr',
       alignItems: 'center',
     },
-    brandWordmarkImg: {
-      height: 30,
-      width: 30 * WORDMARK_RATIO,
-      marginBottom: 4,
-    },
-    // Arabic half of the slide-1 lockup, directly under the English wordmark
-    // image - same brand blue as the logo, Cairo (the display face) for a
-    // proper Arabic headline weight rather than the body face.
-    brandWordmarkAr: {
-      fontFamily: fontFamilies.display,
-      fontSize: 20,
-      color: BRAND_BLUE,
-      textAlign: 'center',
+    // The full logo (Latin wordmark + baked-in Arabic "مفقودات"), sized
+    // taller than the old bare-Latin wordmark (30dp) since it now carries
+    // both scripts in one lockup.
+    brandLogo: {
+      height: 48,
+      width: 48 * LOGO_RATIO,
       // ~1cm gap down to the illustration (96 CSS px/in ÷ 2.54cm/in ≈ 38dp).
       marginBottom: 38,
     },
