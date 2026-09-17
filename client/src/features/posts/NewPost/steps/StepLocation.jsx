@@ -624,7 +624,7 @@ const StepLocation = ({
         >
           {getFoundLostType(values.foundLost) === 'LOST'
             ? currentLanguage === 'ar'
-              ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث فقدت الغرض (مثال: حي النور، شارع الملك، بجانب المسجد، أو أي معلم مميز)'
+              ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث فقدت الغرض (مثال: اسم الحي، الشارع،  القرية، قرب اسم المقهى... )'
               : currentLanguage === 'fr'
                 ? 'Veuillez spécifier l\'emplacement exact et détaillé où vous avez perdu l\'objet (ex: Quartier Al-Nour, Rue du Roi, près de la mosquée, ou tout point de repère distinctif)'
                 : 'Please specify the precise and detailed location where you lost the item (e.g., Al-Nour District, King Street, near the mosque, or any distinctive landmark)'

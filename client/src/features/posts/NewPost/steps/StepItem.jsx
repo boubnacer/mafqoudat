@@ -173,23 +173,6 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
             : t('specifyItemTypeFound')
           }<RequiredMark />
         </FormLabel>
-        <Typography
-          variant="caption"
-          sx={{
-            mb: 1,
-            display: "block",
-            fontSize: '1rem',
-            color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
-            fontWeight: 500
-          }}
-        >
-          {currentLanguage === 'ar'
-            ? 'يمكنك اختيار عدة فئات (مثال: محفظة، أوراق، بطاقة هوية)'
-            : currentLanguage === 'fr'
-              ? 'Vous pouvez sélectionner plusieurs catégories (ex: portefeuille, papiers, carte d\'identité)'
-              : 'You can select multiple categories (e.g., wallet, papers, ID card)'
-          }
-        </Typography>
         <CategoryPickerField
           categories={categories}
           value={values.categories && Array.isArray(values.categories) && values.categories.length > 0
@@ -214,6 +197,25 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
 
       {documentsSelected && (
         <Box data-testid="documentTypesBlock">
+          {/* Why there is no photo on these listings, said once, where the
+              reader is making the choice that replaces it. */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 1.25,
+              mb: 2,
+              p: 1.5,
+              borderRadius: 2,
+              backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.08),
+            }}
+          >
+            <LockOutlined fontSize="small" sx={{ color: theme.custom.color.brandPrimary, mt: 0.25 }} />
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
+              {t('documentPrivacyNotice')}
+            </Typography>
+          </Box>
+
           <FormLabel
             htmlFor="documentTypes"
             sx={{
@@ -226,18 +228,6 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
           >
             {t('documentTitleFieldLabel')}<RequiredMark />
           </FormLabel>
-          <Typography
-            variant="caption"
-            sx={{
-              mb: 1,
-              display: "block",
-              fontSize: '1rem',
-              color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
-              fontWeight: 500
-            }}
-          >
-            {t('documentTitleFieldHint')}
-          </Typography>
           <DocumentTypePickerField
             value={values.documentTypes || []}
             onChange={(documentTypeIds) => {
@@ -318,26 +308,6 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
           </Box>
-
-          {/* The wizard drops its Photo step for these listings, and a step
-              that simply disappears reads as a bug - so it is said here, at
-              the moment the choice is made. */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 1.25,
-              mt: 1.5,
-              p: 1.5,
-              borderRadius: 2,
-              backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.08),
-            }}
-          >
-            <LockOutlined fontSize="small" sx={{ color: theme.custom.color.brandPrimary, mt: 0.25 }} />
-            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
-              {t('documentPrivacyNotice')}
-            </Typography>
-          </Box>
         </Box>
       )}
 
@@ -367,21 +337,6 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
         >
           {t('description')} ({t('optional')})
         </FormLabel>
-        <Typography
-          variant="caption"
-          sx={{
-            mb: 1,
-            display: "block",
-            fontSize: '1rem',
-            color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
-            fontWeight: 500
-          }}
-        >
-          {getFoundLostType(values.foundLost) === 'LOST'
-            ? (t('descriptionOptionalLostMessage') || "Description is optional but recommended when you don't have an image of the lost item.")
-            : (t('descriptionOptionalFoundMessage') || "Description is optional. You can add an image instead, or provide both for better identification.")
-          }
-        </Typography>
 
         {/* Sensitive Information Warning - Only show for Found items */}
         {getFoundLostType(values.foundLost) === 'FOUND' && (

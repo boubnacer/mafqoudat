@@ -104,18 +104,6 @@ const StepPhoto = ({
   return (
     <Box display="flex" flexDirection="column" gap={3}>
       {/* Image Section */}
-      <Typography
-        variant="h5"
-        sx={{
-          fontWeight: 700,
-          color: accentColor,
-          fontSize: '1.4rem',
-          mb: 1
-        }}
-      >
-        {t('itemImage')}
-      </Typography>
-
       <Box>
         <FormLabel
           htmlFor="image"
@@ -127,7 +115,7 @@ const StepPhoto = ({
             color: theme.palette.text.primary
           }}
         >
-          {t('itemImage')} ({t('optional')})
+          {t('uploadPhotoLabel')}
         </FormLabel>
         <Typography
           variant="caption"
