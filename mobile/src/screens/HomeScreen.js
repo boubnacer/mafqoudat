@@ -165,7 +165,7 @@ const SectionHeader = ({ title, icon, iconColor, onSeeAll, seeAllColor, t, style
 // Mirrors the blurred surfaceRaised panel shell shared by LeftSide.jsx /
 // TrendingItem.jsx's SectionPanel on web - every dashboard section now sits
 // in the same bordered/elevated card instead of floating on the page background.
-const Panel = ({ title, accentColor, style, styles, isRTL, children }) => (
+const Panel = ({ title, accentColor, style, titleStyle, styles, isRTL, children }) => (
   <View
     style={[
       styles.panelContainer,
@@ -173,7 +173,7 @@ const Panel = ({ title, accentColor, style, styles, isRTL, children }) => (
       style,
     ]}
   >
-    {title ? <Text style={styles.panelTitleCentered}>{title}</Text> : null}
+    {title ? <Text style={[styles.panelTitleCentered, titleStyle]}>{title}</Text> : null}
     {children}
   </View>
 );
@@ -268,7 +268,7 @@ const StatsSection = ({ data, isLoading, t, styles, tokens, isDark, isRTL, onFou
 
   if (isLoading && !data) {
     return (
-      <Panel title={t('statistics')} style={styles.statsPanelGlass} styles={styles}>
+      <Panel title={t('statistics')} style={styles.statsPanelGlass} titleStyle={styles.panelTitleStats} styles={styles}>
         {statsBlob}
         <SkeletonBlock tokens={tokens} style={styles.foundLostSkeleton} />
         <View style={styles.bigStatsRow}>
@@ -280,7 +280,7 @@ const StatsSection = ({ data, isLoading, t, styles, tokens, isDark, isRTL, onFou
   }
 
   return (
-    <Panel title={t('statistics')} style={styles.statsPanelGlass} styles={styles}>
+    <Panel title={t('statistics')} style={styles.statsPanelGlass} titleStyle={styles.panelTitleStats} styles={styles}>
       {statsBlob}
       <FoundLostStrip data={data} t={t} styles={styles} tokens={tokens} onFoundPress={onFoundPress} onLostPress={onLostPress} />
       <View style={styles.bigStatsRow}>
@@ -946,10 +946,16 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     panelTitleCentered: {
       fontFamily: fontFamilies.display,
-      fontSize: 22,
+      fontSize: 20,
       color: tokens.ink,
       textAlign: 'center',
       marginBottom: 16,
+    },
+    // Statistics panel matches web LeftSide.jsx's larger "hero" title scale
+    // (xs 24px), distinct from the 20px "section" scale every other panel
+    // title (incl. Browse by category) shares via panelTitleCentered.
+    panelTitleStats: {
+      fontSize: 24,
     },
     panelTitleInline: {
       fontFamily: fontFamilies.display,
@@ -1035,8 +1041,8 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     statSegmentValue: {
       fontFamily: fontFamilies.display,
-      fontSize: 36,
-      lineHeight: 40,
+      fontSize: 32,
+      lineHeight: 36,
     },
     statSegmentToday: {
       fontFamily: fontFamilies.body,
@@ -1078,7 +1084,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     bigStatCardTitle: {
       flex: 1,
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 14,
+      fontSize: 18,
       color: tokens.ink,
     },
     bigStatCardIcon: {
@@ -1090,12 +1096,12 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     bigStatCardValue: {
       fontFamily: fontFamilies.display,
-      fontSize: 30,
+      fontSize: 32,
       marginTop: 20,
     },
     bigStatCardDescription: {
       fontFamily: fontFamilies.body,
-      fontSize: 12,
+      fontSize: 16,
       color: `${tokens.ink}99`,
       marginTop: 6,
     },
@@ -1148,7 +1154,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       // parks it on the correct edge in both directions.
       flexShrink: 1,
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 13,
+      fontSize: 12,
       lineHeight: 16,
     },
     posterBadgeColumn: {
@@ -1252,7 +1258,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     quickActionsTitle: {
       fontFamily: fontFamilies.display,
-      fontSize: 22,
+      fontSize: 24,
       color: tokens.ink,
       textAlign: 'center',
       marginBottom: 8,
@@ -1295,7 +1301,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     quickActionsSearchButtonText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 14,
+      fontSize: 13,
       color: '#FFFFFF',
     },
     quickActionsButtons: {
@@ -1322,7 +1328,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     quickActionTitle: {
       fontFamily: fontFamilies.display,
-      fontSize: 16,
+      fontSize: 17,
       color: tokens.ink,
       marginBottom: 2,
     },
