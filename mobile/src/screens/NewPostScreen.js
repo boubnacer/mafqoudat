@@ -10,18 +10,34 @@ import { useFocusEffect } from '@react-navigation/native';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { useAuth } from '../context/AuthContext';
+import { useReferenceData } from '../context/ReferenceDataContext';
 import { useTranslation } from '../utils/translations';
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens } from '../theme/tokens';
 import PostForm from '../components/PostForm';
 import AppHeader from '../components/AppHeader';
 
-const NewPostScreen = ({ navigation }) => {
+const NewPostScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { isSignedIn, requireLogin } = useAuth();
+  const { floptions } = useReferenceData();
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const styles = useMemo(() => createStyles(tokens), [tokens]);
+
+  // Mirrors web's NewPostForm.js getDefaultFoundLost(): Home's Report Lost /
+  // Report Found quick actions hand off an `initialType` param the way
+  // web's `?type=lost|found` query param does, resolved here to the
+  // matching floption id and fed into PostForm through its existing
+  // initialPost mechanism - no new prop needed.
+  const initialType = route?.params?.initialType;
+  const initialFoundLostId = useMemo(() => {
+    if (initialType !== 'lost' && initialType !== 'found') return null;
+    const code = initialType === 'found' ? 'FOUND' : 'LOST';
+    const match = floptions.find((fl) => fl.code === code);
+    return match?._id || null;
+  }, [initialType, floptions]);
+  const initialPost = initialFoundLostId ? { foundLost: initialFoundLostId } : undefined;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
@@ -95,6 +111,7 @@ const NewPostScreen = ({ navigation }) => {
 
       <PostForm
         mode="create"
+        initialPost={initialPost}
         isSubmitting={isSubmitting}
         submitError={submitError}
         submitButtonLabel={t('publishPost')}
