@@ -214,6 +214,25 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
 
       {documentsSelected && (
         <Box data-testid="documentTypesBlock">
+          {/* Why there is no photo on these listings, said once, where the
+              reader is making the choice that replaces it. */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 1.25,
+              mb: 2,
+              p: 1.5,
+              borderRadius: 2,
+              backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.08),
+            }}
+          >
+            <LockOutlined fontSize="small" sx={{ color: theme.custom.color.brandPrimary, mt: 0.25 }} />
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
+              {t('documentPrivacyNotice')}
+            </Typography>
+          </Box>
+
           <FormLabel
             htmlFor="documentTypes"
             sx={{
@@ -317,26 +336,6 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
               inputProps={{ dir: 'ltr', maxLength: 100 }}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
-          </Box>
-
-          {/* The wizard drops its Photo step for these listings, and a step
-              that simply disappears reads as a bug - so it is said here, at
-              the moment the choice is made. */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 1.25,
-              mt: 1.5,
-              p: 1.5,
-              borderRadius: 2,
-              backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.08),
-            }}
-          >
-            <LockOutlined fontSize="small" sx={{ color: theme.custom.color.brandPrimary, mt: 0.25 }} />
-            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
-              {t('documentPrivacyNotice')}
-            </Typography>
           </Box>
         </Box>
       )}
