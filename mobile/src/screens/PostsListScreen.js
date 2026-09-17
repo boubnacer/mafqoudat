@@ -43,7 +43,7 @@ import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
 import { summarizeSocialStats, readSiteViews } from '../utils/socialStats';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
-import { logical, row, alignStart, needsDirectionFlip } from '../utils/rtl';
+import { logical, row, alignStart } from '../utils/rtl';
 import { formatRelativeTime } from '../utils/relativeTime';
 
 const PAGE_SIZE = 5;
@@ -194,7 +194,6 @@ const PostsListScreen = ({ navigation, route }) => {
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
 
   const getSectionStyle = useStaggeredFadeIn(SECTION_COUNT, hasLoadedOnce);
 
@@ -382,7 +381,6 @@ const PostsListScreen = ({ navigation, route }) => {
 
       setPosts(postsArray);
       setTotalPages(responseData.totalPages || 1);
-      setTotal(responseData.total || 0);
       setPage(responseData.page || pageNum);
       setError('');
       listRef.current?.scrollToOffset({ offset: 0, animated: true });
@@ -733,12 +731,6 @@ const PostsListScreen = ({ navigation, route }) => {
                 </ScrollView>
               </View>
             ) : null}
-
-            {total > 0 ? (
-              <Text style={[styles.resultsCount, isRTL && styles.textRTL]}>
-                {total} {t('posts')}
-              </Text>
-            ) : null}
           </Animated.View>
 
           {error && !isLoading && posts.length === 0 ? (
@@ -881,21 +873,14 @@ const createStyles = (tokens, isRTL, isDark) =>
       flex: 1,
       backgroundColor: tokens.postsListBackdrop,
     },
-    textRTL: {
-      textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
-      writingDirection: 'rtl',
-    },
     // Direction-dependent styles go through the helpers in utils/rtl.js
     // (row()/logical()), which compensate only when the language's direction
     // differs from the one native is already mirroring - see that file. Do NOT
     // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
     // cancels out native mirroring once forceRTL has taken effect on relaunch.
-    // Floating filter launcher - mirrors web's pop-up trigger: a pill docked
-    // to the inline-start edge like a tab sliding in from off-screen, flush
-    // (no radius) on the edge it touches and rounded only on the protruding
-    // side. In-flow rather than position: fixed (RN has no scroll-fixed
-    // overlay the way the web page does, and the screen has no separate
-    // fixed navbar to clear), so it sits at the top of the list instead.
+    // Floating filter launcher: docked to the inline-start edge, rounded
+    // there and flush (no radius) on the inline-end side - i.e. the right
+    // edge is square in LTR, and that mirrors to the left edge in RTL.
     filterLauncherRow: {
       paddingTop: 4,
       paddingBottom: 8,
@@ -903,10 +888,10 @@ const createStyles = (tokens, isRTL, isDark) =>
     filterLauncher: {
       alignSelf: alignStart(isRTL),
       ...logical(isRTL, {
-        borderTopStartRadius: 0,
-        borderBottomStartRadius: 0,
-        borderTopEndRadius: radiusTokens.xl,
-        borderBottomEndRadius: radiusTokens.xl,
+        borderTopStartRadius: radiusTokens.xl,
+        borderBottomStartRadius: radiusTokens.xl,
+        borderTopEndRadius: 0,
+        borderBottomEndRadius: 0,
       }),
       ...getElevation(isDark, 2),
     },
@@ -918,10 +903,10 @@ const createStyles = (tokens, isRTL, isDark) =>
       ...logical(isRTL, {
         paddingStart: 20,
         paddingEnd: 18,
-        borderTopStartRadius: 0,
-        borderBottomStartRadius: 0,
-        borderTopEndRadius: radiusTokens.xl,
-        borderBottomEndRadius: radiusTokens.xl,
+        borderTopStartRadius: radiusTokens.xl,
+        borderBottomStartRadius: radiusTokens.xl,
+        borderTopEndRadius: 0,
+        borderBottomEndRadius: 0,
       }),
     },
     filterLauncherText: {
@@ -980,15 +965,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       color: tokens.status.lost.main,
       fontSize: 13,
       fontFamily: fontFamilies.bodySemiBold,
-    },
-    resultsCount: {
-      paddingHorizontal: 16,
-      paddingTop: 12,
-      fontFamily: fontFamilies.bodyMedium,
-      fontSize: 12,
-      letterSpacing: 0.4,
-      textTransform: 'uppercase',
-      color: `${tokens.ink}99`,
     },
     inlineLoader: {
       marginTop: 12,
@@ -1071,11 +1047,19 @@ const createStyles = (tokens, isRTL, isDark) =>
       flexDirection: 'row',
       flexWrap: 'wrap',
       alignItems: 'center',
+      // `flexWrap: 'wrap'` puts cross-axis placement of the (single) wrapped
+      // line under `alignContent`, not `alignItems` - `alignItems` only
+      // centers content *within* a line. Without this the lone line pins to
+      // the top of the box (alignContent's default 'flex-start') instead of
+      // sitting dead-center in the photo container.
+      alignContent: 'center',
       justifyContent: 'center',
       gap: 16,
       padding: 12,
     },
-    // Status: solid tone.main pill, top-start overlay on the photo.
+    // Status: solid tone.main pill, top-start overlay on the photo - same
+    // radius as the photo container itself (radius.xl) so the pill's outer
+    // corner reads as part of the same rounded shape.
     statusTag: {
       position: 'absolute',
       top: 10,
@@ -1085,7 +1069,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       gap: 5,
       paddingHorizontal: 11,
       paddingVertical: 6,
-      borderRadius: radiusTokens.sm,
+      borderRadius: radiusTokens.xl,
       ...getElevation(isDark, 1),
     },
     statusTagText: {

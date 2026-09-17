@@ -83,10 +83,12 @@ const getElevation = (isDark, level = 1) =>
 
 // Accordion-style dropdown: a header row showing the current value (or
 // placeholder) toggles an inline option list, optionally preceded by a
-// search box. Reused for categories (multi-select, checkbox rows, no
-// search) and city (single-select + search).
+// search box. Reused for post type (single-select, no search, a tone-colored
+// leading icon per row - mirrors web's TypePickerField), categories
+// (multi-select, checkbox rows, no search) and city (single-select + search).
 const DropdownField = ({
   label,
+  firstField = false,
   placeholder,
   searchPlaceholder,
   displayValue,
@@ -98,6 +100,7 @@ const DropdownField = ({
   isSelected,
   onSelectOption,
   getOptionLabel,
+  renderOptionLeading,
   noResultsText,
   loading,
   searchable = true,
@@ -112,7 +115,7 @@ const DropdownField = ({
   const textStyle = isRTL ? styles.textRTL : null;
   return (
     <View style={styles.dropdownField} onLayout={onLayout}>
-      <Text style={[styles.sectionLabel, textStyle]}>{label}</Text>
+      <Text style={[styles.sectionLabel, firstField && styles.firstSectionLabel, textStyle]}>{label}</Text>
       <TouchableOpacity
         style={[styles.dropdownHeader, isOpen && styles.dropdownHeaderActive]}
         onPress={onToggle}
@@ -169,6 +172,7 @@ const DropdownField = ({
                       onPress={() => onSelectOption(option)}
                       activeOpacity={0.75}
                     >
+                      {renderOptionLeading ? renderOptionLeading(option) : null}
                       <Text
                         style={[styles.dropdownOptionText, textStyle, selected && styles.dropdownOptionTextSelected]}
                         numberOfLines={1}
@@ -378,6 +382,7 @@ const PostFilterDialog = ({
       icon: 'checkmark-circle-outline',
     },
   ].filter(Boolean);
+  const selectedTypeOption = postTypeOptions.find((option) => option.id === draftFl) || postTypeOptions[0];
 
   const textStyle = isRTL ? styles.textRTL : null;
 
@@ -416,37 +421,28 @@ const PostFilterDialog = ({
             keyboardShouldPersistTaps="handled"
             nestedScrollEnabled
           >
-            <Text style={[styles.sectionLabel, textStyle, styles.firstSectionLabel]}>{t('postType')}</Text>
-            <View style={styles.postTypeRow}>
-              {postTypeOptions.map((option) => {
-                const isSelected = draftFl === option.id;
-                return (
-                  <TouchableOpacity
-                    key={option.id || 'all'}
-                    style={[
-                      styles.postTypeOption,
-                      { borderColor: option.tone },
-                      isSelected && { backgroundColor: option.tone, ...getElevation(isDark, 1) },
-                    ]}
-                    onPress={() => setDraftFl(option.id)}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons
-                      name={option.icon}
-                      size={16}
-                      color={isSelected ? '#FFFFFF' : option.tone}
-                      style={styles.postTypeOptionIcon}
-                    />
-                    <Text
-                      style={[styles.postTypeOptionText, { color: isSelected ? '#FFFFFF' : option.tone }]}
-                      numberOfLines={1}
-                    >
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+            <DropdownField
+              label={t('postType')}
+              firstField
+              placeholder={t('all')}
+              displayValue={selectedTypeOption.label}
+              isOpen={openField === 'postType'}
+              onToggle={() => toggleField('postType')}
+              options={postTypeOptions}
+              searchable={false}
+              isSelected={(option) => option.id === draftFl}
+              onSelectOption={(option) => {
+                setDraftFl(option.id);
+                setOpenField(null);
+              }}
+              getOptionLabel={(option) => option.label}
+              renderOptionLeading={(option) => <Ionicons name={option.icon} size={16} color={option.tone} />}
+              noResultsText={t('noSearchResults')}
+              onLayout={handleFieldLayout('postType')}
+              styles={styles}
+              tokens={tokens}
+              isRTL={isRTL}
+            />
 
             <DropdownField
               label={t('categories')}
@@ -620,27 +616,6 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
     firstSectionLabel: {
       marginTop: 4,
-    },
-    postTypeRow: {
-      flexDirection: 'row',
-      gap: 10,
-      marginBottom: 4,
-    },
-    postTypeOption: {
-      flex: 1,
-      flexDirection: row(isRTL),
-      paddingVertical: 12,
-      borderRadius: radiusTokens.xl,
-      borderWidth: 1.5,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    postTypeOptionIcon: {
-      ...logical(isRTL, { marginEnd: 6 }),
-    },
-    postTypeOptionText: {
-      fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 13,
     },
     textRTL: {
       textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
