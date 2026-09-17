@@ -173,23 +173,6 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
             : t('specifyItemTypeFound')
           }<RequiredMark />
         </FormLabel>
-        <Typography
-          variant="caption"
-          sx={{
-            mb: 1,
-            display: "block",
-            fontSize: '1rem',
-            color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
-            fontWeight: 500
-          }}
-        >
-          {currentLanguage === 'ar'
-            ? 'يمكنك اختيار عدة فئات (مثال: محفظة، أوراق، بطاقة هوية)'
-            : currentLanguage === 'fr'
-              ? 'Vous pouvez sélectionner plusieurs catégories (ex: portefeuille, papiers, carte d\'identité)'
-              : 'You can select multiple categories (e.g., wallet, papers, ID card)'
-          }
-        </Typography>
         <CategoryPickerField
           categories={categories}
           value={values.categories && Array.isArray(values.categories) && values.categories.length > 0
@@ -245,18 +228,6 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
           >
             {t('documentTitleFieldLabel')}<RequiredMark />
           </FormLabel>
-          <Typography
-            variant="caption"
-            sx={{
-              mb: 1,
-              display: "block",
-              fontSize: '1rem',
-              color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
-              fontWeight: 500
-            }}
-          >
-            {t('documentTitleFieldHint')}
-          </Typography>
           <DocumentTypePickerField
             value={values.documentTypes || []}
             onChange={(documentTypeIds) => {
@@ -366,21 +337,6 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
         >
           {t('description')} ({t('optional')})
         </FormLabel>
-        <Typography
-          variant="caption"
-          sx={{
-            mb: 1,
-            display: "block",
-            fontSize: '1rem',
-            color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
-            fontWeight: 500
-          }}
-        >
-          {getFoundLostType(values.foundLost) === 'LOST'
-            ? (t('descriptionOptionalLostMessage') || "Description is optional but recommended when you don't have an image of the lost item.")
-            : (t('descriptionOptionalFoundMessage') || "Description is optional. You can add an image instead, or provide both for better identification.")
-          }
-        </Typography>
 
         {/* Sensitive Information Warning - Only show for Found items */}
         {getFoundLostType(values.foundLost) === 'FOUND' && (

@@ -1493,14 +1493,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
                 {/* Content pane */}
                 <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 700, color: accentColor, fontSize: '1.4rem' }}>
-                      {steps[Math.min(activeStep, steps.length - 1)].label}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.5 }}>
-                      {steps[Math.min(activeStep, steps.length - 1)].subtitle}
-                    </Typography>
-                  </Box>
+                  {activeStepKey !== 'item' && (
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 700, color: accentColor, fontSize: '1.4rem' }}>
+                        {steps[Math.min(activeStep, steps.length - 1)].label}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.5 }}>
+                        {steps[Math.min(activeStep, steps.length - 1)].subtitle}
+                      </Typography>
+                    </Box>
+                  )}
 
                   {status?.error && (
                     <Alert severity="error" sx={{ mb: 3 }}>
