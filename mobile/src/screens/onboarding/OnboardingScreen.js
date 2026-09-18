@@ -821,9 +821,13 @@ const createStyles = (tokens, mirrorRows) =>
     // taller than the old bare-Latin wordmark (30dp) since it now carries
     // both scripts in one lockup.
     brandLogo: {
-      height: 48,
-      width: 48 * LOGO_RATIO,
-      // ~1cm gap down to the illustration (96 CSS px/in ÷ 2.54cm/in ≈ 38dp).
+      height: 64,
+      width: 64 * LOGO_RATIO,
+      // Pulled up ~1cm (96 CSS px/in ÷ 2.54cm/in ≈ 38dp): slideContent centers
+      // its column, so a negative marginTop on the first child shifts the
+      // whole centered stack up by that amount rather than just the logo.
+      marginTop: -38,
+      // ~1cm gap down to the illustration.
       marginBottom: 38,
     },
     headline: {
