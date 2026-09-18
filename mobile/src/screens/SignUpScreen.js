@@ -10,9 +10,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image,
   Linking,
 } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -25,6 +25,7 @@ import { IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 import { GoogleGlyph, FacebookGlyph } from '../components/AuthSocialGlyphs';
 import { navigateAfterLogin } from '../navigation/afterLogin';
+import { MAF_LOGO_XML } from '../assets/mafLogoXml';
 
 // Same shape rules as LoginScreen.js (mirrors client/src/features/auth/SingUp/NewUserForm.js's
 // EMAIL_REGEX/PHONE_REGEX) - deliberately NOT the web form's buggy PWD_REGEX
@@ -34,9 +35,8 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[+]?[\d\s\-()]{7,20}$/;
 const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 
-// Same wordmark AppHeader uses in place of a text brand name.
-const BRAND_WORDMARK = require('../../assets/mafWordmark.png');
-const WORDMARK_RATIO = 984 / 213;
+// Same logo lockup AppHeader uses in place of a text brand name.
+const LOGO_RATIO = 328 / 95;
 
 const SignUpScreen = ({ navigation }) => {
   const { signInWithGoogle, signInWithFacebook, completeLogin, consumeLoginRedirect } = useAuth();
@@ -277,10 +277,11 @@ const SignUpScreen = ({ navigation }) => {
       >
         <View style={styles.content}>
           <View style={styles.brandSection}>
-            <Image
-              source={BRAND_WORDMARK}
+            <SvgXml
+              xml={MAF_LOGO_XML}
+              width={styles.brandWordmarkImg.width}
+              height={styles.brandWordmarkImg.height}
               style={styles.brandWordmarkImg}
-              resizeMode="contain"
               accessibilityLabel={t('brandName')}
             />
             <Text style={[styles.tagline, textStyle]}>{t('createAccountTagline')}</Text>
@@ -544,7 +545,7 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
   },
   brandWordmarkImg: {
     height: 30,
-    width: 30 * WORDMARK_RATIO,
+    width: 30 * LOGO_RATIO,
     marginTop: 32,
     marginBottom: 6,
   },

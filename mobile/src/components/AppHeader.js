@@ -21,7 +21,8 @@
  */
 
 import React, { useCallback, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -35,15 +36,15 @@ import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import CountryPickerModal from './CountryPickerModal';
 import HeaderMenu from './HeaderMenu';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
+import { MAF_LOGO_XML } from '../assets/mafLogoXml';
 
-// The in-app logo, NOT the launcher icon. assets/icon.png is the Android/iOS
-// app icon and has to be an opaque square with the glyph inset, which is the
-// wrong shape for a UI element: rendered here it showed a white box covering
-// the tinted tile behind it, with a visibly smaller glyph. brandMark.png is
-// the same artwork cropped tight to the glyph and left transparent.
-const BRAND_MARK = require('../../assets/brandMark.png');
-const BRAND_WORDMARK = require('../../assets/mafWordmark.png');
-const WORDMARK_RATIO = 984 / 213;
+// The full maflogoSVG.svg lockup (Latin "MAFQOUDAT" wordmark plus the Arabic
+// "مفقودات" baked into the logo's search-glass handle), same as the web
+// navbar. Replaces the old separate brandMark.png icon square + plain
+// wordmark image pairing: the icon square was the search-glass loupe on its
+// own, which the new logo already carries as its "Q" - keeping both would
+// show the same icon twice.
+const LOGO_RATIO = 328 / 95;
 
 // Mirrors PostsListScreen's own resolveCountry: the onboarding-selected
 // country takes priority, falling back to the account's registered country.
@@ -141,10 +142,12 @@ const AppHeader = ({
             accessibilityLabel={t('brandName')}
             activeOpacity={0.75}
           >
-            <View style={styles.brandMark}>
-              <Image source={BRAND_MARK} style={styles.brandMarkImg} resizeMode="contain" />
-            </View>
-            <Image source={BRAND_WORDMARK} style={styles.brandWordmarkImg} resizeMode="contain" />
+            <SvgXml
+              xml={MAF_LOGO_XML}
+              width={styles.brandLogo.width}
+              height={styles.brandLogo.height}
+              style={styles.brandLogo}
+            />
           </TouchableOpacity>
         )}
 
@@ -260,22 +263,9 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       alignItems: 'center',
       flexShrink: 1,
     },
-    brandMark: {
-      width: 40,
-      height: 40,
-      borderRadius: radiusTokens.md,
-      backgroundColor: `${tokens.brandPrimary}1F`,
-      justifyContent: 'center',
-      alignItems: 'center',
-      ...logical(isRTL, { marginEnd: 10 }),
-    },
-    brandMarkImg: {
-      width: 23,
-      height: 23,
-    },
-    brandWordmarkImg: {
-      height: 26,
-      width: 26 * WORDMARK_RATIO,
+    brandLogo: {
+      height: 32,
+      width: 32 * LOGO_RATIO,
     },
     backButton: {
       width: 36,
