@@ -45,6 +45,9 @@ import {
   TextInput,
   ActivityIndicator,
   Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
@@ -216,6 +219,12 @@ const OnboardingScreen = () => {
   const [countryError, setCountryError] = useState('');
   const [showCountryList, setShowCountryList] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // The country slide's content overflows once the list opens (illustration +
+  // headline + button + a 260-tall dropdown, all vertically centered), so the
+  // search input can sit below the fold even before the keyboard shows. Focus
+  // scrolls it into view; KeyboardAvoidingView (below) handles the keyboard
+  // itself, same as every other search screen in this app.
+  const countryScrollRef = useRef(null);
 
   useEffect(() => {
     loadCountries();
@@ -514,7 +523,13 @@ const OnboardingScreen = () => {
   );
 
   const renderCountrySlide = () => (
-    <View style={styles.slideContent}>
+    <ScrollView
+      ref={countryScrollRef}
+      style={styles.slideScroll}
+      contentContainerStyle={styles.slideContentScroll}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.illustrationHolder}>
         <SecureIllustration />
       </View>
@@ -574,6 +589,7 @@ const OnboardingScreen = () => {
               placeholderTextColor={tokens.ink + '80'}
               value={countrySearch}
               onChangeText={setCountrySearch}
+              onFocus={() => countryScrollRef.current?.scrollToEnd({ animated: true })}
               autoCapitalize="none"
             />
             {isLoadingCountries ? (
@@ -614,7 +630,7 @@ const OnboardingScreen = () => {
           </NeumorphicSurface>
         )}
       </View>
-    </View>
+    </ScrollView>
   );
 
   const renderSlideContent = (index) => {
@@ -640,86 +656,91 @@ const OnboardingScreen = () => {
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       {directionProbe}
 
-      <View style={[styles.header, mirrorRows && styles.headerRTL]}>
-        {!isLastSlide ? (
-          <TouchableOpacity onPress={handleSkip} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-            <Text style={styles.skipText}>{t('skip')}</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.skipPlaceholder} />
-        )}
-      </View>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoider}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={[styles.header, mirrorRows && styles.headerRTL]}>
+          {!isLastSlide ? (
+            <TouchableOpacity onPress={handleSkip} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+              <Text style={styles.skipText}>{t('skip')}</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.skipPlaceholder} />
+          )}
+        </View>
 
-      <View style={styles.pager} onLayout={handlePagerLayout} {...panResponder.panHandlers}>
-        {SLIDE_INDICES.map((index) => (
-          <Animated.View
-            key={index}
-            style={[styles.slide, { width: pagerWidth }, slideAnimatedStyles[index]]}
-            // Off-screen slides are pushed outside the pager's clipped box, but
-            // this also keeps their buttons out of the accessibility/touch tree.
-            pointerEvents={activeIndex === index ? 'auto' : 'none'}
-          >
-            {renderSlideContent(index)}
-          </Animated.View>
-        ))}
-      </View>
-
-      <View style={styles.footer}>
-        {/* The dots map to the slides' PHYSICAL order, which now follows the
-            picked language because the carousel's translateX does: dot 0 on the
-            left in en/fr, on the right in Arabic. styles.dotsRow works that out
-            against the measured layout direction, since a plain 'row' is
-            already mirrored once the tree really is RTL. */}
-        <View style={styles.dotsRow}>
-          {SLIDE_INDICES.map((i) => (
+        <View style={styles.pager} onLayout={handlePagerLayout} {...panResponder.panHandlers}>
+          {SLIDE_INDICES.map((index) => (
             <Animated.View
-              key={i}
-              style={[styles.dot, { width: dotWidths[i] }, activeIndex === i ? styles.dotActive : styles.dotInactive]}
-            />
+              key={index}
+              style={[styles.slide, { width: pagerWidth }, slideAnimatedStyles[index]]}
+              // Off-screen slides are pushed outside the pager's clipped box, but
+              // this also keeps their buttons out of the accessibility/touch tree.
+              pointerEvents={activeIndex === index ? 'auto' : 'none'}
+            >
+              {renderSlideContent(index)}
+            </Animated.View>
           ))}
         </View>
 
-        {/* The one accent-filled shape on the screen. It stays brand blue
-            rather than becoming a neumorphic face: a soft UI needs a single
-            element that clearly outranks the others, and a face painted in the
-            page tone cannot be that. Disabled is the exception - it has nothing
-            to outrank yet, so it drops to a sunken face like every other
-            unavailable control here. */}
-        {isCtaDisabled && !isSubmitting ? (
-          <NeumorphicSurface isDark={isDark} radius={radiusTokens.md} pressed contentStyle={styles.ctaFace}>
-            <Text style={[styles.ctaText, styles.ctaTextDisabled]}>
-              {isLastSlide ? t('getStarted') : t('next')}
-            </Text>
-          </NeumorphicSurface>
-        ) : (
-          // Submitting keeps the filled button (with its spinner) and only
-          // blocks the press - it is working, not unavailable.
-          <TouchableOpacity
-            style={[styles.ctaButton, styles.ctaFace]}
-            onPress={isLastSlide ? handleGetStarted : handleNext}
-            disabled={isCtaDisabled}
-            activeOpacity={0.85}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <View style={[styles.ctaContent, mirrorRows && styles.rowReverse]}>
-                <Text style={styles.ctaText}>{isLastSlide ? t('getStarted') : t('next')}</Text>
-                <Ionicons
-                  // Icons are never auto-mirrored, so this follows the PICKED
-                  // language's reading direction and flips the moment Arabic is
-                  // tapped - the same value the carousel's motionDir comes
-                  // from, so the arrow always points the way the slides go.
-                  name={isRTL ? 'arrow-back' : 'arrow-forward'}
-                  size={18}
-                  color="#FFFFFF"
-                  style={styles.ctaIcon}
-                />
-              </View>
-            )}
-          </TouchableOpacity>
-        )}
-      </View>
+        <View style={styles.footer}>
+          {/* The dots map to the slides' PHYSICAL order, which now follows the
+              picked language because the carousel's translateX does: dot 0 on the
+              left in en/fr, on the right in Arabic. styles.dotsRow works that out
+              against the measured layout direction, since a plain 'row' is
+              already mirrored once the tree really is RTL. */}
+          <View style={styles.dotsRow}>
+            {SLIDE_INDICES.map((i) => (
+              <Animated.View
+                key={i}
+                style={[styles.dot, { width: dotWidths[i] }, activeIndex === i ? styles.dotActive : styles.dotInactive]}
+              />
+            ))}
+          </View>
+
+          {/* The one accent-filled shape on the screen. It stays brand blue
+              rather than becoming a neumorphic face: a soft UI needs a single
+              element that clearly outranks the others, and a face painted in the
+              page tone cannot be that. Disabled is the exception - it has nothing
+              to outrank yet, so it drops to a sunken face like every other
+              unavailable control here. */}
+          {isCtaDisabled && !isSubmitting ? (
+            <NeumorphicSurface isDark={isDark} radius={radiusTokens.md} pressed contentStyle={styles.ctaFace}>
+              <Text style={[styles.ctaText, styles.ctaTextDisabled]}>
+                {isLastSlide ? t('getStarted') : t('next')}
+              </Text>
+            </NeumorphicSurface>
+          ) : (
+            // Submitting keeps the filled button (with its spinner) and only
+            // blocks the press - it is working, not unavailable.
+            <TouchableOpacity
+              style={[styles.ctaButton, styles.ctaFace]}
+              onPress={isLastSlide ? handleGetStarted : handleNext}
+              disabled={isCtaDisabled}
+              activeOpacity={0.85}
+            >
+              {isSubmitting ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <View style={[styles.ctaContent, mirrorRows && styles.rowReverse]}>
+                  <Text style={styles.ctaText}>{isLastSlide ? t('getStarted') : t('next')}</Text>
+                  <Ionicons
+                    // Icons are never auto-mirrored, so this follows the PICKED
+                    // language's reading direction and flips the moment Arabic is
+                    // tapped - the same value the carousel's motionDir comes
+                    // from, so the arrow always points the way the slides go.
+                    name={isRTL ? 'arrow-back' : 'arrow-forward'}
+                    size={18}
+                    color="#FFFFFF"
+                    style={styles.ctaIcon}
+                  />
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -729,6 +750,9 @@ const createStyles = (tokens, mirrorRows) =>
     safeArea: {
       flex: 1,
       backgroundColor: tokens.surfaceBase,
+    },
+    keyboardAvoider: {
+      flex: 1,
     },
     header: {
       height: 44,
@@ -769,6 +793,21 @@ const createStyles = (tokens, mirrorRows) =>
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 28,
+    },
+    // Country slide only: it's the one slide with a text input, and its
+    // content (illustration + headline + button + a 260-tall opened dropdown)
+    // is taller than the slide once the list opens, so it scrolls instead of
+    // the fixed View the other slides use.
+    slideScroll: {
+      flex: 1,
+      width: '100%',
+    },
+    slideContentScroll: {
+      flexGrow: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 28,
+      paddingVertical: 24,
     },
     // The illustrations position their own parts with physical left/right, which
     // React Native swaps under an RTL layout (doLeftAndRightSwapInRTL). Pinning
