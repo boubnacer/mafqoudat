@@ -335,6 +335,25 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   const documentsOnlyMode = documentsMode && photoSubjectCategories.length === 0;
   const MAX_DOCUMENT_TYPES = 6;
 
+  // The lead clause ("Photograph only the bag") is bolded so the one
+  // instruction that matters here doesn't read as one more line of fine
+  // print; the rest (how to cover the documents) stays regular weight.
+  // Mirrors the web New Post wizard's StepPhoto.jsx.
+  const documentsMixedNoticeText = photoSubjectCategories.length
+    ? t('photoDocumentsMixedNotice', {
+        categories: photoSubjectCategories
+          .map((category) => getLocalizedLabel(category, currentLanguage))
+          .join(isRTL ? '، ' : ', '),
+      })
+    : t('photoDocumentsMixedNoticeGeneric');
+  const documentsMixedNoticeDashIndex = documentsMixedNoticeText.indexOf('—');
+  const documentsMixedNoticeLead = documentsMixedNoticeDashIndex >= 0
+    ? documentsMixedNoticeText.slice(0, documentsMixedNoticeDashIndex).trimEnd()
+    : documentsMixedNoticeText;
+  const documentsMixedNoticeRest = documentsMixedNoticeDashIndex >= 0
+    ? documentsMixedNoticeText.slice(documentsMixedNoticeDashIndex)
+    : '';
+
   // Loaded lazily, the first time a listing is filed under DOCUMENTS. A failed
   // load is reported rather than retried in a loop: the reader can reopen the
   // picker, which asks again.
@@ -1054,7 +1073,6 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
         {activeStepKey === 'photo' && (
           <View style={styles.section}>
             <Text style={[styles.sectionLabel, textStyle]}>{t('uploadPhotoLabel')}</Text>
-            <Text style={[styles.helperText, textStyle]}>{t('imageOptionalMessage')}</Text>
             {/* A wallet found with papers in it keeps its photo - but the
                 photo is of the wallet. Naming the other categories is what
                 makes "leave the documents out" concrete. */}
@@ -1062,13 +1080,10 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               <View style={styles.documentNotice}>
                 <Ionicons name="lock-closed-outline" size={18} color={tokens.brandPrimary} />
                 <Text style={[styles.documentNoticeText, textStyle]}>
-                  {photoSubjectCategories.length
-                    ? t('photoDocumentsMixedNotice', {
-                        categories: photoSubjectCategories
-                          .map((category) => getLocalizedLabel(category, currentLanguage))
-                          .join(isRTL ? '، ' : ', '),
-                      })
-                    : t('photoDocumentsMixedNoticeGeneric')}
+                  <Text style={[styles.documentNoticeTextBold, textStyle]}>
+                    {documentsMixedNoticeLead}
+                  </Text>
+                  {documentsMixedNoticeRest ? ` ${documentsMixedNoticeRest}` : ''}
                 </Text>
               </View>
             ) : null}
@@ -1149,11 +1164,19 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
             </ReviewSection>
 
             {/* A listing that is only about documents has no Photo step to
-                review, and says instead why there is none. */}
+                review, and says instead why there is none. Mirrors the web
+                New Post wizard's StepReview.jsx title + message note. */}
             {documentsOnlyMode ? (
               <View style={styles.documentNotice}>
                 <Ionicons name="lock-closed-outline" size={18} color={tokens.brandPrimary} />
-                <Text style={[styles.documentNoticeText, textStyle]}>{t('documentPrivacyNotice')}</Text>
+                <View style={styles.documentNoticeBody}>
+                  <Text style={[styles.documentNoticeTitle, textStyle]}>
+                    {t('documentPhotoDisabledTitle')}
+                  </Text>
+                  <Text style={[styles.documentNoticeText, textStyle]}>
+                    {t('documentPhotoDisabledMessage')}
+                  </Text>
+                </View>
               </View>
             ) : (
               <ReviewSection styles={styles} title={steps[2].title} onEdit={() => handleEditStep('photo')} t={t}>
@@ -1795,6 +1818,25 @@ const createStyles = (tokens, legacy, isDark, isRTL) => {
       fontSize: 12,
       lineHeight: 18,
       color: `${tokens.ink}CC`,
+    },
+    // The lead clause of the mixed-category photo notice, bolded inline
+    // inside documentNoticeText - see PostForm's documentsMixedNoticeLead.
+    documentNoticeTextBold: {
+      fontWeight: '700',
+      color: tokens.ink,
+    },
+    // Wraps a bold title + the regular-weight message, for the
+    // documents-only review notice (mirrors web's subtitle2 + body2 pair).
+    documentNoticeBody: {
+      flex: 1,
+    },
+    documentNoticeTitle: {
+      fontFamily: fontFamilies.body,
+      fontWeight: '700',
+      fontSize: 13,
+      lineHeight: 18,
+      color: tokens.ink,
+      marginBottom: 2,
     },
     cantFindDocumentText: {
       marginTop: 14,
