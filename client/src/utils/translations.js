@@ -993,7 +993,7 @@ export const translations = {
     documentTitleFieldHint: "Pick the document from the list. Can't find it? Add it with \"Other document\" and it will be saved for everyone.",
     documentPrivacyNotice: "To protect personal information, listings about documents are published without a photo. The document is recognized by its owner using the document's title and the owner's name.",
     documentPhotoDisabledTitle: "Photos of documents are not allowed",
-    documentPhotoDisabledMessage: "A photo of the document reveals your name and other sensitive personal information. That is why this step is skipped: the document title you chose, together with its owner's name, is enough to identify it.",
+    documentPhotoDisabledMessage: "A photo of the document carries sensitive personal information. That is why this step is skipped: the document title you chose, together with its owner's name, is enough to identify it.",
     searchDocumentTitle: "Search a document title",
     noDocumentTitleFound: "No document title matches your search. Add it with \"Other document\" below.",
     documentTitlesLoadFailed: "Could not load the document titles.",
@@ -1026,8 +1026,8 @@ export const translations = {
     documentOwnerNameArabicScriptRequired: "The Arabic name must be written in Arabic letters.",
     documentOwnerNameLatinScriptRequired: "The Latin name must be written in Latin letters.",
     documentOwner: "Name on the document",
-    photoDocumentsMixedNotice: "Photograph only the {categories} — keep the documents out of the frame, or cover them. A photo of an official document shows its holder's name and number to everyone who opens the listing.",
-    photoDocumentsMixedNoticeGeneric: "Photograph only the item itself — keep the documents out of the frame, or cover them. A photo of an official document shows its holder's name and number to everyone who opens the listing.",
+    photoDocumentsMixedNotice: "Photograph only the {categories} — keep the documents out of the frame, or cover them.",
+    photoDocumentsMixedNoticeGeneric: "Photograph only the item itself — keep the documents out of the frame, or cover them.",
 
     // Form fields
     description: "Description",
@@ -3178,7 +3178,7 @@ export const translations = {
     documentTitleFieldHint: "Choisissez le document dans la liste. Absent ? Ajoutez-le avec « Autre document » : il sera enregistré pour tout le monde.",
     documentPrivacyNotice: "Pour protéger les informations à caractère personnel, les annonces concernant des documents sont publiées sans photo. Le document est reconnu par son propriétaire grâce au titre du document et au nom de son propriétaire.",
     documentPhotoDisabledTitle: "Les photos de documents ne sont pas autorisées",
-    documentPhotoDisabledMessage: "La photo du document révèle votre nom et d'autres informations personnelles sensibles. C'est pourquoi cette étape est ignorée : le titre du document que vous avez choisi, ainsi que le nom de son propriétaire, suffisent à l'identifier.",
+    documentPhotoDisabledMessage: "La photo du document contient des informations personnelles sensibles. C'est pourquoi cette étape est ignorée : le titre du document que vous avez choisi, ainsi que le nom de son propriétaire, suffisent à l'identifier.",
     searchDocumentTitle: "Rechercher un titre de document",
     noDocumentTitleFound: "Aucun titre ne correspond à votre recherche. Ajoutez-le avec « Autre document » ci-dessous.",
     documentTitlesLoadFailed: "Impossible de charger les titres de documents.",
@@ -3211,8 +3211,8 @@ export const translations = {
     documentOwnerNameArabicScriptRequired: "Le nom arabe doit être écrit en lettres arabes.",
     documentOwnerNameLatinScriptRequired: "Le nom latin doit être écrit en lettres latines.",
     documentOwner: "Nom figurant sur le document",
-    photoDocumentsMixedNotice: "Photographiez uniquement {categories} — laissez les documents hors du cadre, ou masquez-les. La photo d'un document officiel montre le nom et le numéro de son titulaire à toute personne qui ouvre l'annonce.",
-    photoDocumentsMixedNoticeGeneric: "Photographiez uniquement l'objet lui-même — laissez les documents hors du cadre, ou masquez-les. La photo d'un document officiel montre le nom et le numéro de son titulaire à toute personne qui ouvre l'annonce.",
+    photoDocumentsMixedNotice: "Photographiez uniquement {categories} — laissez les documents hors du cadre, ou masquez-les.",
+    photoDocumentsMixedNoticeGeneric: "Photographiez uniquement l'objet lui-même — laissez les documents hors du cadre, ou masquez-les.",
     
     // Form fields
     description: "Description",
@@ -5325,7 +5325,7 @@ export const translations = {
     documentTitleFieldHint: "اختر الوثيقة من القائمة. لم تجدها؟ أضفها عبر «وثيقة أخرى» وسيتم حفظها للجميع.",
     documentPrivacyNotice: "حماية للمعلومات ذات الطابع الشخصي، تُنشر الإعلانات المتعلقة بالوثائق بدون صورة، يتم التعرف على الوثيقة من طرف مالكها باستخدام عنوان الوثيقة واسم صاحبها.",
     documentPhotoDisabledTitle: "لا يسمح بتحميل صور للوثائق",
-    documentPhotoDisabledMessage: "صورة الوثيقة تكشف اسمك ومعلومات حساسة ذات الطابع الشخصي. لهذا تم تخطي هذه الخطوة: عنوان الوثيقة الذي اخترته واسم صاحبها يكفي للتعريف عليها.",
+    documentPhotoDisabledMessage: "صورة الوثيقة تحمل معلومات حساسة ذات الطابع الشخصي. لهذا تم تخطي هذه الخطوة: عنوان الوثيقة الذي اخترته واسم صاحبها يكفي للتعريف عليها.",
     searchDocumentTitle: "ابحث عن عنوان وثيقة",
     noDocumentTitleFound: "لا يوجد عنوان مطابق لبحثك. أضفه عبر «وثيقة أخرى» في الأسفل.",
     documentTitlesLoadFailed: "تعذر تحميل عناوين الوثائق.",
@@ -5358,8 +5358,8 @@ export const translations = {
     documentOwnerNameArabicScriptRequired: "يجب كتابة الاسم العربي بحروف عربية.",
     documentOwnerNameLatinScriptRequired: "يجب كتابة الاسم اللاتيني بحروف لاتينية.",
     documentOwner: "الاسم المكتوب على الوثيقة",
-    photoDocumentsMixedNotice: "صوّر {categories} فقط — واترك الوثائق خارج الصورة أو قم بتغطيتها. صورة وثيقة رسمية تكشف اسم صاحبها ورقمها لكل من يفتح الإعلان.",
-    photoDocumentsMixedNoticeGeneric: "صوّر الغرض نفسه فقط — واترك الوثائق خارج الصورة أو قم بتغطيتها. صورة وثيقة رسمية تكشف اسم صاحبها ورقمها لكل من يفتح الإعلان.",
+    photoDocumentsMixedNotice: "صوّر {categories} فقط — واترك الوثائق خارج الصورة أو قم بتغطيتها.",
+    photoDocumentsMixedNoticeGeneric: "صوّر الغرض نفسه فقط — واترك الوثائق خارج الصورة أو قم بتغطيتها.",
     
     // Form fields
     description: "الوصف",
