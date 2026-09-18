@@ -67,7 +67,6 @@ import {
   ReportIllustration,
   FindIllustration,
   FilterIllustration,
-  SecureIllustration,
 } from './OnboardingIllustrations';
 import { MAF_LOGO_XML } from '../../assets/mafLogoXml';
 
@@ -530,12 +529,6 @@ const OnboardingScreen = () => {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.illustrationHolder}>
-        <SecureIllustration />
-      </View>
-      <Text style={styles.headline}>{t('securePlatform')}</Text>
-      <Text style={styles.body}>{t('securePlatformDesc')}</Text>
-
       <View style={styles.countrySection}>
         <Text style={styles.countryTitle}>{t('chooseCountryTitle')}</Text>
         <Text style={styles.countrySubtitle}>{t('chooseCountryDescription')}</Text>
