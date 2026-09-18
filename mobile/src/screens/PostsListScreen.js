@@ -20,7 +20,6 @@ import {
   RefreshControl,
   TouchableOpacity,
   Image,
-  ScrollView,
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,7 +32,7 @@ import { storage } from '../utils/storage';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../context/AuthContext';
-import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
+import { useReferenceData } from '../context/ReferenceDataContext';
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import { getCategoryConfig } from '../config/categories';
@@ -43,11 +42,11 @@ import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
 import { summarizeSocialStats, readSiteViews } from '../utils/socialStats';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
-import { logical, row, alignStart } from '../utils/rtl';
+import { logical, row } from '../utils/rtl';
 import { formatRelativeTime } from '../utils/relativeTime';
 
 const PAGE_SIZE = 5;
-const SECTION_COUNT = 2;
+const SECTION_COUNT = 1;
 const SKELETON_CARD_COUNT = 3;
 
 // Shaped like the real postCard below - the inset photo block, then the city
@@ -459,20 +458,6 @@ const PostsListScreen = ({ navigation, route }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route.params?.initialFl]);
 
-  const handleToggleCategory = (id) => {
-    setSelectedCategoryIds((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
-  };
-
-  const handleSelectCity = (city) => {
-    if (city) {
-      setSelectedCityId(city.id);
-      setSelectedCityLabel(city.label);
-    } else {
-      setSelectedCityId(null);
-      setSelectedCityLabel('');
-    }
-  };
-
   const handleNewPostPress = async () => {
     // PostsListScreen only renders once signed in (RootNavigator swaps to the
     // auth stack otherwise), so this is a defensive check, not the primary gate.
@@ -495,9 +480,6 @@ const PostsListScreen = ({ navigation, route }) => {
   const activeFilterCount =
     (selectedFl ? 1 : 0) + selectedCategoryIds.length + (selectedCityId ? 1 : 0);
 
-  const selectedFloption = floptions.find((fl) => fl._id === selectedFl);
-  const selectedCategoryChips = categories.filter((cat) => selectedCategoryIds.includes(cat._id));
-
   // Commits the filter dialog's staged draft into the applied filters (which
   // is what the posts query reads) and closes it - mirrors web's
   // handleApplyFilters. selectedFl still goes through handleSelectFl so it
@@ -512,7 +494,10 @@ const PostsListScreen = ({ navigation, route }) => {
 
   // Floating filter launcher - mirrors web's mobile/tablet pop-up launcher: a
   // pill docked to the inline-start edge (flush there, rounded on the
-  // protruding side) rather than a control inside the navbar/header.
+  // protruding side), floating above the list as a fixed overlay rather than
+  // an in-flow row, so cards scroll underneath it exactly like web's
+  // `position: fixed` launcher. No separate active-filter chip strip below it
+  // (unlike web) - the applied count lives entirely in the pill's own badge.
   const filterLauncher = (
     <TouchableOpacity
       style={styles.filterLauncher}
@@ -693,46 +678,11 @@ const PostsListScreen = ({ navigation, route }) => {
         onBack={() => navigation.goBack()}
       />
 
+      <View style={styles.body}>
       {!hasLoadedOnce ? (
         <PostsListSkeleton styles={styles} tokens={tokens} />
       ) : (
         <>
-          <Animated.View style={getSectionStyle(0)}>
-            <View style={styles.filterLauncherRow}>{filterLauncher}</View>
-
-            {isFilterActive ? (
-              <View style={styles.activeFiltersRow}>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.activeFiltersContent}
-                >
-                  {selectedFloption ? (
-                    <TouchableOpacity style={styles.activeChip} onPress={() => handleSelectFl('')}>
-                      <Text style={styles.activeChipText}>{getLocalizedLabel(selectedFloption, currentLanguage)}</Text>
-                      <Text style={styles.activeChipRemove}>✕</Text>
-                    </TouchableOpacity>
-                  ) : null}
-                  {selectedCategoryChips.map((cat) => (
-                    <TouchableOpacity key={cat._id} style={styles.activeChip} onPress={() => handleToggleCategory(cat._id)}>
-                      <Text style={styles.activeChipText}>{getLocalizedLabel(cat, currentLanguage)}</Text>
-                      <Text style={styles.activeChipRemove}>✕</Text>
-                    </TouchableOpacity>
-                  ))}
-                  {selectedCityId ? (
-                    <TouchableOpacity style={styles.activeChip} onPress={() => handleSelectCity(null)}>
-                      <Text style={styles.activeChipText}>{selectedCityLabel}</Text>
-                      <Text style={styles.activeChipRemove}>✕</Text>
-                    </TouchableOpacity>
-                  ) : null}
-                  <TouchableOpacity onPress={handleClearAllFilters} style={styles.clearAllLink}>
-                    <Text style={styles.clearAllLinkText}>{t('clearFilters')}</Text>
-                  </TouchableOpacity>
-                </ScrollView>
-              </View>
-            ) : null}
-          </Animated.View>
-
           {error && !isLoading && posts.length === 0 ? (
             <DataStateView
               variant="error"
@@ -742,7 +692,7 @@ const PostsListScreen = ({ navigation, route }) => {
               isRTL={isRTL}
             />
           ) : (
-            <Animated.View style={[styles.listWrap, getSectionStyle(1)]}>
+            <Animated.View style={[styles.listWrap, getSectionStyle(0)]}>
               {error ? (
                 <View style={styles.errorContainer}>
                   <Text style={styles.errorText}>{error}</Text>
@@ -847,6 +797,11 @@ const PostsListScreen = ({ navigation, route }) => {
         </>
       )}
 
+      <View style={styles.filterLauncherFloating} pointerEvents="box-none">
+        {filterLauncher}
+      </View>
+      </View>
+
       <PostFilterDialog
         visible={filterDialogOpen}
         onClose={() => setFilterDialogOpen(false)}
@@ -873,6 +828,13 @@ const createStyles = (tokens, isRTL, isDark) =>
       flex: 1,
       backgroundColor: tokens.postsListBackdrop,
     },
+    // Wraps everything below the header so the floating launcher below can be
+    // positioned absolutely relative to it, on top of the list rather than
+    // pushing it down.
+    body: {
+      flex: 1,
+      position: 'relative',
+    },
     // Direction-dependent styles go through the helpers in utils/rtl.js
     // (row()/logical()), which compensate only when the language's direction
     // differs from the one native is already mirroring - see that file. Do NOT
@@ -881,14 +843,22 @@ const createStyles = (tokens, isRTL, isDark) =>
     // Floating filter launcher: docked to the inline-start edge, matching
     // web's mobile/tablet pop-up launcher - flush (no radius) there, since
     // that's the edge it touches, rounded only on the inline-end side that
-    // protrudes into the screen. I.e. the left edge is square in LTR, and
-    // that mirrors to the right edge in RTL.
-    filterLauncherRow: {
-      paddingTop: 4,
-      paddingBottom: 8,
+    // protrudes into the screen (i.e. the left edge is square in LTR, and
+    // that mirrors to the right edge in RTL), and pinned with `position:
+    // absolute` so it floats over the list exactly like web's `position:
+    // fixed` launcher - cards scroll underneath it instead of it pushing the
+    // list down. The wrapper itself carries no fill (fully transparent) so
+    // only the pill's own gradient reads against whatever scrolls behind it;
+    // `box-none` lets touches outside the pill's own bounds fall through to
+    // the list beneath.
+    filterLauncherFloating: {
+      position: 'absolute',
+      top: 12,
+      zIndex: 20,
+      elevation: 20,
+      ...logical(isRTL, { start: 0 }),
     },
     filterLauncher: {
-      alignSelf: alignStart(isRTL),
       ...logical(isRTL, {
         borderTopStartRadius: 0,
         borderBottomStartRadius: 0,
@@ -929,44 +899,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontSize: 11,
       fontFamily: fontFamilies.bodySemiBold,
       color: tokens.brandPrimary,
-    },
-    activeFiltersRow: {
-      paddingTop: 10,
-    },
-    activeFiltersContent: {
-      paddingHorizontal: 16,
-      alignItems: 'center',
-    },
-    activeChip: {
-      flexDirection: row(isRTL),
-      alignItems: 'center',
-      backgroundColor: `${tokens.brandPrimary}${isDark ? '29' : '14'}`,
-      borderRadius: radiusTokens.xl,
-      borderWidth: 1,
-      borderColor: `${tokens.brandPrimary}${isDark ? '59' : '38'}`,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      ...logical(isRTL, { marginEnd: 8 }),
-    },
-    activeChipText: {
-      color: tokens.brandPrimary,
-      fontFamily: fontFamilies.bodyMedium,
-      fontSize: 13,
-      ...logical(isRTL, { marginEnd: 6 }),
-    },
-    activeChipRemove: {
-      color: tokens.brandPrimary,
-      fontSize: 12,
-      fontFamily: fontFamilies.bodySemiBold,
-    },
-    clearAllLink: {
-      paddingHorizontal: 4,
-      paddingVertical: 6,
-    },
-    clearAllLinkText: {
-      color: tokens.status.lost.main,
-      fontSize: 13,
-      fontFamily: fontFamilies.bodySemiBold,
     },
     inlineLoader: {
       marginTop: 12,
