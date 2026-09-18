@@ -73,6 +73,23 @@ const StepPhoto = ({
   // already had - the ordinary gallery/file picker.
   const isFoundItem = getFoundLostType(values.foundLost) === 'FOUND';
 
+  // The lead clause ("Photograph only the bag") is bolded so the one
+  // instruction that actually matters here doesn't read as one more line of
+  // fine print; the rest (why, and how to cover the documents) stays regular
+  // weight. Split on the em dash both translations use to separate the two.
+  const documentsMixedNoticeText = photoSubjectLabels?.length
+    ? t('photoDocumentsMixedNotice', {
+        categories: photoSubjectLabels.join(currentLanguage === 'ar' ? '، ' : ', '),
+      })
+    : t('photoDocumentsMixedNoticeGeneric');
+  const documentsMixedNoticeDashIndex = documentsMixedNoticeText.indexOf('—');
+  const documentsMixedNoticeLead = documentsMixedNoticeDashIndex >= 0
+    ? documentsMixedNoticeText.slice(0, documentsMixedNoticeDashIndex).trimEnd()
+    : documentsMixedNoticeText;
+  const documentsMixedNoticeRest = documentsMixedNoticeDashIndex >= 0
+    ? documentsMixedNoticeText.slice(documentsMixedNoticeDashIndex)
+    : '';
+
   const [showWarningDialog, setShowWarningDialog] = useState(false);
   const [countdown, setCountdown] = useState(WARNING_COUNTDOWN_SECONDS);
 
@@ -117,18 +134,6 @@ const StepPhoto = ({
         >
           {t('uploadPhotoLabel')}
         </FormLabel>
-        <Typography
-          variant="caption"
-          sx={{
-            mb: 1,
-            display: "block",
-            fontSize: '1rem',
-            color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
-            fontWeight: 500
-          }}
-        >
-          {t('imageOptionalMessage')}
-        </Typography>
 
         {/* A wallet found with papers in it is still a wallet, so this listing
             keeps its photo - but the photo is of the wallet. Naming the other
@@ -148,11 +153,10 @@ const StepPhoto = ({
           >
             <LockOutlined fontSize="small" sx={{ color: theme.custom.color.brandPrimary, mt: 0.25 }} />
             <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
-              {photoSubjectLabels?.length
-                ? t('photoDocumentsMixedNotice', {
-                    categories: photoSubjectLabels.join(currentLanguage === 'ar' ? '، ' : ', '),
-                  })
-                : t('photoDocumentsMixedNoticeGeneric')}
+              <Box component="span" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                {documentsMixedNoticeLead}
+              </Box>
+              {documentsMixedNoticeRest && ` ${documentsMixedNoticeRest}`}
             </Typography>
           </Box>
         )}
