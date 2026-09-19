@@ -118,11 +118,6 @@ const MATCH_PREFIX = 2;
 const MATCH_CONTAINS = 1;
 const MATCH_NONE = 0;
 
-// A prefix match is the weakest score that still means "this is the place
-// they are typing" - anything below it is a neighbour the external API threw
-// in, and a list made only of those is a list with no answer in it.
-const STRONG_MATCH_SCORE = MATCH_PREFIX;
-
 const scoreText = (text, normalizedQuery) => {
   const candidate = normalizeCityText(text);
   if (!candidate || !normalizedQuery) return MATCH_NONE;
@@ -184,44 +179,10 @@ const rankCityMatches = (cities, rawQuery) => {
     .map((entry) => entry.city);
 };
 
-/**
- * Does this set of results contain an answer to the query, as opposed to a
- * list of places that merely came back from asking?
- * @param {Array<Object>} cities
- * @param {string} rawQuery
- * @returns {boolean}
- */
-const hasStrongCityMatch = (cities, rawQuery) =>
-  Array.isArray(cities) && cities.some((city) => scoreCityMatch(city, rawQuery) >= STRONG_MATCH_SCORE);
-
-// How many results to ask Google for when it is consulted because nothing
-// found so far answers the query, rather than because the list is short.
-const MIN_GOOGLE_RESULTS = 3;
-
 // How many database candidates to fetch per row shown. MongoDB's $text
 // answers in no particular order, so fetching exactly as many as will be
 // shown can drop the exact match and keep the near-misses. Ranking cuts.
 const CANDIDATE_OVERFETCH = 3;
-
-/**
- * Whether to spend a Google Places request on this search.
- *
- * The old rule was "only if the result list isn't full yet", and that is why
- * small places Google knows about never appeared: GeoNames' prefix and fuzzy
- * searches answer with up to twenty populated places, which fills all ten
- * slots with whatever shares a few letters with the query, and Google was
- * then never asked. Match quality, not row count, is what says whether there
- * is an answer in hand.
- *
- * @param {Object} params
- * @param {number} params.resultCount - Results gathered so far
- * @param {number} params.limit - Results the caller asked for
- * @param {boolean} params.hasStrongMatch - Does any of them answer the query
- * @param {boolean} params.needsArabicSupplement - GeoNames had no Arabic name
- * @returns {boolean}
- */
-const shouldConsultGooglePlaces = ({ resultCount, limit, hasStrongMatch, needsArabicSupplement }) =>
-  resultCount < limit || !hasStrongMatch || Boolean(needsArabicSupplement);
 
 /**
  * The key two spellings of one place share, for de-duplicating results that
@@ -243,14 +204,10 @@ module.exports = {
   buildCitySearchPattern,
   scoreCityMatch,
   rankCityMatches,
-  hasStrongCityMatch,
   cityDedupeKey,
-  shouldConsultGooglePlaces,
-  MIN_GOOGLE_RESULTS,
   CANDIDATE_OVERFETCH,
   MATCH_EXACT,
   MATCH_PREFIX,
   MATCH_CONTAINS,
   MATCH_NONE,
-  STRONG_MATCH_SCORE,
 };

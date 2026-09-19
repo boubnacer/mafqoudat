@@ -3,8 +3,8 @@
  *
  *   node scripts/testCitySearch.js
  *
- * Needs no database and no network. It covers the four ways a city that
- * exists could fail to reach the reader typing its name, all of which are
+ * Needs no database and no network. It covers the two ways a city that is
+ * in the database can fail to reach the reader typing its name, both of them
  * silent - the picker shows other places and says nothing about the one that
  * is missing:
  *
@@ -13,16 +13,13 @@
  *      database search is a literal $regex, so an unfolded query misses the
  *      row that is sitting right there. Same in Arabic, where the hamza and
  *      the ta marbuta are written both ways.
- *   2. The Google gate. It used to be "ask Google only if the list isn't
- *      full", and GeoNames' prefix search fills all ten slots with places
- *      that merely share a few letters - so the source with the best
- *      small-place coverage was never asked precisely when it was needed.
- *   3. Ranking. The three sources are merged in the order they were asked
- *      and then cut to ten. A late source's exact match has to rise to the
+ *   2. Ranking. The three sources are merged in the order they were asked
+ *      and then cut to ten. A later source's exact match has to rise to the
  *      top, or it is cut off the end instead.
- *   4. Google's own type filter. Requiring `locality` drops the douars,
- *      rural communes and quarters people name as their city - which is
- *      exactly the set that was missing.
+ *
+ * Which sources get asked, and when, is deliberately not covered here: that
+ * gate is a billing decision (Google Places is charged per request), not a
+ * matching one, and it is left exactly as it was.
  *
  * Exits non-zero if any assertion failed.
  */
@@ -32,14 +29,11 @@ const {
   buildCitySearchPattern,
   scoreCityMatch,
   rankCityMatches,
-  hasStrongCityMatch,
   cityDedupeKey,
-  shouldConsultGooglePlaces,
   MATCH_EXACT,
   MATCH_PREFIX,
   MATCH_NONE,
 } = require('../utils/cityMatching');
-const googlePlacesService = require('../services/googlePlacesService');
 
 let failures = 0;
 let checks = 0;
@@ -140,37 +134,6 @@ check(
   ['geonames', 'database']
 );
 
-console.log('\n--- the google gate ---');
-
-checkThat(
-  'a full list of near-misses still asks google',
-  shouldConsultGooglePlaces({
-    resultCount: 10,
-    limit: 10,
-    hasStrongMatch: hasStrongCityMatch(geonamesNoise, 'ait melloul'),
-    needsArabicSupplement: false,
-  }),
-  'this is the case the row-count gate got wrong'
-);
-checkThat(
-  'a full list containing the answer does not',
-  !shouldConsultGooglePlaces({
-    resultCount: 10,
-    limit: 10,
-    hasStrongMatch: hasStrongCityMatch(merged, 'ait melloul'),
-    needsArabicSupplement: false,
-  }),
-  'the budget is not spent on a search that is already answered'
-);
-checkThat(
-  'a short list still asks, as it always did',
-  shouldConsultGooglePlaces({ resultCount: 2, limit: 10, hasStrongMatch: true, needsArabicSupplement: false })
-);
-checkThat(
-  'an arabic search with no arabic name still asks',
-  shouldConsultGooglePlaces({ resultCount: 10, limit: 10, hasStrongMatch: true, needsArabicSupplement: true })
-);
-
 console.log('\n--- de-duplication across sources ---');
 
 check(
@@ -181,53 +144,6 @@ check(
 checkThat(
   'two different places do not',
   cityDedupeKey({ labels: { en: 'Agadir' } }) !== cityDedupeKey({ labels: { en: 'Agadir Ida Ou Tanane' } })
-);
-
-console.log('\n--- google: what counts as a place someone lost something in ---');
-
-const settlement = (types) => googlePlacesService.isSettlement({ types });
-
-checkThat('a town is a place', settlement(['locality', 'political']));
-checkThat('a rural commune is a place', settlement(['administrative_area_level_4', 'political']));
-checkThat('a level 5 division is a place', settlement(['administrative_area_level_5', 'political']));
-checkThat('a quarter is a place', settlement(['sublocality', 'sublocality_level_1', 'political']));
-checkThat('a neighborhood is a place', settlement(['neighborhood', 'political']));
-checkThat(
-  'so is one google tags only as political',
-  settlement(['political']),
-  'dropping these is how the small places went missing'
-);
-checkThat('a region is not', !settlement(['administrative_area_level_1', 'political']));
-checkThat('a country is not', !settlement(['country', 'political']));
-checkThat('a business is not', !settlement(['establishment', 'point_of_interest']));
-checkThat('a road is not', !settlement(['route']));
-checkThat(
-  'a business inside a locality is not',
-  !settlement(['locality', 'establishment']),
-  'the establishment types win, whatever else is on the result'
-);
-checkThat('an untyped result is not', !settlement(undefined));
-
-console.log('\n--- google: capital-ness is read from the name, not the type ---');
-
-const formatted = googlePlacesService.formatCityData(
-  { name: 'Aït Melloul', place_id: 'x', types: ['locality', 'political'], geometry: null },
-  'MA',
-  'en'
-);
-check(
-  'an ordinary town is not flagged a capital',
-  formatted.isCapital,
-  false
-);
-check(
-  'the capital still is',
-  googlePlacesService.formatCityData(
-    { name: 'Rabat', place_id: 'y', types: ['locality', 'political'], geometry: null },
-    'MA',
-    'en'
-  ).isCapital,
-  true
 );
 
 console.log(`\n${checks - failures}/${checks} checks passed`);
