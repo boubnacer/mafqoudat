@@ -859,6 +859,11 @@ const createStyles = (tokens, isRTL, isDark) =>
       ...logical(isRTL, { start: 0 }),
     },
     filterLauncher: {
+      // overflow: 'hidden' forces the clip even if the LinearGradient child's
+      // own matching radius (filterLauncherFill below) doesn't get honored -
+      // expo-linear-gradient's Android drawable hasn't reliably respected the
+      // logical Start/End radius keys the way a plain View does.
+      overflow: 'hidden',
       ...logical(isRTL, {
         borderTopStartRadius: 0,
         borderBottomStartRadius: 0,
