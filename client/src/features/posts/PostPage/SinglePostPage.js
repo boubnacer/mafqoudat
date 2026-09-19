@@ -1063,7 +1063,7 @@ const SinglePostPage = ({
                 {mainDate && mainDate.trim() && (
                   <InfoTile
                     icon={CalendarIcon}
-                    label={t('date')}
+                    label={foundLostStatus.isFound ? t('dateFoundLabel') : t('dateLostLabel')}
                     value={mainDate}
                   />
                 )}
