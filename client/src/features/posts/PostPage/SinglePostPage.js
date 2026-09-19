@@ -327,23 +327,25 @@ const InfoTile = ({ icon: Icon, label, value, fullWidth }) => {
         <Icon sx={{ fontSize: 19, color: theme.custom.color.brandPrimary }} />
       </Box>
       <Box sx={{ minWidth: 0 }}>
-        <Typography
-          variant="caption"
-          sx={{
-            display: 'block',
-            fontWeight: 700,
-            letterSpacing: 0.6,
-            textTransform: 'uppercase',
-            fontSize: '0.65rem',
-            color: alpha(theme.custom.color.ink, 0.5),
-          }}
-        >
-          {label}
-        </Typography>
+        {label && (
+          <Typography
+            variant="caption"
+            sx={{
+              display: 'block',
+              fontWeight: 700,
+              letterSpacing: 0.6,
+              textTransform: 'uppercase',
+              fontSize: '0.65rem',
+              color: alpha(theme.custom.color.ink, 0.5),
+            }}
+          >
+            {label}
+          </Typography>
+        )}
         <Typography
           variant="body2"
           noWrap={!fullWidth}
-          sx={{ fontWeight: 700, color: theme.custom.color.ink, mt: 0.25, wordBreak: 'break-word' }}
+          sx={{ fontWeight: 700, color: theme.custom.color.ink, mt: label ? 0.25 : 0, wordBreak: 'break-word' }}
         >
           {value}
         </Typography>
@@ -565,8 +567,9 @@ const SinglePostPage = ({
     }
   }, [currentLanguage]);
 
-  // Raw relative time, with no "Posted" prefix - the label lives on the
-  // InfoTile now, the same way "City"/"Country" label their own values.
+  // Raw relative time, with no "Posted" prefix - "postedTimeAgo" (the
+  // translation key) wraps it into the full sentence at render time, since
+  // this tile has no separate label row like City/Country's.
   const postedTimeAgo = useMemo(() => {
     return formatDistanceToNow(new Date(createdAt), {
       addSuffix: true,
@@ -1052,7 +1055,7 @@ const SinglePostPage = ({
                   grid takes "posted" in exchange, styled like every other fact
                   here. Mirrors mobile PostDetailScreen.js's InfoTile grid (Phase 14). */}
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 3 }}>
-                <InfoTile icon={TimeIcon} label={t('postedOn')} value={postedTimeAgo} />
+                <InfoTile icon={TimeIcon} value={t('postedTimeAgo', { time: postedTimeAgo })} />
                 {metaLocationLabel && (
                   <InfoTile icon={LocationIcon} label={t('location')} value={metaLocationLabel} fullWidth />
                 )}
@@ -1060,7 +1063,7 @@ const SinglePostPage = ({
                 {mainDate && mainDate.trim() && (
                   <InfoTile
                     icon={CalendarIcon}
-                    label={t('date')}
+                    label={foundLostStatus.isFound ? t('dateFoundLabel') : t('dateLostLabel')}
                     value={mainDate}
                   />
                 )}
