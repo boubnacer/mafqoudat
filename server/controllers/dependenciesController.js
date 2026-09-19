@@ -995,6 +995,11 @@ const getDashboard = async (req, res) => {
       {
         $project: {
           geocodeName: { $ifNull: ["$CityDoc.labels.en", null] },
+          // Fallback geocoding candidate only — some City docs' English label
+          // ("Fez") doesn't fuzzy-match the geocode dataset's transliteration
+          // ("Fès") closely enough, while the French label does exactly. See
+          // cityGeocode.js.
+          geocodeNameFr: { $ifNull: ["$CityDoc.labels.fr", null] },
           displayName: { $ifNull: [`$CityDoc.labels.${language}`, `$CityDoc.labels.en`] },
           city: 1,
           exactLocation: 1,
@@ -1027,6 +1032,9 @@ const getDashboard = async (req, res) => {
       const geocodeName = post.geocodeName || extractFallbackCityName(post);
       if (!geocodeName) return;
       const displayName = post.displayName || geocodeName;
+      // Only meaningful for a linked City doc — free-text fallback names have
+      // no second spelling to fall back to.
+      const altName = hasCityDoc ? post.geocodeNameFr || null : null;
       const key = geocodeName.toLowerCase();
       // Same day boundaries createdToday uses (server-local midnight to
       // midnight), so a city's "today" badge on the map and the header's
@@ -1042,17 +1050,18 @@ const getDashboard = async (req, res) => {
         // happened to see first.
         if (hasCityDoc && !existing.hasCityDoc) {
           existing.displayName = displayName;
+          existing.altName = altName;
           existing.hasCityDoc = true;
         }
       } else {
-        cityCounts.set(key, { geocodeName, displayName, count: 1, todayCount: isToday ? 1 : 0, hasCityDoc });
+        cityCounts.set(key, { geocodeName, altName, displayName, count: 1, todayCount: isToday ? 1 : 0, hasCityDoc });
       }
     });
 
     const cityActivity = [];
     if (currentCountryDoc?.code) {
-      cityCounts.forEach(({ geocodeName, displayName, count, todayCount }) => {
-        const geo = geocodeCityName(geocodeName, currentCountryDoc.code);
+      cityCounts.forEach(({ geocodeName, altName, displayName, count, todayCount }) => {
+        const geo = geocodeCityName(altName ? [geocodeName, altName] : geocodeName, currentCountryDoc.code);
         if (geo) cityActivity.push({ name: displayName, count, todayCount, lon: geo.lon, lat: geo.lat });
       });
     }
