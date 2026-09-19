@@ -1265,7 +1265,7 @@ const SinglePostPage = ({
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, mt: 2 }}>
                   <VerifiedUserIcon sx={{ fontSize: 16, color: 'text.secondary', mt: '2px', flexShrink: 0 }} />
                   <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.5 }}>
-                    {t('contactSafetyNote')}
+                    {foundLostStatus.isFound ? t('contactSafetyNote') : t('contactSafetyNoteFinder')}
                   </Typography>
                 </Box>
               </Paper>

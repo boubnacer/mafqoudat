@@ -1147,12 +1147,12 @@ export const translations = {
     continueToDashboard: "Continue",
 
     // Claim Item Dialog translations
-    doYouThinkThisItemIsYours: "Do you think this item belongs to you?",
-    ifYouLostThisItem: "If you've lost this item and believe it's yours, click below to view contact details and claim it.",
-    didYouFindThisItem: "Did you find this item?",
-    ifYouFoundThisItem: "If you've found this item and want to help return it, click below to view contact details.",
-    yesThisIsMyItem: "Yes, This Is My Item!",
-    yesIFoundThisItem: "Yes, I Found This Item!",
+    doYouThinkThisItemIsYours: "Did you lose what's in this listing?",
+    ifYouLostThisItem: "If you've lost what's in this listing and believe it's yours, click below to view contact details and claim it.",
+    didYouFindThisItem: "Did you find what's in this listing?",
+    ifYouFoundThisItem: "If you've found what's in this listing and want to help return it, click below to view contact details.",
+    yesThisIsMyItem: "View Contact Details",
+    yesIFoundThisItem: "View Contact Details",
     wonderfulNews: "Wonderful News! 🎉",
     gladYouFoundYourItem: "We're so glad you found your item! Below are the contact details to help you reunite with your belongings.",
     amazingThankYou: "Amazing! 🎉",
@@ -1163,7 +1163,8 @@ export const translations = {
     claimYourItem: "Claim Your Item",
     helpReturnItem: "Help Return Item",
     manageYourPost: "Manage your post",
-    contactSafetyNote: "For your safety: meet in a public place, verify the item together, and avoid sharing extra personal details.",
+    contactSafetyNote: "Make sure the poster actually found what you lost — ask them to send you photos of it to confirm. Avoid sharing extra personal details.",
+    contactSafetyNoteFinder: "Make sure the poster actually lost what you found — ask them to send you photos, proof, or a distinguishing mark of it to confirm. Avoid sharing extra personal details.",
     reportThisPost: "Report this post",
 
     // Edit Post Form translations
@@ -3334,12 +3335,12 @@ export const translations = {
     continueToDashboard: "Continuer",
 
     // Claim Item Dialog translations
-    doYouThinkThisItemIsYours: "Pensez-vous que cet article vous appartient ?",
-    ifYouLostThisItem: "Si vous avez perdu cet article et pensez qu'il est à vous, cliquez ci-dessous pour voir les coordonnées et le réclamer.",
-    didYouFindThisItem: "Avez-vous trouvé cet article ?",
-    ifYouFoundThisItem: "Si vous avez trouvé cet article et souhaitez aider à le retourner, cliquez ci-dessous pour voir les coordonnées.",
-    yesThisIsMyItem: "Oui, c'est mon article !",
-    yesIFoundThisItem: "Oui, j'ai trouvé cet article !",
+    doYouThinkThisItemIsYours: "Avez-vous perdu le contenu de cette annonce ?",
+    ifYouLostThisItem: "Si vous avez perdu le contenu de cette annonce et pensez qu'il est à vous, cliquez ci-dessous pour voir les coordonnées et le réclamer.",
+    didYouFindThisItem: "Avez-vous trouvé le contenu de cette annonce ?",
+    ifYouFoundThisItem: "Si vous avez trouvé le contenu de cette annonce et souhaitez aider à le retourner, cliquez ci-dessous pour voir les coordonnées.",
+    yesThisIsMyItem: "Voir les coordonnées",
+    yesIFoundThisItem: "Voir les coordonnées",
     wonderfulNews: "Merveilleuse nouvelle ! 🎉",
     gladYouFoundYourItem: "Nous sommes ravis que vous ayez retrouvé votre article ! Voici les coordonnées pour vous aider à récupérer vos biens.",
     amazingThankYou: "Incroyable ! 🎉",
@@ -3350,7 +3351,8 @@ export const translations = {
     claimYourItem: "Réclamer votre article",
     helpReturnItem: "Aider à retourner l'article",
     manageYourPost: "Gérez votre publication",
-    contactSafetyNote: "Pour votre sécurité : rencontrez-vous dans un lieu public, vérifiez l'objet ensemble et évitez de partager des informations personnelles supplémentaires.",
+    contactSafetyNote: "Assurez-vous que l'auteur de l'annonce a bien trouvé ce que vous avez perdu — demandez-lui de vous envoyer des photos pour le confirmer. Évitez de partager des informations personnelles supplémentaires.",
+    contactSafetyNoteFinder: "Assurez-vous que l'auteur de l'annonce a bien perdu ce que vous avez trouvé — demandez-lui de vous envoyer des photos, une preuve ou un signe distinctif pour le confirmer. Évitez de partager des informations personnelles supplémentaires.",
     reportThisPost: "Signaler cette publication",
 
     // Edit Post Form translations
@@ -5483,12 +5485,12 @@ export const translations = {
     continueToDashboard: "متابعة",
 
     // Claim Item Dialog translations
-    doYouThinkThisItemIsYours: "هل تعتقد أن هذا الغرض يخصك؟",
-    ifYouLostThisItem: "إذا فقدت هذا الغرض وتعتقد أنه ملكك، انقر أدناه لعرض تفاصيل الاتصال والمطالبة به.",
-    didYouFindThisItem: "هل وجدت هذا الغرض؟",
-    ifYouFoundThisItem: "إذا وجدت هذا الغرض وتريد المساعدة في إعادته، انقر أدناه لعرض تفاصيل الاتصال.",
-    yesThisIsMyItem: "نعم، فقدت هذا الغرض",
-    yesIFoundThisItem: "نعم، وجدت هذا الغرض!",
+    doYouThinkThisItemIsYours: "هل فقدت محتوى هذا الإعلان؟",
+    ifYouLostThisItem: "إذا فقدت محتوى هذا الإعلان وتعتقد أنه ملكك، انقر أدناه لعرض تفاصيل الاتصال والمطالبة به.",
+    didYouFindThisItem: "هل وجدت محتوى هذا الإعلان؟",
+    ifYouFoundThisItem: "إذا وجدت محتوى هذا الإعلان وتريد المساعدة في إعادته، انقر أدناه لعرض تفاصيل الاتصال.",
+    yesThisIsMyItem: "عرض تفاصيل التواصل",
+    yesIFoundThisItem: "عرض تفاصيل التواصل",
     wonderfulNews: "أخبار رائعة! 🎉",
     gladYouFoundYourItem: "نحن سعداء جداً أنك وجدت غرضك! فيما يلي تفاصيل الاتصال لمساعدتك على استعادة ممتلكاتك.",
     amazingThankYou: "رائع! 🎉",
@@ -5499,7 +5501,8 @@ export const translations = {
     claimYourItem: "المطالبة بغرضك",
     helpReturnItem: "المساعدة في إعادة الغرض",
     manageYourPost: "إدارة منشورك",
-    contactSafetyNote: "من أجل سلامتك: التقِ في مكان عام، تحقق من الغرض معًا، وتجنب مشاركة معلومات شخصية إضافية.",
+    contactSafetyNote: "تحقق من أن الناشر قد وجد بالفعل ما فقدته، ويجب عليه أن يرسل لك صوراً لما وجده للتأكد. وتجنب مشاركة معلومات شخصية إضافية.",
+    contactSafetyNoteFinder: "تحقق من أن الناشر قد فقد بالفعل ما وجدته، ويجب عليه أن يرسل لك صوراً أو دليلاً أو علامة مميزة حول ما فقده للتأكد. وتجنب مشاركة معلومات شخصية إضافية.",
     reportThisPost: "الإبلاغ عن هذا المنشور",
 
     // Edit Post Form translations
