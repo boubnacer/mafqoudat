@@ -9,10 +9,7 @@ const { escapeRegex } = require("../utils/regexUtils");
 const {
   buildCitySearchPattern,
   rankCityMatches,
-  hasStrongCityMatch,
   cityDedupeKey,
-  shouldConsultGooglePlaces,
-  MIN_GOOGLE_RESULTS,
   CANDIDATE_OVERFETCH,
 } = require("../utils/cityMatching");
 
@@ -275,11 +272,8 @@ const searchCities = async (req, res) => {
     let googleCities = [];
     let needsArabicSupplement = false;
 
-    // Step 2: Ask GeoNames when the database is short of results, or when
-    // what it returned doesn't answer the query - the same match-quality rule
-    // the Google step below uses, for the same reason: a database full of
-    // other places is not an answer.
-    if ((localCities.length < parseInt(limit) || !hasStrongCityMatch(localCities, q)) && countryCode) {
+    // Step 2: If we need more results or found few local results, search GeoNames API
+    if (localCities.length < parseInt(limit) && countryCode) {
       try {
         apiCities = await geonamesService.searchCities(q, countryCode, language);
 
@@ -312,27 +306,19 @@ const searchCities = async (req, res) => {
       }
     }
 
-    // Step 3: Search Google Places when the database and GeoNames between
-    // them have not produced an answer to what was typed - not merely when
-    // they have not produced ten rows. Google's coverage of small places
-    // (a douar, a rural commune, a quarter people name as their town) is the
-    // reason this source exists, and the old row-count gate meant it was
-    // never reached whenever GeoNames filled the list with near-misses.
-    // Results are merged into allCities, never replace what's been found.
-    const consultGoogle = shouldConsultGooglePlaces({
-      resultCount: allCities.length,
-      limit: parseInt(limit),
-      hasStrongMatch: hasStrongCityMatch(allCities, q),
-      needsArabicSupplement
-    });
-
-    if (consultGoogle && countryCode) {
+    // Step 3: Search Google Places if we're still short of the requested
+    // limit (same "keep filling until full" pattern as the GeoNames gate
+    // above), or (for Arabic searches specifically) GeoNames couldn't
+    // provide a real Arabic name. Results are merged into allCities, never
+    // replace what's already been found.
+    //
+    // This gate is deliberately row-count based and stays that way: Google
+    // Places is billed per request and each kept result costs 2-3 further
+    // Place Details calls, so asking it on every search that hasn't found an
+    // exact match is a cost decision, not a search-quality one.
+    if ((allCities.length < parseInt(limit) || needsArabicSupplement) && countryCode) {
       try {
-        // Each kept result costs 2-3 further Place Details calls, so ask for
-        // the slots left - or a small floor when the list is full of things
-        // that don't match, since that is the case being answered here.
-        const maxResults = Math.max(parseInt(limit) - allCities.length, MIN_GOOGLE_RESULTS);
-        googleCities = await googlePlacesService.searchCities(q, countryCode, language, { maxResults });
+        googleCities = await googlePlacesService.searchCities(q, countryCode, language);
 
         // Merge, de-duplicated on the folded name so a place already found
         // under another spelling isn't listed twice.
