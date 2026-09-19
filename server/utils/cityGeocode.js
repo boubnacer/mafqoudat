@@ -49,28 +49,43 @@ const FUZZY_THRESHOLD = 0.72;
 
 // Returns { lon, lat, matchedName } or null if nothing close enough was
 // found in that country's city list.
-const geocodeCityName = (rawName, countryIso2) => {
+//
+// rawNames can be a single string or an array of candidate spellings for the
+// same city (e.g. a City doc's English AND French labels) — some cities have
+// an English DB label the dataset's transliteration doesn't fuzzy-match at
+// all ("Fez" vs the dataset's "Fès" scores 0.667, under FUZZY_THRESHOLD) while
+// a second spelling matches exactly, so trying only one name silently drops
+// the city from the map rather than mis-placing it. Every exact check runs
+// before any fuzzy one, so an exact match on a later candidate always wins
+// over a fuzzy match on an earlier one.
+const geocodeCityName = (rawNames, countryIso2) => {
   const candidates = citiesByCountry.get((countryIso2 || "").toUpperCase());
-  if (!candidates || !rawName) return null;
+  if (!candidates) return null;
 
-  const target = normalize(rawName);
-  if (!target) return null;
+  const names = (Array.isArray(rawNames) ? rawNames : [rawNames])
+    .map((name) => normalize(name))
+    .filter(Boolean);
+  if (!names.length) return null;
 
-  const exact = candidates.find((c) => normalize(c.name) === target);
-  if (exact) {
-    return { lon: exact.loc.coordinates[0], lat: exact.loc.coordinates[1], matchedName: exact.name };
+  for (const target of names) {
+    const exact = candidates.find((c) => normalize(c.name) === target);
+    if (exact) {
+      return { lon: exact.loc.coordinates[0], lat: exact.loc.coordinates[1], matchedName: exact.name };
+    }
   }
 
   let best = null;
   let bestScore = 0;
-  candidates.forEach((c) => {
-    const candidateName = normalize(c.name);
-    const dist = levenshtein(target, candidateName);
-    const score = 1 - dist / Math.max(target.length, candidateName.length, 1);
-    if (score > bestScore) {
-      bestScore = score;
-      best = c;
-    }
+  names.forEach((target) => {
+    candidates.forEach((c) => {
+      const candidateName = normalize(c.name);
+      const dist = levenshtein(target, candidateName);
+      const score = 1 - dist / Math.max(target.length, candidateName.length, 1);
+      if (score > bestScore) {
+        bestScore = score;
+        best = c;
+      }
+    });
   });
 
   if (best && bestScore >= FUZZY_THRESHOLD) {
