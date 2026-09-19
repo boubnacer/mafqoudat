@@ -27,6 +27,7 @@
     "test-social-watermark": "node scripts/testSocialWatermark.js",
     "test-admin-panel": "node scripts/testAdminPanel.js",
     "test-document-types": "node scripts/testDocumentTypes.js",
+    "test-city-search": "node scripts/testCitySearch.js",
     "refresh-social-stats": "node scripts/refreshSocialStats.js",
     "social-queue": "node scripts/socialQueue.js",
     "test-email": "node test-email-config.js",
