@@ -194,6 +194,8 @@ const PostDetailScreen = ({ navigation, route }) => {
   const [actionsSheetVisible, setActionsSheetVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState('');
+  // Gates the Contact section below the claim-item card - see handleClaimItemPress.
+  const [contactRevealed, setContactRevealed] = useState(false);
 
   const toastTimerRef = useRef(null);
 
@@ -380,6 +382,23 @@ const PostDetailScreen = ({ navigation, route }) => {
   const canEdit = isOwner || isAdmin;
   const canDelete = isOwner || isAdmin;
   const canManage = canEdit || canPromote || canDelete;
+
+  // Mirrors web's claim-item card gate (SinglePostPage.js: `!isAuthor && !returned`)
+  // - a resolved listing, or the owner's own post, has no claim flow to offer.
+  const showClaimCard = !isOwner && !isResolved;
+  // The owner already knows their own contact details; everyone else only
+  // sees them once they've pressed the claim card's button below.
+  const showContactSection = isOwner || (contactRevealed && !isResolved);
+
+  const handleClaimItemPress = () => {
+    if (!user) {
+      // Comes back to this same post once signed in, same pattern as Report/Block.
+      requireLogin('loginRequiredClaimItem', { screen: 'PostDetailScreen', params: { id } });
+      navigation.navigate('Login');
+      return;
+    }
+    setContactRevealed(true);
+  };
 
   const openReportSheet = () => {
     if (!user) {
@@ -708,44 +727,91 @@ const PostDetailScreen = ({ navigation, route }) => {
               right after SocialReachSection above, ahead of Contact. */}
           <CommentsSection postId={post._id} />
 
-          <View style={styles.section}>
-            <SectionHeader styles={styles} tokens={tokens} icon="call-outline" title={t('contactSeller')} isRTL={isRTL} />
-            {contactAction.type === 'email' && (
-              <TouchableOpacity
-                style={[styles.contactButton, styles.brandButton]}
-                onPress={() => openLink(`mailto:${contactAction.contact}`, t)}
-                activeOpacity={0.85}
-              >
-                <Ionicons name="mail-outline" size={16} color="#FFFFFF" />
-                <Text style={styles.contactButtonText}>{t('email')}</Text>
-              </TouchableOpacity>
-            )}
-            {contactAction.type === 'phone' && (
-              <View style={styles.contactButtonsRow}>
+          {/* Claim item - mirrors web's ClaimItem card (SinglePostPage.js): the
+              primary, positive action for anyone but the owner. Brand-colored
+              rather than status-colored so it reads as "the thing to do here",
+              not another Lost/Found signal. Kept its own border + top accent
+              bar rather than the borderless/shadowless Phase 8/9 treatment -
+              same deliberate exception web's own bordered sidebar CTA cards
+              (this one, and the Promotion panel beside it) already carry. */}
+          {showClaimCard && (
+            <View style={styles.section}>
+              <View style={styles.claimCard}>
+                <View style={styles.claimCardAccent} />
+                <View style={styles.claimCardHeader}>
+                  <View style={styles.claimCardIconCircle}>
+                    <Ionicons name="checkmark-circle" size={24} color={tokens.brandPrimary} />
+                  </View>
+                  <Text style={[styles.claimCardTitle, isRTL && styles.textRTL]}>
+                    {isFoundType ? t('doYouThinkThisItemIsYours') : t('didYouFindThisItem')}
+                  </Text>
+                </View>
+                <Text style={[styles.claimCardSubtitle, isRTL && styles.textRTL]}>
+                  {isFoundType ? t('ifYouLostThisItem') : t('ifYouFoundThisItem')}
+                </Text>
                 <TouchableOpacity
-                  style={[styles.contactButton, styles.contactButtonHalf, styles.brandButton]}
-                  onPress={() => openLink(`tel:${contactAction.contact}`, t)}
+                  style={[styles.contactButton, styles.brandButton]}
+                  onPress={handleClaimItemPress}
                   activeOpacity={0.85}
                 >
-                  <Ionicons name="call-outline" size={16} color="#FFFFFF" />
-                  <Text style={styles.contactButtonText}>{t('call')}</Text>
+                  <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+                  <Text style={styles.contactButtonText}>
+                    {isFoundType ? t('yesThisIsMyItem') : t('yesIFoundThisItem')}
+                  </Text>
                 </TouchableOpacity>
-                {/* #25D366 is WhatsApp's own brand color, kept literal rather than
-                    tokenized since it identifies the service, not this app's theme. */}
-                <TouchableOpacity
-                  style={[styles.contactButton, styles.contactButtonHalf, styles.whatsappButton]}
-                  onPress={() => openLink(`https://wa.me/${contactAction.digits}`, t)}
-                  activeOpacity={0.85}
-                >
-                  <Ionicons name="logo-whatsapp" size={16} color="#FFFFFF" />
-                  <Text style={styles.contactButtonText}>{t('whatsapp')}</Text>
-                </TouchableOpacity>
+                <View style={styles.claimCardNoteRow}>
+                  <Ionicons name="shield-checkmark-outline" size={16} color={`${tokens.ink}99`} />
+                  <Text style={[styles.claimCardNoteText, isRTL && styles.textRTL]}>
+                    {isFoundType ? t('contactSafetyNote') : t('contactSafetyNoteFinder')}
+                  </Text>
+                </View>
               </View>
-            )}
-            {(contactAction.type === 'none' || contactAction.type === 'unknown') && (
-              <Text style={[styles.bodyTextSecondary, isRTL && styles.textRTL]}>{t('noContactProvided')}</Text>
-            )}
-          </View>
+            </View>
+          )}
+
+          {/* Contact details - hidden behind the claim card's button above for
+              anyone but the owner, exactly like web's ClaimItemDialog only
+              reveals them once that card's button is pressed. */}
+          {showContactSection && (
+            <View style={styles.section}>
+              <SectionHeader styles={styles} tokens={tokens} icon="call-outline" title={t('contactSeller')} isRTL={isRTL} />
+              {contactAction.type === 'email' && (
+                <TouchableOpacity
+                  style={[styles.contactButton, styles.brandButton]}
+                  onPress={() => openLink(`mailto:${contactAction.contact}`, t)}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="mail-outline" size={16} color="#FFFFFF" />
+                  <Text style={styles.contactButtonText}>{t('email')}</Text>
+                </TouchableOpacity>
+              )}
+              {contactAction.type === 'phone' && (
+                <View style={styles.contactButtonsRow}>
+                  <TouchableOpacity
+                    style={[styles.contactButton, styles.contactButtonHalf, styles.brandButton]}
+                    onPress={() => openLink(`tel:${contactAction.contact}`, t)}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="call-outline" size={16} color="#FFFFFF" />
+                    <Text style={styles.contactButtonText}>{t('call')}</Text>
+                  </TouchableOpacity>
+                  {/* #25D366 is WhatsApp's own brand color, kept literal rather than
+                      tokenized since it identifies the service, not this app's theme. */}
+                  <TouchableOpacity
+                    style={[styles.contactButton, styles.contactButtonHalf, styles.whatsappButton]}
+                    onPress={() => openLink(`https://wa.me/${contactAction.digits}`, t)}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="logo-whatsapp" size={16} color="#FFFFFF" />
+                    <Text style={styles.contactButtonText}>{t('whatsapp')}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {(contactAction.type === 'none' || contactAction.type === 'unknown') && (
+                <Text style={[styles.bodyTextSecondary, isRTL && styles.textRTL]}>{t('noContactProvided')}</Text>
+              )}
+            </View>
+          )}
 
           {/* Report asks us to act on this post; Block lets the viewer act on
               the poster themselves, straight away. Google Play's UGC policy
@@ -1162,6 +1228,67 @@ const createStyles = (tokens, isRTL, isDark) =>
       gap: 14,
       marginTop: 4,
       marginBottom: 4,
+    },
+    // Claim item card - mirrors web's ClaimItem Paper (SinglePostPage.js): a
+    // brand-tinted border + top accent bar rather than the elevation-only
+    // borderless surface every other container on this screen uses, same
+    // deliberate carve-out web's own bordered sidebar CTA cards take.
+    claimCard: {
+      padding: 16,
+      borderRadius: radiusTokens.lg,
+      backgroundColor: tokens.surfaceRaised,
+      borderWidth: 1,
+      borderColor: `${tokens.brandPrimary}40`,
+      overflow: 'hidden',
+      ...getElevation(isDark, 2),
+    },
+    claimCardAccent: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 3,
+      backgroundColor: tokens.brandPrimary,
+    },
+    claimCardHeader: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 12,
+    },
+    claimCardIconCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: `${tokens.brandPrimary}1F`,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    claimCardTitle: {
+      flex: 1,
+      fontFamily: fontFamilies.display,
+      fontSize: 17,
+      color: tokens.brandPrimary,
+    },
+    claimCardSubtitle: {
+      fontFamily: fontFamilies.body,
+      fontSize: 14,
+      lineHeight: 20,
+      color: `${tokens.ink}99`,
+      marginBottom: 16,
+    },
+    claimCardNoteRow: {
+      flexDirection: row(isRTL),
+      alignItems: 'flex-start',
+      gap: 6,
+      marginTop: 14,
+    },
+    claimCardNoteText: {
+      flex: 1,
+      fontFamily: fontFamilies.body,
+      fontSize: 12,
+      lineHeight: 17,
+      color: `${tokens.ink}99`,
     },
     contactButtonsRow: {
       flexDirection: row(isRTL),

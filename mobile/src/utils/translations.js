@@ -159,6 +159,17 @@ export const translations = {
     noImage: "No Image",
     untitledPost: "Untitled",
 
+    // Claim Item card (post detail) - mirrors client/src/features/posts/PostPage/SinglePostPage.js
+    doYouThinkThisItemIsYours: "Did you lose what's in this listing?",
+    ifYouLostThisItem: "If you've lost what's in this listing and believe it's yours, click below to view contact details and claim it.",
+    didYouFindThisItem: "Did you find what's in this listing?",
+    ifYouFoundThisItem: "If you've found what's in this listing and want to help return it, click below to view contact details.",
+    yesThisIsMyItem: "View Contact Details",
+    yesIFoundThisItem: "View Contact Details",
+    contactSafetyNote: "Make sure the poster actually found what you lost — ask them to send you photos of it to confirm. Avoid sharing extra personal details.",
+    contactSafetyNoteFinder: "Make sure the poster actually lost what you found — ask them to send you photos, proof, or a distinguishing mark of it to confirm. Avoid sharing extra personal details.",
+    loginRequiredClaimItem: "Please log in to claim this item.",
+
     // Maintenance / offline / session
     maintenanceModeTitle: "Under Maintenance",
     maintenanceModeDefaultMessage: "We're currently performing scheduled maintenance. Please check back shortly.",
@@ -760,6 +771,17 @@ export const translations = {
     noContactProvided: "Aucune information de contact fournie",
     noImage: "Aucune image",
     untitledPost: "Sans titre",
+
+    // Claim Item card (post detail) - mirrors client/src/features/posts/PostPage/SinglePostPage.js
+    doYouThinkThisItemIsYours: "Avez-vous perdu le contenu de cette annonce ?",
+    ifYouLostThisItem: "Si vous avez perdu le contenu de cette annonce et pensez qu'il est à vous, cliquez ci-dessous pour voir les coordonnées et le réclamer.",
+    didYouFindThisItem: "Avez-vous trouvé le contenu de cette annonce ?",
+    ifYouFoundThisItem: "Si vous avez trouvé le contenu de cette annonce et souhaitez aider à le retourner, cliquez ci-dessous pour voir les coordonnées.",
+    yesThisIsMyItem: "Voir les coordonnées",
+    yesIFoundThisItem: "Voir les coordonnées",
+    contactSafetyNote: "Assurez-vous que l'auteur de l'annonce a bien trouvé ce que vous avez perdu — demandez-lui de vous envoyer des photos pour le confirmer. Évitez de partager des informations personnelles supplémentaires.",
+    contactSafetyNoteFinder: "Assurez-vous que l'auteur de l'annonce a bien perdu ce que vous avez trouvé — demandez-lui de vous envoyer des photos, une preuve ou un signe distinctif pour le confirmer. Évitez de partager des informations personnelles supplémentaires.",
+    loginRequiredClaimItem: "Veuillez vous connecter pour réclamer cet objet.",
 
     // Maintenance / offline / session
     maintenanceModeTitle: "En maintenance",
@@ -1380,6 +1402,17 @@ export const translations = {
     noContactProvided: "لا توجد معلومات تواصل",
     noImage: "لا توجد صورة",
     untitledPost: "بدون عنوان",
+
+    // Claim Item card (post detail) - mirrors client/src/features/posts/PostPage/SinglePostPage.js
+    doYouThinkThisItemIsYours: "هل فقدت محتوى هذا الإعلان؟",
+    ifYouLostThisItem: "إذا فقدت محتوى هذا الإعلان وتعتقد أنه ملكك، انقر أدناه لعرض تفاصيل الاتصال والمطالبة به.",
+    didYouFindThisItem: "هل وجدت محتوى هذا الإعلان؟",
+    ifYouFoundThisItem: "إذا وجدت محتوى هذا الإعلان وتريد المساعدة في إعادته، انقر أدناه لعرض تفاصيل الاتصال.",
+    yesThisIsMyItem: "عرض تفاصيل التواصل",
+    yesIFoundThisItem: "عرض تفاصيل التواصل",
+    contactSafetyNote: "تحقق من أن الناشر قد وجد بالفعل ما فقدته، ويجب عليه أن يرسل لك صوراً لما وجده للتأكد. وتجنب مشاركة معلومات شخصية إضافية.",
+    contactSafetyNoteFinder: "تحقق من أن الناشر قد فقد بالفعل ما وجدته، ويجب عليه أن يرسل لك صوراً أو دليلاً أو علامة مميزة حول ما فقده للتأكد. وتجنب مشاركة معلومات شخصية إضافية.",
+    loginRequiredClaimItem: "يرجى تسجيل الدخول للمطالبة بهذا الغرض.",
 
     // Maintenance / offline / session
     maintenanceModeTitle: "الصيانة جارية",

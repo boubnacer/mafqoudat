@@ -359,6 +359,34 @@ Reuse these, don't invent new card/panel treatment — now house style:
   `chunkPairs` for 2-up rows, an odd trailing row's spacer) carry over unchanged
   since web does the same thing structurally.
 
+- Phase 26 — mobile `PostDetailScreen.js` gained the claim-item card web's
+  `SinglePostPage.js` has always had (`ClaimItemDialog.jsx`'s inline sidebar
+  card, not the dialog itself — mobile has no equivalent modal flow yet): done.
+  The card (brand-tinted icon circle, title, subtitle, full-width CTA, a
+  shield-icon safety note) renders in place for anyone but the post's owner on
+  an unresolved listing (`showClaimCard = !isOwner && !isResolved`, mirroring
+  web's `!isAuthor && !returned`), reading the same six title/subtitle/button
+  strings and the two directional safety-note variants
+  (`contactSafetyNote`/`contactSafetyNoteFinder`) added to web's own
+  translations just before this phase — copied into `mobile/src/utils/
+  translations.js` verbatim in all three languages rather than re-translated,
+  so the two platforms read identically. Logic differs from web by necessity:
+  web opens `ClaimItemDialog` as a modal with its own congrats copy and a
+  "mark as returned" mutation; mobile has neither, so pressing the card's
+  button (`handleClaimItemPress`) just gates the screen's existing "Contact
+  seller" section behind it inline (`contactRevealed` state) instead of
+  opening a new dialog — the section itself, its Call/WhatsApp/email buttons
+  and `getContactAction` are all untouched, only newly wrapped in
+  `showContactSection = isOwner || (contactRevealed && !isResolved)`. An
+  unauthenticated tap follows the same `requireLogin` + `navigate('Login')`
+  pattern this screen already uses for Report/Block, with a new
+  `loginRequiredClaimItem` key rather than web's redirect-after-login
+  localStorage flow. The card is a deliberate exception to Phase 8/9's
+  borderless/shadowless rule — same carve-out web's own bordered sidebar CTA
+  cards (this one and the Promotion panel beside it) already take, since it's
+  a new component being ported for parity rather than one of the audited
+  Phase 8/9 containers.
+
 ## The category taxonomy (web + mobile + server)
 
 Twenty-five categories, held in four places that can each drift from the others.
