@@ -434,6 +434,67 @@ actually lists** — the `Category` collection, which the clients only decorate.
   `npm run sync-categories -- --apply` in `server/` to create the row. The offline
   check covers three of the four.
 
+## City search (server, one endpoint behind both clients)
+
+`GET /cities/search` ([cityController.js](server/controllers/cityController.js)'s
+`searchCities`) is the only city lookup either front end uses while writing a
+listing — web's `NewPostForm.js`/`EditPostForm.js` and mobile's
+`CityPickerModal.js` all send the same `q`/`countryCode`/`language`/`limit=10`.
+It merges three sources: the `City` collection, GeoNames, then Google Places.
+Nothing here is a front-end concern; a fix belongs on the server.
+
+- **Match quality is what decides everything, not row count.** Both external
+  sources are prefix/fuzzy searches: GeoNames answers `name_startsWith` with
+  twenty populated places, of which the one being looked for may be none. The
+  gates used to be "ask the next source only if the list isn't full yet", which
+  meant a full list of near-misses stopped the search dead — so a village
+  Google knows about was never asked for, precisely in the case it was needed.
+  `shouldConsultGooglePlaces` in [cityMatching.js](server/utils/cityMatching.js)
+  asks instead whether anything in hand actually answers the query, and the
+  GeoNames gate reads the same way.
+- **Everything is ranked before it is cut.** Sources are merged in the order
+  they were asked and then sliced to ten, so a late source's exact match landed
+  eleventh and was thrown away. `rankCityMatches` sorts by how well each result
+  matches what was typed (exact / prefix / contains), stably, so ties keep
+  source order and an equally good database row still outranks an API one. The
+  database query over-fetches (`CANDIDATE_OVERFETCH`, 3x) for the same reason:
+  MongoDB's `$text` answers in no particular order, so cutting at the display
+  limit there can drop the exact match and keep nine near-misses.
+- **Folding is not only an Arabic problem.** The lookup is a literal `$regex`,
+  and nobody types "Aït-Melloul" with the trema and the hyphen. `normalizeCityText`
+  folds Latin accents, Arabic harakat, hamza, ta marbuta and alif maksura, and
+  `buildCitySearchPattern` expands the folded query back into a pattern that
+  matches the unfolded rows — with separators optional between every letter, so
+  "ait melloul", "Ait-Melloul" and "aitmelloul" are one search. Only separators
+  may be skipped, never a letter: this stays a search, not a wildcard. The same
+  folding is what de-duplicates one place arriving from two sources under two
+  spellings (`cityDedupeKey`).
+- **Google's type filter was the other half of the missing-cities report.** It
+  required `locality`, and the places that were missing are exactly the ones
+  below that: a douar, a rural commune, a quarter people give as their town,
+  which come back as `administrative_area_level_3..5`, `sublocality` or
+  `neighborhood` — or with no settlement type at all, only `political`.
+  `isSettlement` accepts all of those and rejects what is too big to be an
+  answer (a country, a region) or not a place at all (an establishment, a
+  route). The request also no longer sends `type: 'locality'`: Text Search
+  filters on Table 1/2 types only, and `locality` is Table 3, so it filtered
+  nothing.
+- **Every Google result used to come back flagged a capital.** `isCapital` was
+  read off the `political` type, which every locality carries; it is the known
+  capitals list alone now. It matters because `isCapital` is a sort key on
+  `searchCitiesByName` and is persisted when a dynamic city is created.
+- **The Google budget is a cost guard, and now env-settable.**
+  `GOOGLE_PLACES_DAILY_LIMIT` (100) / `GOOGLE_PLACES_MONTHLY_LIMIT` (2000) —
+  raised from constants because the quality gate means Google is asked more
+  often. Each kept result costs 2-3 further Place Details calls for its
+  translations, so `searchCities` takes a `maxResults` and the controller asks
+  for the slots it can actually show (floor `MIN_GOOGLE_RESULTS`, 3).
+- **Offline check**: `npm run test-city-search` in `server/` — no DB, no
+  network. Covers the folding in both scripts, that the pattern stays a search
+  (a different place still doesn't match, a typed dot is a dot), the ranking
+  rescuing an eleventh-placed exact match, both gate decisions, cross-source
+  de-duplication, and which Google place types are a city.
+
 ## Motion (GSAP)
 
 Web animation is GSAP (`gsap` + `@gsap/react`). Plugins are registered once in

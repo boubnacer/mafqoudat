@@ -1,20 +1,60 @@
 const axios = require('axios');
 const TranslationService = require('./translationService');
 
+// A place somebody would name as the place they lost something. Google's own
+// "(cities)" filter is locality + administrative_area_level_3, which is
+// already wider than the `locality` this used to require - and the places
+// that were missing from the picker are exactly the ones below that: a douar,
+// a rural commune, a quarter people give as their town. Those come back under
+// the lower admin levels, sublocality or neighborhood.
+const SETTLEMENT_TYPES = new Set([
+  'locality',
+  'postal_town',
+  'administrative_area_level_2',
+  'administrative_area_level_3',
+  'administrative_area_level_4',
+  'administrative_area_level_5',
+  'sublocality',
+  'sublocality_level_1',
+  'neighborhood',
+  'colloquial_area',
+]);
+
+// Too big to be an answer to "which city?" - a whole region or a country is
+// never what the reader meant, however well its name matches.
+const BROAD_AREA_TYPES = new Set([
+  'country',
+  'continent',
+  'administrative_area_level_1',
+  'archipelago',
+]);
+
+// A shop, a mosque or a road that happens to carry the name.
+const ESTABLISHMENT_TYPES = new Set(['establishment', 'point_of_interest', 'route', 'premise']);
+
+const toPositiveInt = (value, fallback) => {
+  const parsed = parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
 class GooglePlacesService {
   constructor() {
     this.apiKey = process.env.GOOGLE_PLACES_API_KEY;
     this.baseURL = 'https://maps.googleapis.com/maps/api/place';
+    // Cost guards, not Google's own limits. They are env-settable because the
+    // search now asks Google whenever the other two sources have no real
+    // answer, rather than only when the result list is short - which is the
+    // point, but it is also more requests.
     this.rateLimit = {
       daily: {
         requests: 0,
         resetTime: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
-        maxRequests: 100 // Daily limit
+        maxRequests: toPositiveInt(process.env.GOOGLE_PLACES_DAILY_LIMIT, 100)
       },
       monthly: {
         requests: 0,
         resetTime: this.getNextMonthResetTime(),
-        maxRequests: 2000 // Monthly limit
+        maxRequests: toPositiveInt(process.env.GOOGLE_PLACES_MONTHLY_LIMIT, 2000)
       }
     };
     this.supportedLanguages = ['en', 'fr', 'ar'];
@@ -67,9 +107,14 @@ class GooglePlacesService {
    * @param {string} cityName - The city name to search for
    * @param {string} countryCode - ISO country code (e.g., 'MA', 'EG')
    * @param {string} language - Language code ('en', 'fr', 'ar')
+   * @param {Object} [options]
+   * @param {number} [options.maxResults=5] - How many results to keep and
+   *  enrich. Each kept result costs 2-3 further Place Details calls, so the
+   *  caller asks for the number of slots it can actually show.
    * @returns {Promise<Array>} Array of city results
    */
-  async searchCities(cityName, countryCode, language = 'en') {
+  async searchCities(cityName, countryCode, language = 'en', options = {}) {
+    const maxResults = toPositiveInt(options.maxResults, 5);
     try {
       if (!this.apiKey) {
         throw new Error('Google Places API key not configured');
@@ -88,10 +133,12 @@ class GooglePlacesService {
       // Construct search query with country name for better results
       const searchQuery = `${cityName} ${this.getCountryName(countryCode)}`;
 
-      // Google Places Text Search API parameters
+      // Google Places Text Search API parameters. Deliberately no `type`:
+      // Text Search only filters on Table 1/2 types, and `locality` is a
+      // Table 3 type, so sending it filters nothing and risks the request
+      // being rejected outright. The filtering happens on the response.
       const params = {
         query: searchQuery,
-        type: 'locality', // Filter to only cities
         key: this.apiKey,
         language: requestLanguage
       };
@@ -107,17 +154,11 @@ class GooglePlacesService {
         // Filter results to only include localities (cities) and match country
         const cities = await Promise.all(
           response.data.results
-            .filter(place => {
-              // Ensure it's a locality (city)
-              const isLocality = place.types && place.types.includes('locality');
-              // Check if it matches the country code
-              const matchesCountry = this.matchesCountryCode(place, countryCode);
-              return isLocality && matchesCountry;
-            })
+            .filter(place => this.isSettlement(place) && this.matchesCountryCode(place, countryCode))
             // Keep this small: enrichWithTranslations makes 2 extra Place
             // Details calls (fr + ar) per result, so 5 results = up to 11
-            // requests per search against the 100/day budget.
-            .slice(0, 5)
+            // requests per search against the daily budget.
+            .slice(0, maxResults)
             .map(place => this.formatCityData(place, countryCode, requestLanguage))
         );
 
@@ -151,6 +192,29 @@ class GooglePlacesService {
       
       throw new Error(`Google Places API error: ${error.message}`);
     }
+  }
+
+  /**
+   * Is this result a place someone would name as the place they lost
+   * something - as opposed to a region, a country, or a business that happens
+   * to carry the name?
+   * @param {Object} place - Google Places result
+   * @returns {boolean}
+   */
+  isSettlement(place) {
+    const types = Array.isArray(place?.types) ? place.types : [];
+    if (types.length === 0) return false;
+
+    if (types.some(type => ESTABLISHMENT_TYPES.has(type))) return false;
+    if (types.some(type => BROAD_AREA_TYPES.has(type))) return false;
+
+    if (types.some(type => SETTLEMENT_TYPES.has(type))) return true;
+
+    // Some small places carry no settlement type at all, only `political`.
+    // Having already ruled out regions and businesses above, accept them:
+    // the search was for a name inside one named country, and dropping these
+    // is how the villages went missing in the first place.
+    return types.includes('political');
   }
 
   /**
@@ -226,10 +290,10 @@ class GooglePlacesService {
     // the NewPost city dropdown (StepLocation.jsx/CityPickerModal.js).
     const adminName1 = this.extractAdminArea(place);
 
-    // Determine if this is a capital city (basic check)
-    const isCapital = place.types.includes('political') || 
-                     place.name.toLowerCase().includes('capital') ||
-                     this.isKnownCapital(cityName, countryCode);
+    // Every locality Google returns carries the `political` type, so reading
+    // capital-ness off it flagged every result a capital - which then sorted
+    // villages above real cities wherever isCapital is a sort key.
+    const isCapital = this.isKnownCapital(cityName, countryCode);
 
     // Create multilingual labels (will be enriched later)
     const labels = {

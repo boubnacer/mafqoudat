@@ -6,6 +6,15 @@ const googlePlacesService = require("../services/googlePlacesService");
 const { cacheService } = require("../config/cache");
 const { getCountryId } = require("../utils/countryCache");
 const { escapeRegex } = require("../utils/regexUtils");
+const {
+  buildCitySearchPattern,
+  rankCityMatches,
+  hasStrongCityMatch,
+  cityDedupeKey,
+  shouldConsultGooglePlaces,
+  MIN_GOOGLE_RESULTS,
+  CANDIDATE_OVERFETCH,
+} = require("../utils/cityMatching");
 
 // Helper function to check for Arabic text
 const isArabicText = (text) => {
@@ -16,51 +25,16 @@ const isArabicText = (text) => {
 };
 
 /**
- * Normalize Arabic text by removing diacritics and normalizing similar characters
- * This helps match "اكادير" with "أكادير" (without/with hamza on alif)
- * @param {string} text - Text to normalize
- * @returns {string} - Normalized text
- */
-const normalizeArabicText = (text) => {
-  if (!text || typeof text !== 'string') return '';
-  
-  return text
-    // Remove Arabic diacritics (harakat): fatha, damma, kasra, shadda, sukun, etc.
-    .replace(/[\u064B-\u065F\u0670]/g, '') // Remove combining diacritics
-    // Normalize Arabic characters with hamza to base characters
-    .replace(/أ|إ|آ/g, 'ا') // Normalize alif with hamza variations to plain alif
-    .replace(/ى/g, 'ي') // Normalize alif maksura to ya
-    .replace(/ة/g, 'ه') // Normalize ta marbuta to ha
-    .replace(/[ًٌٍَُِّْ]/g, '') // Remove standalone diacritics
-    .toLowerCase()
-    .trim();
-};
-
-/**
  * Build a case-insensitive regex pattern for a city search term.
- * Arabic input is normalized (diacritics stripped) and expanded into
- * character classes so variants like "اكادير" / "أكادير" (hamza, ta
- * marbuta, alif maksura) all match. Latin input is just regex-escaped.
+ *
+ * Delegates to the shared folding in utils/cityMatching: it is not only
+ * Arabic that is written more than one way. Nobody types "Aït-Melloul"
+ * with the trema and the hyphen, and a literal regex over the stored label
+ * misses the row that is sitting right there.
  * @param {string} text - Raw search term
  * @returns {string} - Regex pattern string
  */
-const buildSearchPattern = (text) => {
-  if (!isArabicText(text)) {
-    return escapeRegex(text);
-  }
-
-  const normalized = normalizeArabicText(text);
-  // Escape special regex characters first (but preserve Arabic characters).
-  // We need to escape before replacing Arabic chars to avoid double-escaping.
-  let escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-  // Replace normalized Arabic characters with character classes that match
-  // both normalized and non-normalized versions.
-  return escaped
-    .replace(/ا/g, '[اأإآ]') // Match alif variations (ا, أ, إ, آ)
-    .replace(/ي/g, '[يى]') // Match ya and alif maksura
-    .replace(/ه/g, '[هة]'); // Match ha and ta marbuta
-};
+const buildSearchPattern = (text) => buildCitySearchPattern(text) || escapeRegex(text);
 
 // Helper function to normalize city labels
 const normalizeCityLabels = (labels) => {
@@ -253,10 +227,15 @@ const searchCities = async (req, res) => {
       }
     }
 
+    // Fetch more candidates than will be shown: $text answers in no
+    // particular order, so cutting at the display limit here can drop the
+    // exact match and keep nine near-misses. Ranking does the cutting, below.
+    const candidateLimit = parseInt(limit) * CANDIDATE_OVERFETCH;
+
     let localCities = await City.find(query)
       .populate('country', 'code labels flag')
       .select('code labels isCapital country isDynamic')
-      .limit(parseInt(limit))
+      .limit(candidateLimit)
       .lean()
       .exec();
 
@@ -286,7 +265,7 @@ const searchCities = async (req, res) => {
       localCities = await City.find(regexQuery)
         .populate('country', 'code labels flag')
         .select('code labels isCapital country isDynamic')
-        .limit(parseInt(limit))
+        .limit(candidateLimit)
         .lean()
         .exec();
     }
@@ -296,20 +275,20 @@ const searchCities = async (req, res) => {
     let googleCities = [];
     let needsArabicSupplement = false;
 
-    // Step 2: If we need more results or found few local results, search GeoNames API
-    if (localCities.length < parseInt(limit) && countryCode) {
+    // Step 2: Ask GeoNames when the database is short of results, or when
+    // what it returned doesn't answer the query - the same match-quality rule
+    // the Google step below uses, for the same reason: a database full of
+    // other places is not an answer.
+    if ((localCities.length < parseInt(limit) || !hasStrongCityMatch(localCities, q)) && countryCode) {
       try {
         apiCities = await geonamesService.searchCities(q, countryCode, language);
 
-        // Filter out cities that already exist in our database
-        const existingCityNames = localCities.map(city => 
-          city.labels[language]?.toLowerCase() || city.labels.en?.toLowerCase()
-        );
-        
-        apiCities = apiCities.filter(apiCity => {
-          const apiCityName = apiCity.labels[language]?.toLowerCase() || apiCity.labels.en?.toLowerCase();
-          return !existingCityNames.includes(apiCityName);
-        });
+        // Filter out cities that already exist in our database. Compared on
+        // the folded name, so the stored "Aït Melloul" and GeoNames'
+        // "Ait-Melloul" are recognised as one place rather than listed twice.
+        const existingCityNames = new Set(localCities.map(city => cityDedupeKey(city, language)));
+
+        apiCities = apiCities.filter(apiCity => !existingCityNames.has(cityDedupeKey(apiCity, language)));
 
         // A GeoNames match is real, useful data even when it lacks translated
         // alternate names (common for small towns/villages) - it just falls
@@ -321,9 +300,11 @@ const searchCities = async (req, res) => {
         const hasArabicCoverage = apiCities.some(city => city.labels?.ar && isArabicText(city.labels.ar));
         needsArabicSupplement = language === 'ar' && apiCities.length > 0 && !hasArabicCoverage;
 
-        // Add API cities to results (limit total results)
-        const remainingSlots = parseInt(limit) - localCities.length;
-        allCities = [...localCities, ...apiCities.slice(0, remainingSlots)];
+        // Every GeoNames candidate goes into the pool, not just the ones that
+        // fit the remaining slots: the list is ranked by match quality before
+        // it is cut, so a village sitting twelfth in GeoNames' own order can
+        // still reach the reader. Cutting first is how it never did.
+        allCities = [...localCities, ...apiCities];
 
       } catch (apiError) {
         console.warn('⚠️ GeoNames API error:', apiError.message);
@@ -331,31 +312,50 @@ const searchCities = async (req, res) => {
       }
     }
 
-    // Step 3: Search Google Places if we're still short of the requested
-    // limit (same "keep filling until full" pattern as the GeoNames gate
-    // above), or (for Arabic searches specifically) GeoNames couldn't
-    // provide a real Arabic name. Results are merged into allCities, never
-    // replace what's already been found.
-    if ((allCities.length < parseInt(limit) || needsArabicSupplement) && countryCode) {
-      try {
-        googleCities = await googlePlacesService.searchCities(q, countryCode, language);
+    // Step 3: Search Google Places when the database and GeoNames between
+    // them have not produced an answer to what was typed - not merely when
+    // they have not produced ten rows. Google's coverage of small places
+    // (a douar, a rural commune, a quarter people name as their town) is the
+    // reason this source exists, and the old row-count gate meant it was
+    // never reached whenever GeoNames filled the list with near-misses.
+    // Results are merged into allCities, never replace what's been found.
+    const consultGoogle = shouldConsultGooglePlaces({
+      resultCount: allCities.length,
+      limit: parseInt(limit),
+      hasStrongMatch: hasStrongCityMatch(allCities, q),
+      needsArabicSupplement
+    });
 
-        // Merge Google Places cities into the existing results, de-duplicated
-        // by English label, instead of overwriting DB/GeoNames matches.
-        const existingNames = new Set(
-          allCities.map(city => (city.labels?.[language] || city.labels?.en || '').toLowerCase())
-        );
+    if (consultGoogle && countryCode) {
+      try {
+        // Each kept result costs 2-3 further Place Details calls, so ask for
+        // the slots left - or a small floor when the list is full of things
+        // that don't match, since that is the case being answered here.
+        const maxResults = Math.max(parseInt(limit) - allCities.length, MIN_GOOGLE_RESULTS);
+        googleCities = await googlePlacesService.searchCities(q, countryCode, language, { maxResults });
+
+        // Merge, de-duplicated on the folded name so a place already found
+        // under another spelling isn't listed twice.
+        const existingNames = new Set(allCities.map(city => cityDedupeKey(city, language)));
         const newGoogleCities = googleCities.filter(city => {
-          const name = (city.labels?.[language] || city.labels?.en || '').toLowerCase();
-          return name && !existingNames.has(name);
+          const key = cityDedupeKey(city, language);
+          return key && !existingNames.has(key);
         });
-        allCities = [...allCities, ...newGoogleCities].slice(0, parseInt(limit));
+        allCities = [...allCities, ...newGoogleCities];
 
       } catch (googleError) {
         console.warn('⚠️ Google Places API error:', googleError.message);
         // Continue with existing results
       }
     }
+
+    // Rank before cutting: the three sources are merged in the order they
+    // were asked, and both external ones answer with plenty of places that
+    // merely share a few letters with the query. Sorted by how well each one
+    // matches what was typed, the answer is at the top instead of past the
+    // end. Ties keep source order, so an equally good database row still
+    // outranks an API one.
+    allCities = rankCityMatches(allCities, q).slice(0, parseInt(limit));
 
     // Step 4: Transform results
     const transformedCities = allCities.map(city => {
@@ -739,9 +739,9 @@ const createDynamicCity = async (req, res) => {
      const existingCity = await City.findOne({
        country: countryId,
        $or: [
-         { "labels.en": { $regex: escapeRegex(cityName), $options: 'i' } },
-         { "labels.ar": { $regex: escapeRegex(cityName), $options: 'i' } },
-         { "labels.fr": { $regex: escapeRegex(cityName), $options: 'i' } }
+         { "labels.en": { $regex: buildSearchPattern(cityName), $options: 'i' } },
+         { "labels.ar": { $regex: buildSearchPattern(cityName), $options: 'i' } },
+         { "labels.fr": { $regex: buildSearchPattern(cityName), $options: 'i' } }
        ]
      });
 
@@ -787,9 +787,9 @@ const createDynamicCity = async (req, res) => {
         const existingCity = await City.findOne({
           country: countryId,
           $or: [
-            { "labels.en": { $regex: escapeRegex(cityName), $options: 'i' } },
-            { "labels.ar": { $regex: escapeRegex(cityName), $options: 'i' } },
-            { "labels.fr": { $regex: escapeRegex(cityName), $options: 'i' } }
+            { "labels.en": { $regex: buildSearchPattern(cityName), $options: 'i' } },
+            { "labels.ar": { $regex: buildSearchPattern(cityName), $options: 'i' } },
+            { "labels.fr": { $regex: buildSearchPattern(cityName), $options: 'i' } }
           ]
         });
 
@@ -845,14 +845,21 @@ const shouldCacheCity = (city, searchCount = 1) => {
 // Cache API city to database
 const cacheApiCityToDatabase = async (apiCity, countryId) => {
   try {
-    // Check if city already exists
+    // Check if city already exists. A label an API didn't supply is skipped
+    // rather than searched for: an empty pattern matches every row, which
+    // would report the first city in the country as this one.
+    const nameConditions = ['en', 'ar', 'fr']
+      .map(lang => [lang, buildSearchPattern(apiCity.labels?.[lang])])
+      .filter(([, pattern]) => pattern)
+      .map(([lang, pattern]) => ({ [`labels.${lang}`]: { $regex: pattern, $options: 'i' } }));
+
+    if (nameConditions.length === 0) {
+      return null;
+    }
+
     const existingCity = await City.findOne({
       country: countryId,
-      $or: [
-        { "labels.en": { $regex: escapeRegex(apiCity.labels.en), $options: 'i' } },
-        { "labels.ar": { $regex: escapeRegex(apiCity.labels.ar), $options: 'i' } },
-        { "labels.fr": { $regex: escapeRegex(apiCity.labels.fr), $options: 'i' } }
-      ]
+      $or: nameConditions
     });
 
     if (existingCity) {
@@ -898,15 +905,15 @@ const searchCitiesByName = async (req, res) => {
       });
     }
 
-         const escapedQuery = escapeRegex(query);
+         const searchPattern = buildSearchPattern(query);
      const searchQuery = {
        country: countryId,
        isActive: true,
        $or: [
-         { "labels.en": { $regex: escapedQuery, $options: 'i' } },
-         { "labels.ar": { $regex: escapedQuery, $options: 'i' } },
-         { "labels.fr": { $regex: escapedQuery, $options: 'i' } },
-         { searchTerms: { $regex: escapedQuery, $options: 'i' } }
+         { "labels.en": { $regex: searchPattern, $options: 'i' } },
+         { "labels.ar": { $regex: searchPattern, $options: 'i' } },
+         { "labels.fr": { $regex: searchPattern, $options: 'i' } },
+         { searchTerms: { $regex: searchPattern, $options: 'i' } }
        ]
      };
 
