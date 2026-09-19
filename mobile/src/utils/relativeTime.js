@@ -8,6 +8,11 @@
  * "About 1 hour ago" is in English. The web app avoids this by going through
  * date-fns' `ar` locale; mobile has no date-fns dependency, so the same plural
  * categories are picked here and resolved against per-form translation keys.
+ *
+ * Units roll over rather than accumulating raw days forever: under 30 days is
+ * "{count}d ago", under 12 months is "{count}mo ago" (30-day months), beyond
+ * that "{count}y ago" (12-month years) - so a post from 36 days back reads
+ * "1mo ago" instead of "36d ago".
  */
 
 // CLDR plural categories for Arabic, mapped to the translation-key suffix each
@@ -39,7 +44,13 @@ export const formatRelativeTime = (dateString, t, language) => {
   if (diffHour < 24) return t(unitKey('hoursAgo', diffHour, language), { count: diffHour });
 
   const diffDay = Math.floor(diffHour / 24);
-  return t(unitKey('daysAgo', diffDay, language), { count: diffDay });
+  if (diffDay < 30) return t(unitKey('daysAgo', diffDay, language), { count: diffDay });
+
+  const diffMonth = Math.floor(diffDay / 30);
+  if (diffMonth < 12) return t(unitKey('monthsAgo', diffMonth, language), { count: diffMonth });
+
+  const diffYear = Math.floor(diffMonth / 12);
+  return t(unitKey('yearsAgo', diffYear, language), { count: diffYear });
 };
 
 export default formatRelativeTime;
