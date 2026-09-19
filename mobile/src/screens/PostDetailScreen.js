@@ -104,15 +104,17 @@ const InfoTile = ({ styles, tokens, icon, label, value, accessibilityLabel, isRT
   <View
     style={[styles.infoTile, fullWidth && styles.infoTileFullWidth]}
     accessible
-    accessibilityLabel={accessibilityLabel || `${label}: ${value}`}
+    accessibilityLabel={accessibilityLabel || (label ? `${label}: ${value}` : value)}
   >
     <View style={styles.infoTileIcon}>
       <Ionicons name={icon} size={16} color={tokens.brandPrimary} />
     </View>
     <View style={styles.infoTileBody}>
-      <Text style={[styles.infoTileLabel, isRTL && styles.textRTL]} numberOfLines={1}>{label}</Text>
+      {label ? (
+        <Text style={[styles.infoTileLabel, isRTL && styles.textRTL]} numberOfLines={1}>{label}</Text>
+      ) : null}
       <Text
-        style={[styles.infoTileValue, isRTL && styles.textRTL]}
+        style={[styles.infoTileValue, isRTL && styles.textRTL, !label && styles.infoTileValueNoLabel]}
         numberOfLines={fullWidth ? undefined : 2}
       >
         {value}
@@ -556,12 +558,6 @@ const PostDetailScreen = ({ navigation, route }) => {
               />
               <Text style={styles.statusTagText}>{badgeLabel}</Text>
             </View>
-
-            {post.createdAt ? (
-              <View style={styles.dateBadge}>
-                <Text style={styles.dateBadgeText}>{`${t('posted')} ${formatRelativeTime(post.createdAt, t, currentLanguage)}`}</Text>
-              </View>
-            ) : null}
           </View>
         </Animated.View>
 
@@ -599,6 +595,15 @@ const PostDetailScreen = ({ navigation, route }) => {
               description, which is what made the screen read as a list of
               loose lines. They are one tile grid now - same data, one block. */}
           <View style={styles.infoGrid}>
+            {post.createdAt ? (
+              <InfoTile
+                styles={styles}
+                tokens={tokens}
+                icon="time-outline"
+                value={t('postedTimeAgo', { time: formatRelativeTime(post.createdAt, t, currentLanguage) })}
+                isRTL={isRTL}
+              />
+            ) : null}
             {metaLocationLabel ? (
               <InfoTile
                 styles={styles}
@@ -624,7 +629,7 @@ const PostDetailScreen = ({ navigation, route }) => {
               styles={styles}
               tokens={tokens}
               icon="calendar-outline"
-              label={t('date')}
+              label={isFoundType ? t('dateFoundLabel') : t('dateLostLabel')}
               value={dateValue}
               // The tile label is short so the grid stays readable; the full
               // "date when the item was lost/found" phrasing survives here.
@@ -965,21 +970,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontSize: 12,
       letterSpacing: 0.3,
     },
-    dateBadge: {
-      position: 'absolute',
-      top: 12,
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: radiusTokens.sm,
-      backgroundColor: `${tokens.surfaceRaised}D9`,
-      ...logical(isRTL, { end: 12 }),
-      ...getElevation(isDark, 1),
-    },
-    dateBadgeText: {
-      fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 12,
-      color: tokens.ink,
-    },
     resolvedBanner: {
       flexDirection: row(isRTL),
       alignItems: 'center',
@@ -1077,6 +1067,9 @@ const createStyles = (tokens, isRTL, isDark) =>
       lineHeight: 18,
       color: tokens.ink,
       marginTop: 2,
+    },
+    infoTileValueNoLabel: {
+      marginTop: 0,
     },
     descriptionBox: {
       padding: 14,
