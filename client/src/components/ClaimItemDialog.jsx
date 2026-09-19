@@ -235,7 +235,7 @@ const ClaimItemDialog = ({
             >
               <VerifiedUserIcon sx={{ fontSize: 18, color: theme.custom.color.brandPrimary, mt: '2px', flexShrink: 0 }} />
               <Typography variant="body2" sx={{ color: theme.palette.text.secondary, lineHeight: 1.5 }}>
-                {t('contactSafetyNote')}
+                {isFoundPost ? t('contactSafetyNote') : t('contactSafetyNoteFinder')}
               </Typography>
             </Box>
 
