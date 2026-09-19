@@ -8,7 +8,7 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Image, Animated, RefreshControl, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Animated, RefreshControl, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
@@ -22,7 +22,6 @@ import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
 import DataStateView from '../components/DataStateView';
 import GlowBlob from '../components/GlowBlob';
-import NeumorphicSurface from '../components/NeumorphicSurface';
 import SkeletonBlock from '../components/SkeletonBlock';
 import WorldActivityMap from '../components/dashboard/WorldActivityMap';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
@@ -35,8 +34,7 @@ const SECTION_COUNT = 7;
 // header's map backdrop can cancel it out and bleed to the screen edges.
 const SCREEN_PADDING = 16;
 
-// Diameter of the social section's neumorphic circles. A constant because the
-// surface needs the matching corner radius as a prop, not just in a style.
+// Diameter of the social section's brand icon circles.
 const SOCIAL_CIRCLE_SIZE = 56;
 
 // "Browse by category" grid, ported 1:1 from web's Categories.jsx (Phase 15's
@@ -639,30 +637,53 @@ const QuickActionsSection = ({ t, styles, tokens, isDark, isRTL, onSearch, onRep
   );
 };
 
-const SocialSection = ({ t, styles, isDark }) => (
-  <NeumorphicSurface isDark={isDark} radius={radiusTokens.lg} contentStyle={styles.socialPanel}>
-    <Text style={styles.socialTitle}>{t('followUsTitle')}</Text>
-    <Text style={styles.socialSubtitle}>{t('followUsSubtitle')}</Text>
+// Same panelContainer shell as Categories/Stats/Recent, with the same
+// two-blob corner treatment as Categories' panel - no more bespoke
+// neumorphic surface for this one section (see Phase 12/25 in CLAUDE.md;
+// this reverts Follow Us the same way Phase 25 already reverted Browse by
+// Category, so every Home panel is one consistent card language again).
+const SocialSection = ({ t, styles, tokens, isDark, isRTL }) => (
+  <Panel styles={styles} style={styles.socialPanel}>
+    <GlowBlob
+      color={tokens.brandLogo}
+      opacity={isDark ? 0.28 : 0.2}
+      size={220}
+      style={logical(isRTL, { top: -80, end: -60 })}
+    />
+    <GlowBlob
+      color={tokens.brandPrimary}
+      opacity={isDark ? 0.28 : 0.2}
+      size={220}
+      style={logical(isRTL, { bottom: -80, start: -60 })}
+    />
+    <View style={styles.socialHeader}>
+      <Text style={styles.socialTitle}>{t('followUsTitle')}</Text>
+      <Text style={styles.socialSubtitle}>{t('followUsSubtitle')}</Text>
+    </View>
     <View style={styles.socialRow}>
       {SOCIAL_LINKS.map((social) => (
-        <Pressable key={social.key} style={styles.socialButton} onPress={() => Linking.openURL(social.url)}>
-          {({ pressed }) => (
-            <>
-              <NeumorphicSurface
-                isDark={isDark}
-                radius={SOCIAL_CIRCLE_SIZE / 2}
-                pressed={pressed}
-                contentStyle={styles.socialIconCircle}
-              >
-                <Ionicons name={social.icon} size={26} color={social.brandColor} />
-              </NeumorphicSurface>
-              <Text style={styles.socialLabel}>{t(social.labelKey)}</Text>
-            </>
-          )}
-        </Pressable>
+        <TouchableOpacity
+          key={social.key}
+          style={styles.socialButton}
+          onPress={() => Linking.openURL(social.url)}
+          activeOpacity={0.75}
+        >
+          <View
+            style={[
+              styles.socialIconCircle,
+              {
+                backgroundColor: `${social.brandColor}${isDark ? '33' : '1F'}`,
+                borderColor: `${social.brandColor}59`,
+              },
+            ]}
+          >
+            <Ionicons name={social.icon} size={26} color={social.brandColor} />
+          </View>
+          <Text style={styles.socialLabel}>{t(social.labelKey)}</Text>
+        </TouchableOpacity>
       ))}
     </View>
-  </NeumorphicSurface>
+  </Panel>
 );
 
 const SafetyFooter = ({ t, styles }) => (
@@ -873,7 +894,7 @@ const HomeScreen = ({ navigation }) => {
         </Animated.View>
 
         <Animated.View style={[styles.section, animatedSectionStyle(5)]}>
-          <SocialSection t={t} styles={styles} isDark={isDark} />
+          <SocialSection t={t} styles={styles} tokens={tokens} isDark={isDark} isRTL={isRTL} />
         </Animated.View>
 
         <Animated.View style={[styles.section, styles.lastSection, animatedSectionStyle(6)]}>
@@ -1423,28 +1444,28 @@ const createStyles = (tokens, isRTL, isDark) =>
       color: '#FFFFFF',
     },
 
-    // Social section - a neumorphic panel (its fill, radius and shadows come
-    // from NeumorphicSurface, so this is only the face's padding/alignment)
-    // with a centered title/subtitle pair above a row of circular brand
-    // icon buttons.
+    // Social section - same panelContainer shell as Categories/Stats/Recent
+    // (blurred-gradient surfaceRaised card, no border), with a centered
+    // title/subtitle pair above a row of circular brand icon buttons.
     socialPanel: {
-      paddingVertical: 22,
-      paddingHorizontal: 20,
       alignItems: 'center',
+    },
+    socialHeader: {
+      alignItems: 'center',
+      marginBottom: 18,
     },
     socialTitle: {
       fontFamily: fontFamilies.display,
-      fontSize: 20,
+      fontSize: 22,
       color: tokens.ink,
       textAlign: 'center',
+      marginBottom: 8,
     },
     socialSubtitle: {
       fontFamily: fontFamilies.body,
-      fontSize: 13,
-      color: `${tokens.ink}99`,
+      fontSize: 14,
+      color: `${tokens.ink}A6`,
       textAlign: 'center',
-      marginTop: 6,
-      marginBottom: 18,
       maxWidth: 260,
     },
     socialRow: {
@@ -1455,15 +1476,15 @@ const createStyles = (tokens, isRTL, isDark) =>
       alignItems: 'center',
       gap: 8,
     },
-    // Face of the neumorphic brand button - opaque and untinted by design:
-    // the effect needs the circle to share the panel's tone, so the brand
-    // color is carried by the icon alone. That also retires the separate
-    // opaque shadow wrapper this used to need, since there is no longer a
-    // translucent fill for an Android elevation shadow to bleed through.
+    // Tinted circle + brand-toned border, same convention as QuickActions'
+    // quickActionIcon (tone tint fill, tone border) rather than an opaque
+    // neumorphic face - the brand color now carries the fill, not just the
+    // icon.
     socialIconCircle: {
       width: SOCIAL_CIRCLE_SIZE,
       height: SOCIAL_CIRCLE_SIZE,
       borderRadius: SOCIAL_CIRCLE_SIZE / 2,
+      borderWidth: 2,
       justifyContent: 'center',
       alignItems: 'center',
     },

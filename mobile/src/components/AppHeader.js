@@ -264,8 +264,8 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       flexShrink: 1,
     },
     brandLogo: {
-      height: 32,
-      width: 32 * LOGO_RATIO,
+      height: 44,
+      width: 44 * LOGO_RATIO,
     },
     backButton: {
       width: 36,
