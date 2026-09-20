@@ -362,17 +362,6 @@ const QuickActions = () => {
                   >
                     {item.title}
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontFamily: theme.custom.font.body,
-                      color: alpha(ink, 0.65),
-                      fontSize: { xs: '0.82rem', sm: '0.88rem' },
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    {item.description}
-                  </Typography>
                 </Box>
 
                 <ArrowForwardIosRounded

@@ -557,7 +557,6 @@ const QuickActionsSection = ({ t, styles, tokens, isDark, isRTL, onSearch, onRep
     {
       key: 'lost',
       title: t('reportLostItem'),
-      description: t('reportLostItemDesc'),
       icon: 'search-outline',
       tone: tokens.status.lost,
       onPress: onReportLost,
@@ -565,7 +564,6 @@ const QuickActionsSection = ({ t, styles, tokens, isDark, isRTL, onSearch, onRep
     {
       key: 'found',
       title: t('reportFoundItem'),
-      description: t('reportFoundItemDesc'),
       icon: 'checkmark-circle-outline',
       tone: tokens.status.found,
       onPress: onReportFound,
@@ -623,7 +621,6 @@ const QuickActionsSection = ({ t, styles, tokens, isDark, isRTL, onSearch, onRep
             </View>
             <View style={styles.quickActionTextWrap}>
               <Text style={styles.quickActionTitle}>{item.title}</Text>
-              <Text style={styles.quickActionDescription}>{item.description}</Text>
             </View>
             <Ionicons
               name={isRTL ? 'chevron-back' : 'chevron-forward'}
