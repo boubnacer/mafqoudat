@@ -576,11 +576,6 @@ const PostDetailScreen = ({ navigation, route }) => {
               <Text style={styles.statusTagText}>{badgeLabel}</Text>
             </View>
 
-            {post.createdAt ? (
-              <View style={styles.dateBadge}>
-                <Text style={styles.dateBadgeText}>{`${t('posted')} ${formatRelativeTime(post.createdAt, t, currentLanguage)}`}</Text>
-              </View>
-            ) : null}
           </View>
         </Animated.View>
 
@@ -643,7 +638,7 @@ const PostDetailScreen = ({ navigation, route }) => {
               styles={styles}
               tokens={tokens}
               icon="calendar-outline"
-              label={t('date')}
+              label={isLostType ? t('dateLostLabel') : t('dateFoundLabel')}
               value={dateValue}
               // The tile label is short so the grid stays readable; the full
               // "date when the item was lost/found" phrasing survives here.
@@ -667,6 +662,15 @@ const PostDetailScreen = ({ navigation, route }) => {
                 icon="eye-outline"
                 label={t('viewsLabel')}
                 value={String(post.views)}
+                isRTL={isRTL}
+              />
+            ) : null}
+            {post.createdAt ? (
+              <InfoTile
+                styles={styles}
+                tokens={tokens}
+                icon="time-outline"
+                value={t('postedTimeAgo', { time: formatRelativeTime(post.createdAt, t, currentLanguage) })}
                 isRTL={isRTL}
               />
             ) : null}
@@ -1030,21 +1034,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 12,
       letterSpacing: 0.3,
-    },
-    dateBadge: {
-      position: 'absolute',
-      top: 12,
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: radiusTokens.sm,
-      backgroundColor: `${tokens.surfaceRaised}D9`,
-      ...logical(isRTL, { end: 12 }),
-      ...getElevation(isDark, 1),
-    },
-    dateBadgeText: {
-      fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 12,
-      color: tokens.ink,
     },
     resolvedBanner: {
       flexDirection: row(isRTL),
