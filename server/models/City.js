@@ -53,6 +53,17 @@ const citySchema = new mongoose.Schema({
   searchTerms: {
     type: [String],
     default: []
+  },
+  // Where the city is, as saved from the search result it was picked from.
+  // The dashboard map places cities from this first and only falls back to
+  // guessing from the name (utils/cityGeocode.js) when it is absent - that
+  // guess cannot find small towns at all. Absent, not zero, when unknown.
+  coordinates: {
+    type: new mongoose.Schema({
+      lat: { type: Number, min: -90, max: 90, required: true },
+      lon: { type: Number, min: -180, max: 180, required: true }
+    }, { _id: false }),
+    default: undefined
   }
 }, {
   timestamps: true

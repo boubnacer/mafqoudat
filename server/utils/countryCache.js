@@ -65,11 +65,52 @@ async function getCountryId(countryIdentifier) {
   return null;
 }
 
+// The other direction: ObjectId -> ISO2 code. Needed wherever a write already
+// holds the country as an id and has to reason about the country itself - the
+// offline city geocode is keyed by ISO2, so saving a city's coordinates needs
+// this. Same 24h TTL and same "answer null rather than throw" contract as
+// getCountryId above; own map, since the two are keyed differently.
+const codeCache = new Map();
+
+/**
+ * Get a country's ISO2 code from its ObjectId (or from a code, which is
+ * returned as-is).
+ *
+ * @param {string} countryIdentifier - Country ObjectId or code
+ * @returns {Promise<string|null>} - Uppercase ISO2 code, or null
+ */
+async function getCountryCode(countryIdentifier) {
+  if (!countryIdentifier) return null;
+
+  const identifier = String(countryIdentifier);
+  // Already a code (nothing else is 2-3 characters long).
+  if (identifier.length <= 3) return identifier.toUpperCase();
+  if (!mongoose.Types.ObjectId.isValid(identifier)) return null;
+
+  const cached = codeCache.get(identifier);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) return cached.code;
+  if (cached) codeCache.delete(identifier);
+
+  try {
+    const country = await Country.findById(identifier).select('code').lean().exec();
+    if (country?.code) {
+      const code = country.code.toUpperCase();
+      codeCache.set(identifier, { code, timestamp: Date.now() });
+      return code;
+    }
+  } catch (error) {
+    console.error('Error fetching country code from database:', error);
+  }
+
+  return null;
+}
+
 /**
  * Clear the country cache (useful for testing or when countries are updated)
  */
 function clearCache() {
   countryCache.clear();
+  codeCache.clear();
 }
 
 /**
@@ -88,6 +129,7 @@ function getCacheStats() {
 
 module.exports = {
   getCountryId,
+  getCountryCode,
   clearCache,
   getCacheStats
 };
