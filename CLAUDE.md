@@ -712,28 +712,41 @@ full-bleed backdrop zoomed to the visitor's country, countries tinted by
   altogether and filter on their own `area_sqkm` (≥ 100), which is what stops
   it under-selecting in these countries: 14 footprints in Morocco, 13 in Egypt,
   32 in Iraq.
-- **City labels are placed, not offset.** They used to hang at a fixed offset
-  under their dot, which put Casablanca under Mohammedia and Rabat under Salé —
-  the map is always zoomed to one country, so neighbouring cities are the normal
-  case. [cityLabelLayout.js](client/src/utils/cityLabelLayout.js), mirrored 1:1
-  at [mobile/src/utils/cityLabelLayout.js](mobile/src/utils/cityLabelLayout.js),
-  walks each label outwards from its dot — four sides, then diagonals, then
-  rings at 13/26/42 — until it finds a box that hits no dot, no already-placed
-  label and no badge, and hands back a leader line for any label that had to
-  leave its dot's side. Cities are placed in descending activity order, so the
-  quietest city is the one that loses its name. Three consequences worth
-  keeping: **a label that fits nowhere is dropped, not stacked** (the dot still
-  marks the city); **the ring ladder deliberately stops at 42**, because
-  further out a name parks in another city's neighbourhood and reads as
-  belonging to whatever dot it landed beside — a missing name is a gap, a name
-  beside the wrong city is wrong; and **the "+N today" badges are placed first
-  and unconditionally**, with labels routing around them, because a badge
-  carries a number and a name does not. Leader lines get the same panel-colored
-  halo the names and badges use — a hairline in `ink` vanishes against a
-  saturated country fill exactly where it matters. Both platforms estimate text
-  width from the glyph count (SVG has no render-time metrics; RN only reports a
-  width after layout), erring generous: over-estimating reserves space that was
-  not needed, under-estimating puts two names back on top of each other.
+- **City labels are placed, not offset, and no label is ever connected to its
+  dot by a line.** They used to hang at a fixed offset under their dot, which
+  put Casablanca under Mohammedia and Rabat under Salé — the map is always
+  zoomed to one country, so neighbouring cities are the normal case.
+  [cityLabelLayout.js](client/src/utils/cityLabelLayout.js), mirrored 1:1 at
+  [mobile/src/utils/cityLabelLayout.js](mobile/src/utils/cityLabelLayout.js),
+  walks each label around its dot — four sides, then diagonals, then the eight
+  22.5° angles between them, then rings at 3 and 6 — until it finds a box that
+  hits no dot, no already-placed label and no badge. Cities are placed in
+  descending activity order, so the quietest city is the one that loses its
+  name. What carries the attribution:
+  - **The label stays against its own dot.** An earlier version let a name
+    travel up to 42 units away and drew a leader line back to the dot to say
+    which city it belonged to. The lines were the most visible thing on a map
+    whose subject is the country underneath, and a name that needs a line to be
+    attributed is already too far away. So the ladder stops at 6, and the
+    sixteen directions are what finds room in a cluster now that a label may
+    not simply move further out.
+  - **A placement is refused unless the label's own dot is the closest dot to
+    it** (`ownsLabel`, measured dot-to-nearest-edge-of-box, not to its centre,
+    since a long name's centre drifts). Proximity is the only thing left saying
+    "this name belongs to that dot", so an equal distance is a refusal too: a
+    name exactly between two cities belongs to neither. On the live Moroccan
+    set this is what removed the two labels that sat nearer a neighbour's dot
+    than their own, and it halved the furthest label's distance from its dot
+    (18.2px → 11.2px) with no name lost.
+  - **A label that fits nowhere is dropped, not stacked** — the dot still marks
+    the city. In a pathological cluster (twelve cities in a 70px patch) that is
+    8 names kept and 4 dropped, with no overlap and nothing misattributed.
+  - **The "+N today" badges are placed first and unconditionally**, with labels
+    routing around them, because a badge carries a number and a name does not.
+  - Both platforms estimate text width from the glyph count (SVG has no
+    render-time metrics; RN only reports a width after layout), erring generous:
+    over-estimating reserves space that was not needed, under-estimating puts
+    two names back on top of each other.
 - **The map's accent is `brandLogo`, not `brandPrimary` (web + mobile).** Every
   other surface renders the brand as a control — a button, a chip, a 6px accent
   bar — where a deep, high-contrast blue is right. This one renders it as a large

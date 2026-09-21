@@ -30,7 +30,7 @@
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path, Circle, Line } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { geoMercator, geoPath, geoBounds } from 'd3-geo';
 import { feature as topojsonFeature, mesh as topojsonMesh } from 'topojson-client';
 import worldMapTopoJson from '../../data/worldMap.topo.json';
@@ -327,9 +327,9 @@ const WorldActivityMap = ({
   );
 
   // The dots stay exactly on their coordinates; only the names move. See
-  // utils/cityLabelLayout.js (mirrored from web) - labels walk outwards from
-  // their dot until they find room, take a leader line back once they have left
-  // its side, and are dropped rather than stacked when the map is too crowded.
+  // utils/cityLabelLayout.js (mirrored from web) - labels walk around their own
+  // dot until they find room, never travel far enough to need a line back to
+  // it, and are dropped rather than stacked when the map is too crowded.
   // Mobile has no "+N today" badges, so there are no obstacles to route around
   // beyond the dots and the other labels. Everything else feeding this map's
   // render is memoized above; this walk is the same per-render cost the rest
@@ -417,36 +417,6 @@ const WorldActivityMap = ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
-            )}
-            {/* Leader lines before the dots, so a dot covers its own end of
-                the line instead of the line crossing it. Only labels that had
-                to leave their dot's side get one. */}
-            {cityLabels.map((placement, index) =>
-              placement.leader ? (
-                <React.Fragment key={`leader-${index}`}>
-                  {/* Panel-colored halo under the line, the same trick the city
-                      names use: a single thin ink line disappears against a
-                      saturated country fill exactly where it matters most. */}
-                  <Line
-                    x1={cityPoints[index].x}
-                    y1={cityPoints[index].y}
-                    x2={placement.leader.x}
-                    y2={placement.leader.y}
-                    stroke={panel}
-                    strokeWidth={2.4}
-                    strokeLinecap="round"
-                  />
-                  <Line
-                    x1={cityPoints[index].x}
-                    y1={cityPoints[index].y}
-                    x2={placement.leader.x}
-                    y2={placement.leader.y}
-                    stroke={hexToRgba(ink, isDark ? 0.75 : 0.6)}
-                    strokeWidth={0.9}
-                    strokeLinecap="round"
-                  />
-                </React.Fragment>
-              ) : null
             )}
             {cityPoints.map(({ city, x, y, r }, index) => (
               <Circle key={`${city.name}-${index}`} cx={x} cy={y} r={r} fill={panel} stroke={brand} strokeWidth={2} />

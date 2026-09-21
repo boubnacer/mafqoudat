@@ -258,9 +258,9 @@ const WorldActivityMap = ({
 
   // Cities projected once, then laid out: the dots sit exactly on their
   // coordinates, and only the names move. See cityLabelLayout.js — labels walk
-  // outwards from their dot until they find room, take a leader line back once
-  // they have left its side, and are dropped rather than stacked when the map
-  // is too crowded for them.
+  // around their own dot until they find room, never travel far enough to need
+  // a line back to it, and are dropped rather than stacked when the map is too
+  // crowded for them.
   const cityMarkers = useMemo(() => {
     const projected = cities
       .map((city) => {
@@ -443,37 +443,6 @@ const WorldActivityMap = ({
           strokeLinejoin="round"
           pointerEvents="none"
         />
-      )}
-
-      {/* Leader lines first, so a dot and a name both cover their own end of
-          the line rather than the line crossing them. Only labels that had to
-          leave their dot's side get one — see cityLabelLayout.js. */}
-      {cityMarkers.labels.map((placement, index) =>
-        placement.leader ? (
-          <g key={`leader-${index}`} pointerEvents="none">
-            {/* Panel-colored halo under the line, the same trick the names and
-                the badges use: a single thin ink line disappears against a
-                saturated country fill exactly where it matters most. */}
-            <line
-              x1={cityMarkers.dots[index].x}
-              y1={cityMarkers.dots[index].y}
-              x2={placement.leader.x}
-              y2={placement.leader.y}
-              stroke={panel}
-              strokeWidth={2.4}
-              strokeLinecap="round"
-            />
-            <line
-              x1={cityMarkers.dots[index].x}
-              y1={cityMarkers.dots[index].y}
-              x2={placement.leader.x}
-              y2={placement.leader.y}
-              stroke={alpha(ink, isDark ? 0.75 : 0.6)}
-              strokeWidth={0.9}
-              strokeLinecap="round"
-            />
-          </g>
-        ) : null
       )}
 
       {/* Rings pulsing out from under the dots of cities that got a post

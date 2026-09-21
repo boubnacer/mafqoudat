@@ -7,13 +7,25 @@
  * half of Bahrain: the map is always zoomed to one country, so neighbouring
  * cities are normal, not an edge case.
  *
- * This walks the labels outwards from their dot until one fits: the four sides
- * first (so an isolated city still gets the plain "name under the dot" look it
- * has always had), then the diagonals, then progressively further rings. A
- * label that had to leave its dot's side gets a leader line back to it, which
- * is what keeps "this name belongs to that dot" true once the name is no longer
- * touching it. A label that fits nowhere is dropped rather than drawn over a
- * neighbour — the dot still shows the city is there.
+ * So each label walks outwards from its dot until one position fits: the four
+ * sides first (so an isolated city keeps the plain "name under the dot" look it
+ * has always had), then the diagonals, then the angles between them, then one
+ * or two slightly wider rings. A label that fits nowhere is dropped rather than
+ * drawn over a neighbour — the dot still shows the city is there.
+ *
+ * **Every label stays against its own dot, and nothing is ever connected by a
+ * line.** An earlier version let a name travel up to 42 units away and drew a
+ * leader line back to the dot to say which city it belonged to. The lines were
+ * the most visible thing on a map whose subject is the country underneath, and
+ * a name that needs a line to be attributed is already too far away. Two rules
+ * do that job instead:
+ *
+ *   1. the ladder stops a couple of units past touching (see RINGS), so a name
+ *      is always within its own dot's immediate neighbourhood; and
+ *   2. a position is only accepted if the label's own dot is the closest dot to
+ *      it (`ownsLabel`). Proximity is the only thing saying "this name belongs
+ *      to that dot" now, so a placement where some other city's dot is nearer —
+ *      or equally near — is refused even if the box itself is clear.
  *
  * Cities are placed in descending order of activity, so when something has to
  * give, it is the quietest city that loses its name.
@@ -38,22 +50,26 @@ export const estimateLabelSize = (text, fontSize = CITY_LABEL_FONT_SIZE) => ({
 });
 
 // Clockwise from below, so the first candidate that fits is the one closest to
-// the label position this map has always used.
+// the label position this map has always used. The eight 22.5° angles come
+// after the four sides and the four diagonals: they are what finds room for a
+// name in a crowded cluster now that it may not simply move further out, and
+// trying them in that order means an uncrowded city is never placed at an odd
+// angle when the plain position under its dot was free.
+const SIN_22_5 = 0.3827;
+const COS_22_5 = 0.9239;
 const DIRECTIONS = [
   [0, 1], [1, 0], [-1, 0], [0, -1],
   [0.7071, 0.7071], [-0.7071, 0.7071], [0.7071, -0.7071], [-0.7071, -0.7071],
+  [SIN_22_5, COS_22_5], [-SIN_22_5, COS_22_5], [SIN_22_5, -COS_22_5], [-SIN_22_5, -COS_22_5],
+  [COS_22_5, SIN_22_5], [-COS_22_5, SIN_22_5], [COS_22_5, -SIN_22_5], [-COS_22_5, -SIN_22_5],
 ];
 
-// Extra distance to try once every direction has failed at the previous one.
-// Ring 0 is "touching the dot" and needs no leader line; the rest do.
-//
-// The ladder stops at 42 on purpose. Going further does find room for every
-// last name, but on a canvas this size it parks a label in the middle of a
-// different city's neighbourhood, where the leader line is too long to trace at
-// a glance and the name reads as belonging to whatever dot it landed next to.
-// A missing name is a gap; a name beside the wrong city is wrong. The dot is
-// still drawn either way, so nothing disappears from the map — only its label.
-const RINGS = [0, 13, 26, 42];
+// Extra distance to try once all sixteen directions have failed at the previous
+// one. Ring 0 is the label touching its dot; 3 and 6 are the small amount of
+// slack a dense cluster needs, and the last of them is where it stops. Nothing
+// here is far enough for a name to read as belonging to a neighbour, which is the
+// whole point of not drawing a line any more: past this, a label is dropped.
+const RINGS = [0, 3, 6];
 
 const GAP = 3;
 const PADDING = 1;
@@ -67,22 +83,24 @@ const rectOf = (cx, cy, width, height) => ({
 
 const overlaps = (a, b) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
 
-// Where the line from the dot crosses the label's box, so the leader stops at
-// the edge of the name instead of running underneath it.
-const clipToRect = (fromX, fromY, rect) => {
-  const cx = (rect.x0 + rect.x1) / 2;
-  const cy = (rect.y0 + rect.y1) / 2;
-  const dx = cx - fromX;
-  const dy = cy - fromY;
-  if (!dx && !dy) return { x: cx, y: cy };
-  const halfWidth = (rect.x1 - rect.x0) / 2;
-  const halfHeight = (rect.y1 - rect.y0) / 2;
-  // Largest t in [0,1] along dot -> centre that is still outside the box.
-  const scaleX = dx ? halfWidth / Math.abs(dx) : Infinity;
-  const scaleY = dy ? halfHeight / Math.abs(dy) : Infinity;
-  const t = 1 - Math.min(scaleX, scaleY);
-  if (t <= 0) return null;
-  return { x: fromX + dx * t, y: fromY + dy * t };
+// Distance from a dot to the nearest point of a label's box, not to its centre:
+// a long name's centre can easily be further from its own dot than from a
+// neighbour's while the name itself is plainly sitting against its own.
+const distanceToRect = (px, py, rect) => {
+  const dx = Math.max(rect.x0 - px, 0, px - rect.x1);
+  const dy = Math.max(rect.y0 - py, 0, py - rect.y1);
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
+// Is this box unambiguously THIS city's name? With no leader line, being the
+// closest dot is the only claim a dot has on a name, so an equal distance is a
+// refusal too: a name exactly between two cities belongs to neither.
+const ownsLabel = (points, ownIndex, box) => {
+  const own = points[ownIndex];
+  const ownDistance = distanceToRect(own.x, own.y, box);
+  return !points.some((point, index) => (
+    index !== ownIndex && distanceToRect(point.x, point.y, box) <= ownDistance
+  ));
 };
 
 /**
@@ -92,7 +110,7 @@ const clipToRect = (fromX, fromY, rect) => {
  * @param dotRadius  radius of the marker each label belongs to
  * @param fontSize   label font size in map units
  * @param obstacles  extra rects labels must avoid (web's "+N today" badges)
- * @returns array parallel to `points`: { labelX, labelY, leader, hidden }
+ * @returns array parallel to `points`: { labelX, labelY, hidden }
  */
 export const layoutCityLabels = ({
   points,
@@ -102,7 +120,7 @@ export const layoutCityLabels = ({
   fontSize = CITY_LABEL_FONT_SIZE,
   obstacles = [],
 }) => {
-  const placements = points.map(() => ({ labelX: 0, labelY: 0, leader: null, hidden: true }));
+  const placements = points.map(() => ({ labelX: 0, labelY: 0, hidden: true }));
   // Every dot is an obstacle for every label, including labels placed before
   // this one — a name may not sit on a marker that is not its own.
   const taken = points
@@ -131,13 +149,9 @@ export const layoutCityLabels = ({
         // another label.
         if (box.x0 < 0 || box.y0 < 0 || box.x1 > width || box.y1 > height) continue;
         if (taken.some((other) => overlaps(box, other))) continue;
+        if (!ownsLabel(points, index, box)) continue;
 
-        placements[index] = {
-          labelX: cx,
-          labelY: cy,
-          leader: RINGS[ring] ? clipToRect(point.x, point.y, box) : null,
-          hidden: false,
-        };
+        placements[index] = { labelX: cx, labelY: cy, hidden: false };
         taken.push(box);
         return;
       }
