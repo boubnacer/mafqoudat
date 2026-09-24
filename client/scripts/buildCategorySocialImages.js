@@ -301,58 +301,24 @@ function dotGrid() {
   return `<g fill="${DOT}">${dots.join('')}</g>`;
 }
 
-// The lockup keeps the placeholder's proportions (a 150px tile, a 48px gap,
-// then the wordmark at the same height), scaled down and moved to the top so
-// the category icon owns the middle of the card.
-const LOCKUP_SCALE = 0.62;
-const LOCKUP_TILE = 150 * LOCKUP_SCALE;
-const LOCKUP_GAP = 48 * LOCKUP_SCALE;
+// We just center the new logo and increase its size
+const LOCKUP_SCALE = 0.8;
 const LOCKUP_WORDMARK_HEIGHT = 141 * LOCKUP_SCALE;
 const LOCKUP_WORDMARK_WIDTH = LOCKUP_WORDMARK_HEIGHT * (328 / 71);
 const LOCKUP_CENTER_Y = 186;
 
-// The Arabic name heads the Latin wordmark rather than sitting beside it, and
-// is set to the wordmark's trailing edge - which in Arabic is where the word
-// begins.
-const ARABIC_WORDMARK_FILE = 'scripts/assets/arabicWordmark.svg';
-const ARABIC_WORDMARK_HEIGHT = 46;
-// Near enough to touch: the two words read as one lockup rather than as a
-// caption above a logo. Measured off the descender, which is the word's real
-// bottom edge.
-const ARABIC_WORDMARK_GAP = 3;
-// A requested nudge off the trailing-edge/gap position above - 0.2cm left,
-// 0.1cm down, at the 96px/inch (37.795px/cm) a browser assumes for an
-// unitless SVG.
-const CM_TO_PX = 96 / 2.54;
-const ARABIC_WORDMARK_OFFSET_X = 0.2 * CM_TO_PX;
-const ARABIC_WORDMARK_OFFSET_Y = 0.1 * CM_TO_PX;
-
 function brandLockup() {
-  const totalWidth = LOCKUP_TILE + LOCKUP_GAP + LOCKUP_WORDMARK_WIDTH;
-  const left = (CANVAS - totalWidth) / 2;
-  const tileY = LOCKUP_CENTER_Y - LOCKUP_TILE / 2;
-  const glyph = LOCKUP_TILE * 0.6;
-  const arabicWidth = ARABIC_WORDMARK_HEIGHT * svgAspect(ARABIC_WORDMARK_FILE);
+  const width = LOCKUP_WORDMARK_WIDTH;
+  const height = LOCKUP_WORDMARK_HEIGHT;
+  const x = (CANVAS - width) / 2;
+  const y = LOCKUP_CENTER_Y - height / 2;
 
   return [
-    `<g fill="${BRAND_ARABIC}">${placeSvgFile(ARABIC_WORDMARK_FILE, {
-      x: left + totalWidth - arabicWidth - ARABIC_WORDMARK_OFFSET_X,
-      y: tileY - ARABIC_WORDMARK_GAP - ARABIC_WORDMARK_HEIGHT + ARABIC_WORDMARK_OFFSET_Y,
-      width: arabicWidth,
-      height: ARABIC_WORDMARK_HEIGHT,
-    })}</g>`,
-    `<rect x="${left}" y="${tileY}" width="${LOCKUP_TILE}" height="${LOCKUP_TILE}" rx="${LOCKUP_TILE * 0.28}" fill="${BRAND}" fill-opacity="0.13"/>`,
-    placeSvgFile('public/maficonSVG.svg', {
-      x: left + (LOCKUP_TILE - glyph * (47 / 53)) / 2,
-      y: tileY + (LOCKUP_TILE - glyph) / 2,
-      width: glyph * (47 / 53),
-      height: glyph,
-    }),
     placeSvgFile('public/maflogoSVG.svg', {
-      x: left + LOCKUP_TILE + LOCKUP_GAP,
-      y: LOCKUP_CENTER_Y - LOCKUP_WORDMARK_HEIGHT / 2,
-      width: LOCKUP_WORDMARK_WIDTH,
-      height: LOCKUP_WORDMARK_HEIGHT,
+      x,
+      y,
+      width,
+      height,
     }),
   ].join('');
 }

@@ -5,6 +5,10 @@ const Country = require('../models/Country');
 const DocumentType = require('../models/DocumentType');
 const { categorySocialImagePath } = require('../config/categorySocialImages');
 const { ensureSocialImage } = require('./socialImageService');
+const { generateCategoryImage, isAvailable: dynamicImageAvailable } = require('./dynamicCategoryImage');
+const { cloudinary } = require('../config/cloudinary');
+
+// ---------------------------------------------------------------- constants
 
 // One post, one caption, three stacked language blocks (ar/fr/en) separated
 // by a divider - there is no per-post language field to pick just one, and
@@ -89,10 +93,12 @@ const toHashtag = (label) => label && `#${label.replace(/[\s'"،.,-]/g, '')}`;
 /**
  * A post without an uploaded image still posts with a branded graphic instead
  * of being skipped (Instagram has no text-only post type) or falling back to
- * plain text (Facebook, for visual consistency with IG). The graphic is the
- * one for the listing's own category - a lost phone goes up with the phone
- * icon - which says something about the item at a glance, unlike the generic
- * placeholder that graphic family started as.
+ * plain text (Facebook, for visual consistency with IG). The graphic is
+ * generated dynamically from the listing's own categories: a single-category
+ * post gets that category's pale background with its icon centred in the
+ * accent colour; a multi-category post splits the background diagonally
+ * between the categories' pale colours with the icons side by side, each in
+ * its own accent colour.
  *
  * `isPlaceholder` stays true either way: the listing still has no photo of
  * the item. It no longer changes the caption text (that per-locale "no photo"
@@ -105,6 +111,26 @@ const toHashtag = (label) => label && `#${label.replace(/[\s'"،.,-]/g, '')}`;
  * waits on several Graph calls, and publishing is paced at one post per
  * SOCIAL_QUEUE_MIN_INTERVAL_SECONDS anyway.
  */
+const DYNAMIC_IMAGE_FOLDER = 'mafqoudat/social-categories';
+
+/** Uploads a JPEG buffer to Cloudinary and returns the secure_url. */
+function uploadDynamicImage(buffer, publicId) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        public_id: publicId,
+        resource_type: 'image',
+        format: 'jpg',
+        overwrite: true,
+        invalidate: true,
+        transformation: [],
+      },
+      (error, result) => (error ? reject(error) : resolve(result)),
+    );
+    stream.end(buffer);
+  });
+}
+
 async function resolveListingImage(post) {
   const imageUrl = post.cloudinaryUrl || post.image;
   if (imageUrl) {
@@ -119,17 +145,44 @@ async function resolveListingImage(post) {
     return { imageUrl: watermarked || imageUrl, isPlaceholder: false };
   }
 
-  const categoryId = (post.categories && post.categories.length > 0)
-    ? post.categories[0]
-    : post.category;
+  // Collect all category IDs from the post
+  const categoryIds = (post.categories && post.categories.length > 0)
+    ? post.categories
+    : (post.category ? [post.category] : []);
 
-  const category = categoryId
-    ? await Category.findById(categoryId).select('code').lean()
-    : null;
+  // Fetch category codes
+  const categories = categoryIds.length > 0
+    ? await Category.find({ _id: { $in: categoryIds } }).select('code').lean()
+    : [];
 
+  const categoryCodes = categories.map((c) => c.code).filter(Boolean);
+
+  // Try dynamic generation first
+  if (dynamicImageAvailable() && categoryCodes.length > 0) {
+    try {
+      const buffer = await generateCategoryImage(categoryCodes);
+      if (buffer) {
+        // Deterministic public_id so re-publishing the same post reuses the
+        // same Cloudinary slot rather than creating a new one each time.
+        const sortedCodes = [...categoryCodes].sort().join('-').toLowerCase();
+        const publicId = `${DYNAMIC_IMAGE_FOLDER}/${post._id || sortedCodes}`;
+
+        const result = await uploadDynamicImage(buffer, publicId);
+        return { imageUrl: result.secure_url, isPlaceholder: true };
+      }
+    } catch (error) {
+      console.warn(
+        `Dynamic category image generation failed for post ${post._id}: ${error.message}. `
+        + 'Falling back to static category image.'
+      );
+    }
+  }
+
+  // Fallback: use the static pre-built image for the first category
+  const firstCode = categoryCodes.length > 0 ? categoryCodes[0] : null;
   const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
   return {
-    imageUrl: `${siteUrl}/${categorySocialImagePath(category?.code)}`,
+    imageUrl: `${siteUrl}/${categorySocialImagePath(firstCode)}`,
     isPlaceholder: true,
   };
 }
