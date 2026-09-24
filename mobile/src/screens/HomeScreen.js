@@ -317,7 +317,7 @@ const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isR
   const categoryConfig = getCategoryConfig(getCategoryInfo(item)?.code);
   const categoryLabel = getCategoryLabel(item, currentLanguage) || t('categories');
   const cityLabel = getCityLabel(item, currentLanguage) || t('unknownCity');
-  const textColor = imageUri ? '#FFFFFF' : getContrastText(categoryConfig.color);
+  const textColor = '#FFFFFF';
   // Direction-dependent styles go through the helpers in utils/rtl.js
   // (row()/logical()), which compensate only when the language's direction
   // differs from the one native is already mirroring - see that file. Do NOT
@@ -335,7 +335,7 @@ const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isR
         <Image source={{ uri: imageUri }} style={styles.posterImage} resizeMode="cover" />
       ) : (
         <View style={styles.posterFallback}>
-          <Ionicons name={categoryConfig.icon} size={40} color={textColor} style={{ opacity: 0.9 }} />
+          <Ionicons name={categoryConfig.icon} size={48} color={textColor} style={{ opacity: 0.9 }} />
         </View>
       )}
 
@@ -1166,8 +1166,9 @@ const createStyles = (tokens, isRTL, isDark) =>
       // parks it on the correct edge in both directions.
       flexShrink: 1,
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 13,
-      lineHeight: 16,
+      // 12 / 14 = web's `caption` (0.75rem) at 1.2 line height.
+      fontSize: 12,
+      lineHeight: 14,
     },
     posterBadgeColumn: {
       alignItems: alignEnd(isRTL),
@@ -1224,11 +1225,13 @@ const createStyles = (tokens, isRTL, isDark) =>
     posterLocationText: {
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 12,
+      lineHeight: 18,
       flexShrink: 1,
     },
     posterDateText: {
       fontFamily: fontFamilies.body,
       fontSize: 12,
+      lineHeight: 18,
       opacity: 0.85,
       // Date sits under the location on the same (start) edge, as on web's
       // RecentPosts.jsx card. Cross-axis alignment is resolved against the

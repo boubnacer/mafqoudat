@@ -529,6 +529,13 @@ const OnboardingScreen = () => {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
+      <SvgXml
+        xml={MAF_LOGO_XML}
+        width={styles.brandLogo.width}
+        height={styles.brandLogo.height}
+        style={styles.countryLogo}
+        accessibilityLabel={t('brandName')}
+      />
       <View style={styles.countrySection}>
         <Text style={styles.countryTitle}>{t('chooseCountryTitle')}</Text>
         <Text style={styles.countrySubtitle}>{t('chooseCountryDescription')}</Text>
@@ -816,12 +823,18 @@ const createStyles = (tokens, mirrorRows) =>
     brandLogo: {
       height: 64,
       width: 64 * LOGO_RATIO,
-      // Pulled up ~1cm (96 CSS px/in ÷ 2.54cm/in ≈ 38dp): slideContent centers
-      // its column, so a negative marginTop on the first child shifts the
-      // whole centered stack up by that amount rather than just the logo.
-      marginTop: -38,
+      // Pulled up a further ~1cm (96 CSS px/in ÷ 2.54cm/in ≈ 38dp), ~2cm in
+      // all: slideContent centers its column, so a negative marginTop on the
+      // first child lifts the logo alone by that amount.
+      marginTop: -76,
       // ~1cm gap down to the illustration.
       marginBottom: 38,
+    },
+    // Same lockup on the country slide, in flow at the top of the scroller.
+    countryLogo: {
+      height: 64,
+      width: 64 * LOGO_RATIO,
+      marginBottom: 24,
     },
     headline: {
       fontSize: 22,

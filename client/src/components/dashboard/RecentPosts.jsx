@@ -111,9 +111,9 @@ const RecentPosts = ({
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
 
   // Text sits on top of the image (gradient scrim) or the solid category
-  // fill, so it always needs to read as light — same contrast logic as
-  // WelcomePage.jsx's FannedCard.
-  const textColor = finalImageUrl ? "#FFFFFF" : theme.palette.getContrastText(categoryStyle.main);
+  // fill, so it is always white — category accents are all picked dark enough
+  // for white to clear contrast on them, and it matches the mobile app's card.
+  const textColor = "#FFFFFF";
 
   return (
     <Box
