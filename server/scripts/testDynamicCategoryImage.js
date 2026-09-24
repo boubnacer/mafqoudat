@@ -11,7 +11,8 @@ const path = require('path');
 const fs = require('fs');
 const { generateCategoryImage } = require('../services/dynamicCategoryImage');
 
-const OUTPUT_DIR = path.join(__dirname, '..', '..', 'client', 'public', 'category-social', 'test');
+const os = require('os');
+const OUTPUT_DIR = path.join(os.tmpdir(), 'dynamic-social-test');
 
 async function main() {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });

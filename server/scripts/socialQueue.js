@@ -42,7 +42,7 @@ const {
 } = require('../services/socialPublishQueue');
 const { invalidateSocialImage } = require('../services/socialImageService');
 const { GRAPH_BASE_URL, describeGraphError } = require('../services/graphApi');
-const { CATEGORY_SOCIAL_IMAGE_CODES, categorySocialImagePath } = require('../config/categorySocialImages');
+const { isAvailable: dynamicImageAvailable } = require('../services/dynamicCategoryImage');
 const axios = require('axios');
 
 const readFlag = (name) => process.argv.includes(`--${name}`);
@@ -312,16 +312,16 @@ const doctor = async () => {
   // server cannot see client/public to check they exist. One category graphic
   // and the placeholder are enough to prove the path, the host and the
   // content type; the full code-to-file check is offline, in
-  // `npm run test-social-images`.
   const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
-  const sampleCode = [...CATEGORY_SOCIAL_IMAGE_CODES][0];
-  await checkImageIsFetchable(
-    `the ${sampleCode} category graphic`,
-    `${siteUrl}/${categorySocialImagePath(sampleCode)}`
+  report(
+    dynamicImageAvailable() ? PASS : WARN,
+    dynamicImageAvailable()
+      ? 'dynamic category social image generator is ready (Sharp + SVG)'
+      : 'Sharp is not available - dynamic category images will fall back'
   );
   await checkImageIsFetchable(
     'the no-photo placeholder',
-    `${siteUrl}/${categorySocialImagePath('NOT_A_REAL_CATEGORY')}`
+    `${siteUrl}/no-image-placeholder.jpg`
   );
 
   const stuck = await SocialPostJob.countDocuments({ status: 'failed' });

@@ -38,7 +38,6 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "build-map-data": "node --max-old-space-size=6144 scripts/buildMapData.js",
-    "build-category-images": "node scripts/buildCategorySocialImages.js",
     "sync-face-api": "node scripts/syncFaceApi.js",
     "postbuild": "node scripts/postbuild.js",
     "test": "react-scripts test",

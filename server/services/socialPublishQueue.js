@@ -2,7 +2,8 @@ const Post = require('../models/Post');
 const SocialPostJob = require('../models/SocialPostJob');
 const facebookService = require('./facebookService');
 const instagramService = require('./instagramService');
-const { invalidateSocialImage } = require('./socialImageService');
+const { invalidateSocialImage, deleteSocialImage } = require('./socialImageService');
+const { deleteDynamicCategoryImage } = require('./socialCaption');
 const socialPublishNotificationService = require('./socialPublishNotificationService');
 const {
   describeGraphError,
@@ -227,6 +228,8 @@ class SocialPublishQueue {
     // test that cannot pin it cannot assert on pacing at all.
     random = Math.random,
     invalidateSocialImage: invalidateSocialImageFn = invalidateSocialImage,
+    deleteSocialImage: deleteSocialImageFn = deleteSocialImage,
+    deleteDynamicCategoryImage: deleteDynamicCategoryImageFn = deleteDynamicCategoryImage,
     notifyAuthor = socialPublishNotificationService.notifyAuthor,
   } = {}) {
     this.jobs = jobs;
@@ -240,6 +243,8 @@ class SocialPublishQueue {
     // `posts` collection's write surface), which the test harness has no way
     // to observe or fake without this seam.
     this.invalidateSocialImage = invalidateSocialImageFn;
+    this.deleteSocialImage = deleteSocialImageFn;
+    this.deleteDynamicCategoryImage = deleteDynamicCategoryImageFn;
     // Tells the listing's author what became of its social copy. Injected for
     // the same reason as the line above: it writes through models/Notification
     // and models/User, neither of which the offline harness has.
@@ -629,8 +634,47 @@ class SocialPublishQueue {
     }
 
     await this.announce(post, platform, 'published');
+    await this.cleanupPostSocialImages(post);
 
     return outcome;
+  }
+
+  /**
+   * Cleans up temporary Cloudinary images once all queued social media jobs
+   * for this post have reached a terminal state.
+   */
+  async cleanupPostSocialImages(post) {
+    const postId = post?._id;
+    if (!postId) return;
+
+    try {
+      if (typeof this.jobs.countDocuments === 'function') {
+        const remaining = await this.jobs.countDocuments({
+          post: postId,
+          status: { $in: ['pending', 'processing'] },
+        });
+        if (remaining > 0) return;
+      }
+
+      if (typeof this.deleteDynamicCategoryImage === 'function') {
+        await this.deleteDynamicCategoryImage(post);
+      }
+
+      if (typeof this.deleteSocialImage === 'function') {
+        const latestPost = typeof this.posts.findById === 'function'
+          ? (await this.posts.findById(postId).lean()) || post
+          : post;
+
+        if (latestPost?.socialImage?.publicId) {
+          await this.deleteSocialImage(latestPost);
+          if (typeof this.posts.updateOne === 'function') {
+            await this.posts.updateOne({ _id: postId }, { $unset: { socialImage: '' } });
+          }
+        }
+      }
+    } catch (error) {
+      console.warn(`Social publish queue: cleanup of temporary social images failed for post ${postId}: ${error.message}`);
+    }
   }
 
   /**
@@ -697,7 +741,10 @@ class SocialPublishQueue {
       // cooldown or a stand-down on credentials all still end in the listing
       // going up by itself, and telling someone their post "failed" while the
       // queue is still working on it would be wrong twice over.
-      if (post) await this.announce(post, platform, 'failed');
+      if (post) {
+        await this.announce(post, platform, 'failed');
+        await this.cleanupPostSocialImages(post);
+      }
       return 'failed';
     }
 

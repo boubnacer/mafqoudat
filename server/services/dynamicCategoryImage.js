@@ -57,19 +57,30 @@ function readSvgFile(filePath) {
   return { body, boxWidth, boxHeight, viewBox: viewBoxMatch[1].trim() };
 }
 
+/** Blend color with white at a given weight (0 = pure white, 1 = pure color) */
+function richBackground(hex, weight = 0.28) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const nr = Math.round(255 * (1 - weight) + r * weight);
+  const ng = Math.round(255 * (1 - weight) + g * weight);
+  const nb = Math.round(255 * (1 - weight) + b * weight);
+  return '#' + [nr, ng, nb].map((x) => x.toString(16).padStart(2, '0')).join('');
+}
+
 /**
  * Builds the SVG card for one or more categories.
  *
- * Single category: full pale background, one centred icon in accent colour.
- * Two categories: diagonal split of both pale backgrounds, two icons side by
- * side in their accent colours.
- * Three+ categories: vertical strips of pale backgrounds, icons in a row.
+ * Single category: full rich background, one centred icon in accent colour.
+ * Two categories: 50/50 horizontal gradient meeting at the center between both icons.
+ * Three+ categories: 3-stop horizontal gradient across categories.
  */
 function buildCategorySvg(categoryCodes) {
   const cats = categoryCodes.map((code) => {
     const colors = getCategoryColors(code);
     const icon = CATEGORY_ICONS[code.toUpperCase()] || CATEGORY_ICONS.OTHER;
-    return { code: code.toUpperCase(), ...colors, icon };
+    const richBg = richBackground(colors.color, 0.28);
+    return { code: code.toUpperCase(), ...colors, richBg, icon };
   });
 
   // Limit to 3 categories max for the image
@@ -77,31 +88,53 @@ function buildCategorySvg(categoryCodes) {
   const count = display.length;
 
   const parts = [];
+  let defs = '<defs>';
 
   // 1. Background
   if (count === 1) {
-    parts.push(`<rect width="${CANVAS}" height="${CANVAS}" fill="${display[0].backgroundColor}"/>`);
+    defs += '</defs>';
+    parts.push(`<rect width="${CANVAS}" height="${CANVAS}" fill="${display[0].richBg}"/>`);
   } else if (count === 2) {
-    // Diagonal split: first category top-left, second bottom-right
-    parts.push(`<rect width="${CANVAS}" height="${CANVAS}" fill="${display[1].backgroundColor}"/>`);
-    parts.push(`<polygon points="0,0 ${CANVAS},0 0,${CANVAS}" fill="${display[0].backgroundColor}"/>`);
+    // 50/50 horizontal gradient meeting at the center
+    defs += `
+      <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="${display[0].richBg}"/>
+        <stop offset="35%" stop-color="${display[0].richBg}"/>
+        <stop offset="65%" stop-color="${display[1].richBg}"/>
+        <stop offset="100%" stop-color="${display[1].richBg}"/>
+      </linearGradient>
+      <linearGradient id="domainGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="${display[0].color}"/>
+        <stop offset="100%" stop-color="${display[1].color}"/>
+      </linearGradient>
+    </defs>`;
+    parts.push(`<rect width="${CANVAS}" height="${CANVAS}" fill="url(#bgGradient)"/>`);
   } else {
-    // 3 categories: vertical thirds
-    const third = CANVAS / 3;
-    display.forEach((cat, i) => {
-      parts.push(`<rect x="${Math.round(third * i)}" y="0" width="${Math.round(third) + 1}" height="${CANVAS}" fill="${cat.backgroundColor}"/>`);
-    });
+    // 3 categories: 3-stop gradient
+    defs += `
+      <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="${display[0].richBg}"/>
+        <stop offset="50%" stop-color="${display[1].richBg}"/>
+        <stop offset="100%" stop-color="${display[2].richBg}"/>
+      </linearGradient>
+      <linearGradient id="domainGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="${display[0].color}"/>
+        <stop offset="50%" stop-color="${display[1].color}"/>
+        <stop offset="100%" stop-color="${display[2].color}"/>
+      </linearGradient>
+    </defs>`;
+    parts.push(`<rect width="${CANVAS}" height="${CANVAS}" fill="url(#bgGradient)"/>`);
   }
 
-  // 2. Logo at top centre
+  // 2. Logo at top centre (enlarged by ~25%, moved down ~1cm, clean without background)
   let logoSvg = '';
   try {
     const logo = readSvgFile(LOGO_FILE);
     if (logo) {
-      const logoHeight = 112;
+      const logoHeight = 138;
       const logoWidth = logoHeight * (logo.boxWidth / logo.boxHeight);
       const logoX = (CANVAS - logoWidth) / 2;
-      const logoY = 70;
+      const logoY = 105;
       // Inline the logo SVG preserving its own fills
       const rawFile = fs.readFileSync(LOGO_FILE, 'utf8')
         .replace(/<\?xml[\s\S]*?\?>/g, '')
@@ -125,7 +158,7 @@ function buildCategorySvg(categoryCodes) {
   const gap = count === 1 ? 0 : (count === 2 ? 80 : 50);
   const totalWidth = count * iconSize + (count - 1) * gap;
   const startX = (CANVAS - totalWidth) / 2;
-  const centerY = CANVAS / 2 + 20; // slightly below centre to account for logo
+  const centerY = CANVAS / 2 + 20;
 
   display.forEach((cat, i) => {
     const icon = cat.icon;
@@ -143,25 +176,26 @@ function buildCategorySvg(categoryCodes) {
     );
   });
 
-  // 4. Domain wordmark at the bottom
+  // 4. Domain wordmark at the bottom (raised 160px from bottom, filled with category gradient or single color)
   try {
     const domain = readSvgFile(DOMAIN_FILE);
     if (domain) {
-      const domainWidth = 296;
+      const domainWidth = 310;
       const domainHeight = domainWidth / (domain.boxWidth / domain.boxHeight);
       const domainX = (CANVAS - domainWidth) / 2;
-      const domainY = CANVAS - domainHeight - 70;
+      const domainBottomMargin = 160;
+      const domainY = CANVAS - domainHeight - domainBottomMargin;
 
-      // Use a muted colour that works on any pale background
-      const domainColor = count === 1 ? display[0].color : '#666666';
+      const domainFill = count === 1 ? display[0].color : 'url(#domainGradient)';
       parts.push(
-        `<g fill="${domainColor}" fill-opacity="0.45"><svg x="${domainX}" y="${domainY}" width="${domainWidth}" height="${domainHeight}" viewBox="${domain.viewBox}">${domain.body}</svg></g>`
+        `<g fill="${domainFill}"><svg x="${domainX}" y="${domainY}" width="${domainWidth}" height="${domainHeight}" viewBox="${domain.viewBox}">${domain.body}</svg></g>`
       );
     }
   } catch (_) { /* domain wordmark is optional */ }
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${CANVAS}" height="${CANVAS}" viewBox="0 0 ${CANVAS} ${CANVAS}">`,
+    defs,
     ...parts,
     '</svg>',
   ].join('');
@@ -174,9 +208,9 @@ function buildCategorySvg(categoryCodes) {
  */
 async function generateCategoryImage(categoryCodes) {
   if (!sharp) return null;
-  if (!categoryCodes || categoryCodes.length === 0) return null;
+  const codes = (!categoryCodes || categoryCodes.length === 0) ? ['OTHER'] : categoryCodes;
 
-  const svg = buildCategorySvg(categoryCodes);
+  const svg = buildCategorySvg(codes);
   const buffer = await sharp(Buffer.from(svg))
     .flatten({ background: '#ffffff' })
     .toColourspace('srgb')

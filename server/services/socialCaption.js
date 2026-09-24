@@ -3,7 +3,6 @@ const City = require('../models/City');
 const Category = require('../models/Category');
 const Country = require('../models/Country');
 const DocumentType = require('../models/DocumentType');
-const { categorySocialImagePath } = require('../config/categorySocialImages');
 const { ensureSocialImage } = require('./socialImageService');
 const { generateCategoryImage, isAvailable: dynamicImageAvailable } = require('./dynamicCategoryImage');
 const { cloudinary } = require('../config/cloudinary');
@@ -131,6 +130,21 @@ function uploadDynamicImage(buffer, publicId) {
   });
 }
 
+/**
+ * Removes the dynamic category image from Cloudinary once social posts
+ * are published.
+ */
+async function deleteDynamicCategoryImage(post) {
+  const postId = post?._id || post;
+  if (!postId) return;
+  try {
+    const publicId = `${DYNAMIC_IMAGE_FOLDER}/${postId}`;
+    await cloudinary.uploader.destroy(publicId);
+  } catch (error) {
+    console.warn(`Dynamic category image cleanup failed for ${postId}: ${error.message}`);
+  }
+}
+
 async function resolveListingImage(post) {
   const imageUrl = post.cloudinaryUrl || post.image;
   if (imageUrl) {
@@ -157,14 +171,14 @@ async function resolveListingImage(post) {
 
   const categoryCodes = categories.map((c) => c.code).filter(Boolean);
 
-  // Try dynamic generation first
-  if (dynamicImageAvailable() && categoryCodes.length > 0) {
+  // Dynamic generation
+  if (dynamicImageAvailable()) {
     try {
       const buffer = await generateCategoryImage(categoryCodes);
       if (buffer) {
         // Deterministic public_id so re-publishing the same post reuses the
         // same Cloudinary slot rather than creating a new one each time.
-        const sortedCodes = [...categoryCodes].sort().join('-').toLowerCase();
+        const sortedCodes = (categoryCodes.length > 0 ? [...categoryCodes].sort() : ['other']).join('-').toLowerCase();
         const publicId = `${DYNAMIC_IMAGE_FOLDER}/${post._id || sortedCodes}`;
 
         const result = await uploadDynamicImage(buffer, publicId);
@@ -173,16 +187,15 @@ async function resolveListingImage(post) {
     } catch (error) {
       console.warn(
         `Dynamic category image generation failed for post ${post._id}: ${error.message}. `
-        + 'Falling back to static category image.'
+        + 'Falling back to generic placeholder image.'
       );
     }
   }
 
-  // Fallback: use the static pre-built image for the first category
-  const firstCode = categoryCodes.length > 0 ? categoryCodes[0] : null;
+  // Fallback: use generic placeholder image
   const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
   return {
-    imageUrl: `${siteUrl}/${categorySocialImagePath(firstCode)}`,
+    imageUrl: `${siteUrl}/no-image-placeholder.jpg`,
     isPlaceholder: true,
   };
 }
@@ -312,4 +325,4 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
     : `${trimmed.slice(0, maxLength - 1).trimEnd()}${TRUNCATION_MARK}`;
 }
 
-module.exports = { buildListingCaption, resolveListingImage };
+module.exports = { buildListingCaption, resolveListingImage, deleteDynamicCategoryImage };
