@@ -26,7 +26,76 @@ const {
 } = require("../utils/blockedUsers");
 // const getCountryIso3 = require("country-iso-2-to-3");
 const getCountryIso3 = require("country-iso-2-to-3");
-const { getCountryId } = require("../utils/countryCache");
+const { getCountryId, getCountryCode } = require("../utils/countryCache");
+const { resolveCityCoordinates, MISSING_COORDINATES } = require("../utils/cityCoordinates");
+
+// Finding the City row a picked search result already corresponds to.
+//
+// Exact label match first, and only then the historical substring match. The
+// substring one is what tolerates a stored spelling nobody types the same way
+// twice ("Aït Melloul" against "Ait Melloul"), so it stays - but on its own it
+// also answers "Agadir Melloul" to somebody who picked Agadir, which attaches
+// the listing to the wrong town and puts its dot on the wrong part of the map.
+// Country-scoped, and every label is escaped so a metacharacter in an
+// API-supplied name cannot break or hijack the regex.
+const findCityByLabels = async (country, labelCandidates, { exactOnly = false } = {}) => {
+  if (!country || !labelCandidates?.length) return null;
+
+  const labelFilters = (pattern) => [
+    { "labels.en": { $regex: pattern, $options: 'i' } },
+    { "labels.ar": { $regex: pattern, $options: 'i' } },
+    { "labels.fr": { $regex: pattern, $options: 'i' } },
+  ];
+
+  const exact = await City.findOne({
+    country,
+    $or: labelCandidates.flatMap((value) => labelFilters(`^${escapeRegex(value)}$`)),
+  });
+  if (exact || exactOnly) return exact;
+
+  return City.findOne({
+    country,
+    $or: labelCandidates.flatMap((value) => labelFilters(escapeRegex(value))),
+  });
+};
+
+// A city row created before coordinates were stored is completed the next time
+// someone picks it from search - so the map gains a village the ordinary way,
+// by somebody filing a listing there, with no extra API call: the coordinates
+// arrive with the search result the author already chose (or, failing that,
+// from the offline dataset's exact name match, which is free too).
+//
+// It only fires on an EXACT label match, even though findCityByLabels may have
+// answered on a substring: stamping one town's position onto another is worse
+// than leaving the row unplaced. Guarded on `coordinates` still being absent,
+// so two concurrent submits cannot fight over it, and never throws -
+// coordinates are a map nicety, the listing is what is being saved.
+const fillMissingCityCoordinates = async (existingCity, apiCityData, labelCandidates, countryCode) => {
+  try {
+    if (!existingCity || existingCity.coordinates) return;
+
+    const wanted = new Set(labelCandidates.map((value) => String(value).trim().toLowerCase()));
+    const storedLabels = ["en", "fr", "ar"]
+      .map((lang) => existingCity.labels?.[lang])
+      .filter(Boolean);
+    const isSameCity = storedLabels.some((label) => wanted.has(String(label).trim().toLowerCase()));
+    if (!isSameCity) return;
+
+    const coordinates = resolveCityCoordinates({
+      apiCityData,
+      labels: storedLabels,
+      countryCode,
+    });
+    if (!coordinates) return;
+
+    await City.updateOne(
+      { _id: existingCity._id, ...MISSING_COORDINATES },
+      { $set: { coordinates } }
+    );
+  } catch (error) {
+    console.error("Could not save city coordinates:", error.message);
+  }
+};
 
 // @desc Get all posts
 // @route GET /posts
@@ -1491,9 +1560,8 @@ const createNewPost = async (req, res) => {
          // to searches in the other script and gets re-created as a duplicate.
          const safeLabels = await TranslationService.ensureMultiScriptLabels(apiCityData.labels || {});
 
-         // Check if city already exists in database (country-scoped; label match
-         // is escaped so metacharacters in the API-supplied name can't break or
-         // hijack the regex). Both the original API labels and the
+         // Check if city already exists in database (see findCityByLabels for
+         // how it is matched). Both the original API labels and the
          // script-corrected ones are candidates, so an Arabic-UI submit still
          // matches a city previously saved from a Latin-UI submit and vice versa.
          const labelCandidates = [...new Set([
@@ -1501,17 +1569,15 @@ const createNewPost = async (req, res) => {
            apiCityData.labels?.en, apiCityData.labels?.fr, apiCityData.labels?.ar
          ].filter(Boolean))];
 
-         const existingCity = await City.findOne({
-           country: country,
-           $or: labelCandidates.flatMap((value) => ([
-             { "labels.en": { $regex: escapeRegex(value), $options: 'i' } },
-             { "labels.ar": { $regex: escapeRegex(value), $options: 'i' } },
-             { "labels.fr": { $regex: escapeRegex(value), $options: 'i' } }
-           ]))
-         });
+         // ISO2, for the offline coordinate lookup below. Cached, so this is
+         // not a query per listing.
+         const countryCode = await getCountryCode(country);
+
+         const existingCity = await findCityByLabels(country, labelCandidates);
 
         if (existingCity) {
           cityId = existingCity._id;
+          await fillMissingCityCoordinates(existingCity, apiCityData, labelCandidates, countryCode);
         } else {
           // Create new city from API data (GeoNames or Google Places)
           const cityDataToSave = {
@@ -1526,6 +1592,15 @@ const createNewPost = async (req, res) => {
               ...labelCandidates.map((v) => v.toLowerCase())
             ])]
           };
+
+          // Keep where the search result said the city is - the map cannot
+          // work it out from the name for small towns.
+          const coordinates = resolveCityCoordinates({
+            apiCityData,
+            labels: [safeLabels.en, safeLabels.fr],
+            countryCode
+          });
+          if (coordinates) cityDataToSave.coordinates = coordinates;
 
           // Add API source and place ID if from Google Places
           if (apiCityData.source === 'google') {
@@ -1554,16 +1629,27 @@ const createNewPost = async (req, res) => {
          const uniqueCode = `${baseCode}_${Date.now()}`;
 
          // Create a new city record for the custom city name with translations
+         const fallbackLabels = {
+           en: translations.en || city,
+           fr: translations.fr || city,
+           ar: translations.ar || city
+         };
+
+         // Nothing was picked from a search here, so there are no coordinates
+         // to carry over - the offline dataset's exact name match is the only
+         // thing that can place this one on the map, and it is free.
+         const fallbackCoordinates = resolveCityCoordinates({
+           labels: [city, fallbackLabels.en, fallbackLabels.fr],
+           countryCode: await getCountryCode(country)
+         });
+
          const newCity = await City.create({
            code: uniqueCode,
            country: country,
-           labels: {
-             en: translations.en || city,
-             fr: translations.fr || city,
-             ar: translations.ar || city
-           },
+           labels: fallbackLabels,
            isDynamic: true, // Mark as dynamically created
-           searchTerms: [city.toLowerCase()]
+           searchTerms: [city.toLowerCase()],
+           ...(fallbackCoordinates ? { coordinates: fallbackCoordinates } : {})
          });
 
            cityId = newCity._id; // Use the new city's ObjectId
@@ -1991,20 +2077,15 @@ const updatePost = async (req, res) => {
           apiCityData.labels?.en, apiCityData.labels?.fr, apiCityData.labels?.ar
         ].filter(Boolean))];
 
-        const existingCity = await City.findOne({
-          country: country,
-          $or: labelCandidates.flatMap((value) => ([
-            { "labels.en": { $regex: escapeRegex(value), $options: 'i' } },
-            { "labels.ar": { $regex: escapeRegex(value), $options: 'i' } },
-            { "labels.fr": { $regex: escapeRegex(value), $options: 'i' } }
-          ]))
-        });
+        const countryCode = await getCountryCode(country);
+        const existingCity = await findCityByLabels(country, labelCandidates);
 
         if (existingCity) {
           post.city = existingCity._id;
+          await fillMissingCityCoordinates(existingCity, apiCityData, labelCandidates, countryCode);
         } else {
           // Create new city from API data
-          const newCity = await City.create({
+          const newCityData = {
             code: apiCityData.code,
             country: country,
             labels: safeLabels,
@@ -2016,7 +2097,15 @@ const updatePost = async (req, res) => {
               ...(apiCityData.searchTerms || []),
               ...labelCandidates.map((v) => v.toLowerCase())
             ])]
+          };
+          const coordinates = resolveCityCoordinates({
+            apiCityData,
+            labels: [safeLabels.en, safeLabels.fr],
+            countryCode
           });
+          if (coordinates) newCityData.coordinates = coordinates;
+
+          const newCity = await City.create(newCityData);
 
           post.city = newCity._id;
         }
@@ -2025,8 +2114,24 @@ const updatePost = async (req, res) => {
         // Fallback to storing as string
         post.city = city;
       }
+    } else if (typeof city === 'string' && city.trim()) {
+      // A bare name or code with no cityData behind it (an older client, or a
+      // listing being edited whose city was stored as free text). Link it to
+      // the City row it names when there is one: post.city is Mixed, so a
+      // string survives being saved, and every read that resolves a city -
+      // the dashboard map included - then has to fall back to guessing from
+      // the text. Exact match only, so an edit cannot silently move a listing
+      // to a namesake town.
+      const raw = city.trim();
+      // A code is the API's own form of the name ("EL_JADIDA" for "El Jadida"),
+      // so it is worth trying as a label as well as against `code` itself.
+      const named = await findCityByLabels(
+        country,
+        [...new Set([raw, raw.replace(/_/g, ' ')])],
+        { exactOnly: true }
+      ) || await City.findOne({ country, code: { $regex: `^${escapeRegex(raw)}$`, $options: 'i' } });
+      post.city = named ? named._id : city;
     } else {
-      // It's an API city (string like "DAKHLA") without cityData or already an ObjectId
       post.city = city;
     }
   }

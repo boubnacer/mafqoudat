@@ -12,6 +12,7 @@ const {
   cityDedupeKey,
   CANDIDATE_OVERFETCH,
 } = require("../utils/cityMatching");
+const { normalizeCoordinates, MISSING_COORDINATES } = require("../utils/cityCoordinates");
 
 // Helper function to check for Arabic text
 const isArabicText = (text) => {
@@ -179,6 +180,55 @@ const getCities = async (req, res) => {
   }
 };
 
+// A city already in the database, saved before coordinates were stored, is
+// completed from the API answer that is about to be thrown away as a duplicate
+// of it. The map places cities from City.coordinates and cannot work a village
+// out from its name (see utils/cityGeocode.js), so without this a row created
+// last year stays unplaceable however many people file listings there - the
+// post path only ever sees the row's id, never a fresh search result.
+//
+// Costs nothing extra: GeoNames/Google were already asked, and their answer is
+// already in hand. Matched on the folded name (the same key the de-duplication
+// uses, so "Ait-Melloul" completes the stored "Aït Melloul"), written guarded
+// on the field still being absent, and fire-and-forget - a search must never
+// fail or wait because of it.
+const adoptApiCoordinates = (localCities, apiCities, language) => {
+  if (!localCities.length || !apiCities.length) return;
+
+  const needsCoordinates = new Map();
+  localCities.forEach((city) => {
+    if (city.coordinates) return;
+    const key = cityDedupeKey(city, language);
+    if (key && !needsCoordinates.has(key)) needsCoordinates.set(key, city);
+  });
+  if (!needsCoordinates.size) return;
+
+  const writes = [];
+  apiCities.forEach((apiCity) => {
+    const key = cityDedupeKey(apiCity, language);
+    const localCity = key && needsCoordinates.get(key);
+    if (!localCity) return;
+    const coordinates = normalizeCoordinates(apiCity.coordinates);
+    if (!coordinates) return;
+    needsCoordinates.delete(key);
+    // Stamped on the row in hand as well, so the Google pass right after the
+    // GeoNames one does not queue a second write for a city just filled.
+    localCity.coordinates = coordinates;
+    writes.push(
+      City.updateOne(
+        { _id: localCity._id, ...MISSING_COORDINATES },
+        { $set: { coordinates } }
+      )
+    );
+  });
+
+  if (writes.length) {
+    Promise.all(writes).catch((error) => {
+      console.warn('Could not save coordinates onto existing cities:', error.message);
+    });
+  }
+};
+
 const searchCities = async (req, res) => {
   try {
     const { q, language = 'en', limit = 10, countryCode } = req.query;
@@ -231,7 +281,7 @@ const searchCities = async (req, res) => {
 
     let localCities = await City.find(query)
       .populate('country', 'code labels flag')
-      .select('code labels isCapital country isDynamic')
+      .select('code labels isCapital country isDynamic coordinates')
       .limit(candidateLimit)
       .lean()
       .exec();
@@ -261,7 +311,7 @@ const searchCities = async (req, res) => {
 
       localCities = await City.find(regexQuery)
         .populate('country', 'code labels flag')
-        .select('code labels isCapital country isDynamic')
+        .select('code labels isCapital country isDynamic coordinates')
         .limit(candidateLimit)
         .lean()
         .exec();
@@ -281,6 +331,10 @@ const searchCities = async (req, res) => {
         // the folded name, so the stored "Aït Melloul" and GeoNames'
         // "Ait-Melloul" are recognised as one place rather than listed twice.
         const existingCityNames = new Set(localCities.map(city => cityDedupeKey(city, language)));
+
+        // Before the duplicates are dropped: a duplicate of a row that has no
+        // coordinates is the one thing that can place that row on the map.
+        adoptApiCoordinates(localCities, apiCities, language);
 
         apiCities = apiCities.filter(apiCity => !existingCityNames.has(cityDedupeKey(apiCity, language)));
 
@@ -322,6 +376,8 @@ const searchCities = async (req, res) => {
 
         // Merge, de-duplicated on the folded name so a place already found
         // under another spelling isn't listed twice.
+        adoptApiCoordinates(localCities, googleCities, language);
+
         const existingNames = new Set(allCities.map(city => cityDedupeKey(city, language)));
         const newGoogleCities = googleCities.filter(city => {
           const key = cityDedupeKey(city, language);

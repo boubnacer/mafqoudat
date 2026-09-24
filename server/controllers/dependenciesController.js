@@ -9,6 +9,7 @@ const Category = require("../models/Category");
 const City = require("../models/City");
 const { cacheService } = require("../config/cache");
 const { geocodeCityName } = require("../utils/cityGeocode");
+const { normalizeCoordinates } = require("../utils/cityCoordinates");
 const { getCacheUserKey } = require('../utils/requestUser');
 
 // Get Dashboard
@@ -1001,6 +1002,9 @@ const getDashboard = async (req, res) => {
           // cityGeocode.js.
           geocodeNameFr: { $ifNull: ["$CityDoc.labels.fr", null] },
           displayName: { $ifNull: [`$CityDoc.labels.${language}`, `$CityDoc.labels.en`] },
+          // Saved from the search result the city was picked from. Placing by
+          // this is exact; the name lookup below cannot find small towns.
+          cityCoordinates: { $ifNull: ["$CityDoc.coordinates", null] },
           city: 1,
           exactLocation: 1,
           // Counted client-side in the grouping below rather than as a
@@ -1041,10 +1045,13 @@ const getDashboard = async (req, res) => {
       // "+N today" stats always cover the identical window.
       const createdAt = post.createdAt ? new Date(post.createdAt) : null;
       const isToday = Boolean(createdAt && createdAt >= todayStart && createdAt < todayEnd);
+      const storedCoordinates = normalizeCoordinates(post.cityCoordinates);
       const existing = cityCounts.get(key);
       if (existing) {
         existing.count += 1;
         if (isToday) existing.todayCount += 1;
+        // Two rows can share a name (one saved before coordinates existed).
+        if (storedCoordinates && !existing.coordinates) existing.coordinates = storedCoordinates;
         // Prefer the linked City doc's localized label over a name
         // recovered from free text, regardless of which post the grouping
         // happened to see first.
@@ -1054,17 +1061,20 @@ const getDashboard = async (req, res) => {
           existing.hasCityDoc = true;
         }
       } else {
-        cityCounts.set(key, { geocodeName, altName, displayName, count: 1, todayCount: isToday ? 1 : 0, hasCityDoc });
+        cityCounts.set(key, { geocodeName, altName, displayName, count: 1, todayCount: isToday ? 1 : 0, hasCityDoc, coordinates: storedCoordinates });
       }
     });
 
     const cityActivity = [];
-    if (currentCountryDoc?.code) {
-      cityCounts.forEach(({ geocodeName, altName, displayName, count, todayCount }) => {
-        const geo = geocodeCityName(altName ? [geocodeName, altName] : geocodeName, currentCountryDoc.code);
-        if (geo) cityActivity.push({ name: displayName, count, todayCount, lon: geo.lon, lat: geo.lat });
-      });
-    }
+    cityCounts.forEach(({ geocodeName, altName, displayName, count, todayCount, coordinates }) => {
+      // Stored coordinates first; guessing from the name only for cities
+      // saved without any (and it needs the country code to do so).
+      const geo = coordinates
+        || (currentCountryDoc?.code
+          ? geocodeCityName(altName ? [geocodeName, altName] : geocodeName, currentCountryDoc.code)
+          : null);
+      if (geo) cityActivity.push({ name: displayName, count, todayCount, lon: geo.lon, lat: geo.lat });
+    });
 
     const response = {
       trendingPost,

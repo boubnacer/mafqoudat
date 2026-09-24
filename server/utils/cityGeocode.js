@@ -45,7 +45,17 @@ allCities.forEach((city) => {
   else citiesByCountry.set(city.country, [city]);
 });
 
-const FUZZY_THRESHOLD = 0.72;
+// Measured against the real city labels this database holds, not picked by
+// feel. Every fuzzy match that is genuinely the same place scores at least
+// 0.857 and starts with the same letter - "Marrakech"/"Marrakesh" 0.889,
+// "Tanger"/"Tangier" 0.857, "El Jadida"/"El Jadid" 0.889,
+// "Ouarzazate"/"Ouarzazat" 0.900, "Sidi Kacem"/"Sidi Qacem" 0.900. The old
+// 0.72 let one town's name answer with another's position: "Aït Melloul",
+// outside Agadir, scored 0.727 against "Tit Mellil" outside Casablanca and
+// took its coordinates - a dot 450km from the city it claimed to be. So both
+// conditions have to hold, and a name nothing close is found for is left off
+// the map instead (the dot it would draw would be somewhere else entirely).
+const FUZZY_THRESHOLD = 0.85;
 
 // Returns { lon, lat, matchedName } or null if nothing close enough was
 // found in that country's city list.
@@ -58,7 +68,10 @@ const FUZZY_THRESHOLD = 0.72;
 // the city from the map rather than mis-placing it. Every exact check runs
 // before any fuzzy one, so an exact match on a later candidate always wins
 // over a fuzzy match on an earlier one.
-const geocodeCityName = (rawNames, countryIso2) => {
+// `exactOnly` skips the fuzzy pass. The dashboard wants the fuzzy pass (a
+// wrong-ish dot beats no dot for a marker that is recomputed every request);
+// something that WRITES the result to the database does not.
+const geocodeCityName = (rawNames, countryIso2, { exactOnly = false } = {}) => {
   const candidates = citiesByCountry.get((countryIso2 || "").toUpperCase());
   if (!candidates) return null;
 
@@ -74,11 +87,16 @@ const geocodeCityName = (rawNames, countryIso2) => {
     }
   }
 
+  if (exactOnly) return null;
+
   let best = null;
   let bestScore = 0;
   names.forEach((target) => {
     candidates.forEach((c) => {
       const candidateName = normalize(c.name);
+      // Two spellings of one place agree on their first letter; two different
+      // places that merely score alike often do not.
+      if (candidateName[0] !== target[0]) return;
       const dist = levenshtein(target, candidateName);
       const score = 1 - dist / Math.max(target.length, candidateName.length, 1);
       if (score > bestScore) {
