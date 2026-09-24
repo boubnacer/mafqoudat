@@ -53,10 +53,6 @@ export const unifiedLanguageChange = async (language, options = {}) => {
   const config = { ...LANGUAGE_CHANGE_OPTIONS, ...options };
   
   try {
-    if (config.enableLogging) {
-      console.log('🌐 [UNIFIED-HANDLER] Starting language change:', { language, config });
-    }
-    
     // Validate language
     if (!['en', 'ar', 'fr'].includes(language)) {
       throw new Error(`Invalid language code: ${language}`);
@@ -94,21 +90,13 @@ export const unifiedLanguageChange = async (language, options = {}) => {
       throw new Error('Failed to change language in storage');
     }
     
-    if (config.enableLogging) {
-      console.log('🌐 [UNIFIED-HANDLER] Language changed in storage:', language);
-    }
-    
     // Trigger RTK Query refetch with error handling
     if (config.forceRefetch) {
       try {
-        const refetchSuccess = await safeLanguageRefetch(language, {
+        await safeLanguageRefetch(language, {
           priority: config.refetchPriority,
           forceRefetch: true
         });
-        
-        if (config.enableLogging) {
-          console.log('🌐 [UNIFIED-HANDLER] RTK Query refetch result:', refetchSuccess ? 'SUCCESS' : 'FALLBACK');
-        }
       } catch (refetchError) {
         if (config.enableLogging) {
           console.error('🌐 [UNIFIED-HANDLER] RTK Query refetch failed:', refetchError);
@@ -127,10 +115,6 @@ export const unifiedLanguageChange = async (language, options = {}) => {
           }
         });
         window.dispatchEvent(event);
-        
-        if (config.enableLogging) {
-          console.log(`🌐 [UNIFIED-HANDLER] Dispatched ${eventType} event`);
-        }
       });
     }
     
@@ -149,10 +133,6 @@ export const unifiedLanguageChange = async (language, options = {}) => {
     // Call onComplete callback
     if (config.onComplete && typeof config.onComplete === 'function') {
       config.onComplete(language);
-    }
-    
-    if (config.enableLogging) {
-      console.log('🌐 [UNIFIED-HANDLER] Language change completed successfully:', language);
     }
     
     return true;

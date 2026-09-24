@@ -246,16 +246,13 @@ class SmartRefreshStrategy {
   // Perform smart refresh for a data type
   async performSmartRefresh(dataType) {
     try {
-      console.log(`🔄 Starting smart refresh for ${dataType}...`);
-      
       const startTime = Date.now();
-      
+
       // Check if data has actually changed using versioning
       const currentVersion = dataVersioningManager.getCurrentVersion(dataType);
       const lastRefreshVersion = this.getLastRefreshVersion(dataType);
-      
+
       if (currentVersion === lastRefreshVersion) {
-        console.log(`⏭️ Skipping refresh for ${dataType} - no changes detected (version ${currentVersion})`);
         return;
       }
       

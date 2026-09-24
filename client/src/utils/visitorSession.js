@@ -33,14 +33,13 @@ export const getVisitorSessionId = () => {
             return sessionId;
           } else {
             // Session expired (older than 1 hour), create new one
-            console.debug('Session expired (older than 1 hour), creating new session');
             sessionStorage.removeItem(VISITOR_SESSION_KEY);
             // Continue to create new session below
           }
         }
       } catch (parseError) {
         // Invalid JSON, will create new session below
-        console.debug('Invalid session data in sessionStorage, creating new session');
+        console.error('Invalid session data in sessionStorage, creating new session', parseError);
         sessionStorage.removeItem(VISITOR_SESSION_KEY);
       }
     }

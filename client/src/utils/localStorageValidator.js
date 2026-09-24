@@ -357,10 +357,6 @@ export const validateAndRepairLocalStorage = (options = {}) => {
   if (logResults) {
     if (!validationReport.valid) {
       console.warn('localStorage validation issues detected:', validationReport);
-      
-      if (repairReport) {
-        console.info('Auto-repair completed:', repairReport);
-      }
     }
   }
   

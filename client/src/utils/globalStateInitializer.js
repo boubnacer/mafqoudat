@@ -90,7 +90,6 @@ export const initializeGlobalState = (options = {}) => {
     // Remove legacy 'theme' key after migration
     if (legacyTheme) {
       localStorage.removeItem('theme');
-      console.log('Migrated legacy theme to globalState.mode');
     }
   }
   
@@ -166,7 +165,6 @@ export const updateGlobalStateField = (key, value) => {
  */
 export const ensureGlobalStateAlwaysExists = () => {
   if (!globalStateExists()) {
-    console.log('GlobalState not found - initializing...');
     return initializeGlobalState();
   }
   
@@ -178,7 +176,6 @@ export const ensureGlobalStateAlwaysExists = () => {
     const hasAllKeys = Object.keys(DEFAULT_GLOBAL_STATE).every(key => key in state);
     
     if (!hasAllKeys) {
-      console.log('GlobalState missing keys - repairing...');
       return repairGlobalState();
     }
     
