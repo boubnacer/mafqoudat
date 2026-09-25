@@ -28,13 +28,15 @@
  * placement with layout instead: the map keeps its natural square and is
  * bottom-anchored in the header, with a spacer reserving its room.
  */
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
 import { geoMercator, geoPath, geoBounds } from 'd3-geo';
 import { feature as topojsonFeature, mesh as topojsonMesh } from 'topojson-client';
 import worldMapTopoJson from '../../data/worldMap.topo.json';
 import { CITY_LABEL_FONT_SIZE, layoutCityLabels } from '../../utils/cityLabelLayout';
+import { fontFamilies } from '../../theme/tokens';
 
 // Same 25-country roster as the web version - ISO2 (matches Country.code) to
 // the numeric id Natural Earth (and so the generated topology) uses for
@@ -49,12 +51,31 @@ const ISO2_TO_NUMERIC = {
 
 const MAP_WIDTH = 520;
 const MAP_HEIGHT = 520;
+
+// Mobile zoom math: matches web's WorldActivityMap.jsx mobile responsive view.
+// Pushes past the fit scale while keeping padding = 60 to reserve room around
+// the country bounds for city labels and "+N today" badges.
+const MOBILE_ZOOM = 1.25;
+
 // Every city dot is the same small size. The dots used to be a
 // proportional symbol (radius scaled by the city's all-time post count),
 // which made a busy city's marker swallow its neighbours and read as an
 // arbitrary difference in importance at a glance. Matches web's
 // WorldActivityMap.jsx.
 const CITY_DOT_RADIUS = 4;
+
+// Post-count badge above a city dot ("+12"), for cities that got a new post
+// today — matches web's WorldActivityMap.jsx. Sized in SVG user units: 6.2 units
+// per glyph at fontSize 11 bold, plus padding, floored so a single-digit badge
+// still reads as a pill rather than a circle.
+const BADGE_HEIGHT = 18;
+const BADGE_FONT_SIZE = 11;
+const badgeWidth = (label) => Math.max(26, label.length * 6.2 + 12);
+
+// Radius the today-pulse ring travels to, duration and repeat delay matching web GSAP.
+const PULSE_RADIUS_SCALE = 3.8;
+const PULSE_DURATION = 2200;
+const PULSE_REPEAT_DELAY = 1400;
 
 const hexToRgba = (hex, alpha) => {
   const clean = (hex || '#000000').replace('#', '');
@@ -64,12 +85,26 @@ const hexToRgba = (hex, alpha) => {
   return `rgba(${r},${g},${b},${alpha})`;
 };
 
+const getLuminance = (hex) => {
+  const clean = (hex || '#000000').replace('#', '');
+  const r = parseInt(clean.substring(0, 2), 16) / 255;
+  const g = parseInt(clean.substring(2, 4), 16) / 255;
+  const b = parseInt(clean.substring(4, 6), 16) / 255;
+  const a = [r, g, b].map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+  return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+};
+
+const getContrastRatio = (color1, color2) => {
+  const l1 = getLuminance(color1);
+  const l2 = getLuminance(color2);
+  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+};
+
 // 8-direction offset duplicates instead of a single textShadow: RN's
 // textShadow* props render as one soft-blurred shadow (and historically had
 // inconsistent Android support), which can't reproduce a crisp stroke-style
 // halo. Stacking the label 8x in a 1px ring (scaled with the map) behind an
-// unshifted fill copy gets the same outlined look as the old stroke+fill
-// SvgText pair.
+// unshifted fill copy gets the same outlined look as web's stroke+fill SVG text.
 const CITY_LABEL_HALO_OFFSETS = [
   [-1, -1], [0, -1], [1, -1],
   [-1, 0], [1, 0],
@@ -86,42 +121,6 @@ const CityLabel = ({ x, y, text, ink, panel, scale }) => {
   const fontSize = CITY_LABEL_FONT_SIZE * scale;
   const haloOffset = scale;
   return (
-    // Positioned with `transform: translateX/Y`, never relying on RN's RTL
-    // handling for the offset itself: `transform` is exempt from any
-    // auto-mirroring, which is what keeps the map deliberately unmirrored
-    // for RTL (see file header) - the underlying SVG map/markers (plain
-    // `cx`/`cy` attributes, not RN layout styles) never move either.
-    //
-    // `left: 0, top: 0` are still set explicitly - leaving them unset
-    // entirely made Yoga fall back to its own direction-aware default
-    // static position for an offset-less absolute node, silently moving the
-    // whole label anchor before the transform offset is even added. Simply
-    // hardcoding `left: 0` isn't enough on its own though: RN converts JS
-    // `left`/`right` to Yoga's logical START/END edges whenever
-    // I18nManager.doLeftAndRightSwapInRTL is on (the default) - see
-    // react-native's LayoutShadowNode.maybeTransformLeftRightToStartEnd -
-    // and START only resolves to the physical left edge under LTR. Under
-    // real native RTL it resolves to the physical *right* edge instead,
-    // re-anchoring every label to the box's right edge (then clipped by
-    // mapBox's overflow: hidden). Whether that's "real" at any given moment
-    // is unreliable to reason about from JS - I18nManager.isRTL can flip
-    // immediately on a language switch while already-mounted native nodes
-    // stay visually frozen at the old direction until reload (per
-    // LanguageContext.js's note on forceRTL), but a *freshly mounted* node
-    // (e.g. this component remounting on navigating back to Home) picks up
-    // whatever's current at mount time - so the same `left: 0` can resolve
-    // correctly right after a language switch and then wrongly the next
-    // time this remounts, with no code change in between.
-    //
-    // `direction: 'ltr'` on mapBox (below) sidesteps that ambiguity at the
-    // source: Fabric wires the JS `direction` style straight to Yoga's
-    // per-node setDirection (see
-    // ReactCommon/.../view/propsConversions.h), independent of
-    // I18nManager's global/possibly-stale-until-reload state entirely, and
-    // it's inherited by this whole subtree. With the subtree's direction
-    // pinned to LTR outright, plain `left: 0` always means physical left,
-    // permanently - matching the map's stated intent of staying
-    // geographically unmirrored no matter the reading direction.
     <View
       style={{
         position: 'absolute',
@@ -173,6 +172,135 @@ const CityLabel = ({ x, y, text, ink, panel, scale }) => {
   );
 };
 
+// "+N today" badge pill floating above its city dot.
+// Sized and positioned with the same exact user units web uses.
+const CityBadge = ({ x, y, width, label, brand, panel, textColor, scale }) => {
+  const badgeW = width * scale;
+  const badgeH = BADGE_HEIGHT * scale;
+  const fontSize = BADGE_FONT_SIZE * scale;
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        transform: [{ translateX: x * scale }, { translateY: y * scale }],
+      }}
+      pointerEvents="none"
+    >
+      <View
+        style={{
+          width: badgeW,
+          height: badgeH,
+          borderRadius: badgeH / 2,
+          backgroundColor: brand,
+          borderWidth: 2 * scale,
+          borderColor: panel,
+          justifyContent: 'center',
+          alignItems: 'center',
+          transform: [{ translateX: -badgeW / 2 }, { translateY: -badgeH / 2 }],
+        }}
+      >
+        <Text
+          numberOfLines={1}
+          allowFontScaling={false}
+          style={[
+            styles.badgeText,
+            {
+              fontSize,
+              color: textColor,
+            },
+          ]}
+        >
+          {label}
+        </Text>
+      </View>
+    </View>
+  );
+};
+
+// Pulse ring for cities with live today activity: expands outward from the dot
+// and fades out, repeating smoothly via RN Animated on the native thread.
+const PulseRing = ({ x, y, scale, ink, isDark, delay = 0 }) => {
+  const anim = useRef(new Animated.Value(0)).current;
+  const [started, setStarted] = useState(delay === 0);
+
+  useEffect(() => {
+    let timeoutId;
+    let pulseLoop;
+
+    const startPulse = () => {
+      setStarted(true);
+      pulseLoop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: PULSE_DURATION,
+            easing: Easing.out(Easing.poly(2)),
+            useNativeDriver: true,
+          }),
+          Animated.delay(PULSE_REPEAT_DELAY),
+        ])
+      );
+      pulseLoop.start();
+    };
+
+    if (delay > 0) {
+      timeoutId = setTimeout(startPulse, delay);
+    } else {
+      startPulse();
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (pulseLoop) pulseLoop.stop();
+    };
+  }, [anim, delay]);
+
+  if (!started) return null;
+
+  const initialRadius = CITY_DOT_RADIUS * scale;
+  const initialDiameter = initialRadius * 2;
+  const initialOpacity = isDark ? 0.55 : 0.45;
+
+  const ringScale = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, PULSE_RADIUS_SCALE],
+  });
+
+  const ringOpacity = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [initialOpacity, 0],
+  });
+
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        transform: [{ translateX: x * scale }, { translateY: y * scale }],
+      }}
+      pointerEvents="none"
+    >
+      <Animated.View
+        style={{
+          position: 'absolute',
+          left: -initialRadius,
+          top: -initialRadius,
+          width: initialDiameter,
+          height: initialDiameter,
+          borderRadius: initialRadius,
+          borderWidth: 1.5 * scale,
+          borderColor: ink,
+          transform: [{ scale: ringScale }],
+          opacity: ringOpacity,
+        }}
+      />
+    </View>
+  );
+};
+
 const WorldActivityMap = ({
   worldActivity,
   cityActivity,
@@ -180,6 +308,8 @@ const WorldActivityMap = ({
   isLoading,
   tokens,
   isDark,
+  isRTL = false,
+  hideTitle = false,
 }) => {
   const [mapLayers, setMapLayers] = useState(null);
   const geoFeatures = mapLayers ? mapLayers.countries : null;
@@ -245,18 +375,20 @@ const WorldActivityMap = ({
     return geoFeatures.find((f) => f.id === currentNumericId) || null;
   }, [geoFeatures, currentNumericId]);
 
+  // Mobile: square reference canvas, kept tightly zoomed with MOBILE_ZOOM = 1.25
+  // and padding = 60, matching web's WorldActivityMap.jsx mobile responsive view.
   const mapView = useMemo(() => {
     if (!currentFeature) return { center: [15, 20], scale: 220 };
-    const padding = 20;
+    const padding = 60;
     const [[minLon, minLat], [maxLon, maxLat]] = geoBounds(currentFeature);
     const center = [(minLon + maxLon) / 2, (minLat + maxLat) / 2];
     const reference = geoMercator().center(center).translate([MAP_WIDTH / 2, MAP_HEIGHT / 2]).scale(1);
     const [[x0, y0], [x1, y1]] = geoPath(reference).bounds(currentFeature);
-    const scale = Math.min(
+    const fitScale = Math.min(
       (MAP_WIDTH - padding * 2) / Math.max(x1 - x0, 0.001),
       (MAP_HEIGHT - padding * 2) / Math.max(y1 - y0, 0.001)
     );
-    return { center, scale };
+    return { center, scale: fitScale * MOBILE_ZOOM };
   }, [currentFeature]);
 
   const projection = useMemo(
@@ -308,67 +440,68 @@ const WorldActivityMap = ({
   // inland water reads as water rather than a hole punched in the country.
   const sea = tokens.surfaceBase;
 
+  // Badge text color picked by contrast ratio against brandLogo, exactly matching web.
+  const badgeText = getContrastRatio(brand, panel) >= 4.5 ? panel : ink;
+
   const ready = !isLoading && !!geoFeatures;
   const scale = boxSize && boxSize.width ? boxSize.width / MAP_WIDTH : 1;
 
-  const cityPoints = useMemo(
-    () =>
-      ready
-        ? cities
-            .map((city) => {
-              const point = projection([city.lon, city.lat]);
-              if (!point) return null;
-              const [x, y] = point;
-              return { city, x, y, r: CITY_DOT_RADIUS };
-            })
-            .filter(Boolean)
-        : [],
-    [ready, cities, projection]
-  );
+  // Cities projected once, then laid out: the dots sit exactly on their
+  // coordinates, and only the names move. Matches web's WorldActivityMap.jsx:
+  // Badges are placed unconditionally above their city dot and act as layout obstacles.
+  const cityMarkers = useMemo(() => {
+    if (!ready) return { dots: [], labels: [], badges: [] };
 
-  // The dots stay exactly on their coordinates; only the names move. See
-  // utils/cityLabelLayout.js (mirrored from web) - labels walk around their own
-  // dot until they find room, never travel far enough to need a line back to
-  // it, and are dropped rather than stacked when the map is too crowded.
-  // Mobile has no "+N today" badges, so there are no obstacles to route around
-  // beyond the dots and the other labels. Everything else feeding this map's
-  // render is memoized above; this walk is the same per-render cost the rest
-  // of the pipeline was already spared.
-  const cityLabels = useMemo(
-    () =>
-      layoutCityLabels({
-        points: cityPoints.map(({ city, x, y }) => ({
-          x,
-          y,
-          name: city.name,
-          weight: city.count || 0,
-        })),
-        width: MAP_WIDTH,
-        height: MAP_HEIGHT,
-        dotRadius: CITY_DOT_RADIUS,
-        fontSize: CITY_LABEL_FONT_SIZE,
-      }),
-    [cityPoints]
-  );
+    const projected = cities
+      .map((city) => {
+        const point = projection([city.lon, city.lat]);
+        return point ? { city, x: point[0], y: point[1], r: CITY_DOT_RADIUS } : null;
+      })
+      .filter(Boolean);
+
+    // The "+N today" badges are placed first and unconditionally — they carry a
+    // number, so they outrank a name — and every label has to route around them.
+    const badges = projected
+      .map(({ city, x, y }, dotIndex) => {
+        if ((city.todayCount || 0) <= 0) return null;
+        const label = `+${city.todayCount}`;
+        const width = badgeWidth(label);
+        const bottom = y - (CITY_DOT_RADIUS + 1);
+        return { label, width, x, y: bottom - BADGE_HEIGHT / 2, dotIndex };
+      })
+      .filter(Boolean);
+
+    const placements = layoutCityLabels({
+      points: projected.map(({ city, x, y }) => ({
+        x,
+        y,
+        name: city.name,
+        weight: city.count || 0,
+      })),
+      width: MAP_WIDTH,
+      height: MAP_HEIGHT,
+      dotRadius: CITY_DOT_RADIUS,
+      fontSize: CITY_LABEL_FONT_SIZE,
+      obstacles: badges.map((badge) => ({
+        x0: badge.x - badge.width / 2,
+        y0: badge.y - BADGE_HEIGHT / 2,
+        x1: badge.x + badge.width / 2,
+        y1: badge.y + BADGE_HEIGHT / 2,
+      })),
+    });
+
+    return { dots: projected, labels: placements, badges };
+  }, [ready, cities, projection]);
 
   // Always the same outer node (loading placeholder and loaded content are
   // both children of it) so `onLayout` reliably fires on first mount and
-  // `boxSize` gets measured - previously the loading state returned a whole
-  // separate <View> without onLayout, and swapping to the loaded <View> once
-  // data arrived didn't trigger a new layout event (same width/aspectRatio,
-  // so Yoga saw no size change), leaving boxSize stuck at null and city
-  // labels positioned using the unscaled 520-coordinate space instead of the
-  // box's actual on-screen size - pushing them outside the clipped box on
-  // any cold start where the dashboard fetch was still in flight when this
-  // component first mounted.
-  // No loading placeholder fill: the map now sits directly on the page as a
-  // backdrop rather than inside a card, so a tinted square would read as a
-  // stray panel. It simply appears once the topojson is parsed.
+  // `boxSize` gets measured.
   return (
     <View style={styles.mapBox} onLayout={(e) => setBoxSize(e.nativeEvent.layout)}>
       {ready && (
         <>
-          <Svg width="100%" height="100%" viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}>
+          {/* Layer 1: Base SVG map (countries, urban areas, subdivisions, lakes, rivers) */}
+          <Svg width="100%" height="100%" viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} style={StyleSheet.absoluteFill}>
             {countryShapes.map(({ geoFeat, d }, index) => {
               const entry = activityByNumericId.get(geoFeat.id);
               const isCurrent = geoFeat.id === currentNumericId;
@@ -387,14 +520,11 @@ const WorldActivityMap = ({
             })}
             {/* Built-up areas, under everything else that sits on the country
                 fill: a wash, not a shape - it should register as "this part is
-                populated" without competing with the city dots, which are the
-                only thing on this map carrying real data. */}
+                populated" without competing with the city dots. */}
             {urbanPath && <Path d={urbanPath} fill={hexToRgba(ink, isDark ? 0.18 : 0.12)} />}
             {/* Provinces / wilayas / governorates of the supported countries, as
                 one mesh path rather than per-province shapes - a single node
-                with no fill to double up on the country fills below it.
-                Deliberately faint: texture saying the country is a real place
-                with regions in it, not a number anyone is asked to read. */}
+                with no fill to double up on the country fills below it. */}
             {subdivisionsPath && (
               <Path
                 d={subdivisionsPath}
@@ -418,31 +548,107 @@ const WorldActivityMap = ({
                 strokeLinejoin="round"
               />
             )}
-            {cityPoints.map(({ city, x, y, r }, index) => (
-              <Circle key={`${city.name}-${index}`} cx={x} cy={y} r={r} fill={panel} stroke={brand} strokeWidth={2} />
-            ))}
           </Svg>
-          {/* City labels are drawn as a plain RN `Text` overlay, not SvgText -
-              react-native-svg's native text renderer doesn't perform Arabic
-              shaping/ligature joining, so Arabic city names would render as
-              isolated letters. Positions reuse the same projected x/y as the
-              markers above; not mirrored for RTL, matching the map itself
-              (see file header). */}
+
+          {/* Layer 2: Live today pulsing rings (rendered under the dots so rings emanate from beneath the pin) */}
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            {cityLabels.map((placement, index) =>
+            {cityMarkers.dots.map(({ city, x, y }, index) => {
+              if (cityMarkers.labels[index]?.hidden || (city.todayCount || 0) <= 0) return null;
+              return (
+                <PulseRing
+                  key={`pulse-${city.name}-${index}`}
+                  x={x}
+                  y={y}
+                  scale={scale}
+                  ink={ink}
+                  isDark={isDark}
+                  delay={(index % 5) * 450}
+                />
+              );
+            })}
+          </View>
+
+          {/* Layer 3: City marker dots — only rendered when label is visible, no orphaned dots */}
+          <Svg width="100%" height="100%" viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} style={StyleSheet.absoluteFill} pointerEvents="none">
+            {cityMarkers.dots.map(({ city, x, y, r }, index) => {
+              if (cityMarkers.labels[index]?.hidden) return null;
+              return (
+                <Circle
+                  key={`dot-${city.name}-${index}`}
+                  cx={x}
+                  cy={y}
+                  r={r}
+                  fill={panel}
+                  stroke={brand}
+                  strokeWidth={2}
+                />
+              );
+            })}
+          </Svg>
+
+          {/* Layer 4: City labels and "+N today" badges drawn as RN Text overlay for native shaping */}
+          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+            {cityMarkers.labels.map((placement, index) =>
               placement.hidden ? null : (
                 <CityLabel
-                  key={`${cityPoints[index].city.name}-${index}`}
+                  key={`label-${cityMarkers.dots[index].city.name}-${index}`}
                   x={placement.labelX}
                   y={placement.labelY}
-                  text={cityPoints[index].city.name}
+                  text={cityMarkers.dots[index].city.name}
                   ink={ink}
                   panel={panel}
                   scale={scale}
                 />
               )
             )}
+
+            {cityMarkers.badges.map((badge, index) => {
+              if (cityMarkers.labels[badge.dotIndex]?.hidden) return null;
+              return (
+                <CityBadge
+                  key={`badge-${index}`}
+                  x={badge.x}
+                  y={badge.y}
+                  width={badge.width}
+                  label={badge.label}
+                  brand={brand}
+                  panel={panel}
+                  textColor={badgeText}
+                  scale={scale}
+                />
+              );
+            })}
           </View>
+
+          {/* Layer 5: Edge fade vignette — two stacked linear gradients dissolving the four edges into sea */}
+          <LinearGradient
+            colors={[hexToRgba(sea, 1), hexToRgba(sea, 0), hexToRgba(sea, 0), hexToRgba(sea, 1)]}
+            locations={[0, 0.14, 0.86, 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+          <LinearGradient
+            colors={[hexToRgba(sea, 1), hexToRgba(sea, 0), hexToRgba(sea, 0), hexToRgba(sea, 1)]}
+            locations={[0, 0.12, 0.88, 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+
+          {/* Layer 6: Activity ramp legend swatch */}
+          {!hideTitle && (
+            <View style={styles.legendContainer} pointerEvents="none">
+              <LinearGradient
+                colors={[hexToRgba(brand, 0.2), hexToRgba(brand, 0.95)]}
+                start={{ x: isRTL ? 1 : 0, y: 0 }}
+                end={{ x: isRTL ? 0 : 1, y: 0 }}
+                style={styles.legendSwatch}
+              />
+            </View>
+          )}
         </>
       )}
     </View>
@@ -455,18 +661,32 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     overflow: 'hidden',
     // Pins this whole subtree's Yoga layout direction to LTR, independent
-    // of I18nManager's global RTL state - see the long comment on
-    // CityLabel's positioning View for why relying on that global state
-    // (even just to read I18nManager.isRTL) is unreliable here. Requires
-    // Fabric (React Native's new architecture, on by default since Expo
-    // SDK 52+ and not overridden in this app's app.config.js) - Fabric
-    // wires the JS `direction` style straight to Yoga's per-node
-    // setDirection; the older bridge architecture only exposed this on iOS.
+    // of I18nManager's global RTL state.
     direction: 'ltr',
   },
   cityLabelText: {
-    fontWeight: '400',
+    fontFamily: fontFamilies.bodySemiBold,
+    fontWeight: '600',
     textAlign: 'center',
+  },
+  badgeText: {
+    fontFamily: fontFamilies.display,
+    fontWeight: '700',
+    textAlign: 'center',
+    includeFontPadding: false,
+  },
+  legendContainer: {
+    position: 'absolute',
+    bottom: 12,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  legendSwatch: {
+    width: 48,
+    height: 7,
+    borderRadius: 4,
   },
 });
 

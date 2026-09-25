@@ -272,13 +272,14 @@ const WorldActivityMap = ({
     // The "+N today" badges are placed first and unconditionally — they carry a
     // number, so they outrank a name — and every label has to route around them.
     const badges = projected
-      .filter(({ city }) => (city.todayCount || 0) > 0)
-      .map(({ city, x, y }) => {
+      .map(({ city, x, y }, dotIndex) => {
+        if ((city.todayCount || 0) <= 0) return null;
         const label = `+${city.todayCount}`;
         const width = badgeWidth(label);
         const bottom = y - (CITY_DOT_RADIUS + 1);
-        return { label, width, x, y: bottom - BADGE_HEIGHT / 2 };
-      });
+        return { label, width, x, y: bottom - BADGE_HEIGHT / 2, dotIndex };
+      })
+      .filter(Boolean);
 
     const placements = layoutCityLabels({
       points: projected.map(({ city, x, y }) => ({ x, y, name: city.name, weight: city.count || 0 })),
@@ -460,7 +461,7 @@ const WorldActivityMap = ({
           whom no tween is ever created) sees nothing at all rather than a
           stalled ring frozen around a dot. */}
       {cityMarkers.dots.map(({ city, x, y }, index) =>
-        (city.todayCount || 0) > 0 ? (
+        !cityMarkers.labels[index]?.hidden && (city.todayCount || 0) > 0 ? (
           <circle
             key={`pulse-${city.name}-${index}`}
             className={pulseClass}
@@ -478,19 +479,24 @@ const WorldActivityMap = ({
 
       {/* City markers — uniform small dots (see CITY_DOT_RADIUS) layered on
           top of the country fill. Panel-filled with a brand stroke so they
-          read as solid pins regardless of the fill tone beneath them. */}
+          read as solid pins regardless of the fill tone beneath them. Only
+          rendered when the city name is placed and visible, ensuring no orphaned
+          dots without city names appear on the map. */}
       <g>
-        {cityMarkers.dots.map(({ city, x, y }, index) => (
-          <circle
-            key={`${city.name}-${index}`}
-            cx={x}
-            cy={y}
-            r={CITY_DOT_RADIUS}
-            fill={panel}
-            stroke={brand}
-            strokeWidth={2}
-          />
-        ))}
+        {cityMarkers.dots.map(({ city, x, y }, index) => {
+          if (cityMarkers.labels[index]?.hidden) return null;
+          return (
+            <circle
+              key={`${city.name}-${index}`}
+              cx={x}
+              cy={y}
+              r={CITY_DOT_RADIUS}
+              fill={panel}
+              stroke={brand}
+              strokeWidth={2}
+            />
+          );
+        })}
       </g>
 
       {/* City names. Positions come from the layout pass, not from a fixed
@@ -525,33 +531,36 @@ const WorldActivityMap = ({
           way round: a badge carries a number, a name does not. The names
           deliberately stay flat: they already carry a panel-colored outline. */}
       <g>
-        {cityMarkers.badges.map((badge, index) => (
-          <g key={`badge-${index}`} pointerEvents="none">
-            {/* Panel-colored halo, same trick the city label uses: keeps the pill
-                legible over a saturated country fill without an opaque plate. */}
-            <rect
-              x={badge.x - badge.width / 2}
-              y={badge.y - BADGE_HEIGHT / 2}
-              width={badge.width}
-              height={BADGE_HEIGHT}
-              rx={BADGE_HEIGHT / 2}
-              fill={brand}
-              stroke={panel}
-              strokeWidth={2}
-            />
-            <text
-              x={badge.x}
-              y={badge.y}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fontSize={BADGE_FONT_SIZE}
-              fontWeight={700}
-              fill={badgeText}
-            >
-              {badge.label}
-            </text>
-          </g>
-        ))}
+        {cityMarkers.badges.map((badge, index) => {
+          if (cityMarkers.labels[badge.dotIndex]?.hidden) return null;
+          return (
+            <g key={`badge-${index}`} pointerEvents="none">
+              {/* Panel-colored halo, same trick the city label uses: keeps the pill
+                  legible over a saturated country fill without an opaque plate. */}
+              <rect
+                x={badge.x - badge.width / 2}
+                y={badge.y - BADGE_HEIGHT / 2}
+                width={badge.width}
+                height={BADGE_HEIGHT}
+                rx={BADGE_HEIGHT / 2}
+                fill={brand}
+                stroke={panel}
+                strokeWidth={2}
+              />
+              <text
+                x={badge.x}
+                y={badge.y}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={BADGE_FONT_SIZE}
+                fontWeight={700}
+                fill={badgeText}
+              >
+                {badge.label}
+              </text>
+            </g>
+          );
+        })}
       </g>
     </ComposableMap>
   ) : (

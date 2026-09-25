@@ -41,8 +41,8 @@ export const CITY_LABEL_FONT_SIZE = 10;
 // is a little generous for Latin and a little tight for Arabic, which is the
 // right way round: over-estimating reserves space that was never needed, while
 // under-estimating puts two names back on top of each other.
-const GLYPH_WIDTH_RATIO = 0.58;
-const LINE_HEIGHT_RATIO = 1.2;
+const GLYPH_WIDTH_RATIO = 0.52;
+const LINE_HEIGHT_RATIO = 1.15;
 
 export const estimateLabelSize = (text, fontSize = CITY_LABEL_FONT_SIZE) => ({
   width: Math.max(String(text || "").length * fontSize * GLYPH_WIDTH_RATIO, fontSize),
@@ -65,14 +65,12 @@ const DIRECTIONS = [
 ];
 
 // Extra distance to try once all sixteen directions have failed at the previous
-// one. Ring 0 is the label touching its dot; 3 and 6 are the small amount of
-// slack a dense cluster needs, and the last of them is where it stops. Nothing
-// here is far enough for a name to read as belonging to a neighbour, which is the
-// whole point of not drawing a line any more: past this, a label is dropped.
-const RINGS = [0, 3, 6];
+// one. Ring 0 is the label touching its dot; wider rings provide the small amount
+// of slack a dense cluster needs to ensure every city with live posts can be labeled.
+const RINGS = [0, 3, 6, 10, 15];
 
-const GAP = 3;
-const PADDING = 1;
+const GAP = 2;
+const PADDING = 0.5;
 
 const rectOf = (cx, cy, width, height) => ({
   x0: cx - width / 2 - PADDING,
@@ -93,13 +91,13 @@ const distanceToRect = (px, py, rect) => {
 };
 
 // Is this box unambiguously THIS city's name? With no leader line, being the
-// closest dot is the only claim a dot has on a name, so an equal distance is a
-// refusal too: a name exactly between two cities belongs to neither.
+// closest dot is the primary claim a dot has on a name. A small tolerance
+// prevents two very close neighbouring cities from mutually locking each other out.
 const ownsLabel = (points, ownIndex, box) => {
   const own = points[ownIndex];
   const ownDistance = distanceToRect(own.x, own.y, box);
   return !points.some((point, index) => (
-    index !== ownIndex && distanceToRect(point.x, point.y, box) <= ownDistance
+    index !== ownIndex && distanceToRect(point.x, point.y, box) < ownDistance - 2
   ));
 };
 
@@ -121,11 +119,8 @@ export const layoutCityLabels = ({
   obstacles = [],
 }) => {
   const placements = points.map(() => ({ labelX: 0, labelY: 0, hidden: true }));
-  // Every dot is an obstacle for every label, including labels placed before
-  // this one — a name may not sit on a marker that is not its own.
-  const taken = points
-    .map((point) => rectOf(point.x, point.y, dotRadius * 2, dotRadius * 2))
-    .concat(obstacles);
+  // Placed label bounding boxes and external obstacles (like badges)
+  const taken = [...obstacles];
 
   const order = points
     .map((point, index) => ({ point, index }))
@@ -148,6 +143,9 @@ export const layoutCityLabels = ({
         // A label clipped by the edge of the map is as unreadable as one under
         // another label.
         if (box.x0 < 0 || box.y0 < 0 || box.x1 > width || box.y1 > height) continue;
+        // Other city dots are obstacles — a name may not sit on another city's marker
+        if (points.some((p, i) => i !== index && overlaps(box, rectOf(p.x, p.y, dotRadius * 1.5, dotRadius * 1.5)))) continue;
+        // Avoid overlapping already placed labels or obstacles
         if (taken.some((other) => overlaps(box, other))) continue;
         if (!ownsLabel(points, index, box)) continue;
 

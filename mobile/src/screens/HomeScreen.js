@@ -875,6 +875,7 @@ const HomeScreen = ({ navigation }) => {
                 isLoading={isLoading}
                 tokens={tokens}
                 isDark={isDark}
+                isRTL={isRTL}
               />
             </View>
           )}
