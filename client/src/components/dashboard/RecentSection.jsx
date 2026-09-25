@@ -52,7 +52,7 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
         background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
         backdropFilter: "blur(10px)",
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
-        padding: isMobile ? "1.5rem" : "2rem",
+        padding: isMobile ? "1.5rem" : "1.65rem 1.75rem",
         boxShadow: 'none',
       }}
     >
@@ -65,7 +65,7 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
             alignItems: "center",
             justifyContent: "space-between",
             gap: 1,
-            mb: isMobile ? 2 : 3,
+            mb: isMobile ? 2 : 2.25,
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>

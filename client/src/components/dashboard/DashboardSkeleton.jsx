@@ -56,8 +56,8 @@ const DashboardSkeleton = () => {
               sx={{ height: 28, width: 140, mb: isMobile ? 2 : 3 }}
             />
             <Box sx={{ display: "grid", gap: isMobile ? 1.5 : 2, gridTemplateColumns: "repeat(2, 1fr)" }}>
-              <SkeletonBlock radius={theme.custom.radius.lg} sx={{ width: "100%", aspectRatio: "3 / 4" }} />
-              <SkeletonBlock radius={theme.custom.radius.lg} sx={{ width: "100%", aspectRatio: "3 / 4" }} />
+              <SkeletonBlock radius={theme.custom.radius.lg} sx={{ width: "100%", aspectRatio: { xs: "3 / 4", md: "4 / 4.5" } }} />
+              <SkeletonBlock radius={theme.custom.radius.lg} sx={{ width: "100%", aspectRatio: { xs: "3 / 4", md: "4 / 4.5" } }} />
             </Box>
           </Box>
         ))}

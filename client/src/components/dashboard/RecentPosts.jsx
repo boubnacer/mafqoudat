@@ -131,7 +131,7 @@ const RecentPosts = ({
         position: "relative",
         width: "100%",
         height: fillHeight ? "100%" : undefined,
-        aspectRatio: fillHeight ? undefined : "3 / 4",
+        aspectRatio: fillHeight ? undefined : { xs: "3 / 4", md: "4 / 4.5" },
         borderRadius: `${theme.custom.radius.lg}px`,
         overflow: "hidden",
         cursor: "pointer",
@@ -154,7 +154,7 @@ const RecentPosts = ({
       ) : (
         FallbackIcon && (
           <Box sx={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <FallbackIcon sx={{ fontSize: 48, color: textColor, opacity: 0.9 }} />
+            <FallbackIcon sx={{ fontSize: { xs: 48, md: 58 }, color: textColor, opacity: 0.9 }} />
           </Box>
         )
       )}
@@ -177,19 +177,20 @@ const RecentPosts = ({
           insetInlineStart: 0,
           insetInlineEnd: 0,
           zIndex: 2,
-          p: 1.25,
+          p: { xs: 1.25, md: 1.5 },
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-start",
-          gap: 0.75,
+          gap: { xs: 0.75, md: 1 },
         }}
       >
         <Typography
           variant="caption"
           sx={{
             fontWeight: 800,
+            fontSize: { xs: "0.75rem", md: "0.9375rem" },
             color: textColor,
-            lineHeight: 1.2,
+            lineHeight: { xs: 1.2, md: 1.25 },
             overflow: "hidden",
             textOverflow: "ellipsis",
             display: "-webkit-box",
@@ -207,20 +208,20 @@ const RecentPosts = ({
             sx={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 0.5,
-              px: 1,
-              py: 0.375,
+              gap: { xs: 0.5, md: 0.625 },
+              px: { xs: 1, md: 1.25 },
+              py: { xs: 0.375, md: 0.5 },
               borderRadius: `${theme.custom.radius.sm}px`,
               backgroundColor: tone.main,
             }}
           >
-            <StatusIcon sx={{ fontSize: 14, color: theme.palette.getContrastText(tone.main) }} />
+            <StatusIcon sx={{ fontSize: { xs: 14, md: 16 }, color: theme.palette.getContrastText(tone.main) }} />
             <Typography
               variant="caption"
               sx={{
                 fontWeight: 700,
-                fontSize: "10px",
-                letterSpacing: 0.3,
+                fontSize: { xs: "10px", md: "12px" },
+                letterSpacing: { xs: 0.3, md: 0.4 },
                 textTransform: "uppercase",
                 color: theme.palette.getContrastText(tone.main),
                 lineHeight: 1,
@@ -235,19 +236,19 @@ const RecentPosts = ({
               sx={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 0.5,
-                px: 1,
-                py: 0.375,
+                gap: { xs: 0.5, md: 0.625 },
+                px: { xs: 1, md: 1.25 },
+                py: { xs: 0.375, md: 0.5 },
                 borderRadius: `${theme.custom.radius.sm}px`,
                 backgroundColor: theme.custom.status.found.main,
               }}
             >
-              <CheckCircleIcon sx={{ fontSize: 12, color: theme.palette.getContrastText(theme.custom.status.found.main) }} />
+              <CheckCircleIcon sx={{ fontSize: { xs: 12, md: 14 }, color: theme.palette.getContrastText(theme.custom.status.found.main) }} />
               <Typography
                 variant="caption"
                 sx={{
                   fontWeight: 700,
-                  fontSize: "10px",
+                  fontSize: { xs: "10px", md: "12px" },
                   textTransform: "uppercase",
                   color: theme.palette.getContrastText(theme.custom.status.found.main),
                   lineHeight: 1,
@@ -270,21 +271,22 @@ const RecentPosts = ({
           insetInlineStart: 0,
           insetInlineEnd: 0,
           zIndex: 2,
-          p: 1.25,
+          p: { xs: 1.25, md: 1.5 },
           display: { xs: "grid", sm: "flex" },
           gridTemplateColumns: { xs: "1fr" },
           alignItems: { xs: "flex-start", sm: "center" },
           justifyContent: { xs: "flex-start", sm: "space-between" },
-          gap: { xs: 0.375, sm: 0.75 },
+          gap: { xs: 0.375, sm: 0.75, md: 1 },
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 0 }}>
-          <LocationOnOutlined sx={{ fontSize: 14, color: textColor, opacity: 0.9, flexShrink: 0 }} />
+        <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, md: 0.625 }, minWidth: 0 }}>
+          <LocationOnOutlined sx={{ fontSize: { xs: 14, md: 16 }, color: textColor, opacity: 0.9, flexShrink: 0 }} />
           <Typography
             variant="caption"
             sx={{
               color: textColor,
               fontWeight: 600,
+              fontSize: { xs: "0.75rem", md: "0.875rem" },
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -293,7 +295,7 @@ const RecentPosts = ({
             {displayCityName}
           </Typography>
         </Box>
-        <Typography variant="caption" sx={{ color: alpha(textColor, 0.85), flexShrink: 0, whiteSpace: "nowrap" }}>
+        <Typography variant="caption" sx={{ color: alpha(textColor, 0.85), fontSize: { xs: "0.75rem", md: "0.8125rem" }, flexShrink: 0, whiteSpace: "nowrap" }}>
           {created}
         </Typography>
       </Box>

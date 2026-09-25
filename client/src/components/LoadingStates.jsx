@@ -92,7 +92,7 @@ export const RecentItemsSkeleton = () => {
         <SkeletonBlock
           key={item}
           radius={theme.custom.radius.lg}
-          sx={{ width: '100%', aspectRatio: '3 / 4' }}
+          sx={{ width: '100%', aspectRatio: { xs: '3 / 4', md: '4 / 4.5' } }}
         />
       ))}
     </Box>

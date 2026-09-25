@@ -104,14 +104,14 @@ const HSTAGE = {
   // pill only a third of a pill height below its neighbours instead of half.
   RING_GAP_DOWN: 70, // pill's bottom edge to the ring centre below it
   RING_GAP_UP: 51, // ring centre to the pill's top edge below it
-  RING_RISE: 209, // between the upper and the lower ring line
-  META_GAP: 56, // ring centre to the near edge of the STEP / numeral block
+  RING_RISE: 180, // between the upper and the lower ring line
+  META_GAP: 24, // ring centre to the near edge of the STEP / numeral block
   // TITLE_FS is gone: the pill used to carry a title line above the
   // description; now it carries only the description, so BODY_FS gets the
   // room the title used to take, bumped from 13 to 15.
   BODY_FS: 15,
-  STEP_FS: 35,
-  NUM_FS: 76,
+  STEP_FS: 16,
+  NUM_FS: 42,
   // The trail's two end tails run outward from the outer rings and rise only
   // slightly toward the mid-line — in the reference they stay on their own
   // ring's side of the wave and terminate in the open below the outer pills,
@@ -126,7 +126,7 @@ const HSTAGE = {
 // The STEP word, its gap and the numeral — one block, the same height above
 // the upper ring as below the lower one, which is what keeps the two rows'
 // meta columns reading as one pair rather than two separate labels.
-HSTAGE.META_H = Math.round(HSTAGE.STEP_FS + 6 + HSTAGE.NUM_FS * 1.05);
+HSTAGE.META_H = Math.round(HSTAGE.STEP_FS + 4 + HSTAGE.NUM_FS * 1.05);
 HSTAGE.RING_HIGH = HSTAGE.PAD_Y + HSTAGE.META_H + HSTAGE.META_GAP;
 HSTAGE.RING_LOW = HSTAGE.RING_HIGH + HSTAGE.RING_RISE;
 HSTAGE.H = HSTAGE.RING_LOW + HSTAGE.META_GAP + HSTAGE.META_H + HSTAGE.PAD_Y;
@@ -554,7 +554,7 @@ const Process = () => {
   }, [scale, wideScale, useWide]);
 
   const renderWideStage = () => (
-    <Box sx={{ position: "relative", width: "100%", height: HSTAGE.H * wideScale, overflow: "hidden", mt: 3 }}>
+    <Box sx={{ position: "relative", width: "100%", height: HSTAGE.H * wideScale, overflow: "hidden", mt: { xs: 3, md: 1.5 } }}>
       <Box
         sx={{
           position: "absolute",
@@ -904,7 +904,7 @@ const Process = () => {
         backgroundColor: surfaceRaised,
         borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
         boxShadow: theme.custom.elevation.e2,
-        padding: { xs: "1.5rem", sm: "2.5rem", md: "2rem" },
+        padding: { xs: "1.5rem", sm: "2.5rem", md: "1.75rem 2rem 2rem" },
         // On a wide /dash column this panel used to stretch to the column's
         // full width (up to ~1600px) with no ceiling of its own, which is
         // most of why the section read oversized — not just the stage art
@@ -967,7 +967,14 @@ const Process = () => {
           )}
         </Box>
 
-        <Box className="processSocial" sx={{ mt: useWide ? 3 : { xs: 3.5, md: 3 } }}>
+        <Box
+          className="processSocial"
+          sx={{
+            position: "relative",
+            zIndex: 2,
+            mt: useWide ? "-45px" : { xs: 3.5, md: 3 },
+          }}
+        >
           <Typography
             variant="overline"
             sx={{ display: "block", fontWeight: 600, letterSpacing: 1, color: alpha(ink, 0.6), mb: 1.5, ...alignText("center") }}
