@@ -68,19 +68,25 @@ function richBackground(hex, weight = 0.28) {
   return '#' + [nr, ng, nb].map((x) => x.toString(16).padStart(2, '0')).join('');
 }
 
+// Dark Slate Blue background with Lighter Gray-Blue 50x50 dot grid
+const BG_BASE = '#272B38';
+const DOT_COLOR = '#3A3F4E';
+const GRID_SIZE = 50;
+const DOT_RADIUS = 3;
+
 /**
  * Builds the SVG card for one or more categories.
  *
- * Single category: full rich background, one centred icon in accent colour.
- * Two categories: 50/50 horizontal gradient meeting at the center between both icons.
- * Three+ categories: 3-stop horizontal gradient across categories.
+ * Implements a modern dark slate blue canvas (#272B38) with a 50px dot grid pattern (#3A3F4E).
+ * Category icons are rendered inside squircle (rounded rectangle) badges with their
+ * category background color and accented borders.
  */
 function buildCategorySvg(categoryCodes) {
   const cats = categoryCodes.map((code) => {
     const colors = getCategoryColors(code);
     const icon = CATEGORY_ICONS[code.toUpperCase()] || CATEGORY_ICONS.OTHER;
-    const richBg = richBackground(colors.color, 0.28);
-    return { code: code.toUpperCase(), ...colors, richBg, icon };
+    const badgeBg = colors.backgroundColor;
+    return { code: code.toUpperCase(), ...colors, badgeBg, icon };
   });
 
   // Limit to 3 categories max for the image
@@ -88,43 +94,17 @@ function buildCategorySvg(categoryCodes) {
   const count = display.length;
 
   const parts = [];
-  let defs = '<defs>';
 
-  // 1. Background
-  if (count === 1) {
-    defs += '</defs>';
-    parts.push(`<rect width="${CANVAS}" height="${CANVAS}" fill="${display[0].richBg}"/>`);
-  } else if (count === 2) {
-    // 50/50 horizontal gradient meeting at the center
-    defs += `
-      <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="${display[0].richBg}"/>
-        <stop offset="35%" stop-color="${display[0].richBg}"/>
-        <stop offset="65%" stop-color="${display[1].richBg}"/>
-        <stop offset="100%" stop-color="${display[1].richBg}"/>
-      </linearGradient>
-      <linearGradient id="domainGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="${display[0].color}"/>
-        <stop offset="100%" stop-color="${display[1].color}"/>
-      </linearGradient>
-    </defs>`;
-    parts.push(`<rect width="${CANVAS}" height="${CANVAS}" fill="url(#bgGradient)"/>`);
-  } else {
-    // 3 categories: 3-stop gradient
-    defs += `
-      <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="${display[0].richBg}"/>
-        <stop offset="50%" stop-color="${display[1].richBg}"/>
-        <stop offset="100%" stop-color="${display[2].richBg}"/>
-      </linearGradient>
-      <linearGradient id="domainGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="${display[0].color}"/>
-        <stop offset="50%" stop-color="${display[1].color}"/>
-        <stop offset="100%" stop-color="${display[2].color}"/>
-      </linearGradient>
-    </defs>`;
-    parts.push(`<rect width="${CANVAS}" height="${CANVAS}" fill="url(#bgGradient)"/>`);
-  }
+  // 1. Defs: Dot Grid pattern (50px by 50px)
+  let defs = `<defs>
+    <pattern id="dotGrid" x="0" y="0" width="${GRID_SIZE}" height="${GRID_SIZE}" patternUnits="userSpaceOnUse">
+      <circle cx="${GRID_SIZE / 2}" cy="${GRID_SIZE / 2}" r="${DOT_RADIUS}" fill="${DOT_COLOR}" />
+    </pattern>
+  </defs>`;
+
+  // Base Dark Slate Blue background + dot grid
+  parts.push(`<rect width="${CANVAS}" height="${CANVAS}" fill="${BG_BASE}"/>`);
+  parts.push(`<rect width="${CANVAS}" height="${CANVAS}" fill="url(#dotGrid)"/>`);
 
   // 2. Logo at top centre (enlarged by ~25%, moved down ~1cm, clean without background)
   let logoSvg = '';
@@ -153,30 +133,42 @@ function buildCategorySvg(categoryCodes) {
   } catch (_) { /* logo is optional */ }
   parts.push(logoSvg);
 
-  // 3. Category icons centred in the middle
-  const iconSize = count === 1 ? 280 : (count === 2 ? 220 : 180);
-  const gap = count === 1 ? 0 : (count === 2 ? 80 : 50);
-  const totalWidth = count * iconSize + (count - 1) * gap;
+  // 3. Category icons enclosed in squircle badges
+  const badgeSize = count === 1 ? 400 : (count === 2 ? 300 : 230);
+  const iconSize = Math.round(badgeSize * 0.58);
+  const gap = count === 1 ? 0 : (count === 2 ? 60 : 40);
+  const borderWidth = count === 1 ? 8 : (count === 2 ? 7 : 6);
+  const totalWidth = count * badgeSize + (count - 1) * gap;
   const startX = (CANVAS - totalWidth) / 2;
   const centerY = CANVAS / 2 + 20;
 
   display.forEach((cat, i) => {
-    const icon = cat.icon;
-    const x = startX + i * (iconSize + gap);
-    const y = centerY - iconSize / 2;
+    const badgeX = startX + i * (badgeSize + gap);
+    const badgeY = centerY - badgeSize / 2;
+    const rx = count === 1 ? 52 : (count === 2 ? 40 : 32);
+    const inset = borderWidth / 2;
 
-    const paint = icon.stroked
-      ? `fill="none" stroke="${cat.color}" stroke-width="${icon.strokeWidth || 1.5}" stroke-linecap="round" stroke-linejoin="round"`
+    // Squircle container
+    parts.push(
+      `<rect x="${badgeX + inset}" y="${badgeY + inset}" width="${badgeSize - borderWidth}" height="${badgeSize - borderWidth}" rx="${rx}" fill="${cat.badgeBg}" stroke="${cat.color}" stroke-width="${borderWidth}"/>`
+    );
+
+    // Centered icon inside badge
+    const iconX = badgeX + (badgeSize - iconSize) / 2;
+    const iconY = badgeY + (badgeSize - iconSize) / 2;
+
+    const paint = cat.icon.stroked
+      ? `fill="none" stroke="${cat.color}" stroke-width="${cat.icon.strokeWidth || 1.5}" stroke-linecap="round" stroke-linejoin="round"`
       : `fill="${cat.color}"`;
 
-    const pathsMarkup = icon.paths.map((d) => `<path d="${d}"/>`).join('');
+    const pathsMarkup = cat.icon.paths.map((d) => `<path d="${d}"/>`).join('');
 
     parts.push(
-      `<svg x="${x}" y="${y}" width="${iconSize}" height="${iconSize}" viewBox="${icon.viewBox}" ${paint}>${pathsMarkup}</svg>`
+      `<svg x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" viewBox="${cat.icon.viewBox}" ${paint}>${pathsMarkup}</svg>`
     );
   });
 
-  // 4. Domain wordmark at the bottom (raised 160px from bottom, filled with category gradient or single color)
+  // 4. Domain wordmark at the bottom (crisp white on dark background)
   try {
     const domain = readSvgFile(DOMAIN_FILE);
     if (domain) {
@@ -186,7 +178,7 @@ function buildCategorySvg(categoryCodes) {
       const domainBottomMargin = 160;
       const domainY = CANVAS - domainHeight - domainBottomMargin;
 
-      const domainFill = count === 1 ? display[0].color : 'url(#domainGradient)';
+      const domainFill = '#FFFFFF';
       parts.push(
         `<g fill="${domainFill}"><svg x="${domainX}" y="${domainY}" width="${domainWidth}" height="${domainHeight}" viewBox="${domain.viewBox}">${domain.body}</svg></g>`
       );
@@ -212,7 +204,7 @@ async function generateCategoryImage(categoryCodes) {
 
   const svg = buildCategorySvg(codes);
   const buffer = await sharp(Buffer.from(svg))
-    .flatten({ background: '#ffffff' })
+    .flatten({ background: BG_BASE })
     .toColourspace('srgb')
     .jpeg({ quality: JPEG_QUALITY, progressive: false, chromaSubsampling: '4:4:4' })
     .toBuffer();
