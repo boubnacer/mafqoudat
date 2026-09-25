@@ -417,10 +417,10 @@ actually lists** — the `Category` collection, which the clients only decorate.
 - **`npm run sync-categories` in `server/`** creates the categories the client draws
   and the DB lacks, and syncs every colour and priority. Dry-run by default,
   `--apply` writes, `MONGO_TARGET=dev` switches off `MONGODB_URI_PROD` — same shape
-  as `rename-categories-singular.js`. It never deletes or deactivates anything: a
+  as `rename-categories-plural.js`. It never deletes or deactivates anything: a
   code the client config does not list is reported and left alone. It also leaves
   **labels** alone on categories that already exist, since those are live curated
-  copy (singular, per that rename script) and a colour sync has no business
+  copy (plural, per `rename-categories-plural.js`) and a colour sync has no business
   rewriting them.
 - **Every accent is at least ~10.4 CIEDE2000 from every other**, which is what stops
   two categories reading as the same colour at a 20px icon. They had collapsed into

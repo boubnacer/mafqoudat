@@ -41,6 +41,8 @@ const CATEGORY_IDS = {
   '507f1f77bcf86cd799439011': { code: 'ELECTRONICS' },
   '507f1f77bcf86cd799439012': { code: 'PETS' },
   '507f1f77bcf86cd799439013': { code: 'LUGGAGE' },
+  '507f1f77bcf86cd799439014': { _id: '507f1f77bcf86cd799439014', code: 'DOCUMENTS', labels: { ar: 'وثائق', fr: 'Documents', en: 'Documents' } },
+  '507f1f77bcf86cd799439015': { _id: '507f1f77bcf86cd799439015', code: 'KEYS', labels: { ar: 'مفاتيح', fr: 'Clés', en: 'Keys' } },
 };
 
 /** A findById()/find() stand-in answering a fixed value, chainable like mongoose. */
@@ -65,7 +67,7 @@ const CategoryStub = {
 
 const FoundLostStub = { findById: () => stubQuery({ code: 'LOST' }) };
 const CityStub = { findById: () => stubQuery({ labels: { ar: 'الدار البيضاء', fr: 'Casablanca', en: 'Casablanca' } }) };
-const CountryStub = { findById: () => stubQuery({ names: { ar: 'المغرب', fr: 'Maroc', en: 'Morocco' } }) };
+const CountryStub = { findById: () => stubQuery({ names: { ar: 'المغرب', fr: 'Maroc', en: 'Morocco' }, flag: '🇲🇦' }) };
 
 const DOCUMENT_TYPES = {
   '507f1f77bcf86cd7994390d1': {
@@ -192,6 +194,37 @@ async function run() {
       && documentsCaption.includes('Name on the document: Mohamed Alaoui'),
   );
 
+  const multiCategoryDocPost = {
+    _id: '507f1f77bcf86cd7994390ac',
+    foundLost: 'fl',
+    city: 'c1',
+    country: 'co1',
+    categories: ['507f1f77bcf86cd799439014', '507f1f77bcf86cd799439015'], // Documents, Keys
+    documentTypes: ['507f1f77bcf86cd7994390d1', '507f1f77bcf86cd7994390d2'],
+    documentOwnerName: { ar: 'محمد العلوي', latin: 'Mohamed Alaoui' },
+  };
+  const multiCategoryCaption = await buildListingCaption(multiCategoryDocPost);
+  checkThat(
+    'when Documents is selected with other categories, Documents is last and has document types attached',
+    multiCategoryCaption.includes('Lost Keys, Documents (Passport, National identity card)')
+      && multiCategoryCaption.includes("Perte de Clés, Documents (Passeport, Carte nationale d'identité)")
+      && multiCategoryCaption.includes('فقدان مفاتيح، وثائق (جواز السفر، بطاقة الهوية الوطنية)'),
+    'Documents must be the last category in caption and have type in parentheses',
+  );
+
+  const reverseMultiDocPost = {
+    ...multiCategoryDocPost,
+    _id: '507f1f77bcf86cd7994390ad',
+    categories: ['507f1f77bcf86cd799439015', '507f1f77bcf86cd799439014'], // Keys, Documents
+  };
+  const reverseMultiCaption = await buildListingCaption(reverseMultiDocPost);
+  checkThat(
+    'Documents is still last even if selected after other categories',
+    reverseMultiCaption.includes('Lost Keys, Documents (Passport, National identity card)')
+      && reverseMultiCaption.includes("Perte de Clés, Documents (Passeport, Carte nationale d'identité)")
+      && reverseMultiCaption.includes('فقدان مفاتيح، وثائق (جواز السفر، بطاقة الهوية الوطنية)'),
+  );
+
   const capped = await buildListingCaption(longPost, { maxLength: IG_LIMIT });
   check(
     'well under the real Instagram limit, nothing to trim',
@@ -199,7 +232,18 @@ async function run() {
     unbounded,
   );
 
-  const tightLimit = 600;
+  checkThat(
+    'the country flag and exact location are in the caption for all languages',
+    unbounded.includes('🇲🇦 🔴 Lost')
+      && unbounded.includes('🇲🇦 🔴 Perte de')
+      && unbounded.includes('🇲🇦 🔴 فقدان')
+      && unbounded.includes('exactly at:\n\u200E📍 Rue Mohammed V, near the central market')
+      && unbounded.includes('exactement à :\n\u200E📍 Rue Mohammed V, near the central market')
+      && unbounded.includes('تحديداً في :\n\u200F📍 Rue Mohammed V, near the central market'),
+    'country flag + status dot and exact location on new line',
+  );
+
+  const tightLimit = 1000;
   const tight = await buildListingCaption(longPost, { maxLength: tightLimit });
   checkThat('a tight limit is honored', tight.length <= tightLimit, `${tight.length} characters`);
   checkThat('the link survives the trim', tight.includes(`/dash/posts/${longPost._id}`));

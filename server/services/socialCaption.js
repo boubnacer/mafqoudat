@@ -35,6 +35,7 @@ const LOCALE_TEXT = {
     foundVerb: 'عثور على',
     inCountry: 'بدولة',
     inCity: (city) => ` في مدينة ${city}`,
+    exactlyAt: '، تحديداً في :',
     contactHeading: 'للمزيد من المعلومات والتواصل :',
     listSeparator: '، ',
     ownerHeading: 'الاسم على الوثيقة',
@@ -44,6 +45,7 @@ const LOCALE_TEXT = {
     foundVerb: 'Découverte de',
     inCountry: 'dans le pays',
     inCity: (city) => `, dans la ville de ${city}`,
+    exactlyAt: ', exactement à :',
     contactHeading: "Pour plus d'informations et contact :",
     listSeparator: ', ',
     ownerHeading: 'Nom figurant sur le document',
@@ -53,6 +55,7 @@ const LOCALE_TEXT = {
     foundVerb: 'Found',
     inCountry: 'in the country of',
     inCity: (city) => `, in the city of ${city}`,
+    exactlyAt: ', exactly at:',
     contactHeading: 'For more information & contact:',
     listSeparator: ', ',
     ownerHeading: 'Name on the document',
@@ -200,29 +203,63 @@ async function resolveListingImage(post) {
   };
 }
 
+const DOCUMENTS_CATEGORY_CODE = 'DOCUMENTS';
+const LRM = '\u200E';
+const RLM = '\u200F';
+
+function getCountryFlag(country) {
+  if (country?.flag) return country.flag;
+  if (country?.code && country.code.length === 2) {
+    const code = country.code.toUpperCase();
+    return String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+  }
+  return '';
+}
+
 function buildLocaleBlock(locale, data) {
   const t = LOCALE_TEXT[locale];
-  const { statusCode, categoryLabel, documentLabels, ownerName, countryLabel, cityLabel, postUrl } = data;
+  const {
+    statusCode,
+    categoryLabel,
+    ownerName,
+    countryFlag,
+    countryLabel,
+    cityLabel,
+    exactLocation,
+    postUrl,
+  } = data;
+
+  // Social platforms (IG/FB) determine text direction per paragraph from its
+  // first strong character. Since the post begins with Arabic, emojis (neutral)
+  // at the start of French/English lines would otherwise inherit RTL alignment
+  // and flip punctuation/parentheses. Injecting LRM (\u200E) at the start of
+  // Latin lines locks each paragraph into Left-To-Right direction.
+  const isRTL = locale === 'ar';
+  const mark = isRTL ? RLM : LRM;
 
   const verb = statusCode === 'FOUND' ? t.foundVerb : t.lostVerb;
   const emoji = HEADER_EMOJI[statusCode] || '📢';
-  // A documents listing publishes no photo of what was lost, so the header is
-  // the only place a reader scrolling a feed learns *which* papers these are:
-  // "Lost documents (passport, driving licence)" rather than a line that could
-  // be any of twenty titles. The names go in parentheses right after the
-  // category, so everything else about the header - the emoji, the verb, the
-  // country and city clause - is untouched.
-  const documentsClause = documentLabels && documentLabels.length > 0
-    ? ` (${documentLabels.join(t.listSeparator)})`
-    : '';
-  const header = `${emoji} ${verb} ${categoryLabel}${documentsClause} ${t.inCountry} ${countryLabel}${cityLabel ? t.inCity(cityLabel) : ''}`;
+  const flagPrefix = countryFlag ? `${countryFlag} ` : '';
+  const categoryClause = categoryLabel ? `${categoryLabel} ` : '';
+
+  let locationText = '';
+  if (cityLabel) {
+    locationText += t.inCity(cityLabel);
+  }
+  if (exactLocation) {
+    locationText += `${t.exactlyAt}\n${mark}📍 ${exactLocation}`;
+  }
+
+  const header = `${mark}${flagPrefix}${emoji} ${verb} ${categoryClause}${t.inCountry} ${countryLabel}${locationText}${mark}`;
 
   // And the name written on them, which is what its owner recognises the
   // listing by - the same reason the site itself asks for it. Only ever
   // present on a documents listing, so no other caption gains a line.
-  const ownerLine = ownerName ? `👤 ${t.ownerHeading}: ${ownerName}` : null;
+  const ownerLine = ownerName ? `${mark}👤 ${t.ownerHeading}: ${ownerName}${mark}` : null;
 
-  return [header, ownerLine, `👉 ${t.contactHeading}\n${postUrl}`]
+  const contactLine = `${mark}👉 ${t.contactHeading}\n${LRM}${postUrl}`;
+
+  return [header, ownerLine, contactLine]
     .filter(Boolean)
     .join('\n\n\n');
 }
@@ -232,17 +269,18 @@ function buildLocaleBlock(locale, data) {
  * listing content, just through different Graph API endpoints.
  */
 async function buildListingCaption(post, { maxLength = null } = {}) {
-  const categoryIds = (post.categories && post.categories.length > 0)
+  const rawCategoryIds = (post.categories && post.categories.length > 0)
     ? post.categories
     : (post.category ? [post.category] : []);
+  const categoryIds = rawCategoryIds.map((c) => (c && typeof c === 'object' && c._id ? c._id : c));
 
   const documentTypeIds = Array.isArray(post.documentTypes) ? post.documentTypes : [];
 
   const [foundLost, city, categories, country, documentTypes] = await Promise.all([
     FoundLost.findById(post.foundLost).select('code').lean(),
     post.city ? City.findById(post.city).select('labels').lean() : Promise.resolve(null),
-    categoryIds.length > 0 ? Category.find({ _id: { $in: categoryIds } }).select('labels').lean() : Promise.resolve([]),
-    post.country ? Country.findById(post.country).select('names').lean() : Promise.resolve(null),
+    categoryIds.length > 0 ? Category.find({ _id: { $in: categoryIds } }).select('labels code').lean() : Promise.resolve([]),
+    post.country ? Country.findById(post.country).select('names flag code').lean() : Promise.resolve(null),
     documentTypeIds.length > 0
       ? DocumentType.find({ _id: { $in: documentTypeIds } }).select('labels').lean()
       : Promise.resolve([]),
@@ -255,6 +293,40 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
     .filter(Boolean);
   const ownerNameAr = (post.documentOwnerName?.ar || '').trim();
   const ownerNameLatin = (post.documentOwnerName?.latin || '').trim();
+
+  const orderedCategories = categoryIds
+    .map((id) => categories.find((c) => c && String(c._id || c.id) === String(id)))
+    .filter(Boolean);
+  const activeCategories = (orderedCategories.length === categories.length && orderedCategories.length > 0)
+    ? orderedCategories
+    : categories;
+
+  // Identify the Documents category: by its contract code 'DOCUMENTS', or falling
+  // back to the single/last category if the listing carries document types.
+  const isDocCategory = (category) => (
+    String(category?.code || '').toUpperCase() === DOCUMENTS_CATEGORY_CODE
+  );
+  let docIndex = activeCategories.findIndex(isDocCategory);
+  if (docIndex === -1 && orderedDocumentTypes.length > 0 && activeCategories.length > 0) {
+    docIndex = activeCategories.length - 1;
+  }
+
+  // When there are multiple categories and one is Documents, Documents must be
+  // the last one in the caption.
+  let sortedCategories = activeCategories;
+  let docCategory = null;
+  if (docIndex !== -1) {
+    docCategory = activeCategories[docIndex];
+    if (activeCategories.length > 1) {
+      sortedCategories = [
+        ...activeCategories.filter((_, idx) => idx !== docIndex),
+        docCategory,
+      ];
+    }
+  }
+
+  const countryFlag = getCountryFlag(country);
+  const cleanExactLocation = (post.exactLocation || '').replace(/[\r\n]+/g, ' ').trim();
 
   const statusCode = foundLost?.code;
   const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
@@ -269,26 +341,45 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
   // ones before the general-reach ones.
   const localizedHashtags = LOCALES.flatMap((locale) => [
     toHashtag(city?.labels?.[locale]),
-    ...categories.map((c) => toHashtag(c.labels?.[locale])),
+    ...sortedCategories.map((c) => toHashtag(c.labels?.[locale])),
   ]).filter(Boolean);
   const allHashtags = [...new Set([...SEED_HASHTAGS, ...localizedHashtags])].slice(0, MAX_HASHTAGS);
 
-  const blocks = LOCALES.map((locale) => buildLocaleBlock(locale, {
-    statusCode,
-    categoryLabel: categories.map((c) => c.labels?.[locale]).filter(Boolean).join(LOCALE_TEXT[locale].listSeparator),
-    documentLabels: orderedDocumentTypes
+  const blocks = LOCALES.map((locale) => {
+    const t = LOCALE_TEXT[locale];
+    const docLabels = orderedDocumentTypes
       .map((documentType) => documentType.labels?.[locale] || documentType.labels?.en)
-      .filter(Boolean),
-    // Each block gets the name in its own script, falling back to the other
-    // one when only that was written - an Arabic block with a Latin name still
-    // beats no name at all on a listing whose photo nobody will ever see.
-    ownerName: orderedDocumentTypes.length > 0
-      ? (locale === 'ar' ? (ownerNameAr || ownerNameLatin) : (ownerNameLatin || ownerNameAr))
-      : '',
-    countryLabel: country?.names?.[locale] || '',
-    cityLabel: city?.labels?.[locale] || '',
-    postUrl,
-  }));
+      .filter(Boolean);
+    const docClause = docLabels.length > 0
+      ? ` (${docLabels.join(t.listSeparator)})`
+      : '';
+
+    // The document type names go in parentheses right after the Documents category:
+    // "Lost Keys, Documents (passport, driving licence)" instead of appending after all categories.
+    const categoryParts = sortedCategories.map((c) => {
+      const label = c.labels?.[locale] || c.labels?.en || '';
+      if (!label) return '';
+      return c === docCategory ? `${label}${docClause}` : label;
+    }).filter(Boolean);
+
+    const categoryLabel = categoryParts.join(t.listSeparator);
+
+    return buildLocaleBlock(locale, {
+      statusCode,
+      categoryLabel,
+      // Each block gets the name in its own script, falling back to the other
+      // one when only that was written - an Arabic block with a Latin name still
+      // beats no name at all on a listing whose photo nobody will ever see.
+      ownerName: orderedDocumentTypes.length > 0
+        ? (locale === 'ar' ? (ownerNameAr || ownerNameLatin) : (ownerNameLatin || ownerNameAr))
+        : '',
+      countryFlag,
+      countryLabel: country?.names?.[locale] || '',
+      cityLabel: city?.labels?.[locale] || '',
+      exactLocation: cleanExactLocation,
+      postUrl,
+    });
+  });
   const body = blocks.join(`\n\n${BLOCK_DIVIDER}\n\n`);
 
   const compose = (tags) => (tags.length ? `${body}\n\n\n${tags.join(' ')}` : body);

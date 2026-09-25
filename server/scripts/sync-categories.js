@@ -30,8 +30,8 @@
  *
  * So: categories missing from the DB are created, and every category's colour
  * and priority is synced. Labels are deliberately left alone on categories
- * that already exist - they are live, curated copy (singular, per
- * rename-categories-singular.js), and this script has no business rewriting
+ * that already exist - they are live, curated copy (plural, per
+ * rename-categories-plural.js), and this script has no business rewriting
  * them. Nothing is ever deleted or deactivated: a code in the DB that this
  * file does not list is reported and left exactly as it is.
  */
@@ -59,7 +59,7 @@ const CATEGORIES = [
   },
   {
     code: 'DOCUMENTS',
-    labels: { en: 'Document', fr: 'Document', ar: 'وثيقة' },
+    labels: { en: 'Documents', fr: 'Documents', ar: 'وثائق' },
     color: '#795548',
     priority: 2,
     description: 'ID cards, passports, licenses, certificates, papers',
@@ -83,7 +83,7 @@ const CATEGORIES = [
   },
   {
     code: 'PETS',
-    labels: { en: 'Pet', fr: 'Animal de compagnie', ar: 'حيوان أليف' },
+    labels: { en: 'Pets', fr: 'Animaux de compagnie', ar: 'حيوانات أليفة' },
     color: '#FF6B6B',
     priority: 5,
     description: 'Lost or found pets and animals',
@@ -91,7 +91,7 @@ const CATEGORIES = [
   },
   {
     code: 'VEHICLES',
-    labels: { en: 'Vehicle', fr: 'Véhicule', ar: 'مركبة' },
+    labels: { en: 'Vehicles', fr: 'Véhicules', ar: 'مركبات' },
     color: '#607D8B',
     priority: 6,
     description: 'Cars, motorcycles, vans',
@@ -99,7 +99,7 @@ const CATEGORIES = [
   },
   {
     code: 'KEYS',
-    labels: { en: 'Key', fr: 'Clé', ar: 'مفتاح' },
+    labels: { en: 'Keys', fr: 'Clés', ar: 'مفاتيح' },
     color: '#FB8C00',
     priority: 7,
     description: 'House keys, car keys, key chains',
@@ -107,15 +107,15 @@ const CATEGORIES = [
   },
   {
     code: 'WALLET',
-    labels: { en: 'Wallet', fr: 'Portefeuille', ar: 'محفظة' },
+    labels: { en: 'Wallets', fr: 'Portefeuilles', ar: 'محافظ' },
     color: '#BF360C',
     priority: 8,
     description: 'Wallets, purses, card holders',
-    searchTerms: ['wallet', 'portefeuille', 'محفظة', 'purse', 'card holder'],
+    searchTerms: ['wallets', 'wallet', 'portefeuilles', 'portefeuille', 'محافظ', 'محفظة', 'purse', 'card holder'],
   },
   {
     code: 'BAGS',
-    labels: { en: 'Bag', fr: 'Sac', ar: 'حقيبة' },
+    labels: { en: 'Bags', fr: 'Sacs', ar: 'حقائب' },
     color: '#827717',
     priority: 9,
     description: 'Backpacks, handbags, briefcases, suitcases',
@@ -123,11 +123,11 @@ const CATEGORIES = [
   },
   {
     code: 'WATCHES',
-    labels: { en: 'Watch', fr: 'Montre', ar: 'ساعة يد' },
+    labels: { en: 'Watches', fr: 'Montres', ar: 'ساعات يد' },
     color: '#2196F3',
     priority: 10,
     description: 'Wristwatches, smartwatches, fitness trackers',
-    searchTerms: ['watch', 'montre', 'ساعة', 'smartwatch', 'wristwatch'],
+    searchTerms: ['watches', 'watch', 'montres', 'montre', 'ساعات', 'ساعة', 'smartwatch', 'wristwatch'],
   },
   {
     code: 'GLASSES',
@@ -147,7 +147,7 @@ const CATEGORIES = [
   },
   {
     code: 'BOOKS',
-    labels: { en: 'Book', fr: 'Livre', ar: 'كتاب' },
+    labels: { en: 'Books', fr: 'Livres', ar: 'كتب' },
     color: '#5E35B1',
     priority: 13,
     description: 'Books, textbooks, notebooks, journals',
@@ -155,7 +155,7 @@ const CATEGORIES = [
   },
   {
     code: 'SPORTS',
-    labels: { en: 'Sports Equipment', fr: 'Équipement sportif', ar: 'معدات رياضية' },
+    labels: { en: 'Sports Equipment', fr: 'Équipements sportifs', ar: 'معدات رياضية' },
     color: '#8BC34A',
     priority: 14,
     description: 'Sports gear, balls, gym bags',
@@ -163,49 +163,49 @@ const CATEGORIES = [
   },
   {
     code: 'TOYS',
-    labels: { en: 'Toy', fr: 'Jouet', ar: 'لعبة' },
+    labels: { en: 'Toys', fr: 'Jouets', ar: 'ألعاب' },
     color: '#AFB42B',
     priority: 15,
     description: "Children's toys, games, plush animals",
-    searchTerms: ['toys', 'jouets', 'لعبة', 'children', 'kids', 'doll', 'دمية'],
+    searchTerms: ['toys', 'jouets', 'ألعاب', 'لعبة', 'children', 'kids', 'doll', 'دمية'],
   },
   {
     code: 'CAMERAS',
-    labels: { en: 'Camera', fr: 'Appareil photo', ar: 'كاميرا' },
+    labels: { en: 'Cameras', fr: 'Appareils photo', ar: 'كاميرات' },
     color: '#0097A7',
     priority: 16,
     description: 'Cameras, lenses, photography equipment',
-    searchTerms: ['camera', 'appareil photo', 'كاميرا', 'lens', 'photography'],
+    searchTerms: ['cameras', 'camera', 'appareils photo', 'appareil photo', 'كاميرات', 'كاميرا', 'lens', 'photography'],
   },
   {
     code: 'CHARGERS',
-    labels: { en: 'Charger & Cable', fr: 'Chargeur et câble', ar: 'شاحن وكابل' },
+    labels: { en: 'Chargers & Cables', fr: 'Chargeurs et câbles', ar: 'شواحن وكابلات' },
     color: '#455A64',
     priority: 17,
     description: 'Chargers, cables, power banks, SIM cards, memory cards',
     searchTerms: [
-      'charger', 'chargeur', 'شاحن', 'cable', 'câble', 'كابل',
+      'chargers', 'charger', 'chargeurs', 'chargeur', 'شواحن', 'شاحن', 'cables', 'cable', 'câbles', 'câble', 'كابلات', 'كابل',
       'power bank', 'batterie externe', 'بطارية متنقلة',
       'sim', 'puce', 'شريحة', 'memory card', 'carte mémoire', 'بطاقة ذاكرة',
     ],
   },
   {
     code: 'UMBRELLAS',
-    labels: { en: 'Umbrella', fr: 'Parapluie', ar: 'مظلة' },
+    labels: { en: 'Umbrellas', fr: 'Parapluies', ar: 'مظلات' },
     color: '#0277BD',
     priority: 18,
     description: 'Umbrellas and parasols',
-    searchTerms: ['umbrella', 'parapluie', 'مظلة', 'شمسية', 'parasol'],
+    searchTerms: ['umbrellas', 'umbrella', 'parapluies', 'parapluie', 'مظلات', 'مظلة', 'شمسية', 'parasol'],
   },
   {
     code: 'BICYCLES',
-    labels: { en: 'Bicycle & Scooter', fr: 'Vélo et trottinette', ar: 'دراجة وسكوتر' },
+    labels: { en: 'Bicycles & Scooters', fr: 'Vélos et trottinettes', ar: 'دراجات وسكوترات' },
     color: '#009966',
     priority: 19,
     description: 'Bicycles, e-bikes, scooters, skateboards',
     searchTerms: [
-      'bicycle', 'vélo', 'دراجة', 'bike', 'e-bike', 'vélo électrique',
-      'scooter', 'trottinette', 'سكوتر', 'skateboard', 'لوح تزلج',
+      'bicycles', 'bicycle', 'vélos', 'vélo', 'دراجات', 'دراجة', 'bike', 'e-bike', 'vélo électrique',
+      'scooters', 'scooter', 'trottinettes', 'trottinette', 'سكوتر', 'سكوترات', 'skateboard', 'لوح تزلج',
     ],
   },
   {
@@ -218,15 +218,15 @@ const CATEGORIES = [
   },
   {
     code: 'PERSON',
-    labels: { en: 'Person', fr: 'Personne', ar: 'شخص' },
+    labels: { en: 'Persons', fr: 'Personnes', ar: 'أشخاص' },
     color: '#F44336',
     priority: 21,
     description: 'Missing person reports',
-    searchTerms: ['person', 'personne', 'شخص', 'missing', 'disparu', 'مفقود'],
+    searchTerms: ['persons', 'person', 'personnes', 'personne', 'أشخاص', 'شخص', 'missing', 'disparu', 'مفقود'],
   },
   {
     code: 'MEDICAL',
-    labels: { en: 'Medical & Mobility Aid', fr: 'Aide médicale', ar: 'مستلزمات طبية' },
+    labels: { en: 'Medical & Mobility Aids', fr: 'Aides médicales', ar: 'مستلزمات طبية' },
     color: '#C2185B',
     priority: 23,
     description: 'Hearing aids, inhalers, prescriptions, canes, crutches, wheelchairs',
@@ -238,7 +238,7 @@ const CATEGORIES = [
   },
   {
     code: 'BABY',
-    labels: { en: 'Baby & Kids Gear', fr: 'Article pour enfant', ar: 'مستلزمات الأطفال' },
+    labels: { en: 'Baby & Kids Gear', fr: 'Articles pour enfants', ar: 'مستلزمات الأطفال' },
     color: '#EC407A',
     priority: 24,
     description: 'Strollers, car seats, baby bottles, nappy bags',
@@ -249,12 +249,12 @@ const CATEGORIES = [
   },
   {
     code: 'MUSIC',
-    labels: { en: 'Musical Instrument', fr: 'Instrument de musique', ar: 'آلة موسيقية' },
+    labels: { en: 'Musical Instruments', fr: 'Instruments de musique', ar: 'آلات موسيقية' },
     color: '#009688',
     priority: 25,
     description: 'Musical instruments and their cases and accessories',
     searchTerms: [
-      'music', 'musique', 'موسيقى', 'instrument', 'آلة موسيقية',
+      'music', 'musique', 'موسيقى', 'instruments', 'instrument', 'آلات موسيقية', 'آلة موسيقية',
       'guitar', 'guitare', 'قيثارة', 'violin', 'violon', 'كمان', 'oud', 'عود',
     ],
   },
