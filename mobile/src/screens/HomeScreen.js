@@ -72,11 +72,11 @@ const SOCIAL_LINKS = [
 ];
 
 // Same scrim as web's RecentPosts.jsx card:
-// `linear-gradient(to top, rgba(0,0,0,.65) 0%, rgba(0,0,0,.05) 45%, rgba(0,0,0,.4) 100%)`.
+// `linear-gradient(to top, rgba(0,0,0,.7) 0%, rgba(0,0,0,.05) 45%, rgba(0,0,0,.45) 100%)`.
 // CSS `to top` reads bottom -> top while LinearGradient's default axis reads
 // top -> bottom, so the stops are listed in reverse here.
-const POSTER_SCRIM_COLORS = ['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.65)'];
-const POSTER_SCRIM_LOCATIONS = [0, 0.55, 1];
+const POSTER_SCRIM_COLORS = ['rgba(0,0,0,0.45)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.7)'];
+const POSTER_SCRIM_LOCATIONS = [0, 0.45, 1];
 
 // Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow
 // strings, resolved per light/dark mode) as RN shadow/elevation props -
@@ -101,11 +101,16 @@ const getElevation = (isDark, level = 1) =>
 // Dashboard aggregation projects Categories (array, new format) with a
 // Category/categoryname fallback for legacy posts - same shape trending and
 // recent items share (see server/controllers/dependenciesController.js).
+const getCategoriesList = (item) => {
+  if (Array.isArray(item?.Categories) && item.Categories.length > 0) return item.Categories;
+  if (item?.Category?.code) return [item.Category];
+  if (item?.categoryname) return [{ code: item.categoryname, labels: null }];
+  return [{ code: 'OTHER', labels: null }];
+};
+
 const getCategoryInfo = (item) => {
-  if (Array.isArray(item?.Categories) && item.Categories.length > 0) return item.Categories[0];
-  if (item?.Category?.code) return item.Category;
-  if (item?.categoryname) return { code: item.categoryname, labels: null };
-  return null;
+  const list = getCategoriesList(item);
+  return list[0];
 };
 
 const getCategoryLabel = (item, currentLanguage) => {
@@ -304,39 +309,96 @@ const StatsSection = ({ data, isLoading, t, styles, tokens, isDark, isRTL, onFou
   );
 };
 
+// Frosted circle icon + label pill for no-image states (same as Post.js / RecentPosts.jsx on web)
+const RecentCategoryIconLabel = ({ icon, label, color, single, tokens }) => (
+  <View style={{ alignItems: 'center', gap: 4 }}>
+    <View
+      style={{
+        width: single ? 54 : 36,
+        height: single ? 54 : 36,
+        borderRadius: 999,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: `${tokens.surfaceRaised}8C`,
+      }}
+    >
+      <Ionicons name={icon} size={single ? 28 : 18} color={color} />
+    </View>
+    <Text
+      numberOfLines={1}
+      style={{
+        maxWidth: single ? 96 : 64,
+        backgroundColor: `${tokens.surfaceRaised}8C`,
+        color,
+        fontFamily: fontFamilies.bodySemiBold,
+        fontSize: single ? 10 : 9,
+        borderRadius: 999,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        textAlign: 'center',
+      }}
+    >
+      {label}
+    </Text>
+  </View>
+);
+
 // Poster-style preview card - mirrors web's
-// client/src/components/dashboard/RecentPosts.jsx: full-bleed image (or solid
-// category-color fill) with a dark scrim, category label + status tag
-// overlaid top, location + relative date overlaid bottom (stacked, matching
-// the web card's own xs/mobile layout since these are always narrow 2-up
-// cards here). Laid out 2-up by RecentSection, same as web's Recent.jsx grid.
-const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isRTL, onPress }) => {
+// client/src/components/dashboard/RecentPosts.jsx: full-bleed image (or
+// multi-category frosted icons / gradient fill) with a dark scrim, status
+// tag top-start, category pill(s) top-end when photo present, location +
+// relative date overlaid bottom. Laid out 2-up by RecentSection, same as web.
+const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isRTL, isDark, onPress }) => {
   const found = type === 'found';
   const tone = found ? tokens.status.found : tokens.status.lost;
   const imageUri = getImageUri(item.image);
-  const categoryConfig = getCategoryConfig(getCategoryInfo(item)?.code);
-  const categoryLabel = getCategoryLabel(item, currentLanguage) || t('categories');
+  const categoriesList = getCategoriesList(item);
+  const categoryConfigs = categoriesList.map((cat) => getCategoryConfig(cat.code));
+  const categoryLabels = categoriesList.map((cat) =>
+    cat.labels ? cat.labels[currentLanguage] || cat.labels.en || cat.code : cat.code
+  );
   const cityLabel = getCityLabel(item, currentLanguage) || t('unknownCity');
   const textColor = '#FFFFFF';
-  // Direction-dependent styles go through the helpers in utils/rtl.js
-  // (row()/logical()), which compensate only when the language's direction
-  // differs from the one native is already mirroring - see that file. Do NOT
-  // write `isRTL ? 'row-reverse' : 'row'` here: that flips unconditionally and
-  // cancels out native mirroring once forceRTL has taken effect on relaunch.
   const rowDirection = row(isRTL);
+
+  const noImageTints = categoryConfigs.map((cfg) => `${cfg.color}${isDark ? '52' : '38'}`);
 
   return (
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={onPress}
-      style={[styles.posterCard, { backgroundColor: imageUri ? tokens.surfaceBase : categoryConfig.color }]}
+      style={[
+        styles.posterCard,
+        { backgroundColor: imageUri ? tokens.surfaceBase : categoryConfigs[0]?.color },
+      ]}
     >
       {imageUri ? (
         <Image source={{ uri: imageUri }} style={styles.posterImage} resizeMode="cover" />
       ) : (
-        <View style={styles.posterFallback}>
-          <Ionicons name={categoryConfig.icon} size={48} color={textColor} style={{ opacity: 0.9 }} />
-        </View>
+        <>
+          {noImageTints.length > 1 ? (
+            <LinearGradient
+              colors={noImageTints}
+              start={{ x: isRTL ? 1 : 0, y: 0 }}
+              end={{ x: isRTL ? 0 : 1, y: 0 }}
+              style={StyleSheet.absoluteFill}
+            />
+          ) : (
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: noImageTints[0] }]} />
+          )}
+          <View style={styles.posterCategoryIconsWrap}>
+            {categoriesList.slice(0, 4).map((cat, index) => (
+              <RecentCategoryIconLabel
+                key={cat.code || index}
+                icon={categoryConfigs[index].icon}
+                label={categoryLabels[index]}
+                color={categoryConfigs[index].color}
+                single={categoriesList.length <= 1}
+                tokens={tokens}
+              />
+            ))}
+          </View>
+        </>
       )}
 
       {imageUri ? (
@@ -348,26 +410,49 @@ const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isR
         />
       ) : null}
 
+      {/* Top row: status tag (FOUND/LOST) at start, all category pills at end */}
       <View style={[styles.posterTopRow, { flexDirection: rowDirection }]}>
-        <Text style={[styles.posterCategoryLabel, { color: textColor }]} numberOfLines={2}>
-          {categoryLabel}
-        </Text>
         <View style={styles.posterBadgeColumn}>
           <View style={[styles.posterStatusPill, { backgroundColor: tone.main }]}>
-            <Ionicons name={found ? 'checkmark-circle' : 'search'} size={14} color={getContrastText(tone.main)} />
+            <Ionicons name={found ? 'checkmark-circle' : 'search'} size={12} color={getContrastText(tone.main)} />
             <Text style={[styles.posterStatusPillText, { color: getContrastText(tone.main) }]}>
               {found ? t('found') : t('lost')}
             </Text>
           </View>
           {item.returned ? (
             <View style={[styles.posterReturnedPill, { backgroundColor: tokens.status.found.main }]}>
-              <Ionicons name="checkmark-circle" size={12} color={getContrastText(tokens.status.found.main)} />
+              <Ionicons name="checkmark-circle" size={10} color={getContrastText(tokens.status.found.main)} />
               <Text style={[styles.posterReturnedPillText, { color: getContrastText(tokens.status.found.main) }]}>
                 {t('returned')}
               </Text>
             </View>
           ) : null}
         </View>
+
+        {/* Categories: displays ALL categories when photo is present, matching web */}
+        {imageUri ? (
+          <View style={[styles.posterCategoryBadgesWrap, { flexDirection: rowDirection }]}>
+            {categoriesList.map((cat, index) => (
+              <View
+                key={cat.code || index}
+                style={[
+                  styles.posterCategoryBadge,
+                  {
+                    backgroundColor: `${categoryConfigs[index].color}${isDark ? '33' : '1F'}`,
+                    borderColor: `${categoryConfigs[index].color}59`,
+                  },
+                ]}
+              >
+                <Text
+                  style={[styles.posterCategoryBadgeText, { color: categoryConfigs[index].color }]}
+                  numberOfLines={1}
+                >
+                  {categoryLabels[index]}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
       </View>
 
       <View style={styles.posterBottomRow}>
@@ -427,6 +512,7 @@ const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tok
               styles={styles}
               tokens={tokens}
               isRTL={isRTL}
+              isDark={isDark}
               onPress={() => onPressItem(item._id)}
             />
           ))}
@@ -1142,50 +1228,27 @@ const createStyles = (tokens, isRTL, isDark) =>
     posterImage: {
       ...StyleSheet.absoluteFillObject,
     },
-    posterFallback: {
-      ...StyleSheet.absoluteFillObject,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
     posterTopRow: {
       position: 'absolute',
       top: 0,
       ...logical(isRTL, { start: 0, end: 0 }),
-      padding: 10,
+      padding: 8,
       justifyContent: 'space-between',
       alignItems: 'flex-start',
       gap: 6,
-    },
-    posterCategoryLabel: {
-      // `flexShrink`, not `flex: 1`: a flex-grown box spans the row and then
-      // needs textAlign to pull the text back to the start edge - and an
-      // explicit `textAlign: 'right'` is swapped to the left by RN once native
-      // RTL mirroring is on (I18nManager.doLeftAndRightSwapInRTL), which is
-      // what left the label floating mid-card instead of flush to the start
-      // padding. A shrink-only box hugs its text, so `space-between` alone
-      // parks it on the correct edge in both directions.
-      flexShrink: 1,
-      fontFamily: fontFamilies.bodySemiBold,
-      // 12 / 14 = web's `caption` (0.75rem) at 1.2 line height.
-      fontSize: 12,
-      lineHeight: 14,
+      zIndex: 2,
     },
     posterBadgeColumn: {
-      alignItems: alignEnd(isRTL),
+      alignItems: alignStart(isRTL),
       flexShrink: 0,
       gap: 4,
-      // Explicit margin, not just the row's `gap` - `gap` can fail to apply
-      // when flexDirection is 'row-reverse' (RTL live-switch case, see
-      // rowDirection above) on some Yoga versions, which left this column
-      // flush against the category label with no visible space.
-      ...logical(isRTL, { marginStart: 8 }),
     },
     posterStatusPill: {
       flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 4,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
+      paddingHorizontal: 7,
+      paddingVertical: 3.5,
       borderRadius: radiusTokens.sm,
       ...getElevation(isDark, 1),
     },
@@ -1198,16 +1261,44 @@ const createStyles = (tokens, isRTL, isDark) =>
     posterReturnedPill: {
       flexDirection: row(isRTL),
       alignItems: 'center',
-      gap: 4,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
+      gap: 3,
+      paddingHorizontal: 6,
+      paddingVertical: 3,
       borderRadius: radiusTokens.sm,
       ...getElevation(isDark, 1),
     },
     posterReturnedPillText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 10,
+      fontSize: 9,
       textTransform: 'uppercase',
+    },
+    posterCategoryBadgesWrap: {
+      flexWrap: 'wrap',
+      justifyContent: alignEnd(isRTL),
+      alignItems: 'flex-start',
+      gap: 4,
+      maxWidth: '58%',
+    },
+    posterCategoryBadge: {
+      borderRadius: radiusTokens.sm,
+      borderWidth: 1,
+      paddingHorizontal: 6,
+      paddingVertical: 3,
+      maxWidth: '100%',
+    },
+    posterCategoryBadgeText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 10,
+      lineHeight: 12,
+    },
+    posterCategoryIconsWrap: {
+      ...StyleSheet.absoluteFillObject,
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      padding: 8,
     },
     posterBottomRow: {
       position: 'absolute',

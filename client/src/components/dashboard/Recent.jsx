@@ -10,7 +10,7 @@ const Recent = ({ recent, type, maxItems }) => {
 
   // Handle responsive maxItems
   let itemsLimit;
-  if (typeof maxItems === 'object' && maxItems !== null) {
+  if (typeof maxItems === "object" && maxItems !== null) {
     if (isLargeScreen && maxItems.xxl !== undefined) {
       itemsLimit = maxItems.xxl;
     } else if (isMobile) {
@@ -30,9 +30,6 @@ const Recent = ({ recent, type, maxItems }) => {
       display="grid"
       gap={isMobile ? 1.5 : 2}
       sx={{
-        // RecentPosts is now a compact poster-style card (same DNA as the
-        // WelcomePage hero card) rather than a full-width horizontal row, so
-        // it reads fine 2-up even on mobile — no need to collapse to 1 column.
         gridTemplateColumns: "repeat(2, 1fr)",
       }}
     >

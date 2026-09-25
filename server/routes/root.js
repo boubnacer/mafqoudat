@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Visitor = require('../models/Visitor');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID: uuidv4 } = require('crypto');
 
 // Simple endpoint to get/sync visitor session ID
 // This is called by the frontend to ensure session ID is in sync

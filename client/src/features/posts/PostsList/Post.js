@@ -158,7 +158,7 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
   );
 };
 
-const Post = ({ post }) => {
+const Post = ({ post, type }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:768px)");
   const navigate = useNavigate();
@@ -214,6 +214,16 @@ const Post = ({ post }) => {
       }
     }
 
+    // Direct type prop or post.type fallback (e.g. from RecentSection)
+    if (!foundLostValue && (type || post?.type)) {
+      const code = (type || post?.type).toUpperCase();
+      if (code === 'FOUND' || code === 'LOST') {
+        foundLostValue = code;
+        foundLostLabel = code === 'FOUND' ? t('found') : t('lost');
+        foundLostColor = code === 'FOUND' ? theme.custom.status.found.main : theme.custom.status.lost.main;
+      }
+    }
+
     // Fallback: Check foundLost property (this is the ObjectId reference), only
     // when Floptions didn't already resolve it.
     if (!foundLostValue && post?.foundLost) {
@@ -245,7 +255,7 @@ const Post = ({ post }) => {
     const statusText = foundLostLabel;
 
     return { isFound, statusColor, statusText };
-  }, [post?.Floptions, post?.foundLost, currentLanguage, t, theme.custom.status.found.main, theme.custom.status.lost.main]);
+  }, [post?.Floptions, post?.foundLost, post?.type, type, currentLanguage, t, theme.custom.status.found.main, theme.custom.status.lost.main]);
 
   // Memoized categories array computation - support both new Categories array and legacy Category
   const categories = useMemo(() => {
@@ -687,7 +697,7 @@ const Post = ({ post }) => {
           gridTemplateColumns: 'repeat(3, 1fr)',
           borderRadius: '18px',
           backgroundColor: theme.custom.color.surfaceBase,
-          padding: { xs: '10px 6px', sm: '16px 6px' },
+          padding: { xs: '10px 4px', sm: '14px 6px' },
           mx: '6px',
           mt: { xs: 1.25, sm: 2 },
           mb: { xs: 0.5, sm: 1 },
@@ -701,15 +711,36 @@ const Post = ({ post }) => {
               flexDirection: 'column',
               alignItems: 'center',
               gap: 0.5,
+              minWidth: 0,
+              px: { xs: 0.25, sm: 0.5 },
               borderInlineEnd: index < statsBarItems.length - 1
                 ? `1px solid ${alpha(theme.custom.color.ink, 0.1)}`
                 : 'none',
             }}
           >
-            <Typography variant="caption" sx={{ color: alpha(theme.custom.color.ink, 0.6), fontWeight: 600 }}>
+            <Typography
+              variant="caption"
+              sx={{
+                color: alpha(theme.custom.color.ink, 0.6),
+                fontWeight: 600,
+                fontSize: { xs: '11px', sm: '12px' },
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '100%',
+                lineHeight: 1.2,
+              }}
+            >
               {item.label}
             </Typography>
-            <Typography sx={{ color: theme.custom.color.brandLogo, fontWeight: 800, fontSize: 16 }}>
+            <Typography
+              sx={{
+                color: theme.custom.color.brandLogo,
+                fontWeight: 800,
+                fontSize: { xs: 14, sm: 16 },
+                lineHeight: 1.2,
+              }}
+            >
               {item.value !== null ? item.value : '—'}
             </Typography>
           </Box>

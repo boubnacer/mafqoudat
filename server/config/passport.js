@@ -19,12 +19,13 @@ passport.deserializeUser(async (id, done) => {
 });
 
 // Configure Google OAuth Strategy
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: process.env.GOOGLE_CALLBACK_URL,
-  scope: ['profile', 'email']
-},
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL,
+    scope: ['profile', 'email']
+  },
 async (accessToken, refreshToken, profile, done) => {
   try {
     // Extract profile information
@@ -92,14 +93,16 @@ async (accessToken, refreshToken, profile, done) => {
     console.error('Google OAuth Strategy Error:', error);
     return done(error, null);
   }
-}));
+  }));
+}
 
 // Configure Facebook OAuth Strategy
-passport.use(new FacebookStrategy({
-  clientID: process.env.FACEBOOK_APP_ID,
-  clientSecret: process.env.FACEBOOK_APP_SECRET,
-  callbackURL: process.env.FACEBOOK_CALLBACK_URL,
-  profileFields: ['id', 'emails', 'name', 'photos'],
+if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
+  passport.use(new FacebookStrategy({
+    clientID: process.env.FACEBOOK_APP_ID,
+    clientSecret: process.env.FACEBOOK_APP_SECRET,
+    callbackURL: process.env.FACEBOOK_CALLBACK_URL,
+    profileFields: ['id', 'emails', 'name', 'photos'],
   // passport-facebook defaults to Graph API v3.2, which Meta has long since
   // sunset — without an explicit supported version the profile fetch after
   // token exchange fails and passport surfaces it as an unhandled error.
@@ -175,7 +178,8 @@ async (accessToken, refreshToken, profile, done) => {
     console.error('Facebook OAuth Strategy Error:', error);
     return done(error, null);
   }
-}));
+  }));
+}
 
 module.exports = passport;
 

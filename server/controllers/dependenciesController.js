@@ -533,6 +533,21 @@ const getDashboard = async (req, res) => {
           // Add missing fields for debugging
           category: 1,
           foundLost: 1,
+          Floptions: {
+            $cond: {
+              if: { $ne: ["$Floptions", null] },
+              then: [{
+                _id: "$Floptions._id",
+                code: "$Floptions.code",
+                labels: "$Floptions.labels",
+                color: "$Floptions.color"
+              }],
+              else: []
+            }
+          },
+          views: { $ifNull: ["$views", 0] },
+          socialStats: { $ifNull: ["$socialStats", null] },
+          social: { $ifNull: ["$social", null] },
         },
       },
       {
@@ -748,6 +763,21 @@ const getDashboard = async (req, res) => {
           // Add missing fields for debugging
           category: 1,
           foundLost: 1,
+          Floptions: {
+            $cond: {
+              if: { $ne: ["$Floptions", null] },
+              then: [{
+                _id: "$Floptions._id",
+                code: "$Floptions.code",
+                labels: "$Floptions.labels",
+                color: "$Floptions.color"
+              }],
+              else: []
+            }
+          },
+          views: { $ifNull: ["$views", 0] },
+          socialStats: { $ifNull: ["$socialStats", null] },
+          social: { $ifNull: ["$social", null] },
         },
       },
       {
