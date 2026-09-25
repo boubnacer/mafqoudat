@@ -117,7 +117,7 @@ const PostsList = () => {
 
   // State management
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(8);
+  const [pageSize, setPageSize] = useState(6);
   const [fl, setFl] = useState(foundOrlost);
   // Seeded from ?search= so the WebSite SearchAction in public/index.html
   // describes something real: Google's sitelinks searchbox sends users to
@@ -1445,22 +1445,14 @@ const PostsList = () => {
           >
             <Box
               display="flex"
-              flexDirection={{ xs: "column", sm: "row" }}
-              justifyContent="space-between"
+              justifyContent="center"
               alignItems="center"
-              gap={2}
             >
-              <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65) }}>
-                {t('page')} {page} {t('of')} {totalPages} • {filteredPosts.length} {t('posts')}
-              </Typography>
-
               <Pagination
                 page={page}
                 count={totalPages}
                 onChange={handlePaginate}
                 size={isMobile ? "small" : "medium"}
-                showFirstButton
-                showLastButton
                 sx={{
                   '& .MuiPaginationItem-root': {
                     borderRadius: `${theme.custom.radius.sm}px`,
@@ -1476,23 +1468,6 @@ const PostsList = () => {
                   },
                 }}
               />
-
-              <Box display="flex" gap={1} alignItems="center">
-                <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65) }}>
-                  {t('postsPerPage')}:
-                </Typography>
-                <Select
-                  value={pageSize}
-                  onChange={handlePageSizeChange}
-                  size="small"
-                  sx={{ minWidth: 80, borderRadius: `${theme.custom.radius.md}px` }}
-                >
-                  <MenuItem value={4}>4</MenuItem>
-                  <MenuItem value={8}>8</MenuItem>
-                  <MenuItem value={12}>12</MenuItem>
-                  <MenuItem value={16}>16</MenuItem>
-                </Select>
-              </Box>
             </Box>
           </Paper>
         )}
@@ -1583,93 +1558,14 @@ const PostsList = () => {
       </Box>
     );
 
-    // ---- Desktop (md+): filter panel beside the grid, always expanded (no
-    // collapse toggle - there's no fixed bar competing for scroll space to
-    // justify collapsing it). position: fixed rather than sticky - the real
-    // scroller on every /dash/* route is #dash-scroll-container (see
-    // DashLayout.js), not the viewport/window, and a sticky element only
-    // sticks relative to its *nearest scroll-container ancestor*, which
-    // intervening layout boxes can quietly redefine (an ancestor with
-    // overflow:hidden, even one that never itself scrolls, still counts).
-    // Fixed sidesteps that ancestor-chain fragility entirely - same reason
-    // the mobile filter bar below already uses position: fixed instead of
-    // sticky. Taking it out of flow means the flex row needs a same-width
-    // spacer in its place so the grid doesn't slide under it. ----
+    // ---- Desktop (md+): filter panel beside the grid, rendered inside the
+    // posts list flex container in normal flow so that as the user scrolls
+    // down to the footer, the filter scrolls naturally with the posts list
+    // cards and pagination and never overlaps the footer. ----
     if (isDesktop) {
       return (
         <>
           <SeoMeta pageKey="dashPosts" />
-          <Box
-            component="aside"
-            sx={{
-              width: 300,
-              position: 'fixed',
-              // Pinned under the navbar in LTR; vertically centered on the
-              // edge in RTL instead - top-aligned crowded the navbar's own
-              // controls in Arabic the same way the mobile launcher did.
-              top: theme.direction === 'rtl' ? '50%' : `${navbarClearance + 16}px`,
-              transform: theme.direction === 'rtl' ? 'translateY(-50%)' : 'none',
-              insetInlineStart: 32,
-              zIndex: (t) => t.zIndex.appBar - 1,
-              maxHeight: theme.direction === 'rtl' ? 'calc(100vh - 64px)' : `calc(100vh - ${navbarClearance + 32}px)`,
-              overflowY: 'auto',
-              p: 3,
-              borderRadius: `${theme.custom.radius.lg}px`,
-              border: `1px solid ${alpha(brand, isDark ? 0.35 : 0.18)}`,
-              backgroundColor: theme.custom.color.surfaceRaised,
-              backgroundImage: `radial-gradient(120% 100% at ${glowOrigin}, ${alpha(brand, isDark ? 0.16 : 0.07)} 0%, transparent 55%)`,
-              boxShadow: `${theme.custom.elevation.e2}, 0 0 32px ${alpha(brand, isDark ? 0.16 : 0.08)}`,
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 2.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-                <Box
-                  sx={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: `${theme.custom.radius.sm}px`,
-                    backgroundImage: `linear-gradient(135deg, ${brand} 0%, ${lighten(brand, 0.45)} 100%)`,
-                    boxShadow: `0 0 16px ${alpha(brand, 0.4)}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  <FilterIcon sx={{ fontSize: 18, color: theme.palette.getContrastText(brand) }} />
-                </Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: '1.1rem' }}>
-                  {t('filters')}
-                </Typography>
-              </Box>
-              {hasActiveFilters && (
-                <Button
-                  size="small"
-                  onClick={handleClearAllFilters}
-                  sx={{
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderRadius: `${theme.custom.radius.sm}px`,
-                    color: brand,
-                    minWidth: 0,
-                    px: 1,
-                    '&:hover': { backgroundColor: alpha(brand, 0.08) },
-                  }}
-                >
-                  {t('clearFilters')}
-                </Button>
-              )}
-            </Box>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              {typeFilterNode}
-              {categoryFilterNode}
-              {cityFilterNode}
-              {cityNotFoundNode}
-              {activeChipsNode}
-            </Box>
-          </Box>
-
           <Box sx={{
             p: 4,
             pt: `${navbarClearance + 32}px`,
@@ -1679,10 +1575,71 @@ const PostsList = () => {
             alignItems: 'flex-start',
             gap: 3,
           }}>
-            {/* Spacer reserving the fixed aside's width - the aside itself
-                is out of normal flow (position: fixed), so without this
-                the grid would slide under where the sidebar visually sits. */}
-            <Box sx={{ width: 300, flexShrink: 0 }} />
+            <Box
+              component="aside"
+              sx={{
+                width: 300,
+                flexShrink: 0,
+                position: 'sticky',
+                top: `${navbarClearance + 16}px`,
+                maxHeight: `calc(100vh - ${navbarClearance + 32}px)`,
+                overflowY: 'auto',
+                p: 3,
+                borderRadius: `${theme.custom.radius.lg}px`,
+                border: `1px solid ${alpha(brand, isDark ? 0.35 : 0.18)}`,
+                backgroundColor: theme.custom.color.surfaceRaised,
+                backgroundImage: `radial-gradient(120% 100% at ${glowOrigin}, ${alpha(brand, isDark ? 0.16 : 0.07)} 0%, transparent 55%)`,
+                boxShadow: `${theme.custom.elevation.e2}, 0 0 32px ${alpha(brand, isDark ? 0.16 : 0.08)}`,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 2.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                  <Box
+                    sx={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: `${theme.custom.radius.sm}px`,
+                      backgroundImage: `linear-gradient(135deg, ${brand} 0%, ${lighten(brand, 0.45)} 100%)`,
+                      boxShadow: `0 0 16px ${alpha(brand, 0.4)}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <FilterIcon sx={{ fontSize: 18, color: theme.palette.getContrastText(brand) }} />
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: '1.1rem' }}>
+                    {t('filters')}
+                  </Typography>
+                </Box>
+                {hasActiveFilters && (
+                  <Button
+                    size="small"
+                    onClick={handleClearAllFilters}
+                    sx={{
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      borderRadius: `${theme.custom.radius.sm}px`,
+                      color: brand,
+                      minWidth: 0,
+                      px: 1,
+                      '&:hover': { backgroundColor: alpha(brand, 0.08) },
+                    }}
+                  >
+                    {t('clearFilters')}
+                  </Button>
+                )}
+              </Box>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                {typeFilterNode}
+                {categoryFilterNode}
+                {cityFilterNode}
+                {cityNotFoundNode}
+                {activeChipsNode}
+              </Box>
+            </Box>
 
             <Box sx={{ flex: 1, minWidth: 0 }}>
               {mainArea}

@@ -35,7 +35,7 @@ const PostsListSkeleton = () => {
       </Box>
 
       <Grid container spacing={3}>
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 6 }).map((_, i) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={i}>
             <PostCardSkeleton />
           </Grid>
