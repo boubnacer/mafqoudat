@@ -171,6 +171,16 @@ export const translations = {
     yesIFoundThisItem: "View Contact Details",
     contactSafetyNote: "Make sure the poster actually found what you lost — ask them to send you photos of it to confirm. Avoid sharing extra personal details.",
     contactSafetyNoteFinder: "Make sure the poster actually lost what you found — ask them to send you photos, proof, or a distinguishing mark of it to confirm. Avoid sharing extra personal details.",
+    safetyNotice: "Important Safety Notice",
+    safetyReminderDesc: "Before contacting the poster, please review this important safety advice:",
+    safetyFirst: "Safety First",
+    wonderfulNews: "Wonderful News! 🎉",
+    gladYouFoundYourItem: "We're so glad you found your item! Below are the contact details to help you reunite with your belongings.",
+    amazingThankYou: "Amazing! 🎉",
+    thankYouForHelping: "Thank you for being so helpful! The owner will be thrilled. Below are their contact details so you can arrange the return.",
+    claimItemContactDetails: "Contact Details",
+    claimYourItem: "Claim Your Item",
+    helpReturnItem: "Help Return Item",
     loginRequiredClaimItem: "Please log in to claim this item.",
 
     // Maintenance / offline / session
@@ -503,8 +513,8 @@ export const translations = {
     oauthError: "Google authentication failed. Please try again.",
     googleAuthNotConfigured: "Google sign-in is not configured for this build.",
     or: "or",
-    alreadyPostedAnnouncement: "Already made an announcement on the site?",
-    onboardingSignInHint: "Sign in to manage and track your items",
+    alreadyPostedAnnouncement: "Have you already posted an announcement on the site?",
+    onboardingSignInHint: "Sign in to your account to track your announcements and receive notifications",
 
     // Onboarding
     skip: "Skip",
@@ -793,6 +803,16 @@ export const translations = {
     yesIFoundThisItem: "Voir les coordonnées",
     contactSafetyNote: "Assurez-vous que l'auteur de l'annonce a bien trouvé ce que vous avez perdu — demandez-lui de vous envoyer des photos pour le confirmer. Évitez de partager des informations personnelles supplémentaires.",
     contactSafetyNoteFinder: "Assurez-vous que l'auteur de l'annonce a bien perdu ce que vous avez trouvé — demandez-lui de vous envoyer des photos, une preuve ou un signe distinctif pour le confirmer. Évitez de partager des informations personnelles supplémentaires.",
+    safetyNotice: "Avis de sécurité important",
+    safetyReminderDesc: "Avant de contacter l'auteur de l'annonce, veuillez consulter ce conseil de sécurité important :",
+    safetyFirst: "Sécurité d'abord",
+    wonderfulNews: "Merveilleuse nouvelle ! 🎉",
+    gladYouFoundYourItem: "Nous sommes ravis que vous ayez retrouvé votre article ! Voici les coordonnées pour vous aider à récupérer vos biens.",
+    amazingThankYou: "Incroyable ! 🎉",
+    thankYouForHelping: "Merci d'être si serviable ! Le propriétaire sera ravi. Voici ses coordonnées pour organiser le retour.",
+    claimItemContactDetails: "Coordonnées",
+    claimYourItem: "Réclamer votre article",
+    helpReturnItem: "Aider à retourner l'article",
     loginRequiredClaimItem: "Veuillez vous connecter pour réclamer cet objet.",
 
     // Maintenance / offline / session
@@ -1127,7 +1147,7 @@ export const translations = {
     googleAuthNotConfigured: "La connexion Google n'est pas configurée pour cette version.",
     or: "ou",
     alreadyPostedAnnouncement: "Avez-vous déjà publié une annonce sur le site ?",
-    onboardingSignInHint: "Connectez-vous pour gérer et suivre vos objets",
+    onboardingSignInHint: "Connectez-vous à votre compte pour suivre vos annonces et recevoir des notifications",
 
     // Onboarding
     skip: "Passer",
@@ -1433,6 +1453,16 @@ export const translations = {
     yesIFoundThisItem: "عرض تفاصيل التواصل",
     contactSafetyNote: "تحقق من أن الناشر قد وجد بالفعل ما فقدته، ويجب عليه أن يرسل لك صوراً لما وجده للتأكد. وتجنب مشاركة معلومات شخصية إضافية.",
     contactSafetyNoteFinder: "تحقق من أن الناشر قد فقد بالفعل ما وجدته، ويجب عليه أن يرسل لك صوراً أو دليلاً أو علامة مميزة حول ما فقده للتأكد. وتجنب مشاركة معلومات شخصية إضافية.",
+    safetyNotice: "تنبيه أمان هام",
+    safetyReminderDesc: "قبل التواصل مع صاحب الإعلان، يرجى قراءة هذه النصيحة الأمنية الهامة:",
+    safetyFirst: "الأمان أولاً",
+    wonderfulNews: "أخبار رائعة! 🎉",
+    gladYouFoundYourItem: "نحن سعداء جداً أنك وجدت غرضك! فيما يلي تفاصيل الاتصال لمساعدتك على استعادة ممتلكاتك.",
+    amazingThankYou: "رائع! 🎉",
+    thankYouForHelping: "شكراً لك على كونك متعاوناً! سيكون المالك سعيداً جداً. فيما يلي تفاصيل الاتصال الخاصة به لترتيب الإعادة.",
+    claimItemContactDetails: "تفاصيل الاتصال",
+    claimYourItem: "المطالبة بغرضك",
+    helpReturnItem: "المساعدة في إعادة الغرض",
     loginRequiredClaimItem: "يرجى تسجيل الدخول للمطالبة بهذا الغرض.",
 
     // Maintenance / offline / session
@@ -1764,8 +1794,8 @@ export const translations = {
     oauthError: "فشل المصادقة عبر جوجل. يرجى المحاولة مرة أخرى.",
     googleAuthNotConfigured: "تسجيل الدخول عبر جوجل غير مُهيأ لهذا الإصدار.",
     or: "أو",
-    alreadyPostedAnnouncement: "هل قمت بنشر إعلان بالفعل على الموقع؟",
-    onboardingSignInHint: "سجّل الدخول لإدارة إعلاناتك ومتابعة أغراضك",
+    alreadyPostedAnnouncement: "هل سبق وقمت بنشر إعلان في الموقع ؟",
+    onboardingSignInHint: "سجل الدخول إلى حسابك لتتبع اعلاناتك وتلقي الإشعارات",
 
     // Onboarding
     skip: "تخطي",

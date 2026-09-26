@@ -31,7 +31,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { LinearGradient } from 'expo-linear-gradient';
 import { geoMercator, geoPath, geoBounds } from 'd3-geo';
 import { feature as topojsonFeature, mesh as topojsonMesh } from 'topojson-client';
 import worldMapTopoJson from '../../data/worldMap.topo.json';
@@ -619,36 +618,6 @@ const WorldActivityMap = ({
               );
             })}
           </View>
-
-          {/* Layer 5: Edge fade vignette — two stacked linear gradients dissolving the four edges into sea */}
-          <LinearGradient
-            colors={[hexToRgba(sea, 1), hexToRgba(sea, 0), hexToRgba(sea, 0), hexToRgba(sea, 1)]}
-            locations={[0, 0.14, 0.86, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={StyleSheet.absoluteFill}
-            pointerEvents="none"
-          />
-          <LinearGradient
-            colors={[hexToRgba(sea, 1), hexToRgba(sea, 0), hexToRgba(sea, 0), hexToRgba(sea, 1)]}
-            locations={[0, 0.12, 0.88, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={StyleSheet.absoluteFill}
-            pointerEvents="none"
-          />
-
-          {/* Layer 6: Activity ramp legend swatch */}
-          {!hideTitle && (
-            <View style={styles.legendContainer} pointerEvents="none">
-              <LinearGradient
-                colors={[hexToRgba(brand, 0.2), hexToRgba(brand, 0.95)]}
-                start={{ x: isRTL ? 1 : 0, y: 0 }}
-                end={{ x: isRTL ? 0 : 1, y: 0 }}
-                style={styles.legendSwatch}
-              />
-            </View>
-          )}
         </>
       )}
     </View>
@@ -674,19 +643,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
     includeFontPadding: false,
-  },
-  legendContainer: {
-    position: 'absolute',
-    bottom: 12,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  legendSwatch: {
-    width: 48,
-    height: 7,
-    borderRadius: 4,
   },
 });
 

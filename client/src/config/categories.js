@@ -1,121 +1,64 @@
+import SvgIcon from '@mui/material/SvgIcon';
 import {
-  PhoneAndroidOutlined,
-  ArticleOutlined,
-  PetsOutlined,
-  DirectionsCarOutlined,
-  WatchOutlined,
-  HeadphonesOutlined,
-  CheckroomOutlined,
-  MenuBookOutlined,
-  SportsSoccerOutlined,
-  ToysOutlined,
-  CameraAltOutlined,
-  PersonSearchOutlined,
-  MoreHorizOutlined,
-  AccountBalanceWalletOutlined,
-  CableOutlined,
-  UmbrellaOutlined,
-  PedalBikeOutlined,
-  MedicalServicesOutlined,
-  ChildFriendlyOutlined,
-  MusicNoteOutlined
-} from '@mui/icons-material';
+  IoPhonePortraitOutline,
+  IoDocumentTextOutline,
+  IoDiamondOutline,
+  IoShirtOutline,
+  IoPawOutline,
+  IoCarOutline,
+  IoKeyOutline,
+  IoWalletOutline,
+  IoBriefcaseOutline,
+  IoWatchOutline,
+  IoGlassesOutline,
+  IoHeadsetOutline,
+  IoBookOutline,
+  IoFootballOutline,
+  IoGameControllerOutline,
+  IoCameraOutline,
+  IoBatteryChargingOutline,
+  IoUmbrellaOutline,
+  IoBicycleOutline,
+  IoCashOutline,
+  IoPersonOutline,
+  IoMedkitOutline,
+  IoBalloonOutline,
+  IoMusicalNotesOutline,
+  IoEllipsisHorizontalOutline,
+} from 'react-icons/io5';
 
-import BusinessCenterOutlinedIcon from '@mui/icons-material/BusinessCenterOutlined';
+const createCategoryIcon = (IconComponent) => {
+  const CategoryIconWrapper = (props) => (
+    <SvgIcon component={IconComponent} inheritViewBox {...props} />
+  );
+  return CategoryIconWrapper;
+};
 
-// Custom SVG icon components
-const WalletIcon = ({ sx, ...props }) => (
-  <svg 
-    viewBox="0 0 38 32" 
-    width="28" 
-    height="28" 
-    {...props}
-    style={{ 
-      fill: 'currentColor',
-      ...sx 
-    }}
-  >
-    <g>
-      <path d="M32.509,7.5c0.276,0,0.5-0.224,0.5-0.5V5.335c0-0.903-0.735-1.638-1.638-1.638h-2.687l-0.613-1.809c-0.086-0.255-0.36-0.397-0.619-0.318L12.899,5.994c-0.264,0.081-0.413,0.36-0.333,0.624c0.066,0.216,0.264,0.354,0.479,0.354c0.048,0,0.097-0.007,0.146-0.021L27.28,2.667l1.343,3.965c0.089,0.262,0.375,0.404,0.634,0.313c0.262-0.088,0.402-0.373,0.313-0.634l-0.547-1.615h2.349c0.352,0,0.638,0.286,0.638,0.638V7C32.009,7.276,32.233,7.5,32.509,7.5z"/>
-      <path d="M36.5,15c-0.276,0-0.5,0.224-0.5,0.5s0.224,0.5,0.5,0.5c0.351,0,0.5,0.149,0.5,0.5v6c0,0.351-0.149,0.5-0.5,0.5h-8c-0.351,0-0.5-0.149-0.5-0.5v-5c0-0.351,0.149-0.5,0.5-0.5h6c0.276,0,0.5-0.224,0.5-0.5v-6C35,9.589,34.411,9,33.5,9H3C1.767,9,1,8.233,1,7s0.767-2,2-2h5.076L5.05,5.998C4.788,6.084,4.645,6.367,4.731,6.629c0.069,0.21,0.265,0.343,0.475,0.343c0.052,0,0.104-0.008,0.157-0.025l18.119-5.973c0.262-0.087,0.405-0.369,0.318-0.632c-0.086-0.262-0.369-0.405-0.632-0.318L11.068,4.014C11.045,4.01,11.024,4,11,4H3C1.206,4,0,5.206,0,7v22c0,1.794,1.206,3,3,3h30.5c0.911,0,1.5-0.589,1.5-1.5v-5c0-0.276-0.224-0.5-0.5-0.5S34,25.224,34,25.5v5c0,0.351-0.149,0.5-0.5,0.5H3c-1.233,0-2-0.767-2-2V9.312C1.513,9.745,2.192,10,3,10h30.5c0.351,0,0.5,0.149,0.5,0.5V16h-5.5c-0.911,0-1.5,0.589-1.5,1.5v5c0,0.911,0.589,1.5,1.5,1.5h8c0.911,0,1.5-0.589,1.5-1.5v-6C38,15.589,37.411,15,36.5,15z"/>
-      <circle cx="32" cy="20" r="1"/>
-    </g>
-  </svg>
-);
-
-const KeysIcon = ({ sx, ...props }) => (
-  <svg 
-    viewBox="-0.5 0 25 25" 
-    width="28" 
-    height="28" 
-    fill="none" 
-    {...props}
-    style={{ 
-      stroke: 'currentColor',
-      strokeWidth: '1.5',
-      strokeLinecap: 'round',
-      strokeLinejoin: 'round',
-      ...sx 
-    }}
-  >
-    <path d="M12.75 9.807C12.7497 8.68487 12.4348 7.5853 11.8409 6.63318C11.247 5.68107 10.3981 4.91457 9.39043 4.42075C8.38279 3.92693 7.25687 3.72558 6.14053 3.83956C5.0242 3.95355 3.9622 4.3783 3.07516 5.06558C2.18812 5.75286 1.51159 6.67512 1.12241 7.7276C0.733232 8.78009 0.647 9.92062 0.87351 11.0197C1.10002 12.1187 1.63019 13.1322 2.40381 13.945C3.17744 14.7579 4.1635 15.3375 5.25 15.618V21.754C5.25 22.1518 5.40804 22.5334 5.68934 22.8147C5.97065 23.096 6.35218 23.254 6.75 23.254C7.14783 23.254 7.52936 23.096 7.81066 22.8147C8.09197 22.5334 8.25 22.1518 8.25 21.754V15.618C9.53819 15.2854 10.6793 14.5341 11.4939 13.4822C12.3085 12.4303 12.7503 11.1374 12.75 9.807V9.807Z"/>
-    <path d="M9.74121 4.605C10.8897 3.94419 12.2247 3.68215 13.5377 3.85976C14.8508 4.03737 16.0682 4.64464 16.9998 5.58682C17.9315 6.529 18.5251 7.75309 18.688 9.06808C18.8509 10.3831 18.5739 11.715 17.9002 12.856L22.8102 17.762C23.0834 18.0449 23.2346 18.4238 23.2312 18.8171C23.2278 19.2104 23.0701 19.5866 22.7919 19.8647C22.5138 20.1428 22.1376 20.3006 21.7443 20.304C21.351 20.3074 20.9721 20.1562 20.6892 19.883L15.7822 14.977C15.1145 15.3711 14.3765 15.6314 13.6096 15.7434H13.5664"/>
-    <path d="M6.75 10.557C7.57843 10.557 8.25 9.88543 8.25 9.057C8.25 8.22857 7.57843 7.557 6.75 7.557C5.92157 7.557 5.25 8.22857 5.25 9.057C5.25 9.88543 5.92157 10.557 6.75 10.557Z"/>
-    <path d="M6.75 7.40625V3C6.75 2.40326 6.98705 1.83097 7.40901 1.40901C7.83097 0.987053 8.40326 0.75 9 0.75C9.59674 0.75 10.169 0.987053 10.591 1.40901C11.0129 1.83097 11.25 2.40326 11.25 3V3.76562"/>
-  </svg>
-);
-
-const GlassesIcon = ({ sx, ...props }) => (
-  <svg 
-    viewBox="0 0 1200 1200" 
-    width="28" 
-    height="28" 
-    {...props}
-    style={{ 
-      fill: 'currentColor',
-      ...sx 
-    }}
-  >
-    <path d="M1118.948,592.892H732.471l49.909,227.792h312.254L1118.948,592.892z M466.287,592.892H79.809l24.315,227.792h312.253L466.287,592.892z M1189.334,526.346c8.535,9.384,11.948,19.622,10.237,30.714 l-33.272,307.135c-4.563,20.081-18.878,35.561-38.393,35.832h-376.24c-20.231-1.346-33.639-14.035-37.111-31.993l-60.146-267.463 c-32.547-20.271-75.345-17.317-110.057-2.56l-60.147,270.022c-4.772,19.452-18.653,31.768-37.112,31.993H70.851 c-21.166-1.673-35.301-16.94-37.112-35.832L0.465,557.06c-1.706-11.943,1.28-22.182,8.958-30.714l432.548-222.673 c20.748-9.255,41.297-0.366,49.909,17.916c7.223,20.882,2.533,44.668-16.636,53.749L201.383,499.472h792.152L719.673,375.337 c-20.314-11.516-25.569-34.709-17.916-53.749c10.862-19.479,32.864-25.945,51.189-17.916L1189.334,526.346z"/>
-  </svg>
-);
-
-const MoneyIcon = ({ sx, ...props }) => (
-  <svg 
-    viewBox="0 0 512 512" 
-    width="32" 
-    height="32" 
-    {...props}
-    style={{ 
-      fill: 'currentColor',
-      ...sx 
-    }}
-  >
-    <path d="M503.467,102.4H8.533C3.814,102.4,0,106.223,0,110.933v290.133c0,4.71,3.814,8.533,8.533,8.533h494.933 c4.719,0,8.533-3.823,8.533-8.533V110.933C512,106.223,508.186,102.4,503.467,102.4z M494.933,392.533H17.067V119.467h477.867 V392.533z"/>
-    <path d="M469.333,187.733c-24.721,0-42.667-17.946-42.667-42.667c0-4.71-3.814-8.533-8.533-8.533H93.867 c-4.719,0-8.533,3.823-8.533,8.533c0,24.721-17.946,42.667-42.667,42.667c-4.719,0-8.533,3.823-8.533,8.533v119.467 c0,4.71,3.814,8.533,8.533,8.533c24.721,0,42.667,17.946,42.667,42.667c0,4.71,3.814,8.533,8.533,8.533h324.267 c4.719,0,8.533-3.823,8.533-8.533c0-24.721,17.946-42.667,42.667-42.667c4.719,0,8.533-3.823,8.533-8.533V196.267 C477.867,191.556,474.052,187.733,469.333,187.733z M460.809,307.755c-26.94,3.533-47.113,23.706-50.654,50.654H101.854 C98.313,331.46,78.14,311.287,51.2,307.746V204.254c26.94-3.541,47.113-23.714,50.654-50.654h308.301 c3.533,26.94,23.706,47.113,50.654,50.654V307.755z"/>
-    <path d="M256,170.667c-47.053,0-85.333,38.281-85.333,85.333s38.281,85.333,85.333,85.333s85.333-38.281,85.333-85.333 S303.053,170.667,256,170.667z M256,324.267c-37.641,0-68.267-30.626-68.267-68.267s30.626-68.267,68.267-68.267 c37.641,0,68.267,30.626,68.267,68.267C324.267,293.64,293.641,324.267,256,324.267z"/>
-    <path d="M257.613,247.62c-0.213-0.043-0.418,0.034-0.631,0.009c-0.213-0.026-0.401-0.145-0.623-0.154 c-10.522-0.444-15.966-4.497-15.915-8.286c0.06-3.567,4.941-8.653,15.625-8.789c14.643,0.017,17.809,3.994,18.85,5.299 c1.681,2.133,4.173,3.234,6.69,3.234c1.86,0,3.721-0.606,5.299-1.852c3.695-2.927,4.309-8.294,1.374-11.989 c-5.12-6.451-12.817-10.086-23.748-11.281v-0.478c0-4.71-3.814-8.533-8.533-8.533s-8.533,3.823-8.533,8.533v0.913 c-15.607,3.081-23.927,13.961-24.081,24.687c-0.179,11.827,9.429,24.107,31.061,25.455c14.421,2.773,18.91,7.91,18.748,9.822 c-0.222,2.543-6.195,7.177-17.314,7.39c-13.022-0.008-15.36-1.835-19.362-5.948c-3.294-3.379-8.695-3.456-12.066-0.171 c-3.371,3.285-3.447,8.687-0.171,12.066c6.639,6.827,12.791,9.813,23.185,10.743v0.375c0,4.71,3.814,8.533,8.533,8.533 s8.533-3.823,8.533-8.533v-0.87c14.515-2.577,24.713-10.982,25.668-22.118C290.637,270.652,289.562,253.747,257.613,247.62z"/>
-  </svg>
-);
-
-const JewelryIcon = ({ sx, ...props }) => (
-  <svg 
-    viewBox="0 0 511.999 511.999" 
-    width="32" 
-    height="32" 
-    {...props}
-    style={{ 
-      fill: 'currentColor',
-      ...sx 
-    }}
-  >
-    <path d="M373.219,155.801c-7.421-7.096-17.168-11.003-27.443-11.003c-21.883,0-39.687,17.782-39.687,39.641 c0.001,4.328,3.51,7.837,7.838,7.837c4.328,0,7.837-3.508,7.837-7.837c0-13.216,10.773-23.968,24.014-23.968 c6.221,0,12.121,2.365,16.611,6.658c3.128,2.99,8.09,2.88,11.08-0.249C376.458,163.753,376.348,158.792,373.219,155.801z"/>
-    <path d="M373.953,343.711c0.019-0.017,0.039-0.031,0.057-0.048c3.257-2.852,3.586-7.802,0.736-11.058 c-2.85-3.257-7.8-3.586-11.058-0.736c-5.031,4.405-11.494,6.831-18.197,6.831c-15.223,0-27.607-12.36-27.607-27.553 s12.385-27.554,27.607-27.554c15.224,0,27.609,12.361,27.609,27.554c0,4.329,3.509,7.837,7.837,7.837 c4.328,0,7.837-3.508,7.837-7.837c0-14.725-7.416-27.746-18.706-35.555v-17.449c0-7.203-5.859-13.061-13.061-13.061h-3.392 v-21.778c18.144-3.644,31.851-19.686,31.851-38.865c0-4.329-3.509-7.837-7.837-7.837c-4.328,0-7.837,3.508-7.837,7.837 c0,13.216-10.772,23.968-24.014,23.968c-4.328,0-7.837,3.508-7.837,7.837v28.838h-3.965c-7.202,0-13.061,5.859-13.061,13.061 v17.45c-11.29,7.809-18.705,20.829-18.705,35.554c0,12.974,5.761,24.622,14.853,32.553 c-33.867,11.778-58.247,43.964-58.247,81.748c0,47.725,38.882,86.552,86.674,86.552c47.793,0,86.675-38.827,86.675-86.552 C432.166,387.677,407.802,355.5,373.953,343.711z M336.586,260.755h0.001h17.806v8.088c-2.875-0.602-5.851-0.924-8.904-0.924 c-3.051,0-6.029,0.322-8.904,0.924V260.755z M345.491,496.327c-39.15,0-71.001-31.796-71.001-70.879 c0-39.083,31.851-70.881,71.001-70.881c39.15,0,71.002,31.797,71.002,70.881C416.493,464.53,384.641,496.327,345.491,496.327z"/>
-    <path d="M233.695,225.966c-2.738-3.35-7.674-3.848-11.026-1.11c-3.352,2.738-3.849,7.676-1.111,11.027 c10.287,12.59,15.951,28.488,15.951,44.767c0,39.082-31.852,70.88-71.002,70.88c-39.15,0-71.001-31.797-71.001-70.88 c0-39.083,31.851-70.881,71.001-70.881c12.839,0,25.415,3.456,36.37,9.992c3.718,2.218,8.527,1.003,10.746-2.715 c2.218-3.717,1.003-8.527-2.714-10.745c-5.064-3.022-10.409-5.502-15.948-7.421c9.078-7.93,14.828-19.57,14.828-32.533 c0-14.725-7.415-27.746-18.706-35.555v-17.449c0-7.203-5.859-13.061-13.061-13.061h-3.392V78.506 c18.143-3.644,31.85-19.685,31.85-38.864C206.482,17.784,188.678,0,166.794,0c-21.884,0-39.688,17.784-39.688,39.641 c0,4.329,3.509,7.837,7.837,7.837s7.837-3.508,7.837-7.837c0-13.216,10.773-23.968,24.015-23.968 c13.241,0,24.014,10.752,24.014,23.968c0,13.215-10.773,23.968-24.014,23.968c-4.328,0-7.837,3.508-7.837,7.837v28.838h-3.965 c-7.202,0-13.061,5.859-13.061,13.061v17.449c-11.29,7.81-18.705,20.831-18.705,35.555c0,12.974,5.761,24.623,14.852,32.553 c-33.867,11.779-58.246,43.964-58.246,81.748c0,47.726,38.882,86.553,86.674,86.553c47.793,0,86.675-38.827,86.675-86.553 C253.182,260.767,246.261,241.347,233.695,225.966z M157.605,115.958h17.806v8.087c-2.875-0.602-5.851-0.924-8.904-0.924 s-6.028,0.322-8.903,0.924V115.958z M166.508,138.795c15.223,0,27.608,12.361,27.608,27.554s-12.385,27.554-27.608,27.554 c-15.223,0-27.608-12.361-27.608-27.554S151.285,138.795,166.508,138.795z"/>
-    <path d="M219.224,272.813c-4.328,0-7.837,3.508-7.837,7.837c0,24.679-20.133,44.757-44.879,44.757 c-4.328,0-7.837,3.508-7.837,7.837c0,4.329,3.509,7.837,7.837,7.837c33.39,0,60.553-27.109,60.553-60.431 C227.061,276.321,223.552,272.813,219.224,272.813z"/>
-    <path d="M398.207,417.611c-4.328,0-7.837,3.508-7.837,7.837c0,24.678-20.133,44.756-44.879,44.756 c-4.328,0-7.837,3.508-7.837,7.837c0,4.329,3.509,7.837,7.837,7.837c33.39,0,60.553-27.108,60.553-60.43 C406.044,421.119,402.535,417.611,398.207,417.611z"/>
-  </svg>
-);
+export const PhonePortraitIcon = createCategoryIcon(IoPhonePortraitOutline);
+export const DocumentTextIcon = createCategoryIcon(IoDocumentTextOutline);
+export const DiamondIcon = createCategoryIcon(IoDiamondOutline);
+export const ShirtIcon = createCategoryIcon(IoShirtOutline);
+export const PawIcon = createCategoryIcon(IoPawOutline);
+export const CarIcon = createCategoryIcon(IoCarOutline);
+export const KeyIcon = createCategoryIcon(IoKeyOutline);
+export const WalletIcon = createCategoryIcon(IoWalletOutline);
+export const BriefcaseIcon = createCategoryIcon(IoBriefcaseOutline);
+export const WatchIcon = createCategoryIcon(IoWatchOutline);
+export const GlassesIcon = createCategoryIcon(IoGlassesOutline);
+export const HeadsetIcon = createCategoryIcon(IoHeadsetOutline);
+export const BookIcon = createCategoryIcon(IoBookOutline);
+export const FootballIcon = createCategoryIcon(IoFootballOutline);
+export const GameControllerIcon = createCategoryIcon(IoGameControllerOutline);
+export const CameraIcon = createCategoryIcon(IoCameraOutline);
+export const BatteryChargingIcon = createCategoryIcon(IoBatteryChargingOutline);
+export const UmbrellaIcon = createCategoryIcon(IoUmbrellaOutline);
+export const BicycleIcon = createCategoryIcon(IoBicycleOutline);
+export const CashIcon = createCategoryIcon(IoCashOutline);
+export const PersonIcon = createCategoryIcon(IoPersonOutline);
+export const MedkitIcon = createCategoryIcon(IoMedkitOutline);
+export const BalloonIcon = createCategoryIcon(IoBalloonOutline);
+export const MusicalNotesIcon = createCategoryIcon(IoMusicalNotesOutline);
+export const EllipsisHorizontalIcon = createCategoryIcon(IoEllipsisHorizontalOutline);
 
 /**
  * Category configuration - Optimized for Lost & Found.
@@ -137,67 +80,65 @@ const JewelryIcon = ({ sx, ...props }) => (
  * `code` is the contract - the DB (server/models/Category.js) stores the same
  * strings, and getCategoryConfig falls back to OTHER's grey for anything not
  * listed here, so a category added to the DB alone renders as "other" with no
- * error anywhere. mobile/src/config/categories.js mirrors this file 1:1 with
- * Ionicons names, and server/config/categorySocialImages.js lists the codes a
- * social card was generated for.
+ * error anywhere. Icons are now unified 1:1 with mobile (Ionicons outline set).
  */
 export const CATEGORY_CONFIG = {
   ELECTRONICS: {
-    icon: PhoneAndroidOutlined,
+    icon: PhonePortraitIcon,
     color: '#00BCD4',
     backgroundColor: '#E0F7FA',
     priority: 1
   },
   DOCUMENTS: {
-    icon: ArticleOutlined,
+    icon: DocumentTextIcon,
     color: '#795548',
     backgroundColor: '#EFEBE9',
     priority: 2
   },
   JEWELRY: {
-    icon: JewelryIcon,
+    icon: DiamondIcon,
     color: '#9C27B0',
     backgroundColor: '#F3E5F6',
     priority: 3
   },
   CLOTHING: {
-    icon: CheckroomOutlined,
+    icon: ShirtIcon,
     color: '#4CAF50',
     backgroundColor: '#EAF5EA',
     priority: 4
   },
   PETS: {
-    icon: PetsOutlined,
+    icon: PawIcon,
     color: '#FF6B6B',
     backgroundColor: '#FFEDED',
     priority: 5
   },
   VEHICLES: {
-    icon: DirectionsCarOutlined,
+    icon: CarIcon,
     color: '#607D8B',
     backgroundColor: '#ECEFF1',
     priority: 6
   },
   KEYS: {
-    icon: KeysIcon,
+    icon: KeyIcon,
     color: '#FB8C00',
     backgroundColor: '#FFF1E0',
     priority: 7
   },
   WALLET: {
-    icon: AccountBalanceWalletOutlined,
+    icon: WalletIcon,
     color: '#BF360C',
     backgroundColor: '#F7E7E2',
     priority: 8
   },
   BAGS: {
-    icon: BusinessCenterOutlinedIcon,
+    icon: BriefcaseIcon,
     color: '#827717',
     backgroundColor: '#F0EFE3',
     priority: 9
   },
   WATCHES: {
-    icon: WatchOutlined,
+    icon: WatchIcon,
     color: '#2196F3',
     backgroundColor: '#E4F2FE',
     priority: 10
@@ -209,86 +150,86 @@ export const CATEGORY_CONFIG = {
     priority: 11
   },
   HEADPHONES: {
-    icon: HeadphonesOutlined,
+    icon: HeadsetIcon,
     color: '#7E57C2',
     backgroundColor: '#F0EBF8',
     priority: 12
   },
   BOOKS: {
-    icon: MenuBookOutlined,
+    icon: BookIcon,
     color: '#5E35B1',
     backgroundColor: '#ECE7F6',
     priority: 13
   },
   SPORTS: {
-    icon: SportsSoccerOutlined,
+    icon: FootballIcon,
     color: '#8BC34A',
     backgroundColor: '#F1F8E9',
     priority: 14
   },
   TOYS: {
-    icon: ToysOutlined,
+    icon: GameControllerIcon,
     color: '#AFB42B',
     backgroundColor: '#F5F6E6',
     priority: 15
   },
   CAMERAS: {
-    icon: CameraAltOutlined,
+    icon: CameraIcon,
     color: '#0097A7',
     backgroundColor: '#E0F3F4',
     priority: 16
   },
   CHARGERS: {
-    icon: CableOutlined,
+    icon: BatteryChargingIcon,
     color: '#455A64',
     backgroundColor: '#E9EBEC',
     priority: 17
   },
   UMBRELLAS: {
-    icon: UmbrellaOutlined,
+    icon: UmbrellaIcon,
     color: '#0277BD',
     backgroundColor: '#E1EFF7',
     priority: 18
   },
   BICYCLES: {
-    icon: PedalBikeOutlined,
+    icon: BicycleIcon,
     color: '#009966',
     backgroundColor: '#E0F3ED',
     priority: 19
   },
   MONEY: {
-    icon: MoneyIcon,
+    icon: CashIcon,
     color: '#2E7D32',
     backgroundColor: '#E6EFE6',
     priority: 20
   },
   PERSON: {
-    icon: PersonSearchOutlined,
+    icon: PersonIcon,
     color: '#F44336',
     backgroundColor: '#FEE8E7',
     priority: 21
   },
   MEDICAL: {
-    icon: MedicalServicesOutlined,
+    icon: MedkitIcon,
     color: '#C2185B',
     backgroundColor: '#F8E3EB',
     priority: 23
   },
   BABY: {
-    icon: ChildFriendlyOutlined,
+    icon: BalloonIcon,
     color: '#EC407A',
     backgroundColor: '#FDE8EF',
     priority: 24
   },
   MUSIC: {
-    icon: MusicNoteOutlined,
+    icon: MusicalNotesIcon,
     color: '#009688',
     backgroundColor: '#E0F2F1',
     priority: 25
   },
   // Always last: the catch-all a listing lands in when nothing above fits.
   OTHER: {
-    icon: MoreHorizOutlined,
+    icon: EllipsisHorizontalIcon,
     color: '#9E9E9E',
     backgroundColor: '#F3F3F3',
     priority: 99

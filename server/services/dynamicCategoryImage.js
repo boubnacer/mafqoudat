@@ -157,14 +157,15 @@ function buildCategorySvg(categoryCodes) {
     const iconX = badgeX + (badgeSize - iconSize) / 2;
     const iconY = badgeY + (badgeSize - iconSize) / 2;
 
-    const paint = cat.icon.stroked
-      ? `fill="none" stroke="${cat.color}" stroke-width="${cat.icon.strokeWidth || 1.5}" stroke-linecap="round" stroke-linejoin="round"`
-      : `fill="${cat.color}"`;
-
-    const pathsMarkup = cat.icon.paths.map((d) => `<path d="${d}"/>`).join('');
+    const iconContent = cat.icon.body || (cat.icon.paths ? cat.icon.paths.map((d) => `<path d="${d}"/>`).join('') : '');
+    const paint = cat.icon.body
+      ? `color="${cat.color}" stroke="${cat.color}" fill="currentColor"`
+      : (cat.icon.stroked
+        ? `fill="none" stroke="${cat.color}" stroke-width="${cat.icon.strokeWidth || 1.5}" stroke-linecap="round" stroke-linejoin="round"`
+        : `fill="${cat.color}"`);
 
     parts.push(
-      `<svg x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" viewBox="${cat.icon.viewBox}" ${paint}>${pathsMarkup}</svg>`
+      `<svg x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" viewBox="${cat.icon.viewBox}" ${paint}>${iconContent}</svg>`
     );
   });
 

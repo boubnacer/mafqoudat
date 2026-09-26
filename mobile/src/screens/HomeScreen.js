@@ -834,16 +834,6 @@ const HomeScreen = ({ navigation }) => {
             TrendingSection has been retired - this header now covers the
             space it and StatsSection used to share. */}
         <Animated.View style={[animatedSectionStyle(0), styles.headerStack]}>
-          {/* Same glass-blob family as the panels below - mirrors Dash.js's
-              mobile-branch mapBlob (brandLogo, the map's own accent color per
-              CLAUDE.md's world-activity-map notes) tucked into the header's
-              top-end corner. */}
-          <GlowBlob
-            color={tokens.brandLogo}
-            opacity={isDark ? 0.16 : 0.1}
-            size={200}
-            style={logical(isRTL, { top: -20, end: -40 })}
-          />
           {!hasNoData && (
             <View style={styles.mapBackdrop} pointerEvents="none">
               <WorldActivityMap
@@ -1013,7 +1003,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       width: '100%',
       aspectRatio: 1,
       minHeight: 300,
-      marginTop: SCREEN_PADDING * 2,
+      marginTop: SCREEN_PADDING * 2 + 38,
     },
 
     // Panel shell - mirrors LeftSide.jsx / TrendingItem.jsx's SectionPanel:

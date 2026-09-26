@@ -62,30 +62,78 @@ export const formatDateValue = ({ day, month, year }, language) => {
   return `${day} ${monthName} ${year}`;
 };
 
+const fold = (str) =>
+  String(str)
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036F]/g, '')
+    .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '')
+    .replace(/[آأإٱ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه');
+
+const FOLDED_MONTH_TABLES = [
+  ...Object.values(MONTH_NAMES).map((names) => names.map(fold)),
+  LEGACY_AR_MONTH_NAMES.map(fold),
+];
+
 // Best-effort read of a string previously produced by formatDateValue, so
 // reopening the modal starts from what is already saved. Month names are
 // matched across all languages (the user may have switched language, or the
 // post may have been created on the web in another language).
 export const parseDateValue = (value) => {
   if (!value || typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
 
-  const yearMatch = value.match(/\b(\d{4})\b/);
+  // 1. ISO date: YYYY-MM-DD or YYYY-MM
+  const isoMatch = /^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?$/.exec(trimmed);
+  if (isoMatch) {
+    const year = Number(isoMatch[1]);
+    const month = Number(isoMatch[2]) - 1;
+    const day = isoMatch[3] ? Number(isoMatch[3]) : null;
+    if (month >= 0 && month <= 11) return { day, month, year };
+  }
+
+  // 2. Slashed date: DD/MM/YYYY
+  const slashedMatch = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(trimmed);
+  if (slashedMatch) {
+    const day = Number(slashedMatch[1]);
+    const month = Number(slashedMatch[2]) - 1;
+    const year = Number(slashedMatch[3]);
+    if (month >= 0 && month <= 11) return { day, month, year };
+  }
+
+  // 3. Spelled-out month names
+  const folded = fold(trimmed).replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
+  const yearMatch = folded.match(/\b(\d{4})\b/);
   if (!yearMatch) return null;
   const year = Number(yearMatch[1]);
 
   let month = null;
-  [...Object.values(MONTH_NAMES), LEGACY_AR_MONTH_NAMES].forEach((names) => {
-    if (month !== null) return;
-    const index = names.findIndex((name) => value.toLowerCase().includes(name.toLowerCase()));
-    if (index !== -1) month = index;
-  });
+  for (const table of FOLDED_MONTH_TABLES) {
+    for (let i = 0; i < table.length; i++) {
+      if (folded.includes(table[i])) {
+        month = i;
+        break;
+      }
+    }
+    if (month !== null) break;
+  }
   if (month === null) return null;
 
   // Any 1-2 digit standalone number left over is the day (the year is 4 digits).
-  const dayMatch = value.replace(yearMatch[0], '').match(/\b(\d{1,2})\b/);
+  const dayMatch = folded.replace(yearMatch[0], ' ').match(/\b(\d{1,2})\b/);
   const day = dayMatch ? Number(dayMatch[1]) : null;
 
   return { day, month, year };
+};
+
+export const formatDisplayDate = (value, language) => {
+  if (!value || typeof value !== 'string') return '';
+  const parsed = parseDateValue(value);
+  if (!parsed) return value;
+  return formatDateValue(parsed, language);
 };
 
 const daysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();

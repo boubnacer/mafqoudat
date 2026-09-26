@@ -131,7 +131,7 @@ const CommentRow = ({ comment, styles, tokens, t, currentLanguage, onDelete, onR
   );
 };
 
-const CommentsSection = ({ postId }) => {
+const CommentsSection = ({ postId, onTotalChange }) => {
   const { isDark } = useTheme();
   const { currentLanguage } = useLanguage();
   const { isSignedIn } = useAuth();
@@ -151,15 +151,17 @@ const CommentsSection = ({ postId }) => {
   const load = useCallback(async (count) => {
     try {
       const data = await fetchComments(postId, { page: 1, pageSize: count });
+      const newTotal = data?.total || 0;
       setComments(data?.comments || []);
-      setTotal(data?.total || 0);
+      setTotal(newTotal);
+      onTotalChange?.(newTotal);
       setHasFailed(false);
     } catch (error) {
       setHasFailed(true);
     } finally {
       setIsLoading(false);
     }
-  }, [postId]);
+  }, [postId, onTotalChange]);
 
   useEffect(() => {
     load(visibleCount);

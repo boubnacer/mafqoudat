@@ -49,7 +49,7 @@ import { isDocumentsListing, getNonDocumentCategories } from '../config/document
 import { fetchDocumentTypes, createDocumentType } from '../api/documentTypesApi';
 import CityPickerModal from './CityPickerModal';
 import SelectModal from './SelectModal';
-import DateEntryModal, { formatDateValue } from './DateEntryModal';
+import DateEntryModal, { formatDateValue, formatDisplayDate } from './DateEntryModal';
 import DocumentTypeModal from './DocumentTypeModal';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
@@ -61,31 +61,10 @@ const MAX_CATEGORIES = 10;
 // field's label isn't flush against the top edge of the scroll area.
 const FIELD_SCROLL_MARGIN = 12;
 
-const LEGACY_ISO_DATE_FORMAT = /^(\d{4})-(\d{2})-(\d{2})$/;
-const LEGACY_SLASHED_DATE_FORMAT = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-
 // A post being edited may carry a mainDate written before DateEntryModal
-// existed: the old native picker's yyyy-mm-dd, the dd/mm/yyyy text input that
-// replaced it, or arbitrary free text from the web form. The two known numeric
-// shapes are rewritten into the spelled-out form the modal now produces (the
-// point being that numeric dates are what users misread); anything else is
-// shown as-is until the user picks a new date.
-const normalizeInitialExactDateText = (text, language) => {
-  const trimmed = (text || '').trim();
-
-  const isoMatch = LEGACY_ISO_DATE_FORMAT.exec(trimmed);
-  const slashedMatch = LEGACY_SLASHED_DATE_FORMAT.exec(trimmed);
-  const parts = isoMatch
-    ? { year: Number(isoMatch[1]), month: Number(isoMatch[2]), day: Number(isoMatch[3]) }
-    : slashedMatch
-      // dd/mm/yyyy - the order the old masked input enforced.
-      ? { year: Number(slashedMatch[3]), month: Number(slashedMatch[2]), day: Number(slashedMatch[1]) }
-      : null;
-
-  if (!parts || parts.month < 1 || parts.month > 12 || parts.day < 1 || parts.day > 31) return trimmed;
-
-  return formatDateValue({ day: parts.day, month: parts.month - 1, year: parts.year }, language);
-};
+// existed (ISO, slashed, or spelled-out in another language). formatDisplayDate
+// parses any of these and renders it in the current UI language.
+const normalizeInitialExactDateText = (text, language) => formatDisplayDate(text, language);
 
 // Resizes to <=1920px on the long edge, then steps compression quality down
 // until the result is <=1MB (matching the web's browser-image-compression
@@ -1020,7 +999,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               <FieldButton
                 styles={styles}
                 textStyle={textStyle}
-                label={exactDateText}
+                label={formatDisplayDate(exactDateText, currentLanguage)}
                 placeholder={t('datePickerOpen')}
                 onPress={() => setDatePickerVisible(true)}
                 leading={<Ionicons name="calendar-outline" size={18} color={`${tokens.ink}99`} />}
@@ -1127,7 +1106,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
                 <ReviewRow
                   styles={styles}
                   label={isFoundType ? t('exactDateFound') : t('exactDateLost')}
-                  value={exactDateText}
+                  value={formatDisplayDate(exactDateText, currentLanguage)}
                 />
               ) : null}
             </ReviewSection>

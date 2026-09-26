@@ -37,14 +37,18 @@ import AppHeader from '../components/AppHeader';
 import ReportPostSheet from '../components/ReportPostSheet';
 import PromotePostSheet from '../components/PromotePostSheet';
 import PostActionsSheet from '../components/PostActionsSheet';
+import ClaimItemSheet from '../components/ClaimItemSheet';
 import PostMatchesSection from '../components/notifications/PostMatchesSection';
 import { SocialReachSection, SOCIAL_REACH_SECTION, hasSocialReach } from '../components/SocialReach';
 import CommentsSection from '../components/CommentsSection';
 import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
+import { formatDisplayDate } from '../components/DateEntryModal';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 import { formatRelativeTime } from '../utils/relativeTime';
+import { summarizeSocialStats, readSiteViews } from '../utils/socialStats';
+import { fetchComments } from '../api/commentsApi';
 
 const TOAST_DURATION_MS = 3000;
 const SECTION_COUNT = 2;
@@ -100,20 +104,41 @@ const SectionHeader = ({ styles, tokens, icon, title, isRTL }) => (
 // fullWidth: takes the whole grid row instead of the ~44% two-up tile, and
 // drops the 2-line value cap - for exact location, whose free-text address
 // can run longer than a date/country/views value.
-const InfoTile = ({ styles, tokens, icon, label, value, accessibilityLabel, isRTL, fullWidth }) => (
+const InfoTile = ({
+  styles,
+  tokens,
+  icon,
+  label,
+  value,
+  accessibilityLabel,
+  isRTL,
+  fullWidth,
+  compact,
+}) => (
   <View
-    style={[styles.infoTile, fullWidth && styles.infoTileFullWidth]}
+    style={[
+      styles.infoTile,
+      fullWidth && styles.infoTileFullWidth,
+      compact && styles.infoTileCompact,
+    ]}
     accessible
-    accessibilityLabel={accessibilityLabel || `${label}: ${value}`}
+    accessibilityLabel={accessibilityLabel || `${label || ''}: ${value}`}
   >
-    <View style={styles.infoTileIcon}>
-      <Ionicons name={icon} size={16} color={tokens.brandPrimary} />
+    <View style={[styles.infoTileIcon, compact && styles.infoTileIconCompact]}>
+      <Ionicons name={icon} size={compact ? 14 : 16} color={tokens.brandPrimary} />
     </View>
     <View style={styles.infoTileBody}>
-      <Text style={[styles.infoTileLabel, isRTL && styles.textRTL]} numberOfLines={1}>{label}</Text>
+      {label ? (
+        <Text
+          style={[styles.infoTileLabel, isRTL && styles.textRTL, compact && styles.infoTileLabelCompact]}
+          numberOfLines={1}
+        >
+          {label}
+        </Text>
+      ) : null}
       <Text
-        style={[styles.infoTileValue, isRTL && styles.textRTL]}
-        numberOfLines={fullWidth ? undefined : 2}
+        style={[styles.infoTileValue, isRTL && styles.textRTL, compact && styles.infoTileValueCompact]}
+        numberOfLines={fullWidth ? undefined : 1}
       >
         {value}
       </Text>
@@ -192,6 +217,7 @@ const PostDetailScreen = ({ navigation, route }) => {
   const [isBlocking, setIsBlocking] = useState(false);
   const [promoteSheetVisible, setPromoteSheetVisible] = useState(false);
   const [actionsSheetVisible, setActionsSheetVisible] = useState(false);
+  const [claimSheetVisible, setClaimSheetVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState('');
   // Gates the Contact section below the claim-item card - see handleClaimItemPress.
@@ -367,7 +393,36 @@ const PostDetailScreen = ({ navigation, route }) => {
     .map((documentType) => getLocalizedLabel(documentType, currentLanguage) || documentType.code);
 
   const description = post.description && post.description.trim() ? post.description.trim() : t('noDescriptionProvided');
-  const dateValue = post.mainDate && String(post.mainDate).trim() ? String(post.mainDate) : t('noDateProvided');
+  const dateValue = post.mainDate && String(post.mainDate).trim() ? formatDisplayDate(String(post.mainDate), currentLanguage) : null;
+  const postedTimeAgo = post.createdAt ? formatRelativeTime(post.createdAt, t, currentLanguage) : '';
+
+  const siteViews = readSiteViews(post);
+  const socialStats = useMemo(() => summarizeSocialStats(post), [post]);
+  const combineCounts = useCallback((a, b) => (a === null && b === null ? null : (a || 0) + (b || 0)), []);
+  const viewsCount = siteViews ?? 0;
+  const reactionsCount = useMemo(() => {
+    const combined = combineCounts(socialStats.facebook.reactions, socialStats.instagram.likes);
+    return combined !== null ? combined : 0;
+  }, [socialStats, combineCounts]);
+
+  const [commentsCount, setCommentsCount] = useState(() => {
+    const initial = combineCounts(socialStats.facebook.comments, socialStats.instagram.comments);
+    return initial !== null ? initial : 0;
+  });
+
+  useEffect(() => {
+    if (!post?._id && !post?.id) return;
+    const postId = post._id || post.id;
+    fetchComments(postId, { page: 1, pageSize: 1 })
+      .then((data) => {
+        if (typeof data?.total === 'number') {
+          setCommentsCount(data.total);
+        }
+      })
+      .catch(() => {});
+  }, [post?._id, post?.id]);
+
+  const exactDateLabel = isFoundType ? t('dateFoundLabel') : (isLostType ? t('dateLostLabel') : t('exactDate'));
 
   const isResolved = post.returned === true || (!!post.status && post.status !== 'active');
   const statusLabel = post.status && STATUS_KEYS[post.status] ? t(STATUS_KEYS[post.status]) : null;
@@ -397,7 +452,7 @@ const PostDetailScreen = ({ navigation, route }) => {
       navigation.navigate('Login');
       return;
     }
-    setContactRevealed(true);
+    setClaimSheetVisible(true);
   };
 
   const openReportSheet = () => {
@@ -612,7 +667,63 @@ const PostDetailScreen = ({ navigation, route }) => {
               used to be three full-width rows plus a stray meta row after the
               description, which is what made the screen read as a list of
               loose lines. They are one tile grid now - same data, one block. */}
+          {/* Info grid — single-value facts grouped into logical flex rows:
+              1. Date posted & Exact date side by side
+              2. Country & City side by side (+ exact location full width below if available)
+              3. Views, Reactions, and Comments side by side */}
           <View style={styles.infoGrid}>
+            {/* Dates: Date posted & Exact date side by side */}
+            <View style={styles.infoRow}>
+              {postedTimeAgo ? (
+                <InfoTile
+                  styles={styles}
+                  tokens={tokens}
+                  icon="time-outline"
+                  label={t('posted')}
+                  value={postedTimeAgo}
+                  isRTL={isRTL}
+                />
+              ) : null}
+              {dateValue ? (
+                <InfoTile
+                  styles={styles}
+                  tokens={tokens}
+                  icon="calendar-outline"
+                  label={exactDateLabel}
+                  value={dateValue}
+                  accessibilityLabel={`${isLostType ? t('exactDateLost') : t('exactDateFound')}: ${dateValue}`}
+                  isRTL={isRTL}
+                />
+              ) : null}
+            </View>
+
+            {/* Locations: Country & City side by side */}
+            {countryLabel || cityLabel ? (
+              <View style={styles.infoRow}>
+                {countryLabel ? (
+                  <InfoTile
+                    styles={styles}
+                    tokens={tokens}
+                    icon="earth-outline"
+                    label={t('country')}
+                    value={countryLabel}
+                    isRTL={isRTL}
+                  />
+                ) : null}
+                {cityLabel ? (
+                  <InfoTile
+                    styles={styles}
+                    tokens={tokens}
+                    icon="map-outline"
+                    label={t('city')}
+                    value={cityLabel}
+                    isRTL={isRTL}
+                  />
+                ) : null}
+              </View>
+            ) : null}
+
+            {/* Exact location address (full width if distinct from city) */}
             {metaLocationLabel ? (
               <InfoTile
                 styles={styles}
@@ -624,56 +735,37 @@ const PostDetailScreen = ({ navigation, route }) => {
                 fullWidth
               />
             ) : null}
-            {cityLabel ? (
-              <InfoTile
-                styles={styles}
-                tokens={tokens}
-                icon="map-outline"
-                label={t('city')}
-                value={cityLabel}
-                isRTL={isRTL}
-              />
-            ) : null}
-            <InfoTile
-              styles={styles}
-              tokens={tokens}
-              icon="calendar-outline"
-              label={isLostType ? t('dateLostLabel') : t('dateFoundLabel')}
-              value={dateValue}
-              // The tile label is short so the grid stays readable; the full
-              // "date when the item was lost/found" phrasing survives here.
-              accessibilityLabel={`${isLostType ? t('exactDateLost') : t('exactDateFound')}: ${dateValue}`}
-              isRTL={isRTL}
-            />
-            {countryLabel ? (
-              <InfoTile
-                styles={styles}
-                tokens={tokens}
-                icon="earth-outline"
-                label={t('country')}
-                value={countryLabel}
-                isRTL={isRTL}
-              />
-            ) : null}
-            {typeof post.views === 'number' ? (
+
+            {/* Engagement metrics: Views, Reactions, Comments side by side */}
+            <View style={styles.infoRow}>
               <InfoTile
                 styles={styles}
                 tokens={tokens}
                 icon="eye-outline"
                 label={t('viewsLabel')}
-                value={String(post.views)}
+                value={String(viewsCount)}
                 isRTL={isRTL}
+                compact
               />
-            ) : null}
-            {post.createdAt ? (
               <InfoTile
                 styles={styles}
                 tokens={tokens}
-                icon="time-outline"
-                value={t('postedTimeAgo', { time: formatRelativeTime(post.createdAt, t, currentLanguage) })}
+                icon="thumbs-up-outline"
+                label={t('reactions')}
+                value={String(reactionsCount)}
                 isRTL={isRTL}
+                compact
               />
-            ) : null}
+              <InfoTile
+                styles={styles}
+                tokens={tokens}
+                icon="chatbubble-outline"
+                label={t('comments')}
+                value={String(commentsCount)}
+                isRTL={isRTL}
+                compact
+              />
+            </View>
           </View>
 
           {documentTypeNames.length > 0 ? (
@@ -729,7 +821,7 @@ const PostDetailScreen = ({ navigation, route }) => {
           {/* Comment thread - the app's own comments merged with the ones
               left on the Facebook/Instagram copies. Public to read. Placed
               right after SocialReachSection above, ahead of Contact. */}
-          <CommentsSection postId={post._id} />
+          <CommentsSection postId={post._id} onTotalChange={setCommentsCount} />
 
           {/* Claim item - mirrors web's ClaimItem card (SinglePostPage.js): the
               primary, positive action for anyone but the owner. Brand-colored
@@ -763,12 +855,6 @@ const PostDetailScreen = ({ navigation, route }) => {
                     {isFoundType ? t('yesThisIsMyItem') : t('yesIFoundThisItem')}
                   </Text>
                 </TouchableOpacity>
-                <View style={styles.claimCardNoteRow}>
-                  <Ionicons name="shield-checkmark-outline" size={16} color={`${tokens.ink}99`} />
-                  <Text style={[styles.claimCardNoteText, isRTL && styles.textRTL]}>
-                    {isFoundType ? t('contactSafetyNote') : t('contactSafetyNoteFinder')}
-                  </Text>
-                </View>
               </View>
             </View>
           )}
@@ -935,6 +1021,16 @@ const PostDetailScreen = ({ navigation, route }) => {
         isRTL={isRTL}
       />
 
+      <ClaimItemSheet
+        visible={claimSheetVisible}
+        onClose={() => setClaimSheetVisible(false)}
+        isFoundType={isFoundType}
+        contactAction={contactAction}
+        t={t}
+        isRTL={isRTL}
+        onContinue={() => setContactRevealed(true)}
+      />
+
       {toast ? (
         <View style={styles.toast}>
           <Text style={styles.toastText}>{toast}</Text>
@@ -1083,19 +1179,23 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontSize: 16,
       color: tokens.ink,
     },
-    // Two tiles to a row on a normal phone, one when the value is long enough
-    // to need the width. flexGrow lets a lone third tile take the full row
-    // rather than leaving a half-width gap.
+    // Single-value facts grouped into logical flex rows:
+    // 1. Date posted & Exact date side by side
+    // 2. Country & City side by side (+ exact location full width below if available)
+    // 3. Views, Reactions, and Comments side by side
     infoGrid: {
-      flexDirection: row(isRTL),
-      flexWrap: 'wrap',
+      flexDirection: 'column',
       gap: 10,
       marginTop: 14,
     },
+    infoRow: {
+      flexDirection: row(isRTL),
+      gap: 10,
+      width: '100%',
+    },
     infoTile: {
-      flexGrow: 1,
-      flexBasis: '44%',
-      minWidth: 140,
+      flex: 1,
+      minWidth: 0,
       flexDirection: row(isRTL),
       alignItems: 'center',
       gap: 10,
@@ -1103,7 +1203,13 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderRadius: radiusTokens.md,
       backgroundColor: `${tokens.ink}0A`,
     },
+    infoTileCompact: {
+      paddingHorizontal: 8,
+      paddingVertical: 10,
+      gap: 6,
+    },
     infoTileFullWidth: {
+      width: '100%',
       flexBasis: '100%',
       alignItems: 'flex-start',
     },
@@ -1114,6 +1220,10 @@ const createStyles = (tokens, isRTL, isDark) =>
       backgroundColor: `${tokens.brandPrimary}1F`,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    infoTileIconCompact: {
+      width: 28,
+      height: 28,
     },
     infoTileBody: {
       flex: 1,
@@ -1126,12 +1236,21 @@ const createStyles = (tokens, isRTL, isDark) =>
       textTransform: 'uppercase',
       color: `${tokens.ink}80`,
     },
+    infoTileLabelCompact: {
+      fontSize: 9,
+      letterSpacing: 0.3,
+    },
     infoTileValue: {
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 13,
       lineHeight: 18,
       color: tokens.ink,
       marginTop: 2,
+    },
+    infoTileValueCompact: {
+      fontSize: 12,
+      lineHeight: 16,
+      marginTop: 1,
     },
     descriptionBox: {
       padding: 14,

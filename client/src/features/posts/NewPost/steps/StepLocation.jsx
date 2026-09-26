@@ -23,6 +23,7 @@ import {
 } from '@mui/icons-material';
 import Textfield from "../../../../components/Textfield";
 import { useTranslation } from "../../../../utils/translations";
+import { formatDisplayDate } from "../../../../utils/dateUtils";
 import { getCityDisplayName } from "../cityDisplay";
 import RequiredMark from "./RequiredMark";
 import DateEntryDialog from "../../../../components/DateEntryDialog";
@@ -684,7 +685,7 @@ const StepLocation = ({
           id="exactDate"
           name="exactDate"
           variant="outlined"
-          value={values.exactDate || ''}
+          value={formatDisplayDate(values.exactDate, currentLanguage) || ''}
           placeholder={t('datePickerOpen')}
           data-testid="exactDate"
           onClick={() => setShowDateDialog(true)}

@@ -152,12 +152,14 @@ const FALLBACK_COUNTRIES = [
   { _id: 'fallback-ma', code: 'MA', names: { en: 'Morocco', fr: 'Maroc', ar: 'المغرب' }, flag: '🇲🇦' },
 ];
 
-const BG_BASE_COLOR = '#272B38';
-const DOT_GRID_COLOR = '#3A3F4E';
+const BG_BASE_DARK = '#272B38';
+const DOT_GRID_DARK = '#3A3F4E';
+const BG_BASE_LIGHT = '#F5F7FB';
+const DOT_GRID_LIGHT = '#D2DAE8';
 const GRID_SPACING = 50;
 const DOT_RADIUS = 2;
 
-const ONBOARDING_NEUMORPHIC = {
+const ONBOARDING_NEUMORPHIC_DARK = {
   base: '#272B38',
   raisedFace: ['#2F3547', '#222632'],
   pressedFace: ['#1E222D', '#2B3140'],
@@ -176,7 +178,29 @@ const ONBOARDING_NEUMORPHIC = {
   },
 };
 
-const DotGridBackground = () => {
+const ONBOARDING_NEUMORPHIC_LIGHT = {
+  base: '#F5F7FB',
+  raisedFace: ['#FFFFFF', '#E8EDF5'],
+  pressedFace: ['#DFE5F0', '#FAFCFF'],
+  shadowDark: {
+    shadowColor: '#A8B3C7',
+    shadowOffset: { width: 4, height: 5 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  shadowLight: {
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: -4, height: -4 },
+    shadowOpacity: 0.95,
+    shadowRadius: 6,
+  },
+};
+
+const getOnboardingNeumorphic = (isDark) =>
+  isDark ? ONBOARDING_NEUMORPHIC_DARK : ONBOARDING_NEUMORPHIC_LIGHT;
+
+const DotGridBackground = ({ isDark }) => {
   const [dimensions, setDimensions] = useState(() => Dimensions.get('window'));
 
   const handleLayout = useCallback((e) => {
@@ -189,6 +213,9 @@ const DotGridBackground = () => {
   const cols = Math.ceil(dimensions.width / GRID_SPACING) + 1;
   const rows = Math.ceil(dimensions.height / GRID_SPACING) + 1;
 
+  const baseColor = isDark ? BG_BASE_DARK : BG_BASE_LIGHT;
+  const dotColor = isDark ? DOT_GRID_DARK : DOT_GRID_LIGHT;
+
   const dots = useMemo(() => {
     const list = [];
     for (let r = 0; r < rows; r++) {
@@ -199,17 +226,17 @@ const DotGridBackground = () => {
             cx={c * GRID_SPACING + GRID_SPACING / 2}
             cy={r * GRID_SPACING + GRID_SPACING / 2}
             r={DOT_RADIUS}
-            fill={DOT_GRID_COLOR}
+            fill={dotColor}
           />
         );
       }
     }
     return list;
-  }, [cols, rows]);
+  }, [cols, rows, dotColor]);
 
   return (
     <View
-      style={[StyleSheet.absoluteFill, { backgroundColor: BG_BASE_COLOR }]}
+      style={[StyleSheet.absoluteFill, { backgroundColor: baseColor }]}
       onLayout={handleLayout}
       pointerEvents="none"
     >
@@ -251,8 +278,8 @@ const OnboardingScreen = ({ navigation }) => {
   const motionDir = isRTL ? -1 : 1;
 
   const styles = useMemo(
-    () => createStyles(mirrorRows),
-    [mirrorRows]
+    () => createStyles(isDark, mirrorRows),
+    [isDark, mirrorRows]
   );
 
   // Position of the carousel measured in slides: 0 is slide 1, 2.5 is halfway
@@ -498,7 +525,7 @@ const OnboardingScreen = ({ navigation }) => {
   const renderLanguageSlide = () => (
     <View style={styles.slideContent}>
       <View style={styles.illustrationHolder}>
-        <WelcomeMascotIllustration isDark={true} />
+        <WelcomeMascotIllustration isDark={isDark} />
       </View>
       <Text style={styles.languageQuestionText}>{t('onboardingWelcomeHeadline')}</Text>
 
@@ -527,7 +554,7 @@ const OnboardingScreen = ({ navigation }) => {
           onPress={() => setThemeMode('light')}
           activeOpacity={0.8}
         >
-          <Ionicons name="sunny" size={16} color={!isDark ? '#FFFFFF' : '#94A3B8'} />
+          <Ionicons name="sunny" size={16} color={!isDark ? '#FFFFFF' : (isDark ? '#94A3B8' : '#64748B')} />
           <Text style={[styles.themeToggleText, !isDark && styles.themeToggleTextActive]}>
             {t('themeLight')}
           </Text>
@@ -537,7 +564,7 @@ const OnboardingScreen = ({ navigation }) => {
           onPress={() => setThemeMode('dark')}
           activeOpacity={0.8}
         >
-          <Ionicons name="moon" size={16} color={isDark ? '#FFFFFF' : '#94A3B8'} />
+          <Ionicons name="moon" size={16} color={isDark ? '#FFFFFF' : (isDark ? '#94A3B8' : '#64748B')} />
           <Text style={[styles.themeToggleText, isDark && styles.themeToggleTextActive]}>
             {t('themeDark')}
           </Text>
@@ -549,7 +576,7 @@ const OnboardingScreen = ({ navigation }) => {
   const renderInfoSlide = (IllustrationComponent, headlineKey, bodyKey) => (
     <View style={styles.slideContent}>
       <View style={styles.illustrationHolder}>
-        <IllustrationComponent isDark={true} />
+        <IllustrationComponent isDark={isDark} />
       </View>
       <Text style={styles.headline}>{t(headlineKey)}</Text>
       <Text style={styles.body}>{t(bodyKey)}</Text>
@@ -559,7 +586,7 @@ const OnboardingScreen = ({ navigation }) => {
   const renderFilterSlide = () => (
     <View style={styles.slideContent}>
       <View style={styles.illustrationHolder}>
-        <FilterIllustration isDark={true} />
+        <FilterIllustration isDark={isDark} />
       </View>
       <Text style={styles.headline}>{t('onboardingFilterHeadline')}</Text>
       <Text style={styles.body}>{t('onboardingFilterBody')}</Text>
@@ -568,8 +595,8 @@ const OnboardingScreen = ({ navigation }) => {
         {FILTER_PILLS.map((pill) => (
           <NeumorphicSurface
             key={pill.labelKey}
-            isDark={true}
-            customNeumorphic={ONBOARDING_NEUMORPHIC}
+            isDark={isDark}
+            customNeumorphic={getOnboardingNeumorphic(isDark)}
             radius={radiusTokens.md}
             contentStyle={styles.filterPill}
           >
@@ -605,10 +632,10 @@ const OnboardingScreen = ({ navigation }) => {
           </View>
           <View style={styles.announcementHeaderTextWrap}>
             <Text style={[styles.announcementQuestion, isRTL ? styles.textRTL : styles.textLTR]}>
-              {t('alreadyPostedAnnouncement') || 'Already made an announcement on the site?'}
+              {t('alreadyPostedAnnouncement') || 'Have you already posted an announcement on the site?'}
             </Text>
             <Text style={[styles.announcementSubtext, isRTL ? styles.textRTL : styles.textLTR]}>
-              {t('onboardingSignInHint') || 'Sign in to manage and track your items'}
+              {t('onboardingSignInHint') || 'Sign in to your account to track your announcements and receive notifications'}
             </Text>
           </View>
         </View>
@@ -642,8 +669,8 @@ const OnboardingScreen = ({ navigation }) => {
         <Pressable onPress={() => setShowCountryList((prev) => !prev)}>
           {({ pressed }) => (
             <NeumorphicSurface
-              isDark={true}
-              customNeumorphic={ONBOARDING_NEUMORPHIC}
+              isDark={isDark}
+              customNeumorphic={getOnboardingNeumorphic(isDark)}
               radius={radiusTokens.md}
               // Open reads as held down, which is also what the list below it
               // is: a well opened in the same surface.
@@ -665,7 +692,7 @@ const OnboardingScreen = ({ navigation }) => {
               <Ionicons
                 name={showCountryList ? 'chevron-up' : 'chevron-down'}
                 size={18}
-                color={selectedCountry ? BRAND_BLUE : '#94A3B8'}
+                color={selectedCountry ? BRAND_BLUE : (isDark ? '#94A3B8' : '#64748B')}
               />
             </NeumorphicSurface>
           )}
@@ -675,8 +702,8 @@ const OnboardingScreen = ({ navigation }) => {
           // Sunken face: the list is a well cut into the surface rather than a
           // card floating over it, so it belongs to the button that opened it.
           <NeumorphicSurface
-            isDark={true}
-            customNeumorphic={ONBOARDING_NEUMORPHIC}
+            isDark={isDark}
+            customNeumorphic={getOnboardingNeumorphic(isDark)}
             radius={radiusTokens.md}
             pressed
             style={styles.countryDropdown}
@@ -685,7 +712,7 @@ const OnboardingScreen = ({ navigation }) => {
             <TextInput
               style={[styles.searchInput, isRTL ? styles.textRTL : styles.textLTR]}
               placeholder={t('searchCountry')}
-              placeholderTextColor="#94A3B880"
+              placeholderTextColor={isDark ? '#94A3B880' : '#64748B80'}
               value={countrySearch}
               onChangeText={setCountrySearch}
               onFocus={() => countryScrollRef.current?.scrollToEnd({ animated: true })}
@@ -753,8 +780,11 @@ const OnboardingScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <StatusBar style="light" backgroundColor={BG_BASE_COLOR} />
-      <DotGridBackground />
+      <StatusBar
+        style={isDark ? 'light' : 'dark'}
+        backgroundColor={isDark ? BG_BASE_DARK : BG_BASE_LIGHT}
+      />
+      <DotGridBackground isDark={isDark} />
       {directionProbe}
 
       <KeyboardAvoidingView
@@ -808,8 +838,8 @@ const OnboardingScreen = ({ navigation }) => {
               unavailable control here. */}
           {isCtaDisabled && !isSubmitting ? (
             <NeumorphicSurface
-              isDark={true}
-              customNeumorphic={ONBOARDING_NEUMORPHIC}
+              isDark={isDark}
+              customNeumorphic={getOnboardingNeumorphic(isDark)}
               radius={radiusTokens.md}
               pressed
               contentStyle={styles.ctaFace}
@@ -852,11 +882,11 @@ const OnboardingScreen = ({ navigation }) => {
   );
 };
 
-const createStyles = (mirrorRows) =>
+const createStyles = (isDark, mirrorRows) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: BG_BASE_COLOR,
+      backgroundColor: isDark ? BG_BASE_DARK : BG_BASE_LIGHT,
     },
     keyboardAvoider: {
       flex: 1,
@@ -874,14 +904,12 @@ const createStyles = (mirrorRows) =>
     skipText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 15,
-      color: '#94A3B8',
+      color: isDark ? '#94A3B8' : '#64748B',
     },
     skipPlaceholder: {
       width: 40,
       height: 20,
     },
-    // The slides all sit on top of each other and are moved into place by
-    // translateX, so the pager clips whatever is currently off to the side.
     pager: {
       flex: 1,
       overflow: 'hidden',
@@ -921,14 +949,14 @@ const createStyles = (mirrorRows) =>
     headline: {
       fontSize: 22,
       fontFamily: fontFamilies.display,
-      color: '#FFFFFF',
+      color: isDark ? '#FFFFFF' : '#0B1220',
       textAlign: 'center',
       marginBottom: 12,
     },
     body: {
       fontSize: 15,
       fontFamily: fontFamilies.body,
-      color: '#CBD5E1',
+      color: isDark ? '#CBD5E1' : '#475569',
       textAlign: 'center',
       lineHeight: 22,
       marginBottom: 24,
@@ -936,7 +964,7 @@ const createStyles = (mirrorRows) =>
     languageQuestionText: {
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 16,
-      color: '#FFFFFF',
+      color: isDark ? '#FFFFFF' : '#0B1220',
       textAlign: 'center',
       marginTop: 24,
       marginBottom: 12,
@@ -957,37 +985,42 @@ const createStyles = (mirrorRows) =>
       paddingVertical: 10,
       paddingHorizontal: 16,
       borderRadius: radiusTokens.md,
-      backgroundColor: '#202430',
+      backgroundColor: isDark ? '#202430' : '#FFFFFF',
       borderWidth: 1,
-      borderColor: '#3A3F4E',
+      borderColor: isDark ? '#3A3F4E' : '#E2E8F0',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: isDark ? 0 : 0.05,
+      shadowRadius: 3,
+      elevation: isDark ? 0 : 1,
     },
     languageChipActive: {
       borderColor: BRAND_BLUE,
-      backgroundColor: `${BRAND_BLUE}26`,
+      backgroundColor: isDark ? `${BRAND_BLUE}26` : `${BRAND_BLUE}14`,
     },
     languageChipText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 14,
-      color: '#EDEFF5',
+      color: isDark ? '#EDEFF5' : '#1E293B',
     },
     languageChipTextActive: {
-      color: '#5B7FFF',
+      color: isDark ? '#5B7FFF' : BRAND_BLUE,
       fontFamily: fontFamilies.bodySemiBold,
     },
     themeLabel: {
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 15,
-      color: '#FFFFFF',
+      color: isDark ? '#FFFFFF' : '#0B1220',
       textAlign: 'center',
       marginTop: 26,
       marginBottom: 10,
     },
     themeToggleTrack: {
       flexDirection: 'row',
-      backgroundColor: '#1C202B',
+      backgroundColor: isDark ? '#1C202B' : '#E8EDF5',
       borderRadius: radiusTokens.md,
       borderWidth: 1,
-      borderColor: '#3A3F4E',
+      borderColor: isDark ? '#3A3F4E' : '#D1D9E6',
       padding: 4,
       gap: 4,
     },
@@ -1006,7 +1039,7 @@ const createStyles = (mirrorRows) =>
     themeToggleText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 13,
-      color: '#94A3B8',
+      color: isDark ? '#94A3B8' : '#64748B',
     },
     themeToggleTextActive: {
       color: '#FFFFFF',
@@ -1029,15 +1062,20 @@ const createStyles = (mirrorRows) =>
     filterPillText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 13,
-      color: '#EDEFF5',
+      color: isDark ? '#EDEFF5' : '#1E293B',
     },
     announcementCard: {
       width: '100%',
-      backgroundColor: '#202430',
+      backgroundColor: isDark ? '#202430' : '#FFFFFF',
       borderRadius: radiusTokens.lg,
       borderWidth: 1,
-      borderColor: '#3A3F4E',
+      borderColor: isDark ? '#3A3F4E' : '#E2E8F0',
       padding: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0 : 0.06,
+      shadowRadius: 8,
+      elevation: isDark ? 0 : 2,
     },
     announcementHeader: {
       flexDirection: 'row',
@@ -1049,11 +1087,11 @@ const createStyles = (mirrorRows) =>
       width: 38,
       height: 38,
       borderRadius: 19,
-      backgroundColor: `${BRAND_BLUE}1A`,
+      backgroundColor: isDark ? `${BRAND_BLUE}1A` : `${BRAND_BLUE}14`,
       justifyContent: 'center',
       alignItems: 'center',
       borderWidth: 1,
-      borderColor: `${BRAND_BLUE}40`,
+      borderColor: isDark ? `${BRAND_BLUE}40` : `${BRAND_BLUE}30`,
     },
     announcementHeaderTextWrap: {
       flex: 1,
@@ -1061,13 +1099,13 @@ const createStyles = (mirrorRows) =>
     announcementQuestion: {
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 14,
-      color: '#FFFFFF',
+      color: isDark ? '#FFFFFF' : '#0B1220',
       lineHeight: 20,
     },
     announcementSubtext: {
       fontFamily: fontFamilies.body,
       fontSize: 12,
-      color: '#94A3B8',
+      color: isDark ? '#94A3B8' : '#64748B',
       marginTop: 2,
     },
     signInButton: {
@@ -1098,21 +1136,21 @@ const createStyles = (mirrorRows) =>
     orDividerLine: {
       flex: 1,
       height: 1,
-      backgroundColor: '#3A3F4E',
+      backgroundColor: isDark ? '#3A3F4E' : '#D8DFEC',
     },
     orBadge: {
       paddingHorizontal: 12,
       paddingVertical: 3,
       borderRadius: 12,
-      backgroundColor: '#202430',
+      backgroundColor: isDark ? '#202430' : '#FFFFFF',
       borderWidth: 1,
-      borderColor: '#3A3F4E',
+      borderColor: isDark ? '#3A3F4E' : '#D8DFEC',
       marginHorizontal: 10,
     },
     orBadgeText: {
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 12,
-      color: '#94A3B8',
+      color: isDark ? '#94A3B8' : '#64748B',
       letterSpacing: 0.8,
     },
     countrySection: {
@@ -1122,21 +1160,21 @@ const createStyles = (mirrorRows) =>
     countryTitle: {
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 16,
-      color: '#FFFFFF',
+      color: isDark ? '#FFFFFF' : '#0B1220',
       textAlign: 'center',
       marginBottom: 4,
     },
     countrySubtitle: {
       fontFamily: fontFamilies.body,
       fontSize: 13,
-      color: '#94A3B8',
+      color: isDark ? '#94A3B8' : '#64748B',
       textAlign: 'center',
       marginBottom: 16,
     },
     errorText: {
       fontFamily: fontFamilies.body,
       fontSize: 13,
-      color: '#FF6B6B',
+      color: isDark ? '#FF6B6B' : '#DC2626',
       textAlign: 'center',
       marginBottom: 12,
     },
@@ -1150,12 +1188,12 @@ const createStyles = (mirrorRows) =>
     countryButtonText: {
       fontFamily: fontFamilies.body,
       fontSize: 15,
-      color: '#FFFFFF',
+      color: isDark ? '#FFFFFF' : '#0B1220',
       flex: 1,
     },
     countryButtonPlaceholder: {
-      color: '#94A3B8',
-      opacity: 0.7,
+      color: isDark ? '#94A3B8' : '#64748B',
+      opacity: 0.8,
     },
     countryDropdown: {
       marginTop: 10,
@@ -1170,9 +1208,9 @@ const createStyles = (mirrorRows) =>
       paddingHorizontal: 6,
       fontFamily: fontFamilies.body,
       fontSize: 14,
-      color: '#FFFFFF',
+      color: isDark ? '#FFFFFF' : '#0B1220',
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: '#3A3F4E',
+      borderBottomColor: isDark ? '#3A3F4E' : '#E2E8F0',
     },
     countryListLoading: {
       paddingVertical: 20,
@@ -1194,7 +1232,7 @@ const createStyles = (mirrorRows) =>
       flex: 1,
       fontFamily: fontFamilies.body,
       fontSize: 14,
-      color: '#EDEFF5',
+      color: isDark ? '#EDEFF5' : '#1E293B',
     },
     countryNameSelected: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -1228,7 +1266,7 @@ const createStyles = (mirrorRows) =>
       backgroundColor: BRAND_BLUE,
     },
     dotInactive: {
-      backgroundColor: '#3A3F4E',
+      backgroundColor: isDark ? '#3A3F4E' : '#CBD5E1',
     },
     ctaFace: {
       height: 54,
@@ -1255,8 +1293,8 @@ const createStyles = (mirrorRows) =>
       color: '#FFFFFF',
     },
     ctaTextDisabled: {
-      color: '#94A3B8',
-      opacity: 0.5,
+      color: isDark ? '#94A3B8' : '#94A3B8',
+      opacity: 0.6,
     },
     ctaIcon: {
       marginTop: 1,

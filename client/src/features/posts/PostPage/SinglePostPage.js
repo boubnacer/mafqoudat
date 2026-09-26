@@ -18,7 +18,7 @@ import { useState, useCallback, useMemo } from "react";
 import ReportDialog from "../../../components/ReportDialog";
 import { useSubmitReportMutation } from "../reportsApiSlice";
 import { useBlockUserMutation } from "../../userSettings/usersApiSlice";
-import { useDeletePostMutation } from "../postsApiSlice";
+import { useDeletePostMutation, useGetPostCommentsQuery } from "../postsApiSlice";
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -36,11 +36,14 @@ import {
   Visibility as ViewIcon,
   Flag as FlagIcon,
   Block as BlockIcon,
-  VerifiedUser as VerifiedUserIcon,
+  ThumbUpAltOutlined as ReactionsIcon,
+  ChatBubbleOutline as CommentsIcon,
 } from "@mui/icons-material";
 
 import { useTranslation } from "../../../utils/translations";
 import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
+import { formatDisplayDate } from "../../../utils/dateUtils";
+import { summarizeSocialStats } from "../../../utils/socialStats";
 import LazyCardMedia from "../../../components/LazyCardMedia";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -296,26 +299,26 @@ const SectionHeading = ({ icon: Icon, children }) => {
 // Mirrors mobile PostDetailScreen.js's InfoTile grid (Phase 14), replacing the
 // old label:value fact-strip row for city/date/country/views. fullWidth is
 // for the exact-location tile, whose free-text address can run long.
-const InfoTile = ({ icon: Icon, label, value, fullWidth }) => {
+const InfoTile = ({ icon: Icon, label, value, fullWidth, sx = {} }) => {
   const theme = useTheme();
   return (
     <Box
       sx={{
         display: 'flex',
         alignItems: 'center',
-        gap: 1.25,
-        p: 1.5,
+        gap: { xs: 1, sm: 1.25 },
+        p: { xs: 1.25, sm: 1.5 },
         borderRadius: `${theme.custom.radius.md}px`,
         backgroundColor: alpha(theme.custom.color.ink, 0.04),
-        flexBasis: fullWidth ? '100%' : { xs: '44%', sm: '31%', md: '22%' },
-        flexGrow: 1,
+        flex: fullWidth ? '1 1 100%' : '1 1 0',
         minWidth: 0,
+        ...sx,
       }}
     >
       <Box
         sx={{
-          width: 38,
-          height: 38,
+          width: { xs: 34, sm: 38 },
+          height: { xs: 34, sm: 38 },
           borderRadius: `${theme.custom.radius.sm}px`,
           backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
           display: 'flex',
@@ -324,19 +327,23 @@ const InfoTile = ({ icon: Icon, label, value, fullWidth }) => {
           flexShrink: 0,
         }}
       >
-        <Icon sx={{ fontSize: 19, color: theme.custom.color.brandPrimary }} />
+        <Icon sx={{ fontSize: { xs: 17, sm: 19 }, color: theme.custom.color.brandPrimary }} />
       </Box>
-      <Box sx={{ minWidth: 0 }}>
+      <Box sx={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
         {label && (
           <Typography
             variant="caption"
+            noWrap
             sx={{
               display: 'block',
               fontWeight: 700,
               letterSpacing: 0.6,
               textTransform: 'uppercase',
-              fontSize: '0.65rem',
+              fontSize: { xs: '0.625rem', sm: '0.65rem' },
               color: alpha(theme.custom.color.ink, 0.5),
+              lineHeight: 1.2,
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
             }}
           >
             {label}
@@ -345,7 +352,16 @@ const InfoTile = ({ icon: Icon, label, value, fullWidth }) => {
         <Typography
           variant="body2"
           noWrap={!fullWidth}
-          sx={{ fontWeight: 700, color: theme.custom.color.ink, mt: label ? 0.25 : 0, wordBreak: 'break-word' }}
+          sx={{
+            fontWeight: 700,
+            color: theme.custom.color.ink,
+            mt: label ? 0.25 : 0,
+            wordBreak: 'break-word',
+            fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+            lineHeight: 1.3,
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+          }}
         >
           {value}
         </Typography>
@@ -430,6 +446,40 @@ const SinglePostPage = ({
   // Facebook page") lands on the reach section rather than at the top of the
   // page - that alert exists to answer "and how is it doing?".
   const reachSection = useSectionDeepLink(SOCIAL_REACH_SECTION);
+
+  // Fetch comments total count (synced from site + Facebook + Instagram)
+  const { data: commentsData } = useGetPostCommentsQuery(
+    { postId: _id, page: 1, pageSize: 20 },
+    { skip: !_id }
+  );
+
+  const summarizedSocialStats = useMemo(
+    () => summarizeSocialStats({ social, socialStats }),
+    [social, socialStats]
+  );
+
+  const combineCounts = useCallback((a, b) => (a === null && b === null ? null : (a || 0) + (b || 0)), []);
+
+  const viewsCount = useMemo(() => (typeof views === 'number' ? views : 0), [views]);
+
+  const reactionsCount = useMemo(() => {
+    const combined = combineCounts(
+      summarizedSocialStats.facebook.reactions,
+      summarizedSocialStats.instagram.likes
+    );
+    return combined !== null ? combined : 0;
+  }, [summarizedSocialStats, combineCounts]);
+
+  const commentsCount = useMemo(() => {
+    if (typeof commentsData?.total === 'number') {
+      return commentsData.total;
+    }
+    const socialComments = combineCounts(
+      summarizedSocialStats.facebook.comments,
+      summarizedSocialStats.instagram.comments
+    );
+    return socialComments !== null ? socialComments : 0;
+  }, [commentsData, summarizedSocialStats, combineCounts]);
 
   // Memoized event handlers
   const handleEdit = useCallback(() => {
@@ -922,6 +972,18 @@ const SinglePostPage = ({
     ? exactLocation.trim()
     : null;
 
+  const exactDateValue = useMemo(() => {
+    return mainDate && String(mainDate).trim()
+      ? formatDisplayDate(String(mainDate), currentLanguage)
+      : null;
+  }, [mainDate, currentLanguage]);
+
+  const exactDateLabel = useMemo(() => {
+    if (foundLostStatus.isFound) return t('dateFoundLabel');
+    if (foundLostStatus.isLost) return t('dateLostLabel');
+    return t('exactDate');
+  }, [foundLostStatus, t]);
+
   // No-image icon backdrop: same per-category tint as the Posts list card,
   // bumped up from the badge's 0.12/0.2 ratio (too faint stretched across
   // the whole photo box) so it actually reads as color. Blended across every
@@ -1054,21 +1116,46 @@ const SinglePostPage = ({
                   on-image badge above, in the spot "posted" used to occupy — this
                   grid takes "posted" in exchange, styled like every other fact
                   here. Mirrors mobile PostDetailScreen.js's InfoTile grid (Phase 14). */}
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 3 }}>
-                <InfoTile icon={TimeIcon} value={t('postedTimeAgo', { time: postedTimeAgo })} />
+              {/* Info grid — single-value facts grouped into logical flex rows:
+                  1. Date posted & Exact date (Posted on / Lost on / Found on) side by side
+                  2. Country & City side by side (+ exact location full width below if available)
+                  3. Views, Reactions, and Comments side by side */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
+                {/* Dates: Date posted & Exact date side by side */}
+                <Box sx={{ display: 'flex', gap: 1.5, width: '100%' }}>
+                  <InfoTile icon={TimeIcon} label={t('posted')} value={postedTimeAgo} />
+                  {exactDateValue && (
+                    <InfoTile
+                      icon={CalendarIcon}
+                      label={exactDateLabel}
+                      value={exactDateValue}
+                    />
+                  )}
+                </Box>
+
+                {/* Locations: Country & City side by side */}
+                {(countryDisplayName || displayCityName) && (
+                  <Box sx={{ display: 'flex', gap: 1.5, width: '100%' }}>
+                    {countryDisplayName && (
+                      <InfoTile icon={CountryIcon} label={t('country')} value={countryDisplayName} />
+                    )}
+                    {displayCityName && (
+                      <InfoTile icon={CityIcon} label={t('city')} value={displayCityName} />
+                    )}
+                  </Box>
+                )}
+
+                {/* Location address — full width for free-text exact location */}
                 {metaLocationLabel && (
                   <InfoTile icon={LocationIcon} label={t('location')} value={metaLocationLabel} fullWidth />
                 )}
-                <InfoTile icon={CityIcon} label={t('city')} value={displayCityName} />
-                {mainDate && mainDate.trim() && (
-                  <InfoTile
-                    icon={CalendarIcon}
-                    label={foundLostStatus.isFound ? t('dateFoundLabel') : t('dateLostLabel')}
-                    value={mainDate}
-                  />
-                )}
-                {countryDisplayName && <InfoTile icon={CountryIcon} label={t('country')} value={countryDisplayName} />}
-                {typeof views === 'number' && <InfoTile icon={ViewIcon} label={t('views')} value={views} />}
+
+                {/* Engagement metrics: Views, Reactions, Comments side by side */}
+                <Box sx={{ display: 'flex', gap: 1.5, width: '100%' }}>
+                  <InfoTile icon={ViewIcon} label={t('views')} value={viewsCount} />
+                  <InfoTile icon={ReactionsIcon} label={t('reactions')} value={reactionsCount} />
+                  <InfoTile icon={CommentsIcon} label={t('comments')} value={commentsCount} />
+                </Box>
               </Box>
 
               {/* The documents this listing is about. It sits above the
@@ -1261,13 +1348,6 @@ const SinglePostPage = ({
                 >
                   {foundLostStatus.isFound ? t('yesThisIsMyItem') : t('yesIFoundThisItem')}
                 </Button>
-
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, mt: 2 }}>
-                  <VerifiedUserIcon sx={{ fontSize: 16, color: 'text.secondary', mt: '2px', flexShrink: 0 }} />
-                  <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.5 }}>
-                    {foundLostStatus.isFound ? t('contactSafetyNote') : t('contactSafetyNoteFinder')}
-                  </Typography>
-                </Box>
               </Paper>
             )}
 

@@ -18,7 +18,10 @@ import {
   Phone as PhoneIcon,
   Email as EmailIcon,
   WhatsApp as WhatsAppIcon,
-  VerifiedUser as VerifiedUserIcon
+  VerifiedUser as VerifiedUserIcon,
+  Security as SecurityIcon,
+  ArrowForward as ArrowForwardIcon,
+  ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import { useTranslation } from '../utils/translations';
 import { useMarkPostAsReturnedMutation } from '../features/posts/postsApiSlice';
@@ -34,10 +37,19 @@ const ClaimItemDialog = ({
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
+  const [showContacts, setShowContacts] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState(null);
   
   const [markAsReturned, { isLoading }] = useMarkPostAsReturnedMutation();
+
+  React.useEffect(() => {
+    if (open) {
+      setShowContacts(false);
+      setIsSuccess(false);
+      setError(null);
+    }
+  }, [open]);
 
   // Sanitize contact info
   const sanitizedContact = {
@@ -80,6 +92,7 @@ const ClaimItemDialog = ({
   const handleClose = () => {
     if (!isLoading) {
       onClose();
+      setShowContacts(false);
       setIsSuccess(false);
       setError(null);
     }
@@ -115,7 +128,9 @@ const ClaimItemDialog = ({
       >
         <Box
           sx={{
-            backgroundColor: alpha(theme.custom.status.found.main, 0.15),
+            backgroundColor: (!showContacts && !isSuccess)
+              ? alpha(theme.custom.color.brandPrimary, 0.12)
+              : alpha(theme.custom.status.found.main, 0.15),
             borderRadius: '50%',
             p: 1.5,
             display: 'flex',
@@ -123,7 +138,11 @@ const ClaimItemDialog = ({
             justifyContent: 'center'
           }}
         >
-          <CheckCircleIcon sx={{ color: theme.custom.status.found.main, fontSize: 32 }} />
+          {(!showContacts && !isSuccess) ? (
+            <SecurityIcon sx={{ color: theme.custom.color.brandPrimary, fontSize: 32 }} />
+          ) : (
+            <CheckCircleIcon sx={{ color: theme.custom.status.found.main, fontSize: 32 }} />
+          )}
         </Box>
         <Typography
           variant="h5"
@@ -133,7 +152,9 @@ const ClaimItemDialog = ({
             fontSize: { xs: '1.25rem', sm: '1.5rem' }
           }}
         >
-          {isFoundPost ? t('claimYourItem') : t('helpReturnItem')}
+          {(!showContacts && !isSuccess)
+            ? t('safetyNotice')
+            : (isFoundPost ? t('claimYourItem') : t('helpReturnItem'))}
         </Typography>
       </DialogTitle>
 
@@ -187,9 +208,95 @@ const ClaimItemDialog = ({
           </Alert>
         )}
 
-        {/* Main Content - Only show if not success */}
-        {!isSuccess && (
-          <Box>
+        {/* Safety Note Step - Only show before continuing to contacts */}
+        {!isSuccess && !showContacts && (
+          <Box
+            sx={{
+              animation: 'fadeIn 0.25s ease-out',
+              '@keyframes fadeIn': {
+                '0%': { opacity: 0, transform: 'translateY(-6px)' },
+                '100%': { opacity: 1, transform: 'translateY(0)' },
+              },
+            }}
+          >
+            <Typography
+              variant="body1"
+              sx={{
+                mb: 2.5,
+                color: theme.palette.text.secondary,
+                lineHeight: 1.6,
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+              }}
+            >
+              {t('safetyReminderDesc')}
+            </Typography>
+
+            <Box
+              sx={{
+                p: 2.5,
+                borderRadius: `${theme.custom.radius.md}px`,
+                backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
+                border: `1px solid ${alpha(theme.custom.color.brandPrimary, 0.25)}`,
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 2,
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                boxShadow: `0 4px 20px ${alpha(theme.custom.color.brandPrimary, 0.08)}`,
+              }}
+            >
+              <Box
+                sx={{
+                  backgroundColor: alpha(theme.custom.color.brandPrimary, 0.15),
+                  borderRadius: '50%',
+                  p: 1.25,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  mt: 0.25,
+                }}
+              >
+                <VerifiedUserIcon sx={{ fontSize: 24, color: theme.custom.color.brandPrimary }} />
+              </Box>
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={700}
+                  sx={{
+                    color: theme.custom.color.ink,
+                    mb: 0.75,
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                  }}
+                >
+                  {t('safetyFirst')}
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    lineHeight: 1.65,
+                    fontSize: { xs: '0.95rem', sm: '1.02rem' },
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                  }}
+                >
+                  {isFoundPost ? t('contactSafetyNote') : t('contactSafetyNoteFinder')}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        )}
+
+        {/* Contact Details Step - Only show after user clicks continue */}
+        {!isSuccess && showContacts && (
+          <Box
+            sx={{
+              animation: 'fadeIn 0.25s ease-out',
+              '@keyframes fadeIn': {
+                '0%': { opacity: 0, transform: 'translateY(-6px)' },
+                '100%': { opacity: 1, transform: 'translateY(0)' },
+              },
+            }}
+          >
             {/* Celebration Message */}
             <Box sx={{ mb: 3 }}>
               <Typography
@@ -217,9 +324,7 @@ const ClaimItemDialog = ({
               </Typography>
             </Box>
 
-            {/* Trust/safety note — sits directly above the contact details being
-                revealed, since this is the moment the user is about to step off
-                the platform to reach a stranger. */}
+            {/* Trust/safety note — sits directly above the contact details */}
             <Box
               sx={{
                 display: 'flex',
@@ -452,7 +557,7 @@ const ClaimItemDialog = ({
                       <Typography 
                         variant="body1" 
                         fontWeight={600}
-                        sx={{
+                        sx={{ 
                           color: theme.custom.color.ink,
                           direction: 'ltr',
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
@@ -479,7 +584,46 @@ const ClaimItemDialog = ({
           flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
         }}
       >
-        {!isSuccess && (
+        {!isSuccess && !showContacts && (
+          <>
+            <Button
+              onClick={handleClose}
+              disabled={isLoading}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                color: 'text.secondary',
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+              }}
+            >
+              {t('cancel')}
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => setShowContacts(true)}
+              endIcon={currentLanguage === 'ar' ? <ArrowBackIcon /> : <ArrowForwardIcon />}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                backgroundColor: theme.custom.color.brandPrimary,
+                color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                gap: currentLanguage === 'ar' ? 1 : 0.5,
+                '&:hover': {
+                  backgroundColor: theme.custom.color.brandPrimary,
+                  filter: 'brightness(0.92)'
+                }
+              }}
+            >
+              {t('continue')}
+            </Button>
+          </>
+        )}
+        {!isSuccess && showContacts && (
           <>
             <Button
               onClick={handleClose}

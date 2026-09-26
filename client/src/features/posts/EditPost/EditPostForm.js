@@ -56,6 +56,7 @@ import {
   LockOutlined
 } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
+import { formatDisplayDate } from "../../../utils/dateUtils";
 import { isDocumentsListing, isDocumentsOnlyListing, getNonDocumentCategories } from "../NewPost/documentCategory";
 import DateEntryDialog from "../../../components/DateEntryDialog";
 import useAuth from "../../../hooks/useAuth";
@@ -2178,7 +2179,7 @@ if (typeof document !== 'undefined') {
                         <SummaryRow
                           theme={theme}
                           label={getFoundLostType(values.foundLost) === 'LOST' ? t('exactDateLost') : t('exactDateFound')}
-                          value={values.exactDate}
+                          value={formatDisplayDate(values.exactDate, currentLanguage)}
                         />
                       )}
                     </>
@@ -2750,7 +2751,7 @@ if (typeof document !== 'undefined') {
                     id="exactDate"
                     name="exactDate"
                     variant="outlined"
-                    value={values.exactDate || ''}
+                    value={formatDisplayDate(values.exactDate, currentLanguage) || ''}
                     placeholder={t('datePickerOpen')}
                     data-testid="exactDate"
                     onClick={() => setShowDateDialog(true)}

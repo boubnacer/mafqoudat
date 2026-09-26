@@ -10,6 +10,7 @@ import {
 import { Edit as EditIcon, LockOutlined } from '@mui/icons-material';
 import Textfield from "../../../../components/Textfield";
 import { useTranslation } from "../../../../utils/translations";
+import { formatDisplayDate } from "../../../../utils/dateUtils";
 import { useGetDocumentTypesQuery } from "../../../dependencies/documentTypesApiSlice";
 import RequiredMark from "./RequiredMark";
 
@@ -85,7 +86,12 @@ const StepReview = ({
         <ReviewRow label={t('country')} value={countryLabel || '-'} />
         <ReviewRow label={t('city')} value={cityDisplayValue || '-'} />
         <ReviewRow label={t('exactLocation')} value={values.exactLocation} />
-        {values.exactDate && <ReviewRow label={t('exactDateFound')} value={values.exactDate} />}
+        {values.exactDate && (
+          <ReviewRow
+            label={getFoundLostType(values.foundLost) === 'LOST' ? t('exactDateLost') : t('exactDateFound')}
+            value={formatDisplayDate(values.exactDate, currentLanguage)}
+          />
+        )}
       </ReviewSection>
 
       {/* A listing that is only about documents has no Photo step to review or

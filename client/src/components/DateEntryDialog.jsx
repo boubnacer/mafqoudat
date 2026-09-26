@@ -23,70 +23,15 @@ import {
 } from "@mui/icons-material";
 import { useTranslation } from "../utils/translations";
 
-// Locales used only for generating month names / formatting the final string.
-// Arabic uses 'ar-MA' for the Maghrebi Gregorian month names (ماي/يوليوز/غشت/
-// شتنبر/نونبر/دجنبر) our users actually say. 'ar-SA' is deliberately avoided:
-// modern browsers resolve it to the Islamic calendar, which would print Hijri
-// month names for a Gregorian date.
-const DATE_LOCALES = { en: 'en-US', fr: 'fr-FR', ar: 'ar-MA' };
+import {
+  getMonthNames,
+  formatDateValue,
+  parseDateValue,
+  daysInMonth,
+  MIN_YEAR,
+} from "../utils/dateUtils";
 
-// Month names already stored in posts created before the switch to 'ar-MA'
-// (Mashriqi set: يوليو/أغسطس/سبتمبر...). Only used when reading a value back,
-// never when writing one.
-const LEGACY_PARSE_LOCALES = ['ar'];
-
-const MIN_YEAR = 1900;
-
-// Gregorian month names in a given site language (or, for parsing only, in a
-// raw BCP 47 locale), with Latin digits so the stored string stays readable in
-// every language.
-export const getMonthNames = (language) => {
-  const formatter = new Intl.DateTimeFormat(DATE_LOCALES[language] || language || DATE_LOCALES.en, {
-    month: 'long',
-    calendar: 'gregory',
-    numberingSystem: 'latn',
-  });
-  return Array.from({ length: 12 }, (_, month) => formatter.format(new Date(2020, month, 1)));
-};
-
-// The value saved into Formik's `exactDate` (stored server-side as mainDate,
-// a free-text string). Spelled-out month names on purpose - the whole point of
-// this dialog is that "03/04/2026" is ambiguous across dd/mm and mm/dd users.
-export const formatDateValue = ({ day, month, year }, language) => {
-  const monthName = getMonthNames(language)[month];
-  if (!day) return `${monthName} ${year}`;
-  if (language === 'en') return `${monthName} ${day}, ${year}`;
-  return `${day} ${monthName} ${year}`;
-};
-
-// Best-effort read of a string previously produced by formatDateValue, so
-// reopening the dialog starts from what the user already picked. Month names
-// are matched across all three languages (the user may have switched language
-// since). Anything unrecognised falls back to today's date.
-const parseDateValue = (value) => {
-  if (!value || typeof value !== 'string') return null;
-
-  const yearMatch = value.match(/\b(\d{4})\b/);
-  if (!yearMatch) return null;
-  const year = Number(yearMatch[1]);
-
-  let month = null;
-  ['en', 'fr', 'ar', ...LEGACY_PARSE_LOCALES].forEach((language) => {
-    if (month !== null) return;
-    const names = getMonthNames(language);
-    const index = names.findIndex((name) => value.toLowerCase().includes(name.toLowerCase()));
-    if (index !== -1) month = index;
-  });
-  if (month === null) return null;
-
-  // Any 1-2 digit standalone number left over is the day (the year is 4 digits).
-  const dayMatch = value.replace(yearMatch[0], '').match(/\b(\d{1,2})\b/);
-  const day = dayMatch ? Number(dayMatch[1]) : null;
-
-  return { day, month, year };
-};
-
-const daysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
+export { getMonthNames, formatDateValue, parseDateValue, daysInMonth, MIN_YEAR };
 
 // Two-step, plain-language replacement for a calendar date picker: the user
 // types the day as a number (skippable when they only remember the month),

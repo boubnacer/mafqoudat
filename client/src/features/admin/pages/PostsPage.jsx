@@ -13,6 +13,7 @@ import {
   ImageNotSupportedOutlined,
 } from '@mui/icons-material';
 import { useTranslation } from '../../../utils/translations';
+import { formatDisplayDate } from '../../../utils/dateUtils';
 import {
   useGetAllPostsAdminQuery,
   useDeletePostAdminMutation,
@@ -506,7 +507,7 @@ const PostsPage = () => {
                     .join(' · ') || t('noLocation')}
                 />
                 {selected.mainDate ? (
-                  <FieldRow label={t('date')} value={selected.mainDate} />
+                  <FieldRow label={t('date')} value={formatDisplayDate(selected.mainDate, currentLanguage)} />
                 ) : null}
                 <FieldRow
                   label={t('viewsLabel')}
