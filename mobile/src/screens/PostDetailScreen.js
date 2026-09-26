@@ -422,6 +422,12 @@ const PostDetailScreen = ({ navigation, route }) => {
       .catch(() => {});
   }, [post?._id, post?.id]);
 
+  const statsBarItems = useMemo(() => [
+    { key: 'views', label: t('viewsLabel'), value: viewsCount },
+    { key: 'reactions', label: t('reactions'), value: reactionsCount },
+    { key: 'comments', label: t('comments'), value: commentsCount },
+  ], [viewsCount, reactionsCount, commentsCount, t]);
+
   const exactDateLabel = isFoundType ? t('dateFoundLabel') : (isLostType ? t('dateLostLabel') : t('exactDate'));
 
   const isResolved = post.returned === true || (!!post.status && post.status !== 'active');
@@ -667,35 +673,35 @@ const PostDetailScreen = ({ navigation, route }) => {
               used to be three full-width rows plus a stray meta row after the
               description, which is what made the screen read as a list of
               loose lines. They are one tile grid now - same data, one block. */}
-          {/* Info grid — single-value facts grouped into logical flex rows:
-              1. Date posted & Exact date side by side
+          {/* Info grid — single-value facts grouped into logical rows:
+              1. Date posted & Exact date stacked one under another
               2. Country & City side by side (+ exact location full width below if available)
-              3. Views, Reactions, and Comments side by side */}
+              3. Views, Reactions, and Comments stats bar matching Posts list cards */}
           <View style={styles.infoGrid}>
-            {/* Dates: Date posted & Exact date side by side */}
-            <View style={styles.infoRow}>
-              {postedTimeAgo ? (
-                <InfoTile
-                  styles={styles}
-                  tokens={tokens}
-                  icon="time-outline"
-                  label={t('posted')}
-                  value={postedTimeAgo}
-                  isRTL={isRTL}
-                />
-              ) : null}
-              {dateValue ? (
-                <InfoTile
-                  styles={styles}
-                  tokens={tokens}
-                  icon="calendar-outline"
-                  label={exactDateLabel}
-                  value={dateValue}
-                  accessibilityLabel={`${isLostType ? t('exactDateLost') : t('exactDateFound')}: ${dateValue}`}
-                  isRTL={isRTL}
-                />
-              ) : null}
-            </View>
+            {/* Dates: Date posted & Exact date stacked one under another */}
+            {postedTimeAgo ? (
+              <InfoTile
+                styles={styles}
+                tokens={tokens}
+                icon="time-outline"
+                label={t('posted')}
+                value={postedTimeAgo}
+                isRTL={isRTL}
+                fullWidth
+              />
+            ) : null}
+            {dateValue ? (
+              <InfoTile
+                styles={styles}
+                tokens={tokens}
+                icon="calendar-outline"
+                label={exactDateLabel}
+                value={dateValue}
+                accessibilityLabel={`${isLostType ? t('exactDateLost') : t('exactDateFound')}: ${dateValue}`}
+                isRTL={isRTL}
+                fullWidth
+              />
+            ) : null}
 
             {/* Locations: Country & City side by side */}
             {countryLabel || cityLabel ? (
@@ -736,35 +742,17 @@ const PostDetailScreen = ({ navigation, route }) => {
               />
             ) : null}
 
-            {/* Engagement metrics: Views, Reactions, Comments side by side */}
-            <View style={styles.infoRow}>
-              <InfoTile
-                styles={styles}
-                tokens={tokens}
-                icon="eye-outline"
-                label={t('viewsLabel')}
-                value={String(viewsCount)}
-                isRTL={isRTL}
-                compact
-              />
-              <InfoTile
-                styles={styles}
-                tokens={tokens}
-                icon="thumbs-up-outline"
-                label={t('reactions')}
-                value={String(reactionsCount)}
-                isRTL={isRTL}
-                compact
-              />
-              <InfoTile
-                styles={styles}
-                tokens={tokens}
-                icon="chatbubble-outline"
-                label={t('comments')}
-                value={String(commentsCount)}
-                isRTL={isRTL}
-                compact
-              />
+            {/* Engagement metrics: Views, Reactions, Comments stats bar matching Posts list cards */}
+            <View style={styles.statsBar}>
+              {statsBarItems.map((stat, index) => (
+                <View
+                  key={stat.key}
+                  style={[styles.statsBarCell, index < statsBarItems.length - 1 && styles.statsBarCellDivider]}
+                >
+                  <Text style={styles.statsBarLabel}>{stat.label}</Text>
+                  <Text style={styles.statsBarValue}>{stat.value !== null ? stat.value : '—'}</Text>
+                </View>
+              ))}
             </View>
           </View>
 
@@ -1211,7 +1199,6 @@ const createStyles = (tokens, isRTL, isDark) =>
     infoTileFullWidth: {
       width: '100%',
       flexBasis: '100%',
-      alignItems: 'flex-start',
     },
     infoTileIcon: {
       width: 32,
@@ -1251,6 +1238,34 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontSize: 12,
       lineHeight: 16,
       marginTop: 1,
+    },
+    // Stats bar: site views / reactions / comments, 3-column grid matching Posts list cards
+    // background matching other fields (${tokens.ink}0A) and radiusTokens.md
+    statsBar: {
+      flexDirection: row(isRTL),
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.ink}0A`,
+      paddingVertical: 12,
+      paddingHorizontal: 6,
+      width: '100%',
+    },
+    statsBarCell: {
+      flex: 1,
+      alignItems: 'center',
+      gap: 3,
+    },
+    statsBarCellDivider: {
+      ...logical(isRTL, { borderEndWidth: StyleSheet.hairlineWidth, borderEndColor: `${tokens.ink}1A` }),
+    },
+    statsBarLabel: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 11,
+      color: `${tokens.ink}99`,
+    },
+    statsBarValue: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 15,
+      color: tokens.brandLogo,
     },
     descriptionBox: {
       padding: 14,

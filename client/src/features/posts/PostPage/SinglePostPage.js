@@ -33,11 +33,8 @@ import {
   TaskAltOutlined,
   SearchOffOutlined,
   AccessTime as TimeIcon,
-  Visibility as ViewIcon,
   Flag as FlagIcon,
   Block as BlockIcon,
-  ThumbUpAltOutlined as ReactionsIcon,
-  ChatBubbleOutline as CommentsIcon,
 } from "@mui/icons-material";
 
 import { useTranslation } from "../../../utils/translations";
@@ -351,7 +348,6 @@ const InfoTile = ({ icon: Icon, label, value, fullWidth, sx = {} }) => {
         )}
         <Typography
           variant="body2"
-          noWrap={!fullWidth}
           sx={{
             fontWeight: 700,
             color: theme.custom.color.ink,
@@ -359,8 +355,11 @@ const InfoTile = ({ icon: Icon, label, value, fullWidth, sx = {} }) => {
             wordBreak: 'break-word',
             fontSize: { xs: '0.8125rem', sm: '0.875rem' },
             lineHeight: 1.3,
-            textOverflow: 'ellipsis',
+            display: '-webkit-box',
+            WebkitLineClamp: fullWidth ? 3 : 2,
+            WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}
         >
           {value}
@@ -480,6 +479,12 @@ const SinglePostPage = ({
     );
     return socialComments !== null ? socialComments : 0;
   }, [commentsData, summarizedSocialStats, combineCounts]);
+
+  const statsBarItems = useMemo(() => [
+    { key: 'views', label: t('views'), value: viewsCount },
+    { key: 'reactions', label: t('reactions'), value: reactionsCount },
+    { key: 'comments', label: t('comments'), value: commentsCount },
+  ], [viewsCount, reactionsCount, commentsCount, t]);
 
   // Memoized event handlers
   const handleEdit = useCallback(() => {
@@ -1116,13 +1121,20 @@ const SinglePostPage = ({
                   on-image badge above, in the spot "posted" used to occupy — this
                   grid takes "posted" in exchange, styled like every other fact
                   here. Mirrors mobile PostDetailScreen.js's InfoTile grid (Phase 14). */}
-              {/* Info grid — single-value facts grouped into logical flex rows:
-                  1. Date posted & Exact date (Posted on / Lost on / Found on) side by side
-                  2. Country & City side by side (+ exact location full width below if available)
-                  3. Views, Reactions, and Comments side by side */}
+              {/* Info grid — single-value facts:
+                  1. Date posted & Exact date (Posted on / Lost on / Found on) in 2-column grid view
+                  2. Country & City in 2-column grid view (+ exact location full width below if available)
+                  3. Views, Reactions, and Comments stats bar matching Posts list cards */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
-                {/* Dates: Date posted & Exact date side by side */}
-                <Box sx={{ display: 'flex', gap: 1.5, width: '100%' }}>
+                {/* Dates: Date posted & Exact date — stacked one under another on mobile, 2-column grid on desktop */}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: exactDateValue ? 'repeat(2, 1fr)' : '1fr' },
+                    gap: 1.5,
+                    width: '100%',
+                  }}
+                >
                   <InfoTile icon={TimeIcon} label={t('posted')} value={postedTimeAgo} />
                   {exactDateValue && (
                     <InfoTile
@@ -1133,9 +1145,16 @@ const SinglePostPage = ({
                   )}
                 </Box>
 
-                {/* Locations: Country & City side by side */}
+                {/* Locations: Country & City in grid view */}
                 {(countryDisplayName || displayCityName) && (
-                  <Box sx={{ display: 'flex', gap: 1.5, width: '100%' }}>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: (countryDisplayName && displayCityName) ? 'repeat(2, 1fr)' : '1fr',
+                      gap: 1.5,
+                      width: '100%',
+                    }}
+                  >
                     {countryDisplayName && (
                       <InfoTile icon={CountryIcon} label={t('country')} value={countryDisplayName} />
                     )}
@@ -1150,11 +1169,60 @@ const SinglePostPage = ({
                   <InfoTile icon={LocationIcon} label={t('location')} value={metaLocationLabel} fullWidth />
                 )}
 
-                {/* Engagement metrics: Views, Reactions, Comments side by side */}
-                <Box sx={{ display: 'flex', gap: 1.5, width: '100%' }}>
-                  <InfoTile icon={ViewIcon} label={t('views')} value={viewsCount} />
-                  <InfoTile icon={ReactionsIcon} label={t('reactions')} value={reactionsCount} />
-                  <InfoTile icon={CommentsIcon} label={t('comments')} value={commentsCount} />
+                {/* Engagement metrics: Views, Reactions, Comments stats bar matching Posts list cards */}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    borderRadius: `${theme.custom.radius.md}px`,
+                    backgroundColor: alpha(theme.custom.color.ink, 0.04),
+                    padding: { xs: '10px 4px', sm: '14px 6px' },
+                    width: '100%',
+                  }}
+                >
+                  {statsBarItems.map((item, index) => (
+                    <Box
+                      key={item.key}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        minWidth: 0,
+                        px: { xs: 0.25, sm: 0.5 },
+                        borderInlineEnd: index < statsBarItems.length - 1
+                          ? `1px solid ${alpha(theme.custom.color.ink, 0.1)}`
+                          : 'none',
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: alpha(theme.custom.color.ink, 0.6),
+                          fontWeight: 600,
+                          fontSize: { xs: '11px', sm: '12px' },
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: '100%',
+                          lineHeight: 1.2,
+                          textTransform: 'capitalize',
+                        }}
+                      >
+                        {item.label}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: theme.custom.color.brandLogo,
+                          fontWeight: 800,
+                          fontSize: { xs: 14, sm: 16 },
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {item.value !== null ? item.value : '—'}
+                      </Typography>
+                    </Box>
+                  ))}
                 </Box>
               </Box>
 
