@@ -4,7 +4,7 @@
  * submit request (always multipart - POST /posts requires it), and error/nav.
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import apiClient from '../api/apiService';
@@ -16,6 +16,7 @@ import { useTheme } from '../context/ThemeContext';
 import { colorTokens } from '../theme/tokens';
 import PostForm from '../components/PostForm';
 import AppHeader from '../components/AppHeader';
+import ConfirmExitModal from '../components/ConfirmExitModal';
 
 const NewPostScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
@@ -41,6 +42,41 @@ const NewPostScreen = ({ navigation, route }) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [isFormDirty, setIsFormDirty] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  const pendingActionRef = useRef(null);
+  const isSubmittedRef = useRef(false);
+
+  // Intercept back navigation (hardware back button, swipe gesture, or AppHeader back button)
+  // when the user has started filling the form.
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (isSubmittedRef.current || !isFormDirty) {
+        return;
+      }
+
+      e.preventDefault();
+      pendingActionRef.current = e.data.action;
+      setShowExitDialog(true);
+    });
+
+    return unsubscribe;
+  }, [navigation, isFormDirty]);
+
+  const handleConfirmExit = () => {
+    setShowExitDialog(false);
+    isSubmittedRef.current = true;
+    if (pendingActionRef.current) {
+      navigation.dispatch(pendingActionRef.current);
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  const handleCancelExit = () => {
+    setShowExitDialog(false);
+    pendingActionRef.current = null;
+  };
 
   const handleSubmit = async ({ postData, imageAsset }) => {
     setSubmitError(null);
@@ -62,6 +98,7 @@ const NewPostScreen = ({ navigation, route }) => {
       });
 
       const postId = response.data?.postId;
+      isSubmittedRef.current = true;
       // Land on the new post's detail with Home underneath it, so back from
       // the detail screen returns to Home rather than to this now-submitted
       // form. NewPost, Home and PostDetailScreen are all screens on the same
@@ -116,6 +153,13 @@ const NewPostScreen = ({ navigation, route }) => {
         submitError={submitError}
         submitButtonLabel={t('publishPost')}
         onSubmit={handleSubmit}
+        onDirtyChange={setIsFormDirty}
+      />
+
+      <ConfirmExitModal
+        visible={showExitDialog}
+        onConfirmExit={handleConfirmExit}
+        onCancelExit={handleCancelExit}
       />
     </View>
   );

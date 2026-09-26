@@ -300,14 +300,27 @@ const DateEntryDialog = ({ open, value, onClose, onConfirm }) => {
               />
 
               <Button
+                fullWidth
+                variant="outlined"
                 onClick={handleSkipDay}
-                startIcon={<HelpOutlineIcon />}
+                startIcon={<HelpOutlineIcon sx={{ fontSize: 20 }} />}
                 sx={{
-                  mt: 2,
+                  mt: 2.5,
+                  py: 1.25,
+                  px: 2,
                   textTransform: 'none',
                   fontWeight: 600,
+                  fontSize: '0.925rem',
                   color: accent,
+                  borderColor: alpha(accent, theme.palette.mode === 'dark' ? 0.45 : 0.35),
+                  backgroundColor: alpha(accent, theme.palette.mode === 'dark' ? 0.12 : 0.06),
                   borderRadius: `${theme.custom.radius.md}px`,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    borderColor: accent,
+                    backgroundColor: alpha(accent, theme.palette.mode === 'dark' ? 0.22 : 0.12),
+                    boxShadow: `0 2px 8px ${alpha(accent, 0.2)}`,
+                  },
                 }}
               >
                 {t('datePickerSkipDay')}

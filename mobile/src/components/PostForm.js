@@ -50,6 +50,7 @@ import { fetchDocumentTypes, createDocumentType } from '../api/documentTypesApi'
 import CityPickerModal from './CityPickerModal';
 import SelectModal from './SelectModal';
 import DateEntryModal, { formatDateValue } from './DateEntryModal';
+import DocumentTypeModal from './DocumentTypeModal';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
 
 const MAX_IMAGE_DIMENSION = 1920;
@@ -137,7 +138,7 @@ const buildInitialCityValue = (post, lang) => {
 // item + location + review: the form's length once the Photo step is gone.
 const DOCUMENTS_STEP_COUNT = 3;
 
-const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLabel, onSubmit }) => {
+const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLabel, onSubmit, onDirtyChange }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
   const { isDark } = useTheme();
@@ -189,11 +190,6 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   const [documentOwnerNameAr, setDocumentOwnerNameAr] = useState(initialPost?.documentOwnerName?.ar || '');
   const [documentOwnerNameLatin, setDocumentOwnerNameLatin] = useState(initialPost?.documentOwnerName?.latin || '');
   const [documentPickerVisible, setDocumentPickerVisible] = useState(false);
-  const [otherDocumentVisible, setOtherDocumentVisible] = useState(false);
-  const [otherDocumentArabic, setOtherDocumentArabic] = useState('');
-  const [otherDocumentLatin, setOtherDocumentLatin] = useState('');
-  const [otherDocumentError, setOtherDocumentError] = useState('');
-  const [isSavingOtherDocument, setIsSavingOtherDocument] = useState(false);
 
   const [typePickerVisible, setTypePickerVisible] = useState(false);
   const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
@@ -209,6 +205,45 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   const [activeStep, setActiveStep] = useState(isEdit ? 3 : 0);
   const [maxStepReached, setMaxStepReached] = useState(isEdit ? 3 : 0);
   const scrollViewRef = useRef(null);
+
+  const isDirty = useMemo(() => {
+    if (isEdit) return false;
+    return (
+      activeStep > 0 ||
+      selectedCategoryIds.length > 0 ||
+      selectedDocumentTypeIds.length > 0 ||
+      Boolean(documentOwnerNameAr?.trim()) ||
+      Boolean(documentOwnerNameLatin?.trim()) ||
+      Boolean(description?.trim()) ||
+      Boolean(contact?.trim()) ||
+      Boolean(exactLocation?.trim()) ||
+      Boolean(exactDateText?.trim()) ||
+      Boolean(cityValue) ||
+      Boolean(imageAsset) ||
+      (Boolean(foundLost) && foundLost !== (initialPost?.foundLost || '')) ||
+      (Boolean(countryId) && countryId !== (initialPost?.country || ''))
+    );
+  }, [
+    activeStep,
+    selectedCategoryIds,
+    selectedDocumentTypeIds,
+    documentOwnerNameAr,
+    documentOwnerNameLatin,
+    description,
+    contact,
+    exactLocation,
+    exactDateText,
+    cityValue,
+    imageAsset,
+    foundLost,
+    initialPost,
+    countryId,
+    isEdit,
+  ]);
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
 
   // Keyboard handling. Android under edge-to-edge (enforced since Expo SDK 54)
   // no longer resizes the window when the soft keyboard opens, so a focused
@@ -409,59 +444,6 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
     setSelectedDocumentTypeIds(ids);
     setDocumentPickerVisible(false);
     if (ids.length > 0) clearFieldError('documentTypes');
-  };
-
-  const resetOtherDocumentForm = () => {
-    setOtherDocumentArabic('');
-    setOtherDocumentLatin('');
-    setOtherDocumentError('');
-  };
-
-  const handleSaveOtherDocument = async () => {
-    const arabic = otherDocumentArabic.trim();
-    const latin = otherDocumentLatin.trim();
-
-    if (!arabic || !latin) {
-      setOtherDocumentError(t('documentTitleBothNamesRequired'));
-      return;
-    }
-    if (!/[\u0600-\u06FF]/.test(arabic)) {
-      setOtherDocumentError(t('documentTitleArabicScriptRequired'));
-      return;
-    }
-    if (!/[A-Za-z\u00C0-\u024F]/.test(latin)) {
-      setOtherDocumentError(t('documentTitleLatinScriptRequired'));
-      return;
-    }
-
-    setOtherDocumentError('');
-    setIsSavingOtherDocument(true);
-    try {
-      // A title already saved under another spelling comes back as the
-      // existing row, so both outcomes end the same way: it is in the list
-      // and ticked.
-      const created = await createDocumentType({ arabicLabel: arabic, latinLabel: latin });
-      if (created?._id) {
-        setDocumentTypes((prev) => (
-          prev.some((documentType) => String(documentType._id) === String(created._id))
-            ? prev
-            : [...prev, created]
-        ));
-        setSelectedDocumentTypeIds((prev) => (
-          prev.includes(String(created._id)) || prev.length >= MAX_DOCUMENT_TYPES
-            ? prev
-            : [...prev, String(created._id)]
-        ));
-        clearFieldError('documentTypes');
-      }
-      setOtherDocumentVisible(false);
-      resetOtherDocumentForm();
-    } catch (error) {
-      const fieldMessage = error?.response?.data?.fields?.[0]?.message;
-      setOtherDocumentError(fieldMessage || error?.response?.data?.message || t('documentTitleSaveFailed'));
-    } finally {
-      setIsSavingOtherDocument(false);
-    }
   };
 
   const handleSelectCountry = (id) => {
@@ -898,19 +880,6 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
                   <Text style={styles.fieldError}>{t('documentTitleRequired')}</Text>
                 ) : null}
 
-                <Text style={[styles.helperText, styles.cantFindDocumentText, textStyle]}>
-                  {t('cantFindDocument')}
-                </Text>
-                <TouchableOpacity
-                  style={styles.otherDocumentButton}
-                  onPress={() => {
-                    resetOtherDocumentForm();
-                    setOtherDocumentVisible(true);
-                  }}
-                >
-                  <Ionicons name="add-circle-outline" size={18} color={tokens.brandPrimary} />
-                  <Text style={[styles.otherDocumentButtonText, textStyle]}>{t('addNewDocument')}</Text>
-                </TouchableOpacity>
 
                 {/* The name on the paper. With no photo published, this is
                     what lets an owner recognise their own document among
@@ -1289,94 +1258,21 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
         isRTL={isRTL}
       />
 
-      <SelectModal
+      <DocumentTypeModal
         visible={documentPickerVisible}
         onClose={() => setDocumentPickerVisible(false)}
-        title={t('selectDocumentTitle')}
-        searchPlaceholder={t('searchDocumentTitle')}
-        noResultsText={t('noDocumentTitleFound')}
-        options={documentTypes}
-        getId={(documentType) => String(documentType._id)}
-        getLabel={(documentType) => getLocalizedLabel(documentType, currentLanguage)}
-        renderLeading={() => (
-          <Ionicons name="document-text-outline" size={18} color={tokens.brandPrimary} />
-        )}
-        multiple
+        documentTypes={documentTypes}
         selectedIds={selectedDocumentTypeIds}
         onConfirm={handleConfirmDocumentTypes}
+        onDocumentTypeCreated={(created) => {
+          setDocumentTypes((prev) => (
+            prev.some((d) => String(d._id) === String(created._id)) ? prev : [...prev, created]
+          ));
+        }}
         maxSelected={MAX_DOCUMENT_TYPES}
-        confirmLabel={t('confirm')}
+        currentLanguage={currentLanguage}
         isRTL={isRTL}
       />
-
-      {/* "Other document": a title the list does not carry yet. Both scripts
-          are asked for, because what is written here is saved for everyone and
-          a title in one language only is unreadable to half the site. */}
-      <Modal
-        visible={otherDocumentVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => {
-          if (!isSavingOtherDocument) setOtherDocumentVisible(false);
-        }}
-      >
-        <View style={styles.otherDocumentBackdrop}>
-          <View style={styles.otherDocumentSheet}>
-            <Text style={[styles.otherDocumentTitle, textStyle]}>{t('addNewDocument')}</Text>
-            <Text style={[styles.otherDocumentHint, textStyle]}>{t('otherDocumentHint')}</Text>
-
-            <Text style={[styles.otherDocumentLabel, textStyle]}>{t('documentNameArabic')}</Text>
-            <Text style={[styles.otherDocumentFieldHint, textStyle]}>{t('documentNameArabicHelper')}</Text>
-            <TextInput
-              style={[styles.textInput, styles.textRTL]}
-              placeholder={t('documentNameArabicPlaceholder')}
-              placeholderTextColor={`${tokens.ink}80`}
-              value={otherDocumentArabic}
-              onChangeText={setOtherDocumentArabic}
-              maxLength={80}
-            />
-
-            <Text style={[styles.otherDocumentLabel, textStyle]}>{t('documentNameLatin')}</Text>
-            <Text style={[styles.otherDocumentFieldHint, textStyle]}>{t('documentNameLatinHelper')}</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder={t('documentNameLatinPlaceholder')}
-              placeholderTextColor={`${tokens.ink}80`}
-              value={otherDocumentLatin}
-              onChangeText={setOtherDocumentLatin}
-              maxLength={80}
-            />
-
-            {otherDocumentError ? (
-              <Text style={styles.fieldError}>{otherDocumentError}</Text>
-            ) : null}
-
-            <View style={styles.otherDocumentActions}>
-              <TouchableOpacity
-                style={styles.otherDocumentCancel}
-                onPress={() => {
-                  if (isSavingOtherDocument) return;
-                  setOtherDocumentVisible(false);
-                  resetOtherDocumentForm();
-                }}
-              >
-                <Text style={styles.otherDocumentCancelText}>{t('cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.otherDocumentSave}
-                onPress={handleSaveOtherDocument}
-                disabled={isSavingOtherDocument}
-              >
-                {isSavingOtherDocument ? (
-                  <ActivityIndicator size="small" color={tokens.surfaceRaised} />
-                ) : (
-                  <Text style={styles.otherDocumentSaveText}>{t('addDocumentTitle')}</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       <SelectModal
         visible={countryPickerVisible}
@@ -1838,95 +1734,11 @@ const createStyles = (tokens, legacy, isDark, isRTL) => {
       color: tokens.ink,
       marginBottom: 2,
     },
-    cantFindDocumentText: {
-      marginTop: 14,
-      marginBottom: 6,
-    },
     documentOwnerLabel: {
       marginTop: 20,
     },
     documentOwnerLatinInput: {
       marginTop: 10,
-    },
-    otherDocumentFieldHint: {
-      fontFamily: fontFamilies.body,
-      fontSize: 11,
-      color: `${tokens.ink}99`,
-      marginBottom: 6,
-    },
-    otherDocumentButton: {
-      flexDirection: row(isRTL),
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      gap: 8,
-      marginTop: 10,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      borderRadius: radiusTokens.md,
-      backgroundColor: `${tokens.brandPrimary}${isDark ? '24' : '0F'}`,
-    },
-    otherDocumentButtonText: {
-      fontFamily: fontFamilies.bodyMedium,
-      fontSize: 13,
-      color: tokens.brandPrimary,
-    },
-    otherDocumentBackdrop: {
-      flex: 1,
-      justifyContent: 'center',
-      padding: 20,
-      backgroundColor: 'rgba(0,0,0,0.45)',
-    },
-    otherDocumentSheet: {
-      backgroundColor: tokens.surfaceRaised,
-      borderRadius: radiusTokens.lg,
-      padding: 20,
-    },
-    otherDocumentTitle: {
-      fontFamily: fontFamilies.display,
-      fontSize: 17,
-      color: tokens.ink,
-      marginBottom: 6,
-    },
-    otherDocumentHint: {
-      fontFamily: fontFamilies.body,
-      fontSize: 12,
-      lineHeight: 18,
-      color: `${tokens.ink}99`,
-      marginBottom: 14,
-    },
-    otherDocumentLabel: {
-      fontFamily: fontFamilies.bodyMedium,
-      fontSize: 13,
-      color: tokens.ink,
-      marginBottom: 6,
-    },
-    otherDocumentActions: {
-      flexDirection: row(isRTL),
-      alignItems: 'center',
-      gap: 10,
-      marginTop: 16,
-    },
-    otherDocumentCancel: {
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderRadius: radiusTokens.md,
-    },
-    otherDocumentCancelText: {
-      fontFamily: fontFamilies.bodyMedium,
-      fontSize: 14,
-      color: `${tokens.ink}99`,
-    },
-    otherDocumentSave: {
-      flex: 1,
-      alignItems: 'center',
-      paddingVertical: 12,
-      borderRadius: radiusTokens.md,
-      backgroundColor: tokens.brandPrimary,
-    },
-    otherDocumentSaveText: {
-      fontFamily: fontFamilies.bodyMedium,
-      fontSize: 14,
-      color: tokens.surfaceRaised,
     },
     warningBanner: {
       backgroundColor: legacy.warningBackground,

@@ -153,6 +153,26 @@ const DocumentsModeSync = ({ categories, onChange }) => {
   return null;
 };
 
+// Watches Formik dirty state and field changes to trigger history guard
+const FormDirtyWatcher = ({ onDirty }) => {
+  const { dirty, values } = useFormikContext();
+  useEffect(() => {
+    if (
+      dirty ||
+      (Array.isArray(values.categories) && values.categories.length > 0) ||
+      (Array.isArray(values.documentTypes) && values.documentTypes.length > 0) ||
+      Boolean(values.description?.trim()) ||
+      Boolean(values.contact?.trim()) ||
+      Boolean(values.exactLocation?.trim()) ||
+      Boolean(values.exactDate?.trim()) ||
+      Boolean(values.city)
+    ) {
+      onDirty();
+    }
+  }, [dirty, values, onDirty]);
+  return null;
+};
+
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [addNewPost, { isSuccess, isError, error, reset: resetAddNewPost }] = useAddNewPostMutation();
   const { t, currentLanguage } = useTranslation();
@@ -220,6 +240,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [showPushDialog, setShowPushDialog] = useState(false);
   const [isRequestingPush, setIsRequestingPush] = useState(false);
   const pushAnswerRef = useRef(null);
+
+  // Exit / Discard dialog state & history guard to intercept browser back button
+  const [showExitConfirmDialog, setShowExitConfirmDialog] = useState(false);
+  const hasPushedGuardRef = useRef(false);
+  const isExitingRef = useRef(false);
 
   // Image management state
   const [selectedImage, setSelectedImage] = useState(null);
@@ -343,8 +368,94 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [user.country, countries, fetchCitiesByCountry]);
 
+  // Check if form has started being filled or modified
+  const isFormDirty = useCallback(() => {
+    if (isExitingRef.current) return false;
+    if (activeStep > 0) return true;
+    if (Boolean(selectedImage)) return true;
+    if (Boolean(customCityName?.trim())) return true;
+    if (formikRef.current) {
+      if (formikRef.current.dirty) return true;
+      const values = formikRef.current.values;
+      if (values) {
+        if (Array.isArray(values.categories) && values.categories.length > 0) return true;
+        if (Array.isArray(values.documentTypes) && values.documentTypes.length > 0) return true;
+        if (values.description?.trim()) return true;
+        if (values.contact?.trim()) return true;
+        if (values.exactLocation?.trim()) return true;
+        if (values.exactDate?.trim()) return true;
+        if (values.city) return true;
+        if (values.documentOwnerName?.ar?.trim() || values.documentOwnerName?.latin?.trim()) return true;
+      }
+    }
+    return false;
+  }, [activeStep, selectedImage, customCityName]);
+
+  const markDirtyAndGuard = useCallback(() => {
+    if (!hasPushedGuardRef.current && !isExitingRef.current) {
+      window.history.pushState({ mafqoudatFormGuard: true }, "");
+      hasPushedGuardRef.current = true;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeStep > 0 || selectedImage || customCityName?.trim()) {
+      markDirtyAndGuard();
+    }
+  }, [activeStep, selectedImage, customCityName, markDirtyAndGuard]);
+
+  // Intercept browser back button
+  useEffect(() => {
+    const handlePopState = () => {
+      if (isExitingRef.current) {
+        return;
+      }
+
+      if (isFormDirty()) {
+        hasPushedGuardRef.current = false;
+        setShowExitConfirmDialog(true);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [isFormDirty]);
+
+  // Warn on page reload or closing tab
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (!isExitingRef.current && isFormDirty()) {
+        e.preventDefault();
+        e.returnValue = "";
+        return "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isFormDirty]);
+
+  const handleContinueFilling = () => {
+    setShowExitConfirmDialog(false);
+    if (!hasPushedGuardRef.current) {
+      window.history.pushState({ mafqoudatFormGuard: true }, "");
+      hasPushedGuardRef.current = true;
+    }
+  };
+
+  const handleConfirmExit = () => {
+    isExitingRef.current = true;
+    setShowExitConfirmDialog(false);
+    navigate(-1);
+  };
+
   useEffect(() => {
     if (isSuccess) {
+      isExitingRef.current = true;
       setShowSuccess(true);
       // Check if this is a lost item post using the stored values
       const foundLostOption = lastSubmittedValues && flOptions.find(option => option.id === lastSubmittedValues.foundLost);
@@ -1366,6 +1477,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               {/* Mirrors "is this a documents listing?" out of Formik, which
                   is what removes the Photo step. */}
               <DocumentsModeSync categories={categories} onChange={handleDocumentsModeChange} />
+              <FormDirtyWatcher onDirty={markDirtyAndGuard} />
               <Box
                 sx={{
                   display: { xs: 'block', sm: 'flex' },
@@ -1896,12 +2008,96 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       <PostSuccessDialog
         open={showPostSuccessDialog}
         onClose={() => {
+          isExitingRef.current = true;
           setShowPostSuccessDialog(false);
           setShowSuccess(false);
           navigate("/dash");
         }}
         isLostItem={isLostItem}
       />
+
+      {/* Exit / Discard Confirmation Dialog */}
+      <Dialog
+        open={showExitConfirmDialog}
+        onClose={handleContinueFilling}
+        PaperProps={{
+          sx: {
+            borderRadius: theme.custom?.borderRadius?.dialog || '20px',
+            p: 1,
+            maxWidth: 440,
+            width: '100%',
+            backgroundColor: theme.palette.background.paper,
+            backgroundImage: 'none',
+            boxShadow: theme.palette.mode === 'dark' 
+              ? '0 20px 40px rgba(0,0,0,0.6)' 
+              : '0 20px 40px rgba(0,0,0,0.15)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: 1, pt: 2, px: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              backgroundColor: alpha(theme.palette.warning.main, 0.15),
+              color: theme.palette.warning.main,
+              flexShrink: 0
+            }}
+          >
+            <HelpOutlineIcon sx={{ fontSize: 26 }} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.2rem', color: theme.palette.text.primary }}>
+            {t('discardPostTitle')}
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ px: 3, py: 1.5 }}>
+          <Typography variant="body2" sx={{ color: theme.palette.text.secondary, lineHeight: 1.6, fontSize: '0.95rem' }}>
+            {t('discardPostMessage')}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, pt: 1.5, gap: 1.5, justifyContent: 'flex-end' }}>
+          <Button
+            onClick={handleConfirmExit}
+            variant="text"
+            sx={{
+              color: theme.palette.error.main,
+              fontWeight: 600,
+              textTransform: 'none',
+              px: 2,
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.error.main, 0.08),
+              }
+            }}
+          >
+            {t('discardAndExit')}
+          </Button>
+          <Button
+            onClick={handleContinueFilling}
+            variant="contained"
+            autoFocus
+            sx={{
+              backgroundColor: theme.custom.color.brandPrimary,
+              color: '#fff',
+              fontWeight: 600,
+              textTransform: 'none',
+              px: 2.5,
+              borderRadius: '10px',
+              boxShadow: 'none',
+              '&:hover': {
+                opacity: 0.9,
+                backgroundColor: theme.custom.color.brandPrimary,
+                boxShadow: 'none',
+              }
+            }}
+          >
+            {t('continueFilling')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Browser notifications, offered once, between validation and the
           listing being created. Both buttons resolve the same promise

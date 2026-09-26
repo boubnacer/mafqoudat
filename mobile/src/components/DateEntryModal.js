@@ -16,8 +16,20 @@
  * accents) mirrors SelectModal.js.
  */
 
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, ScrollView } from 'react-native';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  Modal,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  useWindowDimensions,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
@@ -125,6 +137,7 @@ const DateEntryModal = ({ visible, value, language, isRTL, onClose, onConfirm })
       }
     }
     setError(null);
+    Keyboard.dismiss();
     setStage(1);
   };
 
@@ -132,6 +145,7 @@ const DateEntryModal = ({ visible, value, language, isRTL, onClose, onConfirm })
     setDay('');
     setDayUnknown(true);
     setError(null);
+    Keyboard.dismiss();
     setStage(1);
   };
 
@@ -206,6 +220,7 @@ const DateEntryModal = ({ visible, value, language, isRTL, onClose, onConfirm })
         onSkipDay={handleSkipDay}
         onBack={() => {
           setError(null);
+          Keyboard.dismiss();
           setStage(0);
         }}
         onNext={handleNextFromDay}
@@ -239,16 +254,64 @@ const DateEntryModalBody = ({
   onConfirm,
 }) => {
   const { t } = useTranslation();
+  const { height: windowHeight } = useWindowDimensions();
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const scrollViewRef = useRef(null);
+  const activeFieldRef = useRef(null);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardHeight(e.endCoordinates?.height || 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (keyboardHeight > 0) {
+      const timer = setTimeout(() => {
+        if (activeFieldRef.current === 'year') {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        } else if (activeFieldRef.current === 'day') {
+          scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+        }
+      }, 60);
+      return () => clearTimeout(timer);
+    }
+  }, [keyboardHeight]);
+
   const errorText = error
     ? typeof error === 'string'
       ? t(error)
       : t(error.key, error.params)
     : null;
 
+  const maxSheetHeight = keyboardHeight > 0
+    ? Math.max(windowHeight - keyboardHeight - 32, 280)
+    : windowHeight * 0.85;
+
   return (
-    <View style={styles.overlay}>
+    <KeyboardAvoidingView
+      style={styles.overlay}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-      <View style={styles.sheet}>
+      <View
+        style={[
+          styles.sheet,
+          {
+            maxHeight: maxSheetHeight,
+            ...(Platform.OS === 'android' && keyboardHeight > 0 ? { marginBottom: keyboardHeight } : {}),
+          },
+        ]}
+      >
         <View style={styles.header}>
           <View style={styles.headerTitleWrap}>
             <Ionicons name="calendar-outline" size={18} color={tokens.brandPrimary} style={styles.headerIcon} />
@@ -261,7 +324,13 @@ const DateEntryModalBody = ({
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.body}
+          contentContainerStyle={styles.bodyContent}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
           <View style={styles.progressRow}>
             {[0, 1].map((index) => (
               <View key={index} style={[styles.progressSegment, index <= stage && styles.progressSegmentActive]} />
@@ -286,10 +355,22 @@ const DateEntryModalBody = ({
                 keyboardType="number-pad"
                 maxLength={2}
                 autoFocus
+                onFocus={() => {
+                  activeFieldRef.current = 'day';
+                  scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+                }}
+                returnKeyType="next"
+                onSubmitEditing={onNext}
               />
 
-              <TouchableOpacity style={styles.skipButton} onPress={onSkipDay} activeOpacity={0.7}>
-                <Ionicons name="help-circle-outline" size={18} color={tokens.brandPrimary} />
+              <TouchableOpacity
+                style={styles.skipButton}
+                onPress={onSkipDay}
+                activeOpacity={0.75}
+                accessibilityRole="button"
+                accessibilityLabel={t('datePickerSkipDay')}
+              >
+                <Ionicons name="help-circle-outline" size={20} color={tokens.brandPrimary} />
                 <Text style={[styles.skipButtonText, textStyle]}>{t('datePickerSkipDay')}</Text>
               </TouchableOpacity>
             </>
@@ -326,6 +407,14 @@ const DateEntryModalBody = ({
                 placeholderTextColor={`${tokens.ink}66`}
                 keyboardType="number-pad"
                 maxLength={4}
+                onFocus={() => {
+                  activeFieldRef.current = 'year';
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                  }, 60);
+                }}
+                returnKeyType="done"
+                onSubmitEditing={onConfirm}
               />
 
               {previewValue ? (
@@ -358,7 +447,7 @@ const DateEntryModalBody = ({
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -421,7 +510,7 @@ const createStyles = (tokens, isDark, isRTL) =>
     },
     bodyContent: {
       paddingTop: 16,
-      paddingBottom: 8,
+      paddingBottom: 24,
     },
     progressRow: {
       flexDirection: row(isRTL),
@@ -482,13 +571,18 @@ const createStyles = (tokens, isDark, isRTL) =>
     skipButton: {
       flexDirection: row(isRTL),
       alignItems: 'center',
-      alignSelf: 'flex-start',
-      marginTop: 16,
-      paddingVertical: 8,
+      justifyContent: 'center',
+      marginTop: 20,
+      paddingVertical: 13,
+      paddingHorizontal: 16,
+      borderRadius: radiusTokens.md,
+      borderWidth: 1.5,
+      borderColor: `${tokens.brandPrimary}${isDark ? '55' : '3D'}`,
+      backgroundColor: `${tokens.brandPrimary}${isDark ? '1F' : '0F'}`,
     },
     skipButtonText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 14,
+      fontSize: 15,
       color: tokens.brandPrimary,
       ...logical(isRTL, { marginStart: 8 }),
     },
