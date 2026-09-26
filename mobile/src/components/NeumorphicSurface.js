@@ -31,8 +31,8 @@ import { getNeumorphic } from '../theme/neumorphism';
 const GRADIENT_START = { x: 0, y: 0 };
 const GRADIENT_END = { x: 1, y: 1 };
 
-const NeumorphicSurface = ({ isDark, radius, pressed = false, style, contentStyle, children }) => {
-  const neumorphic = getNeumorphic(isDark);
+const NeumorphicSurface = ({ isDark, radius, pressed = false, style, contentStyle, children, customNeumorphic }) => {
+  const neumorphic = customNeumorphic || getNeumorphic(isDark);
 
   return (
     <View

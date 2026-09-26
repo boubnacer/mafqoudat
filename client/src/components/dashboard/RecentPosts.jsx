@@ -38,7 +38,7 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
       </Box>
       <Box
         sx={{
-          display: "inline-flex",
+          display: { xs: "none", sm: "inline-flex" },
           alignItems: "center",
           backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
           backdropFilter: "blur(6px)",
@@ -46,7 +46,7 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
           fontWeight: 800,
           fontSize: { xs: "11px", sm: "12px" },
           lineHeight: 1,
-          borderRadius: "999px",
+          borderRadius: `${theme.custom.radius.sm}px`,
           px: { xs: 1, sm: 1.25 },
           py: { xs: 0.5, sm: 0.5 },
           textAlign: "center",
@@ -341,7 +341,7 @@ const RecentPosts = (props) => {
         )
       )}
 
-      {/* Top row: status tag (FOUND/LOST) at start, all category pills at end */}
+      {/* Top row: status tag (FOUND/LOST) at start (top left), category badges at end (top right) */}
       <Box
         sx={{
           position: "absolute",
@@ -374,7 +374,7 @@ const RecentPosts = (props) => {
               variant="caption"
               sx={{
                 fontWeight: 700,
-                fontSize: { xs: "10px", md: "12px" },
+                fontSize: { xs: "11px", md: "12px" },
                 letterSpacing: { xs: 0.3, md: 0.4 },
                 textTransform: "uppercase",
                 color: theme.palette.getContrastText(tone.main),
@@ -402,7 +402,7 @@ const RecentPosts = (props) => {
                 variant="caption"
                 sx={{
                   fontWeight: 700,
-                  fontSize: { xs: "10px", md: "12px" },
+                  fontSize: { xs: "11px", md: "12px" },
                   textTransform: "uppercase",
                   color: theme.palette.getContrastText(theme.custom.status.found.main),
                   lineHeight: 1,
@@ -414,44 +414,58 @@ const RecentPosts = (props) => {
           )}
         </Box>
 
-        {/* Categories: displays ALL categories just like posts list cards */}
-        {finalImageUrl && (
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "flex-end",
-              gap: 0.75,
-              maxWidth: "60%",
-            }}
-          >
-            {categories.map((cat, index) => {
-              const catStyle = categoryStyles[index];
-              const catName = categoryNames[index];
-              return (
-                <Box
-                  key={cat.code || index}
+        {/* Categories: positioned at top right (or top left in RTL) */}
+        <Box
+          sx={{
+            display: { xs: "flex", sm: finalImageUrl ? "flex" : "none" },
+            flexWrap: "wrap",
+            justifyContent: "flex-end",
+            gap: { xs: 0.5, md: 0.75 },
+            maxWidth: { xs: "55%", sm: "60%" },
+          }}
+        >
+          {categories.map((cat, index) => {
+            const catStyle = categoryStyles[index];
+            const catName = categoryNames[index];
+            return (
+              <Box
+                key={cat.code || index}
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
+                  backdropFilter: "blur(6px)",
+                  color: catStyle.main,
+                  fontWeight: 700,
+                  fontSize: { xs: "11px", md: "12px" },
+                  lineHeight: 1,
+                  borderRadius: `${theme.custom.radius.sm}px`,
+                  px: { xs: 1, md: 1.25 },
+                  py: { xs: 0.375, md: 0.5 },
+                  maxWidth: "100%",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                <Typography
+                  component="span"
                   sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    backgroundColor: alpha(catStyle.main, 0.1),
-                    border: `1px solid ${alpha(catStyle.main, 0.35)}`,
-                    color: catStyle.main,
-                    fontWeight: 700,
-                    fontSize: { xs: "11px", md: "12px" },
-                    lineHeight: 1,
-                    borderRadius: `${theme.custom.radius.sm}px`,
-                    px: { xs: 1, md: 1.25 },
-                    py: { xs: 0.5, md: 0.625 },
-                    backdropFilter: "blur(6px)",
+                    fontSize: "inherit",
+                    fontWeight: "inherit",
+                    lineHeight: "inherit",
+                    color: "inherit",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {catName}
-                </Box>
-              );
-            })}
-          </Box>
-        )}
+                </Typography>
+              </Box>
+            );
+          })}
+        </Box>
       </Box>
 
       {/* Bottom row: location + relative date */}

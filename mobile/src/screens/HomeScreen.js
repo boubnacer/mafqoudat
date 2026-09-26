@@ -309,37 +309,19 @@ const StatsSection = ({ data, isLoading, t, styles, tokens, isDark, isRTL, onFou
   );
 };
 
-// Frosted circle icon + label pill for no-image states (same as Post.js / RecentPosts.jsx on web)
-const RecentCategoryIconLabel = ({ icon, label, color, single, tokens }) => (
-  <View style={{ alignItems: 'center', gap: 4 }}>
-    <View
-      style={{
-        width: single ? 54 : 36,
-        height: single ? 54 : 36,
-        borderRadius: 999,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: `${tokens.surfaceRaised}8C`,
-      }}
-    >
-      <Ionicons name={icon} size={single ? 28 : 18} color={color} />
-    </View>
-    <Text
-      numberOfLines={1}
-      style={{
-        maxWidth: single ? 96 : 64,
-        backgroundColor: `${tokens.surfaceRaised}8C`,
-        color,
-        fontFamily: fontFamilies.bodySemiBold,
-        fontSize: single ? 10 : 9,
-        borderRadius: 999,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        textAlign: 'center',
-      }}
-    >
-      {label}
-    </Text>
+// Frosted circle icon for no-image states (same as Post.js / RecentPosts.jsx on web)
+const RecentCategoryIconLabel = ({ icon, color, single, tokens }) => (
+  <View
+    style={{
+      width: single ? 58 : 42,
+      height: single ? 58 : 42,
+      borderRadius: 999,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: `${tokens.surfaceRaised}8C`,
+    }}
+  >
+    <Ionicons name={icon} size={single ? 30 : 22} color={color} />
   </View>
 );
 
@@ -391,7 +373,6 @@ const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isR
               <RecentCategoryIconLabel
                 key={cat.code || index}
                 icon={categoryConfigs[index].icon}
-                label={categoryLabels[index]}
                 color={categoryConfigs[index].color}
                 single={categoriesList.length <= 1}
                 tokens={tokens}
@@ -429,30 +410,27 @@ const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isR
           ) : null}
         </View>
 
-        {/* Categories: displays ALL categories when photo is present, matching web */}
-        {imageUri ? (
-          <View style={[styles.posterCategoryBadgesWrap, { flexDirection: rowDirection }]}>
-            {categoriesList.map((cat, index) => (
-              <View
-                key={cat.code || index}
-                style={[
-                  styles.posterCategoryBadge,
-                  {
-                    backgroundColor: `${categoryConfigs[index].color}${isDark ? '33' : '1F'}`,
-                    borderColor: `${categoryConfigs[index].color}59`,
-                  },
-                ]}
+        {/* Categories: displays ALL categories matching web */}
+        <View style={[styles.posterCategoryBadgesWrap, { flexDirection: rowDirection }]}>
+          {categoriesList.map((cat, index) => (
+            <View
+              key={cat.code || index}
+              style={[
+                styles.posterCategoryBadge,
+                {
+                  backgroundColor: `${tokens.surfaceRaised}8C`,
+                },
+              ]}
+            >
+              <Text
+                style={[styles.posterCategoryBadgeText, { color: categoryConfigs[index].color }]}
+                numberOfLines={1}
               >
-                <Text
-                  style={[styles.posterCategoryBadgeText, { color: categoryConfigs[index].color }]}
-                  numberOfLines={1}
-                >
-                  {categoryLabels[index]}
-                </Text>
-              </View>
-            ))}
-          </View>
-        ) : null}
+                {categoryLabels[index]}
+              </Text>
+            </View>
+          ))}
+        </View>
       </View>
 
       <View style={styles.posterBottomRow}>
@@ -1255,7 +1233,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     posterStatusPillText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 10,
+      fontSize: 11,
       textTransform: 'uppercase',
       letterSpacing: 0.3,
     },
@@ -1270,7 +1248,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     posterReturnedPillText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 9,
+      fontSize: 10,
       textTransform: 'uppercase',
     },
     posterCategoryBadgesWrap: {
@@ -1282,15 +1260,14 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     posterCategoryBadge: {
       borderRadius: radiusTokens.sm,
-      borderWidth: 1,
-      paddingHorizontal: 6,
-      paddingVertical: 3,
+      paddingHorizontal: 7,
+      paddingVertical: 3.5,
       maxWidth: '100%',
     },
     posterCategoryBadgeText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 10,
-      lineHeight: 12,
+      fontSize: 11,
+      lineHeight: 14,
     },
     posterCategoryIconsWrap: {
       ...StyleSheet.absoluteFillObject,
@@ -1298,8 +1275,9 @@ const createStyles = (tokens, isRTL, isDark) =>
       flexWrap: 'wrap',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 6,
-      padding: 8,
+      alignContent: 'center',
+      gap: 8,
+      padding: 10,
     },
     posterBottomRow: {
       position: 'absolute',

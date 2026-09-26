@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -255,6 +256,16 @@ const LoginScreen = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
+          {navigation?.canGoBack?.() ? (
+            <TouchableOpacity
+              style={[styles.backButton, isRTL && styles.backButtonRTL]}
+              onPress={() => navigation.goBack()}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityLabel={t('back') || 'Back'}
+            >
+              <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={tokens.ink} />
+            </TouchableOpacity>
+          ) : null}
           <View style={styles.brandSection}>
             <SvgXml
               xml={MAF_LOGO_XML}
@@ -425,6 +436,23 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     alignItems: 'stretch',
     paddingHorizontal: 20,
     paddingVertical: 24,
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+  },
+  backButtonRTL: {
+    left: undefined,
+    right: 16,
   },
   brandSection: {
     alignItems: 'center',

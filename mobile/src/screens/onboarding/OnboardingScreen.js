@@ -50,7 +50,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SvgXml } from 'react-native-svg';
+import Svg, { Circle, SvgXml } from 'react-native-svg';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -151,14 +152,80 @@ const FALLBACK_COUNTRIES = [
   { _id: 'fallback-ma', code: 'MA', names: { en: 'Morocco', fr: 'Maroc', ar: 'المغرب' }, flag: '🇲🇦' },
 ];
 
-const OnboardingScreen = () => {
+const BG_BASE_COLOR = '#272B38';
+const DOT_GRID_COLOR = '#3A3F4E';
+const GRID_SPACING = 50;
+const DOT_RADIUS = 2;
+
+const ONBOARDING_NEUMORPHIC = {
+  base: '#272B38',
+  raisedFace: ['#2F3547', '#222632'],
+  pressedFace: ['#1E222D', '#2B3140'],
+  shadowDark: {
+    shadowColor: '#141720',
+    shadowOffset: { width: 4, height: 5 },
+    shadowOpacity: 0.85,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  shadowLight: {
+    shadowColor: '#3C4355',
+    shadowOffset: { width: -3, height: -3 },
+    shadowOpacity: 0.65,
+    shadowRadius: 6,
+  },
+};
+
+const DotGridBackground = () => {
+  const [dimensions, setDimensions] = useState(() => Dimensions.get('window'));
+
+  const handleLayout = useCallback((e) => {
+    const { width, height } = e.nativeEvent.layout;
+    if (width > 0 && height > 0) {
+      setDimensions((prev) => (prev.width === width && prev.height === height ? prev : { width, height }));
+    }
+  }, []);
+
+  const cols = Math.ceil(dimensions.width / GRID_SPACING) + 1;
+  const rows = Math.ceil(dimensions.height / GRID_SPACING) + 1;
+
+  const dots = useMemo(() => {
+    const list = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        list.push(
+          <Circle
+            key={`${r}-${c}`}
+            cx={c * GRID_SPACING + GRID_SPACING / 2}
+            cy={r * GRID_SPACING + GRID_SPACING / 2}
+            r={DOT_RADIUS}
+            fill={DOT_GRID_COLOR}
+          />
+        );
+      }
+    }
+    return list;
+  }, [cols, rows]);
+
+  return (
+    <View
+      style={[StyleSheet.absoluteFill, { backgroundColor: BG_BASE_COLOR }]}
+      onLayout={handleLayout}
+      pointerEvents="none"
+    >
+      <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
+        {dots}
+      </Svg>
+    </View>
+  );
+};
+
+const OnboardingScreen = ({ navigation }) => {
   const { selectCountry } = useAuth();
   const { currentLanguage, setLanguage } = useLanguage();
   const { isDark, setThemeMode } = useTheme();
   const { completeOnboarding } = useOnboarding();
   const { t } = useTranslation();
-
-  const tokens = isDark ? colorTokens.dark : colorTokens.light;
 
   // Two different notions of "RTL" have to coexist on this screen, and keeping
   // them apart is what makes it survive a language switch:
@@ -184,8 +251,8 @@ const OnboardingScreen = () => {
   const motionDir = isRTL ? -1 : 1;
 
   const styles = useMemo(
-    () => createStyles(tokens, mirrorRows),
-    [tokens, mirrorRows]
+    () => createStyles(mirrorRows),
+    [mirrorRows]
   );
 
   // Position of the carousel measured in slides: 0 is slide 1, 2.5 is halfway
@@ -430,16 +497,8 @@ const OnboardingScreen = () => {
 
   const renderLanguageSlide = () => (
     <View style={styles.slideContent}>
-      <SvgXml
-        xml={MAF_LOGO_XML}
-        width={styles.brandLogo.width}
-        height={styles.brandLogo.height}
-        style={styles.brandLogo}
-        accessibilityLabel={t('brandName')}
-      />
-
       <View style={styles.illustrationHolder}>
-        <WelcomeMascotIllustration isDark={isDark} />
+        <WelcomeMascotIllustration isDark={true} />
       </View>
       <Text style={styles.languageQuestionText}>{t('onboardingWelcomeHeadline')}</Text>
 
@@ -468,7 +527,7 @@ const OnboardingScreen = () => {
           onPress={() => setThemeMode('light')}
           activeOpacity={0.8}
         >
-          <Ionicons name="sunny" size={16} color={!isDark ? '#FFFFFF' : tokens.ink} />
+          <Ionicons name="sunny" size={16} color={!isDark ? '#FFFFFF' : '#94A3B8'} />
           <Text style={[styles.themeToggleText, !isDark && styles.themeToggleTextActive]}>
             {t('themeLight')}
           </Text>
@@ -478,7 +537,7 @@ const OnboardingScreen = () => {
           onPress={() => setThemeMode('dark')}
           activeOpacity={0.8}
         >
-          <Ionicons name="moon" size={16} color={isDark ? '#FFFFFF' : tokens.ink} />
+          <Ionicons name="moon" size={16} color={isDark ? '#FFFFFF' : '#94A3B8'} />
           <Text style={[styles.themeToggleText, isDark && styles.themeToggleTextActive]}>
             {t('themeDark')}
           </Text>
@@ -490,7 +549,7 @@ const OnboardingScreen = () => {
   const renderInfoSlide = (IllustrationComponent, headlineKey, bodyKey) => (
     <View style={styles.slideContent}>
       <View style={styles.illustrationHolder}>
-        <IllustrationComponent isDark={isDark} />
+        <IllustrationComponent isDark={true} />
       </View>
       <Text style={styles.headline}>{t(headlineKey)}</Text>
       <Text style={styles.body}>{t(bodyKey)}</Text>
@@ -500,7 +559,7 @@ const OnboardingScreen = () => {
   const renderFilterSlide = () => (
     <View style={styles.slideContent}>
       <View style={styles.illustrationHolder}>
-        <FilterIllustration />
+        <FilterIllustration isDark={true} />
       </View>
       <Text style={styles.headline}>{t('onboardingFilterHeadline')}</Text>
       <Text style={styles.body}>{t('onboardingFilterBody')}</Text>
@@ -509,7 +568,8 @@ const OnboardingScreen = () => {
         {FILTER_PILLS.map((pill) => (
           <NeumorphicSurface
             key={pill.labelKey}
-            isDark={isDark}
+            isDark={true}
+            customNeumorphic={ONBOARDING_NEUMORPHIC}
             radius={radiusTokens.md}
             contentStyle={styles.filterPill}
           >
@@ -531,11 +591,48 @@ const OnboardingScreen = () => {
     >
       <SvgXml
         xml={MAF_LOGO_XML}
-        width={styles.brandLogo.width}
-        height={styles.brandLogo.height}
+        width={styles.countryLogo.width}
+        height={styles.countryLogo.height}
         style={styles.countryLogo}
         accessibilityLabel={t('brandName')}
       />
+
+      {/* Announcement & Sign In section */}
+      <View style={styles.announcementCard}>
+        <View style={[styles.announcementHeader, mirrorRows && styles.rowReverse]}>
+          <View style={styles.announcementIconBox}>
+            <Ionicons name="megaphone-outline" size={20} color={BRAND_BLUE} />
+          </View>
+          <View style={styles.announcementHeaderTextWrap}>
+            <Text style={[styles.announcementQuestion, isRTL ? styles.textRTL : styles.textLTR]}>
+              {t('alreadyPostedAnnouncement') || 'Already made an announcement on the site?'}
+            </Text>
+            <Text style={[styles.announcementSubtext, isRTL ? styles.textRTL : styles.textLTR]}>
+              {t('onboardingSignInHint') || 'Sign in to manage and track your items'}
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.signInButton, mirrorRows && styles.rowReverse]}
+          onPress={() => navigation?.navigate('Login')}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="log-in-outline" size={19} color="#FFFFFF" />
+          <Text style={styles.signInButtonText}>{t('signin') || 'Sign In'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* OR Divider */}
+      <View style={styles.orDividerContainer}>
+        <View style={styles.orDividerLine} />
+        <View style={styles.orBadge}>
+          <Text style={styles.orBadgeText}>{(t('or') || 'OR').toUpperCase()}</Text>
+        </View>
+        <View style={styles.orDividerLine} />
+      </View>
+
+      {/* Country Selection section */}
       <View style={styles.countrySection}>
         <Text style={styles.countryTitle}>{t('chooseCountryTitle')}</Text>
         <Text style={styles.countrySubtitle}>{t('chooseCountryDescription')}</Text>
@@ -545,7 +642,8 @@ const OnboardingScreen = () => {
         <Pressable onPress={() => setShowCountryList((prev) => !prev)}>
           {({ pressed }) => (
             <NeumorphicSurface
-              isDark={isDark}
+              isDark={true}
+              customNeumorphic={ONBOARDING_NEUMORPHIC}
               radius={radiusTokens.md}
               // Open reads as held down, which is also what the list below it
               // is: a well opened in the same surface.
@@ -567,7 +665,7 @@ const OnboardingScreen = () => {
               <Ionicons
                 name={showCountryList ? 'chevron-up' : 'chevron-down'}
                 size={18}
-                color={selectedCountry ? BRAND_BLUE : tokens.ink}
+                color={selectedCountry ? BRAND_BLUE : '#94A3B8'}
               />
             </NeumorphicSurface>
           )}
@@ -577,7 +675,8 @@ const OnboardingScreen = () => {
           // Sunken face: the list is a well cut into the surface rather than a
           // card floating over it, so it belongs to the button that opened it.
           <NeumorphicSurface
-            isDark={isDark}
+            isDark={true}
+            customNeumorphic={ONBOARDING_NEUMORPHIC}
             radius={radiusTokens.md}
             pressed
             style={styles.countryDropdown}
@@ -586,7 +685,7 @@ const OnboardingScreen = () => {
             <TextInput
               style={[styles.searchInput, isRTL ? styles.textRTL : styles.textLTR]}
               placeholder={t('searchCountry')}
-              placeholderTextColor={tokens.ink + '80'}
+              placeholderTextColor="#94A3B880"
               value={countrySearch}
               onChangeText={setCountrySearch}
               onFocus={() => countryScrollRef.current?.scrollToEnd({ animated: true })}
@@ -654,6 +753,8 @@ const OnboardingScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <StatusBar style="light" backgroundColor={BG_BASE_COLOR} />
+      <DotGridBackground />
       {directionProbe}
 
       <KeyboardAvoidingView
@@ -706,7 +807,13 @@ const OnboardingScreen = () => {
               to outrank yet, so it drops to a sunken face like every other
               unavailable control here. */}
           {isCtaDisabled && !isSubmitting ? (
-            <NeumorphicSurface isDark={isDark} radius={radiusTokens.md} pressed contentStyle={styles.ctaFace}>
+            <NeumorphicSurface
+              isDark={true}
+              customNeumorphic={ONBOARDING_NEUMORPHIC}
+              radius={radiusTokens.md}
+              pressed
+              contentStyle={styles.ctaFace}
+            >
               <Text style={[styles.ctaText, styles.ctaTextDisabled]}>
                 {isLastSlide ? t('getStarted') : t('next')}
               </Text>
@@ -745,11 +852,11 @@ const OnboardingScreen = () => {
   );
 };
 
-const createStyles = (tokens, mirrorRows) =>
+const createStyles = (mirrorRows) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: tokens.surfaceBase,
+      backgroundColor: BG_BASE_COLOR,
     },
     keyboardAvoider: {
       flex: 1,
@@ -767,8 +874,7 @@ const createStyles = (tokens, mirrorRows) =>
     skipText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 15,
-      color: tokens.ink,
-      opacity: 0.6,
+      color: '#94A3B8',
     },
     skipPlaceholder: {
       width: 40,
@@ -784,9 +890,6 @@ const createStyles = (tokens, mirrorRows) =>
       position: 'absolute',
       top: 0,
       bottom: 0,
-      // No left/right inset on purpose: the slide is exactly as wide as the
-      // pager, so its static position is 0 whichever edge the layout starts
-      // from, and there is nothing for RTL to swap.
     },
     slideContent: {
       flex: 1,
@@ -794,10 +897,6 @@ const createStyles = (tokens, mirrorRows) =>
       justifyContent: 'center',
       paddingHorizontal: 28,
     },
-    // Country slide only: it's the one slide with a text input, and its
-    // content (illustration + headline + button + a 260-tall opened dropdown)
-    // is taller than the slide once the list opens, so it scrolls instead of
-    // the fixed View the other slides use.
     slideScroll: {
       flex: 1,
       width: '100%',
@@ -809,67 +908,45 @@ const createStyles = (tokens, mirrorRows) =>
       paddingHorizontal: 28,
       paddingVertical: 24,
     },
-    // The illustrations position their own parts with physical left/right, which
-    // React Native swaps under an RTL layout (doLeftAndRightSwapInRTL). Pinning
-    // the wrapper to LTR keeps every drawing identical in both directions - only
-    // text and controls are supposed to follow the language.
     illustrationHolder: {
       direction: 'ltr',
       alignItems: 'center',
     },
-    // The full logo (Latin wordmark + baked-in Arabic "مفقودات"), sized
-    // taller than the old bare-Latin wordmark (30dp) since it now carries
-    // both scripts in one lockup.
-    brandLogo: {
-      height: 64,
-      width: 64 * LOGO_RATIO,
-      // Pulled up a further ~1cm (96 CSS px/in ÷ 2.54cm/in ≈ 38dp), ~2cm in
-      // all: slideContent centers its column, so a negative marginTop on the
-      // first child lifts the logo alone by that amount.
-      marginTop: -76,
-      // ~1cm gap down to the illustration.
-      marginBottom: 38,
-    },
-    // Same lockup on the country slide, in flow at the top of the scroller.
     countryLogo: {
-      height: 64,
-      width: 64 * LOGO_RATIO,
-      marginBottom: 24,
+      height: 44,
+      width: 44 * LOGO_RATIO,
+      marginBottom: 16,
+      alignSelf: 'center',
     },
     headline: {
       fontSize: 22,
       fontFamily: fontFamilies.display,
-      color: tokens.ink,
+      color: '#FFFFFF',
       textAlign: 'center',
       marginBottom: 12,
     },
     body: {
       fontSize: 15,
       fontFamily: fontFamilies.body,
-      color: tokens.ink,
-      opacity: 0.7,
+      color: '#CBD5E1',
       textAlign: 'center',
       lineHeight: 22,
       marginBottom: 24,
     },
-    // "Choose your language" - shares font/size/color with themeLabel below
-    // ("Choose your look") so the two section questions read as one matched
-    // pair instead of one looking like a headline and the other a caption.
     languageQuestionText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 15,
-      color: tokens.ink,
+      fontSize: 16,
+      color: '#FFFFFF',
       textAlign: 'center',
-      // ~1cm gap up from the illustration (96 CSS px/in ÷ 2.54cm/in ≈ 38dp).
-      marginTop: 38,
-      marginBottom: 8,
+      marginTop: 24,
+      marginBottom: 12,
     },
     languageChipsRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'center',
       gap: 10,
-      marginTop: 8,
+      marginTop: 4,
     },
     rowReverse: {
       flexDirection: 'row-reverse',
@@ -878,37 +955,39 @@ const createStyles = (tokens, mirrorRows) =>
       flexDirection: 'row',
       alignItems: 'center',
       paddingVertical: 10,
-      paddingHorizontal: 14,
+      paddingHorizontal: 16,
       borderRadius: radiusTokens.md,
-      backgroundColor: tokens.surfaceRaised,
+      backgroundColor: '#202430',
       borderWidth: 1,
-      borderColor: `${tokens.ink}1A`,
+      borderColor: '#3A3F4E',
     },
     languageChipActive: {
       borderColor: BRAND_BLUE,
-      backgroundColor: `${BRAND_BLUE}14`,
+      backgroundColor: `${BRAND_BLUE}26`,
     },
     languageChipText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 14,
-      color: tokens.ink,
+      color: '#EDEFF5',
     },
     languageChipTextActive: {
-      color: BRAND_BLUE,
+      color: '#5B7FFF',
       fontFamily: fontFamilies.bodySemiBold,
     },
     themeLabel: {
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 15,
-      color: tokens.ink,
+      color: '#FFFFFF',
       textAlign: 'center',
-      marginTop: 28,
+      marginTop: 26,
       marginBottom: 10,
     },
     themeToggleTrack: {
       flexDirection: 'row',
-      backgroundColor: `${tokens.ink}0D`,
+      backgroundColor: '#1C202B',
       borderRadius: radiusTokens.md,
+      borderWidth: 1,
+      borderColor: '#3A3F4E',
       padding: 4,
       gap: 4,
     },
@@ -927,15 +1006,12 @@ const createStyles = (tokens, mirrorRows) =>
     themeToggleText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 13,
-      color: tokens.ink,
+      color: '#94A3B8',
     },
     themeToggleTextActive: {
       color: '#FFFFFF',
       fontFamily: fontFamilies.bodySemiBold,
     },
-    // Faces carry padding/alignment only - the fill, radius and both shadows
-    // come from NeumorphicSurface, and a background or border here would undo
-    // the effect rather than add to it.
     filterPillsRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -953,32 +1029,114 @@ const createStyles = (tokens, mirrorRows) =>
     filterPillText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 13,
-      color: tokens.ink,
-      opacity: 0.8,
+      color: '#EDEFF5',
+    },
+    announcementCard: {
+      width: '100%',
+      backgroundColor: '#202430',
+      borderRadius: radiusTokens.lg,
+      borderWidth: 1,
+      borderColor: '#3A3F4E',
+      padding: 16,
+    },
+    announcementHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 12,
+    },
+    announcementIconBox: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: `${BRAND_BLUE}1A`,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: `${BRAND_BLUE}40`,
+    },
+    announcementHeaderTextWrap: {
+      flex: 1,
+    },
+    announcementQuestion: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 14,
+      color: '#FFFFFF',
+      lineHeight: 20,
+    },
+    announcementSubtext: {
+      fontFamily: fontFamilies.body,
+      fontSize: 12,
+      color: '#94A3B8',
+      marginTop: 2,
+    },
+    signInButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      height: 44,
+      backgroundColor: BRAND_BLUE,
+      borderRadius: radiusTokens.md,
+      shadowColor: BRAND_BLUE,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.35,
+      shadowRadius: 6,
+      elevation: 4,
+    },
+    signInButtonText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 14,
+      color: '#FFFFFF',
+    },
+    orDividerContainer: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 16,
+    },
+    orDividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: '#3A3F4E',
+    },
+    orBadge: {
+      paddingHorizontal: 12,
+      paddingVertical: 3,
+      borderRadius: 12,
+      backgroundColor: '#202430',
+      borderWidth: 1,
+      borderColor: '#3A3F4E',
+      marginHorizontal: 10,
+    },
+    orBadgeText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 12,
+      color: '#94A3B8',
+      letterSpacing: 0.8,
     },
     countrySection: {
       width: '100%',
-      marginTop: 4,
+      marginTop: 2,
     },
     countryTitle: {
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 16,
-      color: tokens.ink,
+      color: '#FFFFFF',
       textAlign: 'center',
       marginBottom: 4,
     },
     countrySubtitle: {
       fontFamily: fontFamilies.body,
       fontSize: 13,
-      color: tokens.ink,
-      opacity: 0.6,
+      color: '#94A3B8',
       textAlign: 'center',
       marginBottom: 16,
     },
     errorText: {
       fontFamily: fontFamilies.body,
       fontSize: 13,
-      color: colorTokens.light.status.lost.main,
+      color: '#FF6B6B',
       textAlign: 'center',
       marginBottom: 12,
     },
@@ -992,14 +1150,13 @@ const createStyles = (tokens, mirrorRows) =>
     countryButtonText: {
       fontFamily: fontFamilies.body,
       fontSize: 15,
-      color: tokens.ink,
+      color: '#FFFFFF',
       flex: 1,
     },
     countryButtonPlaceholder: {
-      opacity: 0.5,
+      color: '#94A3B8',
+      opacity: 0.7,
     },
-    // Margin/positioning on the outer box, size on the face - see
-    // NeumorphicSurface for why the two are split.
     countryDropdown: {
       marginTop: 10,
     },
@@ -1013,9 +1170,9 @@ const createStyles = (tokens, mirrorRows) =>
       paddingHorizontal: 6,
       fontFamily: fontFamilies.body,
       fontSize: 14,
-      color: tokens.ink,
+      color: '#FFFFFF',
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: `${tokens.ink}26`,
+      borderBottomColor: '#3A3F4E',
     },
     countryListLoading: {
       paddingVertical: 20,
@@ -1037,20 +1194,12 @@ const createStyles = (tokens, mirrorRows) =>
       flex: 1,
       fontFamily: fontFamilies.body,
       fontSize: 14,
-      color: tokens.ink,
+      color: '#EDEFF5',
     },
-    // The rows sit inside the sunken list face, which is the same tone as
-    // everything else - a tinted selected row would be the one fill contrast on
-    // the screen, so selection is carried by the label and the checkmark.
     countryNameSelected: {
       fontFamily: fontFamilies.bodySemiBold,
       color: BRAND_BLUE,
     },
-    // Stated explicitly in both directions rather than relying on the layout
-    // default, which is right-aligned on a tree laid out RTL and would leave
-    // English/French text hanging on the wrong edge. The literal 'right'/'left'
-    // keyword is itself swapped once the layout really is mirrored, so it is
-    // chosen against mirrorRows, exactly like the rows above.
     textRTL: {
       textAlign: mirrorRows ? 'right' : 'left',
       writingDirection: 'rtl',
@@ -1065,11 +1214,6 @@ const createStyles = (tokens, mirrorRows) =>
       paddingTop: 8,
     },
     dotsRow: {
-      // Same physical order as the carousel, whichever way it travels: the
-      // active dot has to advance towards the edge the next slide comes from.
-      // 'row' is physically LTR on an LTR tree and mirrored on an RTL one, so
-      // the reversal is needed exactly when the two disagree - the same
-      // mirrorRows test the content rows use.
       flexDirection: mirrorRows ? 'row-reverse' : 'row',
       justifyContent: 'center',
       alignItems: 'center',
@@ -1084,10 +1228,8 @@ const createStyles = (tokens, mirrorRows) =>
       backgroundColor: BRAND_BLUE,
     },
     dotInactive: {
-      backgroundColor: `${tokens.ink}33`,
+      backgroundColor: '#3A3F4E',
     },
-    // Shared by the filled button and the sunken disabled face so the footer
-    // never changes height between the two.
     ctaFace: {
       height: 54,
       justifyContent: 'center',
@@ -1098,7 +1240,7 @@ const createStyles = (tokens, mirrorRows) =>
       backgroundColor: BRAND_BLUE,
       shadowColor: BRAND_BLUE,
       shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.3,
+      shadowOpacity: 0.35,
       shadowRadius: 12,
       elevation: 6,
     },
@@ -1113,8 +1255,8 @@ const createStyles = (tokens, mirrorRows) =>
       color: '#FFFFFF',
     },
     ctaTextDisabled: {
-      color: tokens.ink,
-      opacity: 0.4,
+      color: '#94A3B8',
+      opacity: 0.5,
     },
     ctaIcon: {
       marginTop: 1,

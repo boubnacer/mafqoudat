@@ -93,6 +93,14 @@ const DocumentTypeModal = ({
     resetAddForm();
   };
 
+  useEffect(() => {
+    if (visible) {
+      setQuery('');
+      setDraftIds(selectedIds);
+      resetAddForm();
+    }
+  }, [visible, selectedIds]);
+
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
     if (!term) return documentTypes;

@@ -503,6 +503,8 @@ export const translations = {
     oauthError: "Google authentication failed. Please try again.",
     googleAuthNotConfigured: "Google sign-in is not configured for this build.",
     or: "or",
+    alreadyPostedAnnouncement: "Already made an announcement on the site?",
+    onboardingSignInHint: "Sign in to manage and track your items",
 
     // Onboarding
     skip: "Skip",
@@ -1124,6 +1126,8 @@ export const translations = {
     oauthError: "L'authentification Google a échoué. Veuillez réessayer.",
     googleAuthNotConfigured: "La connexion Google n'est pas configurée pour cette version.",
     or: "ou",
+    alreadyPostedAnnouncement: "Avez-vous déjà publié une annonce sur le site ?",
+    onboardingSignInHint: "Connectez-vous pour gérer et suivre vos objets",
 
     // Onboarding
     skip: "Passer",
@@ -1760,6 +1764,8 @@ export const translations = {
     oauthError: "فشل المصادقة عبر جوجل. يرجى المحاولة مرة أخرى.",
     googleAuthNotConfigured: "تسجيل الدخول عبر جوجل غير مُهيأ لهذا الإصدار.",
     or: "أو",
+    alreadyPostedAnnouncement: "هل قمت بنشر إعلان بالفعل على الموقع؟",
+    onboardingSignInHint: "سجّل الدخول لإدارة إعلاناتك ومتابعة أغراضك",
 
     // Onboarding
     skip: "تخطي",
@@ -1894,6 +1900,8 @@ export const translations = {
  * Now uses language context directly for reactivity
  */
 import { useLanguage } from '../context/LanguageContext';
+
+export { useLanguage };
 
 export const useTranslation = () => {
   const { currentLanguage } = useLanguage();

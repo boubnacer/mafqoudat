@@ -8,14 +8,13 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTranslation, useLanguage } from '../utils/translations';
+import { useTranslation } from '../utils/translations';
+import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens, fontFamilies, radiusTokens } from '../theme/tokens';
-import { needsDirectionFlip } from '../utils/rtl';
 
 const ConfirmExitModal = ({ visible, onConfirmExit, onCancelExit }) => {
-  const { t } = useTranslation();
-  const { currentLanguage } = useLanguage();
+  const { t, currentLanguage } = useTranslation();
   const isRTL = currentLanguage === 'ar';
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
