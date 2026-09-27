@@ -270,6 +270,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [selectedCityFromSearch, setSelectedCityFromSearch] = useState(null);
   const [filteredCities, setFilteredCities] = useState([]);
+  // GPS / "My Location" state
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [locationError, setLocationError] = useState(null); // null | 'denied' | 'error'
   // Debounce timer + monotonically increasing sequence token for city
   // search - see handleCitySearchChange/performCitySearch.
   const citySearchDebounceRef = useRef(null);
@@ -1124,6 +1127,59 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     clearFieldError('city');
   };
 
+  /**
+   * "My Location" button handler.
+   *
+   * 1. Asks the browser for GPS coordinates (triggers the permission prompt).
+   * 2. Calls /cities/reverse-geocode on the server which tries:
+   *      DB proximity → GeoNames findNearbyPlaceName → Google Geocoding API
+   * 3. Feeds the result straight through handleCitySelect so the city field
+   *    is populated exactly as if the user had found and clicked it manually.
+   */
+  const handleMyLocation = useCallback(async () => {
+    if (!navigator.geolocation) {
+      setLocationError('error');
+      return;
+    }
+    setLocationError(null);
+    setIsDetectingLocation(true);
+    // Make sure the dropdown is open so the user sees the spinner.
+    setShowCityDropdown(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3500';
+          const headers = {};
+          if (token) headers['Authorization'] = `Bearer ${token}`;
+
+          const resp = await fetch(
+            `${baseUrl}/cities/reverse-geocode?lat=${latitude}&lng=${longitude}&language=${currentLanguage || 'en'}`,
+            { headers }
+          );
+          const data = await resp.json();
+
+          if (data.success && data.data) {
+            handleCitySelect(data.data);
+          } else {
+            setLocationError('error');
+          }
+        } catch {
+          setLocationError('error');
+        } finally {
+          setIsDetectingLocation(false);
+        }
+      },
+      (err) => {
+        setIsDetectingLocation(false);
+        // GeolocationPositionError.code: 1 = PERMISSION_DENIED
+        setLocationError(err.code === 1 ? 'denied' : 'error');
+      },
+      { timeout: 15000, maximumAge: 60000 }
+    );
+  }, [token, currentLanguage, handleCitySelect]);
+
   // Handle dropdown toggle
   const handleCityDropdownToggle = () => {
     if (!showCityDropdown) {
@@ -1681,6 +1737,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           handleCityDropdownToggle={handleCityDropdownToggle}
                           handleCitySearchChange={handleCitySearchChange}
                           handleCitySelect={handleCitySelect}
+                          handleMyLocation={handleMyLocation}
+                          isDetectingLocation={isDetectingLocation}
+                          locationError={locationError}
                         />
                         <WizardFooter onBack={() => goToPreviousStep('location')}>
                           <WizardNextButton onClick={() => handleNextFromLocationStep(values, setStatus)} />

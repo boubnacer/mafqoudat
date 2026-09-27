@@ -20,6 +20,8 @@ import {
   Add as AddIcon,
   CalendarMonth as CalendarMonthIcon,
   Close as CloseIcon,
+  GpsFixed as GpsFixedIcon,
+  GpsOff as GpsOffIcon,
 } from '@mui/icons-material';
 import Textfield from "../../../../components/Textfield";
 import { useTranslation } from "../../../../utils/translations";
@@ -51,6 +53,9 @@ const StepLocation = ({
   handleCityDropdownToggle,
   handleCitySearchChange,
   handleCitySelect,
+  handleMyLocation,
+  isDetectingLocation,
+  locationError,
 }) => {
   const { values, setFieldValue } = useFormikContext();
   const { t, currentLanguage } = useTranslation();
@@ -348,6 +353,76 @@ const StepLocation = ({
                     )
                   }}
                 />
+              </Box>
+
+              {/* ── My Location button ───────────────────────────────────────── */}
+              <Box
+                onClick={isDetectingLocation ? undefined : handleMyLocation}
+                sx={{
+                  px: 2,
+                  py: 1.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  cursor: isDetectingLocation ? 'default' : 'pointer',
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                  backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.12 : 0.06),
+                  '&:hover': isDetectingLocation ? {} : {
+                    backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.22 : 0.12),
+                  },
+                  transition: 'background-color 0.2s ease',
+                }}
+              >
+                {isDetectingLocation ? (
+                  <CircularProgress size={18} sx={{ color: theme.custom.color.brandPrimary, flexShrink: 0 }} />
+                ) : locationError === 'denied' ? (
+                  <GpsOffIcon sx={{ fontSize: 20, color: theme.palette.warning.main, flexShrink: 0 }} />
+                ) : (
+                  <GpsFixedIcon sx={{ fontSize: 20, color: theme.custom.color.brandPrimary, flexShrink: 0 }} />
+                )}
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="body2" sx={{
+                    fontWeight: 600,
+                    color: locationError === 'denied'
+                      ? theme.palette.warning.main
+                      : locationError === 'error'
+                      ? theme.palette.error.main
+                      : theme.custom.color.brandPrimary,
+                    lineHeight: 1.3,
+                  }}>
+                    {isDetectingLocation
+                      ? t('myLocationDetecting')
+                      : locationError === 'denied'
+                      ? t('myLocationDenied')
+                      : locationError === 'error'
+                      ? t('myLocationError')
+                      : t('myLocation')}
+                  </Typography>
+                  {!isDetectingLocation && !locationError && (
+                    <Typography variant="caption" sx={{
+                      color: alpha(theme.custom.color.brandPrimary, 0.7),
+                      display: 'block',
+                      lineHeight: 1.2,
+                    }}>
+                      {currentLanguage === 'ar'
+                        ? 'اضغط لتحديد موقعك تلقائياً'
+                        : currentLanguage === 'fr'
+                        ? 'Appuyez pour détecter votre position'
+                        : 'Tap to auto-detect your position'}
+                    </Typography>
+                  )}
+                  {locationError && (
+                    <Typography variant="caption" sx={{
+                      color: locationError === 'denied' ? theme.palette.warning.main : theme.palette.error.main,
+                      display: 'block',
+                      lineHeight: 1.2,
+                    }}>
+                      {locationError === 'denied'
+                        ? (currentLanguage === 'ar' ? 'اسمح بالوصول إلى الموقع من إعدادات المتصفح' : currentLanguage === 'fr' ? 'Autorisez la localisation dans votre navigateur' : 'Allow location access in your browser settings')
+                        : (currentLanguage === 'ar' ? 'حاول مجدداً أو ابحث يدوياً' : currentLanguage === 'fr' ? 'Réessayez ou cherchez manuellement' : 'Try again or search manually')}
+                    </Typography>
+                  )}
+                </Box>
               </Box>
 
               {/* Cities List */}

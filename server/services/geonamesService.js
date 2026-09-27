@@ -243,6 +243,50 @@ class GeoNamesService {
   }
 
   /**
+   * Reverse geocode a coordinate pair to the nearest populated place.
+   * Uses GeoNames' findNearbyPlaceNameJSON endpoint which is free and already
+   * available under the same username quota as searchCities().
+   * @param {number} lat - WGS84 latitude
+   * @param {number} lng - WGS84 longitude
+   * @returns {Promise<Object|null>} Formatted city object (same shape as formatCityData) or null
+   */
+  async reverseGeocode(lat, lng) {
+    try {
+      if (!this.username) {
+        throw new Error('GeoNames username not configured');
+      }
+      if (!this.canMakeRequest()) {
+        throw new Error('GeoNames API rate limit exceeded');
+      }
+
+      const response = await axios.get(`${this.baseURL}/findNearbyPlaceNameJSON`, {
+        params: {
+          lat,
+          lng,
+          username: this.username,
+          style: 'FULL',
+          maxRows: 1
+        },
+        timeout: 10000
+      });
+
+      this.incrementRequestCounter();
+
+      if (response.data && response.data.status) {
+        throw new Error(response.data.status.message || 'GeoNames returned an error status');
+      }
+
+      const places = (response.data && response.data.geonames) || [];
+      if (places.length === 0) return null;
+
+      return this.formatCityData(places[0], 'en');
+    } catch (error) {
+      console.error('❌ GeoNames reverseGeocode error:', error.message);
+      throw new Error(`GeoNames reverseGeocode error: ${error.message}`);
+    }
+  }
+
+  /**
    * Get API usage statistics
    * @returns {Object} Usage statistics
    */

@@ -1031,6 +1031,193 @@ const getGeonamesStats = async (req, res) => {
   }
 };
 
+/**
+ * Reverse-geocode a GPS coordinate pair to a city/place name in all three
+ * site languages.
+ *
+ * Cascade:
+ *   1. Database – find the nearest stored city within ~50 km using a
+ *      geo-distance approximation on the coordinates field (fast, free, no
+ *      external call).
+ *   2. GeoNames findNearbyPlaceNameJSON – free, same quota as city search.
+ *   3. Google Geocoding API – only if GeoNames returned nothing and the
+ *      Google Places key is available (costs 1 Geocoding request).
+ *
+ * The result is returned to the frontend as-is so the caller can run it
+ * straight through handleCitySelect(). Nothing is saved here; that happens
+ * through the normal post-submission / cacheApiCity flow.
+ */
+const reverseGeocode = async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat);
+    const lng = parseFloat(req.query.lng);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
+        lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      return res.status(400).json({ success: false, message: 'Valid lat and lng query params are required (lat -90..90, lng -180..180)' });
+    }
+
+    const language = req.query.language || 'en';
+
+    // ── Step 1: Database proximity search ────────────────────────────────────
+    // Approximate degree-delta for ~50 km (1° ≈ 111 km at equator).
+    const delta = 0.45;
+    const nearbyDb = await City.find({
+      'coordinates.lat': { $gte: lat - delta, $lte: lat + delta },
+      'coordinates.lon': { $gte: lng - delta, $lte: lng + delta },
+      $or: [{ isActive: true }, { isActive: null }]
+    })
+      .populate('country', 'code labels flag')
+      .select('code labels isCapital isDynamic coordinates country apiSource placeId')
+      .lean();
+
+    if (nearbyDb.length > 0) {
+      // Pick the closest one by Euclidean distance on degrees.
+      const closest = nearbyDb.reduce((best, city) => {
+        const d = Math.hypot(city.coordinates.lat - lat, city.coordinates.lon - lng);
+        const bd = Math.hypot(best.coordinates.lat - lat, best.coordinates.lon - lng);
+        return d < bd ? city : best;
+      });
+      const normalizedLabels = normalizeCityLabels(closest.labels);
+      return res.json({
+        success: true,
+        source: 'database',
+        data: {
+          _id: closest._id,
+          code: closest.code,
+          label: normalizedLabels[language] || normalizedLabels.en,
+          labels: normalizedLabels,
+          fallbackLabels: {
+            en: normalizedLabels.en,
+            fr: normalizedLabels.fr,
+            ar: normalizedLabels.ar
+          },
+          isCapital: closest.isCapital,
+          isDynamic: closest.isDynamic || false,
+          source: 'database',
+          coordinates: closest.coordinates,
+          country: closest.country ? {
+            _id: closest.country._id,
+            code: closest.country.code,
+            label: closest.country.labels?.[language] || closest.country.labels?.en,
+            labels: closest.country.labels,
+            flag: closest.country.flag
+          } : null
+        }
+      });
+    }
+
+    // ── Step 2: GeoNames reverse geocode ─────────────────────────────────────
+    try {
+      const geoResult = await geonamesService.reverseGeocode(lat, lng);
+      if (geoResult) {
+        const normalizedLabels = normalizeCityLabels(geoResult.labels);
+        return res.json({
+          success: true,
+          source: 'geonames',
+          data: {
+            _id: null,
+            code: geoResult.code,
+            label: normalizedLabels[language] || normalizedLabels.en,
+            labels: normalizedLabels,
+            fallbackLabels: {
+              en: normalizedLabels.en,
+              fr: normalizedLabels.fr,
+              ar: normalizedLabels.ar
+            },
+            isCapital: geoResult.isCapital,
+            isDynamic: true,
+            source: 'geonames',
+            coordinates: { lat, lon: lng },
+            adminName1: geoResult.adminName1,
+            countryCode: geoResult.countryCode,
+            country: null // caller knows the country from the form
+          }
+        });
+      }
+    } catch (geoErr) {
+      console.warn('⚠️ GeoNames reverse geocode failed:', geoErr.message);
+    }
+
+    // ── Step 3: Google Geocoding fallback ─────────────────────────────────────
+    if (googlePlacesService.apiKey && googlePlacesService.canMakeRequest()) {
+      try {
+        const axios = require('axios');
+        googlePlacesService.incrementRequestCounter();
+        const googleResp = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+          params: {
+            latlng: `${lat},${lng}`,
+            result_type: 'locality|sublocality|administrative_area_level_3',
+            language: language,
+            key: googlePlacesService.apiKey
+          },
+          timeout: 10000
+        });
+
+        const results = googleResp.data?.results || [];
+        const place = results[0];
+        if (place) {
+          // Extract the most specific name
+          const localityComp = place.address_components?.find(c =>
+            c.types.includes('locality') || c.types.includes('sublocality') || c.types.includes('administrative_area_level_3')
+          );
+          const name = localityComp?.long_name || place.formatted_address;
+          const code = name.toUpperCase().replace(/\s+/g, '_');
+
+          // Fetch the other two language variants (2 extra Geocoding requests)
+          const fetchName = async (lang) => {
+            try {
+              if (!googlePlacesService.canMakeRequest()) return name;
+              googlePlacesService.incrementRequestCounter();
+              const r = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+                params: { latlng: `${lat},${lng}`, result_type: 'locality|sublocality|administrative_area_level_3', language: lang, key: googlePlacesService.apiKey },
+                timeout: 5000
+              });
+              const comp = r.data?.results?.[0]?.address_components?.find(c =>
+                c.types.includes('locality') || c.types.includes('sublocality') || c.types.includes('administrative_area_level_3')
+              );
+              return comp?.long_name || r.data?.results?.[0]?.formatted_address || name;
+            } catch { return name; }
+          };
+
+          const [enName, frName, arName] = await Promise.all([
+            language === 'en' ? name : fetchName('en'),
+            language === 'fr' ? name : fetchName('fr'),
+            language === 'ar' ? name : fetchName('ar'),
+          ]);
+
+          const labels = normalizeCityLabels({ en: enName, fr: frName, ar: arName });
+          return res.json({
+            success: true,
+            source: 'google',
+            data: {
+              _id: null,
+              code,
+              label: labels[language] || labels.en,
+              labels,
+              fallbackLabels: { en: labels.en, fr: labels.fr, ar: labels.ar },
+              isCapital: false,
+              isDynamic: true,
+              source: 'google',
+              coordinates: { lat, lon: lng },
+              placeId: place.place_id,
+              country: null
+            }
+          });
+        }
+      } catch (googleErr) {
+        console.warn('⚠️ Google reverse geocode failed:', googleErr.message);
+      }
+    }
+
+    return res.status(404).json({ success: false, message: 'Could not resolve location to a known place' });
+
+  } catch (error) {
+    console.error('Error in reverseGeocode:', error);
+    res.status(500).json({ success: false, message: 'Failed to reverse geocode coordinates' });
+  }
+};
+
 module.exports = {
   getCities,
   searchCities,
@@ -1043,5 +1230,6 @@ module.exports = {
   cacheApiCity,
   getGeonamesStats,
   shouldCacheCity,
-  cacheApiCityToDatabase
+  cacheApiCityToDatabase,
+  reverseGeocode
 };

@@ -26,6 +26,13 @@ router
   .route("/geonames-stats")
   .get(cityController.getGeonamesStats);
 
+// Reverse-geocode: GPS coordinates → nearest city/place in all 3 languages.
+// Public – no auth required: the coordinates come from the user's own browser
+// GPS and no sensitive data is read or written here.
+router
+  .route("/reverse-geocode")
+  .get(cityController.reverseGeocode);
+
 // Protected routes - authentication required
 router.use(verifyJWT);
 
