@@ -216,9 +216,13 @@ const writeRoute = (routePath, html) => {
 const alreadyPrerendered = (routePath) =>
   routePath !== '/' && fs.existsSync(path.join(BUILD_DIR, routePath, 'index.html'));
 
+const LOGO_SVG = `<svg class="pre-mount-logo-icon" width="30" height="34" viewBox="0 0 47 53" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M31.5 35.5L41.3861 47.5" stroke="#3498DB" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 36.5C29.1127 36.5 36.5 29.1127 36.5 20C36.5 10.8873 29.1127 3.5 20 3.5C10.8873 3.5 3.5 10.8873 3.5 20C3.5 29.1127 10.8873 36.5 20 36.5Z" stroke="#3498DB" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M28.46 19.6548C27.9813 17.2341 26.5605 15.1028 24.5102 13.7296C22.46 12.3564 19.9482 11.854 17.5275 12.3328" stroke="#3498DB" stroke-width="4" stroke-linecap="round"/></svg>`;
+
 // A static page's initial markup: its own heading, its own subtitle where it
 // has one, and the site's real navigation so a crawler arriving here has links
 // to follow. React replaces all of it on mount.
+// Styled via critical inline CSS in public/index.html to look like a polished,
+// branded loading shell matching the active theme, avoiding FOUC on slow networks.
 const renderStaticBody = (heading, subtitle, t) => {
   const nav = [
     ['/', 'goHome'],
@@ -231,14 +235,30 @@ const renderStaticBody = (heading, subtitle, t) => {
   ]
     .map(([href, key]) => {
       const label = t(key) || key;
-      return `<li><a href="${BASE_URL}${href}">${escapeHtml(label)}</a></li>`;
+      return `<li class="pre-mount-nav-item"><a class="pre-mount-nav-link" href="${BASE_URL}${href}">${escapeHtml(label)}</a></li>`;
     })
     .join('');
 
-  return `<div id="root"><main>
-    <h1>${escapeHtml(heading)}</h1>
-${subtitle ? `    <p>${escapeHtml(subtitle)}</p>\n` : ''}    <nav><ul>${nav}</ul></nav>
-  </main></div>`;
+  return `<div id="root"><div class="pre-mount-shell">
+    <header class="pre-mount-header">
+      <a href="${BASE_URL}/" class="pre-mount-logo" aria-label="Mafqoudat">
+        ${LOGO_SVG}
+        <span class="pre-mount-logo-text">${BRAND_AR}</span>
+      </a>
+    </header>
+    <main class="pre-mount-main">
+      <div class="pre-mount-card">
+        <h1 class="pre-mount-title">${escapeHtml(heading)}</h1>
+${subtitle ? `        <p class="pre-mount-subtitle">${escapeHtml(subtitle)}</p>\n` : ''}        <div class="pre-mount-shimmer-group" aria-hidden="true">
+          <div class="pre-mount-shimmer-bar pre-mount-shimmer-bar-lg"></div>
+          <div class="pre-mount-shimmer-bar pre-mount-shimmer-bar-sm"></div>
+        </div>
+      </div>
+      <nav class="pre-mount-nav" aria-label="Navigation">
+        <ul class="pre-mount-nav-list">${nav}</ul>
+      </nav>
+    </main>
+  </div></div>`;
 };
 
 const renderArticleBody = (post, localized, t) => {
@@ -248,22 +268,36 @@ const renderArticleBody = (post, localized, t) => {
   // ("tagLostWallet") instead of translating it, on every prerendered
   // article page, all three languages.
   const tagsHtml = post.tagKeys
-    .map((key) => `<li>${escapeHtml(t(key) || key)}</li>`)
+    .map((key) => `<li class="pre-mount-tag">${escapeHtml(t(key) || key)}</li>`)
     .join('');
   // The two links out are new: an article that linked nowhere left a crawler
   // that arrived from search with no route into the listings the article is
   // about.
-  return `<div id="root"><main>
-    <h1>${escapeHtml(localized.title)}</h1>
-    <p>${escapeHtml(localized.excerpt)}</p>
-    <img src="${escapeHtml(post.image)}" alt="${escapeHtml(localized.title)}" />
-    <article><p>${escapeHtml(localized.content)}</p></article>
-    <ul>${tagsHtml}</ul>
-    <nav><ul>
-      <li><a href="${BASE_URL}/blog">${escapeHtml(t('blog') || 'Blog')}</a></li>
-      <li><a href="${BASE_URL}/dash/posts">${escapeHtml(t('posts') || 'Posts')}</a></li>
-    </ul></nav>
-  </main></div>`;
+  return `<div id="root"><div class="pre-mount-shell">
+    <header class="pre-mount-header">
+      <a href="${BASE_URL}/" class="pre-mount-logo" aria-label="Mafqoudat">
+        ${LOGO_SVG}
+        <span class="pre-mount-logo-text">${BRAND_AR}</span>
+      </a>
+    </header>
+    <main class="pre-mount-main">
+      <article class="pre-mount-card">
+        <h1 class="pre-mount-title">${escapeHtml(localized.title)}</h1>
+        <p class="pre-mount-subtitle">${escapeHtml(localized.excerpt)}</p>
+        <div class="pre-mount-article-image-wrap">
+          <img class="pre-mount-article-image" src="${escapeHtml(post.image)}" alt="${escapeHtml(localized.title)}" />
+        </div>
+        <div class="pre-mount-article-content"><p>${escapeHtml(localized.content)}</p></div>
+        <ul class="pre-mount-tags-list">${tagsHtml}</ul>
+      </article>
+      <nav class="pre-mount-nav" aria-label="Navigation">
+        <ul class="pre-mount-nav-list">
+          <li class="pre-mount-nav-item"><a class="pre-mount-nav-link" href="${BASE_URL}/blog">${escapeHtml(t('blog') || 'Blog')}</a></li>
+          <li class="pre-mount-nav-item"><a class="pre-mount-nav-link" href="${BASE_URL}/dash/posts">${escapeHtml(t('posts') || 'Posts')}</a></li>
+        </ul>
+      </nav>
+    </main>
+  </div></div>`;
 };
 
 const run = () => {

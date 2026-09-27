@@ -15,7 +15,15 @@ html {
 }
 
 body {
-  background-color: #fafafa; /* Light mode default */
+  background-color: #F7F8FB; /* Light mode default matching surfaceBase */
+}
+
+:root[data-color-scheme='dark'] body {
+  background-color: #0E1116; /* Dark mode matching surfaceBase */
+}
+
+:root[data-color-scheme='light'] body {
+  background-color: #F7F8FB;
 }
 
 

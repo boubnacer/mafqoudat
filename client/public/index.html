@@ -256,6 +256,234 @@
         document.documentElement.setAttribute('data-color-scheme', mode);
       })();
     </script>
+
+    <!-- Critical CSS for pre-mount shell: styles the initial HTML / SEO fallback immediately before external CSS and JS bundles load, eliminating flash of unstyled content (FOUC). -->
+    <style id="mafq-critical-css">
+      :root {
+        --mafq-bg: #F7F8FB;
+        --mafq-surface: #FFFFFF;
+        --mafq-text: #0B1220;
+        --mafq-text-muted: #64748B;
+        --mafq-brand: #1B4DFF;
+        --mafq-brand-logo: #3498DB;
+        --mafq-border: #E2E8F0;
+        --mafq-skeleton: #EAEFF5;
+        --mafq-skeleton-shimmer: #F8FAFC;
+        --mafq-nav-bg: rgba(0, 0, 0, 0.04);
+        --mafq-nav-hover: rgba(0, 0, 0, 0.08);
+        color-scheme: light;
+      }
+      :root[data-color-scheme='dark'] {
+        --mafq-bg: #0E1116;
+        --mafq-surface: #171B22;
+        --mafq-text: #EDEFF5;
+        --mafq-text-muted: #94A3B8;
+        --mafq-brand: #5B7FFF;
+        --mafq-brand-logo: #3498DB;
+        --mafq-border: #262D38;
+        --mafq-skeleton: #1F2633;
+        --mafq-skeleton-shimmer: #2A3444;
+        --mafq-nav-bg: rgba(255, 255, 255, 0.06);
+        --mafq-nav-hover: rgba(255, 255, 255, 0.12);
+        color-scheme: dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-color-scheme='light']) {
+          --mafq-bg: #0E1116;
+          --mafq-surface: #171B22;
+          --mafq-text: #EDEFF5;
+          --mafq-text-muted: #94A3B8;
+          --mafq-brand: #5B7FFF;
+          --mafq-brand-logo: #3498DB;
+          --mafq-border: #262D38;
+          --mafq-skeleton: #1F2633;
+          --mafq-skeleton-shimmer: #2A3444;
+          --mafq-nav-bg: rgba(255, 255, 255, 0.06);
+          --mafq-nav-hover: rgba(255, 255, 255, 0.12);
+          color-scheme: dark;
+        }
+      }
+      html, body {
+        background-color: var(--mafq-bg);
+        color: var(--mafq-text);
+        margin: 0;
+        padding: 0;
+        font-family: 'Cairo', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        direction: rtl;
+        min-height: 100vh;
+      }
+      #root {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .pre-mount-shell {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+        background-color: var(--mafq-bg);
+        color: var(--mafq-text);
+      }
+      .pre-mount-header {
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+        box-sizing: border-box;
+      }
+      .pre-mount-logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: inherit;
+      }
+      .pre-mount-logo-icon {
+        width: 30px;
+        height: 34px;
+        flex-shrink: 0;
+      }
+      .pre-mount-logo-text {
+        font-family: 'Cairo', sans-serif;
+        font-weight: 700;
+        font-size: 22px;
+        color: var(--mafq-brand-logo);
+        letter-spacing: -0.5px;
+      }
+      .pre-mount-main {
+        flex: 1;
+        max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 16px 24px 48px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+      .pre-mount-card {
+        background-color: var(--mafq-surface);
+        border: 1px solid var(--mafq-border);
+        border-radius: 20px;
+        padding: 28px 32px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        box-sizing: border-box;
+      }
+      .pre-mount-title {
+        margin: 0 0 12px 0;
+        font-size: clamp(20px, 3.2vw, 30px);
+        font-weight: 700;
+        line-height: 1.35;
+        color: var(--mafq-text);
+      }
+      .pre-mount-subtitle {
+        margin: 0 0 20px 0;
+        font-size: clamp(14px, 1.8vw, 16px);
+        line-height: 1.6;
+        color: var(--mafq-text-muted);
+      }
+      .pre-mount-shimmer-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .pre-mount-shimmer-bar {
+        background: linear-gradient(90deg, var(--mafq-skeleton) 25%, var(--mafq-skeleton-shimmer) 50%, var(--mafq-skeleton) 75%);
+        background-size: 200% 100%;
+        animation: mafq-shimmer 1.8s infinite ease-in-out;
+        border-radius: 10px;
+        height: 20px;
+      }
+      .pre-mount-shimmer-bar-lg {
+        height: 48px;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 320px;
+      }
+      .pre-mount-shimmer-bar-sm {
+        height: 38px;
+        border-radius: 10px;
+        width: 140px;
+      }
+      @keyframes mafq-shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      .pre-mount-nav {
+        margin-top: auto;
+        padding-top: 12px;
+      }
+      .pre-mount-nav-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+      }
+      .pre-mount-nav-item {
+        margin: 0;
+        padding: 0;
+      }
+      .pre-mount-nav-link {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 10px;
+        background-color: var(--mafq-nav-bg);
+        color: var(--mafq-text-muted);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+      }
+      .pre-mount-nav-link:hover {
+        background-color: var(--mafq-nav-hover);
+        color: var(--mafq-brand);
+        border-color: var(--mafq-border);
+      }
+      .pre-mount-article-image-wrap {
+        margin: 20px 0;
+        border-radius: 14px;
+        overflow: hidden;
+        max-height: 400px;
+        background-color: var(--mafq-skeleton);
+      }
+      .pre-mount-article-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .pre-mount-article-content {
+        font-size: 16px;
+        line-height: 1.8;
+        color: var(--mafq-text);
+        margin-bottom: 24px;
+      }
+      .pre-mount-tags-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 24px 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .pre-mount-tag {
+        display: inline-block;
+        padding: 4px 12px;
+        background-color: var(--mafq-nav-bg);
+        color: var(--mafq-text-muted);
+        border-radius: 20px;
+        font-size: 13px;
+      }
+    </style>
     
     <!--
       Structured Data.
