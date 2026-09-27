@@ -1060,8 +1060,9 @@ const reverseGeocode = async (req, res) => {
     const language = req.query.language || 'en';
 
     // ── Step 1: Database proximity search ────────────────────────────────────
-    // Approximate degree-delta for ~50 km (1° ≈ 111 km at equator).
-    const delta = 0.45;
+    // Tighter degree-delta for ~8 km (1° ≈ 111 km). If farther than ~8 km,
+    // we query GeoNames/Google so small towns/villages get their own exact name.
+    const delta = 0.08;
     const nearbyDb = await City.find({
       'coordinates.lat': { $gte: lat - delta, $lte: lat + delta },
       'coordinates.lon': { $gte: lng - delta, $lte: lng + delta },

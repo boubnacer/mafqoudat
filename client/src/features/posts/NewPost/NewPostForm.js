@@ -1176,7 +1176,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         // GeolocationPositionError.code: 1 = PERMISSION_DENIED
         setLocationError(err.code === 1 ? 'denied' : 'error');
       },
-      { timeout: 15000, maximumAge: 60000 }
+      { 
+        enableHighAccuracy: true,
+        timeout: 15000, 
+        maximumAge: 0 
+      }
     );
   }, [token, currentLanguage, handleCitySelect]);
 
