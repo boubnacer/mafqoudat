@@ -55,7 +55,8 @@ export default {
       // types). A usage string for a capability the app never exercises is a
       // review question with no good answer.
       infoPlist: {
-        NSPhotoLibraryUsageDescription: "This app needs access to your photo library to upload images for lost and found items."
+        NSPhotoLibraryUsageDescription: "This app needs access to your photo library to upload images for lost and found items.",
+        NSLocationWhenInUseUsageDescription: "This app needs your location to auto-detect your city when creating a post."
       },
       config: {
         usesNonExemptEncryption: false
@@ -111,13 +112,11 @@ export default {
       // at launch (see src/utils/pushNotifications.js), and needs no Play
       // Console declaration, unlike the alarm permissions blocked below.
       //
-      // The two location permissions that used to be listed here were never
-      // backed by any code - there is no expo-location dependency and no
-      // geolocation call anywhere in src/. A post's location is free text the
-      // user types. Requesting location for a feature that does not exist would
-      // have forced a Location Permissions declaration in the Play Console that
-      // could not be answered truthfully.
-      permissions: [],
+      // Location permissions back the "My Location" auto-detection in CityPickerModal.
+      permissions: [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
       // Permissions listed above are *added*; these are *removed*. Libraries
       // merge their own <uses-permission> entries into the final manifest
       // regardless of the list above, so dropping a permission from `permissions`
@@ -263,6 +262,12 @@ export default {
             enableShrinkResourcesInReleaseBuilds: true,
             ...(isInternalTestBuild ? { buildArchs: ["arm64-v8a"] } : {})
           }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          locationWhenInUsePermission: "This app needs your location to auto-detect your city when creating a post."
         }
       ]
     ],

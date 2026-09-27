@@ -24,6 +24,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import apiClient from '../api/apiService';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 import { useTheme } from '../context/ThemeContext';
@@ -78,15 +79,20 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [locationError, setLocationError] = useState(null);
 
   const debounceRef = useRef(null);
   const requestIdRef = useRef(0);
+  const isMountedRef = useRef(true);
 
   // Only handleQueryChange clears the pending timer today, and only on the
   // next keystroke - closing/unmounting the modal mid-debounce left it to
   // fire anyway and call setSearchResults/setIsSearching after unmount.
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);
@@ -112,6 +118,8 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
       setQuery('');
       setSearchResults([]);
       setIsSearching(false);
+      setIsDetectingLocation(false);
+      setLocationError(null);
     }
   }, [visible]);
 
@@ -170,6 +178,47 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
     }
   };
 
+  const handleMyLocation = async () => {
+    if (isDetectingLocation) return;
+    try {
+      setLocationError(null);
+      setIsDetectingLocation(true);
+
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setLocationError('denied');
+        setIsDetectingLocation(false);
+        return;
+      }
+
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      const { latitude, longitude } = position.coords;
+
+      const response = await apiClient.get('/cities/reverse-geocode', {
+        params: {
+          lat: latitude,
+          lng: longitude,
+          language: currentLanguage || 'en',
+        },
+      });
+
+      if (!isMountedRef.current) return;
+      if (response.data?.success && response.data?.data) {
+        handleSelect(response.data.data);
+      } else {
+        setLocationError('error');
+      }
+    } catch (err) {
+      console.error('Error detecting location in mobile:', err);
+      if (isMountedRef.current) setLocationError('error');
+    } finally {
+      if (isMountedRef.current) setIsDetectingLocation(false);
+    }
+  };
+
   const textStyle = isRTL ? styles.textRTL : null;
 
   return (
@@ -198,6 +247,62 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
               autoFocus
             />
           </View>
+
+          {/* My Location button */}
+          <TouchableOpacity
+            style={[
+              styles.myLocationButton,
+              locationError && styles.myLocationButtonError,
+              isDetectingLocation && styles.myLocationButtonDetecting,
+            ]}
+            onPress={handleMyLocation}
+            activeOpacity={0.7}
+            disabled={isDetectingLocation}
+          >
+            <View style={[styles.myLocationIconContainer, locationError && styles.myLocationIconContainerError]}>
+              {isDetectingLocation ? (
+                <ActivityIndicator size="small" color={tokens.brandPrimary} />
+              ) : (
+                <Ionicons
+                  name={locationError === 'denied' ? 'location-outline' : 'locate'}
+                  size={20}
+                  color={locationError ? tokens.status.lost.main : tokens.brandPrimary}
+                />
+              )}
+            </View>
+            <View style={styles.myLocationTextGroup}>
+              <Text
+                style={[
+                  styles.myLocationTitle,
+                  textStyle,
+                  locationError && styles.myLocationTitleError,
+                ]}
+                numberOfLines={1}
+              >
+                {isDetectingLocation
+                  ? t('myLocationDetecting')
+                  : locationError === 'denied'
+                  ? t('myLocationDenied')
+                  : locationError === 'error'
+                  ? t('myLocationError')
+                  : t('myLocation')}
+              </Text>
+              <Text
+                style={[
+                  styles.myLocationSubtitle,
+                  textStyle,
+                  locationError && styles.myLocationSubtitleError,
+                ]}
+                numberOfLines={1}
+              >
+                {locationError === 'denied'
+                  ? t('myLocationDeniedHint')
+                  : locationError === 'error'
+                  ? t('myLocationErrorHint')
+                  : t('myLocationTapHint')}
+              </Text>
+            </View>
+          </TouchableOpacity>
 
           {citiesLoading || isSearching ? (
             <View style={styles.loaderRow}>
@@ -330,6 +435,59 @@ const createStyles = (tokens, isDark, isRTL) =>
       fontFamily: fontFamilies.body,
       fontSize: 15,
       color: tokens.ink,
+    },
+    myLocationButton: {
+      flexDirection: row(isRTL),
+      alignItems: 'center',
+      backgroundColor: isDark ? 'rgba(91, 127, 255, 0.12)' : 'rgba(27, 77, 255, 0.06)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(91, 127, 255, 0.25)' : 'rgba(27, 77, 255, 0.15)',
+      borderRadius: radiusTokens.md,
+      marginHorizontal: 16,
+      marginTop: 4,
+      marginBottom: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+    },
+    myLocationButtonError: {
+      backgroundColor: isDark ? 'rgba(255, 107, 94, 0.12)' : 'rgba(198, 67, 53, 0.08)',
+      borderColor: isDark ? 'rgba(255, 107, 94, 0.25)' : 'rgba(198, 67, 53, 0.2)',
+    },
+    myLocationButtonDetecting: {
+      opacity: 0.85,
+    },
+    myLocationIconContainer: {
+      width: 32,
+      height: 32,
+      borderRadius: radiusTokens.sm,
+      backgroundColor: isDark ? 'rgba(91, 127, 255, 0.18)' : 'rgba(27, 77, 255, 0.1)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      ...logical(isRTL, { marginEnd: 10 }),
+    },
+    myLocationIconContainerError: {
+      backgroundColor: isDark ? 'rgba(255, 107, 94, 0.18)' : 'rgba(198, 67, 53, 0.12)',
+    },
+    myLocationTextGroup: {
+      flex: 1,
+    },
+    myLocationTitle: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 14,
+      color: tokens.brandPrimary,
+    },
+    myLocationTitleError: {
+      color: tokens.status.lost.main,
+    },
+    myLocationSubtitle: {
+      fontFamily: fontFamilies.body,
+      fontSize: 12,
+      color: isDark ? 'rgba(237, 239, 245, 0.7)' : 'rgba(11, 18, 32, 0.6)',
+      marginTop: 2,
+    },
+    myLocationSubtitleError: {
+      color: tokens.status.lost.main,
+      opacity: 0.85,
     },
     textRTL: {
       textAlign: needsDirectionFlip(isRTL) ? 'right' : 'left',
