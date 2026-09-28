@@ -94,7 +94,7 @@ const StepPhoto = ({
   const [countdown, setCountdown] = useState(WARNING_COUNTDOWN_SECONDS);
 
   useEffect(() => {
-    if (!showWarningDialog) return undefined;
+    if (!showWarningDialog || documentsMode) return undefined;
 
     setCountdown(WARNING_COUNTDOWN_SECONDS);
     const intervalId = setInterval(() => {
@@ -102,7 +102,7 @@ const StepPhoto = ({
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [showWarningDialog]);
+  }, [showWarningDialog, documentsMode]);
 
   const handleDropzoneClick = () => {
     if (isCompressing) return;
@@ -135,31 +135,6 @@ const StepPhoto = ({
           {t('uploadPhotoLabel')}
         </FormLabel>
 
-        {/* A wallet found with papers in it is still a wallet, so this listing
-            keeps its photo - but the photo is of the wallet. Naming the other
-            categories here is what makes "leave the documents out" concrete
-            rather than a general instruction nobody reads. */}
-        {documentsMode && (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 1.25,
-              mb: 2,
-              p: 1.5,
-              borderRadius: 2,
-              backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.08),
-            }}
-          >
-            <LockOutlined fontSize="small" sx={{ color: theme.custom.color.brandPrimary, mt: 0.25 }} />
-            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
-              <Box component="span" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
-                {documentsMixedNoticeLead}
-              </Box>
-              {documentsMixedNoticeRest && ` ${documentsMixedNoticeRest}`}
-            </Typography>
-          </Box>
-        )}
 
         {imagePreview ? (
           /* Preview - rounded card with an overlay remove button */
@@ -438,7 +413,31 @@ const StepPhoto = ({
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 1 }}>
-          {getFoundLostType(values.foundLost) === 'FOUND' ? (
+          {documentsMode ? (
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.08),
+                border: `1px solid ${alpha(theme.custom.color.brandPrimary, 0.2)}`,
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1.5,
+              }}
+            >
+              <LockOutlined sx={{ color: theme.custom.color.brandPrimary, mt: 0.25, flexShrink: 0 }} />
+              <Typography variant="body1" sx={{ color: theme.palette.text.primary, lineHeight: 1.6 }}>
+                <Box component="span" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                  {documentsMixedNoticeLead}
+                </Box>
+                {documentsMixedNoticeRest && (
+                  <Box component="span" sx={{ fontWeight: 400, color: theme.palette.text.secondary }}>
+                    {` ${documentsMixedNoticeRest}`}
+                  </Box>
+                )}
+              </Typography>
+            </Box>
+          ) : getFoundLostType(values.foundLost) === 'FOUND' ? (
             <>
               <Typography variant="body2" sx={{ color: theme.palette.text.primary, mb: 1.5 }}>
                 {t('imageWarningDescriptionFound')}
@@ -477,7 +476,7 @@ const StepPhoto = ({
           </Button>
           <Button
             variant="contained"
-            disabled={countdown > 0}
+            disabled={!documentsMode && countdown > 0}
             onClick={handleWarningDialogConfirm}
             sx={{
               textTransform: 'none',
@@ -488,7 +487,7 @@ const StepPhoto = ({
               '&:hover': { backgroundColor: accentColor },
             }}
           >
-            {countdown > 0
+            {!documentsMode && countdown > 0
               ? t('imageWarningProceedCountdown', { seconds: countdown })
               : t('imageWarningProceed')}
           </Button>

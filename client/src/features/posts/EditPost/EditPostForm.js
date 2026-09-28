@@ -3348,11 +3348,22 @@ if (typeof document !== 'undefined') {
                         {(() => {
                           const labels = getNonDocumentCategories(categories, values)
                             .map((category) => category.labels?.[currentLanguage] || category.label || category.code);
-                          return labels.length
+                          const text = labels.length
                             ? t('photoDocumentsMixedNotice', {
                                 categories: labels.join(currentLanguage === 'ar' ? '، ' : ', '),
                               })
                             : t('photoDocumentsMixedNoticeGeneric');
+                          const dashIndex = text.indexOf('—');
+                          const lead = dashIndex >= 0 ? text.slice(0, dashIndex).trimEnd() : text;
+                          const rest = dashIndex >= 0 ? text.slice(dashIndex) : '';
+                          return (
+                            <>
+                              <Box component="span" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                                {lead}
+                              </Box>
+                              {rest && ` ${rest}`}
+                            </>
+                          );
                         })()}
                       </Typography>
                     </Box>
