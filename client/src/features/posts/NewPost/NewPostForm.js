@@ -44,6 +44,8 @@ import StepLocation from "./steps/StepLocation";
 import StepPhoto from "./steps/StepPhoto";
 import StepReview from "./steps/StepReview";
 import StepTransition from "./steps/StepTransition";
+import { generatePostDescription } from "../../../utils/postDescriptionGenerator";
+import { formatDisplayDate } from "../../../utils/dateUtils";
 import WizardFooter from "./steps/WizardFooter";
 import WizardNextButton from "./steps/WizardNextButton";
 import ReviewSubmitButton from "./steps/ReviewSubmitButton";
@@ -868,6 +870,31 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       
       const formData = new FormData();
       
+      // Auto-generate rich SEO description if user didn't enter a custom one
+      const resolvedCountry = (countries || []).find((c) => c._id === values.country);
+      const resolvedCountryName = resolvedCountry
+        ? (resolvedCountry.names?.[currentLanguage] || resolvedCountry.labels?.[currentLanguage] || resolvedCountry.code)
+        : '';
+
+      const foundLostOption = (flOptions || []).find((opt) => opt.id === values.foundLost);
+      const resolvedDirection = foundLostOption?.code === 'FOUND' ? 'FOUND' : 'LOST';
+
+      const resolvedCategoryNames = (categories || [])
+        .filter((cat) => selectedCategories.includes(cat.id || cat._id))
+        .map((cat) => cat.labels?.[currentLanguage] || cat.label || cat.code);
+
+      const resolvedDescription = values.description?.trim()
+        ? values.description.trim()
+        : generatePostDescription({
+            direction: resolvedDirection,
+            categoryNames: resolvedCategoryNames,
+            countryName: resolvedCountryName,
+            cityName: cityDisplayValue || '',
+            exactLocation: values.exactLocation || '',
+            date: formatDisplayDate(values.exactDate, currentLanguage),
+            language: currentLanguage,
+          });
+
       // Combine basic fields into a single JSON object to reduce field count
       // selectedCategories is already declared above in validation section
       const postData = {
@@ -879,7 +906,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         exactLocation: values.exactLocation,
         exactDate: values.exactDate, // This gets stored as mainDate in the server
         contact: values.contact,
-        description: values.description || "",
+        description: resolvedDescription,
         contactPreferences: { whatsapp: true },
         // Only a documents listing carries these, and only a documents
         // listing is allowed to: they are what identifies the item on a

@@ -15,7 +15,8 @@
  */
 
 const CATEGORY_COLORS = {
-  ELECTRONICS:  { color: '#00BCD4', backgroundColor: '#E0F7FA' },
+  PHONES:       { color: '#00BCD4', backgroundColor: '#E0F7FA' },
+  LAPTOPS:      { color: '#2979FF', backgroundColor: '#E8F0FE' },
   DOCUMENTS:    { color: '#795548', backgroundColor: '#EFEBE9' },
   JEWELRY:      { color: '#9C27B0', backgroundColor: '#F3E5F6' },
   CLOTHING:     { color: '#4CAF50', backgroundColor: '#EAF5EA' },
@@ -30,8 +31,10 @@ const CATEGORY_COLORS = {
   BOOKS:        { color: '#5E35B1', backgroundColor: '#ECE7F6' },
   SPORTS:       { color: '#8BC34A', backgroundColor: '#F1F8E9' },
   TOYS:         { color: '#AFB42B', backgroundColor: '#F5F6E6' },
+  CHARGERS:     { color: '#455A64', backgroundColor: '#ECEFF1' },
+  POWERBANKS:   { color: '#FF6D00', backgroundColor: '#FFF3E0' },
+  STORAGE:      { color: '#7C4DFF', backgroundColor: '#F0EBF8' },
   CAMERAS:      { color: '#0097A7', backgroundColor: '#E0F3F4' },
-  CHARGERS:     { color: '#455A64', backgroundColor: '#E9EBEC' },
   UMBRELLAS:    { color: '#0277BD', backgroundColor: '#E1EFF7' },
   BICYCLES:     { color: '#009966', backgroundColor: '#E0F3ED' },
   MONEY:        { color: '#2E7D32', backgroundColor: '#E6EFE6' },
@@ -39,6 +42,7 @@ const CATEGORY_COLORS = {
   MEDICAL:      { color: '#C2185B', backgroundColor: '#F8E3EB' },
   BABY:         { color: '#EC407A', backgroundColor: '#FDE8EF' },
   MUSIC:        { color: '#009688', backgroundColor: '#E0F2F1' },
+  ELECTRONICS:  { color: '#00838F', backgroundColor: '#E0F7FA' },
   OTHER:        { color: '#9E9E9E', backgroundColor: '#F3F3F3' },
 };
 

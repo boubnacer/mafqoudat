@@ -25,7 +25,11 @@ const BOTH = process.argv.includes('--both');
 
 // Code -> Plural labels across all 3 languages
 const PLURAL_LABELS = {
-  DOCUMENTS: { en: 'Documents', fr: 'Documents', ar: 'وثائق' },
+  PHONES: { en: 'Phones & Tablets', fr: 'Téléphones & Tablettes', ar: 'هواتف' },
+  LAPTOPS: { en: 'Laptops & Computers', fr: 'Ordinateurs & PC', ar: 'حواسيب' },
+  POWERBANKS: { en: 'Power Banks', fr: 'Batteries externes', ar: 'باور بانك' },
+  STORAGE: { en: 'Storage', fr: 'Stockage', ar: 'أجهزة تخزين' },
+  DOCUMENTS: { en: 'Documents & Cards', fr: 'Documents & Cartes', ar: 'وثائق وبطاقات' },
   PETS: { en: 'Pets', fr: 'Animaux de compagnie', ar: 'حيوانات أليفة' },
   VEHICLES: { en: 'Vehicles', fr: 'Véhicules', ar: 'مركبات' },
   KEYS: { en: 'Keys', fr: 'Clés', ar: 'مفاتيح' },
@@ -42,8 +46,6 @@ const PLURAL_LABELS = {
   PERSON: { en: 'Persons', fr: 'Personnes', ar: 'أشخاص' },
   MEDICAL: { en: 'Medical & Mobility Aids', fr: 'Aides médicales', ar: 'مستلزمات طبية' },
   BABY: { en: 'Baby & Kids Gear', fr: 'Articles pour enfants', ar: 'مستلزمات الأطفال' },
-  MUSIC: { en: 'Musical Instruments', fr: 'Instruments de musique', ar: 'آلات موسيقية' },
-  // Already plural / collective in all 3 languages (checked for completeness):
   ELECTRONICS: { en: 'Electronics', fr: 'Électronique', ar: 'إلكترونيات' },
   JEWELRY: { en: 'Jewelry', fr: 'Bijoux', ar: 'مجوهرات' },
   CLOTHING: { en: 'Clothing', fr: 'Vêtements', ar: 'ملابس' },

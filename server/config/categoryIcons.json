@@ -1,7 +1,13 @@
 {
-  "ELECTRONICS": {
+  "PHONES": {
     "viewBox": "0 0 512 512",
-    "body": "<rect width=\"256\" height=\"480\" x=\"128\" y=\"16\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" rx=\"48\" ry=\"48\"></rect><path fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M176 16h24a8 8 0 0 1 8 8h0a16 16 0 0 0 16 16h64a16 16 0 0 0 16-16h0a8 8 0 0 1 8-8h24\"></path>",
+    "body": "<rect x=\"36\" y=\"52\" width=\"244\" height=\"408\" rx=\"32\" fill=\"none\" stroke-width=\"26\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></rect><circle cx=\"158\" cy=\"80\" r=\"5\" fill=\"none\" stroke-width=\"26\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></circle><line x1=\"138\" y1=\"428\" x2=\"178\" y2=\"428\" fill=\"none\" stroke-width=\"16\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></line><rect x=\"308\" y=\"116\" width=\"168\" height=\"344\" rx=\"28\" fill=\"none\" stroke-width=\"26\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></rect><line x1=\"362\" y1=\"148\" x2=\"422\" y2=\"148\" fill=\"none\" stroke-width=\"16\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></line><line x1=\"374\" y1=\"428\" x2=\"410\" y2=\"428\" fill=\"none\" stroke-width=\"14\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></line>",
+    "paths": [],
+    "stroked": true
+  },
+  "LAPTOPS": {
+    "viewBox": "0 0 512 512",
+    "body": "<rect width=\"416\" height=\"304\" x=\"48\" y=\"96\" fill=\"none\" stroke-linejoin=\"round\" stroke-width=\"32\" rx=\"32.14\" ry=\"32.14\"></rect><path stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\" d=\"M16 416h480\"></path>",
     "paths": [],
     "stroked": true
   },
@@ -93,13 +99,13 @@
     ],
     "stroked": true
   },
-  "CAMERAS": {
+  "CHARGERS": {
     "viewBox": "0 0 512 512",
-    "body": "<path fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"m350.54 148.68-26.62-42.06C318.31 100.08 310.62 96 302 96h-92c-8.62 0-16.31 4.08-21.92 10.62l-26.62 42.06C155.85 155.23 148.62 160 140 160H80a32 32 0 0 0-32 32v192a32 32 0 0 0 32 32h352a32 32 0 0 0 32-32V192a32 32 0 0 0-32-32h-59c-8.65 0-16.85-4.77-22.46-11.32\"></path><circle cx=\"256\" cy=\"272\" r=\"80\" fill=\"none\" stroke-miterlimit=\"10\" stroke-width=\"32\"></circle><path fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M124 158v-22h-24v22\"></path>",
+    "body": "<path fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M315.27 33 96 304h128l-31.51 173.23a2.36 2.36 0 0 0 2.33 2.77h0a2.36 2.36 0 0 0 1.89-.95L416 208H288l31.66-173.25a2.45 2.45 0 0 0-2.44-2.75h0a2.42 2.42 0 0 0-1.95 1\"></path>",
     "paths": [],
     "stroked": true
   },
-  "CHARGERS": {
+  "POWERBANKS": {
     "viewBox": "0 0 512 512",
     "body": "<path d=\"M48 322.3V189.7A29.74 29.74 0 0 1 77.7 160h137.44l24.4-32H77.7A61.77 61.77 0 0 0 16 189.7v132.6A61.77 61.77 0 0 0 77.7 384h96.85a22.6 22.6 0 0 1 .26-7.32l.15-.75.21-.73 6.5-23.2H77.7A29.74 29.74 0 0 1 48 322.3M386.3 128h-98.64a22.7 22.7 0 0 1-.27 7.2l-.15.74-.21.73-6.54 23.33H386.3a29.74 29.74 0 0 1 29.7 29.7v132.6a29.74 29.74 0 0 1-29.7 29.7H247l-24.42 32H386.3a61.77 61.77 0 0 0 61.7-61.7V189.7a61.77 61.77 0 0 0-61.7-61.7\"></path><path d=\"M162.65 294.16a24.37 24.37 0 0 1-21.56-13 25 25 0 0 1 1.42-25.83l.31-.46.33-.44L197.62 183H89.69a20 20 0 0 0-20 20v106a20 20 0 0 0 20 20h98.42l9.78-34.86z\"></path><path d=\"m276.07 280.89 27.07-35.49a5.2 5.2 0 0 0 .77-1.91 5 5 0 0 0 .08-.66 5 5 0 0 0-.08-1.29 5.1 5.1 0 0 0-.68-1.75 4.8 4.8 0 0 0-.78-.95 3.5 3.5 0 0 0-.48-.38 4 4 0 0 0-1.11-.55 4.3 4.3 0 0 0-1.31-.2h-61.62l12.12-43.21 3.23-11.5 6.21-22.16.51-1.84 7.79-27.76a3.5 3.5 0 0 0 .05-.55v-.16c0-.05 0-.26-.05-.38s0-.09 0-.14a2.2 2.2 0 0 0-.17-.45 4 4 0 0 0-.26-.39l-.09-.1a3 3 0 0 0-.25-.23l-.1-.08a3 3 0 0 0-.39-.24 2 2 0 0 0-.41-.14h-.59a2.3 2.3 0 0 0-.45 0 2 2 0 0 0-.42.15l-.13.07-.3.21-.11.1a2.4 2.4 0 0 0-.36.41l-18 23.63-13.14 17.22-9.85 12.83-63.71 83.55a6 6 0 0 0-.44.8 4.8 4.8 0 0 0-.35 1.09 4.7 4.7 0 0 0-.08 1.29 4.86 4.86 0 0 0 2 3.71 5 5 0 0 0 .54.31 4.3 4.3 0 0 0 1.89.43h61.62L194.42 380.6a4 4 0 0 0 0 .56v.15a2.3 2.3 0 0 0 .06.38.6.6 0 0 0 0 .14 2.2 2.2 0 0 0 .17.45 4 4 0 0 0 .26.38l.09.1.25.24a.4.4 0 0 1 .1.08 2.2 2.2 0 0 0 .39.23 3 3 0 0 0 .41.14h.13a2 2 0 0 0 .33 0h.13a2.3 2.3 0 0 0 .45-.06 2 2 0 0 0 .41-.16l.13-.07.3-.21.11-.09a2.4 2.4 0 0 0 .36-.41L221.82 352l17.53-23z\"></path><path d=\"m319.5 256.93-.46.6L264.51 329h109.8a20 20 0 0 0 20-20V203a20 20 0 0 0-20-20H274.05l-9.74 34.73h35.24A24.35 24.35 0 0 1 321 230.5a25.21 25.21 0 0 1-1 25.79zM480 202.67a16 16 0 0 0-16 16v74.66a16 16 0 0 0 32 0v-74.66a16 16 0 0 0-16-16\"></path>",
     "paths": [
@@ -108,6 +114,18 @@
       "m276.07 280.89 27.07-35.49a5.2 5.2 0 0 0 .77-1.91 5 5 0 0 0 .08-.66 5 5 0 0 0-.08-1.29 5.1 5.1 0 0 0-.68-1.75 4.8 4.8 0 0 0-.78-.95 3.5 3.5 0 0 0-.48-.38 4 4 0 0 0-1.11-.55 4.3 4.3 0 0 0-1.31-.2h-61.62l12.12-43.21 3.23-11.5 6.21-22.16.51-1.84 7.79-27.76a3.5 3.5 0 0 0 .05-.55v-.16c0-.05 0-.26-.05-.38s0-.09 0-.14a2.2 2.2 0 0 0-.17-.45 4 4 0 0 0-.26-.39l-.09-.1a3 3 0 0 0-.25-.23l-.1-.08a3 3 0 0 0-.39-.24 2 2 0 0 0-.41-.14h-.59a2.3 2.3 0 0 0-.45 0 2 2 0 0 0-.42.15l-.13.07-.3.21-.11.1a2.4 2.4 0 0 0-.36.41l-18 23.63-13.14 17.22-9.85 12.83-63.71 83.55a6 6 0 0 0-.44.8 4.8 4.8 0 0 0-.35 1.09 4.7 4.7 0 0 0-.08 1.29 4.86 4.86 0 0 0 2 3.71 5 5 0 0 0 .54.31 4.3 4.3 0 0 0 1.89.43h61.62L194.42 380.6a4 4 0 0 0 0 .56v.15a2.3 2.3 0 0 0 .06.38.6.6 0 0 0 0 .14 2.2 2.2 0 0 0 .17.45 4 4 0 0 0 .26.38l.09.1.25.24a.4.4 0 0 1 .1.08 2.2 2.2 0 0 0 .39.23 3 3 0 0 0 .41.14h.13a2 2 0 0 0 .33 0h.13a2.3 2.3 0 0 0 .45-.06 2 2 0 0 0 .41-.16l.13-.07.3-.21.11-.09a2.4 2.4 0 0 0 .36-.41L221.82 352l17.53-23z",
       "m319.5 256.93-.46.6L264.51 329h109.8a20 20 0 0 0 20-20V203a20 20 0 0 0-20-20H274.05l-9.74 34.73h35.24A24.35 24.35 0 0 1 321 230.5a25.21 25.21 0 0 1-1 25.79zM480 202.67a16 16 0 0 0-16 16v74.66a16 16 0 0 0 32 0v-74.66a16 16 0 0 0-16-16"
     ],
+    "stroked": true
+  },
+  "STORAGE": {
+    "viewBox": "0 0 512 512",
+    "body": "<rect x=\"44\" y=\"64\" width=\"236\" height=\"384\" rx=\"28\" fill=\"none\" stroke-width=\"26\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></rect><line x1=\"84\" y1=\"112\" x2=\"144\" y2=\"112\" fill=\"none\" stroke-width=\"18\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></line><circle cx=\"162\" cy=\"256\" r=\"64\" fill=\"none\" stroke-width=\"26\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></circle><circle cx=\"162\" cy=\"256\" r=\"20\" fill=\"none\" stroke-width=\"26\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></circle><line x1=\"126\" y1=\"412\" x2=\"198\" y2=\"412\" fill=\"none\" stroke-width=\"18\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></line><rect x=\"312\" y=\"164\" width=\"156\" height=\"284\" rx=\"26\" fill=\"none\" stroke-width=\"26\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></rect><rect x=\"346\" y=\"72\" width=\"88\" height=\"92\" rx=\"10\" fill=\"none\" stroke-width=\"26\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></rect><rect x=\"360\" y=\"96\" width=\"20\" height=\"22\" rx=\"3\" fill=\"none\" stroke-width=\"26\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></rect><rect x=\"400\" y=\"96\" width=\"20\" height=\"22\" rx=\"3\" fill=\"none\" stroke-width=\"26\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></rect><line x1=\"366\" y1=\"392\" x2=\"414\" y2=\"392\" fill=\"none\" stroke-width=\"18\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></line>",
+    "paths": [],
+    "stroked": true
+  },
+  "CAMERAS": {
+    "viewBox": "0 0 512 512",
+    "body": "<path fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"m350.54 148.68-26.62-42.06C318.31 100.08 310.62 96 302 96h-92c-8.62 0-16.31 4.08-21.92 10.62l-26.62 42.06C155.85 155.23 148.62 160 140 160H80a32 32 0 0 0-32 32v192a32 32 0 0 0 32 32h352a32 32 0 0 0 32-32V192a32 32 0 0 0-32-32h-59c-8.65 0-16.85-4.77-22.46-11.32\"></path><circle cx=\"256\" cy=\"272\" r=\"80\" fill=\"none\" stroke-miterlimit=\"10\" stroke-width=\"32\"></circle><path fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M124 158v-22h-24v22\"></path>",
+    "paths": [],
     "stroked": true
   },
   "UMBRELLAS": {
@@ -151,6 +169,12 @@
   "MUSIC": {
     "viewBox": "0 0 512 512",
     "body": "<path fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M192 218v-6c0-14.84 10-27 24.24-30.59l174.59-46.68A20 20 0 0 1 416 154v22\"></path><path fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M416 295.94v80c0 13.91-8.93 25.59-22 30l-22 8c-25.9 8.72-52-10.42-52-38h0a33.37 33.37 0 0 1 23-32l51-18.15c13.07-4.4 22-15.94 22-29.85V58a10 10 0 0 0-12.6-9.61L204 102a16.48 16.48 0 0 0-12 16v226c0 13.91-8.93 25.6-22 30l-52 18c-13.88 4.68-22 17.22-22 32h0c0 27.58 26.52 46.55 52 38l22-8c13.07-4.4 22-16.08 22-30v-80\"></path>",
+    "paths": [],
+    "stroked": true
+  },
+  "ELECTRONICS": {
+    "viewBox": "0 0 512 512",
+    "body": "<rect width=\"352\" height=\"352\" x=\"80\" y=\"80\" fill=\"none\" stroke-linejoin=\"round\" stroke-width=\"32\" rx=\"48\" ry=\"48\"></rect><rect width=\"224\" height=\"224\" x=\"144\" y=\"144\" fill=\"none\" stroke-linejoin=\"round\" stroke-width=\"32\" rx=\"16\" ry=\"16\"></rect><path fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M256 80V48m80 32V48M176 80V48m80 416v-32m80 32v-32m-160 32v-32m256-176h32m-32 80h32m-32-160h32M48 256h32m-32 80h32M48 176h32\"></path>",
     "paths": [],
     "stroked": true
   },

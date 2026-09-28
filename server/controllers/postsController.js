@@ -28,6 +28,7 @@ const {
 const getCountryIso3 = require("country-iso-2-to-3");
 const { getCountryId, getCountryCode } = require("../utils/countryCache");
 const { resolveCityCoordinates, MISSING_COORDINATES } = require("../utils/cityCoordinates");
+const { generatePostDescription } = require("../utils/descriptionGenerator");
 
 // Finding the City row a picked search result already corresponds to.
 //
@@ -1701,6 +1702,39 @@ const createNewPost = async (req, res) => {
      newPostData.cloudinaryPublicId = req.cloudinaryResult.public_id;
      // Keep backward compatibility with image field
      newPostData.image = req.cloudinaryResult.url;
+   }
+
+   // Fallback auto-generated description if none provided
+   if (!newPostData.description || !newPostData.description.trim()) {
+     try {
+       const [countryDoc, categoryDocs, foundLostDoc, cityDoc] = await Promise.all([
+         country ? Country.findById(country).select('code names labels').lean() : null,
+         categories && categories.length ? Category.find({ _id: { $in: categories } }).select('code labels').lean() : [],
+         foundLost ? FoundLost.findById(foundLost).select('code labels').lean() : null,
+         cityId ? City.findById(cityId).select('code labels').lean() : null,
+       ]);
+
+       const countryName = countryDoc
+         ? (countryDoc.names?.ar || countryDoc.names?.en || countryDoc.names?.fr || countryDoc.code)
+         : '';
+       const categoryNames = (categoryDocs || []).map((c) => c.labels?.ar || c.labels?.en || c.labels?.fr || c.code);
+       const direction = foundLostDoc?.code === 'FOUND' ? 'FOUND' : 'LOST';
+       const cityName = cityDoc
+         ? (cityDoc.labels?.ar || cityDoc.labels?.en || cityDoc.labels?.fr || cityDoc.code)
+         : (typeof city === 'string' && !city.startsWith('api_') ? city : '');
+
+       newPostData.description = generatePostDescription({
+         direction,
+         categoryNames,
+         countryName,
+         cityName,
+         exactLocation: exactLocation || '',
+         date: exactDate || '',
+         language: 'ar',
+       });
+     } catch (descErr) {
+       console.error('Failed to auto-generate fallback description:', descErr.message);
+     }
    }
 
      // Create and store the new post

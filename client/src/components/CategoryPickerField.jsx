@@ -28,8 +28,16 @@ import { getCategoryColor, getCategoryBackgroundColor, getCategoryIcon } from ".
 const MAX_CATEGORIES = 10;
 
 const getCategoryId = (category) => String(category?.id || category?._id || "");
-const getCategoryLabel = (category, currentLanguage) =>
-  category?.labels?.[currentLanguage] || category?.label || category?.code || "";
+const getCategoryLabel = (category, currentLanguage, t) => {
+  if (category?.code === "ELECTRONICS" && t) return t("categoryElectronics");
+  if (category?.code === "PHONES" && t) return t("categoryPhones");
+  if (category?.code === "LAPTOPS" && t) return t("categoryLaptops");
+  if (category?.code === "CHARGERS" && t) return t("categoryChargers");
+  if (category?.code === "POWERBANKS" && t) return t("categoryPowerbanks");
+  if (category?.code === "STORAGE" && t) return t("categoryStorage");
+  if (category?.code === "DOCUMENTS" && t) return t("categoryDocuments");
+  return category?.labels?.[currentLanguage] || category?.label || category?.code || "";
+};
 
 // Categories field, restyled to match the mobile app's picker (mobile/src/components/PostForm.js
 // + SelectModal.js): a tappable field showing the current selection opens a searchable
@@ -118,7 +126,7 @@ const CategoryPickerField = ({ categories, value, onChange, error, errorText, da
           }}
         >
           {selectedCategories.length
-            ? selectedCategories.map((cat) => getCategoryLabel(cat, currentLanguage)).join(", ")
+            ? selectedCategories.map((cat) => getCategoryLabel(cat, currentLanguage, t)).join(", ")
             : t("selectCategories")}
         </Typography>
         {selectedCategories.length > 0 && (
@@ -163,7 +171,7 @@ const CategoryPickerField = ({ categories, value, onChange, error, errorText, da
             return (
               <Chip
                 key={id}
-                label={getCategoryLabel(cat, currentLanguage)}
+                label={getCategoryLabel(cat, currentLanguage, t)}
                 onDelete={() => handleRemoveSelected(id)}
                 sx={{
                   borderRadius: 2,
@@ -215,7 +223,7 @@ const CategoryPickerField = ({ categories, value, onChange, error, errorText, da
                       <Icon fontSize="small" sx={{ color: chipColor }} />
                     </Box>
                   </ListItemIcon>
-                  <ListItemText primary={getCategoryLabel(cat, currentLanguage)} />
+                  <ListItemText primary={getCategoryLabel(cat, currentLanguage, t)} />
                   {/* This app's legacy palette.primary.main is white in light mode
                       (see theme.js) - Checkbox's default color="primary" would render
                       an invisible checked icon, so the brand color is set explicitly. */}

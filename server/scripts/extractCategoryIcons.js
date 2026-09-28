@@ -17,7 +17,8 @@ const { renderToStaticMarkup } = require(path.join(CLIENT_ROOT, 'node_modules', 
 const io = require(path.join(CLIENT_ROOT, 'node_modules', 'react-icons', 'io5'));
 
 const CATEGORY_MAP = {
-  ELECTRONICS: io.IoPhonePortraitOutline,
+  PHONES: io.IoPhonePortraitOutline,
+  LAPTOPS: io.IoLaptopOutline,
   DOCUMENTS: io.IoDocumentTextOutline,
   JEWELRY: io.IoDiamondOutline,
   CLOTHING: io.IoShirtOutline,
@@ -32,8 +33,10 @@ const CATEGORY_MAP = {
   BOOKS: io.IoBookOutline,
   SPORTS: io.IoFootballOutline,
   TOYS: io.IoGameControllerOutline,
+  CHARGERS: io.IoFlashOutline,
+  POWERBANKS: io.IoBatteryChargingOutline,
+  STORAGE: io.IoSaveOutline,
   CAMERAS: io.IoCameraOutline,
-  CHARGERS: io.IoBatteryChargingOutline,
   UMBRELLAS: io.IoUmbrellaOutline,
   BICYCLES: io.IoBicycleOutline,
   MONEY: io.IoCashOutline,
@@ -41,6 +44,7 @@ const CATEGORY_MAP = {
   MEDICAL: io.IoMedkitOutline,
   BABY: io.IoBalloonOutline,
   MUSIC: io.IoMusicalNotesOutline,
+  ELECTRONICS: io.IoHardwareChipOutline,
   OTHER: io.IoEllipsisHorizontalOutline,
 };
 

@@ -109,7 +109,21 @@ const Categories = () => {
             const iconColor = getCategoryColor(code);
             const tint = alpha(iconColor, isDark ? 0.2 : 0.12);
             const badgeBg = isDark ? 'rgba(0,0,0,0.28)' : 'rgba(255,255,255,0.55)';
-            const label = labels[currentLanguage] || labels.en;
+            const label = code === 'ELECTRONICS'
+              ? t('categoryElectronics')
+              : code === 'PHONES'
+              ? t('categoryPhones')
+              : code === 'LAPTOPS'
+              ? t('categoryLaptops')
+              : code === 'CHARGERS'
+              ? t('categoryChargers')
+              : code === 'POWERBANKS'
+              ? t('categoryPowerbanks')
+              : code === 'STORAGE'
+              ? t('categoryStorage')
+              : code === 'DOCUMENTS'
+              ? t('categoryDocuments')
+              : (labels[currentLanguage] || labels.en);
 
             return (
               <Box key={_id}>
