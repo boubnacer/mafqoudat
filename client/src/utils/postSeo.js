@@ -226,7 +226,8 @@ export const buildPostSeo = ({ post, language = 'en', t }) => {
   const path = buildPostPath(post?._id);
   const canonicalUrl = buildAbsoluteUrl(path);
   const image = resolvePostImage(post);
-  const userDescription = collapseWhitespace(post?.description);
+  const resolvedDesc = (post?.descriptionLabels && post.descriptionLabels[language]) || post?.description;
+  const userDescription = collapseWhitespace(resolvedDesc);
 
   const itemPageSchema = {
     '@context': 'https://schema.org',

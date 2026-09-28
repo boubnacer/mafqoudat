@@ -7,6 +7,7 @@ import { ErrorState } from "../../../components/LoadingStates";
 import SinglePostSkeleton from "../../../components/SinglePostSkeleton";
 import { useTranslation } from "../../../utils/translations";
 import { buildPostSeo, buildPostPath } from "../../../utils/postSeo";
+import { buildDynamicDescriptionLabels } from "../../../utils/postDescriptionGenerator";
 
 const SinglePost = () => {
   const { id } = useParams();
@@ -73,10 +74,11 @@ const SinglePost = () => {
           whatsapp: false
         },
     // Ensure foundLostLabel is passed if available from API transformation
-    foundLostLabel: post.foundLostLabel || null
+    foundLostLabel: post.foundLostLabel || null,
+    descriptionLabels: post.descriptionLabels || buildDynamicDescriptionLabels(post),
   };
 
-  const seo = buildPostSeo({ post, language: currentLanguage, t });
+  const seo = buildPostSeo({ post: sanitizedPost, language: currentLanguage, t });
 
   return (
     <>
