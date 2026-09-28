@@ -5,46 +5,88 @@
  *
  * For cities with new posts today:
  *   The city is rendered as a Unified Map Chip:
- *   A sleek, high-contrast pill that encloses:
- *     - A pulsing live beacon dot
- *     - The city name
- *     - The new posts count badge
- *   In LTR mode: [ • CityName  +3 ]
- *   In RTL mode: [ +3  CityName • ]
+ *   - In LTR mode: Restored full-size pill [ • CityName  [+3] ]
+ *       • Live pulsing beacon dot (r=3, size=8)
+ *       • City name (font=10px, starting right after beacon)
+ *       • Dedicated solid pill container for +number (h=14, font=9.5px)
+ *       • Comfortable 5px gap, 8px padding, 22px chip height
  *
- * This completely eliminates ambiguity with nearby neighbouring cities
- * (the count is physically inside the same chip as the city name)
- * and eliminates RTL/bidi text overlapping bugs.
+ *   - In RTL mode: Ultra-compact, tight pill [ +3 CityName • ]
+ *       • Live pulsing beacon dot (r=1.8, size=4)
+ *       • Precise Arabic text width calculation (getArabicTextWidth)
+ *       • Bold +number directly in brand accent (no bulky container box!)
+ *       • Tight 2.5px gaps and 4px padding so there are no empty gaps
+ *       • Compact 15px chip height preserving neighbouring cities' visibility
  *
  * Pure geometry, no DOM and no react-native: mirrored 1:1 at
  * mobile/src/utils/cityLabelLayout.js so both web and mobile place labels identically.
  */
 
-export const CITY_LABEL_FONT_SIZE = 8;
-export const CHIP_HEIGHT = 16;
-export const CHIP_PADDING = 5;
-export const CHIP_GAP = 3.5;
-export const BEACON_SIZE = 5;
+// LTR tokens (restored full-size design with pill badge)
+export const LTR_CITY_LABEL_FONT_SIZE = 10;
+export const LTR_CHIP_HEIGHT = 22;
+export const LTR_CHIP_PADDING = 8;
+export const LTR_CHIP_GAP = 5;
+export const LTR_BEACON_SIZE = 8;
+export const LTR_BADGE_FONT_SIZE = 9.5;
+export const ltrBadgeWidth = (label) => Math.max(10, String(label || "").length * 5.5);
 
-export const countBadgeWidth = (label) => Math.max(13, String(label || "").length * 4.5 + 6);
+// RTL tokens (ultra-compact, tight 2.5px gap, no bulky badge container)
+export const RTL_CITY_LABEL_FONT_SIZE = 8;
+export const RTL_CHIP_HEIGHT = 15;
+export const RTL_CHIP_PADDING = 4;
+export const RTL_CHIP_GAP = 2.5;
+export const RTL_BEACON_SIZE = 4;
+export const RTL_BADGE_FONT_SIZE = 7.5;
+export const rtlCountWidth = (label) => Math.max(7, String(label || "").length * 4.2);
 
-// Backwards compatibility aliases
-export const BADGE_HEIGHT = CHIP_HEIGHT;
-export const BADGE_FONT_SIZE = 7.5;
-export const BADGE_GAP = CHIP_GAP;
-export const badgeWidth = countBadgeWidth;
+// Default exports for backwards compatibility
+export const CITY_LABEL_FONT_SIZE = LTR_CITY_LABEL_FONT_SIZE;
+export const CHIP_HEIGHT = LTR_CHIP_HEIGHT;
+export const CHIP_PADDING = LTR_CHIP_PADDING;
+export const CHIP_GAP = LTR_CHIP_GAP;
+export const BEACON_SIZE = LTR_BEACON_SIZE;
+export const BADGE_HEIGHT = LTR_CHIP_HEIGHT;
+export const BADGE_FONT_SIZE = LTR_BADGE_FONT_SIZE;
+export const BADGE_GAP = LTR_CHIP_GAP;
+export const countBadgeWidth = ltrBadgeWidth;
+export const badgeWidth = ltrBadgeWidth;
 
-// SVG has no text metrics at render time and RN only reports a width after the
-// text has already been laid out, so both platforms estimate.
-const GLYPH_WIDTH_RATIO = 0.54;
+// Arabic char width map for precise text bounding without oversized gaps
+const ARABIC_CHAR_WIDTHS = {
+  'ا': 0.32, 'أ': 0.32, 'إ': 0.32, 'آ': 0.32, 'ل': 0.32, '1': 0.35,
+  'ر': 0.40, 'ز': 0.40, 'د': 0.40, 'ذ': 0.40, 'و': 0.42, 'ؤ': 0.42,
+  ' ': 0.30,
+  'ن': 0.45, 'ب': 0.45, 'ت': 0.45, 'ث': 0.45, 'ي': 0.45, 'ى': 0.45, 'ئ': 0.45,
+  'س': 0.52, 'ش': 0.52, 'ص': 0.52, 'ض': 0.52, 'ط': 0.50, 'ظ': 0.50,
+  'ع': 0.48, 'غ': 0.48, 'ف': 0.48, 'ق': 0.48, 'ك': 0.48, 'م': 0.48,
+  'ه': 0.42, 'ة': 0.40, 'ح': 0.48, 'خ': 0.48, 'ج': 0.48,
+};
+
+export const getArabicTextWidth = (text, fontSize) => {
+  const str = String(text || "");
+  let sum = 0;
+  for (let i = 0; i < str.length; i += 1) {
+    const ch = str[i];
+    sum += (ARABIC_CHAR_WIDTHS[ch] || 0.45) * fontSize;
+  }
+  return Math.max(sum, fontSize);
+};
+
+const GLYPH_WIDTH_RATIO = 0.52;
 const LINE_HEIGHT_RATIO = 1.15;
 
-export const estimateLabelSize = (text, fontSize = CITY_LABEL_FONT_SIZE) => {
+export const estimateLabelSize = (text, fontSize = CITY_LABEL_FONT_SIZE, isRTL = false) => {
   const str = String(text || "");
   const isArabic = /[\u0600-\u06FF]/.test(str);
-  const ratio = isArabic ? 0.60 : GLYPH_WIDTH_RATIO;
+  if (isArabic) {
+    return {
+      width: getArabicTextWidth(str, fontSize),
+      height: fontSize * LINE_HEIGHT_RATIO,
+    };
+  }
   return {
-    width: Math.max(str.length * fontSize * ratio, fontSize),
+    width: Math.max(str.length * fontSize * (isRTL ? 0.48 : GLYPH_WIDTH_RATIO), fontSize),
     height: fontSize * LINE_HEIGHT_RATIO,
   };
 };
@@ -60,7 +102,7 @@ const DIRECTIONS = [
 ];
 
 // Ring offsets for resolving collisions between adjacent cities
-const RINGS = [0, 4, 8, 14, 20, 28];
+const RINGS = [0, 3, 6, 10, 15, 22, 30];
 const PADDING = 1;
 
 const rectOf = (cx, cy, width, height) => ({
@@ -84,45 +126,37 @@ const ownsLabel = (points, ownIndex, box) => {
   const own = points[ownIndex];
   const ownDistance = distanceToRect(own.x, own.y, box);
   return !points.some((point, index) => (
-    index !== ownIndex && distanceToRect(point.x, point.y, box) < ownDistance - 2
+    index !== ownIndex && distanceToRect(point.x, point.y, box) < ownDistance - 4
   ));
 };
 
 /**
- * @param points     [{ x, y, name, weight, todayCount, badgeWidth }] in map units
+ * @param points     [{ x, y, name, weight, todayCount }] in map units
  * @param width      map canvas width in map units
  * @param height     map canvas height in map units
  * @param fontSize   label font size in map units
  * @param isRTL      boolean indicating Right-to-Left (Arabic) mode
  * @param obstacles  extra rects labels must avoid
  * @param dotRadius  deprecated, kept for backwards compatibility
- * @returns array parallel to `points`:
- *   {
- *     cx, cy,
- *     nameX, nameY,
- *     beaconX, beaconY,
- *     countX, countY,
- *     badgeX, badgeY,
- *     labelX, labelY,
- *     chipWidth, chipHeight,
- *     totalWidth, totalHeight,
- *     nameWidth, nameHeight,
- *     countWidth,
- *     badgeWidth,
- *     hasNewPosts,
- *     todayCount,
- *     hidden,
- *   }
+ * @returns array parallel to `points`
  */
 export const layoutCityLabels = ({
   points,
   width,
   height,
-  fontSize = CITY_LABEL_FONT_SIZE,
+  fontSize,
   isRTL = false,
   obstacles = [],
   dotRadius = 0,
 }) => {
+  const chipHeight = isRTL ? RTL_CHIP_HEIGHT : LTR_CHIP_HEIGHT;
+  const chipPadding = isRTL ? RTL_CHIP_PADDING : LTR_CHIP_PADDING;
+  const chipGap = isRTL ? RTL_CHIP_GAP : LTR_CHIP_GAP;
+  const beaconSize = isRTL ? RTL_BEACON_SIZE : LTR_BEACON_SIZE;
+  const cityFontSize = fontSize || (isRTL ? RTL_CITY_LABEL_FONT_SIZE : LTR_CITY_LABEL_FONT_SIZE);
+  const badgeFontSize = isRTL ? RTL_BADGE_FONT_SIZE : LTR_BADGE_FONT_SIZE;
+  const beaconRadius = isRTL ? 1.8 : 3;
+
   const placements = points.map(() => ({
     cx: 0,
     cy: 0,
@@ -147,6 +181,12 @@ export const layoutCityLabels = ({
     hasNewPosts: false,
     todayCount: 0,
     hidden: true,
+    isRTL,
+    fontSize: cityFontSize,
+    badgeFontSize,
+    beaconRadius,
+    hasCountPill: false,
+    countPillHeight: 0,
   }));
 
   const taken = [...obstacles];
@@ -159,7 +199,7 @@ export const layoutCityLabels = ({
   order.forEach(({ point, index }) => {
     const hasNewPosts = (point.todayCount || 0) > 0;
     const labelText = String(point.name || "");
-    const { width: nameWidth, height: nameHeight } = estimateLabelSize(labelText, fontSize);
+    const { width: nameWidth, height: nameHeight } = estimateLabelSize(labelText, cityFontSize, isRTL);
 
     let totalWidth = nameWidth;
     let totalHeight = nameHeight;
@@ -167,9 +207,9 @@ export const layoutCityLabels = ({
 
     if (hasNewPosts) {
       const countLabel = `+${point.todayCount}`;
-      countW = countBadgeWidth(countLabel);
-      totalWidth = CHIP_PADDING + BEACON_SIZE + CHIP_GAP + nameWidth + CHIP_GAP + countW + CHIP_PADDING;
-      totalHeight = CHIP_HEIGHT;
+      countW = isRTL ? rtlCountWidth(countLabel) : ltrBadgeWidth(countLabel);
+      totalWidth = chipPadding + beaconSize + chipGap + nameWidth + chipGap + countW + chipPadding;
+      totalHeight = chipHeight;
     }
 
     let placed = false;
@@ -182,7 +222,7 @@ export const layoutCityLabels = ({
         const [dx, dy] = dirs[d];
         const push = ring === 0
           ? 0
-          : ringDist + Math.abs(dx) * (totalWidth * 0.25) + Math.abs(dy) * (totalHeight * 0.35);
+          : ringDist + Math.abs(dx) * (totalWidth * 0.18) + Math.abs(dy) * (totalHeight * 0.28);
         const cx = point.x + dx * push;
         const cy = point.y + dy * push;
         const box = rectOf(cx, cy, totalWidth, totalHeight);
@@ -205,25 +245,22 @@ export const layoutCityLabels = ({
           const right = cx + totalWidth / 2;
 
           if (isRTL) {
-            // In RTL: [ Count | Name | Beacon ]
-            beaconX = right - CHIP_PADDING - BEACON_SIZE / 2;
-            beaconY = cy;
-            countX = left + CHIP_PADDING + countW / 2;
+            // In RTL: [ Count | Gap (2.5px) | Name | Gap (2.5px) | Beacon ]
+            // Small and tight gaps, no bulky container box around +number
+            countX = left + chipPadding + countW / 2;
             countY = cy;
-            const nameLeft = left + CHIP_PADDING + countW;
-            const nameRight = right - CHIP_PADDING - BEACON_SIZE;
-            nameX = (nameLeft + nameRight) / 2;
+            nameX = countX + countW / 2 + chipGap + nameWidth / 2;
             nameY = cy;
+            beaconX = nameX + nameWidth / 2 + chipGap + beaconSize / 2;
+            beaconY = cy;
           } else {
-            // In LTR: [ Beacon | Name | Count ]
-            beaconX = left + CHIP_PADDING + BEACON_SIZE / 2;
+            // In LTR: [ Beacon | Gap | Name | Gap | Count Pill ] - Restored original LTR
+            beaconX = left + chipPadding + beaconSize / 2;
             beaconY = cy;
-            countX = right - CHIP_PADDING - countW / 2;
-            countY = cy;
-            const nameLeft = left + CHIP_PADDING + BEACON_SIZE;
-            const nameRight = right - CHIP_PADDING - countW;
-            nameX = (nameLeft + nameRight) / 2;
+            nameX = beaconX + beaconSize / 2 + chipGap;
             nameY = cy;
+            countX = right - chipPadding - countW / 2;
+            countY = cy;
           }
         }
 
@@ -251,6 +288,12 @@ export const layoutCityLabels = ({
           hasNewPosts,
           todayCount: point.todayCount || 0,
           hidden: false,
+          isRTL,
+          fontSize: cityFontSize,
+          badgeFontSize,
+          beaconRadius,
+          hasCountPill: false,
+          countPillHeight: 0,
         };
 
         taken.push(box);

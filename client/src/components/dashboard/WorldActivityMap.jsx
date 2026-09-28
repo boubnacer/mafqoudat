@@ -422,10 +422,10 @@ const WorldActivityMap = ({
             className={pulseClass}
             cx={placement.beaconX}
             cy={placement.beaconY}
-            r={2}
+            r={placement.beaconRadius}
             fill="none"
             stroke={brand}
-            strokeWidth={1.2}
+            strokeWidth={isRTL ? 1.2 : 1.5}
             opacity={0}
             pointerEvents="none"
           />
@@ -433,21 +433,13 @@ const WorldActivityMap = ({
       })}
 
       {/* City labels and Unified Map Chips:
-          - Quiet cities: clean text with panel outline halo.
-          - Active cities: Unified Map Chip enclosing:
-              • Live pulsing beacon dot
-              • City name
-              • New posts count badge (+N)
-            In LTR: [ • CityName  +3 ]
-            In RTL: [ +3  CityName • ]
-          Zero ambiguity with neighbouring cities, zero RTL bidi overlap! */}
+          - In LTR: Restored full-size pill [ • CityName  [+3] ] with solid pill badge
+          - In RTL: Ultra-compact pill [ +3 CityName • ] with tight 2.5px gaps and no bulky badge container */}
       {cityMarkers.placements.map((placement, index) => {
         if (placement.hidden) return null;
         const city = cityMarkers.cities[index].city;
 
         if (placement.hasNewPosts) {
-          const countPillW = placement.countWidth;
-          const countPillH = 11;
           return (
             <g key={`city-chip-${city.name}-${index}`} pointerEvents="none">
               {/* Chip background plate */}
@@ -459,47 +451,39 @@ const WorldActivityMap = ({
                 rx={placement.chipHeight / 2}
                 fill={panel}
                 stroke={brand}
-                strokeWidth={1.2}
+                strokeWidth={isRTL ? 1.2 : 1.5}
               />
 
               {/* Live beacon dot */}
               <circle
                 cx={placement.beaconX}
                 cy={placement.beaconY}
-                r={2}
+                r={placement.beaconRadius}
                 fill={brand}
               />
 
-              {/* City name text: textAnchor="middle" ensures perfect centering in both LTR and RTL without bidi overflow */}
+              {/* City name text */}
               <text
                 x={placement.nameX}
                 y={placement.nameY}
-                textAnchor="middle"
+                textAnchor={isRTL ? "middle" : "start"}
                 dominantBaseline="central"
-                fontSize={CITY_LABEL_FONT_SIZE}
+                fontSize={placement.fontSize}
                 fontWeight={600}
                 fill={ink}
               >
                 {city.name}
               </text>
 
-              {/* New posts count pill */}
-              <rect
-                x={placement.countX - countPillW / 2}
-                y={placement.countY - countPillH / 2}
-                width={countPillW}
-                height={countPillH}
-                rx={countPillH / 2}
-                fill={brand}
-              />
+              {/* Count text - bold brand accent text without container box in both LTR & RTL */}
               <text
                 x={placement.countX}
                 y={placement.countY}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fontSize={BADGE_FONT_SIZE}
+                fontSize={placement.badgeFontSize}
                 fontWeight={700}
-                fill={badgeText}
+                fill={brand}
               >
                 {`+${placement.todayCount}`}
               </text>
@@ -514,11 +498,11 @@ const WorldActivityMap = ({
             y={placement.nameY}
             textAnchor="middle"
             dominantBaseline="central"
-            fontSize={CITY_LABEL_FONT_SIZE}
+            fontSize={placement.fontSize}
             fontWeight={600}
             fill={ink}
             stroke={panel}
-            strokeWidth={2}
+            strokeWidth={isRTL ? 2 : 3}
             paintOrder="stroke"
             pointerEvents="none"
           >

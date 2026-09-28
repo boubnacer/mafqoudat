@@ -719,23 +719,23 @@ full-bleed backdrop zoomed to the visitor's country, countries tinted by
   positions in 16 directions across rings until finding an overlap-free placement.
   When a city has new posts today (`todayCount > 0`):
   - The city is rendered as a **Unified Map Chip**: a sleek, high-contrast pill enclosing a live
-    pulsing beacon dot, the city name, and a vibrant new posts count pill (`+N`).
-  - In **LTR mode**: `[ • CityName  +N ]` (beacon on left, city name in middle, count on right).
-  - In **RTL mode**: `[ +N  CityName • ]` (count on left, city name in middle, beacon on right).
+    pulsing beacon dot, the city name, and the new posts count (`+N` in bold brand accent, without a bulky inner container box).
+  - In **LTR mode**: `[ • CityName +N ]` (beacon on left, city name in middle, count on right).
+  - In **RTL mode**: `[ +N CityName • ]` (count on left, city name in middle, beacon on right).
   - A subtle pulse ring animates out from the live beacon dot to signal live today activity.
-  - Sizing is tuned to be ultra-compact (8px font, 16px chip height, 7.5px badge font, 5px beacon)
+  - Sizing is tuned to be ultra-compact (8px font, 14px chip height, 7.5px badge font, 4px beacon, 2.5px gap)
     so active chips don't crowd or eclipse neighbouring cities.
-  - The city name uses `textAnchor="middle"` anchored at the exact geometric midpoint between
-    the beacon and count pill, guaranteeing that RTL Arabic text stays centered inside the chip
-    container and never shoots out of bounds regardless of browser SVG bidi direction.
+  - Sequential fixed-gap positioning (`CHIP_GAP = 2.5px`) locks elements side by side without floating empty space.
+  - The city name uses `textAnchor="middle"` anchored at the exact midpoint, guaranteeing that RTL Arabic text
+    stays centered inside the chip container without bidi overflow.
   - This completely eliminates ambiguity with nearby neighbouring cities and eliminates RTL bidi overlap bugs.
   Cities are placed in descending activity order, ensuring high-activity cities stay centered
   at their true location.
   - **A placement is refused unless the city's own coordinate is the closest** (`ownsLabel`),
     preventing any misplaced label from drifting near another city's location.
   - **A label that fits nowhere is dropped, not stacked**, avoiding clutter in pathological clusters.
-  - Both platforms estimate text width from glyph count with Arabic character detection
-    (0.60em ratio for Arabic, 0.54em for Latin), ensuring adequate chip width reservation.
+  - Both platforms estimate text width with balanced glyph ratios (0.48em for Arabic, 0.44em for Latin),
+    keeping boxes compact and leaving ample map canvas for nearby cities.
 - **The map's accent is `brandLogo`, not `brandPrimary` (web + mobile).** Every
   other surface renders the brand as a control — a button, a chip, a 6px accent
   bar — where a deep, high-contrast blue is right. This one renders it as a large

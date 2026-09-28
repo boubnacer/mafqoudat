@@ -99,46 +99,38 @@ const CITY_LABEL_HALO_OFFSETS = [
 
 // Pulse ring for active cities: expands outward from the live beacon dot
 // and fades out, repeating smoothly via RN Animated on the native thread.
-const PulseRing = ({ scale, brand, isDark, delay = 0 }) => {
+const PulseRing = ({ scale, brand, isDark, initialRadius, delay = 0 }) => {
   const anim = useRef(new Animated.Value(0)).current;
-  const [started, setStarted] = useState(delay === 0);
+  const [started, setStarted] = useState(false);
 
   useEffect(() => {
-    let timeoutId;
-    let pulseLoop;
-
-    const startPulse = () => {
+    let loop;
+    const timer = setTimeout(() => {
       setStarted(true);
-      pulseLoop = Animated.loop(
+      loop = Animated.loop(
         Animated.sequence([
           Animated.timing(anim, {
             toValue: 1,
-            duration: PULSE_DURATION,
-            easing: Easing.out(Easing.poly(2)),
+            duration: 2200,
+            easing: Easing.out(Easing.ease),
             useNativeDriver: true,
           }),
-          Animated.delay(PULSE_REPEAT_DELAY),
+          Animated.delay(1400),
         ])
       );
-      pulseLoop.start();
-    };
-
-    if (delay > 0) {
-      timeoutId = setTimeout(startPulse, delay);
-    } else {
-      startPulse();
-    }
+      loop.start();
+    }, delay);
 
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (pulseLoop) pulseLoop.stop();
+      clearTimeout(timer);
+      if (loop) loop.stop();
     };
   }, [anim, delay]);
 
   if (!started) return null;
 
-  const initialRadius = 2 * scale;
-  const initialDiameter = initialRadius * 2;
+  const r = initialRadius || (3 * scale);
+  const initialDiameter = r * 2;
   const initialOpacity = isDark ? 0.75 : 0.65;
 
   const ringScale = anim.interpolate({
@@ -168,7 +160,7 @@ const PulseRing = ({ scale, brand, isDark, delay = 0 }) => {
         style={{
           width: initialDiameter,
           height: initialDiameter,
-          borderRadius: initialRadius,
+          borderRadius: r,
           borderWidth: 1.2 * scale,
           borderColor: brand,
           transform: [{ scale: ringScale }],
@@ -180,11 +172,11 @@ const PulseRing = ({ scale, brand, isDark, delay = 0 }) => {
 };
 
 // Live beacon dot with pulse ring
-const BeaconDot = ({ scale, brand, isDark, delay = 0 }) => {
-  const dotSize = 4 * scale;
+const BeaconDot = ({ scale, brand, isDark, dotRadius = 3, delay = 0 }) => {
+  const dotSize = dotRadius * 2 * scale;
   return (
     <View style={{ width: dotSize, height: dotSize, justifyContent: 'center', alignItems: 'center' }}>
-      <PulseRing scale={scale} brand={brand} isDark={isDark} delay={delay} />
+      <PulseRing scale={scale} brand={brand} isDark={isDark} initialRadius={dotRadius * scale} delay={delay} />
       <View
         style={{
           width: dotSize,
@@ -197,9 +189,9 @@ const BeaconDot = ({ scale, brand, isDark, delay = 0 }) => {
   );
 };
 
-const CityLabel = ({ text, ink, panel, scale }) => {
-  const fontSize = CITY_LABEL_FONT_SIZE * scale;
-  const haloOffset = 0.8 * scale;
+const CityLabel = ({ text, ink, panel, scale, fontSize }) => {
+  const fSize = fontSize || (10 * scale);
+  const haloOffset = scale;
   return (
     <View style={{ justifyContent: 'center', alignItems: 'center' }}>
       {CITY_LABEL_HALO_OFFSETS.map(([dx, dy], i) => (
@@ -214,7 +206,7 @@ const CityLabel = ({ text, ink, panel, scale }) => {
               left: 0,
               top: 0,
               transform: [{ translateX: dx * haloOffset }, { translateY: dy * haloOffset }],
-              fontSize,
+              fontSize: fSize,
               color: panel,
             },
           ]}
@@ -225,7 +217,7 @@ const CityLabel = ({ text, ink, panel, scale }) => {
       <Text
         numberOfLines={1}
         allowFontScaling={false}
-        style={[styles.cityLabelText, { fontSize, color: ink }]}
+        style={[styles.cityLabelText, { fontSize: fSize, color: ink }]}
       >
         {text}
       </Text>
@@ -271,63 +263,47 @@ const CityItem = ({ placement, city, brand, panel, ink, badgeText, scale, isDark
               alignItems: 'center',
               backgroundColor: panel,
               borderColor: brand,
-              borderWidth: 1.2 * scale,
-              borderRadius: 8 * scale,
-              paddingHorizontal: 5 * scale,
-              paddingVertical: 1.5 * scale,
+              borderWidth: (isRTL ? 1.2 : 1.5) * scale,
+              borderRadius: (isRTL ? 7.5 : 11) * scale,
+              paddingHorizontal: (isRTL ? 4 : 7) * scale,
+              paddingVertical: (isRTL ? 1.5 : 2.5) * scale,
               elevation: 2,
               shadowColor: brand,
               shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.2,
-              shadowRadius: 2,
+              shadowOpacity: 0.25,
+              shadowRadius: 3,
             }}
           >
             {isRTL ? (
+              // RTL: Ultra-compact, tight 2.5px gap, no bulky pill container for +number
               <>
-                <View
-                  style={{
-                    backgroundColor: brand,
-                    borderRadius: 5.5 * scale,
-                    paddingHorizontal: 4 * scale,
-                    paddingVertical: 0.5 * scale,
-                  }}
-                >
-                  <Text style={[styles.badgeText, { color: badgeText, fontSize: 7.5 * scale }]}>
-                    {`+${placement.todayCount}`}
-                  </Text>
-                </View>
-                <View style={{ width: 3.5 * scale }} />
+                <Text style={[styles.badgeText, { color: brand, fontSize: 7.5 * scale, fontWeight: '700' }]}>
+                  {`+${placement.todayCount}`}
+                </Text>
+                <View style={{ width: 2.5 * scale }} />
                 <Text style={[styles.cityChipName, { color: ink, fontSize: 8 * scale }]}>
                   {city.name}
                 </Text>
-                <View style={{ width: 3.5 * scale }} />
-                <BeaconDot scale={scale} brand={brand} isDark={isDark} delay={(index % 5) * 450} />
+                <View style={{ width: 2.5 * scale }} />
+                <BeaconDot scale={scale} brand={brand} isDark={isDark} dotRadius={1.8} delay={(index % 5) * 450} />
               </>
             ) : (
+              // LTR: Bold brand text for +number without container box, matching RTL UI
               <>
-                <BeaconDot scale={scale} brand={brand} isDark={isDark} delay={(index % 5) * 450} />
-                <View style={{ width: 3.5 * scale }} />
-                <Text style={[styles.cityChipName, { color: ink, fontSize: 8 * scale }]}>
+                <BeaconDot scale={scale} brand={brand} isDark={isDark} dotRadius={3} delay={(index % 5) * 450} />
+                <View style={{ width: 5 * scale }} />
+                <Text style={[styles.cityChipName, { color: ink, fontSize: 10 * scale }]}>
                   {city.name}
                 </Text>
-                <View style={{ width: 3.5 * scale }} />
-                <View
-                  style={{
-                    backgroundColor: brand,
-                    borderRadius: 5.5 * scale,
-                    paddingHorizontal: 4 * scale,
-                    paddingVertical: 0.5 * scale,
-                  }}
-                >
-                  <Text style={[styles.badgeText, { color: badgeText, fontSize: 7.5 * scale }]}>
-                    {`+${placement.todayCount}`}
-                  </Text>
-                </View>
+                <View style={{ width: 5 * scale }} />
+                <Text style={[styles.badgeText, { color: brand, fontSize: 9.5 * scale, fontWeight: '700' }]}>
+                  {`+${placement.todayCount}`}
+                </Text>
               </>
             )}
           </View>
         ) : (
-          <CityLabel text={city.name} ink={ink} panel={panel} scale={scale} />
+          <CityLabel text={city.name} ink={ink} panel={panel} scale={scale} fontSize={(isRTL ? 8 : 10) * scale} />
         )}
       </View>
     </View>
