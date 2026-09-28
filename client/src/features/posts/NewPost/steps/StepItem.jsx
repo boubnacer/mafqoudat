@@ -3,7 +3,6 @@ import {
   Box,
   FormLabel,
   Typography,
-  Alert,
   Select,
   MenuItem,
   FormControl,
@@ -12,7 +11,6 @@ import {
   alpha,
 } from "@mui/material";
 import { TaskAltOutlined, SearchOffOutlined, LockOutlined } from "@mui/icons-material";
-import Textfield from "../../../../components/Textfield";
 import CategoryPickerField from "../../../../components/CategoryPickerField";
 import DocumentTypePickerField from "../../../../components/DocumentTypePickerField";
 import { useTranslation } from "../../../../utils/translations";
@@ -310,69 +308,6 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
           </Box>
         </Box>
       )}
-
-      {/* Item Details Section */}
-      <Typography
-        variant="h5"
-        sx={{
-          fontWeight: 700,
-          color: theme.custom.color.brandPrimary,
-          fontSize: '1.4rem',
-          mb: 1
-        }}
-      >
-        {t('itemDetails')}
-      </Typography>
-
-      <Box>
-        <FormLabel
-          htmlFor="description"
-          sx={{
-            mb: 1,
-            display: "block",
-            fontWeight: 600,
-            fontSize: '1.15rem',
-            color: theme.palette.text.primary
-          }}
-        >
-          {t('description')} ({t('optional')})
-        </FormLabel>
-
-        {/* Sensitive Information Warning */}
-        <Alert
-          severity="warning"
-          sx={{
-            mb: 2,
-            borderRadius: 2,
-            backgroundColor: theme.palette.mode === 'dark'
-              ? 'rgba(255, 152, 0, 0.1)'
-              : 'rgba(255, 152, 0, 0.05)',
-            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`,
-            '& .MuiAlert-icon': {
-              color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
-            },
-            '& .MuiAlert-message': {
-              color: theme.palette.text.primary,
-              fontSize: '0.9rem',
-              fontWeight: 500,
-            }
-          }}
-        >
-          {t('descriptionSensitiveInfoWarning')}
-        </Alert>
-
-        <Textfield
-          name="description"
-          variant="outlined"
-          multiline
-          rows={4}
-          placeholder={getFoundLostType(values.foundLost) === 'LOST'
-            ? t('descriptionPlaceholderLost')
-            : t('descriptionPlaceholderFound')
-          }
-          data-testid="description"
-        />
-      </Box>
     </Box>
   );
 };
