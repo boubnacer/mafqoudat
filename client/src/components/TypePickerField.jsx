@@ -18,7 +18,16 @@ import { ExpandMore as ExpandMoreIcon, Check as CheckIcon, CompareArrowsOutlined
 // than CategoryPickerField's Dialog, since there's no search to do and a
 // single pick should apply and close immediately, the way a native dropdown
 // does.
-const TypePickerField = ({ options, value, onChange, placeholder, error, errorText, dataTestId }) => {
+const TypePickerField = ({
+  options,
+  value,
+  onChange,
+  placeholder,
+  error,
+  errorText,
+  dataTestId,
+  fontSize,
+}) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -75,12 +84,33 @@ const TypePickerField = ({ options, value, onChange, placeholder, error, errorTe
           noWrap
           sx={{
             flex: 1,
-            color: selectedOption ? theme.palette.text.primary : theme.palette.text.secondary,
-            fontWeight: selectedOption ? 600 : 400,
+            color: selectedOption && selectedOption.id ? theme.palette.text.primary : theme.palette.text.secondary,
+            fontWeight: selectedOption && selectedOption.id ? 600 : 400,
+            fontSize: fontSize || undefined,
           }}
         >
           {selectedOption ? selectedOption.label : placeholder}
         </Typography>
+        {selectedOption && selectedOption.id ? (
+          <Box
+            sx={{
+              minWidth: 22,
+              height: 22,
+              borderRadius: "50%",
+              backgroundColor: theme.custom.color.brandPrimary,
+              color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 12,
+              fontWeight: 700,
+              px: 0.5,
+              flexShrink: 0,
+            }}
+          >
+            +1
+          </Box>
+        ) : null}
         <ExpandMoreIcon fontSize="small" sx={{ color: theme.palette.text.secondary, flexShrink: 0 }} />
       </Box>
 

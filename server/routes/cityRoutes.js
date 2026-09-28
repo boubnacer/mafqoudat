@@ -23,6 +23,10 @@ router
   .get(staticDataCache('cities-by-country'), cityController.getCitiesByCountry);
 
 router
+  .route("/with-posts")
+  .get(cityController.getCitiesWithPosts);
+
+router
   .route("/geonames-stats")
   .get(cityController.getGeonamesStats);
 

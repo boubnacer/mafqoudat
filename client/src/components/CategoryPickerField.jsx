@@ -43,7 +43,16 @@ const getCategoryLabel = (category, currentLanguage, t) => {
 // + SelectModal.js): a tappable field showing the current selection opens a searchable
 // checklist sheet with a Confirm button, instead of MUI Autocomplete's free-typing
 // multi-select combobox, so picking categories feels the same on web and mobile.
-const CategoryPickerField = ({ categories, value, onChange, error, errorText, dataTestId }) => {
+const CategoryPickerField = ({
+  categories,
+  value,
+  onChange,
+  error,
+  errorText,
+  dataTestId,
+  showChips = true,
+  fontSize,
+}) => {
   const theme = useTheme();
   const { t, currentLanguage } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -123,6 +132,7 @@ const CategoryPickerField = ({ categories, value, onChange, error, errorText, da
             flex: 1,
             color: selectedCategories.length ? theme.palette.text.primary : theme.palette.text.secondary,
             fontWeight: selectedCategories.length ? 600 : 400,
+            fontSize: fontSize || undefined,
           }}
         >
           {selectedCategories.length
@@ -146,7 +156,7 @@ const CategoryPickerField = ({ categories, value, onChange, error, errorText, da
               flexShrink: 0,
             }}
           >
-            {selectedCategories.length}
+            +{selectedCategories.length}
           </Box>
         )}
         <ExpandMoreIcon fontSize="small" sx={{ color: theme.palette.text.secondary, flexShrink: 0 }} />
@@ -158,7 +168,7 @@ const CategoryPickerField = ({ categories, value, onChange, error, errorText, da
         </Typography>
       )}
 
-      {selectedCategories.length > 0 && (
+      {showChips && selectedCategories.length > 0 && (
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1.25 }}>
           {selectedCategories.map((cat) => {
             const id = getCategoryId(cat);

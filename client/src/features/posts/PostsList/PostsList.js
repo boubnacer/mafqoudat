@@ -1,5 +1,5 @@
 import { useGetPostsQuery } from "../postsApiSlice";
-import { useGetCategoriesQuery, useGetCitiesQuery, useGetflOptionsQuery } from "../../dependencies/dependenciesApiSlice";
+import { useGetCategoriesQuery, useGetCitiesQuery, useGetCitiesWithPostsQuery, useGetflOptionsQuery } from "../../dependencies/dependenciesApiSlice";
 import { useTranslation } from "../../../utils/translations";
 import Post from "./Post";
 import CategoryPickerField from "../../../components/CategoryPickerField";
@@ -149,35 +149,6 @@ const PostsList = () => {
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [citySearchTerm, setCitySearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState(null);
-  const [debouncedCitySearchTerm, setDebouncedCitySearchTerm] = useState("");
-  const [cityInputFocused, setCityInputFocused] = useState(false);
-  const [cachedCities, setCachedCities] = useState(() => {
-    // Load cached cities from localStorage
-    if (typeof window === 'undefined') return [];
-    
-    try {
-      const cached = localStorage.getItem('cachedCities');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        } else if (Array.isArray(parsed) && parsed.length === 0) {
-          // Empty array is valid, just return empty
-        } else {
-          console.error('Cached data is not a valid array:', parsed);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading cached cities:', error);
-      // If there's corrupted data, clear it
-      try {
-        localStorage.removeItem('cachedCities');
-      } catch (e) {
-        console.error('Error clearing corrupted cache:', e);
-      }
-    }
-    return [];
-  });
 
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
@@ -203,58 +174,6 @@ const PostsList = () => {
     // Small delay to ensure store is initialized
     setTimeout(checkStore, 100);
   }, []);
-
-  // Verify cached cities are loaded on mount and ensure they're in state
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    // Always check localStorage on mount to verify state matches
-    try {
-      const cached = localStorage.getItem('cachedCities');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Normalize country fields in cached cities to ensure consistent filtering
-          const normalizedCities = parsed.map(city => {
-            if (city && city.country) {
-              const normalizedCountry = typeof city.country === 'object' 
-                ? (city.country._id || city.country.id || city.country)
-                : city.country;
-              return {
-                ...city,
-                country: normalizedCountry ? String(normalizedCountry) : city.country
-              };
-            }
-            return city;
-          });
-          
-          // Only update if different to avoid unnecessary re-renders
-          setCachedCities(prevCached => {
-            if (prevCached.length !== normalizedCities.length || 
-                prevCached.some((city, idx) => {
-                  const cachedId = city?._id || city?.id;
-                  const parsedId = normalizedCities[idx]?._id || normalizedCities[idx]?.id;
-                  return cachedId !== parsedId;
-                })) {
-              return normalizedCities;
-            }
-            return prevCached;
-          });
-        } else if (!Array.isArray(parsed)) {
-          console.error('Cached data is not an array:', typeof parsed);
-          localStorage.removeItem('cachedCities');
-        }
-      }
-    } catch (error) {
-      console.error('Error verifying cached cities on mount:', error);
-      // If there's corrupted data, clear it
-      try {
-        localStorage.removeItem('cachedCities');
-      } catch (e) {
-        console.error('Error clearing corrupted cache:', e);
-      }
-    }
-  }, []); // Only run once on mount
 
   // Get categories for dynamic filtering (with debouncing to prevent rate limits)
   const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError } = useGetCategoriesQuery({
@@ -307,124 +226,33 @@ const PostsList = () => {
     return [allOption, ...mappedFlOptions];
   }, [flOptionsData, currentLanguage, t, theme.custom.status]);
 
-  // Get all cached cities for current country (for showing when focused)
-  const allCachedCitiesForCountry = useMemo(() => {
-    if (!currentCountry) {
-      return [];
+  // Get current country ID
+  const currentCountryId = useMemo(() => {
+    if (!currentCountry) return undefined;
+    if (typeof currentCountry === 'object') {
+      return currentCountry._id || currentCountry.id || currentCountry.code;
     }
-    
-    const filtered = cachedCities.filter(city => {
-      if (!city || !city.labels) {
-        return false;
-      }
-      
-      // Filter by country if available
-      if (currentCountry && city.country) {
-        const cityCountryId = typeof city.country === 'object' ? (city.country._id || city.country.id) : city.country;
-        const currentCountryId = typeof currentCountry === 'object' ? (currentCountry._id || currentCountry.id) : currentCountry;
-        
-        const cityCountryStr = cityCountryId ? cityCountryId.toString() : '';
-        const currentCountryStr = currentCountryId ? currentCountryId.toString() : '';
-        
-        // If both have country IDs and they don't match, filter out
-        if (cityCountryStr && currentCountryStr && cityCountryStr !== currentCountryStr) {
-          return false;
-        }
-      }
-      
-      // If city has no country info, include it (might be from old cache)
-      // If currentCountry exists but city.country doesn't, include it
-      return true;
-    });
-    
-    return filtered;
-  }, [cachedCities, currentCountry]);
+    return currentCountry;
+  }, [currentCountry]);
 
-  // Filter cached cities by search term and country
-  const filteredCachedCities = useMemo(() => {
-    if (!currentCountry) return [];
-    
-    // If no search term, return all cached cities for the country (when focused)
-    if (!debouncedCitySearchTerm || debouncedCitySearchTerm.length < 1) {
-      return allCachedCitiesForCountry;
-    }
-    
-    // Normalize search term for better matching (especially for Arabic)
-    const normalizedSearch = normalizeArabicText(debouncedCitySearchTerm);
-    const searchLower = debouncedCitySearchTerm.toLowerCase();
-    
-    return allCachedCitiesForCountry.filter(city => {
-      if (!city || !city.labels) return false;
-      
-      // Get city names in all languages
-      const cityNameEn = city.labels?.en || '';
-      const cityNameFr = city.labels?.fr || '';
-      const cityNameAr = city.labels?.ar || '';
-      const cityCode = city.code || '';
-      
-      // Normalize Arabic text for better matching
-      const normalizedEn = normalizeArabicText(cityNameEn);
-      const normalizedFr = normalizeArabicText(cityNameFr);
-      const normalizedAr = normalizeArabicText(cityNameAr);
-      const normalizedCode = normalizeArabicText(cityCode);
-      
-      // Also check with lowercase for non-Arabic text
-      const lowerEn = cityNameEn.toLowerCase();
-      const lowerFr = cityNameFr.toLowerCase();
-      const lowerAr = cityNameAr.toLowerCase();
-      const lowerCode = cityCode.toLowerCase();
-      
-      // Match using both normalized (for Arabic) and lowercase (for other languages)
-      return normalizedEn.includes(normalizedSearch) || 
-             normalizedFr.includes(normalizedSearch) || 
-             normalizedAr.includes(normalizedSearch) ||
-             normalizedCode.includes(normalizedSearch) ||
-             lowerEn.includes(searchLower) || 
-             lowerFr.includes(searchLower) || 
-             lowerAr.includes(searchLower) ||
-             lowerCode.includes(searchLower);
-    });
-  }, [allCachedCitiesForCountry, debouncedCitySearchTerm, currentCountry]);
-
-  // Get cities for city filter (with debouncing)
-  // Fetch when user types at least 1 character to show cities immediately
-  const { data: citiesData, isLoading: citiesLoading } = useGetCitiesQuery({
-    language: currentLanguage,
-    search: debouncedCitySearchTerm || undefined,
-    countryId: currentCountry,
-    active: true
+  // Fetch only the cities that actually contain posts in the current country
+  const { data: citiesWithPostsData = [], isLoading: citiesLoading } = useGetCitiesWithPostsQuery({
+    countryId: currentCountryId,
   }, {
-    selectFromResult: ({ data, isLoading }) => ({
-      data: data?.ids?.map((id) => data?.entities[id]) || [],
-      isLoading
-    }),
-    // Skip if: no country, or no search term at all (allow 1 character minimum)
-    skip: !currentCountry || !debouncedCitySearchTerm || debouncedCitySearchTerm.length < 1,
-    refetchOnMountOrArgChange: 500,
+    skip: !currentCountryId,
+    refetchOnMountOrArgChange: 300,
   });
 
-
-  // Combine cached and API cities, removing duplicates
-  // When focused with no search term, show cached cities
-  // When typing, show filtered cached cities + API results
   const allCitiesData = useMemo(() => {
-    // Start with filtered cached cities (which includes all cached cities when no search term)
-    const combined = [...filteredCachedCities];
-    const existingIds = new Set(combined.map(c => c._id || c.id));
-    
-    // Add API results if available (when user is typing)
-    if (citiesData && citiesData.length > 0) {
-      citiesData.forEach(city => {
-        const cityId = city._id || city.id;
-        if (!existingIds.has(cityId)) {
-          combined.push(city);
-          existingIds.add(cityId);
-        }
-      });
-    }
-    
-    return combined;
-  }, [filteredCachedCities, citiesData]);
+    return Array.isArray(citiesWithPostsData) ? citiesWithPostsData : [];
+  }, [citiesWithPostsData]);
+
+  // Clear city selection when country changes
+  useEffect(() => {
+    setSelectedCity(null);
+    setDraftSelectedCity(null);
+    setCitySearchTerm("");
+  }, [currentCountryId]);
 
   // Type (Found/Lost) filter is driven by selectedFl (the panel's own state),
   // not urlFilter directly - this effect is what keeps it in sync whenever
@@ -585,15 +413,6 @@ const PostsList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Debounce city search term
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedCitySearchTerm(citySearchTerm);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [citySearchTerm]);
-
   // Update city search term display when language changes (if a city is selected)
   useEffect(() => {
     if (selectedCity) {
@@ -682,68 +501,15 @@ const PostsList = () => {
   }, []);
 
   // Shared by the live (desktop) and draft (mobile dialog) city selection
-  // handlers below - caching which cities have been picked is not itself a
-  // "filter" (it never re-runs the posts query), so it doesn't need to wait
-  // for Apply either way.
-  const cacheCityIfNeeded = useCallback((newValue) => {
-    if (!newValue) return;
-    setCachedCities(prevCached => {
-      const exists = prevCached.some(c =>
-        (c._id || c.id) === (newValue._id || newValue.id)
-      );
-      if (!exists) {
-        // Normalize country to always be a string ID for consistent filtering
-        let normalizedCountry = currentCountry;
-        if (newValue.country) {
-          normalizedCountry = typeof newValue.country === 'object'
-            ? (newValue.country._id || newValue.country.id || currentCountry)
-            : newValue.country;
-        }
-        // Ensure it's a string
-        normalizedCountry = normalizedCountry ? String(normalizedCountry) : currentCountry;
-
-        const cityToCache = {
-          ...newValue,
-          country: normalizedCountry
-        };
-        const newCached = [...prevCached, cityToCache];
-
-        // Limit cache size to prevent localStorage from getting too large (keep last 100 cities)
-        const limitedCache = newCached.slice(-100);
-
-        // Save to localStorage
-        try {
-          localStorage.setItem('cachedCities', JSON.stringify(limitedCache));
-        } catch (error) {
-          console.error('Error saving cached cities:', error);
-          // If localStorage is full, try to clear old entries
-          try {
-            const reducedCache = newCached.slice(-50);
-            localStorage.setItem('cachedCities', JSON.stringify(reducedCache));
-            return reducedCache;
-          } catch (e) {
-            console.error('Error saving reduced cached cities:', e);
-          }
-        }
-
-        return limitedCache;
-      }
-      return prevCached;
-    });
-  }, [currentCountry]);
-
   const handleCityChange = useCallback((event, newValue) => {
     setSelectedCity(newValue);
-    // Update search term to show selected city name in current language
     if (newValue) {
       setCitySearchTerm(getCityDisplayName(newValue));
-      cacheCityIfNeeded(newValue);
     } else {
       setCitySearchTerm('');
     }
     setPage(1);
-    // Dropdown will close automatically because open={citySearchTerm.length >= 1 && !selectedCity}
-  }, [getCityDisplayName, cacheCityIfNeeded]);
+  }, [getCityDisplayName]);
 
   // Draft twin of handleCityChange used by the mobile filter dialog - stages
   // the pick into draftSelectedCity instead of the applied selectedCity, so
@@ -752,24 +518,19 @@ const PostsList = () => {
     setDraftSelectedCity(newValue);
     if (newValue) {
       setCitySearchTerm(getCityDisplayName(newValue));
-      cacheCityIfNeeded(newValue);
     } else {
       setCitySearchTerm('');
     }
-  }, [getCityDisplayName, cacheCityIfNeeded]);
+  }, [getCityDisplayName]);
 
   const handleCityInputChange = useCallback((event, newInputValue, reason) => {
-    // Only update search term if user is typing (not when selecting)
     if (reason === 'input') {
       setCitySearchTerm(newInputValue);
-      // Clear selected city if user starts typing
       if (newInputValue && selectedCity) {
         setSelectedCity(null);
       }
-    } else if (reason === 'reset' && selectedCity) {
-      // When reset, show the selected city name in current language
-      const cityName = getCityDisplayName(selectedCity);
-      setCitySearchTerm(cityName);
+    } else if (reason === 'reset') {
+      setCitySearchTerm(selectedCity ? getCityDisplayName(selectedCity) : '');
     } else if (reason === 'clear') {
       setCitySearchTerm('');
       setSelectedCity(null);
@@ -784,9 +545,8 @@ const PostsList = () => {
       if (newInputValue && draftSelectedCity) {
         setDraftSelectedCity(null);
       }
-    } else if (reason === 'reset' && draftSelectedCity) {
-      const cityName = getCityDisplayName(draftSelectedCity);
-      setCitySearchTerm(cityName);
+    } else if (reason === 'reset') {
+      setCitySearchTerm(draftSelectedCity ? getCityDisplayName(draftSelectedCity) : '');
     } else if (reason === 'clear') {
       setCitySearchTerm('');
       setDraftSelectedCity(null);
@@ -1103,7 +863,7 @@ const PostsList = () => {
     // Type (Found/Lost) filter - a dropdown, the box-for-box twin of the
     // category filter below (same trigger box, same caption label above it),
     // so every field in the panel reads as one family.
-    const renderTypeFilterField = (activeFlId, onSelectType) => (
+    const renderTypeFilterField = (activeFlId, onSelectType, isDesktopField = false) => (
       <Box>
         <Typography variant="caption" sx={filterSectionLabelSx}>
           {t('filterType')}
@@ -1114,6 +874,7 @@ const PostsList = () => {
           onChange={onSelectType}
           placeholder={t('all')}
           dataTestId="postsListTypeFilter"
+          fontSize={isDesktopField ? '0.875rem' : undefined}
         />
       </Box>
     );
@@ -1122,7 +883,7 @@ const PostsList = () => {
     // uses (a tappable field opening a searchable checklist), replacing the
     // free-typing Autocomplete this used to be, so categories look and behave
     // identically whether you're creating a listing or filtering the list.
-    const renderCategoryFilterField = (activeCategories, activeSingleCategory, onCategoriesChange) => {
+    const renderCategoryFilterField = (activeCategories, activeSingleCategory, onCategoriesChange, isDesktopField = false) => {
       const activeValue = activeCategories.length > 0
         ? activeCategories
         : (activeSingleCategory !== "all" ? [activeSingleCategory] : []);
@@ -1136,12 +897,14 @@ const PostsList = () => {
             value={activeValue}
             onChange={onCategoriesChange}
             dataTestId="postsListCategoryFilter"
+            showChips={false}
+            fontSize={isDesktopField ? '0.875rem' : undefined}
           />
         </Box>
       );
     };
 
-    const renderCityFilterField = (activeCity, onCityChangeHandler, onCityInputChangeHandler) => (
+    const renderCityFilterField = (activeCity, onCityChangeHandler, onCityInputChangeHandler, isDesktopField = false) => (
       <Box>
       <Typography variant="caption" sx={filterSectionLabelSx}>
         {t('city')}
@@ -1149,35 +912,13 @@ const PostsList = () => {
       <Autocomplete
         fullWidth
         options={allCitiesData || []}
-        value={activeCity}
-        autoHighlight={false}
+        value={activeCity || null}
+        autoHighlight
         autoSelect={false}
+        openOnFocus
         onChange={onCityChangeHandler}
         onInputChange={onCityInputChangeHandler}
         inputValue={citySearchTerm}
-        open={
-          !activeCity &&
-          // Only open if there are cities to show
-          allCitiesData.length > 0 &&
-          !citiesLoading && (
-            // Open when focused and there are cached cities OR user is typing
-            (cityInputFocused && (allCachedCitiesForCountry.length > 0 || citySearchTerm.length >= 1)) ||
-            // Or when user is typing (even if not focused) AND there are results
-            (citySearchTerm.length >= 1)
-          )
-        }
-        onOpen={() => {
-          setCityInputFocused(true);
-        }}
-        onClose={() => {
-          setCityInputFocused(false);
-          // When dropdown closes, if a city is selected, keep the city name
-          if (activeCity) {
-            const cityName = getCityDisplayName(activeCity);
-            setCitySearchTerm(cityName);
-          }
-        }}
-        openOnFocus={false}
         getOptionLabel={(option) => {
           if (typeof option === 'string') return option;
           return getCityDisplayName(option);
@@ -1186,34 +927,49 @@ const PostsList = () => {
           if (!option || !value) return false;
           const optionId = option._id || option.id;
           const valueId = value._id || value.id;
-          return optionId && valueId && optionId.toString() === valueId.toString();
+          return optionId && valueId && String(optionId) === String(valueId);
         }}
         loading={citiesLoading}
-        filterOptions={(options, state) => {
-          // Completely disable client-side filtering - return all options from server
-          // Server already filtered the results, so show all returned options
-          // IMPORTANT: Return all options without any filtering
-          return options || [];
+        filterOptions={(options, { inputValue }) => {
+          if (!inputValue || !inputValue.trim()) {
+            return options || [];
+          }
+          const normalizedSearch = normalizeArabicText(inputValue.trim());
+          const searchLower = inputValue.trim().toLowerCase();
+
+          return (options || []).filter((city) => {
+            if (!city) return false;
+            const nameEn = city.labels?.en || '';
+            const nameFr = city.labels?.fr || '';
+            const nameAr = city.labels?.ar || '';
+            const code = city.code || '';
+
+            return (
+              normalizeArabicText(nameEn).includes(normalizedSearch) ||
+              normalizeArabicText(nameFr).includes(normalizedSearch) ||
+              normalizeArabicText(nameAr).includes(normalizedSearch) ||
+              normalizeArabicText(code).includes(normalizedSearch) ||
+              nameEn.toLowerCase().includes(searchLower) ||
+              nameFr.toLowerCase().includes(searchLower) ||
+              nameAr.toLowerCase().includes(searchLower) ||
+              code.toLowerCase().includes(searchLower)
+            );
+          });
         }}
         disableListWrap
         freeSolo={false}
-        selectOnFocus
-        clearOnBlur
-        handleHomeEndKeys
         noOptionsText={
           citiesLoading
             ? (t('loading') || 'Loading...')
-            : citySearchTerm.length >= 1
-              ? '' // Empty string to hide dropdown and show feedback message below
-              : allCachedCitiesForCountry.length === 0
-                ? t('searchCityPlaceholder')
-                : t('noSearchResults')
+            : allCitiesData.length === 0
+              ? (t('noCitiesWithPosts') || t('noCities') || 'No cities with posts')
+              : (t('noSearchResults') || 'No cities found')
         }
         ListboxProps={{
           style: { maxHeight: '300px' }
         }}
         renderOption={(props, option) => {
-          // Show city name in all languages for better search experience
+          const { key, ...otherProps } = props;
           const cityNames = [];
           if (option.labels?.en) cityNames.push(option.labels.en);
           if (option.labels?.fr) cityNames.push(option.labels.fr);
@@ -1221,11 +977,16 @@ const PostsList = () => {
           const displayText = cityNames.length > 0 ? cityNames.join(' • ') : getCityDisplayName(option);
 
           return (
-            <li {...props} key={option._id || option.id}>
-              <Box>
-                <Typography variant="body1" fontWeight={500}>
+            <li key={key || option._id || option.id} {...otherProps}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Typography variant="body2" fontWeight={500} sx={isDesktopField ? { fontSize: '0.875rem' } : {}}>
                   {displayText}
                 </Typography>
+                {option.postCount ? (
+                  <Typography variant="caption" sx={{ color: 'text.secondary', ml: 1, fontSize: '0.75rem' }}>
+                    ({option.postCount})
+                  </Typography>
+                ) : null}
               </Box>
             </li>
           );
@@ -1234,16 +995,12 @@ const PostsList = () => {
           <TextField
             {...params}
             placeholder={t('searchCityPlaceholder')}
-            onFocus={(e) => {
-              setCityInputFocused(true);
-              params.inputProps.onFocus?.(e);
-            }}
-            onBlur={(e) => {
-              // Delay to allow option selection
-              setTimeout(() => {
-                setCityInputFocused(false);
-              }, 200);
-              params.inputProps.onBlur?.(e);
+            inputProps={{
+              ...params.inputProps,
+              style: {
+                ...(params.inputProps?.style || {}),
+                ...(isDesktopField ? { fontSize: '0.875rem' } : {}),
+              },
             }}
             InputProps={{
               ...params.InputProps,
@@ -1255,6 +1012,27 @@ const PostsList = () => {
               ),
               endAdornment: (
                 <>
+                  {activeCity ? (
+                    <Box
+                      sx={{
+                        minWidth: 22,
+                        height: 22,
+                        borderRadius: "50%",
+                        backgroundColor: brand,
+                        color: theme.palette.getContrastText(brand),
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        px: 0.5,
+                        flexShrink: 0,
+                        mr: 0.5,
+                      }}
+                    >
+                      +1
+                    </Box>
+                  ) : null}
                   {citiesLoading ? <CircularProgress size={18} sx={{ color: alpha(theme.custom.color.ink, 0.5) }} /> : null}
                   {params.InputProps.endAdornment}
                 </>
@@ -1262,20 +1040,52 @@ const PostsList = () => {
             }}
           />
         )}
-        sx={cityFieldSx}
+        sx={{
+          ...cityFieldSx,
+          ...(isDesktopField ? {
+            '& .MuiInputBase-input': {
+              fontSize: '0.875rem',
+            },
+            '& .MuiInputBase-input::placeholder': {
+              fontSize: '0.875rem',
+            },
+          } : {}),
+        }}
       />
       </Box>
     );
+
+    const hasMatchingCities = (term) => {
+      if (!term || !term.trim()) return true;
+      const normalizedSearch = normalizeArabicText(term.trim());
+      const searchLower = term.trim().toLowerCase();
+      return (allCitiesData || []).some(city => {
+        const nameEn = city.labels?.en || '';
+        const nameFr = city.labels?.fr || '';
+        const nameAr = city.labels?.ar || '';
+        const code = city.code || '';
+        return (
+          normalizeArabicText(nameEn).includes(normalizedSearch) ||
+          normalizeArabicText(nameFr).includes(normalizedSearch) ||
+          normalizeArabicText(nameAr).includes(normalizedSearch) ||
+          normalizeArabicText(code).includes(normalizedSearch) ||
+          nameEn.toLowerCase().includes(searchLower) ||
+          nameFr.toLowerCase().includes(searchLower) ||
+          nameAr.toLowerCase().includes(searchLower) ||
+          code.toLowerCase().includes(searchLower)
+        );
+      });
+    };
 
     // Row layout only ever kicked in at the "md" breakpoint or above, which
     // is now exactly the desktop sidebar's territory - always stacking the
     // message and button reads better in a ~300px sidebar than the old
     // viewport-driven row split did.
     const renderCityNotFoundNode = (activeCity) => (
-      citySearchTerm.length >= 1 &&
+      citySearchTerm.trim().length >= 1 &&
       !citiesLoading &&
-      allCitiesData.length === 0 &&
-      !activeCity
+      !activeCity &&
+      !hasMatchingCities(citySearchTerm)
     ) ? (
       <Alert
         severity="info"
@@ -1320,41 +1130,17 @@ const PostsList = () => {
 
     // Live (applied) nodes - used by the desktop sidebar, which has no
     // Apply step and edits the real filter state directly.
-    const typeFilterNode = renderTypeFilterField(selectedFl, handleTypeFilter);
-    const categoryFilterNode = renderCategoryFilterField(selectedCategories, localCategoryFilter, handleCategoriesFilter);
-    const cityFilterNode = renderCityFilterField(selectedCity, handleCityChange, handleCityInputChange);
+    const typeFilterNode = renderTypeFilterField(selectedFl, handleTypeFilter, true);
+    const categoryFilterNode = renderCategoryFilterField(selectedCategories, localCategoryFilter, handleCategoriesFilter, true);
+    const cityFilterNode = renderCityFilterField(selectedCity, handleCityChange, handleCityInputChange, true);
     const cityNotFoundNode = renderCityNotFoundNode(selectedCity);
 
     // Draft (staged) nodes - used inside the mobile filter dialog.
-    const draftTypeFilterNode = renderTypeFilterField(draftSelectedFl, handleDraftTypeFilter);
-    const draftCategoryFilterNode = renderCategoryFilterField(draftSelectedCategories, draftLocalCategoryFilter, handleDraftCategoriesFilter);
-    const draftCityFilterNode = renderCityFilterField(draftSelectedCity, handleDraftCityChange, handleDraftCityInputChange);
+    const draftTypeFilterNode = renderTypeFilterField(draftSelectedFl, handleDraftTypeFilter, false);
+    const draftCategoryFilterNode = renderCategoryFilterField(draftSelectedCategories, draftLocalCategoryFilter, handleDraftCategoriesFilter, false);
+    const draftCityFilterNode = renderCityFilterField(draftSelectedCity, handleDraftCityChange, handleDraftCityInputChange, false);
     const draftCityNotFoundNode = renderCityNotFoundNode(draftSelectedCity);
 
-    const activeChipsNode = activeFilterChips.length > 0 ? (
-      <Box display="flex" gap={1} flexWrap="wrap">
-        {activeFilterChips.map((chip, index) => (
-          <Chip
-            key={index}
-            label={chip.label}
-            onDelete={chip.onDelete}
-            size="small"
-            sx={{
-              borderRadius: '999px',
-              height: 30,
-              fontWeight: 600,
-              backgroundColor: alpha(brand, isDark ? 0.16 : 0.08),
-              border: `1px solid ${alpha(brand, isDark ? 0.35 : 0.22)}`,
-              color: brand,
-              '& .MuiChip-deleteIcon': {
-                color: alpha(brand, 0.7),
-                '&:hover': { color: brand },
-              },
-            }}
-          />
-        ))}
-      </Box>
-    ) : null;
 
     // ---- Posts grid / pagination / empty state - also shared between
     // layouts. Column count narrows on desktop to leave room for the
@@ -1592,44 +1378,25 @@ const PostsList = () => {
                 boxShadow: `${theme.custom.elevation.e2}, 0 0 32px ${alpha(brand, isDark ? 0.16 : 0.08)}`,
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 2.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-                  <Box
-                    sx={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: `${theme.custom.radius.sm}px`,
-                      backgroundImage: `linear-gradient(135deg, ${brand} 0%, ${lighten(brand, 0.45)} 100%)`,
-                      boxShadow: `0 0 16px ${alpha(brand, 0.4)}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <FilterIcon sx={{ fontSize: 18, color: theme.palette.getContrastText(brand) }} />
-                  </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: '1.1rem' }}>
-                    {t('filters')}
-                  </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 2.5 }}>
+                <Box
+                  sx={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: `${theme.custom.radius.sm}px`,
+                    backgroundImage: `linear-gradient(135deg, ${brand} 0%, ${lighten(brand, 0.45)} 100%)`,
+                    boxShadow: `0 0 16px ${alpha(brand, 0.4)}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <FilterIcon sx={{ fontSize: 18, color: theme.palette.getContrastText(brand) }} />
                 </Box>
-                {hasActiveFilters && (
-                  <Button
-                    size="small"
-                    onClick={handleClearAllFilters}
-                    sx={{
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      borderRadius: `${theme.custom.radius.sm}px`,
-                      color: brand,
-                      minWidth: 0,
-                      px: 1,
-                      '&:hover': { backgroundColor: alpha(brand, 0.08) },
-                    }}
-                  >
-                    {t('clearFilters')}
-                  </Button>
-                )}
+                <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: '1.1rem' }}>
+                  {t('filters')}
+                </Typography>
               </Box>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
@@ -1637,7 +1404,32 @@ const PostsList = () => {
                 {categoryFilterNode}
                 {cityFilterNode}
                 {cityNotFoundNode}
-                {activeChipsNode}
+
+                {hasActiveFilters && (
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={handleClearAllFilters}
+                    sx={{
+                      mt: 0.5,
+                      py: 1,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                      borderRadius: `${theme.custom.radius.md}px`,
+                      color: brand,
+                      borderColor: alpha(brand, isDark ? 0.35 : 0.25),
+                      backgroundColor: alpha(brand, isDark ? 0.08 : 0.04),
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        backgroundColor: alpha(brand, isDark ? 0.16 : 0.09),
+                        borderColor: brand,
+                      },
+                    }}
+                  >
+                    {t('clearFilters')}
+                  </Button>
+                )}
               </Box>
             </Box>
 
@@ -1664,76 +1456,6 @@ const PostsList = () => {
         minHeight: "100vh",
         backgroundColor: theme.custom.color.postsListBackdrop
       }}>
-        {/* Active-filter chips - a slim strip in normal document flow (not
-            fixed), shown only once something is actually filtered, so a
-            first-time visitor sees a clean page and only the floating
-            launcher below. Scrolls away with the content on purpose; the
-            launcher tab is what stays reachable. */}
-        {hasActiveFilters && (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              overflowX: 'auto',
-              mb: 2,
-              pb: 0.5,
-              '&::-webkit-scrollbar': { display: 'none' },
-              scrollbarWidth: 'none',
-            }}
-          >
-            <Typography
-              variant="caption"
-              sx={{
-                fontWeight: 700,
-                color: alpha(theme.custom.color.ink, 0.55),
-                flexShrink: 0,
-                textTransform: 'uppercase',
-                letterSpacing: 0.4,
-              }}
-            >
-              {t('filters')}
-            </Typography>
-            {activeFilterChips.map((chip, index) => (
-              <Chip
-                key={index}
-                label={chip.label}
-                onDelete={chip.onDelete}
-                size="small"
-                sx={{
-                  flexShrink: 0,
-                  borderRadius: '999px',
-                  height: 30,
-                  fontWeight: 600,
-                  backgroundColor: alpha(brand, isDark ? 0.16 : 0.08),
-                  border: `1px solid ${alpha(brand, isDark ? 0.35 : 0.22)}`,
-                  color: brand,
-                  '& .MuiChip-deleteIcon': {
-                    color: alpha(brand, 0.7),
-                    '&:hover': { color: brand },
-                  },
-                }}
-              />
-            ))}
-            <Button
-              size="small"
-              onClick={handleClearAllFilters}
-              sx={{
-                flexShrink: 0,
-                textTransform: 'none',
-                fontWeight: 600,
-                borderRadius: `${theme.custom.radius.sm}px`,
-                color: brand,
-                minWidth: 0,
-                px: 1,
-                '&:hover': { backgroundColor: alpha(brand, 0.08) },
-              }}
-            >
-              {t('clearFilters')}
-            </Button>
-          </Box>
-        )}
-
         {/* Filter Dialog - a compact, centered card (never full-screen/full-
             width), so it reads as an overlay rather than a page of its own.
             Fields here edit the staged draft state; nothing re-queries the
@@ -1921,9 +1643,9 @@ const PostsList = () => {
           {activeFilterChips.length > 0 && (
             <Box
               sx={{
-                minWidth: 20,
-                height: 20,
-                px: 0.5,
+                minWidth: 22,
+                height: 22,
+                px: 0.6,
                 borderRadius: '999px',
                 backgroundColor: theme.palette.getContrastText(brand),
                 display: 'flex',
@@ -1933,9 +1655,9 @@ const PostsList = () => {
             >
               <Typography
                 variant="caption"
-                sx={{ fontWeight: 800, fontSize: '0.7rem', color: brand, lineHeight: 1 }}
+                sx={{ fontWeight: 800, fontSize: '0.72rem', color: brand, lineHeight: 1 }}
               >
-                {activeFilterChips.length}
+                +{activeFilterChips.length}
               </Typography>
             </Box>
           )}

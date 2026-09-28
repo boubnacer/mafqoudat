@@ -180,8 +180,7 @@ const isFoundType = (item, floptions) => {
 const PostsListScreen = ({ navigation, route }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { signOut } = useAuth();
-  const { floptions, categories, getCities } = useReferenceData();
+  const { floptions, categories, getCities, getCitiesWithPosts } = useReferenceData();
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const isRTL = currentLanguage === 'ar';
@@ -517,7 +516,7 @@ const PostsListScreen = ({ navigation, route }) => {
         <Text style={styles.filterLauncherText}>{t('filters')}</Text>
         {activeFilterCount > 0 ? (
           <View style={styles.filterLauncherBadge}>
-            <Text style={styles.filterLauncherBadgeText}>{activeFilterCount}</Text>
+            <Text style={styles.filterLauncherBadgeText}>+{activeFilterCount}</Text>
           </View>
         ) : null}
       </LinearGradient>
@@ -813,6 +812,7 @@ const PostsListScreen = ({ navigation, route }) => {
         isRTL={isRTL}
         floptions={floptions}
         categories={categories}
+        getCitiesWithPosts={getCitiesWithPosts}
         getCities={getCities}
         countryId={countryId}
         appliedSelectedFl={selectedFl}

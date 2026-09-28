@@ -97,7 +97,7 @@ const NewPostScreen = ({ navigation, route }) => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      const postId = response.data?.postId;
+      const postId = response.data?.postId || response.data?._id || response.data?.id;
       isSubmittedRef.current = true;
       // Land on the new post's detail with Home underneath it, so back from
       // the detail screen returns to Home rather than to this now-submitted
@@ -105,7 +105,9 @@ const NewPostScreen = ({ navigation, route }) => {
       // stack, so navigating to Home first pops back to that existing screen
       // instead of pushing a duplicate, then PostDetailScreen pushes on top.
       navigation.navigate('Home');
-      navigation.navigate('PostDetailScreen', { id: postId });
+      if (postId) {
+        navigation.navigate('PostDetailScreen', { id: postId });
+      }
     } catch (err) {
       if (err.response?.status === 429) {
         setSubmitError({ type: 'ratelimit', message: err.response.data?.message || t('postingLimitReached') });

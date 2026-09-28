@@ -538,6 +538,137 @@ const getCitiesByCountry = async (req, res) => {
   }
 };
 
+// @desc Get cities that actually contain posts for a given country
+// @route GET /cities/with-posts
+// @access Public
+const getCitiesWithPosts = async (req, res) => {
+  try {
+    const { countryId } = req.query;
+    if (!countryId) {
+      return res.status(400).json({
+        success: false,
+        message: "countryId parameter is required",
+        data: []
+      });
+    }
+
+    const Post = require("../models/Post");
+    const mongoose = require("mongoose");
+
+    let countryMatch;
+    if (mongoose.Types.ObjectId.isValid(countryId)) {
+      countryMatch = new mongoose.Types.ObjectId(countryId);
+    } else {
+      const resolvedId = await getCountryId(countryId);
+      if (resolvedId && mongoose.Types.ObjectId.isValid(resolvedId)) {
+        countryMatch = new mongoose.Types.ObjectId(resolvedId);
+      } else {
+        countryMatch = countryId;
+      }
+    }
+
+    const citiesWithPosts = await Post.aggregate([
+      {
+        $match: {
+          country: countryMatch,
+          city: { $ne: null }
+        }
+      },
+      {
+        $addFields: {
+          cityObjectId: {
+            $cond: {
+              if: { $ne: ["$city", null] },
+              then: {
+                $cond: {
+                  if: { $eq: [{ $type: "$city" }, "objectId"] },
+                  then: "$city",
+                  else: {
+                    $cond: {
+                      if: {
+                        $and: [
+                          { $eq: [{ $type: "$city" }, "string"] },
+                          { $regexMatch: { input: "$city", regex: "^[0-9a-fA-F]{24}$" } }
+                        ]
+                      },
+                      then: { $toObjectId: "$city" },
+                      else: {
+                        $cond: {
+                          if: { $ne: ["$city.id", null] },
+                          then: {
+                            $cond: {
+                              if: { $eq: [{ $type: "$city.id" }, "objectId"] },
+                              then: "$city.id",
+                              else: {
+                                $cond: {
+                                  if: { $regexMatch: { input: { $toString: "$city.id" }, regex: "^[0-9a-fA-F]{24}$" } },
+                                  then: { $toObjectId: "$city.id" },
+                                  else: null
+                                }
+                              }
+                            }
+                          },
+                          else: null
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              else: null
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          cityObjectId: { $ne: null }
+        }
+      },
+      {
+        $group: {
+          _id: "$cityObjectId",
+          postCount: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: "cities",
+          localField: "_id",
+          foreignField: "_id",
+          as: "cityDoc"
+        }
+      },
+      { $unwind: "$cityDoc" },
+      {
+        $project: {
+          _id: "$cityDoc._id",
+          id: "$cityDoc._id",
+          code: "$cityDoc.code",
+          labels: "$cityDoc.labels",
+          names: "$cityDoc.names",
+          isCapital: "$cityDoc.isCapital",
+          postCount: 1
+        }
+      },
+      { $sort: { "labels.en": 1 } }
+    ]);
+
+    res.json({
+      success: true,
+      data: citiesWithPosts,
+      total: citiesWithPosts.length
+    });
+  } catch (error) {
+    console.error("Error fetching cities with posts:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch cities with posts",
+      data: []
+    });
+  }
+};
+
 const createCity = async (req, res) => {
   try {
          const { code, countryId, countryCode, labels, isCapital, population } = req.body;
@@ -1232,5 +1363,6 @@ module.exports = {
   getGeonamesStats,
   shouldCacheCity,
   cacheApiCityToDatabase,
-  reverseGeocode
+  reverseGeocode,
+  getCitiesWithPosts,
 };

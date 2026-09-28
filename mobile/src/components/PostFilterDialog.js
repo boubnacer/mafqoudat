@@ -178,6 +178,11 @@ const DropdownField = ({
                         numberOfLines={1}
                       >
                         {getOptionLabel(option)}
+                        {option.postCount != null ? (
+                          <Text style={[styles.optionCountText, selected && styles.optionCountTextSelected]}>
+                            {` (${option.postCount})`}
+                          </Text>
+                        ) : null}
                       </Text>
                       {multiSelect ? (
                         <View style={[styles.optionCheckbox, selected && styles.optionCheckboxChecked]}>
@@ -198,8 +203,21 @@ const DropdownField = ({
   );
 };
 
+const normalizeArabicText = (text) => {
+  if (!text || typeof text !== 'string') return '';
+  return text
+    .replace(/[\u064B-\u065F\u0670]/g, '')
+    .replace(/أ|إ|آ/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/[ًٌٍَُِّْ]/g, '')
+    .toLowerCase()
+    .trim();
+};
+
 const cityLabelFor = (cities, cityId, currentLanguage) => {
-  const match = cities.find((city) => (city.id || city._id) === cityId);
+  if (!cityId || !cities) return '';
+  const match = cities.find((city) => String(city.id || city._id) === String(cityId));
   return match ? getLocalizedLabel(match, currentLanguage) : '';
 };
 
@@ -212,6 +230,7 @@ const PostFilterDialog = ({
   isRTL,
   floptions,
   categories,
+  getCitiesWithPosts,
   getCities,
   countryId,
   appliedSelectedFl,
@@ -230,7 +249,7 @@ const PostFilterDialog = ({
   const [draftFl, setDraftFl] = useState('');
   const [draftCategoryIds, setDraftCategoryIds] = useState([]);
   const [draftCityId, setDraftCityId] = useState(null);
-  const [citySearchTerm, setCitySearchTerm] = useState('');
+  const [citySearchQuery, setCitySearchQuery] = useState('');
 
   // Only one dropdown open at a time - opening one closes whichever else was open.
   const [openField, setOpenField] = useState(null);
@@ -248,10 +267,9 @@ const PostFilterDialog = ({
     setDraftFl(appliedSelectedFl || '');
     setDraftCategoryIds(appliedSelectedCategoryIds || []);
     setDraftCityId(appliedSelectedCityId || null);
-    setCitySearchTerm(appliedSelectedCityLabel || '');
+    setCitySearchQuery('');
     setOpenField(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible]);
+  }, [visible, appliedSelectedFl, appliedSelectedCategoryIds, appliedSelectedCityId]);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -276,7 +294,6 @@ const PostFilterDialog = ({
     if (keyboardHeight === 0 || !openField) return undefined;
     const timer = setTimeout(() => scrollFieldIntoView(openField), 50);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keyboardHeight, openField]);
 
   const handleFieldLayout = (field) => (event) => {
@@ -292,17 +309,17 @@ const PostFilterDialog = ({
     if (!visible || !countryId) return;
     let isMounted = true;
     setCitiesLoading(true);
-    getCities(countryId).then((result) => {
+    const fetchFn = getCitiesWithPosts || getCities;
+    fetchFn(countryId).then((result) => {
       if (isMounted) {
-        setCities(result);
+        setCities(result || []);
         setCitiesLoading(false);
       }
     });
     return () => {
       isMounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, countryId]);
+  }, [visible, countryId, getCitiesWithPosts, getCities]);
 
   const toggleField = (field) => {
     const next = openField === field ? null : field;
@@ -320,23 +337,22 @@ const PostFilterDialog = ({
   const handleSelectDraftCity = (city) => {
     if (city) {
       setDraftCityId(city.id);
-      setCitySearchTerm(city.label);
     } else {
       setDraftCityId(null);
-      setCitySearchTerm('');
     }
+    setCitySearchQuery('');
   };
 
   const handleReset = () => {
     setDraftFl('');
     setDraftCategoryIds([]);
     setDraftCityId(null);
-    setCitySearchTerm('');
+    setCitySearchQuery('');
   };
 
   const handleApply = () => {
     Keyboard.dismiss();
-    const cityLabel = draftCityId ? cityLabelFor(cities, draftCityId, currentLanguage) || citySearchTerm : '';
+    const cityLabel = draftCityId ? cityLabelFor(cities, draftCityId, currentLanguage) || appliedSelectedCityLabel : '';
     onApply({ fl: draftFl, categoryIds: draftCategoryIds, cityId: draftCityId, cityLabel });
   };
 
@@ -353,15 +369,50 @@ const PostFilterDialog = ({
     ? selectedCategoryChips.map((cat) => getLocalizedLabel(cat, currentLanguage)).join(', ')
     : '';
 
-  const filteredCities = citySearchTerm.trim() && draftCityId == null
-    ? cities.filter((city) =>
-        getLocalizedLabel(city, currentLanguage).toLowerCase().includes(citySearchTerm.trim().toLowerCase())
-      )
-    : cities;
-  const cityOptions = [{ id: null, label: t('allCities') }, ...filteredCities.map((city) => ({
-    id: city.id || city._id,
-    label: getLocalizedLabel(city, currentLanguage),
-  }))];
+  const filteredCities = useMemo(() => {
+    const trimmed = citySearchQuery.trim();
+    if (!trimmed) {
+      return cities;
+    }
+    const normalizedSearch = normalizeArabicText(trimmed);
+    const searchLower = trimmed.toLowerCase();
+
+    return cities.filter((city) => {
+      if (!city) return false;
+      const nameEn = city.labels?.en || city.names?.en || '';
+      const nameFr = city.labels?.fr || city.names?.fr || '';
+      const nameAr = city.labels?.ar || city.names?.ar || '';
+      const code = city.code || '';
+      const localized = getLocalizedLabel(city, currentLanguage) || '';
+
+      return (
+        normalizeArabicText(nameEn).includes(normalizedSearch) ||
+        normalizeArabicText(nameFr).includes(normalizedSearch) ||
+        normalizeArabicText(nameAr).includes(normalizedSearch) ||
+        normalizeArabicText(code).includes(normalizedSearch) ||
+        normalizeArabicText(localized).includes(normalizedSearch) ||
+        nameEn.toLowerCase().includes(searchLower) ||
+        nameFr.toLowerCase().includes(searchLower) ||
+        nameAr.toLowerCase().includes(searchLower) ||
+        code.toLowerCase().includes(searchLower) ||
+        localized.toLowerCase().includes(searchLower)
+      );
+    });
+  }, [cities, citySearchQuery, currentLanguage]);
+
+  const cityOptions = useMemo(() => {
+    const isSearching = Boolean(citySearchQuery.trim());
+    const mapped = filteredCities.map((city) => ({
+      id: city.id || city._id,
+      label: getLocalizedLabel(city, currentLanguage),
+      postCount: city.postCount,
+    }));
+    if (isSearching) {
+      return mapped;
+    }
+    return [{ id: null, label: t('allCities') }, ...mapped];
+  }, [filteredCities, citySearchQuery, currentLanguage, t]);
+
 
   // Looked up by code (not floptions.map order) so it's always All -> Lost ->
   // Found regardless of how the backend returns them - same as web's typeOptions.
@@ -487,13 +538,13 @@ const PostFilterDialog = ({
               label={t('city')}
               placeholder={t('allCities')}
               searchPlaceholder={t('searchCity')}
-              displayValue={draftCityId ? cityLabelFor(cities, draftCityId, currentLanguage) : ''}
+              displayValue={draftCityId ? cityLabelFor(cities, draftCityId, currentLanguage) || appliedSelectedCityLabel : ''}
               isOpen={openField === 'city'}
               onToggle={() => toggleField('city')}
-              query={citySearchTerm}
-              onQueryChange={setCitySearchTerm}
+              query={citySearchQuery}
+              onQueryChange={setCitySearchQuery}
               options={cityOptions}
-              isSelected={(option) => (option.id === null ? !draftCityId : draftCityId === option.id)}
+              isSelected={(option) => (option.id === null ? !draftCityId : String(draftCityId) === String(option.id))}
               onSelectOption={(option) => {
                 handleSelectDraftCity(option.id === null ? null : { id: option.id, label: option.label });
                 setOpenField(null);
@@ -705,6 +756,15 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     dropdownOptionTextSelected: {
       fontFamily: fontFamilies.bodySemiBold,
       color: tokens.brandPrimary,
+    },
+    optionCountText: {
+      color: `${tokens.ink}80`,
+      fontSize: 12,
+      fontFamily: fontFamilies.body,
+    },
+    optionCountTextSelected: {
+      color: tokens.brandPrimary,
+      fontFamily: fontFamilies.bodySemiBold,
     },
     dropdownEmptyText: {
       textAlign: 'center',

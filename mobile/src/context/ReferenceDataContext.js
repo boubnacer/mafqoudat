@@ -94,6 +94,8 @@ export const ReferenceDataProvider = ({ children }) => {
     };
   }, [loadReferenceData]);
 
+  const citiesWithPostsCacheRef = useRef({});
+
   const getCities = useCallback(async (countryId) => {
     if (!countryId) return [];
     if (citiesCacheRef.current[countryId]) {
@@ -110,9 +112,25 @@ export const ReferenceDataProvider = ({ children }) => {
     }
   }, []);
 
+  const getCitiesWithPosts = useCallback(async (countryId, forceRefresh = false) => {
+    if (!countryId) return [];
+    if (!forceRefresh && citiesWithPostsCacheRef.current[countryId]) {
+      return citiesWithPostsCacheRef.current[countryId];
+    }
+    try {
+      const response = await fetchWithRetry(() => apiClient.get('/cities/with-posts', { params: { countryId } }));
+      const cities = response.data?.data || [];
+      citiesWithPostsCacheRef.current[countryId] = cities;
+      return cities;
+    } catch (error) {
+      console.error('Error loading cities with posts:', error);
+      return [];
+    }
+  }, []);
+
   const value = useMemo(
-    () => ({ floptions, categories, countries, isLoading, error, retry: loadReferenceData, getCities }),
-    [floptions, categories, countries, isLoading, error, loadReferenceData, getCities]
+    () => ({ floptions, categories, countries, isLoading, error, retry: loadReferenceData, getCities, getCitiesWithPosts }),
+    [floptions, categories, countries, isLoading, error, loadReferenceData, getCities, getCitiesWithPosts]
   );
 
   return (

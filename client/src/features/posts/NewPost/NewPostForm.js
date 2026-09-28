@@ -38,7 +38,6 @@ import {
   Check as CheckIcon
 } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
-import PostSuccessDialog from "../../../components/PostSuccessDialog";
 import StepItem from "./steps/StepItem";
 import StepLocation from "./steps/StepLocation";
 import StepPhoto from "./steps/StepPhoto";
@@ -176,18 +175,14 @@ const FormDirtyWatcher = ({ onDirty }) => {
 };
 
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
-  const [addNewPost, { isSuccess, isError, error, reset: resetAddNewPost }] = useAddNewPostMutation();
+  const [addNewPost, { data: newPostData, isSuccess, isError, error, reset: resetAddNewPost }] = useAddNewPostMutation();
   const { t, currentLanguage } = useTranslation();
   const token = useSelector(selectCurrentToken);
   
   const navigate = useNavigate();
   const theme = useTheme();
   
-  const [showSuccess, setShowSuccess] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState("");
-  const [showPostSuccessDialog, setShowPostSuccessDialog] = useState(false);
-  const [lastSubmittedValues, setLastSubmittedValues] = useState(null);
-  const [isLostItem, setIsLostItem] = useState(true);
   const [cities, setCities] = useState([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [showCustomCityInput, setShowCustomCityInput] = useState(false);
@@ -459,24 +454,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   };
 
   useEffect(() => {
-    if (isSuccess) {
+    if (isSuccess && !isExitingRef.current) {
       isExitingRef.current = true;
-      setShowSuccess(true);
-      // Check if this is a lost item post using the stored values
-      const foundLostOption = lastSubmittedValues && flOptions.find(option => option.id === lastSubmittedValues.foundLost);
-      const lostItemStatus = foundLostOption && foundLostOption.code === 'LOST';
-      setIsLostItem(lostItemStatus);
-
-      // Refresh cities list to include any newly created cities - use the country
-      // that was actually submitted, not whatever the dropdown shows right now
-      if (lastSubmittedValues?.country) {
-        fetchCitiesByCountry(lastSubmittedValues.country);
+      const createdPostId = newPostData?.postId || newPostData?._id || newPostData?.id;
+      if (createdPostId) {
+        navigate(`/dash/posts/${createdPostId}`, { replace: true });
+      } else {
+        navigate("/dash", { replace: true });
       }
-
-      // Show promotion dialog for both lost and found items
-      setShowPostSuccessDialog(true);
     }
-  }, [isSuccess, navigate, flOptions, lastSubmittedValues]);
+  }, [isSuccess, newPostData, navigate]);
 
   // Re-fetch cities when language changes (with debouncing to prevent rate limits)
   useEffect(() => {
@@ -865,9 +852,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         return;
       }
 
-      // Store the submitted values to check if it's a lost item
-      setLastSubmittedValues(values);
-      
       const formData = new FormData();
       
       // Auto-generate rich SEO description if user didn't enter a custom one
@@ -954,7 +938,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // through to the render's `if (isError) return <...>` further down,
       // which replaces the entire wizard - every step's state - with a dead-
       // end error screen instead of the recoverable inline message below.
-      await addNewPost(formData).unwrap();
+      const result = await addNewPost(formData).unwrap();
+      isExitingRef.current = true;
+      const createdPostId = result?.postId || result?._id || result?.id;
+      if (createdPostId) {
+        navigate(`/dash/posts/${createdPostId}`, { replace: true });
+      } else {
+        navigate("/dash", { replace: true });
+      }
     } catch (error) {
       console.error('Error in handleSubmit:', error);
       // An unwrapped RTK Query rejection is the server's own error shape
@@ -1453,16 +1444,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     );
   }
 
-  if (showSuccess && !showPostSuccessDialog) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-        <Alert severity="success" sx={{ maxWidth: 600 }}>
-          <Typography variant="h6">{t('postCreatedSuccessfully')}</Typography>
-          <Typography>{t('redirectingToDashboard')}</Typography>
-        </Alert>
-      </Box>
-    );
-  }
 
   return (
     <Box 
@@ -2094,17 +2075,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         </DialogActions>
       </Dialog>
       
-      {/* Post Success / App Download Dialog */}
-      <PostSuccessDialog
-        open={showPostSuccessDialog}
-        onClose={() => {
-          isExitingRef.current = true;
-          setShowPostSuccessDialog(false);
-          setShowSuccess(false);
-          navigate("/dash");
-        }}
-        isLostItem={isLostItem}
-      />
 
       {/* Exit / Discard Confirmation Dialog */}
       <Dialog
