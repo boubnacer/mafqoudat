@@ -26,24 +26,24 @@ const DESCRIPTION_TEMPLATES = {
     LOST: [
       // النمط 1: إعلان فقدان رسمي ومباشر
       ({ category, locationZone, locationPart, datePart }) =>
-        `إعلان عن فقدان ${category} ${locationZone}${locationPart}${datePart}. المرجو ممن عثر عليه أو لديه أي معلومات تفيد في إيجاده التواصل مع صاحب البلاغ عبر منصة مفقودات.`,
+        `إعلان عن فقدان ${category} ${locationZone}${locationPart}${datePart}.`,
       // النمط 2: أسلوب وسوم البحث والتوثيق (مثالي لمحركات البحث Google)
       ({ category, countryWithCity, locationPart, datePart }) =>
-        `مفقودات ${countryWithCity}: تسجيل بلاغ بخصوص ${category} فُقد${datePart}${locationPart}. نرجو من أي شخص لديه معلومات المساعدة في إعادته لصاحبه عبر وسائل التواصل المرفقة.`,
+        `مفقودات ${countryWithCity}: تسجيل بلاغ بخصوص ${category} فُقد${datePart}${locationPart}.`,
       // النمط 3: أسلوب نداء وتعاون مجتمعي
       ({ category, locationZone, locationPart, datePart }) =>
-        `بلاغ عن فقدان غرض: ${category} ضاع ${locationZone}${locationPart}${datePart}. يُرجى مشاركة هذا الإعلان للمساعدة في إيصال المفقود إلى صاحبه في أقرب وقت.`,
+        `بلاغ عن فقدان غرض: ${category} ضاع ${locationZone}${locationPart}${datePart}.`,
     ],
     FOUND: [
       // النمط 1: أسلوب أمانة وإثبات الملكية
       ({ category, locationZone, locationPart, datePart }) =>
-        `تم العثور على ${category} ${locationZone}${locationPart}${datePart}. الغرض محفوظ في مكان آمن، ويرجى من صاحبه الشرعي أو من يتعرف عليه التواصل لإثبات الملكية واستلامه.`,
+        `تم العثور على ${category} ${locationZone}${locationPart}${datePart}.`,
       // النمط 2: معثورات المدينة والدولة
       ({ category, countryWithCity, locationPart, datePart }) =>
-        `معثورات ${countryWithCity}: عُثر على ${category}${datePart}${locationPart}. نأمل من الجميع المساعدة في مشاركة المنشور حتى يصل إلى صاحبه الأصلي وتسهيل إرجاعه.`,
+        `معثورات ${countryWithCity}: عُثر على ${category}${datePart}${locationPart}.`,
       // النمط 3: بلاغ غرض معثور عليه
       ({ category, locationZone, locationPart, datePart }) =>
-        `بلاغ عن غرض تم العثور عليه: ${category} ${locationZone}${locationPart}${datePart}. لمن فقد هذا الغرض أو يعرف صاحبه، نرجو التواصل عبر بيانات الاتصال المتاحة في المنشور.`,
+        `بلاغ عن غرض تم العثور عليه: ${category} ${locationZone}${locationPart}${datePart}.`,
     ],
   },
   fr: {
@@ -51,24 +51,24 @@ const DESCRIPTION_TEMPLATES = {
     LOST: [
       // Style 1: Avis direct et officiel
       ({ category, locationZone, locationPart, datePart }) =>
-        `Avis de perte : ${category} perdu ${locationZone}${locationPart}${datePart}. Merci à toute personne ayant des informations de contacter l'auteur du signalement via la plateforme Mafqoudat.`,
+        `Avis de perte : ${category} perdu ${locationZone}${locationPart}${datePart}.`,
       // Style 2: Référencement par région/ville
       ({ category, countryWithCity, locationPart, datePart }) =>
-        `Objets perdus - ${countryWithCity} : Déclaration concernant un(e) ${category} égaré(e)${datePart}${locationPart}. Merci de partager cette annonce pour aider à retrouver son propriétaire.`,
+        `Objets perdus - ${countryWithCity} : Déclaration concernant un(e) ${category} égaré(e)${datePart}${locationPart}.`,
       // Style 3: Appel à la communauté
       ({ category, locationZone, locationPart, datePart }) =>
-        `Signalement d'objet perdu : ${category} égaré ${locationZone}${locationPart}${datePart}. N'hésitez pas à joindre le propriétaire si vous l'avez retrouvé ou aperçu.`,
+        `Signalement d'objet perdu : ${category} égaré ${locationZone}${locationPart}${datePart}.`,
     ],
     FOUND: [
       // Style 1: Restitution sécurisée
       ({ category, locationZone, locationPart, datePart }) =>
-        `Objet trouvé : ${category} trouvé ${locationZone}${locationPart}${datePart}. L'objet est conservé en lieu sûr. Merci au propriétaire légitime de se manifester avec une preuve d'appartenance pour le récupérer.`,
+        `Objet trouvé : ${category} trouvé ${locationZone}${locationPart}${datePart}.`,
       // Style 2: Objets trouvés par pays et ville
       ({ category, countryWithCity, locationPart, datePart }) =>
-        `Objets trouvés - ${countryWithCity} : Un(e) ${category} a été retrouvé(e)${datePart}${locationPart}. Merci de partager cette publication afin de le restituer rapidement à son propriétaire.`,
+        `Objets trouvés - ${countryWithCity} : Un(e) ${category} a été retrouvé(e)${datePart}${locationPart}.`,
       // Style 3: Avis de trouvaille
       ({ category, locationZone, locationPart, datePart }) =>
-        `Avis de trouvaille : ${category} recueilli ${locationZone}${locationPart}${datePart}. Toute personne reconnaissant cet objet est invitée à contacter l'auteur de l'annonce via Mafqoudat.`,
+        `Avis de trouvaille : ${category} recueilli ${locationZone}${locationPart}${datePart}.`,
     ],
   },
   en: {
@@ -76,24 +76,24 @@ const DESCRIPTION_TEMPLATES = {
     LOST: [
       // Style 1: Direct lost notice
       ({ category, locationZone, locationPart, datePart }) =>
-        `Lost item notice: ${category} lost ${locationZone}${locationPart}${datePart}. If you found it or have any helpful information, please contact the owner via the Mafqoudat platform.`,
+        `Lost item notice: ${category} lost ${locationZone}${locationPart}${datePart}.`,
       // Style 2: Search-optimized country & city
       ({ category, countryWithCity, locationPart, datePart }) =>
-        `Lost & Found ${countryWithCity}: Report filed for a missing ${category}${datePart}${locationPart}. Please share this post to help return it to its rightful owner.`,
+        `Lost & Found ${countryWithCity}: Report filed for a missing ${category}${datePart}${locationPart}.`,
       // Style 3: Community appeal
       ({ category, locationZone, locationPart, datePart }) =>
-        `Missing item appeal: ${category} lost ${locationZone}${locationPart}${datePart}. Anyone with relevant details is kindly asked to reach out through the contact options provided.`,
+        `Missing item appeal: ${category} lost ${locationZone}${locationPart}${datePart}.`,
     ],
     FOUND: [
       // Style 1: Safe keeping & proof of ownership
       ({ category, locationZone, locationPart, datePart }) =>
-        `Found item notice: ${category} found ${locationZone}${locationPart}${datePart}. The item is safely kept; please contact the finder with proof of ownership to claim it.`,
+        `Found item notice: ${category} found ${locationZone}${locationPart}${datePart}.`,
       // Style 2: Search-optimized found notice
       ({ category, countryWithCity, locationPart, datePart }) =>
-        `Lost & Found ${countryWithCity}: A ${category} was found${datePart}${locationPart}. Please help share this notice so it can be returned to its owner as soon as possible.`,
+        `Lost & Found ${countryWithCity}: A ${category} was found${datePart}${locationPart}.`,
       // Style 3: Found property report
       ({ category, locationZone, locationPart, datePart }) =>
-        `Found property report: ${category} located ${locationZone}${locationPart}${datePart}. If this belongs to you or someone you know, please get in touch via Mafqoudat.`,
+        `Found property report: ${category} located ${locationZone}${locationPart}${datePart}.`,
     ],
   },
 };
