@@ -303,7 +303,9 @@ const validationSets = {
       if (!postData.exactLocation) {
         throw new Error('Exact location is required');
       }
-      // exactDate is now optional - removed validation
+      if (!postData.exactDate) {
+        throw new Error('Exact date is required');
+      }
 
       // Validate field formats
       if (!postData.user.match(/^[0-9a-fA-F]{24}$/)) {

@@ -40,6 +40,14 @@ export const CATEGORY_CONFIG = {
   OTHER: { color: '#9E9E9E', backgroundColor: '#F3F3F3', icon: 'ellipsis-horizontal-outline', priority: 99 },
 };
 
+export const CATEGORY_SVG_XML = {
+  PHONES: `<svg viewBox="0 0 512 512" fill="none"><g fill="none" stroke="currentColor" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"><rect x="36" y="52" width="244" height="408" rx="32" /><circle cx="158" cy="80" r="5" /><line x1="138" y1="428" x2="178" y2="428" stroke-width="16" /><rect x="308" y="116" width="168" height="344" rx="28" /><line x1="362" y1="148" x2="422" y2="148" stroke-width="16" /><line x1="374" y1="428" x2="410" y2="428" stroke-width="14" /></g></svg>`,
+  STORAGE: `<svg viewBox="0 0 512 512" fill="none"><g fill="none" stroke="currentColor" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"><rect x="44" y="64" width="236" height="384" rx="28" /><line x1="84" y1="112" x2="144" y2="112" stroke-width="18" /><circle cx="162" cy="256" r="64" /><circle cx="162" cy="256" r="20" /><line x1="126" y1="412" x2="198" y2="412" stroke-width="18" /><rect x="312" y="164" width="156" height="284" rx="26" /><rect x="346" y="72" width="88" height="92" rx="10" /><rect x="360" y="96" width="20" height="22" rx="3" /><rect x="400" y="96" width="20" height="22" rx="3" /><line x1="366" y1="392" x2="414" y2="392" stroke-width="18" /></g></svg>`,
+  CHARGERS: `<svg viewBox="0 0 512 512" fill="none"><g fill="none" stroke="currentColor" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"><rect x="84" y="160" width="150" height="170" rx="24" ry="24" /><line x1="40" y1="205" x2="84" y2="205" stroke-width="22" /><line x1="40" y1="285" x2="84" y2="285" stroke-width="22" /><path d="M 234 245 C 310 245 320 370 380 370 L 410 370" /><rect x="410" y="352" width="48" height="36" rx="8" ry="8" /><line x1="458" y1="370" x2="476" y2="370" stroke-width="16" /></g></svg>`,
+  POWERBANKS: `<svg viewBox="0 0 512 512" fill="none"><g fill="none" stroke="currentColor" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"><rect x="124" y="72" width="264" height="390" rx="36" ry="36" /><rect x="172" y="110" width="56" height="26" rx="6" ry="6" /><rect x="272" y="114" width="44" height="18" rx="9" ry="9" /><path d="M 268 200 L 216 284 L 260 284 L 236 364 L 304 264 L 260 264 Z" stroke-width="22" /><circle cx="186" cy="414" r="6" /><circle cx="232" cy="414" r="6" /><circle cx="278" cy="414" r="6" /><circle cx="324" cy="414" r="6" /></g></svg>`,
+  ELECTRONICS: `<svg viewBox="0 0 512 512" fill="none"><g fill="none" stroke="currentColor" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"><path d="M 370 144 L 370 132 C 370 118 358 108 344 108 L 90 108 C 76 108 64 118 64 132 L 64 340 L 260 340" /><path d="M 36 364 L 260 364" /><rect x="276" y="148" width="168" height="292" rx="34" /><line x1="336" y1="184" x2="384" y2="184" stroke-width="18" /><line x1="344" y1="392" x2="376" y2="392" stroke-width="14" /></g></svg>`,
+};
+
 export const getCategoryConfig = (code) => {
   const upper = code?.toUpperCase();
   return CATEGORY_CONFIG[upper] || CATEGORY_CONFIG.OTHER;
@@ -57,3 +65,4 @@ export const sortCategoriesForBrowse = (categories = []) => {
     (a, b) => getCategoryConfig(a?.code).priority - getCategoryConfig(b?.code).priority
   );
 };
+

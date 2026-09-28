@@ -262,7 +262,8 @@ const RecentPosts = (props) => {
   }, [categoryTints, currentLanguage]);
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
-  const textColor = "#FFFFFF";
+  const textColor = finalImageUrl ? "#FFFFFF" : theme.custom.color.ink;
+  const dateColor = finalImageUrl ? alpha("#FFFFFF", 0.85) : alpha(theme.custom.color.ink, 0.75);
 
   return (
     <Box
@@ -369,7 +370,7 @@ const RecentPosts = (props) => {
               backgroundColor: tone.main,
             }}
           >
-            <StatusIcon sx={{ fontSize: { xs: 14, md: 16 }, color: theme.palette.getContrastText(tone.main) }} />
+            <StatusIcon sx={{ fontSize: { xs: 14, md: 16 }, color: "#FFFFFF" }} />
             <Typography
               variant="caption"
               sx={{
@@ -377,7 +378,7 @@ const RecentPosts = (props) => {
                 fontSize: { xs: "11px", md: "12px" },
                 letterSpacing: { xs: 0.3, md: 0.4 },
                 textTransform: "uppercase",
-                color: theme.palette.getContrastText(tone.main),
+                color: "#FFFFFF",
                 lineHeight: 1,
               }}
             >
@@ -397,14 +398,14 @@ const RecentPosts = (props) => {
                 backgroundColor: theme.custom.status.found.main,
               }}
             >
-              <CheckCircleIcon sx={{ fontSize: { xs: 12, md: 14 }, color: theme.palette.getContrastText(theme.custom.status.found.main) }} />
+              <CheckCircleIcon sx={{ fontSize: { xs: 12, md: 14 }, color: "#FFFFFF" }} />
               <Typography
                 variant="caption"
                 sx={{
                   fontWeight: 700,
                   fontSize: { xs: "11px", md: "12px" },
                   textTransform: "uppercase",
-                  color: theme.palette.getContrastText(theme.custom.status.found.main),
+                  color: "#FFFFFF",
                   lineHeight: 1,
                 }}
               >
@@ -433,7 +434,9 @@ const RecentPosts = (props) => {
                 sx={{
                   display: "inline-flex",
                   alignItems: "center",
-                  backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
+                  backgroundColor: finalImageUrl
+                    ? alpha("#FFFFFF", 0.55)
+                    : alpha(theme.custom.color.surfaceRaised, 0.55),
                   backdropFilter: "blur(6px)",
                   color: catStyle.main,
                   fontWeight: 700,
@@ -503,7 +506,7 @@ const RecentPosts = (props) => {
         <Typography
           variant="caption"
           sx={{
-            color: alpha(textColor, 0.85),
+            color: dateColor,
             fontSize: { xs: "0.75rem", md: "0.8125rem" },
             flexShrink: 0,
             whiteSpace: "nowrap",

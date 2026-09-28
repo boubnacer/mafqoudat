@@ -11,10 +11,11 @@ const FIELD_TESTID = {
   country: 'country-select',
   city: 'city-select',
   exactLocation: 'exactLocation',
+  exactDate: 'exactDate',
   contact: 'contact',
 };
 
-const PRIORITY_ORDER = ['foundLost', 'category', 'documentTypes', 'documentOwnerName', 'country', 'city', 'exactLocation', 'contact'];
+const PRIORITY_ORDER = ['foundLost', 'category', 'documentTypes', 'documentOwnerName', 'country', 'city', 'exactLocation', 'exactDate', 'contact'];
 
 // Checked by script rather than by alphabet, so accents and Arabic diacritics
 // pass: the point is only that the Arabic field is not holding a Latin name
@@ -85,6 +86,11 @@ export const validateStep2 = (values, t) => {
   if (!values.exactLocation?.trim()) {
     missingFields.push(t('exactLocation'));
     fieldErrors.exactLocation = t('required');
+  }
+
+  if (!values.exactDate?.trim()) {
+    missingFields.push(t('exactDate'));
+    fieldErrors.exactDate = t('required');
   }
 
   return { missingFields, fieldErrors };

@@ -53,6 +53,8 @@ import {
   TaskAltOutlined,
   SearchOffOutlined,
   CalendarMonth as CalendarMonthIcon,
+  GpsFixed as GpsFixedIcon,
+  GpsOff as GpsOffIcon,
   LockOutlined
 } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
@@ -280,6 +282,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const [cityDisplayValue, setCityDisplayValue] = useState(""); // For display in main read-only input
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [locationError, setLocationError] = useState(null);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [selectedCityFromSearch, setSelectedCityFromSearch] = useState(null);
   const [filteredCities, setFilteredCities] = useState([]);
@@ -751,7 +755,7 @@ if (typeof document !== 'undefined') {
     setEditingSection((prev) => ({
       ...prev,
       basicInfo: prev.basicInfo || !!fieldErrors.foundLost || !!fieldErrors.category,
-      location: prev.location || !!fieldErrors.country || !!fieldErrors.city || !!fieldErrors.exactLocation,
+      location: prev.location || !!fieldErrors.country || !!fieldErrors.city || !!fieldErrors.exactLocation || !!fieldErrors.exactDate,
       contact: prev.contact || !!fieldErrors.contact,
     }));
   }, [fieldErrors]);
@@ -1075,6 +1079,60 @@ if (typeof document !== 'undefined') {
     setShowCityDropdown(!showCityDropdown);
   };
 
+  /**
+   * "My Location" button handler.
+   *
+   * 1. Asks the browser for GPS coordinates (triggers permission prompt).
+   * 2. Calls /cities/reverse-geocode on the server (DB proximity -> GeoNames -> Google Geocoding).
+   * 3. Feeds result through handleCitySelect so city is populated with bilingual labels and coordinates.
+   */
+  const handleMyLocation = useCallback(async (setFieldValue) => {
+    if (!navigator.geolocation) {
+      setLocationError('error');
+      return;
+    }
+    setLocationError(null);
+    setIsDetectingLocation(true);
+    setShowCityDropdown(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3500';
+          const headers = {};
+          if (token) headers['Authorization'] = `Bearer ${token}`;
+
+          const resp = await fetch(
+            `${baseUrl}/cities/reverse-geocode?lat=${latitude}&lng=${longitude}&language=${currentLanguage || 'en'}`,
+            { headers }
+          );
+          const data = await resp.json();
+
+          if (data.success && data.data) {
+            handleCitySelect(data.data, setFieldValue);
+          } else {
+            setLocationError('error');
+          }
+        } catch {
+          setLocationError('error');
+        } finally {
+          setIsDetectingLocation(false);
+        }
+      },
+      (err) => {
+        setIsDetectingLocation(false);
+        // GeolocationPositionError.code: 1 = PERMISSION_DENIED
+        setLocationError(err.code === 1 ? 'denied' : 'error');
+      },
+      { 
+        enableHighAccuracy: true,
+        timeout: 15000, 
+        maximumAge: 0 
+      }
+    );
+  }, [token, currentLanguage, handleCitySelect]);
+
   // Handle custom city name change
   const handleCustomCityChange = (event) => {
     setCustomCityName(event.target.value);
@@ -1378,6 +1436,10 @@ if (typeof document !== 'undefined') {
         missingFields.push(t('exactLocation'));
         newFieldErrors.exactLocation = t('required');
       }
+      if (!values.exactDate?.trim()) {
+        missingFields.push(t('exactDate'));
+        newFieldErrors.exactDate = t('required');
+      }
       if (!values.contact?.trim()) {
         missingFields.push(t('contact'));
         newFieldErrors.contact = t('required');
@@ -1408,6 +1470,8 @@ if (typeof document !== 'undefined') {
             fieldToScroll = document.querySelector('[data-testid="city-select"]');
           } else if (missingFields.includes(t('exactLocation'))) {
             fieldToScroll = document.querySelector('[data-testid="exactLocation"]');
+          } else if (missingFields.includes(t('exactDate'))) {
+            fieldToScroll = document.querySelector('[data-testid="exactDate"]');
           } else if (missingFields.includes(t('contact'))) {
             fieldToScroll = document.querySelector('[data-testid="contact"]');
           }
@@ -2434,6 +2498,76 @@ if (typeof document !== 'undefined') {
                           />
                         </Box>
 
+                        {/* ── My Location button ───────────────────────────────────────── */}
+                        <Box
+                          onClick={isDetectingLocation ? undefined : () => handleMyLocation(setFieldValue)}
+                          sx={{
+                            px: 2,
+                            py: 1.5,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1.5,
+                            cursor: isDetectingLocation ? 'default' : 'pointer',
+                            borderBottom: `1px solid ${theme.palette.divider}`,
+                            backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.12 : 0.06),
+                            '&:hover': isDetectingLocation ? {} : {
+                              backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.22 : 0.12),
+                            },
+                            transition: 'background-color 0.2s ease',
+                          }}
+                        >
+                          {isDetectingLocation ? (
+                            <CircularProgress size={18} sx={{ color: theme.custom.color.brandPrimary, flexShrink: 0 }} />
+                          ) : locationError === 'denied' ? (
+                            <GpsOffIcon sx={{ fontSize: 20, color: theme.palette.warning.main, flexShrink: 0 }} />
+                          ) : (
+                            <GpsFixedIcon sx={{ fontSize: 20, color: theme.custom.color.brandPrimary, flexShrink: 0 }} />
+                          )}
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="body2" sx={{
+                              fontWeight: 600,
+                              color: locationError === 'denied'
+                                ? theme.palette.warning.main
+                                : locationError === 'error'
+                                ? theme.palette.error.main
+                                : theme.custom.color.brandPrimary,
+                              lineHeight: 1.3,
+                            }}>
+                              {isDetectingLocation
+                                ? t('myLocationDetecting')
+                                : locationError === 'denied'
+                                ? t('myLocationDenied')
+                                : locationError === 'error'
+                                ? t('myLocationError')
+                                : t('myLocation')}
+                            </Typography>
+                            {!isDetectingLocation && !locationError && (
+                              <Typography variant="caption" sx={{
+                                color: alpha(theme.custom.color.brandPrimary, 0.7),
+                                display: 'block',
+                                lineHeight: 1.2,
+                              }}>
+                                {currentLanguage === 'ar'
+                                  ? 'اضغط لتحديد موقعك تلقائياً'
+                                  : currentLanguage === 'fr'
+                                  ? 'Appuyez pour détecter votre position'
+                                  : 'Tap to auto-detect your position'}
+                              </Typography>
+                            )}
+                            {locationError && (
+                              <Typography variant="caption" sx={{
+                                color: locationError === 'denied' ? theme.palette.warning.main : theme.palette.error.main,
+                                display: 'block',
+                                lineHeight: 1.2,
+                              }}>
+                                {locationError === 'denied'
+                                  ? (currentLanguage === 'ar' ? 'اسمح بالوصول إلى الموقع من إعدادات المتصفح' : currentLanguage === 'fr' ? 'Autorisez la localisation dans votre navigateur' : 'Allow location access in your browser settings')
+                                  : (currentLanguage === 'ar' ? 'حاول مجدداً أو ابحث يدوياً' : currentLanguage === 'fr' ? 'Réessayez ou cherchez manuellement' : 'Try again or search manually')}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+
                         {/* Cities List */}
                         <Box sx={{
                             maxHeight: 300,
@@ -2729,7 +2863,7 @@ if (typeof document !== 'undefined') {
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('exactDateLost') 
                       : t('exactDateFound')
-                    } ({t('optional')})
+                    } *
                   </FormLabel>
                   <Typography 
                     variant="caption" 
@@ -2742,8 +2876,8 @@ if (typeof document !== 'undefined') {
                     }}
                   >
                     {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('exactDateLostPlaceholderOptional') 
-                      : t('exactDateFoundPlaceholderOptional')
+                      ? t('exactDateLostPlaceholder') 
+                      : t('exactDateFoundPlaceholder')
                     }
                   </Typography>
                   <TextField
@@ -2754,10 +2888,16 @@ if (typeof document !== 'undefined') {
                     value={formatDisplayDate(values.exactDate, currentLanguage) || ''}
                     placeholder={t('datePickerOpen')}
                     data-testid="exactDate"
-                    onClick={() => setShowDateDialog(true)}
+                    error={!!fieldErrors?.exactDate}
+                    helperText={fieldErrors?.exactDate}
+                    onClick={() => {
+                      clearFieldError('exactDate');
+                      setShowDateDialog(true);
+                    }}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter' || event.key === ' ') {
                         event.preventDefault();
+                        clearFieldError('exactDate');
                         setShowDateDialog(true);
                       }
                     }}
@@ -2796,6 +2936,9 @@ if (typeof document !== 'undefined') {
                         '&.Mui-focused fieldset': {
                           borderColor: theme.custom.color.brandPrimary,
                         },
+                        '&.Mui-error fieldset': {
+                          borderColor: theme.palette.error.main,
+                        },
                       },
                       '& .MuiOutlinedInput-input': { cursor: 'pointer' },
                     }}
@@ -2807,6 +2950,7 @@ if (typeof document !== 'undefined') {
                     onClose={() => setShowDateDialog(false)}
                     onConfirm={(formattedDate) => {
                       setFieldValue('exactDate', formattedDate);
+                      clearFieldError('exactDate');
                       setShowDateDialog(false);
                     }}
                   />

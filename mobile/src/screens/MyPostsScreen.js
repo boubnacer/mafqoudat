@@ -37,6 +37,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
 import { colorTokens, radiusTokens, fontFamilies, lightColors, darkColors } from '../theme/tokens';
 import { getCategoryConfig } from '../config/categories';
+import CategoryIcon from '../components/CategoryIcon';
 import PromotePostSheet from '../components/PromotePostSheet';
 import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
@@ -347,7 +348,7 @@ const MyPostsScreen = ({ navigation }) => {
             <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
           ) : (
             <View style={[styles.postImagePlaceholder, { backgroundColor: categoryConfig.backgroundColor }]}>
-              <Ionicons name={categoryConfig.icon} size={44} color={categoryConfig.color} />
+              <CategoryIcon code={item?.category?.code} icon={categoryConfig.icon} size={44} color={categoryConfig.color} />
             </View>
           )}
           <View style={[styles.statusTag, { backgroundColor: tone.main }]}>

@@ -738,7 +738,7 @@ const StepLocation = ({
           {getFoundLostType(values.foundLost) === 'LOST'
             ? t('exactDateLost')
             : t('exactDateFound')
-          } ({t('optional')})
+          }<RequiredMark />
         </FormLabel>
         <Typography
           variant="caption"
@@ -751,8 +751,8 @@ const StepLocation = ({
           }}
         >
           {getFoundLostType(values.foundLost) === 'LOST'
-            ? t('exactDateLostPlaceholderOptional')
-            : t('exactDateFoundPlaceholderOptional')
+            ? t('exactDateLostPlaceholder')
+            : t('exactDateFoundPlaceholder')
           }
         </Typography>
         <TextField
@@ -763,10 +763,16 @@ const StepLocation = ({
           value={formatDisplayDate(values.exactDate, currentLanguage) || ''}
           placeholder={t('datePickerOpen')}
           data-testid="exactDate"
-          onClick={() => setShowDateDialog(true)}
+          error={!!fieldErrors?.exactDate}
+          helperText={fieldErrors?.exactDate}
+          onClick={() => {
+            clearFieldError?.('exactDate');
+            setShowDateDialog(true);
+          }}
           onKeyDown={(event) => {
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
+              clearFieldError?.('exactDate');
               setShowDateDialog(true);
             }
           }}
@@ -805,6 +811,9 @@ const StepLocation = ({
               '&.Mui-focused fieldset': {
                 borderColor: theme.custom.color.brandPrimary,
               },
+              '&.Mui-error fieldset': {
+                borderColor: theme.palette.error.main,
+              },
             },
             '& .MuiOutlinedInput-input': { cursor: 'pointer' },
           }}
@@ -817,6 +826,7 @@ const StepLocation = ({
         onClose={() => setShowDateDialog(false)}
         onConfirm={(formattedDate) => {
           setFieldValue('exactDate', formattedDate);
+          clearFieldError?.('exactDate');
           setShowDateDialog(false);
         }}
       />

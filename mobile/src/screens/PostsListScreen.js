@@ -36,6 +36,7 @@ import { useReferenceData } from '../context/ReferenceDataContext';
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import { getCategoryConfig } from '../config/categories';
+import CategoryIcon from '../components/CategoryIcon';
 import PostFilterDialog from '../components/PostFilterDialog';
 import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
@@ -115,7 +116,7 @@ const getCategoriesList = (item) => {
 // category name beneath it as a matching pill, centered - mirrors web
 // Post.js's CategoryIconLabel. Sized up when it's the only category on the
 // card, same as web's single-vs-multiple split.
-const CategoryIconLabel = ({ icon, label, color, single, tokens }) => (
+const CategoryIconLabel = ({ code, icon, label, color, single, tokens }) => (
   <View style={{ alignItems: 'center', gap: 6 }}>
     <View
       style={{
@@ -127,7 +128,7 @@ const CategoryIconLabel = ({ icon, label, color, single, tokens }) => (
         backgroundColor: `${tokens.surfaceRaised}8C`,
       }}
     >
-      <Ionicons name={icon} size={single ? 40 : 26} color={color} />
+      <CategoryIcon code={code} icon={icon} size={single ? 40 : 26} color={color} />
     </View>
     <Text
       numberOfLines={1}
@@ -580,6 +581,7 @@ const PostsListScreen = ({ navigation, route }) => {
                   {categoriesList.slice(0, 4).map((cat, index) => (
                     <CategoryIconLabel
                       key={cat.code || index}
+                      code={cat.code}
                       icon={categoryConfigs[index].icon}
                       label={categoryLabels[index]}
                       color={categoryConfigs[index].color}

@@ -30,11 +30,14 @@
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { geoMercator, geoPath, geoBounds } from 'd3-geo';
 import { feature as topojsonFeature, mesh as topojsonMesh } from 'topojson-client';
 import worldMapTopoJson from '../../data/worldMap.topo.json';
-import { CITY_LABEL_FONT_SIZE, layoutCityLabels } from '../../utils/cityLabelLayout';
+import {
+  CITY_LABEL_FONT_SIZE,
+  layoutCityLabels,
+} from '../../utils/cityLabelLayout';
 import { fontFamilies } from '../../theme/tokens';
 
 // Same 25-country roster as the web version - ISO2 (matches Country.code) to
@@ -56,23 +59,7 @@ const MAP_HEIGHT = 520;
 // the country bounds for city labels and "+N today" badges.
 const MOBILE_ZOOM = 1.25;
 
-// Every city dot is the same small size. The dots used to be a
-// proportional symbol (radius scaled by the city's all-time post count),
-// which made a busy city's marker swallow its neighbours and read as an
-// arbitrary difference in importance at a glance. Matches web's
-// WorldActivityMap.jsx.
-const CITY_DOT_RADIUS = 4;
-
-// Post-count badge above a city dot ("+12"), for cities that got a new post
-// today — matches web's WorldActivityMap.jsx. Sized in SVG user units: 6.2 units
-// per glyph at fontSize 11 bold, plus padding, floored so a single-digit badge
-// still reads as a pill rather than a circle.
-const BADGE_HEIGHT = 18;
-const BADGE_FONT_SIZE = 11;
-const badgeWidth = (label) => Math.max(26, label.length * 6.2 + 12);
-
 // Radius the today-pulse ring travels to, duration and repeat delay matching web GSAP.
-const PULSE_RADIUS_SCALE = 3.8;
 const PULSE_DURATION = 2200;
 const PULSE_REPEAT_DELAY = 1400;
 
@@ -110,117 +97,9 @@ const CITY_LABEL_HALO_OFFSETS = [
   [-1, 1], [0, 1], [1, 1],
 ];
 
-// City labels: a plain RN `Text` overlay positioned on top of the SVG map,
-// anchored to the same projected x/y used for the marker circle. Unlike
-// react-native-svg's `SvgText`, RN `Text` goes through the platform's native
-// text shaping, so Arabic city names render as properly joined script
-// instead of isolated letters.
-const CityLabel = ({ x, y, text, ink, panel, scale }) => {
-  const [width, setWidth] = useState(0);
-  const fontSize = CITY_LABEL_FONT_SIZE * scale;
-  const haloOffset = scale;
-  return (
-    <View
-      style={{
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        transform: [{ translateX: x * scale }, { translateY: y * scale }],
-      }}
-    >
-      {/* Centred on the layout's chosen point in both axes (web's <text> uses
-          textAnchor="middle" + dominantBaseline="central" for the same reason):
-          the placement returned by cityLabelLayout.js is the centre of the
-          label's box, not a baseline or a corner. */}
-      <View
-        onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-        style={{
-          transform: [{ translateX: -width / 2 }, { translateY: -fontSize * 0.6 }],
-          opacity: width ? 1 : 0,
-        }}
-      >
-        {CITY_LABEL_HALO_OFFSETS.map(([dx, dy], i) => (
-          <Text
-            key={i}
-            numberOfLines={1}
-            allowFontScaling={false}
-            style={[
-              styles.cityLabelText,
-              {
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                transform: [{ translateX: dx * haloOffset }, { translateY: dy * haloOffset }],
-                fontSize,
-                color: panel,
-              },
-            ]}
-          >
-            {text}
-          </Text>
-        ))}
-        <Text
-          numberOfLines={1}
-          allowFontScaling={false}
-          style={[styles.cityLabelText, { fontSize, color: ink }]}
-        >
-          {text}
-        </Text>
-      </View>
-    </View>
-  );
-};
-
-// "+N today" badge pill floating above its city dot.
-// Sized and positioned with the same exact user units web uses.
-const CityBadge = ({ x, y, width, label, brand, panel, textColor, scale }) => {
-  const badgeW = width * scale;
-  const badgeH = BADGE_HEIGHT * scale;
-  const fontSize = BADGE_FONT_SIZE * scale;
-  return (
-    <View
-      style={{
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        transform: [{ translateX: x * scale }, { translateY: y * scale }],
-      }}
-      pointerEvents="none"
-    >
-      <View
-        style={{
-          width: badgeW,
-          height: badgeH,
-          borderRadius: badgeH / 2,
-          backgroundColor: brand,
-          borderWidth: 2 * scale,
-          borderColor: panel,
-          justifyContent: 'center',
-          alignItems: 'center',
-          transform: [{ translateX: -badgeW / 2 }, { translateY: -badgeH / 2 }],
-        }}
-      >
-        <Text
-          numberOfLines={1}
-          allowFontScaling={false}
-          style={[
-            styles.badgeText,
-            {
-              fontSize,
-              color: textColor,
-            },
-          ]}
-        >
-          {label}
-        </Text>
-      </View>
-    </View>
-  );
-};
-
-// Pulse ring for cities with live today activity: expands outward from the dot
+// Pulse ring for active cities: expands outward from the live beacon dot
 // and fades out, repeating smoothly via RN Animated on the native thread.
-const PulseRing = ({ x, y, scale, ink, isDark, delay = 0 }) => {
+const PulseRing = ({ scale, brand, isDark, delay = 0 }) => {
   const anim = useRef(new Animated.Value(0)).current;
   const [started, setStarted] = useState(delay === 0);
 
@@ -258,13 +137,13 @@ const PulseRing = ({ x, y, scale, ink, isDark, delay = 0 }) => {
 
   if (!started) return null;
 
-  const initialRadius = CITY_DOT_RADIUS * scale;
+  const initialRadius = 2 * scale;
   const initialDiameter = initialRadius * 2;
-  const initialOpacity = isDark ? 0.55 : 0.45;
+  const initialOpacity = isDark ? 0.75 : 0.65;
 
   const ringScale = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, PULSE_RADIUS_SCALE],
+    outputRange: [1, 3.2],
   });
 
   const ringOpacity = anim.interpolate({
@@ -278,24 +157,179 @@ const PulseRing = ({ x, y, scale, ink, isDark, delay = 0 }) => {
         position: 'absolute',
         left: 0,
         top: 0,
-        transform: [{ translateX: x * scale }, { translateY: y * scale }],
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
       }}
       pointerEvents="none"
     >
       <Animated.View
         style={{
-          position: 'absolute',
-          left: -initialRadius,
-          top: -initialRadius,
           width: initialDiameter,
           height: initialDiameter,
           borderRadius: initialRadius,
-          borderWidth: 1.5 * scale,
-          borderColor: ink,
+          borderWidth: 1.2 * scale,
+          borderColor: brand,
           transform: [{ scale: ringScale }],
           opacity: ringOpacity,
         }}
       />
+    </View>
+  );
+};
+
+// Live beacon dot with pulse ring
+const BeaconDot = ({ scale, brand, isDark, delay = 0 }) => {
+  const dotSize = 4 * scale;
+  return (
+    <View style={{ width: dotSize, height: dotSize, justifyContent: 'center', alignItems: 'center' }}>
+      <PulseRing scale={scale} brand={brand} isDark={isDark} delay={delay} />
+      <View
+        style={{
+          width: dotSize,
+          height: dotSize,
+          borderRadius: dotSize / 2,
+          backgroundColor: brand,
+        }}
+      />
+    </View>
+  );
+};
+
+const CityLabel = ({ text, ink, panel, scale }) => {
+  const fontSize = CITY_LABEL_FONT_SIZE * scale;
+  const haloOffset = 0.8 * scale;
+  return (
+    <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+      {CITY_LABEL_HALO_OFFSETS.map(([dx, dy], i) => (
+        <Text
+          key={i}
+          numberOfLines={1}
+          allowFontScaling={false}
+          style={[
+            styles.cityLabelText,
+            {
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              transform: [{ translateX: dx * haloOffset }, { translateY: dy * haloOffset }],
+              fontSize,
+              color: panel,
+            },
+          ]}
+        >
+          {text}
+        </Text>
+      ))}
+      <Text
+        numberOfLines={1}
+        allowFontScaling={false}
+        style={[styles.cityLabelText, { fontSize, color: ink }]}
+      >
+        {text}
+      </Text>
+    </View>
+  );
+};
+
+// Unified city item:
+// - Quiet city: clean text with halo outline.
+// - Active city with new posts: Unified Map Chip enclosing:
+//     • Live pulsing beacon dot
+//     • City name
+//     • New posts counter pill (+N)
+//   LTR: [ • CityName  +3 ]
+//   RTL: [ +3  CityName • ]
+const CityItem = ({ placement, city, brand, panel, ink, badgeText, scale, isDark, isRTL, index }) => {
+  const [size, setSize] = useState(null);
+
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        transform: [{ translateX: placement.cx * scale }, { translateY: placement.cy * scale }],
+      }}
+      pointerEvents="none"
+    >
+      <View
+        onLayout={(e) => setSize(e.nativeEvent.layout)}
+        style={{
+          transform: [
+            { translateX: size ? -size.width / 2 : 0 },
+            { translateY: size ? -size.height / 2 : 0 },
+          ],
+          opacity: size ? 1 : 0,
+        }}
+      >
+        {placement.hasNewPosts ? (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: panel,
+              borderColor: brand,
+              borderWidth: 1.2 * scale,
+              borderRadius: 8 * scale,
+              paddingHorizontal: 5 * scale,
+              paddingVertical: 1.5 * scale,
+              elevation: 2,
+              shadowColor: brand,
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.2,
+              shadowRadius: 2,
+            }}
+          >
+            {isRTL ? (
+              <>
+                <View
+                  style={{
+                    backgroundColor: brand,
+                    borderRadius: 5.5 * scale,
+                    paddingHorizontal: 4 * scale,
+                    paddingVertical: 0.5 * scale,
+                  }}
+                >
+                  <Text style={[styles.badgeText, { color: badgeText, fontSize: 7.5 * scale }]}>
+                    {`+${placement.todayCount}`}
+                  </Text>
+                </View>
+                <View style={{ width: 3.5 * scale }} />
+                <Text style={[styles.cityChipName, { color: ink, fontSize: 8 * scale }]}>
+                  {city.name}
+                </Text>
+                <View style={{ width: 3.5 * scale }} />
+                <BeaconDot scale={scale} brand={brand} isDark={isDark} delay={(index % 5) * 450} />
+              </>
+            ) : (
+              <>
+                <BeaconDot scale={scale} brand={brand} isDark={isDark} delay={(index % 5) * 450} />
+                <View style={{ width: 3.5 * scale }} />
+                <Text style={[styles.cityChipName, { color: ink, fontSize: 8 * scale }]}>
+                  {city.name}
+                </Text>
+                <View style={{ width: 3.5 * scale }} />
+                <View
+                  style={{
+                    backgroundColor: brand,
+                    borderRadius: 5.5 * scale,
+                    paddingHorizontal: 4 * scale,
+                    paddingVertical: 0.5 * scale,
+                  }}
+                >
+                  <Text style={[styles.badgeText, { color: badgeText, fontSize: 7.5 * scale }]}>
+                    {`+${placement.todayCount}`}
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+        ) : (
+          <CityLabel text={city.name} ink={ink} panel={panel} scale={scale} />
+        )}
+      </View>
     </View>
   );
 };
@@ -445,28 +479,17 @@ const WorldActivityMap = ({
   const ready = !isLoading && !!geoFeatures;
   const scale = boxSize && boxSize.width ? boxSize.width / MAP_WIDTH : 1;
 
-  // Cities projected once, then laid out: the dots sit exactly on their
-  // coordinates, and only the names move. Matches web's WorldActivityMap.jsx:
-  // Badges are placed unconditionally above their city dot and act as layout obstacles.
+  // Cities projected once, then laid out: dots have been removed.
+  // The city name and optional "+N today" badge form a single unit.
+  // In LTR mode, "+N" is placed to the left of the city name.
+  // In RTL mode, "+N" is placed to the right of the city name.
   const cityMarkers = useMemo(() => {
-    if (!ready) return { dots: [], labels: [], badges: [] };
+    if (!ready) return { cities: [], placements: [] };
 
     const projected = cities
       .map((city) => {
         const point = projection([city.lon, city.lat]);
-        return point ? { city, x: point[0], y: point[1], r: CITY_DOT_RADIUS } : null;
-      })
-      .filter(Boolean);
-
-    // The "+N today" badges are placed first and unconditionally — they carry a
-    // number, so they outrank a name — and every label has to route around them.
-    const badges = projected
-      .map(({ city, x, y }, dotIndex) => {
-        if ((city.todayCount || 0) <= 0) return null;
-        const label = `+${city.todayCount}`;
-        const width = badgeWidth(label);
-        const bottom = y - (CITY_DOT_RADIUS + 1);
-        return { label, width, x, y: bottom - BADGE_HEIGHT / 2, dotIndex };
+        return point ? { city, x: point[0], y: point[1] } : null;
       })
       .filter(Boolean);
 
@@ -476,21 +499,16 @@ const WorldActivityMap = ({
         y,
         name: city.name,
         weight: city.count || 0,
+        todayCount: city.todayCount || 0,
       })),
       width: MAP_WIDTH,
       height: MAP_HEIGHT,
-      dotRadius: CITY_DOT_RADIUS,
       fontSize: CITY_LABEL_FONT_SIZE,
-      obstacles: badges.map((badge) => ({
-        x0: badge.x - badge.width / 2,
-        y0: badge.y - BADGE_HEIGHT / 2,
-        x1: badge.x + badge.width / 2,
-        y1: badge.y + BADGE_HEIGHT / 2,
-      })),
+      isRTL,
     });
 
-    return { dots: projected, labels: placements, badges };
-  }, [ready, cities, projection]);
+    return { cities: projected, placements };
+  }, [ready, cities, projection, isRTL]);
 
   // Always the same outer node (loading placeholder and loaded content are
   // both children of it) so `onLayout` reliably fires on first mount and
@@ -549,71 +567,29 @@ const WorldActivityMap = ({
             )}
           </Svg>
 
-          {/* Layer 2: Live today pulsing rings (rendered under the dots so rings emanate from beneath the pin) */}
+          {/* Layer 2: City labels and "+N today" badges drawn as RN Text overlay.
+              NO dots.
+              If there are new posts:
+                - LTR: "+N" badge is to the left of the city name (tight 0.1cm gap)
+                - RTL: "+N" badge is to the right of the city name (tight 0.1cm gap)
+              If no new posts: city name is centered on the city coordinate. */}
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            {cityMarkers.dots.map(({ city, x, y }, index) => {
-              if (cityMarkers.labels[index]?.hidden || (city.todayCount || 0) <= 0) return null;
+            {cityMarkers.placements.map((placement, index) => {
+              if (placement.hidden) return null;
+              const city = cityMarkers.cities[index].city;
               return (
-                <PulseRing
-                  key={`pulse-${city.name}-${index}`}
-                  x={x}
-                  y={y}
-                  scale={scale}
-                  ink={ink}
-                  isDark={isDark}
-                  delay={(index % 5) * 450}
-                />
-              );
-            })}
-          </View>
-
-          {/* Layer 3: City marker dots — only rendered when label is visible, no orphaned dots */}
-          <Svg width="100%" height="100%" viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} style={StyleSheet.absoluteFill} pointerEvents="none">
-            {cityMarkers.dots.map(({ city, x, y, r }, index) => {
-              if (cityMarkers.labels[index]?.hidden) return null;
-              return (
-                <Circle
-                  key={`dot-${city.name}-${index}`}
-                  cx={x}
-                  cy={y}
-                  r={r}
-                  fill={panel}
-                  stroke={brand}
-                  strokeWidth={2}
-                />
-              );
-            })}
-          </Svg>
-
-          {/* Layer 4: City labels and "+N today" badges drawn as RN Text overlay for native shaping */}
-          <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            {cityMarkers.labels.map((placement, index) =>
-              placement.hidden ? null : (
-                <CityLabel
-                  key={`label-${cityMarkers.dots[index].city.name}-${index}`}
-                  x={placement.labelX}
-                  y={placement.labelY}
-                  text={cityMarkers.dots[index].city.name}
-                  ink={ink}
-                  panel={panel}
-                  scale={scale}
-                />
-              )
-            )}
-
-            {cityMarkers.badges.map((badge, index) => {
-              if (cityMarkers.labels[badge.dotIndex]?.hidden) return null;
-              return (
-                <CityBadge
-                  key={`badge-${index}`}
-                  x={badge.x}
-                  y={badge.y}
-                  width={badge.width}
-                  label={badge.label}
+                <CityItem
+                  key={`city-item-${city.name}-${index}`}
+                  placement={placement}
+                  city={city}
                   brand={brand}
                   panel={panel}
-                  textColor={badgeText}
+                  ink={ink}
+                  badgeText={badgeText}
                   scale={scale}
+                  isDark={isDark}
+                  isRTL={isRTL}
+                  index={index}
                 />
               );
             })}
@@ -637,6 +613,12 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.bodySemiBold,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  cityChipName: {
+    fontFamily: fontFamilies.bodySemiBold,
+    fontWeight: '600',
+    textAlign: 'center',
+    includeFontPadding: false,
   },
   badgeText: {
     fontFamily: fontFamilies.display,

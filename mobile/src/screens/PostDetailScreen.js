@@ -27,6 +27,7 @@ import apiClient from '../api/apiService';
 import { API_ENDPOINTS, WEB_BASE_URL } from '../config/api';
 import { getImageUri } from '../utils/imageUri';
 import { getCategoryConfig } from '../config/categories';
+import CategoryIcon from '../components/CategoryIcon';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -662,7 +663,7 @@ const PostDetailScreen = ({ navigation, route }) => {
                     { backgroundColor: isDark ? `${config.color}33` : config.backgroundColor },
                   ]}
                 >
-                  <Ionicons name={config.icon} size={13} color={config.color} style={styles.categoryChipIcon} />
+                  <CategoryIcon code={cat.code} icon={config.icon} size={13} color={config.color} style={styles.categoryChipIcon} />
                   <Text style={[styles.categoryChipText, { color: config.color }]}>{label}</Text>
                 </View>
               );

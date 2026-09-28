@@ -17,6 +17,7 @@ import { useTranslation } from '../utils/translations';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { getCategoryConfig, sortCategoriesForBrowse } from '../config/categories';
+import CategoryIcon from '../components/CategoryIcon';
 import { getImageUri } from '../utils/imageUri';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
@@ -310,7 +311,7 @@ const StatsSection = ({ data, isLoading, t, styles, tokens, isDark, isRTL, onFou
 };
 
 // Frosted circle icon for no-image states (same as Post.js / RecentPosts.jsx on web)
-const RecentCategoryIconLabel = ({ icon, color, single, tokens }) => (
+const RecentCategoryIconLabel = ({ code, icon, color, single, tokens }) => (
   <View
     style={{
       width: single ? 58 : 42,
@@ -321,7 +322,7 @@ const RecentCategoryIconLabel = ({ icon, color, single, tokens }) => (
       backgroundColor: `${tokens.surfaceRaised}8C`,
     }}
   >
-    <Ionicons name={icon} size={single ? 30 : 22} color={color} />
+    <CategoryIcon code={code} icon={icon} size={single ? 30 : 22} color={color} />
   </View>
 );
 
@@ -340,7 +341,8 @@ const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isR
     cat.labels ? cat.labels[currentLanguage] || cat.labels.en || cat.code : cat.code
   );
   const cityLabel = getCityLabel(item, currentLanguage) || t('unknownCity');
-  const textColor = '#FFFFFF';
+  const textColor = imageUri ? '#FFFFFF' : tokens.ink;
+  const dateColor = imageUri ? '#FFFFFF' : `${tokens.ink}B3`;
   const rowDirection = row(isRTL);
 
   const noImageTints = categoryConfigs.map((cfg) => `${cfg.color}${isDark ? '52' : '38'}`);
@@ -372,6 +374,7 @@ const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isR
             {categoriesList.slice(0, 4).map((cat, index) => (
               <RecentCategoryIconLabel
                 key={cat.code || index}
+                code={cat.code}
                 icon={categoryConfigs[index].icon}
                 color={categoryConfigs[index].color}
                 single={categoriesList.length <= 1}
@@ -395,15 +398,15 @@ const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isR
       <View style={[styles.posterTopRow, { flexDirection: rowDirection }]}>
         <View style={styles.posterBadgeColumn}>
           <View style={[styles.posterStatusPill, { backgroundColor: tone.main }]}>
-            <Ionicons name={found ? 'checkmark-circle' : 'search'} size={12} color={getContrastText(tone.main)} />
-            <Text style={[styles.posterStatusPillText, { color: getContrastText(tone.main) }]}>
+            <Ionicons name={found ? 'checkmark-circle' : 'search'} size={12} color="#FFFFFF" />
+            <Text style={[styles.posterStatusPillText, { color: '#FFFFFF' }]}>
               {found ? t('found') : t('lost')}
             </Text>
           </View>
           {item.returned ? (
             <View style={[styles.posterReturnedPill, { backgroundColor: tokens.status.found.main }]}>
-              <Ionicons name="checkmark-circle" size={10} color={getContrastText(tokens.status.found.main)} />
-              <Text style={[styles.posterReturnedPillText, { color: getContrastText(tokens.status.found.main) }]}>
+              <Ionicons name="checkmark-circle" size={10} color="#FFFFFF" />
+              <Text style={[styles.posterReturnedPillText, { color: '#FFFFFF' }]}>
                 {t('returned')}
               </Text>
             </View>
@@ -418,7 +421,9 @@ const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isR
               style={[
                 styles.posterCategoryBadge,
                 {
-                  backgroundColor: `${tokens.surfaceRaised}8C`,
+                  backgroundColor: imageUri
+                    ? `${colorTokens.surfaceRaised.light}8C`
+                    : `${tokens.surfaceRaised}8C`,
                 },
               ]}
             >
@@ -440,7 +445,7 @@ const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isR
             {cityLabel}
           </Text>
         </View>
-        <Text style={[styles.posterDateText, { color: textColor }]} numberOfLines={1}>
+        <Text style={[styles.posterDateText, { color: dateColor }]} numberOfLines={1}>
           {formatRelativeTime(item.createdAt, t, currentLanguage)}
         </Text>
       </View>
@@ -524,7 +529,7 @@ const CategoryGridCard = ({ category, currentLanguage, styles, isDark, onPress }
       style={[styles.categoryCard, { backgroundColor: tint }]}
     >
       <View style={[styles.categoryIconBadge, { backgroundColor: badgeBg }]}>
-        <Ionicons name={config.icon} size={20} color={config.color} />
+        <CategoryIcon code={category.code} icon={config.icon} size={20} color={config.color} />
       </View>
       <Text style={styles.categoryLabel} numberOfLines={2}>
         {getLocalizedLabel(category, currentLanguage)}
@@ -620,14 +625,16 @@ const QuickActionsSection = ({ t, styles, tokens, isDark, isRTL, onSearch, onRep
   const primaryActions = [
     {
       key: 'lost',
-      title: t('reportLostItem'),
+      title: t('quickActionLostTitle'),
+      subtitle: t('tapHereToReport'),
       icon: 'search-outline',
       tone: tokens.status.lost,
       onPress: onReportLost,
     },
     {
       key: 'found',
-      title: t('reportFoundItem'),
+      title: t('quickActionFoundTitle'),
+      subtitle: t('tapHereToReport'),
       icon: 'checkmark-circle-outline',
       tone: tokens.status.found,
       onPress: onReportFound,
@@ -684,7 +691,8 @@ const QuickActionsSection = ({ t, styles, tokens, isDark, isRTL, onSearch, onRep
               <Ionicons name={item.icon} size={26} color={item.tone.main} />
             </View>
             <View style={styles.quickActionTextWrap}>
-              <Text style={styles.quickActionTitle}>{item.title}</Text>
+              <Text style={[styles.quickActionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>{item.title}</Text>
+              <Text style={[styles.quickActionDescription, { textAlign: isRTL ? 'right' : 'left' }]}>{item.subtitle}</Text>
             </View>
             <Ionicons
               name={isRTL ? 'chevron-back' : 'chevron-forward'}

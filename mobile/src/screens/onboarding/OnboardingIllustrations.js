@@ -12,6 +12,7 @@ import { View, Text, Animated, Easing, StyleSheet } from 'react-native';
 import Svg, { Path, Circle, Ellipse, G, Rect, Defs, LinearGradient, Stop, SvgXml } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { CATEGORY_CONFIG } from '../../config/categories';
+import CategoryIcon from '../../components/CategoryIcon';
 import { colorTokens } from '../../theme/tokens';
 import { WORLD_MAP_XML } from './worldMapXml';
 
@@ -342,6 +343,7 @@ const CATEGORY_ICON_ITEMS = Object.entries(CATEGORY_CONFIG)
   .filter(([code]) => code !== 'OTHER') // the catch-all doesn't represent a "thing" to fly into the funnel
   .map(([code, config], i, arr) => ({
     key: code,
+    code,
     icon: config.icon,
     color: config.color,
     delayFraction: i / arr.length,
@@ -350,7 +352,7 @@ const CATEGORY_ICON_ITEMS = Object.entries(CATEGORY_CONFIG)
     sx: (i % 2 === 0 ? 1 : -1) * (15 + i * 4),
   }));
 
-const FlyingCategoryIcon = ({ master, delayFraction, sx, icon, color, size }) => {
+const FlyingCategoryIcon = ({ master, delayFraction, sx, code, icon, color, size }) => {
   // Animated.modulo reproduces the CSS "positive animation-delay + infinite"
   // effect: each icon runs the same 6s cycle, phase-shifted by its own delay.
   const progress = Animated.modulo(Animated.add(master, 1 - delayFraction), 1);
@@ -382,7 +384,7 @@ const FlyingCategoryIcon = ({ master, delayFraction, sx, icon, color, size }) =>
         transform: [{ translateX }, { translateY }, { scale }],
       }}
     >
-      <Ionicons name={icon} size={size} color={color} />
+      <CategoryIcon code={code} icon={icon} size={size} color={color} />
     </Animated.View>
   );
 };
@@ -399,7 +401,7 @@ export const FilterIllustration = () => {
       </View>
 
       {CATEGORY_ICON_ITEMS.map((item) => (
-        <FlyingCategoryIcon key={item.key} master={master} delayFraction={item.delayFraction} sx={item.sx} icon={item.icon} color={item.color} size={20} />
+        <FlyingCategoryIcon key={item.key} master={master} delayFraction={item.delayFraction} sx={item.sx} code={item.code} icon={item.icon} color={item.color} size={20} />
       ))}
 
       <Animated.View style={[styles.funnelWrap, { transform: [{ scale: funnelScale }] }]}>

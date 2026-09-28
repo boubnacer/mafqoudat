@@ -27,6 +27,7 @@ import { useTranslation } from '../utils/translations';
 import apiClient from '../api/apiService';
 import { colorTokens, radiusTokens } from '../theme/tokens';
 import { getCategoryConfig } from '../config/categories';
+import CategoryIcon from '../components/CategoryIcon';
 import LanguageDropdown from '../components/LanguageDropdown';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 import { logical, row, needsDirectionFlip } from '../utils/rtl';
@@ -438,7 +439,7 @@ const WelcomeScreen = () => {
           <Image source={{ uri: imageUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
         ) : (
           <View style={[StyleSheet.absoluteFill, styles.heroCardIconWrap]}>
-            <Ionicons name={categoryConfig.icon} size={40} color="#FFFFFF" />
+            <CategoryIcon code={getHeroCategoryInfo(item)?.code} icon={categoryConfig.icon} size={40} color="#FFFFFF" />
           </View>
         )}
         {imageUri && <View style={[StyleSheet.absoluteFill, styles.heroCardScrim]} />}

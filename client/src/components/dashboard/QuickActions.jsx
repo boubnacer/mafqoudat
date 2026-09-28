@@ -137,7 +137,8 @@ const QuickActions = () => {
   const primaryActions = [
     {
       key: 'lost',
-      title: t('reportLostItem'),
+      title: t('quickActionLostTitle'),
+      subtitle: t('tapHereToReport'),
       description: t('reportLostItemDesc'),
       icon: SearchOffOutlined,
       tone: theme.custom.status.lost,
@@ -145,7 +146,8 @@ const QuickActions = () => {
     },
     {
       key: 'found',
-      title: t('reportFoundItem'),
+      title: t('quickActionFoundTitle'),
+      subtitle: t('tapHereToReport'),
       description: t('reportFoundItemDesc'),
       icon: TaskAltOutlined,
       tone: theme.custom.status.found,
@@ -349,7 +351,7 @@ const QuickActions = () => {
                   <Icon sx={{ fontSize: { xs: 26, sm: 30 }, color: item.tone.main }} />
                 </Box>
 
-                <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Box sx={{ minWidth: 0, flex: 1, textAlign: isRTLMode ? 'right' : 'left' }}>
                   <Typography
                     variant="h6"
                     fontWeight={700}
@@ -358,9 +360,21 @@ const QuickActions = () => {
                       color: ink,
                       fontSize: { xs: '1.05rem', sm: '1.15rem' },
                       lineHeight: 1.3,
+                      mb: 0.35,
                     }}
                   >
                     {item.title}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: theme.custom.font.body,
+                      color: alpha(ink, 0.7),
+                      fontSize: { xs: '0.85rem', sm: '0.9rem' },
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {item.subtitle}
                   </Typography>
                 </Box>
 

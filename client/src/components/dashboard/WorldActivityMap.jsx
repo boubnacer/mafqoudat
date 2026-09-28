@@ -4,7 +4,11 @@ import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { geoMercator, geoPath, geoBounds } from "d3-geo";
 import { gsap, useGSAP } from "../../utils/gsapSetup";
 import { useTranslation } from "../../utils/translations";
-import { CITY_LABEL_FONT_SIZE, layoutCityLabels } from "../../utils/cityLabelLayout";
+import {
+  CITY_LABEL_FONT_SIZE,
+  BADGE_FONT_SIZE,
+  layoutCityLabels,
+} from "../../utils/cityLabelLayout";
 import SkeletonBlock from "../SkeletonBlock";
 
 // A single chrome-less, full-bleed map filling the whole header section
@@ -78,45 +82,15 @@ const ISO2_TO_NUMERIC = {
   TN: "788",
 };
 
-// Every city dot is the same small size. The dots used to be a
-// proportional symbol (radius scaled by the city's all-time post count),
-// which made a busy city's marker swallow its neighbours and read as an
-// arbitrary difference in importance at a glance; the per-city numbers are
-// carried by the "+N today" badges instead. Matches mobile's
-// WorldActivityMap.js.
-const CITY_DOT_RADIUS = 4;
-
-// Post-count badge above a city dot ("+12"), for cities that got a new post
-// today — the only per-city number this map shows, now that every dot is the
-// same size. Sized in SVG user units rather than CSS so it scales with the map
-// exactly like the dots and labels do, and its width is approximated from the
-// glyph count because SVG offers no text metrics at render time: 6.2 units per
-// glyph at fontSize 11 bold, plus padding, floored so a single-digit badge
-// still reads as a pill rather than a circle.
-const BADGE_HEIGHT = 18;
-const BADGE_FONT_SIZE = 11;
-const badgeWidth = (label) => Math.max(26, label.length * 6.2 + 12);
-
 // Depth pass. Everything below is styling laid ON TOP of the existing layers —
-// no activity ramp, no stroke tone and no geometry changed, deliberately: the
-// fill ramp has been re-tuned twice before and reverted both times, so the
-// thing that made this map read as flat is addressed with light and depth
-// instead of by re-picking its colors. (An earlier version of this pass also
-// gave the focus country a blurred brand halo; it read as an extra wash of the
-// already-bold logo blue on top of the country's own fill, so it was dropped
-// rather than tuned down — one bold blue on the map is enough.)
+// no activity ramp, no stroke tone and no geometry changed, deliberately.
 //
-// Three additions, in the order the eye meets them:
-//   1. dots and "+N today" badges cast a small shadow, so they float above the
-//      country fill instead of being painted onto it;
-//   2. cities that got a post today pulse a slow ring out of their dot — this
-//      map's whole job is to say the platform is live right now, and a static
-//      dot cannot;
-//   3. the four edges dissolve into the container's own sea tone, so a
-//      full-bleed backdrop stops ending on a hard rectangular cut.
+// Additions:
+//   1. "+N today" badges cast a small shadow, floating above the country fill;
+//   2. cities that got a post today pulse a slow ring out of their badge;
+//   3. the four edges dissolve into the container's own sea tone.
 
-// Radius the today-pulse ring travels to, and how long it takes.
-const PULSE_RADIUS_SCALE = 3.8;
+// Pulse animation parameters for cities with new posts today.
 const PULSE_DURATION = 2.2;
 const PULSE_REPEAT_DELAY = 1.4;
 
@@ -256,11 +230,10 @@ const WorldActivityMap = ({
   );
   const mapPath = useMemo(() => geoPath(mapProjection), [mapProjection]);
 
-  // Cities projected once, then laid out: the dots sit exactly on their
-  // coordinates, and only the names move. See cityLabelLayout.js — labels walk
-  // around their own dot until they find room, never travel far enough to need
-  // a line back to it, and are dropped rather than stacked when the map is too
-  // crowded for them.
+  // Cities projected once, then laid out: dots have been removed.
+  // The city name and optional "+N today" badge form a single unit.
+  // In LTR mode, "+N" is placed to the left of the city name.
+  // In RTL mode, "+N" is placed to the right of the city name.
   const cityMarkers = useMemo(() => {
     const projected = cities
       .map((city) => {
@@ -269,34 +242,22 @@ const WorldActivityMap = ({
       })
       .filter(Boolean);
 
-    // The "+N today" badges are placed first and unconditionally — they carry a
-    // number, so they outrank a name — and every label has to route around them.
-    const badges = projected
-      .map(({ city, x, y }, dotIndex) => {
-        if ((city.todayCount || 0) <= 0) return null;
-        const label = `+${city.todayCount}`;
-        const width = badgeWidth(label);
-        const bottom = y - (CITY_DOT_RADIUS + 1);
-        return { label, width, x, y: bottom - BADGE_HEIGHT / 2, dotIndex };
-      })
-      .filter(Boolean);
-
     const placements = layoutCityLabels({
-      points: projected.map(({ city, x, y }) => ({ x, y, name: city.name, weight: city.count || 0 })),
+      points: projected.map(({ city, x, y }) => ({
+        x,
+        y,
+        name: city.name,
+        weight: city.count || 0,
+        todayCount: city.todayCount || 0,
+      })),
       width: MAP_WIDTH,
       height: mapHeight,
-      dotRadius: CITY_DOT_RADIUS,
       fontSize: CITY_LABEL_FONT_SIZE,
-      obstacles: badges.map((badge) => ({
-        x0: badge.x - badge.width / 2,
-        y0: badge.y - BADGE_HEIGHT / 2,
-        x1: badge.x + badge.width / 2,
-        y1: badge.y + BADGE_HEIGHT / 2,
-      })),
+      isRTL,
     });
 
-    return { dots: projected, labels: placements, badges };
-  }, [cities, mapProjection, MAP_WIDTH, mapHeight]);
+    return { cities: projected, placements };
+  }, [cities, mapProjection, MAP_WIDTH, mapHeight, isRTL]);
 
   // Projected once per view, not per render: the subdivision mesh is a single
   // path with tens of thousands of points, and this component re-renders on
@@ -318,34 +279,25 @@ const WorldActivityMap = ({
     [mapLayers, mapPath]
   );
 
-  // The today-pulse. Local GSAP rather than a data-attribute for
-  // useDashboardMotion to find (the pattern the rest of /dash follows), because
-  // this map is mounted by WelcomePage too, which never runs that hook, and
-  // because the targets come from this component's own projected city data.
+  // The today-pulse emanating from the live beacon dot of active cities.
   useGSAP(
     () => {
       const root = containerRef.current;
       const rings = root ? Array.from(root.querySelectorAll(`.${pulseClass}`)) : [];
       if (!rings.length) return undefined;
-      // matchMedia rather than an early return, same as the dashboard's reveal
-      // hooks: a visitor who asked for less motion gets no tween created at
-      // all, and changing the OS setting mid-session reverts the ones that were.
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         rings.forEach((ring, index) => {
           gsap.fromTo(
             ring,
-            { attr: { r: CITY_DOT_RADIUS }, opacity: isDark ? 0.55 : 0.45 },
+            { attr: { r: 3 }, opacity: isDark ? 0.75 : 0.65 },
             {
-              attr: { r: CITY_DOT_RADIUS * PULSE_RADIUS_SCALE },
+              attr: { r: 10 },
               opacity: 0,
               duration: PULSE_DURATION,
               ease: "power2.out",
               repeat: -1,
               repeatDelay: PULSE_REPEAT_DELAY,
-              // Staggered start so a cluster of busy cities breathes instead of
-              // blinking in unison; modulo keeps the longest wait short even
-              // when a country has a lot of them.
               delay: (index % 5) * 0.45,
             }
           );
@@ -460,108 +412,120 @@ const WorldActivityMap = ({
           the pin, and started at opacity 0 so a reduced-motion visitor (for
           whom no tween is ever created) sees nothing at all rather than a
           stalled ring frozen around a dot. */}
-      {cityMarkers.dots.map(({ city, x, y }, index) =>
-        !cityMarkers.labels[index]?.hidden && (city.todayCount || 0) > 0 ? (
+      {/* Pulse rings emanating from the live beacon dot of active cities */}
+      {cityMarkers.placements.map((placement, index) => {
+        if (placement.hidden || !placement.hasNewPosts) return null;
+        const city = cityMarkers.cities[index].city;
+        return (
           <circle
             key={`pulse-${city.name}-${index}`}
             className={pulseClass}
-            cx={x}
-            cy={y}
-            r={CITY_DOT_RADIUS}
+            cx={placement.beaconX}
+            cy={placement.beaconY}
+            r={2}
             fill="none"
-            stroke={ink}
-            strokeWidth={1.5}
+            stroke={brand}
+            strokeWidth={1.2}
             opacity={0}
             pointerEvents="none"
           />
-        ) : null
-      )}
+        );
+      })}
 
-      {/* City markers — uniform small dots (see CITY_DOT_RADIUS) layered on
-          top of the country fill. Panel-filled with a brand stroke so they
-          read as solid pins regardless of the fill tone beneath them. Only
-          rendered when the city name is placed and visible, ensuring no orphaned
-          dots without city names appear on the map. */}
-      <g>
-        {cityMarkers.dots.map(({ city, x, y }, index) => {
-          if (cityMarkers.labels[index]?.hidden) return null;
+      {/* City labels and Unified Map Chips:
+          - Quiet cities: clean text with panel outline halo.
+          - Active cities: Unified Map Chip enclosing:
+              • Live pulsing beacon dot
+              • City name
+              • New posts count badge (+N)
+            In LTR: [ • CityName  +3 ]
+            In RTL: [ +3  CityName • ]
+          Zero ambiguity with neighbouring cities, zero RTL bidi overlap! */}
+      {cityMarkers.placements.map((placement, index) => {
+        if (placement.hidden) return null;
+        const city = cityMarkers.cities[index].city;
+
+        if (placement.hasNewPosts) {
+          const countPillW = placement.countWidth;
+          const countPillH = 11;
           return (
-            <circle
-              key={`${city.name}-${index}`}
-              cx={x}
-              cy={y}
-              r={CITY_DOT_RADIUS}
-              fill={panel}
-              stroke={brand}
-              strokeWidth={2}
-            />
-          );
-        })}
-      </g>
-
-      {/* City names. Positions come from the layout pass, not from a fixed
-          offset under the dot — the map is always zoomed to one country, so
-          two cities close enough to collide is normal rather than an edge
-          case. A panel-colored text outline (paintOrder="stroke") keeps them
-          legible over a saturated country fill without a plate behind them. */}
-      {cityMarkers.labels.map((placement, index) =>
-        placement.hidden ? null : (
-          <text
-            key={`label-${index}`}
-            x={placement.labelX}
-            y={placement.labelY}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fontSize={CITY_LABEL_FONT_SIZE}
-            fontWeight={600}
-            fill={ink}
-            stroke={panel}
-            strokeWidth={3}
-            paintOrder="stroke"
-            pointerEvents="none"
-          >
-            {cityMarkers.dots[index].city.name}
-          </text>
-        )
-      )}
-
-      {/* Today's-new-posts badges, last so a badge is never overlapped by a
-          neighbouring city's marker or name. Their positions are fixed above
-          their own dot and the labels route around them, rather than the other
-          way round: a badge carries a number, a name does not. The names
-          deliberately stay flat: they already carry a panel-colored outline. */}
-      <g>
-        {cityMarkers.badges.map((badge, index) => {
-          if (cityMarkers.labels[badge.dotIndex]?.hidden) return null;
-          return (
-            <g key={`badge-${index}`} pointerEvents="none">
-              {/* Panel-colored halo, same trick the city label uses: keeps the pill
-                  legible over a saturated country fill without an opaque plate. */}
+            <g key={`city-chip-${city.name}-${index}`} pointerEvents="none">
+              {/* Chip background plate */}
               <rect
-                x={badge.x - badge.width / 2}
-                y={badge.y - BADGE_HEIGHT / 2}
-                width={badge.width}
-                height={BADGE_HEIGHT}
-                rx={BADGE_HEIGHT / 2}
+                x={placement.cx - placement.chipWidth / 2}
+                y={placement.cy - placement.chipHeight / 2}
+                width={placement.chipWidth}
+                height={placement.chipHeight}
+                rx={placement.chipHeight / 2}
+                fill={panel}
+                stroke={brand}
+                strokeWidth={1.2}
+              />
+
+              {/* Live beacon dot */}
+              <circle
+                cx={placement.beaconX}
+                cy={placement.beaconY}
+                r={2}
                 fill={brand}
-                stroke={panel}
-                strokeWidth={2}
+              />
+
+              {/* City name text: textAnchor="middle" ensures perfect centering in both LTR and RTL without bidi overflow */}
+              <text
+                x={placement.nameX}
+                y={placement.nameY}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={CITY_LABEL_FONT_SIZE}
+                fontWeight={600}
+                fill={ink}
+              >
+                {city.name}
+              </text>
+
+              {/* New posts count pill */}
+              <rect
+                x={placement.countX - countPillW / 2}
+                y={placement.countY - countPillH / 2}
+                width={countPillW}
+                height={countPillH}
+                rx={countPillH / 2}
+                fill={brand}
               />
               <text
-                x={badge.x}
-                y={badge.y}
+                x={placement.countX}
+                y={placement.countY}
                 textAnchor="middle"
                 dominantBaseline="central"
                 fontSize={BADGE_FONT_SIZE}
                 fontWeight={700}
                 fill={badgeText}
               >
-                {badge.label}
+                {`+${placement.todayCount}`}
               </text>
             </g>
           );
-        })}
-      </g>
+        }
+
+        return (
+          <text
+            key={`city-label-${city.name}-${index}`}
+            x={placement.nameX}
+            y={placement.nameY}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize={CITY_LABEL_FONT_SIZE}
+            fontWeight={600}
+            fill={ink}
+            stroke={panel}
+            strokeWidth={2}
+            paintOrder="stroke"
+            pointerEvents="none"
+          >
+            {city.name}
+          </text>
+        );
+      })}
     </ComposableMap>
   ) : (
     <Box sx={{ width: "100%", height: "100%", backgroundColor: alpha(ink, 0.05) }} />
