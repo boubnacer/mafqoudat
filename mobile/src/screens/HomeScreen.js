@@ -320,6 +320,8 @@ const RecentCategoryIconLabel = ({ code, icon, color, single, tokens }) => (
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: `${tokens.surfaceRaised}8C`,
+      borderWidth: 1,
+      borderColor: color,
     }}
   >
     <CategoryIcon code={code} icon={icon} size={single ? 30 : 22} color={color} />
@@ -421,9 +423,8 @@ const RecentPreviewCard = ({ item, type, currentLanguage, t, styles, tokens, isR
               style={[
                 styles.posterCategoryBadge,
                 {
-                  backgroundColor: imageUri
-                    ? `${colorTokens.surfaceRaised.light}8C`
-                    : `${tokens.surfaceRaised}8C`,
+                  backgroundColor: `${tokens.surfaceRaised}8C`,
+                  borderColor: categoryConfigs[index].color,
                 },
               ]}
             >
@@ -1257,6 +1258,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       maxWidth: '58%',
     },
     posterCategoryBadge: {
+      borderWidth: 1,
       borderRadius: radiusTokens.sm,
       paddingHorizontal: 7,
       paddingVertical: 3.5,

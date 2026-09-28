@@ -660,7 +660,11 @@ const PostDetailScreen = ({ navigation, route }) => {
                   key={cat._id || cat.code}
                   style={[
                     styles.categoryChip,
-                    { backgroundColor: isDark ? `${config.color}33` : config.backgroundColor },
+                    {
+                      backgroundColor: isDark ? `${config.color}33` : config.backgroundColor,
+                      borderWidth: 1,
+                      borderColor: config.color,
+                    },
                   ]}
                 >
                   <CategoryIcon code={cat.code} icon={config.icon} size={13} color={config.color} style={styles.categoryChipIcon} />

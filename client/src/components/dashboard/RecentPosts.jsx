@@ -32,6 +32,7 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
           justifyContent: "center",
           backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
           backdropFilter: "blur(6px)",
+          border: `1px solid ${color}`,
         }}
       >
         <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />
@@ -42,6 +43,7 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
           alignItems: "center",
           backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
           backdropFilter: "blur(6px)",
+          border: `1px solid ${color}`,
           color,
           fontWeight: 800,
           fontSize: { xs: "11px", sm: "12px" },
@@ -434,10 +436,9 @@ const RecentPosts = (props) => {
                 sx={{
                   display: "inline-flex",
                   alignItems: "center",
-                  backgroundColor: finalImageUrl
-                    ? alpha("#FFFFFF", 0.55)
-                    : alpha(theme.custom.color.surfaceRaised, 0.55),
+                  backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
                   backdropFilter: "blur(6px)",
+                  border: `1px solid ${catStyle.main}`,
                   color: catStyle.main,
                   fontWeight: 700,
                   fontSize: { xs: "11px", md: "12px" },

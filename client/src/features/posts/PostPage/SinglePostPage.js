@@ -173,6 +173,7 @@ const CategoryChip = ({ tone, label }) => {
         alignItems: 'center',
         backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
         backdropFilter: 'blur(6px)',
+        border: `1px solid ${tone.main}`,
         color: tone.main,
         fontWeight: 800,
         fontSize: { xs: '13px', sm: '14px' },
@@ -229,6 +230,7 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
           justifyContent: 'center',
           backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
           backdropFilter: 'blur(6px)',
+          border: `1px solid ${color}`,
         }}
       >
         <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />

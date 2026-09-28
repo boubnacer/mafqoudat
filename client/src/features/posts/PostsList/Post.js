@@ -128,6 +128,7 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
           justifyContent: 'center',
           backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
           backdropFilter: 'blur(6px)',
+          border: `1px solid ${color}`,
         }}
       >
         <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />
@@ -138,6 +139,7 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
           alignItems: 'center',
           backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
           backdropFilter: 'blur(6px)',
+          border: `1px solid ${color}`,
           color,
           fontWeight: 800,
           fontSize: { xs: '11px', sm: '12px' },
@@ -587,15 +589,12 @@ const Post = ({ post, type }) => {
           </Typography>
         </Box>
 
-        {/* Category: same white-pill treatment as the status badge above, on
-            the opposite end of the same top row (insetInlineEnd), so the
-            pair reads as one inline header - top-end in LTR, top-start in
-            RTL. Same size/radius as the status badge (radius.sm, not a full
-            pill) so the two match exactly - only the fill (translucent
-            per-category tint here vs. tone.main there) tells them apart.
-            Photo-only, same as SinglePostPage's CategoryTags: with no photo,
-            the centered CategoryIconLabel already carries the category
-            name, and stacking this pill on top of it would duplicate it. */}
+        {/* Category: on the opposite end of the same top row (insetInlineEnd)
+            from the status badge. Uses the same frosted surfaceRaised
+            background as SinglePostPage's CategoryChip over photos, with a
+            solid border matching the actual category color. Photo-only:
+            with no photo, the centered CategoryIconLabel carries the category
+            name and stacking this pill on top would duplicate it. */}
         {post?.image && (
         <Box
           sx={{
@@ -619,8 +618,9 @@ const Post = ({ post, type }) => {
                 sx={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  backgroundColor: alpha(catStyle.main, 0.1),
-                  border: `1px solid ${alpha(catStyle.main, 0.35)}`,
+                  backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
+                  backdropFilter: 'blur(6px)',
+                  border: `1px solid ${catStyle.main}`,
                   color: catStyle.main,
                   fontWeight: 700,
                   fontSize: { xs: '12px', sm: '13px' },

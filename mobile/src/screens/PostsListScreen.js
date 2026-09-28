@@ -126,6 +126,8 @@ const CategoryIconLabel = ({ code, icon, label, color, single, tokens }) => (
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: `${tokens.surfaceRaised}8C`,
+        borderWidth: 1,
+        borderColor: color,
       }}
     >
       <CategoryIcon code={code} icon={icon} size={single ? 40 : 26} color={color} />
@@ -135,6 +137,8 @@ const CategoryIconLabel = ({ code, icon, label, color, single, tokens }) => (
       style={{
         maxWidth: 110,
         backgroundColor: `${tokens.surfaceRaised}8C`,
+        borderWidth: 1,
+        borderColor: color,
         color,
         fontFamily: fontFamilies.bodySemiBold,
         fontSize: single ? 12 : 11,
@@ -609,8 +613,8 @@ const PostsListScreen = ({ navigation, route }) => {
                     style={[
                       styles.categoryBadge,
                       {
-                        backgroundColor: `${categoryConfigs[index].color}${isDark ? '33' : '1F'}`,
-                        borderColor: `${categoryConfigs[index].color}59`,
+                        backgroundColor: `${tokens.surfaceRaised}8C`,
+                        borderColor: categoryConfigs[index].color,
                       },
                     ]}
                   >
