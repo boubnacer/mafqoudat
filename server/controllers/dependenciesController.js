@@ -1064,6 +1064,10 @@ const getDashboard = async (req, res) => {
     };
 
     const currentCountryDoc = await Country.findById(currentCountry).select("code").lean();
+    // Rolling 24-hour window from the current request time so a post created
+    // at e.g. 8 PM remains active on the map for the full 24 hours rather than
+    // disappearing after only a few hours at midnight.
+    const past24hCutoff = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
     const cityCounts = new Map();
     cityActivityPosts.forEach((post) => {
       const hasCityDoc = Boolean(post.geocodeName);
@@ -1074,16 +1078,13 @@ const getDashboard = async (req, res) => {
       // no second spelling to fall back to.
       const altName = hasCityDoc ? post.geocodeNameFr || null : null;
       const key = geocodeName.toLowerCase();
-      // Same day boundaries createdToday uses (server-local midnight to
-      // midnight), so a city's "today" badge on the map and the header's
-      // "+N today" stats always cover the identical window.
       const createdAt = post.createdAt ? new Date(post.createdAt) : null;
-      const isToday = Boolean(createdAt && createdAt >= todayStart && createdAt < todayEnd);
+      const isRecent24h = Boolean(createdAt && createdAt >= past24hCutoff);
       const storedCoordinates = normalizeCoordinates(post.cityCoordinates);
       const existing = cityCounts.get(key);
       if (existing) {
         existing.count += 1;
-        if (isToday) existing.todayCount += 1;
+        if (isRecent24h) existing.todayCount += 1;
         // Two rows can share a name (one saved before coordinates existed).
         if (storedCoordinates && !existing.coordinates) existing.coordinates = storedCoordinates;
         // Prefer the linked City doc's localized label over a name
@@ -1095,7 +1096,7 @@ const getDashboard = async (req, res) => {
           existing.hasCityDoc = true;
         }
       } else {
-        cityCounts.set(key, { geocodeName, altName, displayName, count: 1, todayCount: isToday ? 1 : 0, hasCityDoc, coordinates: storedCoordinates });
+        cityCounts.set(key, { geocodeName, altName, displayName, count: 1, todayCount: isRecent24h ? 1 : 0, hasCityDoc, coordinates: storedCoordinates });
       }
     });
 

@@ -717,7 +717,7 @@ full-bleed backdrop zoomed to the visitor's country, countries tinted by
   mirrored 1:1 at [mobile/src/utils/cityLabelLayout.js](mobile/src/utils/cityLabelLayout.js),
   centers isolated cities directly on their coordinate. In crowded clusters, it walks candidate
   positions in 16 directions across rings until finding an overlap-free placement.
-  When a city has new posts today (`todayCount > 0`):
+  When a city has new posts in the last 24h (`todayCount > 0`):
   - The city is rendered as a **Unified Map Chip**: a sleek, high-contrast pill enclosing a live
     pulsing beacon dot, the city name, and the new posts count (`+N` in bold brand accent, without a bulky inner container box).
   - In **LTR mode**: `[ • CityName +N ]` (beacon on left, city name in middle, count on right).
