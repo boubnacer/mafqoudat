@@ -761,7 +761,9 @@ const getAllPostsAdmin = async (req, res) => {
     }
 
     // Add country filter
-    if (country) {
+    if (country === 'none' || country === 'null') {
+      filter.country = null;
+    } else if (country) {
       filter.country = country;
     }
 
@@ -781,7 +783,7 @@ const getAllPostsAdmin = async (req, res) => {
       .populate('user', 'username email')
       .populate('category', 'labels code')
       .populate('country', 'labels names code')
-      .populate('city', 'labels')
+      .populate({ path: 'city', model: 'City', select: 'labels' })
       .populate('foundLost', 'code')
       .select('_id description exactLocation contact createdAt updatedAt status returned image cloudinaryUrl mainDate promotionRequested promotionProcessed views')
       .sort({ [sortBy]: sortOrder })

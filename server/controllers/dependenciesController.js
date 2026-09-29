@@ -1224,7 +1224,7 @@ const getCountries = async (req, res) => {
     }
     
     const countries = await Country.find(query)
-      .select('code labels flag isActive searchTerms')
+      .select('code labels names flag isActive searchTerms')
       .sort({ 'labels.en': 1 })
       .lean()
       .exec();
@@ -1239,17 +1239,20 @@ const getCountries = async (req, res) => {
 
     // Transform response to include language-specific labels
     const transformedCountries = countries.map(country => {
-      // Check if country has the new labels structure
-      if (country.labels && country.labels.en) {
-        // New format with multilingual support
+      const countryNames = country.names || {};
+      const localizedName = countryNames[language] || countryNames.en;
+      // Check if country has the new labels structure or names
+      if ((country.labels && country.labels.en) || localizedName) {
+        // Format with multilingual support, preferring actual country name over 2-letter label
         return {
           _id: country._id,
           code: country.code,
-          label: country.labels[language] || country.labels.en,
-          labels: country.labels,
+          label: localizedName || country.labels?.[language] || country.labels?.en || country.code,
+          labels: country.labels || {},
+          names: countryNames,
           flag: country.flag,
-          isActive: country.isActive,
-          searchTerms: country.searchTerms
+          isActive: country.isActive !== undefined ? country.isActive : true,
+          searchTerms: country.searchTerms || []
         };
       } else {
         // Old format - use code as label and create basic labels structure

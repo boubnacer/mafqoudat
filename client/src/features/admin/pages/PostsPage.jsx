@@ -79,6 +79,19 @@ const PostsPage = () => {
   const categories = categoriesData?.ids?.map((id) => categoriesData.entities[id]) || [];
   const countries = countriesData?.ids?.map((id) => countriesData.entities[id]) || [];
 
+  const countryOptions = useMemo(() => {
+    const list = countries.map((country) => ({
+      value: country._id,
+      label: labelOf(country, currentLanguage, country.code),
+    }));
+    list.sort((a, b) => a.label.localeCompare(b.label, currentLanguage || 'en'));
+    return [
+      { value: '', label: t('allCountries') },
+      { value: 'none', label: t('noCountry') },
+      ...list,
+    ];
+  }, [countries, currentLanguage, t]);
+
   const [deletePost, { isLoading: deleting }] = useDeletePostAdminMutation();
   const [updateStatus] = useUpdatePostStatusAdminMutation();
 
@@ -175,6 +188,31 @@ const PostsPage = () => {
         ),
       },
       {
+        id: 'country',
+        label: t('country'),
+        render: (post) => {
+          const countryLabel = labelOf(post.country, currentLanguage, '');
+          if (!countryLabel) {
+            return (
+              <Typography
+                variant="body2"
+                sx={{ color: 'text.disabled', fontStyle: 'italic' }}
+              >
+                {t('noCountry')}
+              </Typography>
+            );
+          }
+          return (
+            <Typography
+              variant="body2"
+              sx={(theme) => ({ color: theme.custom.color.ink, fontWeight: 500 })}
+            >
+              {countryLabel}
+            </Typography>
+          );
+        },
+      },
+      {
         id: 'place',
         label: t('location'),
         render: (post) => (
@@ -183,11 +221,23 @@ const PostsPage = () => {
               variant="body2"
               sx={(theme) => ({ color: theme.custom.color.ink, fontWeight: 600 })}
             >
-              {labelOf(post.city, currentLanguage, t('unknown'))}
+              {labelOf(post.city, currentLanguage, post.exactLocation || t('unknown'))}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              {labelOf(post.country, currentLanguage, '')}
-            </Typography>
+            {post.exactLocation && labelOf(post.city, currentLanguage, '') ? (
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                  display: 'block',
+                  maxWidth: 180,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {post.exactLocation}
+              </Typography>
+            ) : null}
           </Box>
         ),
       },
@@ -300,13 +350,7 @@ const PostsPage = () => {
               setFilters((current) => ({ ...current, country: value }));
               setPage(0);
             },
-            options: [
-              { value: '', label: t('allCountries') },
-              ...countries.map((country) => ({
-                value: country._id,
-                label: labelOf(country, currentLanguage, country.code),
-              })),
-            ],
+            options: countryOptions,
           },
         ]}
         onClear={() => {
@@ -497,11 +541,14 @@ const PostsPage = () => {
                   value={labelOf(selected.category, currentLanguage, t('unknown'))}
                 />
                 <FieldRow
+                  label={t('country')}
+                  value={labelOf(selected.country, currentLanguage, t('noCountry'))}
+                />
+                <FieldRow
                   label={t('location')}
                   value={[
                     selected.exactLocation,
                     labelOf(selected.city, currentLanguage, ''),
-                    labelOf(selected.country, currentLanguage, ''),
                   ]
                     .filter(Boolean)
                     .join(' · ') || t('noLocation')}

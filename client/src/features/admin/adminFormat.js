@@ -65,12 +65,15 @@ export const formatRelative = (value, language = 'en', t) => {
  */
 export const labelOf = (doc, language = 'en', fallback = '') => {
   if (!doc) return fallback;
+  if (typeof doc === 'string') return doc;
   const lang = localeFor(language);
   return (
-    doc.labels?.[lang] ||
     doc.names?.[lang] ||
-    doc.labels?.en ||
     doc.names?.en ||
+    doc.labels?.[lang] ||
+    doc.labels?.en ||
+    doc.name ||
+    doc.label ||
     doc.code ||
     fallback
   );
