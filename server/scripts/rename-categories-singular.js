@@ -29,7 +29,7 @@ const SINGULAR_LABELS = {
   LAPTOPS: { en: 'Laptop / PC', fr: 'Ordinateur & PC', ar: 'حاسوب' },
   POWERBANKS: { en: 'Power Bank', fr: 'Batterie externe', ar: 'باور بانك' },
   STORAGE: { en: 'Storage', fr: 'Stockage', ar: 'جهاز تخزين' },
-  DOCUMENTS: { en: 'Document', fr: 'Document', ar: 'وثيقة' },
+  DOCUMENTS: { en: 'Documents & Cards', fr: 'Documents & Cartes', ar: 'وثائق وبطاقات' },
   PETS: { en: 'Pet', fr: 'Animal de compagnie', ar: 'حيوان أليف' },
   VEHICLES: { en: 'Vehicle', fr: 'Véhicule', ar: 'مركبة' },
   KEYS: { en: 'Key', fr: 'Clé', ar: 'مفتاح' },

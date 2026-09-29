@@ -67,7 +67,7 @@ const CATEGORIES = [
   },
   {
     code: 'DOCUMENTS',
-    labels: { en: 'Document', fr: 'Document', ar: 'وثيقة' },
+    labels: { en: 'Documents & Cards', fr: 'Documents & Cartes', ar: 'وثائق وبطاقات' },
     color: '#795548',
     priority: 3,
     description: 'ID cards, passports, licenses, certificates, papers, cards',
