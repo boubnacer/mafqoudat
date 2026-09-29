@@ -91,3 +91,14 @@ export const summarizeSocialStats = (post) => {
 
 /** The site's own view counter, or null when the post predates view tracking. */
 export const readSiteViews = (post) => asCount(post?.views);
+
+/**
+ * Combined view count across the site and social platforms (Facebook + Instagram),
+ * or null when none of them have recorded views.
+ */
+export const readTotalViews = (post) => {
+  const siteViews = readSiteViews(post);
+  const { socialViews } = summarizeSocialStats(post);
+  return sumKnown([siteViews, socialViews]);
+};
+

@@ -32,7 +32,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import { row, alignStart } from '../utils/rtl';
-import { summarizeSocialStats, readSiteViews } from '../utils/socialStats';
+import { summarizeSocialStats, readSiteViews, readTotalViews } from '../utils/socialStats';
 
 // Meta's own brand colors: these rows point somewhere else, so they are the one
 // place the palette is not ours to choose.
@@ -78,17 +78,17 @@ export const PostReachRow = ({ post }) => {
   const isRTL = currentLanguage === 'ar';
   const styles = createStyles({ tokens, isRTL, isDark });
 
-  const siteViews = readSiteViews(post);
+  const totalViews = readTotalViews(post);
   const { interactions } = summarizeSocialStats(post);
 
-  if (siteViews === null && interactions === null) return null;
+  if (totalViews === null && interactions === null) return null;
 
   return (
     <View style={styles.reachRow}>
-      {siteViews !== null ? (
+      {totalViews !== null ? (
         <View style={styles.reachItem}>
           <Ionicons name="eye-outline" size={14} color={`${tokens.ink}99`} />
-          <Text style={styles.reachText}>{t('views', { count: siteViews })}</Text>
+          <Text style={styles.reachText}>{t('views', { count: totalViews })}</Text>
         </View>
       ) : null}
       {interactions !== null ? (

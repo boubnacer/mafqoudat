@@ -37,7 +37,7 @@ import RenderIcon from "../../../components/RenderIcon";
 import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
 import LazyCardMedia from "../../../components/LazyCardMedia";
 import ReachRow from "../../../components/ReachRow";
-import { summarizeSocialStats, readSiteViews } from "../../../utils/socialStats";
+import { summarizeSocialStats, readSiteViews, readTotalViews } from "../../../utils/socialStats";
 
 
 // Get the API base URL for image construction
@@ -474,7 +474,7 @@ const Post = ({ post, type }) => {
     ? `linear-gradient(${currentLanguage === 'ar' ? 'to left' : 'to right'}, ${categoryTints.join(', ')})`
     : categoryTints[0];
 
-  const siteViews = readSiteViews(post);
+  const totalViews = readTotalViews(post);
   const socialStats = summarizeSocialStats(post);
   // Reactions/likes and comments are the same kind of activity whichever
   // platform they happened on, so - like `interactions` itself above - they
@@ -484,7 +484,7 @@ const Post = ({ post, type }) => {
   const reactionsCount = combineCounts(socialStats.facebook.reactions, socialStats.instagram.likes);
   const commentsCount = combineCounts(socialStats.facebook.comments, socialStats.instagram.comments);
   const statsBarItems = [
-    { key: 'views', label: t('views'), value: siteViews },
+    { key: 'views', label: t('views'), value: totalViews },
     { key: 'reactions', label: t('reactions'), value: reactionsCount },
     { key: 'comments', label: t('comments'), value: commentsCount },
   ];

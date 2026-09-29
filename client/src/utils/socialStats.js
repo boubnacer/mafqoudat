@@ -10,9 +10,9 @@
  *     actually been fetched, so "not fetched yet", "no permission to read
  *     views" and "genuinely nobody reacted" stay three different states. Only
  *     the last of them is worth rendering.
- *  2. Site views and social views are never added together. They count
- *     different things (a page visit here versus an impression in someone's
- *     feed) and merging them would state a total nobody measured.
+ *  2. Site views and social views can be read individually (readSiteViews,
+ *     summarizeSocialStats) or combined into a unified total reach count
+ *     via readTotalViews.
  */
 
 const asCount = (value) => (typeof value === 'number' && Number.isFinite(value) ? value : null);
@@ -88,3 +88,14 @@ export const summarizeSocialStats = (post) => {
 
 /** The site's own view counter, or null when the post predates view tracking. */
 export const readSiteViews = (post) => asCount(post?.views);
+
+/**
+ * Combined view count across the site and social platforms (Facebook + Instagram),
+ * or null when none of them have recorded views.
+ */
+export const readTotalViews = (post) => {
+  const siteViews = readSiteViews(post);
+  const { socialViews } = summarizeSocialStats(post);
+  return sumKnown([siteViews, socialViews]);
+};
+

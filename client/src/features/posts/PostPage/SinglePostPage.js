@@ -40,7 +40,7 @@ import {
 import { useTranslation } from "../../../utils/translations";
 import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
 import { formatDisplayDate } from "../../../utils/dateUtils";
-import { summarizeSocialStats } from "../../../utils/socialStats";
+import { summarizeSocialStats, readTotalViews } from "../../../utils/socialStats";
 import LazyCardMedia from "../../../components/LazyCardMedia";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -461,7 +461,10 @@ const SinglePostPage = ({
 
   const combineCounts = useCallback((a, b) => (a === null && b === null ? null : (a || 0) + (b || 0)), []);
 
-  const viewsCount = useMemo(() => (typeof views === 'number' ? views : 0), [views]);
+  const viewsCount = useMemo(() => {
+    const total = readTotalViews({ views, social, socialStats });
+    return total !== null ? total : 0;
+  }, [views, social, socialStats]);
 
   const reactionsCount = useMemo(() => {
     const combined = combineCounts(

@@ -41,7 +41,7 @@ import PostFilterDialog from '../components/PostFilterDialog';
 import DataStateView from '../components/DataStateView';
 import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
-import { summarizeSocialStats, readSiteViews } from '../utils/socialStats';
+import { summarizeSocialStats, readSiteViews, readTotalViews } from '../utils/socialStats';
 import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
 import { logical, row } from '../utils/rtl';
 import { formatRelativeTime } from '../utils/relativeTime';
@@ -538,16 +538,13 @@ const PostsListScreen = ({ navigation, route }) => {
     );
     const cityLabel = getCityLabel(item, currentLanguage);
 
-    // Same three-number stats bar as web Post.js - site views alongside
-    // reactions/comments combined across Facebook + Instagram (never summed
-    // with views: a page visit and a social impression are different units).
-    const siteViews = readSiteViews(item);
+    const totalViews = readTotalViews(item);
     const socialStats = summarizeSocialStats(item);
     const combineCounts = (a, b) => (a === null && b === null ? null : (a || 0) + (b || 0));
     const reactionsCount = combineCounts(socialStats.facebook.reactions, socialStats.instagram.likes);
     const commentsCount = combineCounts(socialStats.facebook.comments, socialStats.instagram.comments);
     const statsBarItems = [
-      { key: 'views', label: t('viewsLabel'), value: siteViews },
+      { key: 'views', label: t('viewsLabel'), value: totalViews },
       { key: 'reactions', label: t('reactions'), value: reactionsCount },
       { key: 'comments', label: t('comments'), value: commentsCount },
     ];
