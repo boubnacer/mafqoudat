@@ -317,6 +317,192 @@
         display: flex;
         flex-direction: column;
       }
+      /* Accessible hidden text for crawlers / screen readers */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* Skeleton block matching SkeletonBlock.jsx */
+      .sk-block {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        background-color: rgba(11, 18, 32, 0.08);
+        box-sizing: border-box;
+      }
+      :root[data-color-scheme='dark'] .sk-block {
+        background-color: rgba(237, 239, 245, 0.08);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-color-scheme='light']) .sk-block {
+          background-color: rgba(237, 239, 245, 0.08);
+        }
+      }
+      .sk-block::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(11, 18, 32, 0) 0%, rgba(11, 18, 32, 0.2) 50%, rgba(11, 18, 32, 0) 100%);
+        animation: sk-shimmer 1.3s linear infinite;
+      }
+      :root[data-color-scheme='dark'] .sk-block::after {
+        background: linear-gradient(90deg, rgba(237, 239, 245, 0) 0%, rgba(237, 239, 245, 0.2) 50%, rgba(237, 239, 245, 0) 100%);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-color-scheme='light']) .sk-block::after {
+          background: linear-gradient(90deg, rgba(237, 239, 245, 0) 0%, rgba(237, 239, 245, 0.2) 50%, rgba(237, 239, 245, 0) 100%);
+        }
+      }
+      @keyframes sk-shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+
+      /* WelcomePageSkeleton matching WelcomePageSkeleton.jsx */
+      .sk-welcome-page {
+        min-height: 100vh;
+        background-color: var(--mafq-bg);
+        box-sizing: border-box;
+      }
+      .sk-welcome-hero {
+        margin-bottom: 48px;
+        background-color: var(--mafq-bg);
+      }
+      .sk-welcome-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 32px;
+        box-sizing: border-box;
+      }
+      .sk-welcome-hero-inner {
+        padding-top: 24px;
+        padding-bottom: 64px;
+      }
+      .sk-welcome-hero-card {
+        max-width: 480px;
+        width: 100%;
+        border-radius: 20px;
+        background-color: var(--mafq-surface);
+        box-shadow: 0 4px 16px rgba(11, 18, 32, 0.08);
+        padding: 28px;
+        box-sizing: border-box;
+      }
+      :root[data-color-scheme='dark'] .sk-welcome-hero-card {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-color-scheme='light']) .sk-welcome-hero-card {
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+      }
+      .sk-hero-logo { height: 48px; width: 160px; margin-bottom: 40px; }
+      .sk-hero-h1 { height: 32px; width: 90%; margin-bottom: 8px; }
+      .sk-hero-h2 { height: 32px; width: 55%; margin-bottom: 16px; }
+      .sk-hero-sub1 { height: 16px; width: 100%; margin-bottom: 8px; }
+      .sk-hero-sub2 { height: 16px; width: 75%; margin-bottom: 32px; }
+      .sk-hero-input { height: 56px; width: 100%; border-radius: 12px; margin-bottom: 16px; }
+      .sk-hero-btn { height: 48px; width: 180px; border-radius: 12px; }
+
+      .sk-stats-section { padding-bottom: 48px; }
+      .sk-stats-bar { height: 64px; border-radius: 20px; width: 100%; }
+
+      .sk-section { padding-bottom: 48px; }
+      .sk-sec-title { height: 28px; width: 200px; margin-bottom: 24px; }
+      .sk-sec-title-wide { width: 220px; }
+
+      .sk-cat-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 40px;
+        padding: 24px 0;
+      }
+      .sk-cat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+      .sk-cat-circle { width: 68px; height: 68px; border-radius: 999px; }
+      .sk-cat-label { width: 48px; height: 12px; }
+
+      .sk-posts-row {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        padding-top: 8px;
+      }
+      .sk-post-card {
+        width: 168px;
+        height: 224px;
+        border-radius: 16px;
+        flex-shrink: 0;
+      }
+
+      .sk-safety-section { padding-bottom: 64px; }
+      .sk-safety-bar { height: 88px; border-radius: 20px; width: 100%; }
+
+      @media (max-width: 600px) {
+        .sk-welcome-hero { margin-bottom: 32px; }
+        .sk-welcome-container { padding: 0 16px; }
+        .sk-welcome-hero-inner { padding-top: 24px; padding-bottom: 24px; }
+        .sk-welcome-hero-card { max-width: 100%; padding: 20px; }
+        .sk-hero-logo { height: 38px; margin-bottom: 24px; }
+        .sk-hero-h1, .sk-hero-h2 { height: 26px; }
+        .sk-stats-section { padding-bottom: 32px; }
+        .sk-stats-bar { height: 96px; }
+        .sk-section { padding-bottom: 32px; }
+        .sk-cat-row { gap: 24px; }
+        .sk-post-card { width: 140px; height: 188px; }
+        .sk-safety-section { padding-bottom: 48px; }
+      }
+
+      /* InfoPageSkeleton matching InfoPageSkeleton.jsx */
+      .sk-info-page {
+        min-height: 100vh;
+        padding-top: 7rem;
+        padding-bottom: 32px;
+        background-color: var(--mafq-bg);
+        box-sizing: border-box;
+      }
+      .sk-info-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 16px;
+        box-sizing: border-box;
+      }
+      .sk-info-card {
+        padding: 32px;
+        border-radius: 16px;
+        background-color: var(--mafq-surface);
+        box-shadow: 0 2px 8px rgba(11, 18, 32, 0.05);
+        box-sizing: border-box;
+      }
+      .sk-info-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 32px;
+      }
+      .sk-info-title { height: 38px; width: 50%; max-width: 420px; margin-bottom: 16px; }
+      .sk-info-sub { height: 20px; width: 35%; max-width: 280px; margin-bottom: 16px; }
+      .sk-info-desc { height: 14px; width: 70%; max-width: 600px; }
+      .sk-info-section { margin-bottom: 32px; }
+      .sk-info-sec-heading { height: 22px; width: 30%; max-width: 220px; margin-bottom: 16px; }
+      .sk-info-line { height: 14px; margin-bottom: 8px; }
+      .sk-info-line-100 { width: 100%; }
+      .sk-info-line-95 { width: 95%; }
+      .sk-info-line-80 { width: 80%; }
+
+      /* Blog article prerender shell styles */
       .pre-mount-shell {
         min-height: 100vh;
         display: flex;
@@ -385,34 +571,6 @@
         font-size: clamp(14px, 1.8vw, 16px);
         line-height: 1.6;
         color: var(--mafq-text-muted);
-      }
-      .pre-mount-shimmer-group {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        margin-top: 16px;
-      }
-      .pre-mount-shimmer-bar {
-        background: linear-gradient(90deg, var(--mafq-skeleton) 25%, var(--mafq-skeleton-shimmer) 50%, var(--mafq-skeleton) 75%);
-        background-size: 200% 100%;
-        animation: mafq-shimmer 1.8s infinite ease-in-out;
-        border-radius: 10px;
-        height: 20px;
-      }
-      .pre-mount-shimmer-bar-lg {
-        height: 48px;
-        border-radius: 12px;
-        width: 100%;
-        max-width: 320px;
-      }
-      .pre-mount-shimmer-bar-sm {
-        height: 38px;
-        border-radius: 10px;
-        width: 140px;
-      }
-      @keyframes mafq-shimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
       }
       .pre-mount-nav {
         margin-top: auto;
@@ -548,6 +706,47 @@
   </head>
   <body dir="auto">
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <div id="root">
+      <div class="sk-welcome-page" dir="rtl">
+        <div class="sk-welcome-hero">
+          <div class="sk-welcome-container sk-welcome-hero-inner">
+            <div class="sk-welcome-hero-card">
+              <div class="sk-block sk-hero-logo"></div>
+              <div class="sk-block sk-hero-h1"></div>
+              <div class="sk-block sk-hero-h2"></div>
+              <div class="sk-block sk-hero-sub1"></div>
+              <div class="sk-block sk-hero-sub2"></div>
+              <div class="sk-block sk-hero-input"></div>
+              <div class="sk-block sk-hero-btn"></div>
+            </div>
+          </div>
+        </div>
+        <div class="sk-welcome-container sk-stats-section">
+          <div class="sk-block sk-stats-bar"></div>
+        </div>
+        <div class="sk-welcome-container sk-section">
+          <div class="sk-block sk-sec-title"></div>
+          <div class="sk-cat-row">
+            <div class="sk-cat-item"><div class="sk-block sk-cat-circle"></div><div class="sk-block sk-cat-label"></div></div>
+            <div class="sk-cat-item"><div class="sk-block sk-cat-circle"></div><div class="sk-block sk-cat-label"></div></div>
+            <div class="sk-cat-item"><div class="sk-block sk-cat-circle"></div><div class="sk-block sk-cat-label"></div></div>
+            <div class="sk-cat-item"><div class="sk-block sk-cat-circle"></div><div class="sk-block sk-cat-label"></div></div>
+            <div class="sk-cat-item"><div class="sk-block sk-cat-circle"></div><div class="sk-block sk-cat-label"></div></div>
+            <div class="sk-cat-item"><div class="sk-block sk-cat-circle"></div><div class="sk-block sk-cat-label"></div></div>
+          </div>
+        </div>
+        <div class="sk-welcome-container sk-section">
+          <div class="sk-block sk-sec-title sk-sec-title-wide"></div>
+          <div class="sk-posts-row">
+            <div class="sk-block sk-post-card"></div>
+            <div class="sk-block sk-post-card"></div>
+            <div class="sk-block sk-post-card"></div>
+          </div>
+        </div>
+        <div class="sk-welcome-container sk-safety-section">
+          <div class="sk-block sk-safety-bar"></div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

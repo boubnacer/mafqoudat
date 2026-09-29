@@ -218,47 +218,83 @@ const alreadyPrerendered = (routePath) =>
 
 const LOGO_SVG = `<svg class="pre-mount-logo-icon" width="30" height="34" viewBox="0 0 47 53" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M31.5 35.5L41.3861 47.5" stroke="#3498DB" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 36.5C29.1127 36.5 36.5 29.1127 36.5 20C36.5 10.8873 29.1127 3.5 20 3.5C10.8873 3.5 3.5 10.8873 3.5 20C3.5 29.1127 10.8873 36.5 20 36.5Z" stroke="#3498DB" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M28.46 19.6548C27.9813 17.2341 26.5605 15.1028 24.5102 13.7296C22.46 12.3564 19.9482 11.854 17.5275 12.3328" stroke="#3498DB" stroke-width="4" stroke-linecap="round"/></svg>`;
 
-// A static page's initial markup: its own heading, its own subtitle where it
-// has one, and the site's real navigation so a crawler arriving here has links
-// to follow. React replaces all of it on mount.
-// Styled via critical inline CSS in public/index.html to look like a polished,
-// branded loading shell matching the active theme, avoiding FOUC on slow networks.
-const renderStaticBody = (heading, subtitle, t) => {
-  const nav = [
-    ['/', 'goHome'],
-    ['/dash/posts', 'posts'],
-    ['/blog', 'blog'],
-    ['/about', 'aboutUs'],
-    ['/help', 'helpCenter'],
-    ['/safety', 'safetyTips'],
-    ['/contact', 'contactUs'],
-  ]
-    .map(([href, key]) => {
-      const label = t(key) || key;
-      return `<li class="pre-mount-nav-item"><a class="pre-mount-nav-link" href="${BASE_URL}${href}">${escapeHtml(label)}</a></li>`;
-    })
-    .join('');
-
-  return `<div id="root"><div class="pre-mount-shell">
-    <header class="pre-mount-header">
-      <a href="${BASE_URL}/" class="pre-mount-logo" aria-label="Mafqoudat">
-        ${LOGO_SVG}
-        <span class="pre-mount-logo-text">${BRAND_AR}</span>
-      </a>
-    </header>
-    <main class="pre-mount-main">
-      <div class="pre-mount-card">
-        <h1 class="pre-mount-title">${escapeHtml(heading)}</h1>
-${subtitle ? `        <p class="pre-mount-subtitle">${escapeHtml(subtitle)}</p>\n` : ''}        <div class="pre-mount-shimmer-group" aria-hidden="true">
-          <div class="pre-mount-shimmer-bar pre-mount-shimmer-bar-lg"></div>
-          <div class="pre-mount-shimmer-bar pre-mount-shimmer-bar-sm"></div>
+// Render initial component loading skeletons that match the React suspense fallbacks
+// (WelcomePageSkeleton and InfoPageSkeleton) to prevent flash of unwanted pages.
+// Includes accessible hidden h1 for search crawlers.
+const renderWelcomeSkeleton = (heading, subtitle) => {
+  return `<div id="root"><div class="sk-welcome-page" dir="rtl">
+    ${heading ? `<h1 class="sr-only">${escapeHtml(heading)}</h1>\n` : ''}${subtitle ? `    <p class="sr-only">${escapeHtml(subtitle)}</p>\n` : ''}    <div class="sk-welcome-hero">
+      <div class="sk-welcome-container sk-welcome-hero-inner">
+        <div class="sk-welcome-hero-card">
+          <div class="sk-block sk-hero-logo"></div>
+          <div class="sk-block sk-hero-h1"></div>
+          <div class="sk-block sk-hero-h2"></div>
+          <div class="sk-block sk-hero-sub1"></div>
+          <div class="sk-block sk-hero-sub2"></div>
+          <div class="sk-block sk-hero-input"></div>
+          <div class="sk-block sk-hero-btn"></div>
         </div>
       </div>
-      <nav class="pre-mount-nav" aria-label="Navigation">
-        <ul class="pre-mount-nav-list">${nav}</ul>
-      </nav>
-    </main>
+    </div>
+    <div class="sk-welcome-container sk-stats-section">
+      <div class="sk-block sk-stats-bar"></div>
+    </div>
+    <div class="sk-welcome-container sk-section">
+      <div class="sk-block sk-sec-title"></div>
+      <div class="sk-cat-row">
+        <div class="sk-cat-item"><div class="sk-block sk-cat-circle"></div><div class="sk-block sk-cat-label"></div></div>
+        <div class="sk-cat-item"><div class="sk-block sk-cat-circle"></div><div class="sk-block sk-cat-label"></div></div>
+        <div class="sk-cat-item"><div class="sk-block sk-cat-circle"></div><div class="sk-block sk-cat-label"></div></div>
+        <div class="sk-cat-item"><div class="sk-block sk-cat-circle"></div><div class="sk-block sk-cat-label"></div></div>
+        <div class="sk-cat-item"><div class="sk-block sk-cat-circle"></div><div class="sk-block sk-cat-label"></div></div>
+        <div class="sk-cat-item"><div class="sk-block sk-cat-circle"></div><div class="sk-block sk-cat-label"></div></div>
+      </div>
+    </div>
+    <div class="sk-welcome-container sk-section">
+      <div class="sk-block sk-sec-title sk-sec-title-wide"></div>
+      <div class="sk-posts-row">
+        <div class="sk-block sk-post-card"></div>
+        <div class="sk-block sk-post-card"></div>
+        <div class="sk-block sk-post-card"></div>
+      </div>
+    </div>
+    <div class="sk-welcome-container sk-safety-section">
+      <div class="sk-block sk-safety-bar"></div>
+    </div>
   </div></div>`;
+};
+
+const renderInfoSkeleton = (heading, subtitle) => {
+  return `<div id="root"><div class="sk-info-page" dir="rtl">
+    ${heading ? `<h1 class="sr-only">${escapeHtml(heading)}</h1>\n` : ''}${subtitle ? `    <p class="sr-only">${escapeHtml(subtitle)}</p>\n` : ''}    <div class="sk-info-container">
+      <div class="sk-info-card">
+        <div class="sk-info-header">
+          <div class="sk-block sk-info-title"></div>
+          <div class="sk-block sk-info-sub"></div>
+          <div class="sk-block sk-info-desc"></div>
+        </div>
+        <div class="sk-info-section">
+          <div class="sk-block sk-info-sec-heading"></div>
+          <div class="sk-block sk-info-line sk-info-line-100"></div>
+          <div class="sk-block sk-info-line sk-info-line-95"></div>
+          <div class="sk-block sk-info-line sk-info-line-80"></div>
+        </div>
+        <div class="sk-info-section">
+          <div class="sk-block sk-info-sec-heading"></div>
+          <div class="sk-block sk-info-line sk-info-line-100"></div>
+          <div class="sk-block sk-info-line sk-info-line-95"></div>
+          <div class="sk-block sk-info-line sk-info-line-80"></div>
+        </div>
+      </div>
+    </div>
+  </div></div>`;
+};
+
+const replaceRoot = (html, newContent) => {
+  if (/<div id="root">[\s\S]*?<\/div>(?=\s*<\/body>)/.test(html)) {
+    return html.replace(/<div id="root">[\s\S]*?<\/div>(?=\s*<\/body>)/, newContent);
+  }
+  return html.replace('<div id="root"></div>', newContent);
 };
 
 const renderArticleBody = (post, localized, t) => {
@@ -368,8 +404,10 @@ const run = () => {
 
     const heading = seo.h1Key ? `${t(seo.h1Key)}${seo.h1Suffix || ''}`.trim() : '';
     const subtitle = seo.subKey ? t(seo.subKey) : '';
-    if (heading) {
-      html = html.replace('<div id="root"></div>', renderStaticBody(heading, subtitle, t));
+    if (route.path === '/') {
+      html = replaceRoot(html, renderWelcomeSkeleton(heading, subtitle));
+    } else if (heading) {
+      html = replaceRoot(html, renderInfoSkeleton(heading, subtitle));
     }
 
     writeRoute(route.path, html);
@@ -407,7 +445,7 @@ const run = () => {
       locale: 'ar',
     });
     html = injectHead(html, headAdditions);
-    html = html.replace('<div id="root"></div>', renderArticleBody(post, localized, t));
+    html = replaceRoot(html, renderArticleBody(post, localized, t));
     writeRoute(routePath, html);
     written += 1;
   });
