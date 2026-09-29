@@ -357,6 +357,11 @@ export const translations = {
         description:
           "How Mafqoudat uses cookies to improve your experience, and the options you have to control them.",
       },
+      disclaimer: {
+        title: "Disclaimer | Mafqoudat",
+        description:
+          "Important legal disclaimers regarding the use of the Mafqoudat platform, lost and found listings, item verification, rewards, and limitation of liability.",
+      },
       dash: {
         title: "Lost and Found Dashboard | Mafqoudat",
         description:
@@ -1461,6 +1466,51 @@ export const translations = {
     privacyPolicy: "Privacy Policy",
     termsOfUse: "Terms of Use",
     cookieNotice: "Cookie Notice",
+    disclaimer: "Disclaimer",
+    disclaimerSubtitle: "Important legal notices, platform terms, and limitation of liability",
+    disclaimerIntro: "Please read this disclaimer carefully before using the Mafqoudat platform. By accessing or using our services, you acknowledge and agree to the disclaimers set forth below.",
+    disclaimerPlatformRoleTitle: "1. Independent Intermediary Platform",
+    disclaimerPlatformRoleText: "Mafqoudat operates solely as an independent community matching and communication bulletin board connecting individuals who have lost personal items with finders who wish to return them. Mafqoudat is not a law enforcement agency, police department, public lost-property bureau, legal authority, or insurance entity. We do not take physical custody or possession of any lost or found items.",
+    disclaimerContentAccuracyTitle: "2. User-Submitted Content & Verification",
+    disclaimerContentAccuracyText: "All listings, descriptions, photographs, locations, and claims posted on the platform are submitted directly by users. While we strive to maintain a trustworthy environment and provide reporting and moderation tools, Mafqoudat does not independently inspect, authenticate, or verify the ownership, legal title, or condition of any listed item. Users must exercise due diligence and verify ownership through serial numbers, purchase proofs, matching security questions, or unique identifying details before releasing any item.",
+    disclaimerRewardsTitle: "3. Rewards & Financial Transactions",
+    disclaimerRewardsText: "Mafqoudat does not facilitate, handle, guarantee, or hold in escrow any rewards, compensations, finder fees, or monetary transactions between users. Any reward offers, payments, or negotiations are strictly private agreements between the parties involved at their own risk. Mafqoudat disclaims any liability for unpaid rewards, financial disputes, or fraudulent payment claims.",
+    disclaimerSafetyTitle: "4. Personal Safety & Offline Meetings",
+    disclaimerSafetyText: "Users are entirely responsible for their personal safety when arranging offline meetings to return or collect property. Mafqoudat strongly advises meeting exclusively in high-visibility, public places during daylight hours (such as police stations, busy shopping centres, or transit stations) and never meeting alone in private or secluded locations. Mafqoudat is not liable for any physical harm, disputes, theft, or damages arising from in-person meetings.",
+    disclaimerNoGuaranteeTitle: "5. No Guarantee of Recovery",
+    disclaimerNoGuaranteeText: "Publishing a lost or found report on Mafqoudat does not guarantee that your lost property will be located, matched, or returned. While our platform and community significantly increase the chances of reunion, recovery depends on community participation and external factors beyond our control.",
+    disclaimerLiabilityTitle: "6. Limitation of Liability & 'As-Is' Warranty",
+    disclaimerLiabilityText: "The Mafqoudat platform, its features, and all associated content are provided on an 'as is' and 'as available' basis without warranties of any kind, whether express, implied, or statutory. To the maximum extent permitted by applicable law, Mafqoudat, its founders, and operators shall not be liable for any direct, indirect, incidental, punitive, or consequential damages resulting from the use of or inability to use the platform.",
+    disclaimerLegalContactTitle: "7. Legal & Compliance Inquiries",
+    disclaimerLegalContactText: "If you have any questions, copyright concerns, or legal inquiries regarding this disclaimer, please contact our support and compliance team directly at team.mafqoudat@gmail.com.",
+
+    // Author Signal & Credibility
+    authorBioTitle: "About the Author",
+    authorVerifiedBadge: "Verified Author",
+    authorFounderTitle: "Founder & Platform Lead",
+    authorFounderBio: "Software engineer and creator of Mafqoudat. Dedicated to civic technology, digital security, and helping reunite lost belongings across Morocco and the Arab world.",
+    meetTheTeam: "Meet the Team",
+    contactEditorial: "Contact Author",
+
+    // Founder section on About Us
+    founderAndLeadership: "Founder & Platform Leadership",
+    founderName: "Nacer Boubkraoui",
+    founderRole: "Founder & Lead Software Engineer",
+    founderBio: "Passionate about applying technology to solve community challenges, Nacer built Mafqoudat to establish a modern, secure, and accessible platform that reunites lost property with its rightful owners across Morocco and the Arab world. With a strong engineering background in web architectures, geolocation systems, and privacy protection, he oversees the platform's technological development, security standards, and editorial integrity.",
+    founderExpertise: "Expertise: Civic Tech Architecture, Geolocation Platforms, Community Trust & Identity Verification",
+
+    // Categories Header Navigation
+    categories: "Categories",
+    browseByCategory: "Browse by Category",
+    viewAllCategories: "View All in Listings",
+    categoryPhonesDesc: "Phones, tablets & mobile devices",
+    categoryLaptopsDesc: "Laptops, computers & accessories",
+    categoryDocumentsDesc: "IDs, passports, cards & licenses",
+    categoryWalletDesc: "Wallets, purses, bank cards & cash",
+    categoryKeysDesc: "House keys, car keys & keychains",
+    categoryBagsDesc: "Backpacks, suitcases & travel bags",
+    categoryPetsDesc: "Lost & found domestic pets",
+    categoryJewelryDesc: "Jewelry, rings, watches & valuables",
     itemFoundIn: "Item found in",
     area: "area",
 
@@ -2570,6 +2620,11 @@ export const translations = {
         description:
           "Comment Mafqoudat utilise les cookies pour améliorer votre expérience, et les options dont vous disposez pour les contrôler.",
       },
+      disclaimer: {
+        title: "Avertissement légal | Mafqoudat",
+        description:
+          "Avertissements légaux importants concernant l'utilisation de la plateforme Mafqoudat, les annonces d'objets perdus et trouvés, la vérification et la limitation de responsabilité.",
+      },
       dash: {
         title: "Tableau de bord des objets perdus et trouvés | Mafqoudat",
         description:
@@ -3653,6 +3708,51 @@ export const translations = {
     privacyPolicy: "Politique de confidentialité",
     termsOfUse: "Conditions d'utilisation",
     cookieNotice: "Avis sur les cookies",
+    disclaimer: "Avertissement légal",
+    disclaimerSubtitle: "Avis juridiques importants, conditions de la plateforme et limitation de responsabilité",
+    disclaimerIntro: "Veuillez lire attentivement cet avertissement avant d'utiliser la plateforme Mafqoudat. En accédant à nos services, vous reconnaissez et acceptez les avis et exclusions de responsabilité énoncés ci-dessous.",
+    disclaimerPlatformRoleTitle: "1. Plateforme intermédiaire indépendante",
+    disclaimerPlatformRoleText: "Mafqoudat fonctionne uniquement comme un espace communautaire indépendant de mise en relation et de communication entre les personnes ayant perdu des objets personnels et celles qui les ont trouvés. Mafqoudat n'est pas un service de police, un bureau officiel des objets trouvés, une autorité judiciaire ni un organisme d'assurance. Nous ne prenons physiquement possession d'aucun objet.",
+    disclaimerContentAccuracyTitle: "2. Contenu publié par les utilisateurs et vérification",
+    disclaimerContentAccuracyText: "Toutes les annonces, descriptions, photographies, lieux et déclarations publiés sur la plateforme sont fournis directement par les utilisateurs. Bien que nous mettions en œuvre des outils de modération et de signalement, Mafqoudat ne vérifie pas de manière indépendante la propriété légale, l'authenticité ou l'état des objets répertoriés. Les utilisateurs doivent faire preuve de vigilance et vérifier la propriété (numéros de série, preuves d'achat, questions de sécurité) avant de remettre ou récupérer un bien.",
+    disclaimerRewardsTitle: "3. Récompenses et transactions financières",
+    disclaimerRewardsText: "Mafqoudat ne gère, ne garantit ni ne séquestre aucune récompense, compensation ou transaction financière entre utilisateurs. Tout accord ou versement de récompense relève exclusivement de la responsabilité privée des parties. Mafqoudat décline toute responsabilité en cas de litige financier ou de non-paiement.",
+    disclaimerSafetyTitle: "4. Sécurité personnelle et rencontres physiques",
+    disclaimerSafetyText: "Les utilisateurs sont entièrement responsables de leur sécurité personnelle lors des rencontres physiques organisées pour remettre ou récupérer un objet. Mafqoudat recommande vivement de se rencontrer exclusivement dans des lieux publics très fréquentés en plein jour (commissariats, gares, centres commerciaux) et de ne jamais se rendre seul dans des lieux isolés ou privés.",
+    disclaimerNoGuaranteeTitle: "5. Absence de garantie de restitution",
+    disclaimerNoGuaranteeText: "La publication d'une annonce sur Mafqoudat ne garantit pas que votre bien sera retrouvé ou restitué. Bien que notre communauté augmente considérablement les chances de succès, la restitution dépend de la participation des membres et de facteurs indépendants de notre volonté.",
+    disclaimerLiabilityTitle: "6. Limitation de responsabilité et service 'en l'état'",
+    disclaimerLiabilityText: "La plateforme Mafqoudat et l'ensemble de ses services sont fournis 'en l'état' et 'selon disponibilité', sans garantie d'aucune sorte. Dans toute la mesure permise par la législation applicable, Mafqoudat et ses fondateurs ne sauraient être tenus responsables des dommages directs ou indirects résultant de l'utilisation de la plateforme.",
+    disclaimerLegalContactTitle: "7. Questions juridiques et conformité",
+    disclaimerLegalContactText: "Pour toute question juridique ou demande relative à cet avertissement, veuillez contacter notre équipe directement à team.mafqoudat@gmail.com.",
+
+    // Author Signal & Credibility
+    authorBioTitle: "À propos de l'auteur",
+    authorVerifiedBadge: "Auteur vérifié",
+    authorFounderTitle: "Fondateur et responsable de la plateforme",
+    authorFounderBio: "Ingénieur logiciel et créateur de Mafqoudat. Passionné par les technologies civiques, la sécurité numérique et l'aide à la restitution d'objets perdus au Maroc et dans le monde arabe.",
+    meetTheTeam: "Découvrir l'équipe",
+    contactEditorial: "Contacter l'auteur",
+
+    // Founder section on About Us
+    founderAndLeadership: "Fondateur et direction",
+    founderName: "Nacer Boubkraoui",
+    founderRole: "Fondateur et ingénieur logiciel principal",
+    founderBio: "Passionné par l'utilisation de la technologie pour résoudre des défis concrets du quotidien, Nacer a créé Mafqoudat pour offrir une plateforme civique moderne, sécurisée et accessible qui réunit les objets perdus avec leurs propriétaires au Maroc et dans le monde arabe. Fort d'une expertise approfondie en architectures web, systèmes de géolocalisation et protection des données, il supervise le développement technologique, la sécurité et la fiabilité éditoriale.",
+    founderExpertise: "Expertise : Architecture Civic Tech, plateformes géolocalisées, confiance communautaire et vérification d'identité",
+
+    // Categories Header Navigation
+    categories: "Catégories",
+    browseByCategory: "Parcourir par catégorie",
+    viewAllCategories: "Voir tout dans les annonces",
+    categoryPhonesDesc: "Téléphones, tablettes & appareils mobiles",
+    categoryLaptopsDesc: "Ordinateurs portables, PC & accessoires",
+    categoryDocumentsDesc: "Papiers d'identité, passeports & cartes",
+    categoryWalletDesc: "Portefeuilles, cartes bancaires & argent",
+    categoryKeysDesc: "Clés de maison, de voiture & porte-clés",
+    categoryBagsDesc: "Sacs à dos, valises & sacs à main",
+    categoryPetsDesc: "Animaux domestiques perdus ou trouvés",
+    categoryJewelryDesc: "Bijoux, bagues, montres & objets de valeur",
 
     // Suppression du compte (Pages/DeleteAccount.jsx + mobile DeleteAccountScreen)
     deleteAccount: "Supprimer le compte",
@@ -4761,6 +4861,11 @@ export const translations = {
         description:
           "كيف تستخدم مفقودات ملفات تعريف الارتباط لتحسين تجربتك، وما الخيارات المتاحة لك للتحكم بها.",
       },
+      disclaimer: {
+        title: "إخلاء المسؤولية | مفقودات",
+        description:
+          "إخلاء مسؤولية قانوني مهم بخصوص استخدام منصة مفقودات، وإعلانات المفقودات والموجودات، والتحقق من الملكية، والمكافآت، وحدود المسؤولية.",
+      },
       dash: {
         title: "لوحة المفقودات والموجودات | مفقودات",
         description:
@@ -5827,6 +5932,51 @@ export const translations = {
     privacyPolicy: "سياسة الخصوصية",
     termsOfUse: "شروط الاستخدام",
     cookieNotice: "إشعار ملفات تعريف الارتباط",
+    disclaimer: "إخلاء المسؤولية",
+    disclaimerSubtitle: "إشعارات قانونية هامة، وشروط المنصة، وحدود المسؤولية",
+    disclaimerIntro: "يرجى قراءة إخلاء المسؤولية هذا بعناية قبل استخدام منصة مفقودات. بالوصول إلى خدماتنا أو استخدامها، فإنك تقر وتوافق على إخلاء المسؤولية المبين أدناه.",
+    disclaimerPlatformRoleTitle: "1. منصة وساطة مجتمعية مستقلة",
+    disclaimerPlatformRoleText: "تعمل مفقودات حصرياً كلوحة إعلانات وتواصل مجتمعية مستقلة للربط بين الأشخاص الذين فقدوا أغراضهم ومن عثروا عليها ويرغبون في إعادتها. مفقودات ليست جهة أمنية، أو مركز شرطة، أو مكتباً رسمياً للمفقودات، أو جهة قانونية، أو شركة تأمين. نحن لا نتسلم أو نحتفظ بأي غرض مفقود أو موجود مادياً.",
+    disclaimerContentAccuracyTitle: "2. المحتوى المنشور من المستخدمين والتحقق",
+    disclaimerContentAccuracyText: "جميع الإعلانات والأوصاف والصور والمواقع المنشورة يقدمها المستخدمون مباشرة. بالرغم من حرصنا على توفير أدوات التبليغ والإشراف، فإن مفقودات لا تفحص ولا توثق بشكل مستقل ملكية الأغراض أو حالتها القانونية أو المادية. يجب على المستخدمين توخي الحيطة والتحقق من الملكية عبر الأرقام التسلسلية أو إثباتات الشراء أو تفاصيل دقيقة قبل تسليم أو استلام أي غرض.",
+    disclaimerRewardsTitle: "3. المكافآت والمعاملات المالية",
+    disclaimerRewardsText: "لا تتوسط مفقودات ولا تضمن ولا تحتفظ بأي مكافآت أو تعويضات مالية بين المستخدمين. أي اتفاق أو دفع لمكافأة هو اتفاق خاص تماماً بين الأطراف المعنية وعلى مسؤوليتهم الشخصية. تخلي مفقودات مسؤوليتها عن أي نزاعات مالية أو عدم دفع للمكافآت.",
+    disclaimerSafetyTitle: "4. السلامة الشخصية واللقاء المباشر",
+    disclaimerSafetyText: "يتحمل المستخدمون المسؤولية الكاملة عن سلامتهم الشخصية عند ترتيب لقاء لتسليم أو استلام الأغراض. تنصح مفقودات بشدة بأن تكون اللقاءات في أماكن عامة ومزدحمة نهاراً (مثل مراكز الشرطة أو المراكز التجارية أو محطات النقل) وعدم اللقاء بمفردك أو في أماكن معزولة أو خاصة. مفقودات غير مسؤولة عن أي حوادث أو نزاعات تنشأ عن اللقاءات الشخصية.",
+    disclaimerNoGuaranteeTitle: "5. عدم ضمان العثور على الأغراض",
+    disclaimerNoGuaranteeText: "نشر بلاغ على منصة مفقودات لا يضمن العثور على غرضك أو استعادته. رغم أن منصتنا ومجتمعنا يرفعان بشكل كبير فرص استعادة الأغراض، إلا أن النتيجة تعتمد على مشاركة المجتمع وعوامل خارجة عن إرادتنا.",
+    disclaimerLiabilityTitle: "6. حدود المسؤولية والخدمة 'كما هي'",
+    disclaimerLiabilityText: "تُقدم منصة مفقودات وجميع خدماتها 'كما هي' و'حسب توفرها' دون أي ضمانات صريحة أو ضمنية. إلى أقصى حد يسمح به القانون المعمول به، لا تتحمل مفقودات أو مؤسسوها أي مسؤولية عن أي أضرار مباشرة أو غير مباشرة ناتجة عن استخدام المنصة أو عدم القدرة على استخدامها.",
+    disclaimerLegalContactTitle: "7. الاستفسارات القانونية والامتثال",
+    disclaimerLegalContactText: "إذا كانت لديك أي استفسارات قانونية أو حقوقية بشأن إخلاء المسؤولية هذا، يرجى التواصل مباشرة مع فريق الدعم والامتثال عبر البريد الإلكتروني: team.mafqoudat@gmail.com.",
+
+    // Author Signal & Credibility
+    authorBioTitle: "عن الكاتب",
+    authorVerifiedBadge: "كاتب موثّق",
+    authorFounderTitle: "المؤسس ومسؤول المنصة",
+    authorFounderBio: "مهندس برمجيات ومؤسس مفقودات. مكرس لتطوير التقنيات المجتمعية والأمان الرقمي والمساعدة في إعادة المفقودات لأصحابها في المغرب والعالم العربي.",
+    meetTheTeam: "تعرّف على الفريق",
+    contactEditorial: "تواصل مع الكاتب",
+
+    // Founder section on About Us
+    founderAndLeadership: "المؤسس والقيادة",
+    founderName: "ناصر بوبكراوي",
+    founderRole: "المؤسس والمهندس البرمجي الرئيسي",
+    founderBio: "انطلاقاً من شغفه بتوظيف التكنولوجيا لحل التحديات اليومية للمجتمع، أنشأ ناصر منصة مفقودات لتوفير بيئة مدنية حديثة وآمنة تساعد في لم شمل الأغراض المفقودة بأصحابها الشرعيين في المغرب والعالم العربي. بفضل خبرته العميقة في هندسة الويب ونظم التموضع الجغرافي وحماية البيانات، يشرف على التطوير التقني ومعايير الأمان وموثوقية المحتوى.",
+    founderExpertise: "الخبرات الأساسية: بنية المنصات المجتمعية، التقنيات الجغرافية، تعزيز الثقة والتحقق من الهوية",
+
+    // Categories Header Navigation
+    categories: "التصنيفات",
+    browseByCategory: "تصفح حسب التصنيف",
+    viewAllCategories: "عرض الكل في الإعلانات",
+    categoryPhonesDesc: "هواتف وأجهزة لوحية وأجهزة محمولة",
+    categoryLaptopsDesc: "حواسيب محمولة وشخصية وملحقاتها",
+    categoryDocumentsDesc: "بطاقات الهوية وجوازات السفر والرخص",
+    categoryWalletDesc: "محافظ، بطاقات بنكية ونقود",
+    categoryKeysDesc: "مفاتيح منازل وسيارات وميداليات",
+    categoryBagsDesc: "حقائب ظهر وحقائب يد وحقائب سفر",
+    categoryPetsDesc: "حيوانات أليفة مفقودة أو تم العثور عليها",
+    categoryJewelryDesc: "مجوهرات، خواتم، ساعات وأشياء ثمينة",
     itemFoundIn: "تم العثور على الغرض في",
     area: "المنطقة",
 

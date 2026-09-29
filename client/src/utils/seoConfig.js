@@ -55,8 +55,15 @@ export const createArticleSchema = ({
   dateModified: datePublished,
   inLanguage: inLanguage || 'en',
   author: {
-    '@type': 'Organization',
-    name: authorName || defaultSeo.siteName,
+    '@type': 'Person',
+    name: authorName || 'Nacer Boubkraoui',
+    jobTitle: 'Founder & Software Engineer',
+    image: buildAbsoluteUrl('/author-avatar.jpg'),
+    url: buildAbsoluteUrl('/about'),
+    sameAs: [
+      'https://www.linkedin.com/in/nacer-boubkraoui',
+      'https://github.com/boubnacer',
+    ],
   },
   publisher: {
     '@type': 'Organization',
@@ -179,6 +186,18 @@ export const pageSeoConfig = {
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
         { name: 'Cookie Notice', path: '/cookies' },
+      ]),
+    ],
+  },
+  disclaimer: {
+    path: '/disclaimer',
+    title: 'Disclaimer | Mafqoudat',
+    description:
+      'Review the Mafqoudat platform disclaimer. Learn about limitation of liability, user-generated content, item verification, and safety policies.',
+    structuredData: [
+      createBreadcrumbSchema([
+        { name: 'Home', path: '/' },
+        { name: 'Disclaimer', path: '/disclaimer' },
       ]),
     ],
   },

@@ -50,6 +50,7 @@ const DeleteAccount = lazy(() => import("./components/Pages/DeleteAccount"));
 const BlockedUsers = lazy(() => import("./components/Pages/BlockedUsers"));
 const TermsOfUse = lazy(() => import("./components/Pages/TermsOfUse"));
 const CookieNotice = lazy(() => import("./components/Pages/CookieNotice"));
+const Disclaimer = lazy(() => import("./components/Pages/Disclaimer"));
 const CommunityGuidelines = lazy(() => import("./components/Pages/CommunityGuidelines"));
 const SafetyTips = lazy(() => import("./components/Pages/SafetyTips"));
 const AboutUs = lazy(() => import("./components/Pages/AboutUs"));
@@ -213,6 +214,11 @@ const AppContent = () => {
         <Route path="/cookies" element={
           <Suspense fallback={<InfoPageSkeleton />}>
             <CookieNotice />
+          </Suspense>
+        } />
+        <Route path="/disclaimer" element={
+          <Suspense fallback={<InfoPageSkeleton />}>
+            <Disclaimer />
           </Suspense>
         } />
         <Route path="/guidelines" element={

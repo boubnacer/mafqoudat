@@ -16,6 +16,7 @@ const STATIC_ROUTES = [
   { path: '/privacy', changefreq: 'monthly', priority: '0.6' },
   { path: '/terms', changefreq: 'monthly', priority: '0.6' },
   { path: '/cookies', changefreq: 'monthly', priority: '0.5' },
+  { path: '/disclaimer', changefreq: 'monthly', priority: '0.5' },
   // Prerendered mainly so it stops inheriting the homepage's markup. '/' is the
   // SPA fallback, so every route without a build-time file of its own answers
   // with build/index.html - which now carries the homepage's own <h1>. /dash is

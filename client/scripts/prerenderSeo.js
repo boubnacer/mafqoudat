@@ -65,6 +65,7 @@ const STATIC_PAGE_SEO = {
   '/privacy': { pageKey: 'privacy', h1Key: 'privacyPolicy', subKey: null },
   '/terms': { pageKey: 'terms', h1Key: 'termsOfUse', subKey: null },
   '/cookies': { pageKey: 'cookies', h1Key: 'cookieNotice', subKey: null },
+  '/disclaimer': { pageKey: 'disclaimer', h1Key: 'disclaimer', subKey: 'disclaimerSubtitle' },
   // No h1Key: Dash.js is a panel layout with no single page heading, and
   // inventing one here would put text on the page React never renders. Meta
   // only - the point of prerendering this route is that it stops answering with

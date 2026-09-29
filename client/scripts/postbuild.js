@@ -90,8 +90,8 @@ const injectGoogleAnalytics = () => {
 const injectFundingChoices = () => {
   console.log('🔍 Starting Funding Choices (CMP) injection...');
 
-  const rawPublisherId = process.env.REACT_APP_FC_PUBLISHER_ID;
-  console.log('🔑 REACT_APP_FC_PUBLISHER_ID:', rawPublisherId || 'NOT FOUND');
+  const rawPublisherId = process.env.REACT_APP_ADSENSE_PUB_ID || process.env.REACT_APP_FC_PUBLISHER_ID;
+  console.log('🔑 AdSense / CMP Publisher ID:', rawPublisherId || 'NOT FOUND');
 
   const indexPath = path.join(__dirname, '..', 'build', 'index.html');
 
@@ -101,9 +101,9 @@ const injectFundingChoices = () => {
   }
 
   if (!rawPublisherId) {
-    console.log('⚠️  REACT_APP_FC_PUBLISHER_ID not found, skipping CMP injection');
+    console.log('⚠️  Neither REACT_APP_ADSENSE_PUB_ID nor REACT_APP_FC_PUBLISHER_ID found, skipping CMP injection');
     console.log('⚠️  No consent manager will load, and Google Analytics stays off as a result.');
-    console.log('💡 Set REACT_APP_FC_PUBLISHER_ID in Vercel to the AdSense publisher ID (e.g. pub-1234567890123456)');
+    console.log('💡 Set REACT_APP_ADSENSE_PUB_ID (or REACT_APP_FC_PUBLISHER_ID) in Vercel to the AdSense publisher ID (e.g. pub-1234567890123456)');
     return;
   }
 
@@ -112,7 +112,7 @@ const injectFundingChoices = () => {
   const publisherId = rawPublisherId.trim().replace(/^ca-/, '');
 
   if (!/^pub-\d+$/.test(publisherId)) {
-    console.log(`⚠️  REACT_APP_FC_PUBLISHER_ID ("${rawPublisherId}") does not look like a publisher ID (pub-1234567890123456), skipping CMP injection`);
+    console.log(`⚠️  Publisher ID ("${rawPublisherId}") does not look like a publisher ID (pub-1234567890123456), skipping CMP injection`);
     return;
   }
 
@@ -136,9 +136,70 @@ const injectFundingChoices = () => {
   }
 };
 
-// Inject GA + CMP before react-snap (if it runs)
+// Inject AdSense account verification meta tag, script, ads.txt, and Google Search Console verification
+const injectAdSenseAndVerification = () => {
+  console.log('🔍 Starting AdSense & Ownership Verification injection...');
+
+  const rawPublisherId = process.env.REACT_APP_ADSENSE_PUB_ID || process.env.REACT_APP_FC_PUBLISHER_ID;
+  const siteVerification = process.env.REACT_APP_GOOGLE_SITE_VERIFICATION;
+  const buildDir = path.join(__dirname, '..', 'build');
+  const indexPath = path.join(buildDir, 'index.html');
+  const adsTxtPath = path.join(buildDir, 'ads.txt');
+
+  if (!fs.existsSync(indexPath)) {
+    return;
+  }
+
+  try {
+    let html = fs.readFileSync(indexPath, 'utf8');
+
+    // 1. Google Search Console verification meta tag
+    if (siteVerification && siteVerification.trim()) {
+      const gscMeta = `<meta name="google-site-verification" content="${siteVerification.trim()}" />`;
+      if (html.includes('<!-- GOOGLE_SITE_VERIFICATION_PLACEHOLDER -->')) {
+        html = html.replace('<!-- GOOGLE_SITE_VERIFICATION_PLACEHOLDER -->', gscMeta);
+      } else if (!html.includes('google-site-verification')) {
+        html = html.replace('</head>', `    ${gscMeta}\n  </head>`);
+      }
+      console.log('✅ Google Search Console verification meta tag injected');
+    } else {
+      html = html.replace(/[\t ]*<!-- GOOGLE_SITE_VERIFICATION_PLACEHOLDER -->\r?\n?/g, '');
+    }
+
+    // 2. AdSense account verification & script
+    if (rawPublisherId) {
+      const publisherId = rawPublisherId.trim().replace(/^ca-/, '');
+      if (/^pub-\d+$/.test(publisherId)) {
+        const fullPubId = `ca-${publisherId}`;
+        const adsenseSnippet = `    <meta name="google-adsense-account" content="${fullPubId}" />\n    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${fullPubId}" crossorigin="anonymous"></script>`;
+
+        if (html.includes('<!-- ADSENSE_VERIFICATION_PLACEHOLDER -->')) {
+          html = html.replace('<!-- ADSENSE_VERIFICATION_PLACEHOLDER -->', adsenseSnippet.trim());
+        } else if (!html.includes('google-adsense-account')) {
+          html = html.replace('</head>', `${adsenseSnippet}\n  </head>`);
+        }
+        console.log(`✅ AdSense verification meta tag & script injected (${fullPubId})`);
+
+        // 3. Populate build/ads.txt
+        const adsTxtContent = `# ads.txt file for Mafqoudat.com\ngoogle.com, ${publisherId}, DIRECT, f08c47fec0942fa0\n`;
+        fs.writeFileSync(adsTxtPath, adsTxtContent, 'utf8');
+        console.log(`✅ Generated build/ads.txt with publisher ID: ${publisherId}`);
+      }
+    } else {
+      html = html.replace(/[\t ]*<!-- ADSENSE_VERIFICATION_PLACEHOLDER -->\r?\n?/g, '');
+    }
+
+    fs.writeFileSync(indexPath, html, 'utf8');
+  } catch (error) {
+    console.error('❌ Failed to inject AdSense/verification:', error.message);
+    console.error('❌ Error stack:', error.stack);
+  }
+};
+
+// Inject GA + CMP + AdSense before react-snap (if it runs)
 injectGoogleAnalytics();
 injectFundingChoices();
+injectAdSenseAndVerification();
 
 const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
 
@@ -154,6 +215,7 @@ if (isVercel) {
     // Re-inject after react-snap (in case it modified the HTML)
     injectGoogleAnalytics();
     injectFundingChoices();
+    injectAdSenseAndVerification();
   } catch (error) {
     console.error('❌ react-snap failed:', error.message);
     // Don't fail the build if react-snap fails - the SEO prerender fallback

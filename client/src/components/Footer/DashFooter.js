@@ -529,6 +529,15 @@ const DashFooter = () => {
             >
               {t("cookieNotice")}
             </Link>
+            <Link
+              component="button"
+              onClick={() => navigate("/disclaimer")}
+              color="text.secondary"
+              underline="hover"
+              sx={{ background: "none", border: "none", cursor: "pointer", fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
+            >
+              {t("disclaimer")}
+            </Link>
           </Box>
         </Grid>
       </Grid>

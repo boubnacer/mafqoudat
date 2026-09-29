@@ -46,6 +46,7 @@ import {
   Refresh,
   Close,
   NotificationsNoneOutlined,
+  GridView,
 } from "@mui/icons-material";
 import {
   selectCurrentCountry,
@@ -61,7 +62,8 @@ import { useEffect, useRef, useState } from "react";
 import { useGetCountriesQuery } from "../features/countries/countriesApiSlice";
 import useAuth from "../hooks/useAuth";
 import { useTranslation } from "../utils/translations";
-import { useGetflOptionsQuery } from "../features/dependencies/dependenciesApiSlice";
+import { useGetflOptionsQuery, useGetCategoriesQuery } from "../features/dependencies/dependenciesApiSlice";
+import { getCategoryIcon, getCategoryColor, sortCategoriesForBrowse } from "../config/categories";
 import { useUnifiedLanguageChange } from "../hooks/useUnifiedLanguageChange";
 import { forceRefreshAllDependencies } from "../utils/cacheRefresh";
 import { selectIsLoggedIn, selectCurrentUser } from "../features/auth/authSlice";
@@ -260,6 +262,22 @@ const Navbar = () => {
   const [exploreOpen, setExploreOpen] = useState(false);
   const [mobileExploreOpen, setMobileExploreOpen] = useState(false);
   const exploreAnchorRef = useRef(null);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
+  const categoriesAnchorRef = useRef(null);
+
+  // Get categories for topical header navigation
+  const { data: categoriesData } = useGetCategoriesQuery(
+    { language: currentLanguage },
+    {
+      selectFromResult: ({ data }) => ({
+        data: data?.ids?.map((id) => data?.entities[id]) || [],
+      }),
+    }
+  );
+
+  const orderedCategories = sortCategoriesForBrowse(categoriesData);
+  const topCategories = orderedCategories.slice(0, 6);
 
   // Get found/lost options for navigation
   const { data: flOptionsData } = useGetflOptionsQuery(
@@ -387,7 +405,10 @@ const Navbar = () => {
   const handleProfileClick = (event) => setProfileAnchorEl(event.currentTarget);
   const handleProfileClose = () => setProfileAnchorEl(null);
 
-  const handleExploreToggle = () => setExploreOpen((prev) => !prev);
+  const handleExploreToggle = () => {
+    setExploreOpen((prev) => !prev);
+    setCategoriesOpen(false);
+  };
   const handleExploreClose = (event) => {
     if (exploreAnchorRef.current && exploreAnchorRef.current.contains(event.target)) {
       return;
@@ -397,6 +418,53 @@ const Navbar = () => {
   const handleExploreItemClick = (item) => {
     item.action();
     setExploreOpen(false);
+  };
+
+  const handleCategoriesToggle = () => {
+    setCategoriesOpen((prev) => !prev);
+    setExploreOpen(false);
+  };
+  const handleCategoriesClose = (event) => {
+    if (categoriesAnchorRef.current && categoriesAnchorRef.current.contains(event.target)) {
+      return;
+    }
+    setCategoriesOpen(false);
+  };
+  const handleCategorySelect = (categoryId) => {
+    setCategoriesOpen(false);
+    setMobileDrawerOpen(false);
+    navigate("/dash/posts", {
+      state: {
+        categoryFilter: categoryId,
+        fromCategory: true,
+      },
+    });
+  };
+
+  const getCategoryLabel = (cat) => {
+    if (!cat) return "";
+    const code = cat.code;
+    if (code === "PHONES") return t("categoryPhones");
+    if (code === "LAPTOPS") return t("categoryLaptops");
+    if (code === "DOCUMENTS") return t("categoryDocuments");
+    if (code === "CHARGERS") return t("categoryChargers");
+    if (code === "POWERBANKS") return t("categoryPowerbanks");
+    if (code === "STORAGE") return t("categoryStorage");
+    if (code === "JEWELRY") return t("categoryJewelry");
+    if (code === "CLOTHING") return t("categoryClothing");
+    return cat.labels?.[currentLanguage] || cat.labels?.en || cat.name || cat.code;
+  };
+
+  const getCategoryDesc = (code) => {
+    if (code === "PHONES") return t("categoryPhonesDesc");
+    if (code === "LAPTOPS") return t("categoryLaptopsDesc");
+    if (code === "DOCUMENTS") return t("categoryDocumentsDesc");
+    if (code === "WALLET") return t("categoryWalletDesc");
+    if (code === "KEYS") return t("categoryKeysDesc");
+    if (code === "BAGS") return t("categoryBagsDesc");
+    if (code === "PETS") return t("categoryPetsDesc");
+    if (code === "JEWELRY") return t("categoryJewelryDesc");
+    return "";
   };
 
   // Admin refresh handler
@@ -666,6 +734,118 @@ const Navbar = () => {
                                 </ExploreTile>
                               );
                             })}
+                          </Box>
+                        </Box>
+                      </ClickAwayListener>
+                    </Paper>
+                  </Grow>
+                )}
+              </Popper>
+
+              {/* Topical Categories Dropdown - AdSense Category Navigation */}
+              <ExploreTrigger
+                ref={categoriesAnchorRef}
+                onClick={handleCategoriesToggle}
+                isOpen={categoriesOpen}
+                startIcon={<GridView sx={{ fontSize: 18, color: theme.custom.color.brandPrimary }} />}
+                endIcon={<KeyboardArrowDown className="explore-chevron" sx={{ fontSize: "18px" }} />}
+              >
+                {t("categories")}
+              </ExploreTrigger>
+
+              <Popper
+                open={categoriesOpen}
+                anchorEl={categoriesAnchorRef.current}
+                placement={isRTL ? "bottom-end" : "bottom-start"}
+                transition
+                disablePortal={false}
+                modifiers={[{ name: "offset", options: { offset: [0, 10] } }]}
+                sx={{ zIndex: (theme) => theme.zIndex.drawer + 2, maxWidth: "calc(100vw - 32px)" }}
+              >
+                {({ TransitionProps, placement }) => (
+                  <Grow
+                    {...TransitionProps}
+                    style={{ transformOrigin: placement.includes("end") ? "top right" : "top left" }}
+                    timeout={180}
+                  >
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        width: { xs: 340, sm: 500 },
+                        borderRadius: `${theme.custom.radius.lg}px`,
+                        overflow: "hidden",
+                        border: `1px solid ${alpha(theme.custom.color.ink, 0.1)}`,
+                        boxShadow: theme.custom.elevation.e3,
+                      }}
+                    >
+                      <ClickAwayListener onClickAway={handleCategoriesClose}>
+                        <Box>
+                          <Box sx={{ height: 3, backgroundColor: theme.custom.color.brandPrimary }} />
+                          <Box sx={{ p: 1.5, pb: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <Typography sx={{ fontWeight: 700, fontSize: "0.85rem", color: "text.secondary", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                              {t("browseByCategory")}
+                            </Typography>
+                          </Box>
+                          <Box
+                            sx={{
+                              p: 1.5,
+                              pt: 0.5,
+                              display: "grid",
+                              gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+                              gap: 1,
+                            }}
+                          >
+                            {topCategories.map((cat) => {
+                              const CatIcon = getCategoryIcon(cat.code);
+                              const catColor = getCategoryColor(cat.code);
+                              return (
+                                <ExploreTile
+                                  key={cat._id}
+                                  toneBg={alpha(catColor, 0.08)}
+                                  toneBorder={alpha(catColor, 0.2)}
+                                  onClick={() => handleCategorySelect(cat._id)}
+                                >
+                                  <ExploreTileIcon sx={{ color: catColor }}>
+                                    <CatIcon sx={{ fontSize: 20 }} />
+                                  </ExploreTileIcon>
+                                  <Box sx={{ minWidth: 0 }}>
+                                    <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: theme.custom.color.ink }}>
+                                      {getCategoryLabel(cat)}
+                                    </Typography>
+                                    <Typography
+                                      sx={{
+                                        fontSize: "0.75rem",
+                                        color: "text.secondary",
+                                        display: "-webkit-box",
+                                        WebkitLineClamp: 1,
+                                        WebkitBoxOrient: "vertical",
+                                        overflow: "hidden",
+                                      }}
+                                    >
+                                      {getCategoryDesc(cat.code) || t("searchCategories")}
+                                    </Typography>
+                                  </Box>
+                                </ExploreTile>
+                              );
+                            })}
+                          </Box>
+                          <Divider />
+                          <Box sx={{ p: 1, textAlign: "center", bgcolor: alpha(theme.custom.color.ink, 0.02) }}>
+                            <Button
+                              size="small"
+                              onClick={() => {
+                                setCategoriesOpen(false);
+                                navigate("/dash/posts");
+                              }}
+                              sx={{
+                                fontSize: "0.82rem",
+                                fontWeight: 600,
+                                textTransform: "none",
+                                color: theme.custom.color.brandPrimary,
+                              }}
+                            >
+                              {t("viewAllCategories")} →
+                            </Button>
                           </Box>
                         </Box>
                       </ClickAwayListener>
@@ -1085,6 +1265,50 @@ const Navbar = () => {
                   />
                 </DrawerRow>
               ))}
+            </Box>
+          </Collapse>
+
+          {/* Group: Categories — showcases top topical categories in mobile navigation */}
+          <DrawerRow onClick={() => setMobileCategoriesOpen((prev) => !prev)}>
+            <ListItemIcon>
+              <GridView sx={{ fontSize: 20, color: theme.custom.color.brandPrimary }} />
+            </ListItemIcon>
+            <ListItemText primary={t("categories")} primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }} />
+            <KeyboardArrowDown
+              sx={{ fontSize: "20px", transition: "transform 0.2s ease", transform: mobileCategoriesOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+            />
+          </DrawerRow>
+          <Collapse in={mobileCategoriesOpen} timeout="auto" unmountOnExit sx={{ flexShrink: 0 }}>
+            <Box sx={{ paddingInlineStart: 2, borderInlineStart: `2px solid ${alpha(theme.custom.color.ink, 0.08)}`, marginInlineStart: 2, mb: 0.5 }}>
+              {topCategories.map((cat) => {
+                const CatIcon = getCategoryIcon(cat.code);
+                const catColor = getCategoryColor(cat.code);
+                return (
+                  <DrawerRow
+                    key={cat._id}
+                    onClick={() => handleCategorySelect(cat._id)}
+                  >
+                    <ListItemIcon>
+                      <CatIcon sx={{ fontSize: 20, color: catColor }} />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={getCategoryLabel(cat)}
+                      primaryTypographyProps={{ fontWeight: 600, fontSize: "0.95rem" }}
+                    />
+                  </DrawerRow>
+                );
+              })}
+              <DrawerRow
+                onClick={() => {
+                  handleMobileDrawerClose();
+                  navigate("/dash/posts");
+                }}
+              >
+                <ListItemText
+                  primary={`${t("viewAllCategories")} →`}
+                  primaryTypographyProps={{ fontWeight: 600, fontSize: "0.9rem", color: theme.custom.color.brandPrimary }}
+                />
+              </DrawerRow>
             </Box>
           </Collapse>
 
