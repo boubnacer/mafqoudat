@@ -40,10 +40,14 @@ const getDashboard = async (req, res) => {
       user: getCacheUserKey(req)
     });
     
-    // Check cache first
-    const cachedDashboard = await cacheService.get(cacheKey);
-    if (cachedDashboard) {
-      return res.json(cachedDashboard);
+    const isNoCache = req.query.nocache === 'true' || req.headers['cache-control'] === 'no-cache';
+
+    // Check cache first (unless bypassed)
+    if (!isNoCache) {
+      const cachedDashboard = await cacheService.get(cacheKey);
+      if (cachedDashboard) {
+        return res.json(cachedDashboard);
+      }
     }
     
     let match = {};
@@ -1408,9 +1412,9 @@ const createCategory = async (req, res) => {
 
     const addedCategory = await Category.create(newCategory);
     
-    // Invalidate categories cache after creation
-    
-    
+    // Invalidate categories and dashboard cache after creation
+    await cacheService.invalidatePattern('categories*');
+    await cacheService.invalidatePattern('dashboard*');
     res.status(201).json({
       success: true,
       message: `Category ${addedCategory.labels.en} (${addedCategory.code}) added successfully`,
@@ -1478,9 +1482,10 @@ const createFoundLost = async (req, res) => {
 
     const addedPostType = await FoundLost.create(newPostType);
     
-    // Invalidate fl-options cache after creation
-    
-    
+    // Invalidate fl-options and dashboard cache after creation
+    await cacheService.invalidatePattern('foundlost*');
+    await cacheService.invalidatePattern('fl-options*');
+    await cacheService.invalidatePattern('dashboard*');
     res.status(201).json({
       success: true,
       message: `Post type ${addedPostType.labels.en} (${addedPostType.code}) added successfully`,

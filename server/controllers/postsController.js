@@ -157,10 +157,14 @@ const getAllPosts = async (req, res) => {
     blocked: blockedCacheTag(blockedIds)
   });
 
-  // Check cache first
-  const cachedPosts = await cacheService.get(cacheKey);
-  if (cachedPosts) {
-    return res.json(cachedPosts);
+  const isNoCache = req.query.nocache === 'true' || req.headers['cache-control'] === 'no-cache';
+
+  // Check cache first (unless bypassed)
+  if (!isNoCache) {
+    const cachedPosts = await cacheService.get(cacheKey);
+    if (cachedPosts) {
+      return res.json(cachedPosts);
+    }
   }
 
   let totalPosts;
@@ -1091,10 +1095,14 @@ const getUserPosts = async (req, res) => {
       language
     });
     
-    // Check cache first
-    const cachedPosts = await cacheService.get(cacheKey);
-    if (cachedPosts) {
-      return res.json(cachedPosts);
+    const isNoCache = req.query.nocache === 'true' || req.headers['cache-control'] === 'no-cache';
+
+    // Check cache first (unless bypassed)
+    if (!isNoCache) {
+      const cachedPosts = await cacheService.get(cacheKey);
+      if (cachedPosts) {
+        return res.json(cachedPosts);
+      }
     }
 
     // Build aggregation pipeline for user posts

@@ -1,5 +1,6 @@
 const Country = require("../models/Country");
 const { cacheService } = require("../config/cache");
+const { clearCache: clearCountryLocalCache } = require("../utils/countryCache");
 
 const getCountries = async (req, res) => {
   try {
@@ -132,6 +133,7 @@ const createCountry = async (req, res) => {
     const addedCountry = await Country.create(newCountry);
     
     // Invalidate countries cache after creation
+    clearCountryLocalCache();
     await cacheService.invalidatePattern('countries*');
     await cacheService.invalidatePattern('countries-search*');
     
@@ -181,6 +183,7 @@ const updateCountry = async (req, res) => {
     await country.save();
 
     // Invalidate countries cache after update
+    clearCountryLocalCache();
     await cacheService.invalidatePattern('countries*');
     await cacheService.invalidatePattern('countries-search*');
 
@@ -221,6 +224,7 @@ const deleteCountry = async (req, res) => {
     await country.save();
 
     // Invalidate countries cache after deletion
+    clearCountryLocalCache();
     await cacheService.invalidatePattern('countries*');
     await cacheService.invalidatePattern('countries-search*');
 

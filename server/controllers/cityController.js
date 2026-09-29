@@ -73,10 +73,14 @@ const getCities = async (req, res) => {
       countryCode
     });
     
-    // Check cache first
-    const cachedCities = await cacheService.get(cacheKey);
-    if (cachedCities) {
-      return res.json(cachedCities);
+    const isNoCache = req.query.nocache === 'true' || req.headers['cache-control'] === 'no-cache';
+
+    // Check cache first (unless bypassed)
+    if (!isNoCache) {
+      const cachedCities = await cacheService.get(cacheKey);
+      if (cachedCities) {
+        return res.json(cachedCities);
+      }
     }
     
     let query = {};
@@ -248,10 +252,14 @@ const searchCities = async (req, res) => {
       limit
     });
 
-    // Check cache first
-    const cachedResult = await cacheService.get(cacheKey);
-    if (cachedResult) {
-      return res.json(cachedResult);
+    const isNoCache = req.query.nocache === 'true' || req.headers['cache-control'] === 'no-cache';
+
+    // Check cache first (unless bypassed)
+    if (!isNoCache) {
+      const cachedResult = await cacheService.get(cacheKey);
+      if (cachedResult) {
+        return res.json(cachedResult);
+      }
     }
 
     // Step 1: Search local database first
