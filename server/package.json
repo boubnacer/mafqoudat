@@ -11,6 +11,7 @@
     "updateCountries": "node scripts/updateCountriesWithNames.js",
     "sync-categories": "node scripts/sync-categories.js",
     "rename-categories-plural": "node scripts/rename-categories-plural.js",
+    "rename-categories-singular": "node scripts/rename-categories-singular.js",
     "backfill-city-coordinates": "node scripts/backfill-city-coordinates.js",
     "sync-document-types": "node scripts/sync-document-types.js",
     "test": "node test-server.js",

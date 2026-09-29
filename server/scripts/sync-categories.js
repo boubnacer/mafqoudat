@@ -51,7 +51,7 @@ const uri = process.env.MONGO_TARGET === 'dev'
 const CATEGORIES = [
   {
     code: 'PHONES',
-    labels: { en: 'Phone & Tablet', fr: 'Téléphones & Tablettes', ar: 'هواتف' },
+    labels: { en: 'Phone & Tablet', fr: 'Téléphone & Tablette', ar: 'هاتف' },
     color: '#00BCD4',
     priority: 1,
     description: 'Smartphones, mobile phones, tablets, and iPads',
@@ -59,7 +59,7 @@ const CATEGORIES = [
   },
   {
     code: 'LAPTOPS',
-    labels: { en: 'Laptop / PC', fr: 'Ordinateurs & PC', ar: 'حواسيب' },
+    labels: { en: 'Laptop / PC', fr: 'Ordinateur & PC', ar: 'حاسوب' },
     color: '#2979FF',
     priority: 2,
     description: 'Laptops, notebooks, MacBooks, desktop computers, and PC accessories',
@@ -67,7 +67,7 @@ const CATEGORIES = [
   },
   {
     code: 'DOCUMENTS',
-    labels: { en: 'Documents & Cards', fr: 'Documents & Cartes', ar: 'وثائق وبطاقات' },
+    labels: { en: 'Document', fr: 'Document', ar: 'وثيقة' },
     color: '#795548',
     priority: 3,
     description: 'ID cards, passports, licenses, certificates, papers, cards',
@@ -75,7 +75,7 @@ const CATEGORIES = [
   },
   {
     code: 'JEWELRY',
-    labels: { en: 'Jewelry', fr: 'Bijoux', ar: 'مجوهرات' },
+    labels: { en: 'Jewelry', fr: 'Bijou', ar: 'مجوهرات' },
     color: '#9C27B0',
     priority: 4,
     description: 'Rings, necklaces, bracelets, earrings',
@@ -83,7 +83,7 @@ const CATEGORIES = [
   },
   {
     code: 'CLOTHING',
-    labels: { en: 'Clothing', fr: 'Vêtements', ar: 'ملابس' },
+    labels: { en: 'Clothing', fr: 'Vêtement', ar: 'ملابس' },
     color: '#4CAF50',
     priority: 5,
     description: 'Coats, jackets, hats, scarves, shoes',
@@ -91,7 +91,7 @@ const CATEGORIES = [
   },
   {
     code: 'PETS',
-    labels: { en: 'Pets', fr: 'Animaux de compagnie', ar: 'حيوانات أليفة' },
+    labels: { en: 'Pet', fr: 'Animal de compagnie', ar: 'حيوان أليف' },
     color: '#FF6B6B',
     priority: 6,
     description: 'Lost or found pets and animals',
@@ -99,7 +99,7 @@ const CATEGORIES = [
   },
   {
     code: 'VEHICLES',
-    labels: { en: 'Vehicles', fr: 'Véhicules', ar: 'مركبات' },
+    labels: { en: 'Vehicle', fr: 'Véhicule', ar: 'مركبة' },
     color: '#607D8B',
     priority: 7,
     description: 'Cars, motorcycles, vans',
@@ -107,7 +107,7 @@ const CATEGORIES = [
   },
   {
     code: 'KEYS',
-    labels: { en: 'Keys', fr: 'Clés', ar: 'مفاتيح' },
+    labels: { en: 'Key', fr: 'Clé', ar: 'مفتاح' },
     color: '#FB8C00',
     priority: 8,
     description: 'House keys, car keys, key chains',
@@ -115,7 +115,7 @@ const CATEGORIES = [
   },
   {
     code: 'WALLET',
-    labels: { en: 'Wallets', fr: 'Portefeuilles', ar: 'محافظ' },
+    labels: { en: 'Wallet', fr: 'Portefeuille', ar: 'محفظة' },
     color: '#BF360C',
     priority: 9,
     description: 'Wallets, purses, card holders',
@@ -123,7 +123,7 @@ const CATEGORIES = [
   },
   {
     code: 'BAGS',
-    labels: { en: 'Bags', fr: 'Sacs', ar: 'حقائب' },
+    labels: { en: 'Bag', fr: 'Sac', ar: 'حقيبة' },
     color: '#827717',
     priority: 10,
     description: 'Backpacks, handbags, briefcases, suitcases',
@@ -131,7 +131,7 @@ const CATEGORIES = [
   },
   {
     code: 'WATCHES',
-    labels: { en: 'Watches', fr: 'Montres', ar: 'ساعات يد' },
+    labels: { en: 'Watch', fr: 'Montre', ar: 'ساعة يد' },
     color: '#2196F3',
     priority: 11,
     description: 'Wristwatches, smartwatches, fitness trackers',
@@ -139,7 +139,7 @@ const CATEGORIES = [
   },
   {
     code: 'GLASSES',
-    labels: { en: 'Glasses', fr: 'Lunettes', ar: 'نظارات' },
+    labels: { en: 'Glasses', fr: 'Lunettes', ar: 'نظارة' },
     color: '#3F51B5',
     priority: 12,
     description: 'Eyeglasses, sunglasses, reading glasses',
@@ -147,7 +147,7 @@ const CATEGORIES = [
   },
   {
     code: 'HEADPHONES',
-    labels: { en: 'Headphones', fr: 'Écouteurs', ar: 'سماعات' },
+    labels: { en: 'Headphones', fr: 'Écouteur', ar: 'سماعة' },
     color: '#7E57C2',
     priority: 13,
     description: 'Headphones, earbuds, speakers',
@@ -155,7 +155,7 @@ const CATEGORIES = [
   },
   {
     code: 'BOOKS',
-    labels: { en: 'Books', fr: 'Livres', ar: 'كتب' },
+    labels: { en: 'Book', fr: 'Livre', ar: 'كتاب' },
     color: '#5E35B1',
     priority: 14,
     description: 'Books, textbooks, notebooks, journals',
@@ -163,7 +163,7 @@ const CATEGORIES = [
   },
   {
     code: 'SPORTS',
-    labels: { en: 'Sports Equipment', fr: 'Équipements sportifs', ar: 'معدات رياضية' },
+    labels: { en: 'Sports Equipment', fr: 'Équipement sportif', ar: 'معدات رياضية' },
     color: '#8BC34A',
     priority: 15,
     description: 'Sports gear, balls, gym bags',
@@ -171,7 +171,7 @@ const CATEGORIES = [
   },
   {
     code: 'TOYS',
-    labels: { en: 'Toys', fr: 'Jouets', ar: 'ألعاب' },
+    labels: { en: 'Toy', fr: 'Jouet', ar: 'لعبة' },
     color: '#AFB42B',
     priority: 16,
     description: "Children's toys, games, plush animals",
@@ -179,7 +179,7 @@ const CATEGORIES = [
   },
   {
     code: 'CHARGERS',
-    labels: { en: 'Chargers & Cables', fr: 'Chargeurs & Câbles', ar: 'شواحن وكابلات' },
+    labels: { en: 'Charger & Cable', fr: 'Chargeur & Câble', ar: 'شاحن وكابل' },
     color: '#455A64',
     priority: 17,
     description: 'Phone chargers, laptop chargers, USB cables, adapters, and power cords',
@@ -187,7 +187,7 @@ const CATEGORIES = [
   },
   {
     code: 'POWERBANKS',
-    labels: { en: 'Power Banks', fr: 'Batteries externes', ar: 'باور بانك' },
+    labels: { en: 'Power Bank', fr: 'Batterie externe', ar: 'باور بانك' },
     color: '#FF6D00',
     priority: 18,
     description: 'Power banks, external batteries, and portable chargers',
@@ -195,7 +195,7 @@ const CATEGORIES = [
   },
   {
     code: 'STORAGE',
-    labels: { en: 'Storage', fr: 'Stockage', ar: 'أجهزة تخزين' },
+    labels: { en: 'Storage', fr: 'Stockage', ar: 'جهاز تخزين' },
     color: '#7C4DFF',
     priority: 19,
     description: 'USB flash drives, external hard drives, SSDs, and memory cards',
@@ -203,7 +203,7 @@ const CATEGORIES = [
   },
   {
     code: 'CAMERAS',
-    labels: { en: 'Cameras', fr: 'Appareils photo', ar: 'كاميرات' },
+    labels: { en: 'Camera', fr: 'Appareil photo', ar: 'كاميرا' },
     color: '#0097A7',
     priority: 20,
     description: 'Cameras, lenses, photography equipment',
@@ -211,7 +211,7 @@ const CATEGORIES = [
   },
   {
     code: 'UMBRELLAS',
-    labels: { en: 'Umbrellas', fr: 'Parapluies', ar: 'مظلات' },
+    labels: { en: 'Umbrella', fr: 'Parapluie', ar: 'مظلة' },
     color: '#0277BD',
     priority: 21,
     description: 'Umbrellas and parasols',
@@ -219,7 +219,7 @@ const CATEGORIES = [
   },
   {
     code: 'BICYCLES',
-    labels: { en: 'Bicycles & Scooters', fr: 'Vélos et trottinettes', ar: 'دراجات وسكوترات' },
+    labels: { en: 'Bicycle & Scooter', fr: 'Vélo et trottinette', ar: 'دراجة وسكوتر' },
     color: '#009966',
     priority: 22,
     description: 'Bicycles, e-bikes, scooters, skateboards',
@@ -238,7 +238,7 @@ const CATEGORIES = [
   },
   {
     code: 'PERSON',
-    labels: { en: 'Persons', fr: 'Personnes', ar: 'أشخاص' },
+    labels: { en: 'Person', fr: 'Personne', ar: 'شخص' },
     color: '#F44336',
     priority: 24,
     description: 'Missing person reports',
@@ -246,7 +246,7 @@ const CATEGORIES = [
   },
   {
     code: 'MEDICAL',
-    labels: { en: 'Medical & Mobility Aids', fr: 'Aides médicales', ar: 'مستلزمات طبية' },
+    labels: { en: 'Medical & Mobility Aid', fr: 'Aide médicale', ar: 'مستلزم طبي' },
     color: '#C2185B',
     priority: 25,
     description: 'Hearing aids, inhalers, prescriptions, canes, crutches, wheelchairs',
@@ -258,7 +258,7 @@ const CATEGORIES = [
   },
   {
     code: 'BABY',
-    labels: { en: 'Baby & Kids Gear', fr: 'Articles pour enfants', ar: 'مستلزمات الأطفال' },
+    labels: { en: 'Baby & Kids Gear', fr: 'Article pour enfant', ar: 'مستلزمات الأطفال' },
     color: '#EC407A',
     priority: 26,
     description: 'Strollers, car seats, baby bottles, nappy bags',
@@ -269,7 +269,7 @@ const CATEGORIES = [
   },
   {
     code: 'MUSIC',
-    labels: { en: 'Musical Instruments', fr: 'Instruments de musique', ar: 'آلات موسيقية' },
+    labels: { en: 'Musical Instrument', fr: 'Instrument de musique', ar: 'آلة موسيقية' },
     color: '#009688',
     priority: 27,
     description: 'Musical instruments and their cases and accessories',
@@ -288,7 +288,7 @@ const CATEGORIES = [
   },
   {
     code: 'OTHER',
-    labels: { en: 'Other Items', fr: 'Autres articles', ar: 'أشياء أخرى' },
+    labels: { en: 'Other', fr: 'Autre', ar: 'أخرى' },
     color: '#9E9E9E',
     priority: 99,
     description: 'Items not fitting other categories',
