@@ -1,6 +1,6 @@
 /**
  * Clears the WhatsApp session from MongoDB so the next server start
- * generates a fresh pairing code.
+ * generates a fresh pairing code. 
  *
  * Run with:
  *   node scripts/clearWhatsAppSession.js
