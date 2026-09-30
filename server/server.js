@@ -455,6 +455,11 @@ mongoose.connection.once("open", () => {
   // starts here rather than at require time; does nothing when no Page or
   // Instagram account is configured.
   require("./services/socialPublishQueue").start();
+  // WhatsApp Business messaging via Baileys. Prints a QR code on first boot –
+  // scan it with the business phone (configured in WA_BUSINESS_NUMBER / .env).
+  // After pairing, the session is saved to data/baileys_auth/ and reconnects
+  // automatically on every subsequent restart.
+  require("./services/whatsappService").init();
   logPushChannelStatus();
   server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
 });

@@ -8,6 +8,7 @@ const { tokenSet, tokenSimilarity, sharedNumericTokens, normalizeText } = requir
 const { resolveEventDate } = require("../utils/postDates");
 const matchEmailService = require("./matchEmailService");
 const pushNotificationService = require("./pushNotificationService");
+const whatsappService = require('./whatsappService');
 
 /**
  * Lost/found match engine.
@@ -587,6 +588,20 @@ const computeMatchesForPost = async (postId, { notify = true } = {}) => {
           matchedPostId: recipient.otherPostId,
         });
         pushQueue.set(String(recipient.recipientId), queued);
+      }
+
+      // WhatsApp alert – fire-and-forget, same contract as the email above.
+      // The owner's contact phone sits on their own post, not on the User doc
+      // (which may not have a phone at all). `ownPost` is `post` when the
+      // recipient is the triggering author, or `candidate` for the counterpart.
+      const ownPost   = String(recipient.ownPostId)  === String(post._id) ? post : candidate;
+      const otherPost = String(recipient.otherPostId) === String(post._id) ? post : candidate;
+      if (ownPost?.contact) {
+        whatsappService
+          .sendMatchAlertMessage({ post: ownPost, matchedPost: otherPost, score: scored.score })
+          .catch((err) => {
+            console.error('[WhatsApp] match alert failed:', err?.message || err);
+          });
       }
     }
   }

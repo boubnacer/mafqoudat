@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const pushNotificationService = require('./pushNotificationService');
+const whatsappService = require('./whatsappService');
 
 /**
  * Tells a listing's author that its copy reached the Facebook Page or the
@@ -70,6 +71,17 @@ const notifyAuthor = async ({ post, platform, status }) => {
         platform,
         status,
       });
+    }
+
+    // WhatsApp notification – only when the publish actually succeeded.
+    // Fire-and-forget: a WA failure must never affect the publish record.
+    if (status === 'published' && post?.contact) {
+      const permalink = post?.social?.[platform]?.permalink || null;
+      whatsappService
+        .sendSocialPublishMessage({ post, platform, permalink })
+        .catch((err) => {
+          console.error('[WhatsApp] social publish message failed:', err?.message || err);
+        });
     }
 
     return true;
