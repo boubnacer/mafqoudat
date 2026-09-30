@@ -102,7 +102,7 @@ const RECOMPUTE_AFTER_MS = 6 * 60 * 60 * 1000;
 
 // Fields the scorer needs - deliberately narrow, these documents are fetched in
 // batches of up to CANDIDATE_LIMIT.
-const SCORING_FIELDS = 'user country categories category foundLost city exactLocation description mainDate createdAt status returned';
+const SCORING_FIELDS = 'user country categories category foundLost city exactLocation description mainDate createdAt status returned contact language';
 
 // ---------------------------------------------------------------------------
 // FoundLost id <-> code resolution
@@ -501,7 +501,7 @@ const computeMatchesForPost = async (postId, { notify = true } = {}) => {
     ...accepted.map(({ candidate }) => String(candidate.user)),
   ])];
   const owners = await User.find({ _id: { $in: ownerIds } })
-    .select('_id email username notificationPreferences isActive pushTokens webPushSubscriptions')
+    .select('_id email username phone language notificationPreferences isActive pushTokens webPushSubscriptions')
     .lean();
   const ownersById = new Map(owners.map((owner) => [String(owner._id), owner]));
 
@@ -591,14 +591,19 @@ const computeMatchesForPost = async (postId, { notify = true } = {}) => {
       }
 
       // WhatsApp alert – fire-and-forget, same contract as the email above.
-      // The owner's contact phone sits on their own post, not on the User doc
-      // (which may not have a phone at all). `ownPost` is `post` when the
-      // recipient is the triggering author, or `candidate` for the counterpart.
+      // The recipient's phone number is on their own post (`contact`), or fallback to User doc (`phone`).
+      // `ownPost` is `post` when the recipient is the triggering author, or `candidate` for the counterpart.
       const ownPost   = String(recipient.ownPostId)  === String(post._id) ? post : candidate;
       const otherPost = String(recipient.otherPostId) === String(post._id) ? post : candidate;
-      if (ownPost?.contact) {
+      const targetPhone = ownPost?.contact || owner?.phone;
+      if (targetPhone) {
         whatsappService
-          .sendMatchAlertMessage({ post: ownPost, matchedPost: otherPost, score: scored.score })
+          .sendMatchAlertMessage({
+            post: { ...ownPost, contact: targetPhone },
+            matchedPost: otherPost,
+            score: scored.score,
+            language: ownPost?.language || owner?.language
+          })
           .catch((err) => {
             console.error('[WhatsApp] match alert failed:', err?.message || err);
           });
