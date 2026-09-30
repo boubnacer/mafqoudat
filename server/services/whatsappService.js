@@ -175,7 +175,6 @@ let connectingPromise = null;
 let sendQueue         = [];
 let queueRunning      = false;
 let latestQR          = null;
-let latestPairingCode = null;
 let lastQRTimestamp   = null;
 
 const logger = pino({ level: 'silent' });
@@ -239,17 +238,12 @@ const connect = async () => {
         if (qr) {
           latestQR = qr;
           lastQRTimestamp = Date.now();
-          console.log('\n' + '='.repeat(54));
-          console.log('[WhatsApp] 📱 Scan QR Code to connect at:');
-          console.log('   /whatsapp/scan');
-          console.log('='.repeat(54) + '\n');
         }
 
         if (connection === 'open') {
           console.log('[WhatsApp] ✅ Connected and ready to send messages.');
           isConnected = true;
           latestQR = null;
-          latestPairingCode = null;
           drainQueue();
         }
 
@@ -260,14 +254,16 @@ const connect = async () => {
           const wasLoggedOut = statusCode === DisconnectReason?.loggedOut;
 
           if (wasLoggedOut) {
-            console.warn('[WhatsApp] Logged out by phone. Clearing stale session…');
+            console.warn('[WhatsApp] Device unlinked by phone. Clearing stale session…');
             try {
               await require('../models/WhatsAppSession').deleteMany({ session: SESSION_ID });
-              console.log('[WhatsApp] Session cleared. Reconnecting for fresh QR in 5 s…');
             } catch (e) {
               console.error('[WhatsApp] Failed to clear session:', e?.message);
             }
-            setTimeout(connect, 5000);
+            setTimeout(connect, 3000);
+          } else if (statusCode === 515 || statusCode === DisconnectReason?.restartRequired) {
+            // Normal post-pairing handshake — reconnect immediately
+            setTimeout(connect, 1000);
           } else {
             console.warn(`[WhatsApp] Connection closed (${statusCode}), reconnecting in 5 s…`);
             setTimeout(connect, 5000);
@@ -412,7 +408,6 @@ const getStatus = () => ({
   isConnected,
   hasQR: !!latestQR,
   qr: latestQR,
-  pairingCode: latestPairingCode,
   lastQRTimestamp,
   businessNumber: WA_BUSINESS_NUMBER,
 });
@@ -422,7 +417,6 @@ const clearSession = async () => {
     const WhatsAppSession = require('../models/WhatsAppSession');
     await WhatsAppSession.deleteMany({ session: SESSION_ID });
     latestQR = null;
-    latestPairingCode = null;
     isConnected = false;
     if (sock) {
       try { sock.end(); } catch (_) {}
@@ -436,20 +430,6 @@ const clearSession = async () => {
     console.error('[WhatsApp] Failed to clear session:', err?.message || err);
     throw err;
   }
-};
-
-const requestPairingCode = async (phone) => {
-  const loaded = await loadBaileys();
-  if (!loaded || !sock) throw new Error('WhatsApp service not initialized');
-  if (isConnected) throw new Error('WhatsApp is already connected');
-  const targetNumber = (phone || WA_BUSINESS_NUMBER)
-    .replace(/[\s\-.()+]/g, '')
-    .replace(/^00/, '')
-    .replace(/^0([5-7]\d{8})$/, '212$1');
-  const code = await sock.requestPairingCode(targetNumber);
-  latestPairingCode = code;
-  console.log('[WhatsApp] 🔑 Generated pairing code: ' + code);
-  return code;
 };
 
 /**
@@ -476,6 +456,5 @@ module.exports = {
   isConnected: () => isConnected,
   getStatus,
   clearSession,
-  requestPairingCode,
   toJid,
 };

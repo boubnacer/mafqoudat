@@ -10,9 +10,9 @@ const path = require('path');
 class MemoryOptimizer {
   constructor() {
     this.memoryThresholds = {
-      warning: 100 * 1024 * 1024,  // 100MB
-      critical: 200 * 1024 * 1024, // 200MB
-      max: 300 * 1024 * 1024       // 300MB
+      warning: 250 * 1024 * 1024,  // 250MB (realistic threshold for modern Node + ODM)
+      critical: 380 * 1024 * 1024, // 380MB
+      max: 450 * 1024 * 1024       // 450MB
     };
     
     this.monitoringInterval = null;
