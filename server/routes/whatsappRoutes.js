@@ -1,17 +1,152 @@
 const express = require('express');
 const router = express.Router();
+const QRCode = require('qrcode');
 const whatsappService = require('../services/whatsappService');
 
 /**
  * WhatsApp Linking & Administration Routes
  *
- * GET  /whatsapp/scan     -> Visual web page for scanning the Baileys QR code
- * GET  /whatsapp/status   -> JSON status with connection state and latest QR string
- * POST /whatsapp/clear    -> Drops stored session from MongoDB and requests a fresh QR
- * POST /whatsapp/code     -> Requests an 8-character pairing code for phone number
+ * GET  /whatsapp/scan     -> Visual web page for scanning the QR code
+ * GET  /whatsapp/scan.js  -> Self-hosted frontend script (bypasses any inline CSP restrictions)
+ * GET  /whatsapp/qr.png   -> Serves live QR code as a PNG image
+ * GET  /whatsapp/qr.svg   -> Serves live QR code as an SVG vector
+ * GET  /whatsapp/status   -> JSON status with connection state and metadata
+ * POST /whatsapp/clear    -> Drops stored session from MongoDB and requests fresh QR
  */
 
-// Visual QR Scanner UI
+// Route-level CSP override to ensure styles, fonts, and scripts execute cleanly
+router.use((req, res, next) => {
+  res.removeHeader('Content-Security-Policy');
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self' 'unsafe-inline' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self';"
+  );
+  next();
+});
+
+// 1. Direct PNG QR code generator
+router.get('/qr.png', async (req, res) => {
+  try {
+    const status = whatsappService.getStatus();
+    if (!status.qr) {
+      return res.status(404).send('QR code not available or device already connected');
+    }
+    const buffer = await QRCode.toBuffer(status.qr, {
+      type: 'png',
+      width: 320,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      },
+      errorCorrectionLevel: 'M'
+    });
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.send(buffer);
+  } catch (err) {
+    console.error('[WhatsApp Route] Failed to generate qr.png:', err);
+    res.status(500).send('Error generating QR image');
+  }
+});
+
+// 2. Direct SVG QR code generator
+router.get('/qr.svg', async (req, res) => {
+  try {
+    const status = whatsappService.getStatus();
+    if (!status.qr) {
+      return res.status(404).send('QR code not available or device already connected');
+    }
+    const svg = await QRCode.toString(status.qr, {
+      type: 'svg',
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      },
+      errorCorrectionLevel: 'M'
+    });
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.send(svg);
+  } catch (err) {
+    console.error('[WhatsApp Route] Failed to generate qr.svg:', err);
+    res.status(500).send('Error generating SVG image');
+  }
+});
+
+// 3. Self-hosted client JavaScript (zero external CDN, zero CSP blocking)
+router.get('/scan.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.send(`
+(function() {
+  var lastTimestamp = null;
+  var badge = document.getElementById('statusBadge');
+  var statusText = document.getElementById('statusText');
+  var scanSection = document.getElementById('scanSection');
+  var connectedSection = document.getElementById('connectedSection');
+  var qrImg = document.getElementById('qrImg');
+  var qrLoading = document.getElementById('qrLoading');
+
+  window.checkStatus = async function() {
+    try {
+      var res = await fetch('/whatsapp/status?_t=' + Date.now());
+      if (!res.ok) return;
+      var data = await res.json();
+
+      if (data.isConnected) {
+        badge.className = 'badge-status badge-connected';
+        statusText.textContent = 'Connected & Active';
+        scanSection.style.display = 'none';
+        connectedSection.style.display = 'block';
+      } else {
+        badge.className = 'badge-status badge-waiting';
+        statusText.textContent = 'Waiting for scan...';
+        scanSection.style.display = 'block';
+        connectedSection.style.display = 'none';
+
+        if (data.hasQR) {
+          qrLoading.style.display = 'none';
+          qrImg.style.display = 'block';
+          if (data.lastQRTimestamp !== lastTimestamp) {
+            lastTimestamp = data.lastQRTimestamp;
+            qrImg.src = '/whatsapp/qr.png?_t=' + data.lastQRTimestamp;
+          }
+        } else {
+          qrLoading.style.display = 'flex';
+          qrImg.style.display = 'none';
+        }
+      }
+    } catch (err) {
+      console.warn('Status poll error:', err);
+    }
+  };
+
+  window.clearSession = async function() {
+    if (!confirm('Are you sure you want to reset the WhatsApp session?')) {
+      return;
+    }
+    try {
+      statusText.textContent = 'Resetting session...';
+      badge.className = 'badge-status badge-waiting';
+      qrImg.style.display = 'none';
+      qrLoading.style.display = 'flex';
+      await fetch('/whatsapp/clear', { method: 'POST' });
+      lastTimestamp = null;
+      setTimeout(window.checkStatus, 1500);
+    } catch (err) {
+      alert('Failed to reset: ' + err.message);
+    }
+  };
+
+  // Immediate check then poll every 2.5s
+  window.checkStatus();
+  setInterval(window.checkStatus, 2500);
+})();
+`);
+});
+
+// 4. HTML Scan Portal
 router.get('/scan', (req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(`<!DOCTYPE html>
@@ -22,8 +157,7 @@ router.get('/scan', (req, res) => {
   <title>Mafqoudat — WhatsApp Device Link</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #0b0f19;
@@ -32,10 +166,6 @@ router.get('/scan', (req, res) => {
       --text: #f1f5f9;
       --text-muted: #94a3b8;
       --primary: #25D366;
-      --primary-hover: #20ba59;
-      --accent: #38bdf8;
-      --danger: #ef4444;
-      --danger-hover: #dc2626;
       --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
     }
 
@@ -58,7 +188,7 @@ router.get('/scan', (req, res) => {
 
     .container {
       width: 100%;
-      max-width: 520px;
+      max-width: 500px;
     }
 
     .brand-header {
@@ -147,17 +277,14 @@ router.get('/scan', (req, res) => {
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
       min-width: 280px;
       min-height: 280px;
-      position: relative;
     }
 
-    #qrcode {
-      line-height: 0;
-    }
-
-    #qrcode img, #qrcode canvas {
-      border-radius: 4px;
+    .qr-frame img {
       display: block;
-      margin: 0 auto;
+      border-radius: 6px;
+      width: 260px;
+      height: 260px;
+      image-rendering: pixelated;
     }
 
     .qr-spinner {
@@ -235,69 +362,33 @@ router.get('/scan', (req, res) => {
       line-height: 1.5;
     }
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
       padding: 0.65rem 1.25rem;
       font-size: 0.9rem;
       font-weight: 500;
       border-radius: 0.6rem;
       cursor: pointer;
       transition: all 0.2s ease;
-      border: none;
-      outline: none;
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.08);
-      color: #cbd5e1;
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.14);
-      color: #fff;
-    }
-
-    .btn-danger {
-      background: rgba(239, 68, 68, 0.15);
-      color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
     }
     .btn-danger:hover {
       background: rgba(239, 68, 68, 0.25);
       color: #fff;
     }
 
-    .footer-actions {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
+    .direct-link {
       margin-top: 1rem;
-    }
-
-    .pairing-code-section {
-      margin-top: 1.25rem;
-      padding-top: 1.25rem;
-      border-top: 1px solid var(--border);
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
     }
-
-    .code-display {
-      font-family: monospace;
-      font-size: 1.25rem;
-      font-weight: 700;
-      letter-spacing: 0.25em;
+    .direct-link a {
       color: #38bdf8;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px dashed rgba(56, 189, 248, 0.3);
-      border-radius: 0.5rem;
-      padding: 0.5rem 1rem;
-      margin: 0.5rem 0;
-      display: inline-block;
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -322,7 +413,7 @@ router.get('/scan', (req, res) => {
       <!-- SCANNING UI (Shown when disconnected) -->
       <div id="scanSection">
         <div class="qr-frame">
-          <div id="qrcode"></div>
+          <img id="qrImg" src="/whatsapp/qr.png" alt="Scan WhatsApp QR" style="display: none;" />
           <div id="qrLoading" class="qr-spinner">
             <div class="spinner-icon"></div>
             <span>Generating QR code...</span>
@@ -332,15 +423,14 @@ router.get('/scan', (req, res) => {
         <div class="instructions">
           <ol>
             <li>Open <strong>WhatsApp</strong> on your phone</li>
-            <li>Tap <strong>Settings</strong> or <strong>Menu (⋮)</strong></li>
+            <li>Tap <strong>Settings</strong> (or <strong>Menu ⋮</strong>)</li>
             <li>Select <strong>Linked Devices</strong> &rarr; <strong>Link a Device</strong></li>
-            <li>Point your phone camera at this screen to scan the code</li>
+            <li>Point your camera at this QR code to link</li>
           </ol>
         </div>
 
-        <div class="pairing-code-section" id="pairingCodeSection" style="display: none;">
-          <div>Or enter pairing code:</div>
-          <div class="code-display" id="pairingCodeText">----</div>
+        <div class="direct-link">
+          Can't see the code? Open the <a href="/whatsapp/qr.png" target="_blank">direct QR image</a>.
         </div>
       </div>
 
@@ -351,97 +441,22 @@ router.get('/scan', (req, res) => {
         <p>Your session is active and securely saved in MongoDB.<br>Match notifications and social publishing alerts will be delivered automatically.</p>
       </div>
 
-      <div class="footer-actions">
-        <button id="resetBtn" class="btn btn-danger" onclick="clearSession()">
+      <div style="margin-top: 1.25rem;">
+        <button id="resetBtn" class="btn-danger" onclick="clearSession()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-          Reset Session
+          Reset / Re-link
         </button>
       </div>
     </div>
   </div>
 
-  <script>
-    let currentQRString = null;
-    let qrObj = null;
-
-    async function checkStatus() {
-      try {
-        const res = await fetch('/whatsapp/status');
-        const data = await res.json();
-
-        const badge = document.getElementById('statusBadge');
-        const statusText = document.getElementById('statusText');
-        const scanSection = document.getElementById('scanSection');
-        const connectedSection = document.getElementById('connectedSection');
-        const qrContainer = document.getElementById('qrcode');
-        const qrLoading = document.getElementById('qrLoading');
-
-        if (data.isConnected) {
-          badge.className = 'badge-status badge-connected';
-          statusText.textContent = 'Connected & Ready';
-          scanSection.style.display = 'none';
-          connectedSection.style.display = 'block';
-          currentQRString = null;
-        } else {
-          badge.className = 'badge-status badge-waiting';
-          statusText.textContent = 'Waiting for scan...';
-          scanSection.style.display = 'block';
-          connectedSection.style.display = 'none';
-
-          if (data.pairingCode) {
-            document.getElementById('pairingCodeSection').style.display = 'block';
-            document.getElementById('pairingCodeText').textContent = data.pairingCode;
-          }
-
-          if (data.qr && data.qr !== currentQRString) {
-            currentQRString = data.qr;
-            qrContainer.innerHTML = '';
-            qrLoading.style.display = 'none';
-            qrContainer.style.display = 'block';
-
-            qrObj = new QRCode(qrContainer, {
-              text: data.qr,
-              width: 250,
-              height: 250,
-              colorDark: '#000000',
-              colorLight: '#ffffff',
-              correctLevel: QRCode.CorrectLevel.M
-            });
-          } else if (!data.qr && !currentQRString) {
-            qrLoading.style.display = 'flex';
-            qrContainer.style.display = 'none';
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching status:', err);
-      }
-    }
-
-    async function clearSession() {
-      if (!confirm('Are you sure you want to reset the WhatsApp session? This will disconnect the current device and generate a fresh QR code.')) {
-        return;
-      }
-      try {
-        document.getElementById('statusText').textContent = 'Resetting session...';
-        await fetch('/whatsapp/clear', { method: 'POST' });
-        currentQRString = null;
-        document.getElementById('qrcode').innerHTML = '';
-        document.getElementById('qrLoading').style.display = 'flex';
-        checkStatus();
-      } catch (err) {
-        alert('Failed to reset session: ' + err.message);
-      }
-    }
-
-    // Initial check and poll every 2.5 seconds
-    checkStatus();
-    setInterval(checkStatus, 2500);
-  </script>
+  <!-- External self-hosted script complies with strict CSP (scriptSrc: 'self') -->
+  <script src="/whatsapp/scan.js"></script>
 </body>
 </html>`);
 });
 
-// JSON Status endpoint
+// 5. JSON Status endpoint
 router.get('/status', (req, res) => {
   try {
     const status = whatsappService.getStatus();
@@ -451,24 +466,13 @@ router.get('/status', (req, res) => {
   }
 });
 
-// Clear session & force reconnect
+// 6. Clear session & force reconnect
 router.post('/clear', async (req, res) => {
   try {
     await whatsappService.clearSession();
     res.json({ success: true, message: 'Session cleared and reconnect initiated' });
   } catch (err) {
     res.status(500).json({ error: err?.message || 'Failed to clear session' });
-  }
-});
-
-// Optional: Request pairing code on demand
-router.post('/code', async (req, res) => {
-  try {
-    const { phone } = req.body || {};
-    const code = await whatsappService.requestPairingCode(phone);
-    res.json({ success: true, code });
-  } catch (err) {
-    res.status(500).json({ error: err?.message || 'Failed to request pairing code' });
   }
 });
 
