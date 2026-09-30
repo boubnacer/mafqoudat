@@ -1686,11 +1686,19 @@ const createNewPost = async (req, res) => {
    }
 
      // Prepare post data
+  const explicitLang = postData?.language || req.body?.language;
+  const { detectLanguage } = require("../utils/languageUtils");
+  const detectedLang = description ? detectLanguage(description) : 'unknown';
+  const resolvedLanguage = ['ar', 'fr', 'en'].includes(explicitLang)
+    ? explicitLang
+    : (['ar', 'fr', 'en'].includes(detectedLang) ? detectedLang : 'ar');
+
   const newPostData = {
     user,
     categories: categories, // New: array of categories
     category: categories && categories.length > 0 ? categories[0] : null, // Legacy: first category for backward compatibility
     country,
+    language: resolvedLanguage,
     contact,
     foundLost,
     exactLocation,

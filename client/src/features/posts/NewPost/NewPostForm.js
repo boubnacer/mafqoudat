@@ -885,6 +885,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const postData = {
         user: user._id,
         country: values.country,
+        language: currentLanguage || 'ar',
         categories: selectedCategories, // New: array of category IDs
         category: selectedCategories.length > 0 ? selectedCategories[0] : null, // Legacy: first category for backward compatibility
         foundLost: values.foundLost,

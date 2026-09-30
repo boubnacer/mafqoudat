@@ -317,22 +317,33 @@ const queueMessage = (jid, text) =>
   });
 
 // ---------------------------------------------------------------------------
-// Message templates
+// ---------------------------------------------------------------------------
+// Message templates (Arabic, French, English)
 // ---------------------------------------------------------------------------
 
+const { detectLanguage } = require('../utils/languageUtils');
+
+const getSiteBaseUrl = () => (process.env.CLIENT_URL || 'https://www.mafqoudat.com').replace(/\/$/, '');
+
 /**
- * Sent when a listing is successfully published to Facebook or Instagram.
- *
- * @param {{ post: Object, platform: string, permalink: string|null }} opts
+ * Resolves the message language in order of priority:
+ * 1. Explicit override passed in options
+ * 2. `post.language` set during post creation
+ * 3. Language detected from `post.description`
+ * 4. Fallback to Arabic ('ar')
  */
-const sendSocialPublishMessage = async ({ post, platform, permalink }) => {
-  try {
-    const jid = toJid(post?.contact);
-    if (!jid) return false;
+const resolveLanguage = (post, explicitLang) => {
+  if (explicitLang && ['ar', 'fr', 'en'].includes(explicitLang)) return explicitLang;
+  if (post?.language && ['ar', 'fr', 'en'].includes(post.language)) return post.language;
+  if (post?.description) {
+    const detected = detectLanguage(post.description);
+    if (['ar', 'fr', 'en'].includes(detected)) return detected;
+  }
+  return 'ar';
+};
 
-    const platformLabel = platform === 'facebook' ? 'فيسبوك 🟦' : 'إنستغرام 📸';
-    const siteLink      = `https://mafqoudat.ma/posts/${post._id}`;
-
+const SOCIAL_PUBLISH_TEMPLATES = {
+  ar: ({ platformLabel, pLabel, siteLink, permalink }) => {
     const lines = [
       'مرحبًا! 👋',
       '',
@@ -341,19 +352,140 @@ const sendSocialPublishMessage = async ({ post, platform, permalink }) => {
       '🔗 رابط الإعلان على الموقع:',
       siteLink,
     ];
-
     if (permalink) {
-      const pLabel = platform === 'facebook' ? 'فيسبوك' : 'إنستغرام';
       lines.push('', `📲 رابط المنشور على ${pLabel}:`, permalink);
     }
-
     lines.push(
       '',
       'نتمنى أن يساعدك ذلك في إيجاد ما تبحث عنه بأسرع وقت ممكن 🤲',
       '— فريق مفقودات'
     );
+    return lines.join('\n');
+  },
 
-    return await queueMessage(jid, lines.join('\n'));
+  fr: ({ platformLabel, pLabel, siteLink, permalink }) => {
+    const lines = [
+      'Bonjour ! 👋',
+      '',
+      `Bonne nouvelle ! Votre annonce sur *Mafqoudat* a été officiellement publiée sur notre page ${platformLabel}.`,
+      '',
+      '🔗 Lien de votre annonce sur le site :',
+      siteLink,
+    ];
+    if (permalink) {
+      lines.push('', `📲 Lien de la publication sur ${pLabel} :`, permalink);
+    }
+    lines.push(
+      '',
+      'Nous espérons que cela vous aidera à retrouver ce que vous cherchez au plus vite 🤲',
+      "— L'équipe Mafqoudat"
+    );
+    return lines.join('\n');
+  },
+
+  en: ({ platformLabel, pLabel, siteLink, permalink }) => {
+    const lines = [
+      'Hello! 👋',
+      '',
+      `Great news! Your listing on *Mafqoudat* has been officially published on our ${platformLabel} page.`,
+      '',
+      '🔗 Listing link on the website:',
+      siteLink,
+    ];
+    if (permalink) {
+      lines.push('', `📲 Post link on ${pLabel}:`, permalink);
+    }
+    lines.push(
+      '',
+      'We hope this helps you find what you are looking for as soon as possible 🤲',
+      '— The Mafqoudat Team'
+    );
+    return lines.join('\n');
+  },
+};
+
+const MATCH_ALERT_TEMPLATES = {
+  ar: ({ score, scoreLabel, matchLink, ownLink }) => [
+    'مرحبًا! 👋',
+    '',
+    'لدينا خبر مشجع! وجدنا إعلانًا قد يتطابق مع إعلانك على *مفقودات*.',
+    '',
+    `📊 نسبة التطابق: *${score}%* — ${scoreLabel}`,
+    '',
+    '🔗 الإعلان المطابق:',
+    matchLink,
+    '',
+    '📄 إعلانك:',
+    ownLink,
+    '',
+    'إذا كنت تعتقد أن هذا هو ما تبحث عنه، يمكنك التواصل مع صاحب الإعلان مباشرة عبر الموقع.',
+    '— فريق مفقودات',
+  ].join('\n'),
+
+  fr: ({ score, scoreLabel, matchLink, ownLink }) => [
+    'Bonjour ! 👋',
+    '',
+    'Nous avons une bonne nouvelle ! Nous avons trouvé une annonce qui pourrait correspondre à la vôtre sur *Mafqoudat*.',
+    '',
+    `📊 Niveau de correspondance : *${score}%* — ${scoreLabel}`,
+    '',
+    '🔗 Annonce correspondante :',
+    matchLink,
+    '',
+    '📄 Votre annonce :',
+    ownLink,
+    '',
+    "Si vous pensez qu'il s'agit de ce que vous recherchez, vous pouvez contacter directement l'auteur sur le site.",
+    "— L'équipe Mafqoudat",
+  ].join('\n'),
+
+  en: ({ score, scoreLabel, matchLink, ownLink }) => [
+    'Hello! 👋',
+    '',
+    'We have encouraging news! We found a listing that might match yours on *Mafqoudat*.',
+    '',
+    `📊 Match confidence: *${score}%* — ${scoreLabel}`,
+    '',
+    '🔗 Matching listing:',
+    matchLink,
+    '',
+    '📄 Your listing:',
+    ownLink,
+    '',
+    'If you think this is what you are looking for, you can contact the author directly on the website.',
+    '— The Mafqoudat Team',
+  ].join('\n'),
+};
+
+/**
+ * Sent when a listing is successfully published to Facebook or Instagram.
+ * Supports Arabic ('ar'), French ('fr'), and English ('en').
+ *
+ * @param {{ post: Object, platform: string, permalink: string|null, language?: string }} opts
+ */
+const sendSocialPublishMessage = async ({ post, platform, permalink, language }) => {
+  try {
+    const jid = toJid(post?.contact);
+    if (!jid) return false;
+
+    const lang = resolveLanguage(post, language);
+    const siteBase = getSiteBaseUrl();
+    const siteLink = `${siteBase}/posts/${post._id}`;
+
+    let platformLabel;
+    let pLabel;
+    if (lang === 'ar') {
+      platformLabel = platform === 'facebook' ? 'فيسبوك 🟦' : 'إنستغرام 📸';
+      pLabel = platform === 'facebook' ? 'فيسبوك' : 'إنستغرام';
+    } else {
+      platformLabel = platform === 'facebook' ? 'Facebook 🟦' : 'Instagram 📸';
+      pLabel = platform === 'facebook' ? 'Facebook' : 'Instagram';
+    }
+
+    const templateFn = SOCIAL_PUBLISH_TEMPLATES[lang] || SOCIAL_PUBLISH_TEMPLATES.ar;
+    const text = templateFn({ platformLabel, pLabel, siteLink, permalink });
+
+    return await queueMessage(jid, text);
   } catch (err) {
     console.error('[WhatsApp] sendSocialPublishMessage error:', err?.message || err);
     return false;
@@ -362,36 +494,37 @@ const sendSocialPublishMessage = async ({ post, platform, permalink }) => {
 
 /**
  * Sent when the matching engine finds a potential counterpart for a listing.
+ * Supports Arabic ('ar'), French ('fr'), and English ('en').
  *
- * @param {{ post: Object, matchedPost: Object, score: number }} opts
+ * @param {{ post: Object, matchedPost: Object, score: number, language?: string }} opts
  */
-const sendMatchAlertMessage = async ({ post, matchedPost, score }) => {
+const sendMatchAlertMessage = async ({ post, matchedPost, score, language }) => {
   try {
     const jid = toJid(post?.contact);
     if (!jid) return false;
 
-    const matchLink  = `https://mafqoudat.ma/posts/${matchedPost._id}`;
-    const ownLink    = `https://mafqoudat.ma/posts/${post._id}`;
-    const scoreLabel = score >= 75 ? 'تطابق قوي 🟢'
-      : score >= 55 ? 'تطابق محتمل 🟡'
-      : 'تطابق ممكن 🔵';
+    const lang = resolveLanguage(post, language);
+    const siteBase = getSiteBaseUrl();
+    const matchLink = `${siteBase}/posts/${matchedPost._id}`;
+    const ownLink   = `${siteBase}/posts/${post._id}`;
 
-    const text = [
-      'مرحبًا! 👋',
-      '',
-      'لدينا خبر مشجع! وجدنا إعلانًا قد يتطابق مع إعلانك على *مفقودات*.',
-      '',
-      `📊 نسبة التطابق: *${score}%* — ${scoreLabel}`,
-      '',
-      '🔗 الإعلان المطابق:',
-      matchLink,
-      '',
-      '📄 إعلانك:',
-      ownLink,
-      '',
-      'إذا كنت تعتقد أن هذا هو ما تبحث عنه، يمكنك التواصل مع صاحب الإعلان مباشرة عبر الموقع.',
-      '— فريق مفقودات',
-    ].join('\n');
+    let scoreLabel;
+    if (lang === 'fr') {
+      scoreLabel = score >= 75 ? 'Forte correspondance 🟢'
+        : score >= 55 ? 'Correspondance probable 🟡'
+        : 'Correspondance possible 🔵';
+    } else if (lang === 'en') {
+      scoreLabel = score >= 75 ? 'Strong match 🟢'
+        : score >= 55 ? 'Likely match 🟡'
+        : 'Possible match 🔵';
+    } else {
+      scoreLabel = score >= 75 ? 'تطابق قوي 🟢'
+        : score >= 55 ? 'تطابق محتمل 🟡'
+        : 'تطابق ممكن 🔵';
+    }
+
+    const templateFn = MATCH_ALERT_TEMPLATES[lang] || MATCH_ALERT_TEMPLATES.ar;
+    const text = templateFn({ score, scoreLabel, matchLink, ownLink });
 
     return await queueMessage(jid, text);
   } catch (err) {
