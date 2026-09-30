@@ -48,6 +48,7 @@
     "test-cache-system": "node scripts/testCacheSystem.js",
     "test-cache-middleware": "node scripts/testCacheMiddleware.js",
     "build": "echo 'No build step required for Node.js'",
+    "clear-wa-session": "node scripts/clearWhatsAppSession.js",
     "postinstall": "echo 'Server dependencies installed' && (npm list sharp > /dev/null 2>&1 && echo 'Sharp available for image optimization' || echo 'Sharp not available - will use fallback mode')"
   },
   "keywords": [],
