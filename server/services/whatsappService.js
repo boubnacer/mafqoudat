@@ -50,12 +50,21 @@ const MAX_JITTER_MS        = Number(process.env.WA_MAX_JITTER_MS)   || 3000;
 // Lazy-load Baileys
 // ---------------------------------------------------------------------------
 
-let makeWASocket, DisconnectReason, fetchLatestBaileysVersion, BufferJSON, proto, initAuthCreds, isLatestBaileysVersion;
+let makeWASocket, DisconnectReason, fetchLatestBaileysVersion, BufferJSON, proto, initAuthCreds, isLatestBaileysVersion, Browsers;
 
-const loadBaileys = () => {
+const loadBaileys = async () => {
   if (makeWASocket) return true;
   try {
-    const baileys              = require('@whiskeysockets/baileys');
+    let baileys;
+    try {
+      baileys = require('@whiskeysockets/baileys');
+    } catch (e) {
+      if (e.code === 'ERR_REQUIRE_ESM' || (e.message && e.message.includes('ERR_REQUIRE_ESM'))) {
+        baileys = await import('@whiskeysockets/baileys');
+      } else {
+        throw e;
+      }
+    }
     makeWASocket               = baileys.default || baileys.makeWASocket || baileys;
     DisconnectReason           = baileys.DisconnectReason;
     fetchLatestBaileysVersion  = baileys.fetchLatestBaileysVersion;
@@ -63,6 +72,7 @@ const loadBaileys = () => {
     proto                      = baileys.proto;
     initAuthCreds              = baileys.initAuthCreds;
     isLatestBaileysVersion     = baileys.isLatestBaileysVersion;
+    Browsers                   = baileys.Browsers;
     return true;
   } catch (err) {
     console.warn('[WhatsApp] Baileys not available:', err?.message);
@@ -164,6 +174,9 @@ let isConnected       = false;
 let connectingPromise = null;
 let sendQueue         = [];
 let queueRunning      = false;
+let latestQR          = null;
+let latestPairingCode = null;
+let lastQRTimestamp   = null;
 
 const logger = pino({ level: 'silent' });
 
@@ -196,7 +209,8 @@ const toJid = (raw) => {
 // ---------------------------------------------------------------------------
 
 const connect = async () => {
-  if (!loadBaileys()) return;
+  const loaded = await loadBaileys();
+  if (!loaded) return;
   if (isConnected || connectingPromise) return connectingPromise;
 
   connectingPromise = (async () => {
@@ -204,12 +218,16 @@ const connect = async () => {
       const { state, saveCreds } = await useMongoDBAuthState(SESSION_ID);
       const { version }          = await fetchLatestBaileysVersion();
 
+      const browserInfo = Browsers && typeof Browsers.ubuntu === 'function'
+        ? Browsers.ubuntu('Chrome')
+        : ['Ubuntu', 'Chrome', '22.04.4'];
+
       sock = makeWASocket({
         version,
         logger,
         auth: state,
-        printQRInTerminal: false,   // disabled – we use pairing code instead
-        browser: ['Mafqoudat', 'Chrome', '120.0'],
+        printQRInTerminal: false,
+        browser: browserInfo,
         connectTimeoutMs:    30_000,
         keepAliveIntervalMs: 25_000,
         retryRequestDelayMs:  2_000,
@@ -217,43 +235,21 @@ const connect = async () => {
 
       sock.ev.on('creds.update', saveCreds);
 
-      // Normalised business number for the requestPairingCode() API call.
-      // Must be pure digits in international format: 0711621132 → 212711621132
-      const intlNumber = WA_BUSINESS_NUMBER
-        .replace(/[\s\-.()+]/g, '')
-        .replace(/^00/, '')
-        .replace(/^0([5-7]\d{8})$/, '212$1');
-
-      let pairingCodeRequested = false;
-
       sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
-
-        // The `qr` event fires the moment WhatsApp's servers have completed
-        // the noise-protocol handshake and are waiting for authentication.
-        // It is the single most reliable trigger for requestPairingCode():
-        // too early → "Connection Closed"; at 'open' → already authenticated.
-        // We intercept it here instead of showing the QR image.
-        if (qr && !pairingCodeRequested && !state.creds.registered) {
-          pairingCodeRequested = true;
-          try {
-            const code = await sock.requestPairingCode(intlNumber);
-            console.log('\n' + '='.repeat(54));
-            console.log('[WhatsApp] 🔑 PAIRING CODE: ' + code);
-            console.log('');
-            console.log('  Phone : ' + WA_BUSINESS_NUMBER + '  (' + intlNumber + ')');
-            console.log('  Steps : WhatsApp → ⋮ → Linked Devices → Link a Device');
-            console.log('          Tap "Link with phone number instead"');
-            console.log('          Enter your number then the code above');
-            console.log('  ⏱️  Code expires in ~60 s. Redeploy for a new one.');
-            console.log('='.repeat(54) + '\n');
-          } catch (err) {
-            console.error('[WhatsApp] requestPairingCode failed:', err?.message || err);
-          }
+        if (qr) {
+          latestQR = qr;
+          lastQRTimestamp = Date.now();
+          console.log('\n' + '='.repeat(54));
+          console.log('[WhatsApp] 📱 Scan QR Code to connect at:');
+          console.log('   /whatsapp/scan');
+          console.log('='.repeat(54) + '\n');
         }
 
         if (connection === 'open') {
           console.log('[WhatsApp] ✅ Connected and ready to send messages.');
           isConnected = true;
+          latestQR = null;
+          latestPairingCode = null;
           drainQueue();
         }
 
@@ -261,21 +257,18 @@ const connect = async () => {
           isConnected       = false;
           connectingPromise = null;
           const statusCode  = lastDisconnect?.error?.output?.statusCode;
-          const wasLoggedOut = statusCode === DisconnectReason.loggedOut;
+          const wasLoggedOut = statusCode === DisconnectReason?.loggedOut;
 
           if (wasLoggedOut) {
-            // Phone explicitly unlinked this device. Clear the stale session
-            // from MongoDB, then reconnect so a fresh pairing code is shown.
             console.warn('[WhatsApp] Logged out by phone. Clearing stale session…');
             try {
               await require('../models/WhatsAppSession').deleteMany({ session: SESSION_ID });
-              console.log('[WhatsApp] Session cleared. Reconnecting for fresh pairing code in 5 s…');
+              console.log('[WhatsApp] Session cleared. Reconnecting for fresh QR in 5 s…');
             } catch (e) {
               console.error('[WhatsApp] Failed to clear session:', e?.message);
             }
             setTimeout(connect, 5000);
           } else {
-            // Transient disconnect – reconnect automatically.
             console.warn(`[WhatsApp] Connection closed (${statusCode}), reconnecting in 5 s…`);
             setTimeout(connect, 5000);
           }
@@ -284,7 +277,6 @@ const connect = async () => {
     } catch (err) {
       connectingPromise = null;
       console.error('[WhatsApp] Connection error:', err?.message || err);
-      // Retry after 30 s so a transient startup failure doesn't leave WA dead.
       setTimeout(connect, 30_000);
     }
   })();
@@ -416,14 +408,59 @@ const sendMatchAlertMessage = async ({ post, matchedPost, score }) => {
 // Public API
 // ---------------------------------------------------------------------------
 
+const getStatus = () => ({
+  isConnected,
+  hasQR: !!latestQR,
+  qr: latestQR,
+  pairingCode: latestPairingCode,
+  lastQRTimestamp,
+  businessNumber: WA_BUSINESS_NUMBER,
+});
+
+const clearSession = async () => {
+  try {
+    const WhatsAppSession = require('../models/WhatsAppSession');
+    await WhatsAppSession.deleteMany({ session: SESSION_ID });
+    latestQR = null;
+    latestPairingCode = null;
+    isConnected = false;
+    if (sock) {
+      try { sock.end(); } catch (_) {}
+      sock = null;
+    }
+    connectingPromise = null;
+    console.log('[WhatsApp] Session reset manually. Reconnecting in 2 s…');
+    setTimeout(connect, 2000);
+    return true;
+  } catch (err) {
+    console.error('[WhatsApp] Failed to clear session:', err?.message || err);
+    throw err;
+  }
+};
+
+const requestPairingCode = async (phone) => {
+  const loaded = await loadBaileys();
+  if (!loaded || !sock) throw new Error('WhatsApp service not initialized');
+  if (isConnected) throw new Error('WhatsApp is already connected');
+  const targetNumber = (phone || WA_BUSINESS_NUMBER)
+    .replace(/[\s\-.()+]/g, '')
+    .replace(/^00/, '')
+    .replace(/^0([5-7]\d{8})$/, '212$1');
+  const code = await sock.requestPairingCode(targetNumber);
+  latestPairingCode = code;
+  console.log('[WhatsApp] 🔑 Generated pairing code: ' + code);
+  return code;
+};
+
 /**
  * Initialises the WhatsApp socket. Call once at server start (after the DB
  * is connected – the MongoDB auth state requires it).
  *
  * Safe to call multiple times: only one connection is ever created.
  */
-const init = () => {
-  if (!loadBaileys()) {
+const init = async () => {
+  const loaded = await loadBaileys();
+  if (!loaded) {
     console.warn('[WhatsApp] Skipping init – Baileys not installed.');
     return;
   }
@@ -437,5 +474,8 @@ module.exports = {
   sendSocialPublishMessage,
   sendMatchAlertMessage,
   isConnected: () => isConnected,
+  getStatus,
+  clearSession,
+  requestPairingCode,
   toJid,
 };
