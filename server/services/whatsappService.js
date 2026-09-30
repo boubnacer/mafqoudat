@@ -470,7 +470,7 @@ const sendSocialPublishMessage = async ({ post, platform, permalink, language })
 
     const lang = resolveLanguage(post, language);
     const siteBase = getSiteBaseUrl();
-    const siteLink = `${siteBase}/posts/${post._id}`;
+    const siteLink = `${siteBase}/dash/posts/${post._id}`;
 
     let platformLabel;
     let pLabel;
@@ -505,8 +505,8 @@ const sendMatchAlertMessage = async ({ post, matchedPost, score, language }) => 
 
     const lang = resolveLanguage(post, language);
     const siteBase = getSiteBaseUrl();
-    const matchLink = `${siteBase}/posts/${matchedPost._id}`;
-    const ownLink   = `${siteBase}/posts/${post._id}`;
+    const matchLink = `${siteBase}/dash/posts/${matchedPost._id}`;
+    const ownLink   = `${siteBase}/dash/posts/${post._id}`;
 
     let scoreLabel;
     if (lang === 'fr') {
