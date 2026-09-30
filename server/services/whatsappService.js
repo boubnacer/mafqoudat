@@ -208,7 +208,7 @@ const connect = async () => {
         version,
         logger,
         auth: state,
-        printQRInTerminal: true,
+        printQRInTerminal: false,   // disabled – we use pairing code instead
         browser: ['Mafqoudat', 'Chrome', '120.0'],
         connectTimeoutMs:    30_000,
         keepAliveIntervalMs: 25_000,
@@ -217,15 +217,46 @@ const connect = async () => {
 
       sock.ev.on('creds.update', saveCreds);
 
-      sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
-        if (qr) {
-          try { require('qrcode-terminal').generate(qr, { small: true }); } catch { /* ok */ }
-          console.log(
-            `\n[WhatsApp] ⬆️  Scan the QR code with the business phone`
-            + ` (${WA_BUSINESS_NUMBER})\n`
-            + `           WhatsApp → ⋮ Menu → Linked Devices → Link a Device\n`
-            + `           Session will be saved to MongoDB – no re-scan needed after this.\n`
-          );
+      // Request a pairing code as soon as the socket opens but before the
+      // account is registered. Pairing codes are plain 8-character strings
+      // (e.g. "MAFQ-WBIZ") – easy to read from any log viewer or terminal.
+      //
+      // How to use:
+      //   1. Open WhatsApp on the business phone (0711621132).
+      //   2. Tap ⋮ Menu → Linked Devices → Link a Device.
+      //   3. Tap "Link with phone number instead".
+      //   4. Enter the business number and the code shown in the logs.
+      //   5. Done – session is saved to MongoDB, never needed again.
+      let pairingRequested = false;
+      sock.ev.on('connection.update', async ({ connection, lastDisconnect }) => {
+
+        // Request the pairing code once, right when the socket is waiting for
+        // registration (creds.registered is false = not yet paired).
+        if (
+          connection === 'connecting'
+          && !pairingRequested
+          && !state.creds.registered
+        ) {
+          pairingRequested = true;
+          try {
+            // Strip non-digits and ensure international format for the API call.
+            const intlNumber = WA_BUSINESS_NUMBER
+              .replace(/[\s\-.()+]/g, '')
+              .replace(/^00/, '')
+              .replace(/^0([5-7]\d{8})$/, '212$1');
+
+            const code = await sock.requestPairingCode(intlNumber);
+            console.log('\n' + '='.repeat(50));
+            console.log('[WhatsApp] 🔑 PAIRING CODE:', code);
+            console.log('');
+            console.log('  1. Open WhatsApp on ' + WA_BUSINESS_NUMBER);
+            console.log('  2. Tap ⋮ → Linked Devices → Link a Device');
+            console.log('  3. Tap "Link with phone number instead"');
+            console.log('  4. Enter the business number + the code above');
+            console.log('='.repeat(50) + '\n');
+          } catch (err) {
+            console.error('[WhatsApp] Failed to request pairing code:', err?.message || err);
+          }
         }
 
         if (connection === 'open') {
@@ -244,8 +275,6 @@ const connect = async () => {
             console.warn(`[WhatsApp] Connection closed (code ${code}), reconnecting in 5 s…`);
             setTimeout(connect, 5000);
           } else {
-            // Logged out means the phone unlinked this device.
-            // Clear the stored session so the next start shows a fresh QR.
             console.error('[WhatsApp] Logged out by phone. Clearing session from DB…');
             require('../models/WhatsAppSession')
               .deleteMany({ session: SESSION_ID })
