@@ -217,46 +217,39 @@ const connect = async () => {
 
       sock.ev.on('creds.update', saveCreds);
 
-      // --- Pairing code (only needed on first link, skipped once registered) ---
-      // Must be called shortly after socket creation – not inside a connection
-      // event – and the number must be pure digits in international format.
-      if (!state.creds.registered) {
-        const intlNumber = WA_BUSINESS_NUMBER
-          .replace(/[\s\-.()+]/g, '')
-          .replace(/^00/, '')
-          .replace(/^0([5-7]\d{8})$/, '212$1');  // 0711621132 → 212711621132
+      // Normalised business number for the requestPairingCode() API call.
+      // Must be pure digits in international format: 0711621132 → 212711621132
+      const intlNumber = WA_BUSINESS_NUMBER
+        .replace(/[\s\-.()+]/g, '')
+        .replace(/^00/, '')
+        .replace(/^0([5-7]\d{8})$/, '212$1');
 
-        // Small delay to let the socket initialise its internal state before
-        // the pairing request hits the WhatsApp servers.
-        setTimeout(async () => {
+      let pairingCodeRequested = false;
+
+      sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
+
+        // The `qr` event fires the moment WhatsApp's servers have completed
+        // the noise-protocol handshake and are waiting for authentication.
+        // It is the single most reliable trigger for requestPairingCode():
+        // too early → "Connection Closed"; at 'open' → already authenticated.
+        // We intercept it here instead of showing the QR image.
+        if (qr && !pairingCodeRequested && !state.creds.registered) {
+          pairingCodeRequested = true;
           try {
             const code = await sock.requestPairingCode(intlNumber);
             console.log('\n' + '='.repeat(54));
             console.log('[WhatsApp] 🔑 PAIRING CODE: ' + code);
             console.log('');
-            console.log('  Phone : ' + WA_BUSINESS_NUMBER + ' (' + intlNumber + ')');
+            console.log('  Phone : ' + WA_BUSINESS_NUMBER + '  (' + intlNumber + ')');
             console.log('  Steps : WhatsApp → ⋮ → Linked Devices → Link a Device');
-            console.log('          → "Link with phone number instead"');
-            console.log('          → enter number + code above');
-            console.log('  Note  : code expires in ~60 s – restart server for a new one');
+            console.log('          Tap "Link with phone number instead"');
+            console.log('          Enter your number then the code above');
+            console.log('  ⏱️  Code expires in ~60 s. Redeploy for a new one.');
             console.log('='.repeat(54) + '\n');
           } catch (err) {
-            console.error('[WhatsApp] Failed to get pairing code:', err?.message || err);
-            // Retry once after 5 s in case of a transient WA server error.
-            setTimeout(async () => {
-              try {
-                const code = await sock.requestPairingCode(intlNumber);
-                console.log('\n[WhatsApp] 🔑 PAIRING CODE (retry):', code, '\n');
-              } catch (e2) {
-                console.error('[WhatsApp] Pairing code retry also failed:', e2?.message || e2);
-              }
-            }, 5000);
+            console.error('[WhatsApp] requestPairingCode failed:', err?.message || err);
           }
-        }, 3000);
-      }
-      // -------------------------------------------------------------------------
-
-      sock.ev.on('connection.update', async ({ connection, lastDisconnect }) => {
+        }
 
         if (connection === 'open') {
           console.log('[WhatsApp] ✅ Connected and ready to send messages.');
@@ -265,19 +258,26 @@ const connect = async () => {
         }
 
         if (connection === 'close') {
-          isConnected      = false;
+          isConnected       = false;
           connectingPromise = null;
-          const code       = lastDisconnect?.error?.output?.statusCode;
-          const reconnect  = code !== DisconnectReason.loggedOut;
+          const statusCode  = lastDisconnect?.error?.output?.statusCode;
+          const wasLoggedOut = statusCode === DisconnectReason.loggedOut;
 
-          if (reconnect) {
-            console.warn(`[WhatsApp] Connection closed (code ${code}), reconnecting in 5 s…`);
+          if (wasLoggedOut) {
+            // Phone explicitly unlinked this device. Clear the stale session
+            // from MongoDB, then reconnect so a fresh pairing code is shown.
+            console.warn('[WhatsApp] Logged out by phone. Clearing stale session…');
+            try {
+              await require('../models/WhatsAppSession').deleteMany({ session: SESSION_ID });
+              console.log('[WhatsApp] Session cleared. Reconnecting for fresh pairing code in 5 s…');
+            } catch (e) {
+              console.error('[WhatsApp] Failed to clear session:', e?.message);
+            }
             setTimeout(connect, 5000);
           } else {
-            console.error('[WhatsApp] Logged out by phone. Clearing session from DB…');
-            require('../models/WhatsAppSession')
-              .deleteMany({ session: SESSION_ID })
-              .catch(() => {});
+            // Transient disconnect – reconnect automatically.
+            console.warn(`[WhatsApp] Connection closed (${statusCode}), reconnecting in 5 s…`);
+            setTimeout(connect, 5000);
           }
         }
       });
