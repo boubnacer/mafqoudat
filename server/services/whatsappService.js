@@ -217,47 +217,46 @@ const connect = async () => {
 
       sock.ev.on('creds.update', saveCreds);
 
-      // Request a pairing code as soon as the socket opens but before the
-      // account is registered. Pairing codes are plain 8-character strings
-      // (e.g. "MAFQ-WBIZ") – easy to read from any log viewer or terminal.
-      //
-      // How to use:
-      //   1. Open WhatsApp on the business phone (0711621132).
-      //   2. Tap ⋮ Menu → Linked Devices → Link a Device.
-      //   3. Tap "Link with phone number instead".
-      //   4. Enter the business number and the code shown in the logs.
-      //   5. Done – session is saved to MongoDB, never needed again.
-      let pairingRequested = false;
-      sock.ev.on('connection.update', async ({ connection, lastDisconnect }) => {
+      // --- Pairing code (only needed on first link, skipped once registered) ---
+      // Must be called shortly after socket creation – not inside a connection
+      // event – and the number must be pure digits in international format.
+      if (!state.creds.registered) {
+        const intlNumber = WA_BUSINESS_NUMBER
+          .replace(/[\s\-.()+]/g, '')
+          .replace(/^00/, '')
+          .replace(/^0([5-7]\d{8})$/, '212$1');  // 0711621132 → 212711621132
 
-        // Request the pairing code once, right when the socket is waiting for
-        // registration (creds.registered is false = not yet paired).
-        if (
-          connection === 'connecting'
-          && !pairingRequested
-          && !state.creds.registered
-        ) {
-          pairingRequested = true;
+        // Small delay to let the socket initialise its internal state before
+        // the pairing request hits the WhatsApp servers.
+        setTimeout(async () => {
           try {
-            // Strip non-digits and ensure international format for the API call.
-            const intlNumber = WA_BUSINESS_NUMBER
-              .replace(/[\s\-.()+]/g, '')
-              .replace(/^00/, '')
-              .replace(/^0([5-7]\d{8})$/, '212$1');
-
             const code = await sock.requestPairingCode(intlNumber);
-            console.log('\n' + '='.repeat(50));
-            console.log('[WhatsApp] 🔑 PAIRING CODE:', code);
+            console.log('\n' + '='.repeat(54));
+            console.log('[WhatsApp] 🔑 PAIRING CODE: ' + code);
             console.log('');
-            console.log('  1. Open WhatsApp on ' + WA_BUSINESS_NUMBER);
-            console.log('  2. Tap ⋮ → Linked Devices → Link a Device');
-            console.log('  3. Tap "Link with phone number instead"');
-            console.log('  4. Enter the business number + the code above');
-            console.log('='.repeat(50) + '\n');
+            console.log('  Phone : ' + WA_BUSINESS_NUMBER + ' (' + intlNumber + ')');
+            console.log('  Steps : WhatsApp → ⋮ → Linked Devices → Link a Device');
+            console.log('          → "Link with phone number instead"');
+            console.log('          → enter number + code above');
+            console.log('  Note  : code expires in ~60 s – restart server for a new one');
+            console.log('='.repeat(54) + '\n');
           } catch (err) {
-            console.error('[WhatsApp] Failed to request pairing code:', err?.message || err);
+            console.error('[WhatsApp] Failed to get pairing code:', err?.message || err);
+            // Retry once after 5 s in case of a transient WA server error.
+            setTimeout(async () => {
+              try {
+                const code = await sock.requestPairingCode(intlNumber);
+                console.log('\n[WhatsApp] 🔑 PAIRING CODE (retry):', code, '\n');
+              } catch (e2) {
+                console.error('[WhatsApp] Pairing code retry also failed:', e2?.message || e2);
+              }
+            }, 5000);
           }
-        }
+        }, 3000);
+      }
+      // -------------------------------------------------------------------------
+
+      sock.ev.on('connection.update', async ({ connection, lastDisconnect }) => {
 
         if (connection === 'open') {
           console.log('[WhatsApp] ✅ Connected and ready to send messages.');
