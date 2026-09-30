@@ -633,6 +633,15 @@ class SocialPublishQueue {
       );
     }
 
+    // Patch the in-memory post so announce() – and the WhatsApp message it
+    // triggers – can read the permalink without a second DB round-trip.
+    // The DB was updated two lines above; this just mirrors it locally.
+    if (result.permalink) {
+      post.social = post.social || {};
+      post.social[platform] = post.social[platform] || {};
+      post.social[platform].permalink = result.permalink;
+    }
+
     await this.announce(post, platform, 'published');
     await this.cleanupPostSocialImages(post);
 
