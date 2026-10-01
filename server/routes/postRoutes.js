@@ -198,26 +198,108 @@ router.route("/report").post(
 router
   .route("/")
   .post(
-    createPostLimit,
+    // Step 1: Trace ID & Request Entry Log
     (req, res, next) => {
+      req.postTraceId = `trace_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      console.log(`\n======================================================`);
+      console.log(`[CREATE_POST] [${req.postTraceId}] [Step 1: Request Received] at ${new Date().toISOString()}`);
+      console.log(`[CREATE_POST] [${req.postTraceId}] User: ${req.user || 'unauthenticated'} | Role: ${req.role || 'none'} | IP: ${req.ip}`);
+      console.log(`[CREATE_POST] [${req.postTraceId}] Content-Type: ${req.headers['content-type']} | Length: ${req.headers['content-length']} bytes`);
+      next();
+    },
+    // Step 2: Rate Limiting
+    (req, res, next) => {
+      console.log(`[CREATE_POST] [${req.postTraceId}] [Step 2: Checking Post Rate Limit]`);
+      createPostLimit(req, res, (err) => {
+        if (err) {
+          console.error(`[CREATE_POST] [${req.postTraceId}] [Step 2 FAILED] Rate limit check error:`, err);
+          return next(err);
+        }
+        console.log(`[CREATE_POST] [${req.postTraceId}] [Step 2 SUCCESS] Post rate limit check passed`);
+        next();
+      });
+    },
+    // Step 3: Multer Parsing
+    (req, res, next) => {
+      console.log(`[CREATE_POST] [${req.postTraceId}] [Step 3: Multer Parsing Multipart Form Data]`);
       uploadWithFields.fields([
         { name: 'image', maxCount: 1 },
         { name: 'postData', maxCount: 1 }
       ])(req, res, (err) => {
         if (err) {
+          console.error(`[CREATE_POST] [${req.postTraceId}] [Step 3 FAILED] Multer file upload error:`, err.message);
           return res.status(400).json({
             success: false,
             error: { message: 'File upload error: ' + err.message }
           });
         }
+        const hasImage = !!(req.files && req.files.image && req.files.image.length > 0);
+        const hasPostData = !!(req.body && req.body.postData);
+        console.log(`[CREATE_POST] [${req.postTraceId}] [Step 3 SUCCESS] Multer parsing complete. HasImage: ${hasImage}, HasPostDataField: ${hasPostData}`);
+        if (hasImage) {
+          const img = req.files.image[0];
+          console.log(`[CREATE_POST] [${req.postTraceId}] Image info: filename="${img.originalname}", size=${img.size} bytes, mimetype="${img.mimetype}"`);
+        }
         next();
       });
     },
-    conditionalImageUploadLimit,
-    uploadToCloudinaryMiddleware,
+    // Step 4: Image Rate Limit
+    (req, res, next) => {
+      const hasImage = !!(req.files && req.files.image && req.files.image.length > 0);
+      if (hasImage) {
+        console.log(`[CREATE_POST] [${req.postTraceId}] [Step 4: Checking Conditional Image Upload Rate Limit]`);
+      } else {
+        console.log(`[CREATE_POST] [${req.postTraceId}] [Step 4: No Image - Skipping Image Rate Limit]`);
+      }
+      conditionalImageUploadLimit(req, res, (err) => {
+        if (err) {
+          console.error(`[CREATE_POST] [${req.postTraceId}] [Step 4 FAILED] Image rate limit error:`, err);
+          return next(err);
+        }
+        if (hasImage) console.log(`[CREATE_POST] [${req.postTraceId}] [Step 4 SUCCESS] Image rate limit check passed`);
+        next();
+      });
+    },
+    // Step 5: Cloudinary Upload Middleware
+    (req, res, next) => {
+      console.log(`[CREATE_POST] [${req.postTraceId}] [Step 5: Cloudinary Image Processing & Upload]`);
+      uploadToCloudinaryMiddleware(req, res, (err) => {
+        if (err) {
+          console.error(`[CREATE_POST] [${req.postTraceId}] [Step 5 FAILED] Cloudinary middleware error:`, err.message || err);
+          return next(err);
+        }
+        if (req.cloudinaryResult) {
+          console.log(`[CREATE_POST] [${req.postTraceId}] [Step 5 SUCCESS] Cloudinary uploaded: ${req.cloudinaryResult.url}`);
+        } else {
+          console.log(`[CREATE_POST] [${req.postTraceId}] [Step 5 SUCCESS] Cloudinary skipped (no image uploaded)`);
+        }
+        next();
+      });
+    },
+    // Step 6: Express-Validator Rules
+    (req, res, next) => {
+      console.log(`[CREATE_POST] [${req.postTraceId}] [Step 6: Running express-validator postCreation rules]`);
+      next();
+    },
     validationSets.postCreation,
-    validateRequest,
-    optimizedInvalidateCache([], 'posts'),
+    // Step 7: Validate Request
+    (req, res, next) => {
+      console.log(`[CREATE_POST] [${req.postTraceId}] [Step 7: Validating express-validator results]`);
+      validateRequest(req, res, (err) => {
+        if (err) {
+          console.error(`[CREATE_POST] [${req.postTraceId}] [Step 7 FAILED] Validation middleware error:`, err);
+          return next(err);
+        }
+        console.log(`[CREATE_POST] [${req.postTraceId}] [Step 7 SUCCESS] Express-validator schema validation passed`);
+        next();
+      });
+    },
+    // Step 8: Cache Invalidation Prep
+    (req, res, next) => {
+      console.log(`[CREATE_POST] [${req.postTraceId}] [Step 8: Preparing Cache Invalidation]`);
+      optimizedInvalidateCache([], 'posts')(req, res, next);
+    },
+    // Step 9: Controller Execution
     postsController.createNewPost
   )
   .patch(

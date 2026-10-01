@@ -113,6 +113,9 @@ const verifyJWT = (req, res, next) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
 
   if (!authHeader?.startsWith("Bearer ")) {
+    if (req.method === 'POST' && (req.baseUrl === '/posts' || req.originalUrl?.includes('/posts'))) {
+      console.warn(`[CREATE_POST] [AUTH FAILED] No Bearer token provided in headers for ${req.method} ${req.originalUrl}`);
+    }
     return unauthorized(res, "Unauthorized - No token provided", 'NO_TOKEN');
   }
 
@@ -138,6 +141,10 @@ const verifyJWT = (req, res, next) => {
       } else if (err.name === 'TokenUsedTooEarly') {
         errorMessage = "Token used too early";
         errorCode = 'TOKEN_EARLY';
+      }
+
+      if (req.method === 'POST' && (req.baseUrl === '/posts' || req.originalUrl?.includes('/posts'))) {
+        console.warn(`[CREATE_POST] [AUTH FAILED] JWT verification failed: ${errorMessage} (${errorCode}) for ${req.method} ${req.originalUrl}`);
       }
 
       // Log JWT verification failures with more context

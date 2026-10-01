@@ -23,6 +23,8 @@ const validateRequest = (req, res, next) => {
       value: error.value
     }));
 
+    console.error(`[CREATE_POST] [VALIDATION FAILED] ${req.method} ${req.originalUrl}:`, JSON.stringify(errorMessages, null, 2));
+
     logEvents(
       `Validation Error: ${JSON.stringify(errorMessages)}\t${req.method}\t${req.url}\t${req.headers.origin}`,
       'errLog.log'

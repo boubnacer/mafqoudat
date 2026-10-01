@@ -1407,6 +1407,8 @@ const recordDocumentTypeUsage = (ids) => {
 // @route POST /posts
 // @access Private
 const createNewPost = async (req, res) => {
+  const traceId = req.postTraceId || `ctrl_${Date.now()}`;
+  console.log(`[CREATE_POST] [${traceId}] [Step 9/11: Entered createNewPost controller]`);
   
   try {
     // Use parsed data from validation middleware if available, otherwise parse from req.body
@@ -1464,73 +1466,92 @@ const createNewPost = async (req, res) => {
       documentOwnerName = req.body.documentOwnerName;
     }
     
+    console.log(`[CREATE_POST] [${traceId}] Payload summary: user=${user}, country=${country}, categories=${JSON.stringify(categories)}, foundLost=${foundLost}, city=${typeof city === 'object' ? JSON.stringify(city) : city}, hasCityData=${!!cityData}, exactLocation="${exactLocation}", exactDate="${exactDate}", descLength=${description?.length || 0}`);
+
+    // Confirm required data
+    const requiredFields = {
+      user: !!user,
+      categories: !!(categories && categories.length > 0),
+      contact: !!contact,
+      country: !!country,
+      foundLost: !!foundLost,
+      exactLocation: !!exactLocation,
+      exactDate: !!exactDate
+    };
     
+    const missingFields = Object.entries(requiredFields)
+      .filter(([key, value]) => !value)
+      .map(([key]) => key);
 
-         // Confirm required data
-     const requiredFields = {
-       user: !!user,
-       categories: !!(categories && categories.length > 0),
-       contact: !!contact,
-       country: !!country,
-       foundLost: !!foundLost,
-       exactLocation: !!exactLocation,
-       exactDate: !!exactDate
-     };
-     
-     const missingFields = Object.entries(requiredFields)
-       .filter(([key, value]) => !value)
-       .map(([key]) => key);
-  
-     if (missingFields.length > 0) {
-     return res.status(400).json({ 
-       message: "All required fields are required",
-       missing: missingFields
-     });
-   }
-
-   // Validate references with selective field projection
-  
-     try {
-     const userExists = await User.findById(user).select('_id').lean();
-     const countryExists = await Country.findById(country).select('_id').lean();
-     
-     // Validate all categories in the array
-     const categoryValidationPromises = categories.map(catId => 
-       Category.findById(catId).select('_id').lean()
-     );
-     const categoryExistsResults = await Promise.all(categoryValidationPromises);
-     const allCategoriesExist = categoryExistsResults.every(cat => cat !== null);
-     const invalidCategoryIndices = categoryExistsResults
-       .map((cat, index) => cat === null ? index : -1)
-       .filter(index => index !== -1);
-     
-     const foundLostExists = await FoundLost.findById(foundLost).select('_id').lean();
-    
-    // Check which references are invalid and report only which field(s) failed -
-    // never dump collection contents to the client.
-    const invalidFields = [];
-    if (!userExists) invalidFields.push('user');
-    if (!countryExists) invalidFields.push('country');
-    if (!allCategoriesExist) invalidFields.push('categories');
-    if (!foundLostExists) invalidFields.push('foundLost');
-
-    if (invalidFields.length > 0) {
-      const response = {
-        message: `Invalid reference data provided: ${invalidFields.join(', ')}`,
-        invalidFields
-      };
-      if (invalidCategoryIndices.length > 0) {
-        response.invalidCategoryIndices = invalidCategoryIndices;
-      }
-      return res.status(400).json(response);
+    if (missingFields.length > 0) {
+      console.warn(`[CREATE_POST] [${traceId}] [Step 9.1 FAILED] Missing required fields:`, missingFields, {
+        user: !!user,
+        categoriesCount: categories?.length || 0,
+        contact: !!contact,
+        country: !!country,
+        foundLost: !!foundLost,
+        exactLocation: !!exactLocation,
+        exactDate: !!exactDate
+      });
+      return res.status(400).json({ 
+        message: "All required fields are required",
+        missing: missingFields
+      });
     }
-  } catch (validationError) {
-    console.error('Error during reference validation:', validationError);
-    return res.status(400).json({
-      message: "Invalid reference data provided",
-      error: "Invalid reference data provided"
-    });
-  }
+    console.log(`[CREATE_POST] [${traceId}] [Step 9.1 SUCCESS] Required fields verified`);
+
+    // Validate references with selective field projection
+    console.log(`[CREATE_POST] [${traceId}] [Step 10/11: Checking database references (User, Country, Categories, FoundLost)]`);
+    try {
+      const userExists = await User.findById(user).select('_id').lean();
+      const countryExists = await Country.findById(country).select('_id').lean();
+      
+      // Validate all categories in the array
+      const categoryValidationPromises = categories.map(catId => 
+        Category.findById(catId).select('_id').lean()
+      );
+      const categoryExistsResults = await Promise.all(categoryValidationPromises);
+      const allCategoriesExist = categoryExistsResults.every(cat => cat !== null);
+      const invalidCategoryIndices = categoryExistsResults
+        .map((cat, index) => cat === null ? index : -1)
+        .filter(index => index !== -1);
+      
+      const foundLostExists = await FoundLost.findById(foundLost).select('_id').lean();
+     
+      // Check which references are invalid and report only which field(s) failed -
+      // never dump collection contents to the client.
+      const invalidFields = [];
+      if (!userExists) invalidFields.push('user');
+      if (!countryExists) invalidFields.push('country');
+      if (!allCategoriesExist) invalidFields.push('categories');
+      if (!foundLostExists) invalidFields.push('foundLost');
+
+      if (invalidFields.length > 0) {
+        console.warn(`[CREATE_POST] [${traceId}] [Step 10 FAILED] Invalid references in DB:`, {
+          invalidFields,
+          userExists: !!userExists,
+          countryExists: !!countryExists,
+          allCategoriesExist,
+          invalidCategoryIndices,
+          foundLostExists: !!foundLostExists
+        });
+        const response = {
+          message: `Invalid reference data provided: ${invalidFields.join(', ')}`,
+          invalidFields
+        };
+        if (invalidCategoryIndices.length > 0) {
+          response.invalidCategoryIndices = invalidCategoryIndices;
+        }
+        return res.status(400).json(response);
+      }
+      console.log(`[CREATE_POST] [${traceId}] [Step 10 SUCCESS] Database references valid (User, Country, Categories, FoundLost exist)`);
+    } catch (validationError) {
+      console.error(`[CREATE_POST] [${traceId}] [Step 10 ERROR] Reference validation exception:`, validationError);
+      return res.status(400).json({
+        message: "Invalid reference data provided",
+        error: "Invalid reference data provided"
+      });
+    }
   
      // Handle city validation
    let cityId = null;
@@ -1686,6 +1707,8 @@ const createNewPost = async (req, res) => {
      cityId = null;
    }
 
+   console.log(`[CREATE_POST] [${traceId}] [Step 10.1: City Resolution Result] cityId: ${cityId}, failed: ${cityResolutionFailed}`);
+
      // Prepare post data
   const explicitLang = postData?.language || req.body?.language;
   const { detectLanguage } = require("../utils/languageUtils");
@@ -1771,11 +1794,15 @@ const createNewPost = async (req, res) => {
      }
    }
 
+   console.log(`[CREATE_POST] [${traceId}] [Step 10.2: Description & Metadata] Lang: ${resolvedLanguage}, hasDesc: ${!!newPostData.description}, isAutoGenerated: ${newPostData.isAutoGeneratedDescription}, hasImage: ${!!newPostData.cloudinaryUrl}`);
+
      // Create and store the new post
+   console.log(`[CREATE_POST] [${traceId}] [Step 11/11: Executing Post.create in MongoDB]`);
    try {
      const post = await Post.create(newPostData);
 
     if (post) {
+      console.log(`[CREATE_POST] [${traceId}] [SUCCESS] Post successfully created with ID: ${post._id}`);
       // Invalidate related cache entries
       await cacheService.invalidatePattern('posts:*');
       await cacheService.invalidatePattern('dashboard:*');
@@ -1815,10 +1842,20 @@ const createNewPost = async (req, res) => {
       }
       return res.status(201).json(response);
     } else {
+      console.error(`[CREATE_POST] [${traceId}] [FAILED] Post.create returned null or empty result`);
       return res.status(400).json({ message: "Invalid post data received" });
     }
      } catch (postCreationError) {
-     console.error('Error creating post in database:', postCreationError);
+     console.error(`[CREATE_POST] [${traceId}] [DATABASE SAVE ERROR] Post.create failed:`, {
+       name: postCreationError.name,
+       message: postCreationError.message,
+       code: postCreationError.code,
+       errors: postCreationError.errors ? Object.keys(postCreationError.errors).map(k => ({
+         field: k,
+         message: postCreationError.errors[k].message,
+         kind: postCreationError.errors[k].kind
+       })) : undefined
+     });
 
          return res.status(500).json({
        message: "Failed to create post",
@@ -1827,7 +1864,11 @@ const createNewPost = async (req, res) => {
    }
 
    } catch (error) {
-     console.error('Error in createNewPost:', error);
+     console.error(`[CREATE_POST] [${traceId}] [UNHANDLED CONTROLLER ERROR in createNewPost]:`, {
+       name: error.name,
+       message: error.message,
+       stack: error.stack
+     });
          return res.status(500).json({
        message: "Failed to create post",
        error: "Failed to create post"

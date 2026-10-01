@@ -149,6 +149,7 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
     if (req.file) {
       // Enhanced file validation
       if (req.file.size > 2 * 1024 * 1024) {
+        console.warn(`[CREATE_POST] [CLOUDINARY] Image rejected: File size too large (${req.file.size} bytes, max 2MB)`);
         return res.status(400).json({ 
           error: 'File size too large. Maximum 2MB allowed.',
           isError: true
@@ -157,6 +158,7 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
 
       // Check for minimum file size (prevent empty files)
       if (req.file.size < 100) {
+        console.warn(`[CREATE_POST] [CLOUDINARY] Image rejected: File too small (${req.file.size} bytes, min 100 bytes)`);
         return res.status(400).json({ 
           error: 'File too small. Minimum 100 bytes required.',
           isError: true
@@ -167,6 +169,7 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
       // detectImageType above for why the declared mimetype cannot carry it.
       const detectedType = detectImageType(req.file.buffer);
       if (!detectedType) {
+        console.warn(`[CREATE_POST] [CLOUDINARY] Image rejected: Invalid file type detected for ${req.file.originalname}`);
         return res.status(400).json({
           error: 'Invalid file type! Allowed: image/jpeg, image/png, image/gif, image/webp',
           isError: true
@@ -194,6 +197,7 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
       req.file.buffer = null;
       
       // Upload to Cloudinary with optimization
+      console.log(`[CREATE_POST] [CLOUDINARY] Uploading image (${fileBuffer.length} bytes) to Cloudinary...`);
       let result;
       try {
         result = await uploadToCloudinary({ 
@@ -201,7 +205,7 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
           path: tempFilePath 
         });
       } catch (uploadError) {
-        console.error('Upload failed with optimized version, trying simple version:', uploadError.message);
+        console.error('[CREATE_POST] [CLOUDINARY] Upload failed with optimized version, trying simple version:', uploadError.message);
         // Fallback to simple Cloudinary
         const { uploadToCloudinary: simpleUpload } = require("../config/simpleCloudinary");
         result = await simpleUpload({ 
@@ -209,6 +213,8 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
         });
       }
       
+      console.log(`[CREATE_POST] [CLOUDINARY] Upload finished. Result:`, result?.url ? `Success (${result.url})` : 'Failed or empty');
+
       // Store Cloudinary URL and public_id in request
       req.cloudinaryResult = result;
       
