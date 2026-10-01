@@ -71,12 +71,15 @@ router.post('/facebook', verifyFacebookSignature, (req, res) => {
  * subscription itself is misconfigured, not that the request is spoofed
  * (verifyFacebookSignature already ruled that out before this runs).
  */
+const { getAllConfiguredFacebookPageIds } = require('../config/socialChannels');
+
 const extractChangedFacebookPostIds = (payload) => {
   if (payload?.object !== 'page') return [];
 
+  const configuredPageIds = getAllConfiguredFacebookPageIds();
   const postIds = new Set();
   for (const entry of payload.entry || []) {
-    if (process.env.FACEBOOK_PAGE_ID && entry.id !== process.env.FACEBOOK_PAGE_ID) continue;
+    if (configuredPageIds.length > 0 && !configuredPageIds.includes(entry.id)) continue;
     for (const change of entry.changes || []) {
       if (change.field !== 'feed') continue;
       const postId = change.value?.post_id;

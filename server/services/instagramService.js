@@ -143,17 +143,19 @@ class InstagramService {
    * goes through and a long one does not, which is exactly the shape of "it
    * usually works". Bodies have no such ceiling.
    */
-  async post(path, fields, timeout) {
-    const body = new URLSearchParams({ ...fields, access_token: this.accessToken });
+  async post(path, fields, timeout, { accessToken } = {}) {
+    const token = accessToken || this.accessToken;
+    const body = new URLSearchParams({ ...fields, access_token: token });
     return axios.post(`${this.baseURL}${path}`, body.toString(), {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       timeout,
     });
   }
 
-  async get(path, params, timeout = READ_TIMEOUT_MS) {
+  async get(path, params, timeout = READ_TIMEOUT_MS, { accessToken } = {}) {
+    const token = accessToken || this.accessToken;
     return axios.get(`${this.baseURL}${path}`, {
-      params: { ...params, access_token: this.accessToken },
+      params: { ...params, access_token: token },
       timeout,
     });
   }
@@ -169,16 +171,18 @@ class InstagramService {
    * `quota_total` is the account's real cap - which is not always the 25 that
    * gets quoted, so it is better asked for than hardcoded.
    */
-  async publishingQuota() {
-    if (!this.isConfigured()) return null;
+  async publishingQuota(options = {}) {
+    const targetIgUserId = options.igUserId || options.accountId || this.igUserId;
+    const targetToken = options.accessToken || this.accessToken;
+    if (!targetIgUserId || !targetToken) return null;
 
     const cached = this.quotaCache;
     if (cached && Date.now() - cached.at < QUOTA_CACHE_MS) return cached.value;
 
     try {
-      const response = await this.get(`/${this.igUserId}/content_publishing_limit`, {
+      const response = await this.get(`/${targetIgUserId}/content_publishing_limit`, {
         fields: 'config,quota_usage',
-      });
+      }, READ_TIMEOUT_MS, { accessToken: targetToken });
       const entry = response.data?.data?.[0];
       if (!entry) return null;
 
@@ -219,7 +223,7 @@ class InstagramService {
     for (;;) {
       let response;
       try {
-        response = await this.get(`/${containerId}`, { fields: 'status_code,status' });
+        response = await this.get(`/${containerId}`, { fields: 'status_code,status' }, READ_TIMEOUT_MS, options);
       } catch (error) {
         // A failed status read is not a failed container. Keep polling while
         // there is budget left; anything still broken at the deadline is
@@ -281,15 +285,18 @@ class InstagramService {
    *    the account twice, so the container's own status is read first: once it
    *    says PUBLISHED, the post is live and the only thing missing is its id.
    */
-  async publishWithRetry(creationId, { maxAttempts = 3, delayMs = this.publishRetryDelayMs } = {}) {
+  async publishWithRetry(creationId, { maxAttempts = 3, delayMs = this.publishRetryDelayMs, igUserId, accountId, accessToken } = {}) {
+    const targetIgUserId = igUserId || accountId || this.igUserId;
+    const targetToken = accessToken || this.accessToken;
     let lastError;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         const response = await this.post(
-          `/${this.igUserId}/media_publish`,
+          `/${targetIgUserId}/media_publish`,
           { creation_id: creationId },
           PUBLISH_TIMEOUT_REQUEST_MS,
+          { accessToken: targetToken }
         );
         return { mediaId: response.data?.id || null, usage: readRateLimitUsage(response) };
       } catch (error) {
@@ -301,7 +308,7 @@ class InstagramService {
         // Did it actually go through? Asked before every retry, not only the
         // last: a second publish of the same container is the one duplicate
         // this whole path exists to avoid.
-        const published = await this.wasContainerPublished(creationId);
+        const published = await this.wasContainerPublished(creationId, { accessToken: targetToken });
         if (published) return { mediaId: null, alreadyPublished: true, usage: null };
 
         if (attempt === maxAttempts - 1) throw error;
@@ -313,9 +320,9 @@ class InstagramService {
   }
 
   /** Whether a container has already been turned into a live post. */
-  async wasContainerPublished(containerId) {
+  async wasContainerPublished(containerId, options = {}) {
     try {
-      const response = await this.get(`/${containerId}`, { fields: 'status_code' });
+      const response = await this.get(`/${containerId}`, { fields: 'status_code' }, READ_TIMEOUT_MS, options);
       return response.data?.status_code === 'PUBLISHED';
     } catch (error) {
       // Unknown is not "no": answering false here only means the caller
@@ -336,15 +343,17 @@ class InstagramService {
    * Only ever called before a *retry*: on the first attempt there is nothing
    * to have duplicated, and this would be one wasted call per listing.
    */
-  async findPublishedListing(post) {
-    if (!this.isConfigured() || !post?._id) return null;
+  async findPublishedListing(post, options = {}) {
+    const targetIgUserId = options.igUserId || options.accountId || this.igUserId;
+    const targetToken = options.accessToken || this.accessToken;
+    if (!targetIgUserId || !targetToken || !post?._id) return null;
 
     const marker = `/dash/posts/${post._id}`;
     try {
-      const response = await this.get(`/${this.igUserId}/media`, {
+      const response = await this.get(`/${targetIgUserId}/media`, {
         fields: 'id,caption,permalink',
         limit: RECENT_MEDIA_LIMIT,
-      });
+      }, READ_TIMEOUT_MS, { accessToken: targetToken });
       const match = (response.data?.data || []).find((media) => String(media.caption || '').includes(marker));
       return match ? { mediaId: match.id, permalink: match.permalink || null } : null;
     } catch (error) {
@@ -358,9 +367,9 @@ class InstagramService {
    * id comes back from media_publish, and an IG permalink cannot be derived
    * from it, so it has to be asked for.
    */
-  async resolvePermalink(mediaId) {
+  async resolvePermalink(mediaId, options = {}) {
     try {
-      const response = await this.get(`/${mediaId}`, { fields: 'permalink' });
+      const response = await this.get(`/${mediaId}`, { fields: 'permalink' }, READ_TIMEOUT_MS, options);
       return response.data?.permalink || null;
     } catch (error) {
       console.warn(`Instagram permalink lookup failed for ${mediaId}: ${describeGraphError(error)}`);
@@ -375,8 +384,11 @@ class InstagramService {
    * the caller can store the handle this listing is reachable by on IG, and
    * slow down before Meta starts refusing calls.
    */
-  async postNewListing(post) {
-    if (!this.isConfigured()) {
+  async postNewListing(post, options = {}) {
+    const targetIgUserId = options.igUserId || options.accountId || this.igUserId;
+    const targetToken = options.accessToken || this.accessToken;
+
+    if (!targetIgUserId || !targetToken) {
       console.warn('Instagram posting skipped: INSTAGRAM_ACCOUNT_ID / FACEBOOK_PAGE_ACCESS_TOKEN not configured');
       return null;
     }
@@ -387,21 +399,22 @@ class InstagramService {
     // Instagram publishing is a two-step Graph API flow: create a media
     // container from the image, then publish that container.
     const containerResponse = await this.post(
-      `/${this.igUserId}/media`,
+      `/${targetIgUserId}/media`,
       { image_url: imageUrl, caption },
       CONTAINER_TIMEOUT_REQUEST_MS,
+      { accessToken: targetToken }
     );
     const containerId = containerResponse.data?.id;
     if (!containerId) {
       throw containerError('Instagram returned no media container id, please try again', 2207032);
     }
 
-    const readyStatus = await this.waitForContainerReady(containerId);
+    const readyStatus = await this.waitForContainerReady(containerId, { accessToken: targetToken });
 
     // The container was already published - only possible if a previous
     // attempt's answer was lost. Nothing more to publish; find the live post.
     if (readyStatus === 'PUBLISHED') {
-      const existing = await this.findPublishedListing(post);
+      const existing = await this.findPublishedListing(post, { igUserId: targetIgUserId, accessToken: targetToken });
       if (existing) return { ...existing, usage: null };
       throw containerError(
         'The Instagram container reports it was already published but the media could not be found, please try again',
@@ -409,12 +422,15 @@ class InstagramService {
       );
     }
 
-    const publishResult = await this.publishWithRetry(containerId);
+    const publishResult = await this.publishWithRetry(containerId, {
+      igUserId: targetIgUserId,
+      accessToken: targetToken,
+    });
 
     // Published, but the id came back on a call whose answer was lost. The
     // account itself is the source of truth for which media it is.
     if (publishResult.alreadyPublished || !publishResult.mediaId) {
-      const existing = await this.findPublishedListing(post);
+      const existing = await this.findPublishedListing(post, { igUserId: targetIgUserId, accessToken: targetToken });
       if (existing) return { ...existing, usage: publishResult.usage || null };
       throw containerError(
         'Instagram accepted the publish but did not return a media id, please try again',
@@ -427,7 +443,7 @@ class InstagramService {
 
     return {
       mediaId: publishResult.mediaId,
-      permalink: await this.resolvePermalink(publishResult.mediaId),
+      permalink: await this.resolvePermalink(publishResult.mediaId, { accessToken: targetToken }),
       usage: publishResult.usage,
     };
   }

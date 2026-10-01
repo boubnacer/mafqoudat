@@ -6,6 +6,11 @@ const { invalidateSocialImage, deleteSocialImage } = require('./socialImageServi
 const { deleteDynamicCategoryImage } = require('./socialCaption');
 const socialPublishNotificationService = require('./socialPublishNotificationService');
 const {
+  getSocialConfig,
+  isPlatformConfiguredForCountry,
+  resolveCountryCode,
+} = require('../config/socialChannels');
+const {
   describeGraphError,
   isRateLimitError,
   isPublishLimitError,
@@ -291,8 +296,19 @@ class SocialPublishQueue {
     const postId = post?._id;
     if (!postId) return [];
 
+    const countryCode = await resolveCountryCode(post?.country);
+
     const queued = [];
     for (const platform of this.configuredPlatforms()) {
+      // Check if this country has this platform configured
+      const isConfiguredForCountry = countryCode === 'MA'
+        ? (isPlatformConfiguredForCountry(platform, 'MA') || !!this.publishers[platform]?.service?.isConfigured?.())
+        : isPlatformConfiguredForCountry(platform, countryCode);
+
+      if (!isConfiguredForCountry) {
+        continue;
+      }
+
       const publisher = this.publishers[platform];
       if (readPath(post, publisher.postIdPath)) continue;
 
@@ -546,6 +562,27 @@ class SocialPublishQueue {
       return 'already-published';
     }
 
+    // Country configuration verification
+    const countryCode = await resolveCountryCode(post.country);
+    const countryConfig = getSocialConfig(countryCode);
+    const targetPlatformConfig = countryConfig[platform];
+
+    const isConfiguredForCountry = countryCode === 'MA'
+      ? (targetPlatformConfig?.isConfigured || !!publisher.service?.isConfigured?.())
+      : !!targetPlatformConfig?.isConfigured;
+
+    if (!isConfiguredForCountry) {
+      await this.finishJob(job._id, {
+        status: 'cancelled',
+        lastError: `Skipped: No ${platform} page configured for country ${countryCode}`,
+      });
+      return 'cancelled';
+    }
+
+    const targetOptions = platform === 'facebook'
+      ? { pageId: targetPlatformConfig?.pageId, pageAccessToken: targetPlatformConfig?.accessToken, countryCode }
+      : { igUserId: targetPlatformConfig?.accountId, accessToken: targetPlatformConfig?.accessToken, countryCode };
+
     // Every attempt after the first re-asks the platform whether this listing
     // is already there.
     //
@@ -559,7 +596,7 @@ class SocialPublishQueue {
     // case pays nothing for this.
     const hasBeenTried = (job.attempts || 0) > 0 || job.lastError === REQUEUED_BY_HAND;
     if (hasBeenTried && typeof publisher.service.findPublishedListing === 'function') {
-      const alreadyThere = await publisher.service.findPublishedListing(post);
+      const alreadyThere = await publisher.service.findPublishedListing(post, targetOptions);
       if (alreadyThere?.[publisher.idKey]) {
         console.warn(
           `Social publish queue: ${platform} already carries post ${post._id} `
@@ -571,7 +608,7 @@ class SocialPublishQueue {
 
     let result;
     try {
-      result = await publisher.service.postNewListing(post);
+      result = await publisher.service.postNewListing(post, targetOptions);
     } catch (error) {
       return this.handleFailure(job, platform, error, post);
     }

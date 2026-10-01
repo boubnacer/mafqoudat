@@ -40,6 +40,7 @@ const socialPublishQueue = require('../services/socialPublishQueue');
 const {
   PLATFORMS, PUBLISHERS, TICK_MS, HOURLY_WINDOW_MS, REQUEUED_BY_HAND,
 } = require('../services/socialPublishQueue');
+const { getConfiguredCountries, getSocialConfig } = require('../config/socialChannels');
 const { invalidateSocialImage } = require('../services/socialImageService');
 const { GRAPH_BASE_URL, describeGraphError } = require('../services/graphApi');
 const { isAvailable: dynamicImageAvailable } = require('../services/dynamicCategoryImage');
@@ -255,21 +256,39 @@ const doctor = async () => {
     report(WARN, 'SOCIAL_QUEUE_ENABLED is "false" - nothing will be published until that is changed');
   }
 
-  const facebookConfigured = PUBLISHERS.facebook.service.isConfigured();
-  const instagramConfigured = PUBLISHERS.instagram.service.isConfigured();
+  const configuredCountries = getConfiguredCountries();
+  report(
+    configuredCountries.length > 0 ? PASS : FAIL,
+    configuredCountries.length > 0
+      ? `Configured country channels: ${configuredCountries.join(', ')}`
+      : 'No country channels configured'
+  );
+
+  const maConfig = getSocialConfig('MA');
+  const facebookConfigured = maConfig.facebook.isConfigured || PUBLISHERS.facebook.service.isConfigured();
+  const instagramConfigured = maConfig.instagram.isConfigured || PUBLISHERS.instagram.service.isConfigured();
 
   report(
     facebookConfigured ? PASS : FAIL,
     facebookConfigured
-      ? `Facebook is configured (Page ${process.env.FACEBOOK_PAGE_ID})`
-      : 'FACEBOOK_PAGE_ID / FACEBOOK_PAGE_ACCESS_TOKEN are not both set'
+      ? `Facebook Morocco (MA) is configured (Page ${maConfig.facebook.pageId || process.env.FACEBOOK_PAGE_ID})`
+      : 'FACEBOOK_PAGE_ID / FACEBOOK_PAGE_ACCESS_TOKEN are not both set for Morocco'
   );
   report(
     instagramConfigured ? PASS : FAIL,
     instagramConfigured
-      ? `Instagram is configured (account ${process.env.INSTAGRAM_ACCOUNT_ID})`
-      : 'INSTAGRAM_ACCOUNT_ID / FACEBOOK_PAGE_ACCESS_TOKEN are not both set'
+      ? `Instagram Morocco (MA) is configured (account ${maConfig.instagram.accountId || process.env.INSTAGRAM_ACCOUNT_ID})`
+      : 'INSTAGRAM_ACCOUNT_ID / FACEBOOK_PAGE_ACCESS_TOKEN are not both set for Morocco'
   );
+
+  for (const code of configuredCountries) {
+    if (code === 'MA') continue;
+    const cfg = getSocialConfig(code);
+    report(
+      PASS,
+      `Country ${code}: FB Page ${cfg.facebook.pageId || 'none'}, IG Account ${cfg.instagram.accountId || 'none'}`
+    );
+  }
 
   if (!facebookConfigured && !instagramConfigured) {
     console.log('\nNothing else can be checked without credentials.\n');

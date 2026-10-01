@@ -15,9 +15,9 @@ const READ_TIMEOUT_MS = 15000;
 const RECENT_POST_LIMIT = 50;
 
 class FacebookService {
-  constructor() {
-    this.pageId = process.env.FACEBOOK_PAGE_ID;
-    this.pageAccessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+  constructor({ pageId = process.env.FACEBOOK_PAGE_ID, pageAccessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN } = {}) {
+    this.pageId = pageId;
+    this.pageAccessToken = pageAccessToken;
     this.baseURL = GRAPH_BASE_URL;
   }
 
@@ -33,17 +33,19 @@ class FacebookService {
    * intermittently, since it depends on how long this particular listing's
    * city and category names are.
    */
-  async post(path, fields, timeout = PUBLISH_TIMEOUT_MS) {
-    const body = new URLSearchParams({ ...fields, access_token: this.pageAccessToken });
+  async post(path, fields, timeout = PUBLISH_TIMEOUT_MS, { pageAccessToken } = {}) {
+    const token = pageAccessToken || this.pageAccessToken;
+    const body = new URLSearchParams({ ...fields, access_token: token });
     return axios.post(`${this.baseURL}${path}`, body.toString(), {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       timeout,
     });
   }
 
-  async get(path, params, timeout = READ_TIMEOUT_MS) {
+  async get(path, params, timeout = READ_TIMEOUT_MS, { pageAccessToken } = {}) {
+    const token = pageAccessToken || this.pageAccessToken;
     return axios.get(`${this.baseURL}${path}`, {
-      params: { ...params, access_token: this.pageAccessToken },
+      params: { ...params, access_token: token },
       timeout,
     });
   }
@@ -54,9 +56,9 @@ class FacebookService {
    * {page-id}_{post-id}` happens to redirect today and is kept only as the
    * fallback for when the lookup itself fails.
    */
-  async resolvePermalink(fbPostId) {
+  async resolvePermalink(fbPostId, { pageAccessToken } = {}) {
     try {
-      const response = await this.get(`/${fbPostId}`, { fields: 'permalink_url' });
+      const response = await this.get(`/${fbPostId}`, { fields: 'permalink_url' }, READ_TIMEOUT_MS, { pageAccessToken });
       if (response.data?.permalink_url) return response.data.permalink_url;
     } catch (error) {
       console.warn(`Facebook permalink lookup failed for ${fbPostId}: ${describeGraphError(error)}`);
@@ -83,17 +85,19 @@ class FacebookService {
    * never block a publish, and falling through leaves exactly the behaviour
    * that was there before it existed.
    */
-  async findPublishedListing(post) {
-    if (!this.isConfigured() || !post?._id) return null;
+  async findPublishedListing(post, options = {}) {
+    const targetPageId = options.pageId || this.pageId;
+    const targetToken = options.pageAccessToken || this.pageAccessToken;
+    if (!targetPageId || !targetToken || !post?._id) return null;
 
     const marker = `/dash/posts/${post._id}`;
     const carriesMarker = (text) => String(text || '').includes(marker);
 
     try {
-      const feed = await this.get(`/${this.pageId}/feed`, {
+      const feed = await this.get(`/${targetPageId}/feed`, {
         fields: 'id,message,permalink_url',
         limit: RECENT_POST_LIMIT,
-      });
+      }, READ_TIMEOUT_MS, { pageAccessToken: targetToken });
       const story = (feed.data?.data || []).find((item) => carriesMarker(item.message));
       if (story) return { postId: story.id, permalink: story.permalink_url || null };
     } catch (error) {
@@ -101,15 +105,15 @@ class FacebookService {
     }
 
     try {
-      const photos = await this.get(`/${this.pageId}/photos`, {
+      const photos = await this.get(`/${targetPageId}/photos`, {
         type: 'uploaded',
         fields: 'id,name,page_story_id',
         limit: RECENT_POST_LIMIT,
-      });
+      }, READ_TIMEOUT_MS, { pageAccessToken: targetToken });
       const photo = (photos.data?.data || []).find((item) => carriesMarker(item.name));
       if (photo) {
         const postId = photo.page_story_id || photo.id;
-        return { postId, permalink: await this.resolvePermalink(postId) };
+        return { postId, permalink: await this.resolvePermalink(postId, { pageAccessToken: targetToken }) };
       }
     } catch (error) {
       console.warn(`Facebook duplicate check (photos) failed for post ${post._id}: ${describeGraphError(error)}`);
@@ -126,8 +130,11 @@ class FacebookService {
    * possible to ask the Graph API how the listing is doing on the Page, and
    * reads `usage` to slow down before Meta starts refusing calls.
    */
-  async postNewListing(post) {
-    if (!this.isConfigured()) {
+  async postNewListing(post, options = {}) {
+    const targetPageId = options.pageId || this.pageId;
+    const targetToken = options.pageAccessToken || this.pageAccessToken;
+
+    if (!targetPageId || !targetToken) {
       console.warn('Facebook posting skipped: FACEBOOK_PAGE_ID / FACEBOOK_PAGE_ACCESS_TOKEN not configured');
       return null;
     }
@@ -135,7 +142,12 @@ class FacebookService {
     const { imageUrl, isPlaceholder } = await resolveListingImage(post);
     const caption = await buildListingCaption(post, { isPlaceholder });
 
-    const response = await this.post(`/${this.pageId}/photos`, { url: imageUrl, caption });
+    const response = await this.post(
+      `/${targetPageId}/photos`,
+      { url: imageUrl, caption },
+      PUBLISH_TIMEOUT_MS,
+      { pageAccessToken: targetToken }
+    );
 
     // A /photos publish answers with the photo id and, separately, the id of
     // the Page post wrapping it. Engagement lives on the post, not the photo.
@@ -144,7 +156,7 @@ class FacebookService {
 
     return {
       postId,
-      permalink: await this.resolvePermalink(postId),
+      permalink: await this.resolvePermalink(postId, { pageAccessToken: targetToken }),
       usage: readRateLimitUsage(response),
     };
   }
