@@ -20,6 +20,7 @@ const compressionConfig = {
     'text/css': 9,             // Maximum compression for CSS
     'application/javascript': 6, // Balanced compression for JS
     'text/plain': 9,           // Maximum compression for plain text
+    'image/svg+xml': 9,        // Maximum compression for SVG XML text
     'default': 6               // Default compression level
   },
   
@@ -36,7 +37,8 @@ const compressionConfig = {
     'text/html',
     'text/css',
     'application/javascript',
-    'text/plain'
+    'text/plain',
+    'image/svg+xml'
   ],
   
   // Content types that should never be compressed
@@ -45,7 +47,6 @@ const compressionConfig = {
     'image/png',
     'image/gif',
     'image/webp',
-    'image/svg+xml',
     'video/mp4',
     'video/webm',
     'audio/mpeg',

@@ -210,8 +210,21 @@ app.use(visitorTracker);
 // and every authenticate() call already passes { session: false }.
 app.use(passport.initialize());
 
+// High-performance static asset caching options for Google PageSpeed & mobile delivery
+const staticCacheOptions = {
+  maxAge: process.env.NODE_ENV === "production" ? "1d" : 0,
+  etag: true,
+  lastModified: true,
+  setHeaders: (res, filePath) => {
+    // Immutable caching for media, images, and fonts (30 days)
+    if (/\.(jpg|jpeg|png|gif|webp|avif|svg|ico|woff|woff2|ttf|eot)$/i.test(filePath)) {
+      res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+    }
+  }
+};
+
 // Serve static files
-app.use("/", express.static(path.join(__dirname, "public")));
+app.use("/", express.static(path.join(__dirname, "public"), staticCacheOptions));
 
 
 // Maintenance mode middleware (after auth setup, before routes)
@@ -364,7 +377,7 @@ app.get("/memory/report", async (req, res) => {
 
 // Admin routes removed for security
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads"), staticCacheOptions));
 
 // Health check endpoint for deployment monitoring
 app.get("/health", (req, res) => {

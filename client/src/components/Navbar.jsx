@@ -647,7 +647,8 @@ const Navbar = () => {
             <img
               src="/maflogoSVG.svg?v=2"
               alt={t("brandName")}
-              loading="lazy"
+              decoding="async"
+              fetchpriority="high"
               style={{ height: "auto", maxHeight: "42px", width: "auto" }}
             />
           </LogoButton>
@@ -951,8 +952,8 @@ const Navbar = () => {
               borderRadius: `${theme.custom.radius.md}px`,
               boxShadow: theme.custom.elevation.e3,
               border: `1px solid ${alpha(theme.custom.color.ink, 0.1)}`,
-              minWidth: 320,
-              maxWidth: 400,
+              minWidth: { xs: "calc(100vw - 32px)", sm: 320 },
+              maxWidth: { xs: "calc(100vw - 32px)", sm: 400 },
             },
           }}
         >

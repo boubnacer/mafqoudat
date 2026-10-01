@@ -157,6 +157,8 @@ const Blog = () => {
                         height="200"
                         image={post.image}
                         alt={post.title}
+                        loading="lazy"
+                        decoding="async"
                         sx={{
                           objectFit: 'cover',
                           backgroundColor: theme.palette.grey[200],

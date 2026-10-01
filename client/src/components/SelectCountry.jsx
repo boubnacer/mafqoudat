@@ -73,7 +73,9 @@ const SelectCountry = ({ name, countries, language = 'en' }) => {
           ) : (
             <img
               loading="lazy"
+              decoding="async"
               width="20"
+              height="15"
               src={getFlagSource(option)}
               srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
               alt=""

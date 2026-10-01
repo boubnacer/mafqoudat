@@ -173,6 +173,7 @@ const BlogPostPage = () => {
                 component="img"
                 src={post.image}
                 alt={localized.title}
+                decoding="async"
                 sx={{
                   width: '100%',
                   maxHeight: 420,

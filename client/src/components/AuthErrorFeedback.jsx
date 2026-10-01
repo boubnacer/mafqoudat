@@ -282,7 +282,7 @@ const AuthErrorFeedback = ({
           setShowFeedback(false);
           onDismiss?.();
         }}
-        sx={{ minWidth: 400 }}
+        sx={{ minWidth: { xs: 'auto', sm: 400 }, maxWidth: '95vw' }}
       >
         <AlertTitle>{errorMessage.title}</AlertTitle>
         {errorMessage.message}

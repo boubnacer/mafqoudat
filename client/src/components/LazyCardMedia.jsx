@@ -190,6 +190,7 @@ const LazyCardMedia = ({
             src={imageSrc}
             alt={alt}
             loading={supportsNativeLazy ? loading : undefined}
+            decoding="async"
             onLoad={handleLoad}
             onError={handleError}
             style={{
