@@ -31,34 +31,52 @@ const LOCALES = ['ar', 'fr', 'en'];
 // the hashtags (how it's found) further down the feed card.
 const LOCALE_TEXT = {
   ar: {
-    lostVerb: 'فقدان',
-    foundVerb: 'عثور على',
-    inCountry: 'بدولة',
-    inCity: (city) => ` في مدينة ${city}`,
-    exactlyAt: '، تحديداً في :',
-    contactHeading: 'للمزيد من المعلومات والتواصل :',
+    docFoundTitle: (name) => (name ? `عُثر على وثائق باسم: 👤 ${name}` : 'عُثر على وثائق'),
+    docLostTitle: (name) => (name ? `إعلان فقدان وثائق باسم: 👤 ${name}` : 'إعلان فقدان وثائق'),
+    itemFoundTitle: (cat) => `تم العثور على: ${cat}`,
+    itemLostTitle: (cat) => `إعلان فقدان: ${cat}`,
+    typePrefix: 'النوع: ',
+    cityPrefix: 'المدينة: ',
+    locationPrefix: 'المكان: ',
+    docFoundPrompt: 'من يعرف صاحب الوثائق يرجى إخباره أو مشاركة المنشور.',
+    docLostPrompt: 'المرجو ممن عثر عليها أو لديه أي معلومة المساعدة والتواصل.',
+    itemFoundPrompt: 'المرجو ممن لديه أي معلومة المساعدة والتواصل.',
+    itemLostPrompt: 'المرجو ممن عثر عليه أو لديه أي معلومة المساعدة والتواصل.',
+    contactDocFound: 'للتواصل واستلام الوثائق :',
+    contactDefault: 'للمزيد من المعلومات والتواصل :',
     listSeparator: '، ',
-    ownerHeading: 'الاسم على الوثيقة',
   },
   fr: {
-    lostVerb: 'Perte de',
-    foundVerb: 'Découverte de',
-    inCountry: 'dans le pays',
-    inCity: (city) => `, dans la ville de ${city}`,
-    exactlyAt: ', exactement à :',
-    contactHeading: "Pour plus d'informations et contact :",
+    docFoundTitle: (name) => (name ? `Documents trouvés au nom de : 👤 ${name}` : 'Documents trouvés'),
+    docLostTitle: (name) => (name ? `Perte de documents au nom de : 👤 ${name}` : 'Perte de documents'),
+    itemFoundTitle: (cat) => `Objet trouvé : ${cat}`,
+    itemLostTitle: (cat) => `Objet perdu : ${cat}`,
+    typePrefix: 'Type : ',
+    cityPrefix: 'Ville : ',
+    locationPrefix: 'Lieu : ',
+    docFoundPrompt: 'Si vous connaissez la personne, merci de la taguer ou de partager.',
+    docLostPrompt: 'Si vous l\'avez trouvé ou avez des informations, merci de contacter le propriétaire.',
+    itemFoundPrompt: 'Si vous avez des informations, merci de contacter.',
+    itemLostPrompt: 'Si vous l\'avez trouvé ou avez des informations, merci de contacter le propriétaire.',
+    contactDocFound: 'Détails & contact :',
+    contactDefault: 'Pour plus d\'informations et contact :',
     listSeparator: ', ',
-    ownerHeading: 'Nom figurant sur le document',
   },
   en: {
-    lostVerb: 'Lost',
-    foundVerb: 'Found',
-    inCountry: 'in the country of',
-    inCity: (city) => `, in the city of ${city}`,
-    exactlyAt: ', exactly at:',
-    contactHeading: 'For more information & contact:',
+    docFoundTitle: (name) => (name ? `Documents found under the name of: 👤 ${name}` : 'Documents found'),
+    docLostTitle: (name) => (name ? `Lost documents under the name of: 👤 ${name}` : 'Lost documents'),
+    itemFoundTitle: (cat) => `Found item: ${cat}`,
+    itemLostTitle: (cat) => `Lost item: ${cat}`,
+    typePrefix: 'Type: ',
+    cityPrefix: 'City: ',
+    locationPrefix: 'Location: ',
+    docFoundPrompt: 'If you know this person, please tag them or share.',
+    docLostPrompt: 'If you found this or have any info, please reach out to help the owner.',
+    itemFoundPrompt: 'If you have any information, please reach out.',
+    itemLostPrompt: 'If you found this or have any info, please reach out to help the owner.',
+    contactDocFound: 'More info & contact:',
+    contactDefault: 'For more information & contact:',
     listSeparator: ', ',
-    ownerHeading: 'Name on the document',
   },
 };
 
@@ -71,17 +89,17 @@ const BLOCK_DIVIDER = '➖➖➖➖➖➖➖➖➖➖';
 // past the point of diminishing returns, so the cap is applied either way.
 const MAX_HASHTAGS = 30;
 
-// Fixed SEO tags on every post, in addition to the per-post city/category
-// ones below - drawn from the same vocabulary the site's own SEO copy uses
-// (seoDefaultRegion / defaultSeo.title in seoConfig.js: "lost and found
-// platform", "Morocco and the Arab world"), so a search on any of these
-// general terms in ar/fr/en lands on the Page/account too, not just a search
-// for one city or category.
-const SEED_HASHTAGS = [
+// Multilingual core SEO keywords for organic reach & platform discoverability:
+const CORE_HASHTAGS = [
   '#مفقودات', '#Mafqoudat',
-  '#مفقود', '#موجودات', '#مفقودين', '#العثور_على_مفقودات', '#المغرب', '#الوطن_العربي',
-  '#LostAndFound', '#Lost', '#Found', '#Missing', '#Morocco',
-  '#ObjetsPerdus', '#ObjetsTrouvés', '#PersonnesDisparues', '#Maroc',
+  '#مفقود', '#موجودات', '#معثورات', '#أغراض_ضائعة', '#العثور_على_مفقودات',
+  '#LostAndFound', '#LostItem', '#FoundItem', '#Missing',
+  '#ObjetsPerdus', '#ObjetsTrouvés', '#Perdu', '#Trouvé',
+];
+
+const DOCUMENT_HASHTAGS = [
+  '#وثائق', '#بطاقة_التعريف', '#جواز_سفر', '#وثائق_ضائعة',
+  '#Documents', '#Passeport', '#Passport', '#IDCard',
 ];
 
 // What a hard-truncated caption ends with, in the rare case even zero
@@ -89,8 +107,12 @@ const SEED_HASHTAGS = [
 // Instagram, whose caption limit the caller passes in.
 const TRUNCATION_MARK = '…';
 
-// Hashtags can't contain spaces or punctuation - strip both.
-const toHashtag = (label) => label && `#${label.replace(/[\s'"،.,-]/g, '')}`;
+// Hashtags can't contain spaces or punctuation - convert spaces/hyphens to underscore.
+const toHashtag = (label) => {
+  if (!label || typeof label !== 'string') return null;
+  const tag = label.trim().replace(/[\s-]+/g, '_').replace(/['"؛،.,/\\()]/g, '');
+  return tag ? `#${tag}` : null;
+};
 
 /**
  * A post without an uploaded image still posts with a branded graphic instead
@@ -221,9 +243,8 @@ function buildLocaleBlock(locale, data) {
   const {
     statusCode,
     categoryLabel,
+    hasDocuments,
     ownerName,
-    countryFlag,
-    countryLabel,
     cityLabel,
     exactLocation,
     postUrl,
@@ -234,34 +255,55 @@ function buildLocaleBlock(locale, data) {
   // at the start of French/English lines would otherwise inherit RTL alignment
   // and flip punctuation/parentheses. Injecting LRM (\u200E) at the start of
   // Latin lines locks each paragraph into Left-To-Right direction.
+  // Injecting RLM (\u200F) at the start of Arabic lines locks each paragraph
+  // into Right-To-Left direction.
   const isRTL = locale === 'ar';
   const mark = isRTL ? RLM : LRM;
 
-  const verb = statusCode === 'FOUND' ? t.foundVerb : t.lostVerb;
-  const emoji = HEADER_EMOJI[statusCode] || '📢';
-  const flagPrefix = countryFlag ? `${countryFlag} ` : '';
-  const categoryClause = categoryLabel ? `${categoryLabel} ` : '';
+  const isFound = statusCode === 'FOUND';
+  const statusEmoji = HEADER_EMOJI[statusCode] || (isFound ? '🟢' : '🔴');
 
-  let locationText = '';
-  if (cityLabel) {
-    locationText += t.inCity(cityLabel);
+  const lines = [];
+
+  if (hasDocuments) {
+    const title = isFound ? t.docFoundTitle(ownerName) : t.docLostTitle(ownerName);
+    lines.push(`${mark}📢 ${title}`);
+    lines.push(`${mark}${statusEmoji} ${t.typePrefix}${categoryLabel}`);
+  } else {
+    const title = isFound ? t.itemFoundTitle(categoryLabel) : t.itemLostTitle(categoryLabel);
+    lines.push(`${mark}${statusEmoji} ${title}`);
   }
-  if (exactLocation) {
-    locationText += `${t.exactlyAt}\n${mark}📍 ${exactLocation}`;
+
+  // Location line (City + optional exact spot in parentheses, or standalone)
+  let locLine = '';
+  if (cityLabel && exactLocation) {
+    const prefix = hasDocuments ? t.cityPrefix : t.locationPrefix;
+    locLine = `${mark}📍 ${prefix}${cityLabel} (${exactLocation})`;
+  } else if (cityLabel) {
+    locLine = `${mark}📍 ${t.cityPrefix}${cityLabel}`;
+  } else if (exactLocation) {
+    locLine = `${mark}📍 ${t.locationPrefix}${exactLocation}`;
+  }
+  if (locLine) {
+    lines.push(locLine);
   }
 
-  const header = `${mark}${flagPrefix}${emoji} ${verb} ${categoryClause}${t.inCountry} ${countryLabel}${locationText}${mark}`;
+  // Social action / share prompt
+  let prompt = '';
+  if (hasDocuments) {
+    prompt = isFound ? t.docFoundPrompt : t.docLostPrompt;
+  } else {
+    prompt = isFound ? t.itemFoundPrompt : t.itemLostPrompt;
+  }
+  if (prompt) {
+    lines.push(`${mark}${prompt}`);
+  }
 
-  // And the name written on them, which is what its owner recognises the
-  // listing by - the same reason the site itself asks for it. Only ever
-  // present on a documents listing, so no other caption gains a line.
-  const ownerLine = ownerName ? `${mark}👤 ${t.ownerHeading}: ${ownerName}${mark}` : null;
+  // Contact line with LTR isolated URL
+  const contactHeading = (hasDocuments && isFound) ? t.contactDocFound : t.contactDefault;
+  lines.push(`${mark}👉 ${contactHeading}\n${LRM}${postUrl}`);
 
-  const contactLine = `${mark}👉 ${t.contactHeading}\n${LRM}${postUrl}`;
-
-  return [header, ownerLine, contactLine]
-    .filter(Boolean)
-    .join('\n\n\n');
+  return lines.join('\n\n');
 }
 
 /**
@@ -325,7 +367,7 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
     }
   }
 
-  const countryFlag = getCountryFlag(country);
+  const hasDocuments = orderedDocumentTypes.length > 0 || docIndex !== -1;
   const cleanExactLocation = (post.exactLocation || '').replace(/[\r\n]+/g, ' ').trim();
 
   const statusCode = foundLost?.code;
@@ -333,17 +375,19 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
   const postUrl = `${siteUrl}/dash/posts/${post._id}`;
 
   // Caption is trilingual, so the per-post hashtags follow: one set per
-  // language (city + every category), not just Arabic - a French or English
-  // reader searching a hashtag should find the post too. A city/category
+  // language (city + every category + country), not just Arabic - a French or English
+  // reader searching a hashtag should find the post too. A city/category/country
   // whose fr and en labels happen to be spelled the same (e.g. "Agadir")
   // would otherwise repeat the identical tag - a Set collapses that. These
-  // sit after the fixed SEED_HASHTAGS so a trim (below) drops the specific
+  // sit after the fixed CORE_HASHTAGS so a trim (below) drops the specific
   // ones before the general-reach ones.
-  const localizedHashtags = LOCALES.flatMap((locale) => [
-    toHashtag(city?.labels?.[locale]),
-    ...sortedCategories.map((c) => toHashtag(c.labels?.[locale])),
-  ]).filter(Boolean);
-  const allHashtags = [...new Set([...SEED_HASHTAGS, ...localizedHashtags])].slice(0, MAX_HASHTAGS);
+  const localizedHashtags = [
+    ...(hasDocuments ? DOCUMENT_HASHTAGS : []),
+    ...LOCALES.map((locale) => toHashtag(city?.labels?.[locale])),
+    ...LOCALES.flatMap((locale) => sortedCategories.map((c) => toHashtag(c.labels?.[locale]))),
+    ...LOCALES.map((locale) => toHashtag(country?.names?.[locale])),
+  ].filter(Boolean);
+  const allHashtags = [...new Set([...CORE_HASHTAGS, ...localizedHashtags])].slice(0, MAX_HASHTAGS);
 
   const blocks = LOCALES.map((locale) => {
     const t = LOCALE_TEXT[locale];
@@ -367,14 +411,13 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
     return buildLocaleBlock(locale, {
       statusCode,
       categoryLabel,
+      hasDocuments,
       // Each block gets the name in its own script, falling back to the other
       // one when only that was written - an Arabic block with a Latin name still
       // beats no name at all on a listing whose photo nobody will ever see.
       ownerName: orderedDocumentTypes.length > 0
         ? (locale === 'ar' ? (ownerNameAr || ownerNameLatin) : (ownerNameLatin || ownerNameAr))
         : '',
-      countryFlag,
-      countryLabel: country?.names?.[locale] || '',
       cityLabel: city?.labels?.[locale] || '',
       exactLocation: cleanExactLocation,
       postUrl,

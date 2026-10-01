@@ -569,7 +569,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // differs, so keeping the previous step's scroll offset can land the next
   // step's content mid-form or past its end.
   const goToStep = (nextIndex) => {
-    console.log(`[NewPostForm] Navigating to step ${nextIndex} (${steps[nextIndex]?.key || 'unknown'}) from step ${activeStep}`);
     setStepDirection(nextIndex > activeStep ? 1 : -1);
     setActiveStep(nextIndex);
     smoothScrollToTop();
@@ -808,21 +807,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   }, [closePushDialog, currentLanguage]);
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
-    console.log(`\n======================================================`);
-    console.log(`[NewPostForm] [SUBMIT STEP 1/5] "Create post" button clicked at ${new Date().toISOString()}`);
-    console.log(`[NewPostForm] ActiveStep: ${activeStep}, MaxStepReached: ${maxStepReached}`);
-    console.log(`[NewPostForm] Values:`, {
-      categories: values.categories,
-      country: values.country,
-      city: values.city,
-      foundLost: values.foundLost,
-      exactLocation: values.exactLocation,
-      exactDate: values.exactDate,
-      hasImage: !!selectedImage,
-      documentsMode,
-      tokenPresent: !!token
-    });
-
     try {
       // Clear any previous validation errors
       setStatus(null);
@@ -833,7 +817,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         ? values.categories
         : (values.category ? [values.category] : []);
 
-      console.log(`[NewPostForm] [SUBMIT STEP 2/5] Running wizard validation across all steps...`);
       // Safety net: re-run every step's validator in case a field was somehow
       // cleared after its step was already passed (S2). Jump to the earliest
       // offending step rather than just blocking submission.
@@ -860,7 +843,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       });
 
       if (missingFields.length > 0) {
-        console.warn(`[NewPostForm] [SUBMIT STEP 2 FAILED] Form validation failed with missing fields:`, missingFields, newFieldErrors);
         const errorMessage = `${t('fillRequiredFields')}: ${missingFields.join(', ')}`;
         setStatus({ validationError: errorMessage });
         setFieldErrors(newFieldErrors);
@@ -870,9 +852,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         scrollToFirstErrorField(newFieldErrors);
         return;
       }
-      console.log(`[NewPostForm] [SUBMIT STEP 2 SUCCESS] All wizard step validations passed`);
 
-      console.log(`[NewPostForm] [SUBMIT STEP 3/5] Building FormData and payload...`);
       const formData = new FormData();
       
       // Auto-generate rich SEO description if user didn't enter a custom one
@@ -940,16 +920,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // Append combined data as single field
       const postDataString = JSON.stringify(postData);
       formData.append("postData", postDataString);
-      console.log(`[NewPostForm] [SUBMIT STEP 3 SUCCESS] Payload JSON:`, postData);
       
       // Only append image if present - and never on a documents listing, whose
       // Photo step does not exist. The effect that removes the step clears the
       // photo too; this is the backstop, on the one path that would publish it.
       if (selectedImage && !documentsOnlyMode) {
         formData.append("image", selectedImage);
-        console.log(`[NewPostForm] Appended image to FormData:`, selectedImage.name, `${selectedImage.size} bytes`, selectedImage.type);
-      } else {
-        console.log(`[NewPostForm] No image appended (selectedImage: ${!!selectedImage}, documentsOnlyMode: ${documentsOnlyMode})`);
       }
 
       // The offer comes after validation and before the listing is created, so
@@ -957,9 +933,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // still the thing they are doing - and nobody is asked about a listing
       // that was never going to be accepted. Publishing continues whatever
       // they answer.
-      console.log(`[NewPostForm] [SUBMIT STEP 4/5] Checking browser notifications offer...`);
       await offerBrowserNotifications();
-      console.log(`[NewPostForm] [SUBMIT STEP 4 SUCCESS] Browser notifications offer step completed`);
 
       // .unwrap() is what makes a 400 actually land in the catch below -
       // without it this promise never rejects (RTK Query mutations resolve
@@ -967,12 +941,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // through to the render's `if (isError) return <...>` further down,
       // which replaces the entire wizard - every step's state - with a dead-
       // end error screen instead of the recoverable inline message below.
-      console.log(`[NewPostForm] [SUBMIT STEP 5/5] Sending addNewPost mutation to server...`);
-      const startTime = Date.now();
       const result = await addNewPost(formData).unwrap();
-      const elapsed = Date.now() - startTime;
-      console.log(`[NewPostForm] [SUBMIT SUCCESS] Post successfully created in ${elapsed}ms! Response:`, result);
-
       isExitingRef.current = true;
       const createdPostId = result?.postId || result?._id || result?.id;
       if (createdPostId) {
@@ -981,13 +950,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         navigate("/dash", { replace: true });
       }
     } catch (error) {
-      console.error('[NewPostForm] [SUBMIT ERROR] Error in handleSubmit:', error);
-      console.error('[NewPostForm] Error details:', {
-        status: error?.status,
-        data: error?.data,
-        message: error?.message,
-        originalError: error
-      });
+      console.error('Error in handleSubmit:', error);
       // An unwrapped RTK Query rejection is the server's own error shape
       // ({ status, data: { message } }, from postsApiSlice's
       // transformErrorResponse), not a plain Error - .message on it is

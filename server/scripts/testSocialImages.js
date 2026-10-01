@@ -189,9 +189,9 @@ async function run() {
   );
   checkThat(
     'each block carries the name in its own script',
-    documentsCaption.includes('الاسم على الوثيقة: محمد العلوي')
-      && documentsCaption.includes('Nom figurant sur le document: Mohamed Alaoui')
-      && documentsCaption.includes('Name on the document: Mohamed Alaoui'),
+    documentsCaption.includes('باسم: 👤 محمد العلوي')
+      && documentsCaption.includes('au nom de : 👤 Mohamed Alaoui')
+      && documentsCaption.includes('under the name of: 👤 Mohamed Alaoui'),
   );
 
   const multiCategoryDocPost = {
@@ -206,9 +206,9 @@ async function run() {
   const multiCategoryCaption = await buildListingCaption(multiCategoryDocPost);
   checkThat(
     'when Documents is selected with other categories, Documents is last and has document types attached',
-    multiCategoryCaption.includes('Lost Keys, Documents (Passport, National identity card)')
-      && multiCategoryCaption.includes("Perte de Clés, Documents (Passeport, Carte nationale d'identité)")
-      && multiCategoryCaption.includes('فقدان مفاتيح، وثائق (جواز السفر، بطاقة الهوية الوطنية)'),
+    multiCategoryCaption.includes('Keys, Documents (Passport, National identity card)')
+      && multiCategoryCaption.includes("Clés, Documents (Passeport, Carte nationale d'identité)")
+      && multiCategoryCaption.includes('مفاتيح، وثائق (جواز السفر، بطاقة الهوية الوطنية)'),
     'Documents must be the last category in caption and have type in parentheses',
   );
 
@@ -220,9 +220,9 @@ async function run() {
   const reverseMultiCaption = await buildListingCaption(reverseMultiDocPost);
   checkThat(
     'Documents is still last even if selected after other categories',
-    reverseMultiCaption.includes('Lost Keys, Documents (Passport, National identity card)')
-      && reverseMultiCaption.includes("Perte de Clés, Documents (Passeport, Carte nationale d'identité)")
-      && reverseMultiCaption.includes('فقدان مفاتيح، وثائق (جواز السفر، بطاقة الهوية الوطنية)'),
+    reverseMultiCaption.includes('Keys, Documents (Passport, National identity card)')
+      && reverseMultiCaption.includes("Clés, Documents (Passeport, Carte nationale d'identité)")
+      && reverseMultiCaption.includes('مفاتيح، وثائق (جواز السفر، بطاقة الهوية الوطنية)'),
   );
 
   const capped = await buildListingCaption(longPost, { maxLength: IG_LIMIT });
@@ -233,21 +233,21 @@ async function run() {
   );
 
   checkThat(
-    'the country flag and exact location are in the caption for all languages',
-    unbounded.includes('🇲🇦 🔴 Lost')
-      && unbounded.includes('🇲🇦 🔴 Perte de')
-      && unbounded.includes('🇲🇦 🔴 فقدان')
-      && unbounded.includes('exactly at:\n\u200E📍 Rue Mohammed V, near the central market')
-      && unbounded.includes('exactement à :\n\u200E📍 Rue Mohammed V, near the central market')
-      && unbounded.includes('تحديداً في :\n\u200F📍 Rue Mohammed V, near the central market'),
-    'country flag + status dot and exact location on new line',
+    'the hook, status dot and exact location are in the caption for all languages',
+    unbounded.includes('🔴 Lost item:')
+      && unbounded.includes('🔴 Objet perdu :')
+      && unbounded.includes('🔴 إعلان فقدان:')
+      && unbounded.includes('📍 Location: Casablanca (Rue Mohammed V, near the central market)')
+      && unbounded.includes('📍 Lieu : Casablanca (Rue Mohammed V, near the central market)')
+      && unbounded.includes('📍 المكان: الدار البيضاء (Rue Mohammed V, near the central market)'),
+    'hook + status dot and location with city and exact spot',
   );
 
   const tightLimit = 1000;
   const tight = await buildListingCaption(longPost, { maxLength: tightLimit });
   checkThat('a tight limit is honored', tight.length <= tightLimit, `${tight.length} characters`);
   checkThat('the link survives the trim', tight.includes(`/dash/posts/${longPost._id}`));
-  checkThat('all three languages are still there', tight.includes('Perte de') && tight.includes('Lost') && tight.includes('فقدان'));
+  checkThat('all three languages are still there', tight.includes('Objet perdu') && tight.includes('Lost item') && tight.includes('إعلان فقدان'));
 
   console.log(`\n${checks - failures}/${checks} checks passed`);
   if (failures > 0) process.exit(1);

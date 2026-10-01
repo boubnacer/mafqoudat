@@ -50,8 +50,6 @@ const userOrIpKeyGenerator = (req) => (req.user ? `user:${req.user}` : `ip:${req
 // until *this key's* window resets) instead of createRateLimiter's default, which just
 // echoes the full windowMs regardless of how much of the window has already elapsed.
 const postLimitHandler = (req, res, next, options) => {
-  console.warn(`[CREATE_POST] [RATE LIMIT EXCEEDED] ${options.message} | URL: ${req.method} ${req.url} | Key: ${userOrIpKeyGenerator(req)}`);
-
   logEvents(
     `Rate Limit Exceeded: ${options.message}\t${req.method}\t${req.url}\t${userOrIpKeyGenerator(req)}\t${req.headers.origin}`,
     "errLog.log"

@@ -195,18 +195,18 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         return response;
       },
       transformErrorResponse: (response) => {
-        console.error('[postsApiSlice] addNewPost mutation received error response:', response);
+        
         // Handle server error responses
         if (response.status === 400) {
           return { 
             status: 400, 
-            data: { message: response?.data?.error?.message || response?.data?.message || "Invalid post data. Please check your input." } 
+            data: { message: response?.data?.message || "Invalid post data. Please check your input." } 
           };
         }
         if (response.status === 500) {
           return { 
             status: 500, 
-            data: { message: response?.data?.error?.message || response?.data?.message || "Failed to create post. Please try again." } 
+            data: { message: response?.data?.message || "Failed to create post. Please try again." } 
           };
         }
         return response;
