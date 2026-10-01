@@ -451,6 +451,14 @@ mongoose.connection.once("open", () => {
     .catch((err) => {
       console.error("Failed to prepare DocumentType collection:", err?.message || err);
     });
+  // Post text indexes use language_override:"none" (models/Post.js) to prevent
+  // MongoDB error 17262: the schema has a field named `language` with default
+  // 'ar', and MongoDB's text index treats that as a language-stemmer directive -
+  // 'ar' is unsupported, so every insert fails. syncIndexes() here ensures the
+  // corrected indexes are applied on every deploy after the old ones are dropped.
+  require("./models/Post").syncIndexes().catch((err) => {
+    console.error("Failed to sync Post indexes:", err?.message || err);
+  });
   // Drains the Facebook/Instagram publishing queue, one post at a time per
   // platform (services/socialPublishQueue.js). Needs the database, so it
   // starts here rather than at require time; does nothing when no Page or
