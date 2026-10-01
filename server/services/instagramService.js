@@ -215,7 +215,8 @@ class InstagramService {
    * only "ERROR" - the reason, and the subcode the queue classifies on, are
    * in the string.
    */
-  async waitForContainerReady(containerId, { timeoutMs = this.containerTimeoutMs } = {}) {
+  async waitForContainerReady(containerId, options = {}) {
+    const timeoutMs = options.timeoutMs || this.containerTimeoutMs;
     const deadline = Date.now() + timeoutMs;
     let interval = this.pollFirstIntervalMs;
     let lastStatus = null;
