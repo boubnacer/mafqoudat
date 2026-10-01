@@ -308,10 +308,14 @@ const postSchema = new mongoose.Schema(
 );
 
 // Index for efficient text search
+// language_override:'none' prevents MongoDB from treating the schema's
+// `language` field (which stores 'ar') as a stemmer directive. MongoDB does
+// not support 'ar' as a text-index language (error 17262), so we disable
+// language override entirely and fall back to simple tokenisation.
 postSchema.index({ 
   "exactLocation": "text",
   "description": "text"
-});
+}, { language_override: "none" });
 
 // Optimized compound indexes for common query patterns
 // 1. Primary query pattern: Country + FoundLost + Status + CreatedAt (most common)
@@ -361,7 +365,7 @@ postSchema.index(
 // 11. Search optimization: Country + Status + Text search
 postSchema.index(
   { country: 1, status: 1, exactLocation: "text", description: "text" },
-  { name: "country_status_text_search_optimized" }
+  { name: "country_status_text_search_optimized", language_override: "none" }
 );
 
 // Virtual for backward compatibility - get first category from categories array
