@@ -30,7 +30,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 
-const DashFooter = () => {
+const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
   const navigate = useNavigate();
   const { country } = useAuth();
   const token = useSelector(selectCurrentToken);
@@ -246,11 +246,14 @@ const DashFooter = () => {
     <Box
       component="footer"
       sx={{
+        width: "100%",
         backgroundColor: theme.custom.color.surfaceRaised,
         padding: { xs: "4rem 2rem 1.5rem", "@media (min-width: 1920px)": "5rem 3rem 2rem" },
         position: "relative",
         borderTop: `1px solid ${alpha(theme.custom.color.ink, 0.08)}`,
+        ...sx,
       }}
+      {...otherProps}
     >
       <Grid
         container

@@ -67,6 +67,9 @@ const formatShortDate = (dateString, lang) => {
 // Styled components — all values sourced from theme.custom (Phase 1 tokens)
 const PageContainer = styled(Box)(({ theme }) => ({
   minHeight: "100vh",
+  display: "flex",
+  flexDirection: "column",
+  flexShrink: 0,
   backgroundColor: theme.custom.color.surfaceBase,
   direction: theme.direction || "ltr",
 }));
@@ -777,7 +780,8 @@ const WelcomePage = () => {
     <>
       {seoMetadata}
       <PageContainer>
-        <Menu
+        <Box sx={{ flex: '1 0 auto' }}>
+          <Menu
           anchorEl={languageAnchorEl}
           open={Boolean(languageAnchorEl)}
           onClose={handleLanguageClose}
@@ -1225,8 +1229,9 @@ const WelcomePage = () => {
             </Button>
           </Box>
         </Box>
+        </Box>
+        <DashFooter sx={{ mt: 'auto' }} />
       </PageContainer>
-      <DashFooter />
     </>
   );
 };
