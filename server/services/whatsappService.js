@@ -264,6 +264,9 @@ const connect = async () => {
           } else if (statusCode === 515 || statusCode === DisconnectReason?.restartRequired) {
             // Normal post-pairing handshake — reconnect immediately
             setTimeout(connect, 1000);
+          } else if (statusCode === 440 || statusCode === DisconnectReason?.connectionReplaced) {
+            console.warn('[WhatsApp] ⚠️ Connection replaced (440): Another server instance (e.g., Railway deployment vs local dev, or duplicate process) connected with this session. Waiting 30s before retrying to prevent connection conflict...');
+            setTimeout(connect, 30_000);
           } else {
             console.warn(`[WhatsApp] Connection closed (${statusCode}), reconnecting in 5 s…`);
             setTimeout(connect, 5000);
