@@ -724,17 +724,64 @@ class SocialPublishQueue {
   }
 
   /**
-   * Tells the author what became of their listing's copy on one platform.
+   * Tells the author what became of their listing's copy once all queued social
+   * media jobs for this post have reached a terminal state.
    *
-   * Sent per platform as each job reaches a terminal state, never held back
-   * for the other one - see socialPublishNotificationService for why. Awaited
-   * only so a test can observe it; it swallows its own failures, and this
-   * catch is the second belt: a notification must never be able to turn a
-   * successful publish into a retried one.
+   * Listings are mirrored to both Facebook and Instagram. Alerts are held back
+   * until both posts have finished (or all configured platforms reach terminal
+   * states) so the author receives a single unified notification rather than
+   * rapid consecutive notifications that trigger spam filters.
    */
   async announce(post, platform, status) {
     try {
-      await this.notifyAuthor({ post, platform, status });
+      const postId = post?._id;
+      if (!postId) {
+        await this.notifyAuthor({ post, platform, status });
+        return;
+      }
+
+      // Check if there are other jobs still pending or processing for this post.
+      // We don't push any notification until all queued jobs have finished.
+      if (typeof this.jobs.countDocuments === 'function') {
+        const remaining = await this.jobs.countDocuments({
+          post: postId,
+          status: { $in: ['pending', 'processing'] },
+        });
+        if (remaining > 0) {
+          return;
+        }
+      }
+
+      // All jobs for this post have reached a terminal state.
+      let allJobs = [];
+      if (typeof this.jobs.find === 'function') {
+        const query = this.jobs.find({ post: postId });
+        allJobs = typeof query?.lean === 'function' ? await query.lean() : await query;
+      }
+
+      const doneJobs = allJobs.filter((j) => j.status === 'done');
+      const failedJobs = allJobs.filter((j) => j.status === 'failed');
+
+      let latestPost = post;
+      if (typeof this.posts.findById === 'function') {
+        latestPost = (await this.posts.findById(postId).lean()) || post;
+      }
+
+      if (doneJobs.length >= 2) {
+        // Both platforms succeeded!
+        await this.notifyAuthor({ post: latestPost, platform: 'both', status: 'published' });
+      } else if (failedJobs.length >= 2) {
+        // Both platforms failed!
+        await this.notifyAuthor({ post: latestPost, platform: 'both', status: 'failed' });
+      } else {
+        // Mixed or single outcome
+        for (const doneJob of doneJobs) {
+          await this.notifyAuthor({ post: latestPost, platform: doneJob.platform, status: 'published' });
+        }
+        for (const failedJob of failedJobs) {
+          await this.notifyAuthor({ post: latestPost, platform: failedJob.platform, status: 'failed' });
+        }
+      }
     } catch (error) {
       console.error(`Social publish queue: notifying the author failed - ${error.message}`);
     }

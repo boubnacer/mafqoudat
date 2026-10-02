@@ -346,6 +346,21 @@ const runSocialPublish = async () => {
   check('the failed status travels with it', failure.data.status, 'failed');
 
   reset();
+  await pushService.sendSocialPublishAlert({
+    user: { pushTokens: [token('a', 'en'), token('b', 'ar')] },
+    postId: 'post-1',
+    notificationId: 'n-both',
+    platform: 'both',
+    status: 'published',
+  });
+  const [bothEng, bothAr] = lastMessages();
+  check('combined alert delivers to both devices', lastMessages().length, 2);
+  check('combined English alert names both platforms', bothEng.title, 'Your listing is live on Facebook & Instagram');
+  check('combined Arabic alert names both platforms', bothAr.title, 'إعلانك منشور الآن على فيسبوك وإنستغرام');
+  check('combined alert status is published', bothEng.data.status, 'published');
+  check('combined alert platform is both', bothEng.data.platform, 'both');
+
+  reset();
   const unknownPlatform = await pushService.sendSocialPublishAlert({
     user: { pushTokens: [token('a')] },
     postId: 'post-1',

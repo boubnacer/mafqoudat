@@ -194,6 +194,7 @@ const COMMENT_COPY = {
 const PLATFORM_NAMES = {
   facebook: 'Facebook',
   instagram: 'Instagram',
+  both: 'Facebook & Instagram',
 };
 
 // The listing section a social publish alert points at. A contract with both
@@ -203,22 +204,46 @@ const SOCIAL_REACH_SECTION = 'social-reach';
 
 const SOCIAL_COPY = {
   en: {
-    publishedTitle: (platform) => `Your listing is live on ${platform}`,
-    publishedBody: (platform) => `We shared your listing on our ${platform} page. Tap to see how it is doing.`,
-    failedTitle: (platform) => `We couldn't share your listing on ${platform}`,
-    failedBody: (platform) => `Your listing is live on Mafqoudat, but its ${platform} copy didn't go through. Tap for details.`,
+    publishedTitle: (platform) => (platform === 'Facebook & Instagram' || platform === 'both'
+      ? 'Your listing is live on Facebook & Instagram'
+      : `Your listing is live on ${platform}`),
+    publishedBody: (platform) => (platform === 'Facebook & Instagram' || platform === 'both'
+      ? 'We shared your listing on our Facebook and Instagram pages. Tap to see how it is doing.'
+      : `We shared your listing on our ${platform} page. Tap to see how it is doing.`),
+    failedTitle: (platform) => (platform === 'Facebook & Instagram' || platform === 'both'
+      ? "We couldn't share your listing on social media"
+      : `We couldn't share your listing on ${platform}`),
+    failedBody: (platform) => (platform === 'Facebook & Instagram' || platform === 'both'
+      ? "Your listing is live on Mafqoudat, but its social media copies didn't go through. Tap for details."
+      : `Your listing is live on Mafqoudat, but its ${platform} copy didn't go through. Tap for details.`),
   },
   fr: {
-    publishedTitle: (platform) => `Votre annonce est en ligne sur ${platform}`,
-    publishedBody: (platform) => `Nous avons partagé votre annonce sur notre page ${platform}. Appuyez pour voir sa portée.`,
-    failedTitle: (platform) => `Impossible de partager votre annonce sur ${platform}`,
-    failedBody: (platform) => `Votre annonce est bien en ligne sur Mafqoudat, mais sa copie ${platform} n'est pas passée. Appuyez pour les détails.`,
+    publishedTitle: (platform) => (platform === 'Facebook & Instagram' || platform === 'both'
+      ? 'Votre annonce est en ligne sur Facebook et Instagram'
+      : `Votre annonce est en ligne sur ${platform}`),
+    publishedBody: (platform) => (platform === 'Facebook & Instagram' || platform === 'both'
+      ? 'Nous avons partagé votre annonce sur nos pages Facebook et Instagram. Appuyez pour voir sa portée.'
+      : `Nous avons partagé votre annonce sur notre page ${platform}. Appuyez pour voir sa portée.`),
+    failedTitle: (platform) => (platform === 'Facebook & Instagram' || platform === 'both'
+      ? 'Impossible de partager votre annonce sur les réseaux sociaux'
+      : `Impossible de partager votre annonce sur ${platform}`),
+    failedBody: (platform) => (platform === 'Facebook & Instagram' || platform === 'both'
+      ? "Votre annonce est bien en ligne sur Mafqoudat, mais sa publication sur les réseaux sociaux n'est pas passée. Appuyez pour les détails."
+      : `Votre annonce est bien en ligne sur Mafqoudat, mais sa copie ${platform} n'est pas passée. Appuyez pour les détails.`),
   },
   ar: {
-    publishedTitle: (platform) => `إعلانك منشور الآن على ${platform}`,
-    publishedBody: (platform) => `شاركنا إعلانك على صفحتنا على ${platform}. اضغط لمتابعة تفاعله.`,
-    failedTitle: (platform) => `تعذّرت مشاركة إعلانك على ${platform}`,
-    failedBody: (platform) => `إعلانك منشور على مفقودات، لكن نسخته على ${platform} لم تُنشر. اضغط للتفاصيل.`,
+    publishedTitle: (platform) => (platform === 'Facebook & Instagram' || platform === 'both'
+      ? 'إعلانك منشور الآن على فيسبوك وإنستغرام'
+      : `إعلانك منشور الآن على ${platform}`),
+    publishedBody: (platform) => (platform === 'Facebook & Instagram' || platform === 'both'
+      ? 'شاركنا إعلانك على صفحتينا على فيسبوك وإنستغرام. اضغط لمتابعة تفاعله.'
+      : `شاركنا إعلانك على صفحتنا على ${platform}. اضغط لمتابعة تفاعله.`),
+    failedTitle: (platform) => (platform === 'Facebook & Instagram' || platform === 'both'
+      ? 'تعذّرت مشاركة إعلانك على مواقع التواصل'
+      : `تعذّرت مشاركة إعلانك على ${platform}`),
+    failedBody: (platform) => (platform === 'Facebook & Instagram' || platform === 'both'
+      ? 'إعلانك منشور على مفقودات، لكن النشر على مواقع التواصل لم يكتمل. اضغط للتفاصيل.'
+      : `إعلانك منشور على مفقودات، لكن نسخته على ${platform} لم تُنشر. اضغط للتفاصيل.`),
   },
 };
 

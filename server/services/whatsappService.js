@@ -343,7 +343,30 @@ const resolveLanguage = (post, explicitLang) => {
 };
 
 const SOCIAL_PUBLISH_TEMPLATES = {
-  ar: ({ platformLabel, pLabel, siteLink, permalink }) => {
+  ar: ({ platform, platformLabel, pLabel, siteLink, permalink, facebookPermalink, instagramPermalink }) => {
+    if (platform === 'both') {
+      const lines = [
+        'مرحبًا! 👋',
+        '',
+        'نبشرك بأن إعلانك على موقع *مفقودات* قد تم نشره رسميًا على صفحتينا في فيسبوك وإنستغرام 🟦📸',
+        '',
+        '🔗 رابط الإعلان على الموقع:',
+        siteLink,
+      ];
+      if (facebookPermalink) {
+        lines.push('', '📲 رابط المنشور على فيسبوك:', facebookPermalink);
+      }
+      if (instagramPermalink) {
+        lines.push('', '📲 رابط المنشور على إنستغرام:', instagramPermalink);
+      }
+      lines.push(
+        '',
+        'نتمنى أن يساعدك ذلك في إيجاد ما تبحث عنه بأسرع وقت ممكن 🤲',
+        '— فريق مفقودات'
+      );
+      return lines.join('\n');
+    }
+
     const lines = [
       'مرحبًا! 👋',
       '',
@@ -363,7 +386,30 @@ const SOCIAL_PUBLISH_TEMPLATES = {
     return lines.join('\n');
   },
 
-  fr: ({ platformLabel, pLabel, siteLink, permalink }) => {
+  fr: ({ platform, platformLabel, pLabel, siteLink, permalink, facebookPermalink, instagramPermalink }) => {
+    if (platform === 'both') {
+      const lines = [
+        'Bonjour ! 👋',
+        '',
+        'Bonne nouvelle ! Votre annonce sur *Mafqoudat* a été officiellement publiée sur nos pages Facebook et Instagram 🟦📸.',
+        '',
+        '🔗 Lien de votre annonce sur le site :',
+        siteLink,
+      ];
+      if (facebookPermalink) {
+        lines.push('', '📲 Lien de la publication sur Facebook :', facebookPermalink);
+      }
+      if (instagramPermalink) {
+        lines.push('', '📲 Lien de la publication sur Instagram :', instagramPermalink);
+      }
+      lines.push(
+        '',
+        'Nous espérons que cela vous aidera à retrouver ce que vous cherchez au plus vite 🤲',
+        "— L'équipe Mafqoudat"
+      );
+      return lines.join('\n');
+    }
+
     const lines = [
       'Bonjour ! 👋',
       '',
@@ -383,7 +429,30 @@ const SOCIAL_PUBLISH_TEMPLATES = {
     return lines.join('\n');
   },
 
-  en: ({ platformLabel, pLabel, siteLink, permalink }) => {
+  en: ({ platform, platformLabel, pLabel, siteLink, permalink, facebookPermalink, instagramPermalink }) => {
+    if (platform === 'both') {
+      const lines = [
+        'Hello! 👋',
+        '',
+        'Great news! Your listing on *Mafqoudat* has been officially published on our Facebook and Instagram pages 🟦📸.',
+        '',
+        '🔗 Listing link on the website:',
+        siteLink,
+      ];
+      if (facebookPermalink) {
+        lines.push('', '📲 Facebook post link:', facebookPermalink);
+      }
+      if (instagramPermalink) {
+        lines.push('', '📲 Instagram post link:', instagramPermalink);
+      }
+      lines.push(
+        '',
+        'We hope this helps you find what you are looking for as soon as possible 🤲',
+        '— The Mafqoudat Team'
+      );
+      return lines.join('\n');
+    }
+
     const lines = [
       'Hello! 👋',
       '',
@@ -458,12 +527,19 @@ const MATCH_ALERT_TEMPLATES = {
 };
 
 /**
- * Sent when a listing is successfully published to Facebook or Instagram.
+ * Sent when a listing is successfully published to Facebook or Instagram (or both).
  * Supports Arabic ('ar'), French ('fr'), and English ('en').
  *
- * @param {{ post: Object, platform: string, permalink: string|null, language?: string }} opts
+ * @param {{ post: Object, platform: string, permalink?: string|null, facebookPermalink?: string|null, instagramPermalink?: string|null, language?: string }} opts
  */
-const sendSocialPublishMessage = async ({ post, platform, permalink, language }) => {
+const sendSocialPublishMessage = async ({
+  post,
+  platform,
+  permalink,
+  facebookPermalink,
+  instagramPermalink,
+  language,
+}) => {
   try {
     const jid = toJid(post?.contact);
     if (!jid) return false;
@@ -472,9 +548,15 @@ const sendSocialPublishMessage = async ({ post, platform, permalink, language })
     const siteBase = getSiteBaseUrl();
     const siteLink = `${siteBase}/dash/posts/${post._id}`;
 
+    const fbLink = facebookPermalink || post?.social?.facebook?.permalink || (platform === 'facebook' ? permalink : null);
+    const igLink = instagramPermalink || post?.social?.instagram?.permalink || (platform === 'instagram' ? permalink : null);
+
     let platformLabel;
     let pLabel;
-    if (lang === 'ar') {
+    if (platform === 'both') {
+      platformLabel = lang === 'ar' ? 'فيسبوك وإنستغرام 🟦📸' : 'Facebook & Instagram 🟦📸';
+      pLabel = lang === 'ar' ? 'فيسبوك وإنستغرام' : 'Facebook & Instagram';
+    } else if (lang === 'ar') {
       platformLabel = platform === 'facebook' ? 'فيسبوك 🟦' : 'إنستغرام 📸';
       pLabel = platform === 'facebook' ? 'فيسبوك' : 'إنستغرام';
     } else {
@@ -483,7 +565,15 @@ const sendSocialPublishMessage = async ({ post, platform, permalink, language })
     }
 
     const templateFn = SOCIAL_PUBLISH_TEMPLATES[lang] || SOCIAL_PUBLISH_TEMPLATES.ar;
-    const text = templateFn({ platformLabel, pLabel, siteLink, permalink });
+    const text = templateFn({
+      platform,
+      platformLabel,
+      pLabel,
+      siteLink,
+      permalink,
+      facebookPermalink: fbLink,
+      instagramPermalink: igLink,
+    });
 
     return await queueMessage(jid, text);
   } catch (err) {

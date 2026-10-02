@@ -26,7 +26,7 @@ const whatsappService = require('./whatsappService');
  * be able to fail, retry or delay a publish.
  */
 
-const PLATFORMS = ['facebook', 'instagram'];
+const PLATFORMS = ['facebook', 'instagram', 'both'];
 const STATUSES = ['published', 'failed'];
 
 const notifyAuthor = async ({ post, platform, status }) => {
@@ -77,8 +77,16 @@ const notifyAuthor = async ({ post, platform, status }) => {
     // Fire-and-forget: a WA failure must never affect the publish record.
     if (status === 'published' && post?.contact) {
       const permalink = post?.social?.[platform]?.permalink || null;
+      const facebookPermalink = post?.social?.facebook?.permalink || null;
+      const instagramPermalink = post?.social?.instagram?.permalink || null;
       whatsappService
-        .sendSocialPublishMessage({ post, platform, permalink })
+        .sendSocialPublishMessage({
+          post,
+          platform,
+          permalink,
+          facebookPermalink,
+          instagramPermalink,
+        })
         .catch((err) => {
           console.error('[WhatsApp] social publish message failed:', err?.message || err);
         });

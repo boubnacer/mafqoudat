@@ -30,6 +30,7 @@ const DEFAULT_PREFERENCES = {
 const SOCIAL_PLATFORM_NAMES = {
   facebook: 'Facebook',
   instagram: 'Instagram',
+  both: 'Facebook & Instagram',
 };
 
 // Bound on how many rows the inbox pulls from each of the notification types

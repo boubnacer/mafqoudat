@@ -32,12 +32,14 @@ import { formatRelativeTime } from '../../utils/relativeTime';
 const PLATFORM_ICONS = {
   facebook: 'logo-facebook',
   instagram: 'logo-instagram',
+  both: 'share-social-outline',
 };
 
 // Meta's brand colors, the same values SocialReach.js uses.
 const PLATFORM_COLORS = {
   facebook: '#1877F2',
   instagram: '#E1306C',
+  both: '#1877F2',
 };
 
 const SocialPublishNotificationCard = ({ item, onOpen, onDismiss, isBusy = false }) => {
@@ -51,18 +53,19 @@ const SocialPublishNotificationCard = ({ item, onOpen, onDismiss, isBusy = false
   if (!post) return null;
 
   const failed = status === 'failed';
+  const isBoth = platform === 'both';
   const accent = failed
     ? tokens.status.lost.main
     : (PLATFORM_COLORS[platform] || tokens.brandPrimary);
   const styles = createStyles({ tokens, isDark, isRTL, accent });
 
-  const name = platformName || platform;
+  const name = platformName || (isBoth ? 'Facebook & Instagram' : platform);
   const headline = failed
-    ? t('notifSocialFailedHeadline', { platform: name })
-    : t('notifSocialPublishedHeadline', { platform: name });
+    ? (isBoth ? (t('notifSocialFailedBothHeadline') || t('notifSocialFailedHeadline', { platform: name })) : t('notifSocialFailedHeadline', { platform: name }))
+    : (isBoth ? (t('notifSocialPublishedBothHeadline') || t('notifSocialPublishedHeadline', { platform: name })) : t('notifSocialPublishedHeadline', { platform: name }));
   const body = failed
-    ? t('notifSocialFailedBody', { platform: name })
-    : t('notifSocialPublishedBody', { platform: name });
+    ? (isBoth ? (t('notifSocialFailedBothBody') || t('notifSocialFailedBody', { platform: name })) : t('notifSocialFailedBody', { platform: name }))
+    : (isBoth ? (t('notifSocialPublishedBothBody') || t('notifSocialPublishedBody', { platform: name })) : t('notifSocialPublishedBody', { platform: name }));
 
   const imageUri = getImageUri(post.image);
   const textStyle = isRTL ? styles.textRTL : null;

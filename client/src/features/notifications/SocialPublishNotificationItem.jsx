@@ -4,6 +4,7 @@ import {
   ImageNotSupportedOutlined,
   Facebook as FacebookIcon,
   Instagram as InstagramIcon,
+  ShareOutlined as ShareIcon,
   ErrorOutlineOutlined,
   ArrowForwardOutlined,
 } from "@mui/icons-material";
@@ -33,12 +34,14 @@ import { formatRelativeTime } from "./matchDisplay";
 const PLATFORM_ICONS = {
   facebook: FacebookIcon,
   instagram: InstagramIcon,
+  both: ShareIcon,
 };
 
 // Meta's brand colors, same values SocialReach.jsx uses.
 const PLATFORM_COLORS = {
   facebook: '#1877F2',
   instagram: '#E1306C',
+  both: '#1877F2',
 };
 
 const SocialPublishNotificationItem = ({ item, onOpen, onDismiss, isDismissing = false, asCard = false }) => {
@@ -49,17 +52,18 @@ const SocialPublishNotificationItem = ({ item, onOpen, onDismiss, isDismissing =
   if (!post) return null;
 
   const failed = status === 'failed';
-  const PlatformIcon = PLATFORM_ICONS[platform] || FacebookIcon;
+  const isBoth = platform === 'both';
+  const PlatformIcon = PLATFORM_ICONS[platform] || (isBoth ? ShareIcon : FacebookIcon);
   const BadgeIcon = failed ? ErrorOutlineOutlined : PlatformIcon;
   const accent = failed ? theme.custom.status.lost.main : (PLATFORM_COLORS[platform] || theme.custom.color.brandPrimary);
-  const name = platformName || platform;
+  const name = platformName || (isBoth ? 'Facebook & Instagram' : platform);
 
   const headline = failed
-    ? t('notifSocialFailedHeadline', { platform: name })
-    : t('notifSocialPublishedHeadline', { platform: name });
+    ? (isBoth ? (t('notifSocialFailedBothHeadline') || t('notifSocialFailedHeadline', { platform: name })) : t('notifSocialFailedHeadline', { platform: name }))
+    : (isBoth ? (t('notifSocialPublishedBothHeadline') || t('notifSocialPublishedHeadline', { platform: name })) : t('notifSocialPublishedHeadline', { platform: name }));
   const body = failed
-    ? t('notifSocialFailedBody', { platform: name })
-    : t('notifSocialPublishedBody', { platform: name });
+    ? (isBoth ? (t('notifSocialFailedBothBody') || t('notifSocialFailedBody', { platform: name })) : t('notifSocialFailedBody', { platform: name }))
+    : (isBoth ? (t('notifSocialPublishedBothBody') || t('notifSocialPublishedBody', { platform: name })) : t('notifSocialPublishedBody', { platform: name }));
 
   const row = (
     <Box

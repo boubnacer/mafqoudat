@@ -71,7 +71,7 @@ const notificationSchema = new mongoose.Schema(
     // is live now.
     platform: {
       type: String,
-      enum: ['facebook', 'instagram'],
+      enum: ['facebook', 'instagram', 'both'],
       required: function () { return this.type === 'social_published'; },
     },
     // 'published' when the copy is up, 'failed' when the queue gave up on it.

@@ -667,19 +667,27 @@ const run = async () => {
 
   // -------------------------------------------------------------------------
   console.log('\n--- the author is told what became of each copy, once per platform ---');
-  // The alert is per platform and per terminal outcome, never per attempt:
-  // a listing that is still being retried, or waiting out a cooldown, is
-  // still on its way up, and saying otherwise would be wrong while it is
-  // in flight and wrong again when it later succeeds.
+  // The alert is held until all queued platforms have reached a terminal outcome,
+  // producing a single unified notification rather than rapid sequential messages
+  // that can be treated as spam.
 
   setup();
   const announced = addPost();
   await queue.enqueuePost(announced);
   await queue.runOnce();
 
-  check('both platforms report their own publish', authorNotifications, [
-    { post: announced._id, platform: 'facebook', status: 'published' },
-    { post: announced._id, platform: 'instagram', status: 'published' },
+  check('both platforms report in a single combined publish alert', authorNotifications, [
+    { post: announced._id, platform: 'both', status: 'published' },
+  ]);
+
+  setup();
+  const stepPost = addPost();
+  await queue.enqueuePost(stepPost);
+  await queue.runPlatform('facebook');
+  check('facebook alone publishes without triggering an alert while instagram is pending', authorNotifications, []);
+  await queue.runPlatform('instagram');
+  check('alert is pushed only once both platforms have successfully published', authorNotifications, [
+    { post: stepPost._id, platform: 'both', status: 'published' },
   ]);
 
   setup();
