@@ -309,14 +309,61 @@ const drainQueue = async () => {
   queueRunning = false;
 };
 
-const queueMessage = (jid, text) =>
+const queueMessage = (jid, content) =>
   new Promise((resolve, reject) => {
     if (!jid) { resolve(false); return; }
-    sendQueue.push({ jid, message: { text }, resolve, reject });
+    const message = typeof content === 'string' ? { text: content } : content;
+    sendQueue.push({ jid, message, resolve, reject });
     if (isConnected && !queueRunning) drainQueue();
   });
 
 // ---------------------------------------------------------------------------
+// vCard / Contact Card Builder
+// ---------------------------------------------------------------------------
+
+const VCARD_DISPLAY_NAME = 'mafqoudat.com | مفقودات';
+
+const getBusinessPhoneDigits = () => {
+  if (sock?.user?.id) {
+    const raw = String(sock.user.id).split(':')[0].split('@')[0];
+    if (raw && /^\d+$/.test(raw)) return raw;
+  }
+  let digits = WA_BUSINESS_NUMBER.replace(/[\s\-.()+]/g, '').replace(/^00/, '');
+  if (/^0[5-7]\d{8}$/.test(digits)) {
+    digits = '212' + digits.slice(1);
+  }
+  return digits;
+};
+
+const buildMafqoudatVCard = () => {
+  const digits = getBusinessPhoneDigits();
+  const siteUrl = getSiteBaseUrl();
+  return [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `N:;${VCARD_DISPLAY_NAME};;;`,
+    `FN:${VCARD_DISPLAY_NAME}`,
+    'ORG:mafqoudat.com',
+    'TITLE:Mafqoudat Platform',
+    `TEL;type=CELL;type=VOICE;waid=${digits}:+${digits}`,
+    `URL;type=WORK:${siteUrl}`,
+    'NOTE:خدمة الإشعارات الرسمية لموقع مفقودات / Service de notifications Mafqoudat',
+    'END:VCARD'
+  ].join('\n');
+};
+
+const buildContactMessagePayload = () => ({
+  contacts: {
+    displayName: VCARD_DISPLAY_NAME,
+    contacts: [
+      {
+        displayName: VCARD_DISPLAY_NAME,
+        vcard: buildMafqoudatVCard(),
+      },
+    ],
+  },
+});
+
 // ---------------------------------------------------------------------------
 // Message templates (Arabic, French, English)
 // ---------------------------------------------------------------------------
@@ -362,7 +409,9 @@ const SOCIAL_PUBLISH_TEMPLATES = {
       lines.push(
         '',
         'نتمنى أن يساعدك ذلك في إيجاد ما تبحث عنه بأسرع وقت ممكن 🤲',
-        '— فريق مفقودات'
+        '— فريق مفقودات',
+        '',
+        '💾 احفظ بطاقة جهة الاتصال المرفقة (mafqoudat.com | مفقودات) لتصلك إشعارات إعلاناتك باسم الموقع مباشرة.'
       );
       return lines.join('\n');
     }
@@ -381,7 +430,9 @@ const SOCIAL_PUBLISH_TEMPLATES = {
     lines.push(
       '',
       'نتمنى أن يساعدك ذلك في إيجاد ما تبحث عنه بأسرع وقت ممكن 🤲',
-      '— فريق مفقودات'
+      '— فريق مفقودات',
+      '',
+      '💾 احفظ بطاقة جهة الاتصال المرفقة (mafqoudat.com | مفقودات) لتصلك إشعارات إعلاناتك باسم الموقع مباشرة.'
     );
     return lines.join('\n');
   },
@@ -405,7 +456,9 @@ const SOCIAL_PUBLISH_TEMPLATES = {
       lines.push(
         '',
         'Nous espérons que cela vous aidera à retrouver ce que vous cherchez au plus vite 🤲',
-        "— L'équipe Mafqoudat"
+        "— L'équipe Mafqoudat",
+        '',
+        '💾 Enregistrez la fiche contact ci-jointe (mafqoudat.com | مفقودات) pour afficher directement le nom du site lors des prochains messages.'
       );
       return lines.join('\n');
     }
@@ -424,7 +477,9 @@ const SOCIAL_PUBLISH_TEMPLATES = {
     lines.push(
       '',
       'Nous espérons que cela vous aidera à retrouver ce que vous cherchez au plus vite 🤲',
-      "— L'équipe Mafqoudat"
+      "— L'équipe Mafqoudat",
+      '',
+      '💾 Enregistrez la fiche contact ci-jointe (mafqoudat.com | مفقودات) pour afficher directement le nom du site lors des prochains messages.'
     );
     return lines.join('\n');
   },
@@ -448,7 +503,9 @@ const SOCIAL_PUBLISH_TEMPLATES = {
       lines.push(
         '',
         'We hope this helps you find what you are looking for as soon as possible 🤲',
-        '— The Mafqoudat Team'
+        '— The Mafqoudat Team',
+        '',
+        '💾 Save the attached contact card (mafqoudat.com | مفقودات) so future updates display our website name directly.'
       );
       return lines.join('\n');
     }
@@ -467,7 +524,9 @@ const SOCIAL_PUBLISH_TEMPLATES = {
     lines.push(
       '',
       'We hope this helps you find what you are looking for as soon as possible 🤲',
-      '— The Mafqoudat Team'
+      '— The Mafqoudat Team',
+      '',
+      '💾 Save the attached contact card (mafqoudat.com | مفقودات) so future updates display our website name directly.'
     );
     return lines.join('\n');
   },
@@ -489,6 +548,8 @@ const MATCH_ALERT_TEMPLATES = {
     '',
     'إذا كنت تعتقد أن هذا هو ما تبحث عنه، يمكنك التواصل مع صاحب الإعلان مباشرة عبر الموقع.',
     '— فريق مفقودات',
+    '',
+    '💾 احفظ بطاقة جهة الاتصال المرفقة (mafqoudat.com | مفقودات) للتعرف الفوري على تنبيهاتنا القادمة.',
   ].join('\n'),
 
   fr: ({ score, scoreLabel, matchLink, ownLink }) => [
@@ -506,6 +567,8 @@ const MATCH_ALERT_TEMPLATES = {
     '',
     "Si vous pensez qu'il s'agit de ce que vous recherchez, vous pouvez contacter directement l'auteur sur le site.",
     "— L'équipe Mafqoudat",
+    '',
+    '💾 Enregistrez la fiche contact ci-jointe (mafqoudat.com | مفقودات) pour identifier instantanément nos alertes.',
   ].join('\n'),
 
   en: ({ score, scoreLabel, matchLink, ownLink }) => [
@@ -523,6 +586,8 @@ const MATCH_ALERT_TEMPLATES = {
     '',
     'If you think this is what you are looking for, you can contact the author directly on the website.',
     '— The Mafqoudat Team',
+    '',
+    '💾 Save the attached contact card (mafqoudat.com | مفقودات) to recognize our future alerts instantly.',
   ].join('\n'),
 };
 
@@ -575,7 +640,9 @@ const sendSocialPublishMessage = async ({
       instagramPermalink: igLink,
     });
 
-    return await queueMessage(jid, text);
+    const textSent = await queueMessage(jid, text);
+    const cardSent = await queueMessage(jid, buildContactMessagePayload());
+    return textSent || cardSent;
   } catch (err) {
     console.error('[WhatsApp] sendSocialPublishMessage error:', err?.message || err);
     return false;
@@ -616,9 +683,28 @@ const sendMatchAlertMessage = async ({ post, matchedPost, score, language }) => 
     const templateFn = MATCH_ALERT_TEMPLATES[lang] || MATCH_ALERT_TEMPLATES.ar;
     const text = templateFn({ score, scoreLabel, matchLink, ownLink });
 
-    return await queueMessage(jid, text);
+    const textSent = await queueMessage(jid, text);
+    const cardSent = await queueMessage(jid, buildContactMessagePayload());
+    return textSent || cardSent;
   } catch (err) {
     console.error('[WhatsApp] sendMatchAlertMessage error:', err?.message || err);
+    return false;
+  }
+};
+
+/**
+ * Sends a standalone Mafqoudat contact card (vCard) to a user so they can
+ * save it in 1 tap, instantly displaying "mafqoudat.com | مفقودات" on WhatsApp.
+ *
+ * @param {string} to - Raw phone number or JID
+ */
+const sendContactCard = async (to) => {
+  try {
+    const jid = toJid(to);
+    if (!jid) return false;
+    return await queueMessage(jid, buildContactMessagePayload());
+  } catch (err) {
+    console.error('[WhatsApp] sendContactCard error:', err?.message || err);
     return false;
   }
 };
@@ -676,6 +762,8 @@ module.exports = {
   init,
   sendSocialPublishMessage,
   sendMatchAlertMessage,
+  sendContactCard,
+  buildContactMessagePayload,
   isConnected: () => isConnected,
   getStatus,
   clearSession,
