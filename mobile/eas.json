@@ -11,7 +11,7 @@
         "gradleCommand": ":app:assembleDebug"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://mafqoudat-api.onrender.com",
+        "EXPO_PUBLIC_API_URL": "https://mafqoudat-production.up.railway.app",
         "EXPO_PUBLIC_WEB_BASE_URL": "https://www.mafqoudat.com",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "571757802995-qg4dvpnaidjh532uo0eu88l1qttmckac.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "571757802995-snknt81pnlehkb6scmqfhpcjg8sbgla0.apps.googleusercontent.com",
@@ -24,7 +24,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://mafqoudat-api.onrender.com",
+        "EXPO_PUBLIC_API_URL": "https://mafqoudat-production.up.railway.app",
         "EXPO_PUBLIC_WEB_BASE_URL": "https://www.mafqoudat.com",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "571757802995-qg4dvpnaidjh532uo0eu88l1qttmckac.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "571757802995-snknt81pnlehkb6scmqfhpcjg8sbgla0.apps.googleusercontent.com",
@@ -34,7 +34,7 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://mafqoudat-api.onrender.com",
+        "EXPO_PUBLIC_API_URL": "https://mafqoudat-production.up.railway.app",
         "EXPO_PUBLIC_WEB_BASE_URL": "https://www.mafqoudat.com",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "571757802995-qg4dvpnaidjh532uo0eu88l1qttmckac.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "571757802995-snknt81pnlehkb6scmqfhpcjg8sbgla0.apps.googleusercontent.com",

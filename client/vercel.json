@@ -12,7 +12,7 @@
           "value": ".*(facebookexternalhit|facebookcatalog|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterestbot|redditbot|vkShare|SkypeUriPreview|bingbot|BingPreview|Yandex|Googlebot|Google-InspectionTool|Storebot-Google|GoogleOther|AdsBot-Google|DuckDuckBot|Applebot|PetalBot|SeznamBot|Qwantify|GPTBot|OAI-SearchBot|ChatGPT-User|PerplexityBot|ClaudeBot|Claude-Web|Amazonbot|YouBot).*"
         }
       ],
-      "destination": "https://mafqoudat-api.onrender.com/og/posts/:id"
+      "destination": "https://mafqoudat-production.up.railway.app/og/posts/:id"
     },
     {
       "source": "/dash/posts",
@@ -23,87 +23,87 @@
           "value": ".*(facebookexternalhit|facebookcatalog|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterestbot|redditbot|vkShare|SkypeUriPreview|bingbot|BingPreview|Yandex|Googlebot|Google-InspectionTool|Storebot-Google|GoogleOther|AdsBot-Google|DuckDuckBot|Applebot|PetalBot|SeznamBot|Qwantify|GPTBot|OAI-SearchBot|ChatGPT-User|PerplexityBot|ClaudeBot|Claude-Web|Amazonbot|YouBot).*"
         }
       ],
-      "destination": "https://mafqoudat-api.onrender.com/og/posts"
+      "destination": "https://mafqoudat-production.up.railway.app/og/posts"
     },
     {
       "source": "/sitemap-posts.xml",
-      "destination": "https://mafqoudat-api.onrender.com/sitemap-posts.xml"
+      "destination": "https://mafqoudat-production.up.railway.app/sitemap-posts.xml"
     },
     {
       "source": "/api/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/api/:path*"
+      "destination": "https://mafqoudat-production.up.railway.app/api/:path*"
     },
     {
       "source": "/auth/google",
-      "destination": "https://mafqoudat-api.onrender.com/auth/google"
+      "destination": "https://mafqoudat-production.up.railway.app/auth/google"
     },
     {
       "source": "/auth/google/callback",
-      "destination": "https://mafqoudat-api.onrender.com/auth/google/callback"
+      "destination": "https://mafqoudat-production.up.railway.app/auth/google/callback"
     },
     {
       "source": "/auth/complete",
-      "destination": "https://mafqoudat-api.onrender.com/auth/complete"
+      "destination": "https://mafqoudat-production.up.railway.app/auth/complete"
     },
     {
       "source": "/auth/logout",
-      "destination": "https://mafqoudat-api.onrender.com/auth/logout"
+      "destination": "https://mafqoudat-production.up.railway.app/auth/logout"
     },
     {
       "source": "/auth/register",
-      "destination": "https://mafqoudat-api.onrender.com/auth/register"
+      "destination": "https://mafqoudat-production.up.railway.app/auth/register"
     },
     {
       "source": "/auth",
-      "destination": "https://mafqoudat-api.onrender.com/auth"
+      "destination": "https://mafqoudat-production.up.railway.app/auth"
     },
     {
       "source": "/users/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/users/:path*"
+      "destination": "https://mafqoudat-production.up.railway.app/users/:path*"
     },
     {
       "source": "/posts/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/posts/:path*"
+      "destination": "https://mafqoudat-production.up.railway.app/posts/:path*"
     },
     {
       "source": "/notifications/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/notifications/:path*"
+      "destination": "https://mafqoudat-production.up.railway.app/notifications/:path*"
     },
     {
       "source": "/countries/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/countries/:path*"
+      "destination": "https://mafqoudat-production.up.railway.app/countries/:path*"
     },
     {
       "source": "/cities/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/cities/:path*"
+      "destination": "https://mafqoudat-production.up.railway.app/cities/:path*"
     },
     {
       "source": "/cities-public/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/cities-public/:path*"
+      "destination": "https://mafqoudat-production.up.railway.app/cities-public/:path*"
     },
     {
       "source": "/cities-api/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/cities-api/:path*"
+      "destination": "https://mafqoudat-production.up.railway.app/cities-api/:path*"
     },
     {
       "source": "/floptions/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/floptions/:path*"
+      "destination": "https://mafqoudat-production.up.railway.app/floptions/:path*"
     },
     {
       "source": "/categories/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/categories/:path*"
+      "destination": "https://mafqoudat-production.up.railway.app/categories/:path*"
     },
     {
       "source": "/promotion/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/promotion/:path*"
+      "destination": "https://mafqoudat-production.up.railway.app/promotion/:path*"
     },
     {
       "source": "/admin/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/admin/:path*"
+      "destination": "https://mafqoudat-production.up.railway.app/admin/:path*"
     },
     {
       "source": "/uploads/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/uploads/:path*"
+      "destination": "https://mafqoudat-production.up.railway.app/uploads/:path*"
     },
     {
       "source": "/(.*)",

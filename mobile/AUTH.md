@@ -53,7 +53,7 @@ logged in before this change aren't logged out.
 
 | Var | Purpose |
 |---|---|
-| `EXPO_PUBLIC_API_URL` | API base URL (defaults to the Render production URL) |
+| `EXPO_PUBLIC_API_URL` | API base URL (Railway production URL) |
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Web OAuth client ID — only actually used when running via `expo start --web` in a browser |
 | `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | iOS OAuth client ID — required for Google sign-in on iOS (dev/production builds) |
 | `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | Android OAuth client ID — required for Google sign-in on Android (dev/production builds) |

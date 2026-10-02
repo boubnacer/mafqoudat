@@ -64,7 +64,7 @@ with this value set.
 1. Open the app at [developers.facebook.com/apps](https://developers.facebook.com/apps) → your app.
 2. Add the **Webhooks** product if it isn't already added.
 3. Choose **Page** as the object.
-4. **Callback URL**: `https://mafqoudat-api.onrender.com/webhooks/facebook`
+4. **Callback URL**: `https://mafqoudat-production.up.railway.app/webhooks/facebook`
    (swap in the real deployed URL if different from `env.production.example`'s).
 5. **Verify Token**: the exact value of `FACEBOOK_WEBHOOK_VERIFY_TOKEN`.
 6. Click **Verify and Save**. Meta sends a `GET` to the callback URL; the
