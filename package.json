@@ -5,21 +5,13 @@
   "main": "server/server.js",
   "scripts": {
     "start": "cd server && npm start",
-    "build": "cd server && npm install",
+    "build": "cd server && npm ci",
     "dev": "cd server && npm run dev",
-    "android": "expo run:android",
-    "ios": "expo run:ios"
+    "android": "cd mobile && npx expo run:android",
+    "ios": "cd mobile && npx expo run:ios"
   },
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=8.0.0"
-  },
-  "dependencies": {
-    "axios": "^1.11.0",
-    "dotenv": "^17.2.1",
-    "mongoose": "^8.24.4",
-    "expo": "~54.0.29",
-    "react": "19.1.0",
-    "react-native": "0.81.5"
   }
 }
