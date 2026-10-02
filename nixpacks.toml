@@ -1,6 +1,9 @@
 # Nixpacks configuration for Railway
 # This tells Railway how to build the server
 
+[variables]
+NIXPACKS_INSTALL_CMD = "cd server && npm ci"
+
 [phases.setup]
 # nodejs_22 bundles npm 10, so npm is no longer listed separately.
 nixPkgs = ["nodejs_22", "python3", "make", "gcc"]
@@ -8,13 +11,10 @@ nixPkgs = ["nodejs_22", "python3", "make", "gcc"]
 # Install dependencies in server directory
 [phases.install]
 cmds = [
-  "echo 'Starting installation...'",
-  "pwd",
-  "ls -la",
-  "if [ -d 'server' ]; then echo 'Found server directory' && cd server && npm install --verbose; elif [ -f 'package.json' ] && [ -f 'server.js' ]; then echo 'Found server files in root' && npm install --verbose; else echo 'ERROR: Cannot find server directory or server files'; exit 1; fi"
+  "cd server && npm ci"
 ]
 
-# Start command - try server directory first, then current directory
+# Start command
 [start]
-cmd = "if [ -d 'server' ]; then cd server && npm start; elif [ -f 'server.js' ]; then npm start; else echo 'ERROR: Cannot find server.js'; exit 1; fi"
+cmd = "cd server && npm start"
 
