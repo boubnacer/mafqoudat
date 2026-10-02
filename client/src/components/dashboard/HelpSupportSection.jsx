@@ -15,8 +15,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Tabs,
-  Tab,
   TextField,
   Grid,
   useTheme,
@@ -29,7 +27,6 @@ import {
   Phone,
   Security,
   ContactMail,
-  ChatBubbleOutline,
   ExpandMore,
   CheckCircle,
   Send,
@@ -49,7 +46,6 @@ const HelpSupportSection = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [showHelpDialog, setShowHelpDialog] = useState(false);
-  const [helpTab, setHelpTab] = useState(0);
 
   // Contact form state
   const [contactFormData, setContactFormData] = useState({
@@ -65,7 +61,6 @@ const HelpSupportSection = () => {
   const [submitContactForm, { isLoading: isContactLoading }] = useSubmitContactFormMutation();
 
   const openContactDialog = () => {
-    setHelpTab(0);
     setShowHelpDialog(true);
   };
 
@@ -434,148 +429,107 @@ const HelpSupportSection = () => {
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
-            <Tabs
-              value={helpTab}
-              onChange={(e, newValue) => setHelpTab(newValue)}
-              sx={{
-                borderBottom: `1px solid ${alpha(theme.custom.color.ink, 0.1)}`,
-                mb: 2,
-                '& .MuiTab-root': {
-                  color: alpha(theme.custom.color.ink, 0.6),
-                  fontWeight: 500,
-                  '&.Mui-selected': {
-                    color: theme.custom.color.brandPrimary,
-                    fontWeight: 600,
-                  },
-                },
-                '& .MuiTabs-indicator': {
-                  backgroundColor: theme.custom.color.brandPrimary,
-                  height: 3,
-                  borderRadius: '2px 2px 0 0'
-                }
-              }}
-            >
-              <Tab label={t('contactSupport')} />
-              <Tab label={t('liveChat')} />
-            </Tabs>
+            <Box sx={{
+              backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.03 : 0.02),
+              borderRadius: `${theme.custom.radius.md}px`,
+              p: 3,
+              border: `1px solid ${alpha(theme.custom.color.ink, 0.06)}`,
+            }}>
+              <Typography variant="h6" fontWeight={700} gutterBottom sx={{ color: theme.custom.color.ink }}>
+                {t('contactOurSupportTeam')}
+              </Typography>
 
-            <Box sx={{ mt: 2 }}>
-              {helpTab === 0 && (
-                <Box sx={{
-                  backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.03 : 0.02),
-                  borderRadius: `${theme.custom.radius.md}px`,
-                  p: 3,
-                  border: `1px solid ${alpha(theme.custom.color.ink, 0.06)}`,
-                }}>
-                  <Typography variant="h6" fontWeight={700} gutterBottom sx={{ color: theme.custom.color.ink }}>
-                    {t('contactOurSupportTeam')}
-                  </Typography>
-
-                  {isContactSubmitted && (
-                    <Alert severity="success" sx={{ mb: 2 }} icon={<CheckCircle />}>
-                      {t('messageSentSuccessfully')}
-                    </Alert>
-                  )}
-
-                  {contactSubmitError && (
-                    <Alert severity="error" sx={{ mb: 2 }} icon={<ErrorIcon />}>
-                      {contactSubmitError}
-                    </Alert>
-                  )}
-
-                  <Box component="form" onSubmit={handleContactSubmit}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label={t('yourName')}
-                          name="name"
-                          value={contactFormData.name}
-                          onChange={handleContactInputChange}
-                          required
-                          variant="outlined"
-                          size="small"
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label={t('yourEmail')}
-                          name="email"
-                          type="email"
-                          value={contactFormData.email}
-                          onChange={handleContactInputChange}
-                          required
-                          variant="outlined"
-                          size="small"
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label={t('subject')}
-                          name="subject"
-                          value={contactFormData.subject}
-                          onChange={handleContactInputChange}
-                          required
-                          variant="outlined"
-                          size="small"
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label={t('yourMessage')}
-                          name="message"
-                          multiline
-                          rows={3}
-                          value={contactFormData.message}
-                          onChange={handleContactInputChange}
-                          required
-                          variant="outlined"
-                          size="small"
-                          placeholder={t('messagePlaceholder')}
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Button
-                          type="submit"
-                          variant="contained"
-                          fullWidth
-                          disabled={isContactLoading}
-                          startIcon={isContactLoading ? <CircularProgress size={20} color="inherit" /> : <Send />}
-                          sx={{
-                            backgroundColor: theme.custom.color.brandPrimary,
-                            boxShadow: 'none',
-                            '&:hover': {
-                              backgroundColor: alpha(theme.custom.color.brandPrimary, 0.85),
-                              boxShadow: 'none',
-                            },
-                            '&:disabled': {
-                              backgroundColor: alpha(theme.custom.color.ink, 0.12),
-                              color: alpha(theme.custom.color.ink, 0.35),
-                            },
-                          }}
-                        >
-                          {isContactLoading ? t('sending') : t('sendMessage')}
-                        </Button>
-                      </Grid>
-                    </Grid>
-                  </Box>
-                </Box>
+              {isContactSubmitted && (
+                <Alert severity="success" sx={{ mb: 2 }} icon={<CheckCircle />}>
+                  {t('messageSentSuccessfully')}
+                </Alert>
               )}
 
-              {helpTab === 1 && (
-                <Box textAlign="center" py={4}>
-                  <ChatBubbleOutline sx={{ fontSize: 60, color: theme.custom.color.brandPrimary, mb: 2 }} />
-                  <Typography variant="h6" fontWeight={700} gutterBottom sx={{ color: theme.custom.color.ink }}>
-                    {t('liveChatComingSoon')}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65) }}>
-                    {t('liveChatComingSoonDesc')}
-                  </Typography>
-                </Box>
+              {contactSubmitError && (
+                <Alert severity="error" sx={{ mb: 2 }} icon={<ErrorIcon />}>
+                  {contactSubmitError}
+                </Alert>
               )}
+
+              <Box component="form" onSubmit={handleContactSubmit}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label={t('yourName')}
+                      name="name"
+                      value={contactFormData.name}
+                      onChange={handleContactInputChange}
+                      required
+                      variant="outlined"
+                      size="small"
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label={t('yourEmail')}
+                      name="email"
+                      type="email"
+                      value={contactFormData.email}
+                      onChange={handleContactInputChange}
+                      required
+                      variant="outlined"
+                      size="small"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label={t('subject')}
+                      name="subject"
+                      value={contactFormData.subject}
+                      onChange={handleContactInputChange}
+                      required
+                      variant="outlined"
+                      size="small"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label={t('yourMessage')}
+                      name="message"
+                      multiline
+                      rows={3}
+                      value={contactFormData.message}
+                      onChange={handleContactInputChange}
+                      required
+                      variant="outlined"
+                      size="small"
+                      placeholder={t('messagePlaceholder')}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      fullWidth
+                      disabled={isContactLoading}
+                      startIcon={isContactLoading ? <CircularProgress size={20} color="inherit" /> : <Send />}
+                      sx={{
+                        backgroundColor: theme.custom.color.brandPrimary,
+                        boxShadow: 'none',
+                        '&:hover': {
+                          backgroundColor: alpha(theme.custom.color.brandPrimary, 0.85),
+                          boxShadow: 'none',
+                        },
+                        '&:disabled': {
+                          backgroundColor: alpha(theme.custom.color.ink, 0.12),
+                          color: alpha(theme.custom.color.ink, 0.35),
+                        },
+                      }}
+                    >
+                      {isContactLoading ? t('sending') : t('sendMessage')}
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Box>
             </Box>
           </Box>
         </DialogContent>

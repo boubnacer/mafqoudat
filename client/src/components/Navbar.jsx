@@ -58,11 +58,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useSendLogoutMutation } from "../features/auth/authApiSlice";
 import { unsubscribe as unsubscribeFromWebPush } from "../utils/webPush";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useGetCountriesQuery } from "../features/countries/countriesApiSlice";
 import useAuth from "../hooks/useAuth";
 import { useTranslation } from "../utils/translations";
-import { useGetflOptionsQuery, useGetCategoriesQuery } from "../features/dependencies/dependenciesApiSlice";
+import { useGetflOptionsQuery, useGetCategoriesQuery, useGetCategoriesWithPostsQuery } from "../features/dependencies/dependenciesApiSlice";
 import { getCategoryIcon, getCategoryColor, sortCategoriesForBrowse } from "../config/categories";
 import { useUnifiedLanguageChange } from "../hooks/useUnifiedLanguageChange";
 import { forceRefreshAllDependencies } from "../utils/cacheRefresh";
@@ -276,8 +276,52 @@ const Navbar = () => {
     }
   );
 
+  // Get categories with live posts for the user's active country
+  const { data: categoriesWithPosts = [] } = useGetCategoriesWithPostsQuery({
+    countryId: currentCountry,
+    language: currentLanguage,
+  });
+
   const orderedCategories = sortCategoriesForBrowse(categoriesData);
-  const topCategories = orderedCategories.slice(0, 6);
+
+  // Dynamic top 6 categories:
+  // 1. Categories that have live posts come first (ordered by highest post count).
+  // 2. If fewer than 6 categories have posts, fill remaining slots from orderedCategories (priority order).
+  // 3. Gracefully falls back to static orderedCategories if live query is loading or empty.
+  const topCategories = useMemo(() => {
+    if (!orderedCategories || !orderedCategories.length) return [];
+
+    const result = [];
+    const seenIds = new Set();
+
+    // 1. Prioritize categories that currently have live posts in the selected country
+    if (Array.isArray(categoriesWithPosts) && categoriesWithPosts.length > 0) {
+      for (const liveCat of categoriesWithPosts) {
+        if (result.length >= 6) break;
+        const catId = (liveCat._id || liveCat.id)?.toString();
+        if (catId && !seenIds.has(catId)) {
+          // Merge full category attributes if available from categoriesData
+          const fullCat = categoriesData.find(
+            (c) => (c._id || c.id)?.toString() === catId
+          ) || liveCat;
+          result.push({ ...fullCat, postCount: liveCat.postCount });
+          seenIds.add(catId);
+        }
+      }
+    }
+
+    // 2. Fill any remaining slots (up to 6) from orderedCategories
+    for (const cat of orderedCategories) {
+      if (result.length >= 6) break;
+      const catId = (cat._id || cat.id)?.toString();
+      if (catId && !seenIds.has(catId)) {
+        result.push(cat);
+        seenIds.add(catId);
+      }
+    }
+
+    return result;
+  }, [categoriesWithPosts, orderedCategories, categoriesData]);
 
   // Get found/lost options for navigation
   const { data: flOptionsData } = useGetflOptionsQuery(

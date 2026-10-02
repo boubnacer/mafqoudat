@@ -285,6 +285,29 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
       ],
     }),
 
+    getCategoriesWithPosts: builder.query({
+      query: ({ countryId, language = 'en' } = {}) => ({
+        url: "/categories/with-posts",
+        params: {
+          countryId,
+          language
+        },
+        validateStatus: (response, result) => {
+          return response.status === 200 && !result.isError;
+        },
+      }),
+      transformResponse: (responseData) => {
+        const categories = responseData.data || responseData || [];
+        return categories.map((cat) => ({
+          ...cat,
+          id: cat._id || cat.id,
+        }));
+      },
+      providesTags: (result, error, arg) => [
+        { type: "Category", id: `WITH_POSTS_${arg?.countryId || 'ALL'}` }
+      ],
+    }),
+
     // Add mutation for creating a foundLost option
     createFoundLost: builder.mutation({
       query: (foundLost) => ({
@@ -323,6 +346,7 @@ export const {
   useGetflOptionsQuery,
   useGetCountriesQuery,
   useGetCategoriesQuery,
+  useGetCategoriesWithPostsQuery,
   useGetCitiesQuery,
   useGetCitiesWithPostsQuery,
   useCreateCountryMutation,

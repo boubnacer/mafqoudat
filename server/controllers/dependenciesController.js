@@ -1376,6 +1376,119 @@ const getCategories = async (req, res) => {
   }
 };
 
+// Get categories that have active posts (optionally filtered by country)
+const getCategoriesWithPosts = async (req, res) => {
+  try {
+    const { countryId, language = 'en' } = req.query;
+    const { getCountryId } = require("../utils/countryCache");
+
+    let matchConditions = {};
+
+    if (countryId) {
+      let countryMatch;
+      if (mongoose.Types.ObjectId.isValid(countryId)) {
+        countryMatch = new mongoose.Types.ObjectId(countryId);
+      } else {
+        const resolvedId = await getCountryId(countryId);
+        if (resolvedId && mongoose.Types.ObjectId.isValid(resolvedId)) {
+          countryMatch = new mongoose.Types.ObjectId(resolvedId);
+        } else {
+          countryMatch = countryId;
+        }
+      }
+      matchConditions.country = countryMatch;
+    }
+
+    const categoriesWithPosts = await Post.aggregate([
+      { $match: matchConditions },
+      {
+        $project: {
+          allCategories: {
+            $setUnion: [
+              {
+                $cond: {
+                  if: { $isArray: "$categories" },
+                  then: "$categories",
+                  else: []
+                }
+              },
+              {
+                $cond: {
+                  if: { $ne: ["$category", null] },
+                  then: ["$category"],
+                  else: []
+                }
+              }
+            ]
+          }
+        }
+      },
+      { $unwind: "$allCategories" },
+      {
+        $group: {
+          _id: "$allCategories",
+          postCount: { $sum: 1 }
+        }
+      },
+      { $sort: { postCount: -1 } },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "_id",
+          foreignField: "_id",
+          as: "categoryDoc"
+        }
+      },
+      { $unwind: "$categoryDoc" },
+      {
+        $match: {
+          "categoryDoc.isActive": { $ne: false }
+        }
+      },
+      {
+        $project: {
+          _id: "$categoryDoc._id",
+          id: "$categoryDoc._id",
+          code: "$categoryDoc.code",
+          labels: "$categoryDoc.labels",
+          flag: "$categoryDoc.flag",
+          icon: "$categoryDoc.icon",
+          color: "$categoryDoc.color",
+          description: "$categoryDoc.description",
+          postCount: 1
+        }
+      }
+    ]);
+
+    const transformedCategories = categoriesWithPosts.map(category => {
+      const lang = language || 'en';
+      let label = category.code;
+      if (category.labels && category.labels[lang]) {
+        label = category.labels[lang];
+      } else if (category.labels && category.labels.en) {
+        label = category.labels.en;
+      }
+      return {
+        ...category,
+        label,
+      };
+    });
+
+    res.json({
+      success: true,
+      data: transformedCategories,
+      total: transformedCategories.length
+    });
+  } catch (error) {
+    console.error('Error fetching categories with posts:', error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch categories with posts",
+      data: []
+    });
+  }
+};
+
 // Create category dynamically
 const createCategory = async (req, res) => {
   try {
@@ -1718,6 +1831,7 @@ module.exports = {
   getDashboard,
   getflOptions,
   getCategories,
+  getCategoriesWithPosts,
   getCountries,
   getCitiesByCountry,
   createCategory,
