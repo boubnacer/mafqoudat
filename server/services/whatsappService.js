@@ -207,7 +207,13 @@ const toJid = (raw) => {
 // Socket connection & lifecycle
 // ---------------------------------------------------------------------------
 
+const isWhatsAppDisabled = () =>
+  process.env.WA_ENABLED === 'false' ||
+  process.env.DISABLE_WHATSAPP === 'true' ||
+  process.env.ENABLE_WHATSAPP === 'false';
+
 const connect = async () => {
+  if (isWhatsAppDisabled()) return;
   const loaded = await loadBaileys();
   if (!loaded) return;
   if (isConnected || connectingPromise) return connectingPromise;
@@ -751,6 +757,10 @@ const clearSession = async () => {
  * Safe to call multiple times: only one connection is ever created.
  */
 const init = async () => {
+  if (isWhatsAppDisabled()) {
+    console.log('[WhatsApp] Service disabled locally via environment variable (WA_ENABLED=false / DISABLE_WHATSAPP=true).');
+    return;
+  }
   const loaded = await loadBaileys();
   if (!loaded) {
     console.warn('[WhatsApp] Skipping init – Baileys not installed.');
