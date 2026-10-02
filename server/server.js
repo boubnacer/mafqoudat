@@ -467,11 +467,32 @@ mongoose.connection.once("open", () => {
   // Post text indexes use language_override:"none" (models/Post.js) to prevent
   // MongoDB error 17262: the schema has a field named `language` with default
   // 'ar', and MongoDB's text index treats that as a language-stemmer directive -
-  // 'ar' is unsupported, so every insert fails. syncIndexes() here ensures the
-  // corrected indexes are applied on every deploy after the old ones are dropped.
-  require("./models/Post").syncIndexes().catch((err) => {
-    console.error("Failed to sync Post indexes:", err?.message || err);
-  });
+  // 'ar' is unsupported, so every insert fails. If an existing deployment has
+  // an old text index with default language_override, or has the obsolete second text
+  // index, drop it before syncing so MongoDB doesn't reject concurrent text indexes.
+  (async () => {
+    try {
+      const Post = require("./models/Post");
+      let existingIndexes = [];
+      try {
+        existingIndexes = await Post.collection.indexes();
+      } catch (err) {
+        if (err?.codeName !== "NamespaceNotFound" && err?.code !== 26) {
+          throw err;
+        }
+      }
+      for (const idx of existingIndexes) {
+        const isText = Object.values(idx.key || {}).includes("text");
+        if (isText && (idx.name === "country_status_text_search_optimized" || idx.language_override !== "none")) {
+          console.log(`Dropping incompatible text index "${idx.name}"...`);
+          await Post.collection.dropIndex(idx.name);
+        }
+      }
+      await Post.syncIndexes();
+    } catch (err) {
+      console.error("Failed to sync Post indexes:", err?.message || err);
+    }
+  })();
   // Drains the Facebook/Instagram publishing queue, one post at a time per
   // platform (services/socialPublishQueue.js). Needs the database, so it
   // starts here rather than at require time; does nothing when no Page or

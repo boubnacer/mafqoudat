@@ -36,10 +36,6 @@ const TEXT_INDEXES_TO_CREATE = [
     spec: { exactLocation: 'text', description: 'text' },
     options: { language_override: 'none' },
   },
-  {
-    spec: { country: 1, status: 1, exactLocation: 'text', description: 'text' },
-    options: { name: 'country_status_text_search_optimized', language_override: 'none' },
-  },
 ];
 
 async function run() {

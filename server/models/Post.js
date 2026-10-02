@@ -362,11 +362,6 @@ postSchema.index(
   { name: "social_facebook_postid", sparse: true }
 );
 
-// 11. Search optimization: Country + Status + Text search
-postSchema.index(
-  { country: 1, status: 1, exactLocation: "text", description: "text" },
-  { name: "country_status_text_search_optimized", language_override: "none" }
-);
 
 // Virtual for backward compatibility - get first category from categories array
 postSchema.virtual('firstCategory').get(function() {
