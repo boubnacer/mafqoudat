@@ -2,7 +2,7 @@ const rateLimit = require("express-rate-limit");
 const { logEvents } = require("./logger");
 const { getRequestUserId } = require('../utils/requestUser');
 
-// Create rate limiter with custom options
+// Create rate limiter with custom options 
 const createRateLimiter = (options) => {
   const {
     windowMs = 15 * 60 * 1000, // 15 minutes
@@ -211,7 +211,7 @@ const rateLimiters = {
 // bucket - the opposite of what a role-aware limiter is for.
 const dynamicRateLimiter = (req, res, next) => {
   const userRole = req.role || 'anonymous';
-  
+
   let limiter;
   switch (userRole) {
     case 'admin':
@@ -223,7 +223,7 @@ const dynamicRateLimiter = (req, res, next) => {
     default:
       limiter = rateLimiters.public;
   }
-  
+
   limiter(req, res, next);
 };
 
