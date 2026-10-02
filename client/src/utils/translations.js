@@ -1498,6 +1498,14 @@ export const translations = {
     founderRole: "Founder & Lead Software Engineer",
     founderBio: "Passionate about applying technology to solve community challenges, Nacer built Mafqoudat to establish a modern, secure, and accessible platform that reunites lost property with its rightful owners across Morocco and the Arab world. With a strong engineering background in web architectures, geolocation systems, and privacy protection, he oversees the platform's technological development, security standards, and editorial integrity.",
     founderExpertise: "Expertise: Civic Tech Architecture, Geolocation Platforms, Community Trust & Identity Verification",
+    meetTheFounder: "Meet the Founder",
+    founderTagline: "Civic Tech & Platform Leadership",
+    founderIntroHeadline: "Building Technology to Reunite Communities",
+    readFounderStory: "Read Full Story & Mission",
+    contactFounder: "Get in Touch",
+    founderPillarPrivacy: "Privacy & Data Protection",
+    founderPillarGeo: "Hyperlocal Matching",
+    founderPillarCommunity: "100% Free Public Good",
 
     // Categories Header Navigation
     categories: "Categories",
@@ -3744,6 +3752,14 @@ export const translations = {
     founderRole: "Fondateur et ingénieur logiciel principal",
     founderBio: "Passionné par l'utilisation de la technologie pour résoudre des défis concrets du quotidien, Nacer a créé Mafqoudat pour offrir une plateforme civique moderne, sécurisée et accessible qui réunit les objets perdus avec leurs propriétaires au Maroc et dans le monde arabe. Fort d'une expertise approfondie en architectures web, systèmes de géolocalisation et protection des données, il supervise le développement technologique, la sécurité et la fiabilité éditoriale.",
     founderExpertise: "Expertise : Architecture Civic Tech, plateformes géolocalisées, confiance communautaire et vérification d'identité",
+    meetTheFounder: "Rencontrez le fondateur",
+    founderTagline: "Technologie civique & direction de la plateforme",
+    founderIntroHeadline: "Bâtir des technologies pour réunir les communautés",
+    readFounderStory: "Découvrir notre mission & histoire",
+    contactFounder: "Nous contacter",
+    founderPillarPrivacy: "Confidentialité & protection des données",
+    founderPillarGeo: "Mise en relation géolocalisée",
+    founderPillarCommunity: "Service public 100% gratuit",
 
     // Categories Header Navigation
     categories: "Catégories",
@@ -5972,6 +5988,14 @@ export const translations = {
     founderRole: "المؤسس والمهندس البرمجي الرئيسي",
     founderBio: "انطلاقاً من شغفه بتوظيف التكنولوجيا لحل التحديات اليومية للمجتمع، أنشأ ناصر منصة مفقودات لتوفير بيئة مدنية حديثة وآمنة تساعد في لم شمل الأغراض المفقودة بأصحابها الشرعيين في المغرب والعالم العربي. بفضل خبرته العميقة في هندسة الويب ونظم التموضع الجغرافي وحماية البيانات، يشرف على التطوير التقني ومعايير الأمان وموثوقية المحتوى.",
     founderExpertise: "الخبرات الأساسية: بنية المنصات المجتمعية، التقنيات الجغرافية، تعزيز الثقة والتحقق من الهوية",
+    meetTheFounder: "تعرّف على المؤسس",
+    founderTagline: "التقنيات المجتمعية وقيادة المنصة",
+    founderIntroHeadline: "توظيف التكنولوجيا لخدمة المجتمع ولمّ شمل المفقودات",
+    readFounderStory: "اقرأ قصة التأسيس والرؤية",
+    contactFounder: "تواصل معنا",
+    founderPillarPrivacy: "حماية الخصوصية والبيانات",
+    founderPillarGeo: "مطابقة جغرافية دقيقة",
+    founderPillarCommunity: "خدمة مجتمعية مجانية بالكامل",
 
     // Categories Header Navigation
     categories: "التصنيفات",

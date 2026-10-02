@@ -31,6 +31,8 @@ import {
   ListItemIcon,
   ListItemText,
   IconButton,
+  Avatar,
+  Chip,
 } from "@mui/material";
 import {
   LocationOn,
@@ -47,6 +49,9 @@ import {
   VerifiedUserOutlined,
   PublicOutlined,
   CategoryOutlined,
+  Verified,
+  Security,
+  Email,
 } from "@mui/icons-material";
 
 gsap.registerPlugin(useGSAP);
@@ -1168,6 +1173,309 @@ const WelcomePage = () => {
               </SurfaceCard>
             )}
           </Box>
+        </Box>
+
+        {/* Meet the Founder */}
+        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, pb: { xs: 4, md: 6 } }}>
+          <SurfaceCard
+            sx={{
+              p: { xs: 3, sm: 4, md: 5 },
+              position: 'relative',
+              overflow: 'hidden',
+              background: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? `linear-gradient(135deg, ${theme.custom.color.surfaceRaised} 0%, ${alpha('#1c2333', 0.5)} 100%)`
+                  : `linear-gradient(135deg, ${theme.custom.color.surfaceRaised} 0%, ${alpha(theme.custom.color.brandPrimary, 0.025)} 100%)`,
+            }}
+          >
+            {/* Decorative subtle ambient accent glow */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: -60,
+                [isRTL ? 'left' : 'right']: -60,
+                width: 240,
+                height: 240,
+                borderRadius: '50%',
+                background: (theme) =>
+                  alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.08 : 0.06),
+                filter: 'blur(50px)',
+                pointerEvents: 'none',
+              }}
+            />
+
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                alignItems: { xs: 'center', md: 'flex-start' },
+                gap: { xs: 3, sm: 3.5, md: 4.5 },
+                textAlign: { xs: 'center', md: isRTL ? 'right' : 'left' },
+                position: 'relative',
+                zIndex: 1,
+              }}
+            >
+              {/* Founder Avatar column */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Box sx={{ position: 'relative' }}>
+                  <Avatar
+                    src="/author-avatar.jpg"
+                    alt={t('founderName')}
+                    sx={{
+                      width: { xs: 104, sm: 120, md: 136 },
+                      height: { xs: 104, sm: 120, md: 136 },
+                      border: (theme) => `3.5px solid ${theme.custom.color.brandPrimary}`,
+                      bgcolor: (theme) => theme.custom.color.brandPrimary,
+                      color: '#ffffff',
+                      fontSize: '2.5rem',
+                      fontWeight: 700,
+                      boxShadow: (theme) => `0 10px 28px ${alpha(theme.custom.color.brandPrimary, 0.28)}`,
+                    }}
+                  >
+                    N
+                  </Avatar>
+                </Box>
+                <Chip
+                  icon={
+                    <Verified
+                      sx={{ fontSize: '15px !important', color: `${theme.custom.color.brandPrimary} !important` }}
+                    />
+                  }
+                  label={t('authorVerifiedBadge')}
+                  size="small"
+                  sx={{
+                    mt: 1.5,
+                    height: 26,
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    bgcolor: (theme) =>
+                      alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.2 : 0.08),
+                    color: (theme) => theme.custom.color.brandPrimary,
+                    border: (theme) => `1px solid ${alpha(theme.custom.color.brandPrimary, 0.3)}`,
+                  }}
+                />
+              </Box>
+
+              {/* Content Column */}
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                {/* Eyebrow / Tagline */}
+                <Typography
+                  variant="overline"
+                  sx={{
+                    display: 'block',
+                    fontWeight: 700,
+                    letterSpacing: 1.2,
+                    color: theme.custom.color.brandPrimary,
+                    fontSize: '0.75rem',
+                    textTransform: 'uppercase',
+                    mb: 0.5,
+                  }}
+                >
+                  {t('founderTagline')}
+                </Typography>
+
+                {/* Section Title "Meet the Founder" */}
+                <Typography
+                  variant="h4"
+                  component="h2"
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: { xs: '1.5rem', sm: '1.85rem', md: '2.1rem' },
+                    fontFamily: theme.custom.font.display,
+                    color: theme.custom.color.ink,
+                    letterSpacing: '-0.02em',
+                    mb: 0.5,
+                  }}
+                >
+                  {t('meetTheFounder')}
+                </Typography>
+
+                {/* Founder Name & Role */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: { xs: 'center', md: isRTL ? 'flex-end' : 'flex-start' },
+                    flexWrap: 'wrap',
+                    gap: 1,
+                    mb: 1.5,
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    component="span"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                      color: theme.palette.text.primary,
+                    }}
+                  >
+                    {t('founderName')}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    component="span"
+                    sx={{
+                      color: 'text.secondary',
+                      fontWeight: 500,
+                      display: { xs: 'none', sm: 'inline' },
+                    }}
+                  >
+                    •
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    component="span"
+                    sx={{
+                      color: theme.custom.color.brandPrimary,
+                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    {t('founderRole')}
+                  </Typography>
+                </Box>
+
+                {/* Founder Bio / Vision Quote */}
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: 'text.secondary',
+                    lineHeight: 1.8,
+                    fontSize: { xs: '0.92rem', sm: '0.98rem' },
+                    maxWidth: 780,
+                    mb: 2.5,
+                  }}
+                >
+                  {t('authorFounderBio')}
+                </Typography>
+
+                {/* Trust Pillars */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    justifyContent: { xs: 'center', md: isRTL ? 'flex-end' : 'flex-start' },
+                    gap: 1.25,
+                    mb: 3,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 0.75,
+                      px: 1.5,
+                      py: 0.75,
+                      borderRadius: `${theme.custom.radius.sm}px`,
+                      backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.06 : 0.035),
+                      border: `1px solid ${alpha(theme.custom.color.ink, 0.08)}`,
+                    }}
+                  >
+                    <Security sx={{ fontSize: 17, color: theme.custom.color.brandPrimary }} />
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                      {t('founderPillarPrivacy')}
+                    </Typography>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 0.75,
+                      px: 1.5,
+                      py: 0.75,
+                      borderRadius: `${theme.custom.radius.sm}px`,
+                      backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.06 : 0.035),
+                      border: `1px solid ${alpha(theme.custom.color.ink, 0.08)}`,
+                    }}
+                  >
+                    <LocationOn sx={{ fontSize: 17, color: theme.custom.color.brandPrimary }} />
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                      {t('founderPillarGeo')}
+                    </Typography>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 0.75,
+                      px: 1.5,
+                      py: 0.75,
+                      borderRadius: `${theme.custom.radius.sm}px`,
+                      backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.06 : 0.035),
+                      border: `1px solid ${alpha(theme.custom.color.ink, 0.08)}`,
+                    }}
+                  >
+                    <PublicOutlined sx={{ fontSize: 17, color: theme.custom.color.brandPrimary }} />
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                      {t('founderPillarCommunity')}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Action CTAs */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    justifyContent: { xs: 'center', md: isRTL ? 'flex-end' : 'flex-start' },
+                    gap: 1.5,
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    onClick={() => navigate('/about')}
+                    endIcon={isRTL ? <ArrowBack sx={{ fontSize: 16 }} /> : <ArrowForward sx={{ fontSize: 16 }} />}
+                    sx={{
+                      borderRadius: `${theme.custom.radius.md}px`,
+                      backgroundColor: theme.custom.color.brandPrimary,
+                      color: '#ffffff',
+                      fontWeight: 700,
+                      textTransform: 'none',
+                      px: 2.5,
+                      py: 1,
+                      boxShadow: `0 4px 14px ${alpha(theme.custom.color.brandPrimary, 0.35)}`,
+                      '&:hover': {
+                        backgroundColor: alpha(theme.custom.color.brandPrimary, 0.9),
+                        boxShadow: `0 6px 20px ${alpha(theme.custom.color.brandPrimary, 0.45)}`,
+                      },
+                    }}
+                  >
+                    {t('readFounderStory')}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => navigate('/contact')}
+                    startIcon={<Email sx={{ fontSize: 17 }} />}
+                    sx={{
+                      borderRadius: `${theme.custom.radius.md}px`,
+                      borderColor: alpha(theme.custom.color.ink, 0.2),
+                      color: theme.palette.text.primary,
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      px: 2.25,
+                      py: 1,
+                      '&:hover': {
+                        borderColor: theme.custom.color.brandPrimary,
+                        backgroundColor: alpha(theme.custom.color.brandPrimary, 0.06),
+                      },
+                    }}
+                  >
+                    {t('contactFounder')}
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          </SurfaceCard>
         </Box>
 
         {/* Safety / trust */}
