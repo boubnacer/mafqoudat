@@ -33,18 +33,32 @@ const { getCategoryColors } = require('../config/categoryColors');
 const CATEGORY_ICONS = require('../config/categoryIcons.json');
 
 const CANVAS = 1080;
-const JPEG_QUALITY = 92;
+// High-quality JPEG setting (quality 96 with 4:4:4 chroma subsampling) ensures
+// sharp, pristine graphics with zero visible compression artifacts.
+const JPEG_QUALITY = 96;
 
-// Logo SVG placed at the top centre of the image, read from the client's
-// public directory (the same file the build script uses).
-const LOGO_FILE = path.join(__dirname, '..', '..', 'client', 'public', 'maflogoSVG.svg');
 const fs = require('fs');
+
+// Logo SVG candidate paths: check server's own assets first (available in Docker container),
+// falling back to client's public directory in local monorepo development.
+const LOGO_PATHS = [
+  path.join(__dirname, '..', 'assets', 'maflogoSVG.svg'),
+  path.join(__dirname, '..', '..', 'client', 'public', 'maflogoSVG.svg'),
+];
+
+function getLogoFilePath() {
+  for (const candidate of LOGO_PATHS) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return null;
+}
 
 // Domain wordmark at the bottom
 const DOMAIN_FILE = path.join(__dirname, '..', 'assets', 'domainWordmark.svg');
 
 /** Reads an SVG file and returns { body, viewBox } */
 function readSvgFile(filePath) {
+  if (!filePath || !fs.existsSync(filePath)) return null;
   const file = fs.readFileSync(filePath, 'utf8');
   const viewBoxMatch = file.match(/viewBox="([\d.\s-]+)"/i);
   if (!viewBoxMatch) return null;
@@ -109,28 +123,33 @@ function buildCategorySvg(categoryCodes) {
   // 2. Logo at top centre (enlarged by ~25%, moved down ~1cm, clean without background)
   let logoSvg = '';
   try {
-    const logo = readSvgFile(LOGO_FILE);
-    if (logo) {
-      const logoHeight = 138;
-      const logoWidth = logoHeight * (logo.boxWidth / logo.boxHeight);
-      const logoX = (CANVAS - logoWidth) / 2;
-      const logoY = 105;
-      // Inline the logo SVG preserving its own fills
-      const rawFile = fs.readFileSync(LOGO_FILE, 'utf8')
-        .replace(/<\?xml[\s\S]*?\?>/g, '')
-        .replace(/<!DOCTYPE[\s\S]*?>/g, '')
-        .replace(/<!--[\s\S]*?-->/g, '')
-        .trim();
-      const rootTag = rawFile.match(/<svg([^>]*)>/);
-      const attrs = [...rootTag[1].matchAll(/([\w:-]+)="([^"]*)"/g)];
-      const inherited = attrs
-        .filter(([, name]) => !/^(x|y|width|height|viewBox|version|id|xmlns(:\w+)?)$/.test(name))
-        .map(([attr]) => attr)
-        .join(' ');
-      const children = rawFile.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
-      logoSvg = `<svg x="${logoX}" y="${logoY}" width="${logoWidth}" height="${logoHeight}" viewBox="${logo.viewBox}" ${inherited}>${children}</svg>`;
+    const logoPath = getLogoFilePath();
+    if (logoPath) {
+      const logo = readSvgFile(logoPath);
+      if (logo) {
+        const logoHeight = 138;
+        const logoWidth = logoHeight * (logo.boxWidth / logo.boxHeight);
+        const logoX = (CANVAS - logoWidth) / 2;
+        const logoY = 105;
+        // Inline the logo SVG preserving its own fills
+        const rawFile = fs.readFileSync(logoPath, 'utf8')
+          .replace(/<\?xml[\s\S]*?\?>/g, '')
+          .replace(/<!DOCTYPE[\s\S]*?>/g, '')
+          .replace(/<!--[\s\S]*?-->/g, '')
+          .trim();
+        const rootTag = rawFile.match(/<svg([^>]*)>/);
+        const attrs = [...rootTag[1].matchAll(/([\w:-]+)="([^"]*)"/g)];
+        const inherited = attrs
+          .filter(([, name]) => !/^(x|y|width|height|viewBox|version|id|xmlns(:\w+)?)$/.test(name))
+          .map(([attr]) => attr)
+          .join(' ');
+        const children = rawFile.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+        logoSvg = `<svg x="${logoX}" y="${logoY}" width="${logoWidth}" height="${logoHeight}" viewBox="${logo.viewBox}" ${inherited}>${children}</svg>`;
+      }
     }
-  } catch (_) { /* logo is optional */ }
+  } catch (err) {
+    console.warn(`[dynamicCategoryImage] Logo load warning: ${err.message}`);
+  }
   parts.push(logoSvg);
 
   // 3. Category icons enclosed in squircle badges
@@ -204,10 +223,19 @@ async function generateCategoryImage(categoryCodes) {
   const codes = (!categoryCodes || categoryCodes.length === 0) ? ['OTHER'] : categoryCodes;
 
   const svg = buildCategorySvg(codes);
-  const buffer = await sharp(Buffer.from(svg))
+  // High-quality supersampling: render at 144 DPI (2x vector density) and downscale
+  // with Lanczos3 resampling to 1080x1080 for razor-sharp badges, icons, and text.
+  const buffer = await sharp(Buffer.from(svg), { density: 144 })
+    .resize(CANVAS, CANVAS, { fit: 'fill', kernel: sharp.kernel.lanczos3 })
     .flatten({ background: BG_BASE })
     .toColourspace('srgb')
-    .jpeg({ quality: JPEG_QUALITY, progressive: false, chromaSubsampling: '4:4:4' })
+    .jpeg({
+      quality: JPEG_QUALITY,
+      progressive: false,
+      chromaSubsampling: '4:4:4',
+      trellisQuantisation: true,
+      overshootDeringing: true,
+    })
     .toBuffer();
 
   return buffer;
