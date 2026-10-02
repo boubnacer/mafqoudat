@@ -2,7 +2,7 @@ const rateLimit = require("express-rate-limit");
 const { logEvents } = require("./logger");
 const { getRequestUserId } = require('../utils/requestUser');
 
-// Create rate limiter with custom options 
+// Create rate limiter with custom options
 const createRateLimiter = (options) => {
   const {
     windowMs = 15 * 60 * 1000, // 15 minutes
