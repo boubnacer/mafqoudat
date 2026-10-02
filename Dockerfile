@@ -10,10 +10,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy backend dependencies definition
-COPY server/package*.json ./
+COPY server/package*.json server/.npmrc* ./
 
 # Install production dependencies
-RUN npm ci --omit=dev
+RUN npm install --omit=dev --no-audit
 
 # Copy backend application source code
 COPY server/ ./
