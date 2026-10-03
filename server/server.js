@@ -99,31 +99,50 @@ process.on('unhandledRejection', (reason, promise) => {
   // stays strict for actual crashes.
 });
 
-// Enhanced graceful shutdown with metrics
-const gracefulShutdown = async (signal) => {
-  console.log(`${signal} received, shutting down gracefully`);
-  
+// Zero-downtime graceful shutdown handling
+let server = null;
+let isShuttingDown = false;
+
+const finishShutdown = async () => {
   try {
-    // Stop database monitoring
     dbMonitor.stopMonitoring();
-
-    // Stop claiming social publish jobs before the database goes away. Whatever
-    // is still queued stays queued and is picked up by the next boot.
     require("./services/socialPublishQueue").stop();
-
-    // Final connection metrics logged
-    
-    // Close database connection gracefully
     await disconnectDB();
-    
-    // Close server
+    console.log('✅ Graceful shutdown completed cleanly');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Error during database disconnect on shutdown:', error);
+    process.exit(1);
+  }
+};
+
+const gracefulShutdown = async (signal) => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  console.log(`${signal} received, starting zero-downtime shutdown...`);
+
+  // Allow proxy/load balancer 2 seconds to direct incoming traffic to the new container
+  await new Promise(resolve => setTimeout(resolve, 2000));
+
+  try {
     if (server) {
-      server.close(() => {
-        console.log('✅ Server closed successfully');
-        process.exit(0);
+      server.close(async () => {
+        console.log('✅ Server closed, all in-flight requests finished');
+        await finishShutdown();
       });
+
+      // Close idle keep-alive connections so server.close() doesn't hang indefinitely
+      if (typeof server.closeIdleConnections === 'function') {
+        server.closeIdleConnections();
+      }
+
+      // Safety timeout: force exit if long-running requests take more than 10 seconds
+      setTimeout(async () => {
+        console.warn('⚠️ Shutdown timeout reached, forcing exit');
+        await finishShutdown();
+      }, 10000).unref();
     } else {
-      process.exit(0);
+      await finishShutdown();
     }
   } catch (error) {
     console.error('❌ Error during graceful shutdown:', error);
@@ -381,6 +400,13 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads"), staticCacheO
 
 // Health check endpoint for deployment monitoring
 app.get("/health", (req, res) => {
+  if (isShuttingDown) {
+    return res.status(503).json({ status: "SHUTTING_DOWN" });
+  }
+  const isDbReady = mongoose.connection.readyState === 1;
+  if (!isDbReady) {
+    return res.status(503).json({ status: "CONNECTING_DB" });
+  }
   res.status(200).json({ 
     status: "OK", 
     timestamp: new Date().toISOString(),
@@ -439,9 +465,13 @@ app.use("/auth", authErrorMiddleware);
 app.use(resilientErrorHandler);
 
 // Start server after MongoDB connection is established
-let server;
 mongoose.connection.once("open", () => {
   console.log("Connected to MongoDB");
+
+  // Bind HTTP server immediately so Railway health check passes with zero downtime
+  server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+
+  // Asynchronously initialize background tasks without delaying the HTTP server
   // The Notification unique indexes were narrowed with partialFilterExpression
   // when new_comment notifications were added (see models/Notification.js) -
   // an existing deployment's old unqualified index has to be replaced, or
@@ -504,7 +534,6 @@ mongoose.connection.once("open", () => {
   // automatically on every subsequent restart.
   require("./services/whatsappService").init();
   logPushChannelStatus();
-  server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
 });
 
 /**
@@ -544,35 +573,4 @@ mongoose.connection.on("error", (err) => {
     `${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`,
     "mongoErrLog.log"
   );
-});
-
-// Graceful shutdown handling
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully...');
-  if (server) {
-    server.close(() => {
-      console.log('Server closed');
-      mongoose.connection.close(() => {
-        console.log('MongoDB connection closed');
-        process.exit(0);
-      });
-    });
-  } else {
-    process.exit(0);
-  }
-});
-
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully...');
-  if (server) {
-    server.close(() => {
-      console.log('Server closed');
-      mongoose.connection.close(() => {
-        console.log('MongoDB connection closed');
-        process.exit(0);
-      });
-    });
-  } else {
-    process.exit(0);
-  }
 });
