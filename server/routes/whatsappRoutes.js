@@ -476,4 +476,30 @@ router.post('/clear', async (req, res) => {
   }
 });
 
+// 7. Internal authenticated send endpoint (used by worker/local instances when WhatsApp is disabled locally)
+router.post('/send-internal', async (req, res) => {
+  try {
+    const secret = req.headers['x-internal-secret'];
+    const expectedSecret = process.env.INTERNAL_API_SECRET || process.env.JWT_SECRET;
+    if (!secret || !expectedSecret || secret !== expectedSecret) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { jid, message } = req.body;
+    if (!jid || !message) {
+      return res.status(400).json({ error: 'Missing jid or message' });
+    }
+
+    if (!whatsappService.isConnected()) {
+      return res.status(503).json({ error: 'WhatsApp service not connected on this instance' });
+    }
+
+    const sent = await whatsappService.queueMessageDirect(jid, message);
+    return res.json({ success: !!sent });
+  } catch (err) {
+    console.error('[WhatsApp Route] /send-internal error:', err?.message || err);
+    return res.status(500).json({ error: err?.message || 'Internal error' });
+  }
+});
+
 module.exports = router;

@@ -318,13 +318,66 @@ const drainQueue = async () => {
   queueRunning = false;
 };
 
-const queueMessage = (jid, content) =>
+const forwardToProduction = async (jid, message) => {
+  const remoteUrl = (process.env.REMOTE_WHATSAPP_URL || process.env.CLIENT_URL_PROD || 'https://mafqoudat-production.up.railway.app').replace(/\/$/, '');
+  const secret = process.env.INTERNAL_API_SECRET || process.env.JWT_SECRET;
+  if (!remoteUrl || !secret) return false;
+
+  try {
+    const res = await fetch(`${remoteUrl}/whatsapp/send-internal`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-internal-secret': secret,
+      },
+      body: JSON.stringify({ jid, message }),
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      console.warn(`[WhatsApp] Forwarding to production failed (${res.status}):`, errText);
+      return false;
+    }
+    const data = await res.json();
+    return !!data.success;
+  } catch (err) {
+    console.error('[WhatsApp] Forwarding error:', err?.message || err);
+    return false;
+  }
+};
+
+const queueMessageDirect = (jid, content) =>
   new Promise((resolve, reject) => {
     if (!jid) { resolve(false); return; }
     const message = typeof content === 'string' ? { text: content } : content;
     sendQueue.push({ jid, message, resolve, reject });
     if (isConnected && !queueRunning) drainQueue();
   });
+
+const queueMessage = async (jid, content) => {
+  if (!jid) return false;
+  const message = typeof content === 'string' ? { text: content } : content;
+
+  if (isWhatsAppDisabled() || !isConnected) {
+    const forwarded = await forwardToProduction(jid, message);
+    if (forwarded) {
+      console.log(`[WhatsApp] Message forwarded to production WhatsApp instance for ${jid}`);
+      return true;
+    }
+    if (isWhatsAppDisabled()) {
+      console.warn(`[WhatsApp] Service disabled locally and forward was not available. Message to ${jid} not sent.`);
+      return false;
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    sendQueue.push({ jid, message, resolve, reject });
+    if (isConnected && !queueRunning) {
+      drainQueue();
+    } else if (!isConnected && isWhatsAppDisabled()) {
+      resolve(false);
+    }
+  });
+};
 
 // ---------------------------------------------------------------------------
 // vCard / Contact Card Builder
@@ -669,6 +722,7 @@ module.exports = {
   sendContactCard,
   buildContactMessagePayload,
   isConnected: () => isConnected,
+  queueMessageDirect,
   getStatus,
   clearSession,
   toJid,
