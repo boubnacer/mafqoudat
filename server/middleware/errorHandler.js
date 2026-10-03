@@ -4,7 +4,11 @@ const errorHandler = (err, req, res, next) => {
     logEvents(`${err.name}: ${err.message}\t${req.method}\t${req.url}\t${req.headers.origin}`, 'errLog.log')
     console.error(err.stack)
 
-    const status = res.statusCode ? res.statusCode : 500 // server error 
+    // res.statusCode defaults to 200 in Express even before res.status() is
+    // called, so a plain truthy check would use 200 for any error thrown
+    // before the handler set a 4xx/5xx status. Only trust a status that was
+    // explicitly set (i.e., not the 200 default).
+    const status = (res.statusCode && res.statusCode !== 200) ? res.statusCode : 500
 
     res.status(status)
 

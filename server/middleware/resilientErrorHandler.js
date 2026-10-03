@@ -6,6 +6,25 @@
 const errorMonitor = require('../utils/errorMonitor');
 const resilienceManager = require('../utils/resilienceManager');
 
+// Fields that must never appear in error-monitoring logs (Railway, Sentry, etc.).
+// Keys are matched case-insensitively against the top-level body object.
+const SENSITIVE_BODY_FIELDS = new Set(['password', 'token', 'secret', 'refreshtoken', 'apikey', 'api_key']);
+
+/**
+ * Redact sensitive fields from a request body before it is written to the
+ * error monitor. Only the top level is checked — nested objects are removed
+ * as a whole when they sit under a sensitive key. Non-object bodies are
+ * passed through unchanged.
+ */
+const sanitizeBodyForLogging = (body) => {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return body;
+  return Object.fromEntries(
+    Object.entries(body).map(([k, v]) =>
+      [k, SENSITIVE_BODY_FIELDS.has(k.toLowerCase()) ? '[REDACTED]' : v]
+    )
+  );
+};
+
 /**
  * Enhanced error handler middleware
  */
@@ -27,7 +46,9 @@ const resilientErrorHandler = (err, req, res, next) => {
     ip: req.ip || req.connection.remoteAddress,
     userAgent: req.get('User-Agent'),
     userId: req.user || null,
-    body: req.method !== 'GET' ? req.body : undefined,
+    // Sensitive fields (password, token, etc.) are redacted so they never
+    // appear in error-monitoring tools or log aggregators.
+    body: req.method !== 'GET' ? sanitizeBodyForLogging(req.body) : undefined,
     query: req.query,
     params: req.params,
     headers: {

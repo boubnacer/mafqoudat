@@ -168,14 +168,6 @@ const verifyJWT = (req, res, next) => {
       return unauthorized(res, "Incomplete user information in token", 'INCOMPLETE_USER_INFO');
     }
 
-    // No wall-clock "token too old" check against the *current* configured
-    // expiry: jwt.verify already enforces each token's own `exp`. The old
-    // check re-derived a max age from JWT_CONFIG at request time, which would
-    // have killed every legacy 30-day token the moment the configured expiry
-    // was shortened to 30 minutes - the deploy that introduced refresh tokens
-    // must not force every signed-in user to re-login.
-    const tokenAge = Date.now() / 1000 - decoded.iat;
-
     // Check token freshness (prevent replay attacks)
     const tokenFreshness = Date.now() / 1000 - decoded.iat;
     if (tokenFreshness < 0) {
@@ -216,7 +208,6 @@ const verifyJWT = (req, res, next) => {
     req.tokenId = decoded.jti;
     req.tokenIssuedAt = decoded.iat;
     req.tokenExpiresAt = decoded.exp;
-    req.tokenAge = tokenAge;
 
     // Log successful authentication
     logEvents(
@@ -325,19 +316,6 @@ const optionalAuth = (req, res, next) => {
   })().catch(() => next());
 };
 
-// Enhanced rate limiting for authentication endpoints
-const authRateLimit = (req, res, next) => {
-  // This integrates with the existing rate limiting middleware
-  // The actual rate limiting is handled by the rateLimiting.js middleware
-  next();
-};
-
-// Rate limiting for logout endpoint
-const logoutRateLimit = (req, res, next) => {
-  // Logout should have moderate rate limiting to prevent abuse
-  next();
-};
-
 module.exports = {
   generateTokens,
   verifyJWT,
@@ -349,7 +327,7 @@ module.exports = {
   // New middleware exports
   requireRole,
   requireAdmin,
-  optionalAuth,
-  authRateLimit,
-  logoutRateLimit
+  optionalAuth
+  // authRateLimit and logoutRateLimit were no-op stubs — removed.
+  // Real rate limiters live in middleware/rateLimiting.js.
 };

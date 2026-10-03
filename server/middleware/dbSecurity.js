@@ -24,10 +24,9 @@ const dbSecurity = {
       // Nothing in this app builds a Mongoose filter directly out of
       // req.query/req.body content - controllers construct their own filter
       // objects server-side - so no operator here is ever legitimate; letting
-      // $ne/$gt/$in/$exists/etc through (as this used to) is exactly the
-      // classic NoSQL-injection auth-bypass payload
-      // ({"email":{"$ne":null},"password":{"$ne":null}}).
-      if (key.startsWith('$') && !['$and', '$or', '$nor', '$not'].includes(key)) {
+      // any $ operator through is the classic NoSQL-injection auth-bypass
+      // payload ({"email":{"$ne":null},"password":{"$ne":null}}).
+      if (key.startsWith('$')) {
         logEvents(
           `Potentially dangerous MongoDB operator detected: ${key}`,
           'errLog.log'

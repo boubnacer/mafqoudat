@@ -45,6 +45,8 @@ const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
 const { connectDB, disconnectDB, getConnectionMetrics } = require("./config/resilientDbConn");
 const passport = require("./config/passport");
+const verifyJWT = require("./middleware/verifyJWT");
+const verifyAdmin = require("./middleware/verifyAdmin");
 
 // Security middleware imports
 const { 
@@ -305,7 +307,10 @@ app.use("/db-metrics", require("./routes/dbMetricsRoutes"));
 app.use("/db-health", require("./routes/dbHealthRoutes"));
 
 // Unified cache management routes
-app.get("/cache/stats", async (req, res) => {
+// Cache management routes — admin-only: they expose internal Redis/memory state
+// and can flush the entire cache. Use /resilience/live or /resilience/ready for
+// unauthenticated liveness probes.
+app.get("/cache/stats", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const { unifiedCacheService } = require("./config/unifiedCache");
     const stats = unifiedCacheService.getStats();
@@ -316,7 +321,7 @@ app.get("/cache/stats", async (req, res) => {
   }
 });
 
-app.delete("/cache/clear", async (req, res) => {
+app.delete("/cache/clear", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const { unifiedCacheService } = require("./config/unifiedCache");
     const { confirm } = req.query;
@@ -334,7 +339,7 @@ app.delete("/cache/clear", async (req, res) => {
   }
 });
 
-app.post("/cache/warm", async (req, res) => {
+app.post("/cache/warm", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const { warmCache } = require("./config/unifiedCache");
     const result = await warmCache();
@@ -348,7 +353,7 @@ app.post("/cache/warm", async (req, res) => {
   }
 });
 
-app.get("/cache/health", async (req, res) => {
+app.get("/cache/health", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const { unifiedCacheService } = require("./config/unifiedCache");
     const health = await unifiedCacheService.healthCheck();
@@ -359,8 +364,9 @@ app.get("/cache/health", async (req, res) => {
   }
 });
 
-// Memory monitoring endpoints
-app.get("/memory/stats", async (req, res) => {
+// Memory monitoring endpoints — admin-only: expose heap/RSS internals and can
+// trigger GC-level operations. Anonymous access would be a DoS vector.
+app.get("/memory/stats", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const stats = memoryOptimizer.getMemoryStats();
     res.json({ success: true, data: stats });
@@ -370,7 +376,7 @@ app.get("/memory/stats", async (req, res) => {
   }
 });
 
-app.post("/memory/optimize", async (req, res) => {
+app.post("/memory/optimize", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const stats = await memoryOptimizer.optimizeMemory();
     res.json({ success: true, data: stats, message: 'Memory optimization completed' });
@@ -380,7 +386,7 @@ app.post("/memory/optimize", async (req, res) => {
   }
 });
 
-app.get("/memory/report", async (req, res) => {
+app.get("/memory/report", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const reportPath = await memoryOptimizer.exportMemoryReport();
     if (reportPath) {
@@ -416,23 +422,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Test endpoint for debugging
-app.post("/test-post", (req, res) => {
-  res.status(200).json({ 
-    message: "Test endpoint working",
-    body: req.body,
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Specific test for /api/* routes
-app.post("/api/test", (req, res) => {
-  res.status(200).json({ 
-    message: "API POST route working",
-    body: req.body,
-    timestamp: new Date().toISOString()
-  });
-});
+// (debug test endpoints removed — they echoed req.body with no auth guard)
 
 // API-only server - frontend will be deployed separately
 app.all("*", (req, res) => {

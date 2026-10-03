@@ -176,6 +176,12 @@ const commonValidations = {
  */
 const readPostPayload = (req) => {
   if (req.body && req.body.postData) {
+    // Guard against a near-limit field value (~1 MB) being synchronously parsed
+    // and spiking the event loop. A full listing with every optional field is
+    // well under 5 KB; 50 KB is a generous ceiling that covers any future growth.
+    if (req.body.postData.length > 50_000) {
+      throw new Error('postData payload too large');
+    }
     return JSON.parse(req.body.postData);
   }
   return req.body || {};

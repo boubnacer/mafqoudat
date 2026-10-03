@@ -49,18 +49,19 @@ const login = async (req, res) => {
       .collation({ locale: "en", strength: 2 })
       .select('_id username password country role email phone authProvider isActive').exec();
   } catch (dbError) {
+    // Log the full DB error internally but never expose its message to the client
+    // - driver error strings can reveal MongoDB version / connection topology.
     console.error('Database error during login:', dbError);
     throw createAuthError('DATABASE_ERROR', 'Database connection error', {
-      emailOrPhone,
       ip: req.ip,
-      userAgent: req.get('User-Agent'),
-      dbError: dbError.message
+      userAgent: req.get('User-Agent')
     });
   }
 
   if (!foundUser) {
+    // Do not include emailOrPhone in the error details - it is PII and would
+    // appear in structured error-monitoring logs (Railway, Sentry, etc.).
     throw createAuthError('INVALID_CREDENTIALS', 'Invalid credentials', {
-      emailOrPhone,
       ip: req.ip,
       userAgent: req.get('User-Agent')
     });
@@ -100,18 +101,16 @@ const login = async (req, res) => {
   try {
     match = await bcrypt.compare(password, foundUser.password);
   } catch (bcryptError) {
+    // bcrypt errors are internal implementation details; do not expose the message.
     console.error('Bcrypt error during login:', bcryptError);
     throw createAuthError('SERVER_ERROR', 'Password verification error', {
-      username: foundUser.username,
       ip: req.ip,
-      userAgent: req.get('User-Agent'),
-      bcryptError: bcryptError.message
+      userAgent: req.get('User-Agent')
     });
   }
 
   if (!match) {
     throw createAuthError('INVALID_CREDENTIALS', 'Invalid credentials', {
-      username: foundUser.username,
       ip: req.ip,
       userAgent: req.get('User-Agent')
     });
@@ -142,12 +141,11 @@ const login = async (req, res) => {
     accessToken = session.accessToken;
     refreshToken = session.refreshToken;
   } catch (tokenError) {
+    // Token errors are internal; do not expose message text to the client.
     console.error('Token generation error during login:', tokenError);
     throw createAuthError('SERVER_ERROR', 'Token generation error', {
-      username: foundUser.username,
       ip: req.ip,
-      userAgent: req.get('User-Agent'),
-      tokenError: tokenError.message
+      userAgent: req.get('User-Agent')
     });
   }
 
