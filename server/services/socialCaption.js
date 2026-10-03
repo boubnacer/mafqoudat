@@ -33,48 +33,69 @@ const LOCALE_TEXT = {
   ar: {
     docFoundTitle: (name) => (name ? `عُثر على وثائق باسم: 👤 ${name}` : 'عُثر على وثائق'),
     docLostTitle: (name) => (name ? `إعلان فقدان وثائق باسم: 👤 ${name}` : 'إعلان فقدان وثائق'),
+    personFoundTitle: (name) => (name ? `العثور على شخص (تائه/مفقود): 👤 ${name}` : 'العثور على شخص (تائه/مفقود)'),
+    personLostTitle: (name) => (name ? `إعلان عن شخص مفقود: 👤 ${name}` : 'إعلان عن شخص مفقود'),
     itemFoundTitle: (cat) => `تم العثور على: ${cat}`,
     itemLostTitle: (cat) => `إعلان فقدان: ${cat}`,
     typePrefix: 'النوع: ',
     cityPrefix: 'المدينة: ',
     locationPrefix: 'المكان: ',
+    sexPrefix: 'الجنس: ',
+    sexLabels: { male: 'ذكر', female: 'أنثى' },
     docFoundPrompt: 'من يعرف صاحب الوثائق يرجى إخباره أو مشاركة المنشور.',
     docLostPrompt: 'المرجو ممن عثر عليها أو لديه أي معلومة المساعدة والتواصل.',
+    personFoundPrompt: 'من يتعرف عليه أو لديه أي معلومة عن عائلته يرجى المساعدة والتواصل ومشاركة المنشور.',
+    personLostPrompt: 'المرجو ممن شاهده أو لديه أي معلومة المساعدة والتواصل أو إبلاغ السلطات ومشاركة المنشور.',
     itemFoundPrompt: 'المرجو ممن لديه أي معلومة المساعدة والتواصل.',
     itemLostPrompt: 'المرجو ممن عثر عليه أو لديه أي معلومة المساعدة والتواصل.',
     contactDocFound: 'للتواصل واستلام الوثائق :',
+    contactPerson: 'للتواصل والمساعدة :',
     contactDefault: 'للمزيد من المعلومات والتواصل :',
     listSeparator: '، ',
   },
   fr: {
     docFoundTitle: (name) => (name ? `Documents trouvés au nom de : 👤 ${name}` : 'Documents trouvés'),
     docLostTitle: (name) => (name ? `Perte de documents au nom de : 👤 ${name}` : 'Perte de documents'),
+    personFoundTitle: (name) => (name ? `Personne retrouvée / égarée : 👤 ${name}` : 'Personne retrouvée / égarée'),
+    personLostTitle: (name) => (name ? `Avis de recherche - Personne disparue : 👤 ${name}` : 'Avis de recherche - Personne disparue'),
     itemFoundTitle: (cat) => `Objet trouvé : ${cat}`,
     itemLostTitle: (cat) => `Objet perdu : ${cat}`,
     typePrefix: 'Type : ',
     cityPrefix: 'Ville : ',
     locationPrefix: 'Lieu : ',
+    sexPrefix: 'Sexe : ',
+    sexLabels: { male: 'Homme', female: 'Femme' },
     docFoundPrompt: 'Si vous connaissez la personne, merci de la taguer ou de partager.',
     docLostPrompt: 'Si vous l\'avez trouvé ou avez des informations, merci de contacter le propriétaire.',
+    personFoundPrompt: 'Si vous reconnaissez cette personne ou sa famille, merci de contacter et de partager la publication.',
+    personLostPrompt: 'Si vous l\'avez aperçu(e) ou possédez la moindre information, merci de contacter d\'urgence la famille et de partager.',
     itemFoundPrompt: 'Si vous avez des informations, merci de contacter.',
     itemLostPrompt: 'Si vous l\'avez trouvé ou avez des informations, merci de contacter le propriétaire.',
     contactDocFound: 'Détails & contact :',
+    contactPerson: 'Pour aider & contacter la famille :',
     contactDefault: 'Pour plus d\'informations et contact :',
     listSeparator: ', ',
   },
   en: {
     docFoundTitle: (name) => (name ? `Documents found under the name of: 👤 ${name}` : 'Documents found'),
     docLostTitle: (name) => (name ? `Lost documents under the name of: 👤 ${name}` : 'Lost documents'),
+    personFoundTitle: (name) => (name ? `Person Located / Found: 👤 ${name}` : 'Person Located / Found'),
+    personLostTitle: (name) => (name ? `Missing Person Alert: 👤 ${name}` : 'Missing Person Alert'),
     itemFoundTitle: (cat) => `Found item: ${cat}`,
     itemLostTitle: (cat) => `Lost item: ${cat}`,
     typePrefix: 'Type: ',
     cityPrefix: 'City: ',
     locationPrefix: 'Location: ',
+    sexPrefix: 'Sex: ',
+    sexLabels: { male: 'Male', female: 'Female' },
     docFoundPrompt: 'If you know this person, please tag them or share.',
     docLostPrompt: 'If you found this or have any info, please reach out to help the owner.',
+    personFoundPrompt: 'If you recognise this person or their family, please reach out to help reunite them, or share this post.',
+    personLostPrompt: 'If you have seen this person or have any information, please reach out immediately to help the family, or share this post.',
     itemFoundPrompt: 'If you have any information, please reach out.',
     itemLostPrompt: 'If you found this or have any info, please reach out to help the owner.',
     contactDocFound: 'More info & contact:',
+    contactPerson: 'More info & contact the family:',
     contactDefault: 'For more information & contact:',
     listSeparator: ', ',
   },
@@ -100,6 +121,11 @@ const CORE_HASHTAGS = [
 const DOCUMENT_HASHTAGS = [
   '#وثائق', '#بطاقة_التعريف', '#جواز_سفر', '#وثائق_ضائعة',
   '#Documents', '#Passeport', '#Passport', '#IDCard',
+];
+
+const PERSON_HASHTAGS = [
+  '#شخص_مفقود', '#مفقودين', '#نداء_بحث', '#نداء_إنساني',
+  '#MissingPerson', '#Missing', '#PersonneDisparue', '#AvisDeRecherche',
 ];
 
 // What a hard-truncated caption ends with, in the rare case even zero
@@ -244,7 +270,10 @@ function buildLocaleBlock(locale, data) {
     statusCode,
     categoryLabel,
     hasDocuments,
+    isPerson,
     ownerName,
+    personName,
+    personSex,
     cityLabel,
     exactLocation,
     postUrl,
@@ -265,19 +294,23 @@ function buildLocaleBlock(locale, data) {
 
   const lines = [];
 
-  if (hasDocuments) {
+  // Line 1: Header / Title
+  if (isPerson) {
+    const title = isFound ? t.personFoundTitle(personName) : t.personLostTitle(personName);
+    lines.push(`${mark}${statusEmoji} ${title}`);
+  } else if (hasDocuments) {
     const title = isFound ? t.docFoundTitle(ownerName) : t.docLostTitle(ownerName);
     lines.push(`${mark}📢 ${title}`);
-    lines.push(`${mark}${statusEmoji} ${t.typePrefix}${categoryLabel}`);
   } else {
     const title = isFound ? t.itemFoundTitle(categoryLabel) : t.itemLostTitle(categoryLabel);
     lines.push(`${mark}${statusEmoji} ${title}`);
   }
 
-  // Location line (City + optional exact spot in parentheses, or standalone)
+  // Line 2: Location line (City + optional exact spot in parentheses, or standalone)
+  // Location is always the second line across all scripts.
   let locLine = '';
   if (cityLabel && exactLocation) {
-    const prefix = hasDocuments ? t.cityPrefix : t.locationPrefix;
+    const prefix = (hasDocuments || isPerson) ? t.cityPrefix : t.locationPrefix;
     locLine = `${mark}📍 ${prefix}${cityLabel} (${exactLocation})`;
   } else if (cityLabel) {
     locLine = `${mark}📍 ${t.cityPrefix}${cityLabel}`;
@@ -288,9 +321,23 @@ function buildLocaleBlock(locale, data) {
     lines.push(locLine);
   }
 
-  // Social action / share prompt
+  // Line 3: Category / Specific details (Sex for Person, Type for Documents)
+  if (isPerson) {
+    if (personSex) {
+      const sexLabel = t.sexLabels?.[String(personSex).toLowerCase()];
+      if (sexLabel) {
+        lines.push(`${mark}👤 ${t.sexPrefix}${sexLabel}`);
+      }
+    }
+  } else if (hasDocuments) {
+    lines.push(`${mark}${statusEmoji} ${t.typePrefix}${categoryLabel}`);
+  }
+
+  // Line 4: Social action / share prompt
   let prompt = '';
-  if (hasDocuments) {
+  if (isPerson) {
+    prompt = isFound ? t.personFoundPrompt : t.personLostPrompt;
+  } else if (hasDocuments) {
     prompt = isFound ? t.docFoundPrompt : t.docLostPrompt;
   } else {
     prompt = isFound ? t.itemFoundPrompt : t.itemLostPrompt;
@@ -299,8 +346,13 @@ function buildLocaleBlock(locale, data) {
     lines.push(`${mark}${prompt}`);
   }
 
-  // Contact line with LTR isolated URL
-  const contactHeading = (hasDocuments && isFound) ? t.contactDocFound : t.contactDefault;
+  // Line 5: Contact line with LTR isolated URL
+  let contactHeading = t.contactDefault;
+  if (isPerson) {
+    contactHeading = t.contactPerson;
+  } else if (hasDocuments && isFound) {
+    contactHeading = t.contactDocFound;
+  }
   lines.push(`${mark}👉 ${contactHeading}\n${LRM}${postUrl}`);
 
   return lines.join('\n\n');
@@ -368,6 +420,27 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
   }
 
   const hasDocuments = orderedDocumentTypes.length > 0 || docIndex !== -1;
+
+  // Detect Person category (contract code 'PERSON' or 'PEOPLE') or listings containing person fields
+  const PERSON_CATEGORY_CODES = ['PERSON', 'PEOPLE'];
+  const isPersonCategory = (category) => (
+    PERSON_CATEGORY_CODES.includes(String(category?.code || '').toUpperCase())
+  );
+  const hasPersonCategory = activeCategories.some(isPersonCategory);
+  const personNameAr = (post.personName?.ar || '').trim();
+  const personNameLatin = (post.personName?.latin || '').trim();
+  const hasPersonData = Boolean(personNameAr || personNameLatin || (post.personSex || '').trim());
+  const isPerson = hasPersonCategory || hasPersonData;
+
+  // Bilingual name formatting with script direction isolation
+  const personNameForAr = (personNameAr && personNameLatin)
+    ? `${personNameAr} (${LRM}${personNameLatin}${RLM})`
+    : (personNameAr || (personNameLatin ? `${LRM}${personNameLatin}${RLM}` : ''));
+
+  const personNameForLatin = (personNameLatin && personNameAr)
+    ? `${personNameLatin} (${RLM}${personNameAr}${LRM})`
+    : (personNameLatin || (personNameAr ? `${RLM}${personNameAr}${LRM}` : ''));
+
   const cleanExactLocation = (post.exactLocation || '').replace(/[\r\n]+/g, ' ').trim();
 
   const statusCode = foundLost?.code;
@@ -382,7 +455,7 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
   // sit after the fixed CORE_HASHTAGS so a trim (below) drops the specific
   // ones before the general-reach ones.
   const localizedHashtags = [
-    ...(hasDocuments ? DOCUMENT_HASHTAGS : []),
+    ...(isPerson ? PERSON_HASHTAGS : (hasDocuments ? DOCUMENT_HASHTAGS : [])),
     ...LOCALES.map((locale) => toHashtag(city?.labels?.[locale])),
     ...LOCALES.flatMap((locale) => sortedCategories.map((c) => toHashtag(c.labels?.[locale]))),
     ...LOCALES.map((locale) => toHashtag(country?.names?.[locale])),
@@ -412,12 +485,15 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
       statusCode,
       categoryLabel,
       hasDocuments,
+      isPerson,
       // Each block gets the name in its own script, falling back to the other
       // one when only that was written - an Arabic block with a Latin name still
       // beats no name at all on a listing whose photo nobody will ever see.
       ownerName: orderedDocumentTypes.length > 0
         ? (locale === 'ar' ? (ownerNameAr || ownerNameLatin) : (ownerNameLatin || ownerNameAr))
         : '',
+      personName: locale === 'ar' ? personNameForAr : personNameForLatin,
+      personSex: post.personSex,
       cityLabel: city?.labels?.[locale] || '',
       exactLocation: cleanExactLocation,
       postUrl,

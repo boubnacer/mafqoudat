@@ -49,11 +49,17 @@ const LOGO = `${BASE_URL}/maflogo1200-630.png`;
 const AR = {
   titleFound: "عُثر على: {item} في {city} | مفقودات",
   titleLost: "مفقود: {item} في {city} | مفقودات",
+  titlePersonFound: "العثور على شخص: {item} في {city} | مفقودات",
+  titlePersonLost: "إعلان عن شخص مفقود: {item} في {city} | مفقودات",
   titleUnknown: "{item} في {city} | مفقودات",
   descFound:
     "تم العثور على {item} في {city}. اطّلع على التفاصيل الكاملة وتواصل مع صاحب البلاغ عبر مفقودات، منصة المفقودات والموجودات في {country}.",
   descLost:
     "بلاغ عن فقدان {item} في {city}. اطّلع على التفاصيل الكاملة وساعد في إعادة المفقود إلى صاحبه عبر مفقودات، منصة المفقودات والموجودات في {country}.",
+  descPersonFound:
+    "تم العثور على شخص: {item} في {city}. اطّلع على التفاصيل الكاملة وساعد في الوصول إلى عائلته عبر مفقودات.",
+  descPersonLost:
+    "نداء وبلاغ عن شخص مفقود: {item} في {city}. المرجو الاطلاع على التفاصيل والمساعدة في العثور عليه وإعادته إلى عائلته عبر مفقودات.",
   descUnknown:
     "{item} في {city}. اطّلع على التفاصيل الكاملة عبر مفقودات، منصة المفقودات والموجودات في {country}.",
   unknownCategory: "فئة غير معروفة",
@@ -72,6 +78,8 @@ const AR = {
   statusFound: "تم العثور عليه",
   statusReturned: "أُعيد إلى صاحبه",
   categoryLabel: "الفئة",
+  personNameLabel: "اسم الشخص",
+  personSexLabel: "الجنس",
   cityLabel: "المدينة",
   countryLabel: "البلد",
   locationLabel: "الموقع بالتحديد",
@@ -219,12 +227,30 @@ const describePost = (post, cityOf) => {
     if (legacy) categoryLabels.push(legacy);
   }
 
+  const categoryCodes = (Array.isArray(post.categories) ? post.categories : [])
+    .map((cat) => (cat && cat.code ? String(cat.code).toUpperCase() : ""))
+    .filter(Boolean);
+  if (post.category && post.category.code) {
+    categoryCodes.push(String(post.category.code).toUpperCase());
+  }
+
+  const personNameAr = collapse(post.personName?.ar);
+  const personNameLatin = collapse(post.personName?.latin);
+  const personNameFormatted = personNameAr
+    ? (personNameLatin ? `${personNameAr} (${personNameLatin})` : personNameAr)
+    : personNameLatin;
+  const isPerson = categoryCodes.includes("PERSON") || categoryCodes.includes("PEOPLE") || Boolean(personNameFormatted || post.personSex);
+
   const cityLabel = cityOf(post);
   const countryLabel = post.country
     ? arLabel(post.country.names, "") || arLabel(post.country.labels, post.country.code)
     : "";
 
-  const item = categoryLabels.join("، ") || AR.unknownCategory;
+  let item = categoryLabels.join("، ") || AR.unknownCategory;
+  if (isPerson && personNameFormatted) {
+    item = personNameFormatted;
+  }
+
   const city = cityLabel || AR.unknownLocation;
   const country = countryLabel || AR.defaultRegion;
 
@@ -232,10 +258,19 @@ const describePost = (post, cityOf) => {
     ? String(post.foundLost.code).toUpperCase()
     : null;
 
-  const titleTemplate =
-    code === "FOUND" ? AR.titleFound : code === "LOST" ? AR.titleLost : AR.titleUnknown;
-  const descTemplate =
-    code === "FOUND" ? AR.descFound : code === "LOST" ? AR.descLost : AR.descUnknown;
+  let titleTemplate;
+  let descTemplate;
+  if (isPerson) {
+    titleTemplate =
+      code === "FOUND" ? AR.titlePersonFound : code === "LOST" ? AR.titlePersonLost : AR.titleUnknown;
+    descTemplate =
+      code === "FOUND" ? AR.descPersonFound : code === "LOST" ? AR.descPersonLost : AR.descUnknown;
+  } else {
+    titleTemplate =
+      code === "FOUND" ? AR.titleFound : code === "LOST" ? AR.titleLost : AR.titleUnknown;
+    descTemplate =
+      code === "FOUND" ? AR.descFound : code === "LOST" ? AR.descLost : AR.descUnknown;
+  }
 
   const status = post.returned
     ? AR.statusReturned
@@ -245,6 +280,9 @@ const describePost = (post, cityOf) => {
     ? AR.statusLost
     : "";
 
+  const personSexFormatted =
+    post.personSex === "male" ? "ذكر" : post.personSex === "female" ? "أنثى" : "";
+
   return {
     url: `${BASE_URL}/dash/posts/${post._id}`,
     item,
@@ -252,6 +290,8 @@ const describePost = (post, cityOf) => {
     country,
     status,
     categoryLabels,
+    personName: personNameFormatted,
+    personSex: personSexFormatted,
     exactLocation: collapse(post.exactLocation),
     mainDate: collapse(post.mainDate),
     description: collapse(post.description),
@@ -417,7 +457,7 @@ router.get("/og/posts/:id", async (req, res) => {
       status: "active",
       ...(post.country ? { country: post.country._id || post.country } : {}),
     })
-      .select("_id categories category foundLost country city exactLocation mainDate returned cloudinaryUrl image createdAt")
+      .select("_id categories category foundLost country city exactLocation mainDate returned cloudinaryUrl image createdAt personName personSex")
       .populate("categories", "code labels")
       .populate("category", "code labels")
       .populate("foundLost", "code")
@@ -433,6 +473,8 @@ router.get("/og/posts/:id", async (req, res) => {
     const facts = [
       [AR.statusLabel, info.status],
       [AR.categoryLabel, info.categoryLabels.join("، ")],
+      [AR.personNameLabel, info.personName],
+      [AR.personSexLabel, info.personSex],
       [AR.cityLabel, info.city],
       [AR.countryLabel, info.country],
       [AR.locationLabel, info.exactLocation],

@@ -43,6 +43,7 @@ const CATEGORY_IDS = {
   '507f1f77bcf86cd799439013': { code: 'LUGGAGE' },
   '507f1f77bcf86cd799439014': { _id: '507f1f77bcf86cd799439014', code: 'DOCUMENTS', labels: { ar: 'وثائق', fr: 'Documents', en: 'Documents' } },
   '507f1f77bcf86cd799439015': { _id: '507f1f77bcf86cd799439015', code: 'KEYS', labels: { ar: 'مفاتيح', fr: 'Clés', en: 'Keys' } },
+  '507f1f77bcf86cd799439016': { _id: '507f1f77bcf86cd799439016', code: 'PERSON', labels: { ar: 'شخص', fr: 'Personne', en: 'Person' } },
 };
 
 /** A findById()/find() stand-in answering a fixed value, chainable like mongoose. */
@@ -223,6 +224,41 @@ async function run() {
     reverseMultiCaption.includes('Keys, Documents (Passport, National identity card)')
       && reverseMultiCaption.includes("Clés, Documents (Passeport, Carte nationale d'identité)")
       && reverseMultiCaption.includes('مفاتيح، وثائق (جواز السفر، بطاقة الهوية الوطنية)'),
+  );
+
+  const personPost = {
+    _id: '507f1f77bcf86cd7994390ae',
+    foundLost: 'fl',
+    city: 'c1',
+    country: 'co1',
+    categories: ['507f1f77bcf86cd799439016'],
+    personName: { ar: 'أحمد التازي', latin: 'Ahmed Tazi' },
+    personSex: 'male',
+    exactLocation: 'حي المعاريف',
+  };
+  const personCaption = await buildListingCaption(personPost);
+  checkThat(
+    'person caption carries humanitarian missing person title in all 3 languages',
+    personCaption.includes('إعلان عن شخص مفقود: 👤 أحمد التازي (‎Ahmed Tazi‏)')
+      && personCaption.includes('Avis de recherche - Personne disparue : 👤 Ahmed Tazi (‏أحمد التازي‎)')
+      && personCaption.includes('Missing Person Alert: 👤 Ahmed Tazi (‏أحمد التازي‎)'),
+  );
+  checkThat(
+    'person caption has Location on the second line',
+    personCaption.includes('إعلان عن شخص مفقود')
+      && personCaption.includes('📍 المدينة: الدار البيضاء (حي المعاريف)'),
+  );
+  checkThat(
+    'person caption carries sex (male) in all 3 languages',
+    personCaption.includes('👤 الجنس: ذكر')
+      && personCaption.includes('👤 Sexe : Homme')
+      && personCaption.includes('👤 Sex: Male'),
+  );
+  checkThat(
+    'person caption includes person-specific hashtags',
+    personCaption.includes('#شخص_مفقود')
+      && personCaption.includes('#MissingPerson')
+      && personCaption.includes('#PersonneDisparue'),
   );
 
   const capped = await buildListingCaption(longPost, { maxLength: IG_LIMIT });
