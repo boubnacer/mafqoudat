@@ -54,3 +54,21 @@ export const getNonDocumentCategories = (categories, values) => {
 export const isDocumentsOnlyListing = (categories, values) => (
   isDocumentsListing(categories, values) && getNonDocumentCategories(categories, values).length === 0
 );
+
+export const PERSON_CATEGORY_CODE = 'PERSON';
+
+/**
+ * Whether this listing is about a person.
+ */
+export const isPersonListing = (categories, values) => {
+  const selectedIds = getSelectedCategoryIds(values);
+  if (selectedIds.length === 0) return false;
+
+  return (categories || []).some(
+    (category) => {
+      const code = String(category?.code || '').toUpperCase();
+      return (code === PERSON_CATEGORY_CODE || code === 'PEOPLE') && selectedIds.includes(getCategoryId(category));
+    }
+  );
+};
+

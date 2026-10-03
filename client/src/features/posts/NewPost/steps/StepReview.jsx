@@ -14,6 +14,7 @@ import { useTranslation } from "../../../../utils/translations";
 import { formatDisplayDate } from "../../../../utils/dateUtils";
 import { generatePostDescription } from "../../../../utils/postDescriptionGenerator";
 import { useGetDocumentTypesQuery } from "../../../dependencies/documentTypesApiSlice";
+import { isPersonListing } from "../documentCategory";
 import RequiredMark from "./RequiredMark";
 
 // Step 4 "Contact & review": contact field + a read-only, definition-list
@@ -51,6 +52,8 @@ const StepReview = ({
     .filter((cat) => selectedCategoryIds.includes(cat.id || cat._id))
     .map((cat) => cat.labels?.[currentLanguage] || cat.label || cat.code)
     .join(', ');
+
+  const personMode = isPersonListing(categories, values);
 
   // Only fetched for a documents listing; RTK Query serves it from the cache
   // the picker on step 1 already filled.
@@ -127,6 +130,21 @@ const StepReview = ({
               .map((name) => (name || '').trim())
               .filter(Boolean)
               .join(' — ') || '-'}
+          />
+        )}
+        {personMode && (values.personName?.ar || values.personName?.latin) && (
+          <ReviewRow
+            label={t('personName')}
+            value={[values.personName?.ar, values.personName?.latin]
+              .map((name) => (name || '').trim())
+              .filter(Boolean)
+              .join(' — ') || '-'}
+          />
+        )}
+        {personMode && values.personSex && (
+          <ReviewRow
+            label={t('personSex')}
+            value={values.personSex === 'male' ? t('male') : t('female')}
           />
         )}
       </ReviewSection>

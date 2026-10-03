@@ -49,7 +49,7 @@ import WizardFooter from "./steps/WizardFooter";
 import WizardNextButton from "./steps/WizardNextButton";
 import ReviewSubmitButton from "./steps/ReviewSubmitButton";
 import { validateStep1, validateStep2, VALIDATOR_BY_STEP_KEY, scrollToFirstErrorField } from "./wizardValidation";
-import { isDocumentsListing, getNonDocumentCategories } from "./documentCategory";
+import { isDocumentsListing, getNonDocumentCategories, isPersonListing } from "./documentCategory";
 import { getCityDisplayName } from "./cityDisplay";
 import scrollToTop, { smoothScrollToTop } from "../../../utils/scrollToTop";
 import { redactFacesInImage } from "../../../utils/faceRedaction";
@@ -162,6 +162,9 @@ const FormDirtyWatcher = ({ onDirty }) => {
       dirty ||
       (Array.isArray(values.categories) && values.categories.length > 0) ||
       (Array.isArray(values.documentTypes) && values.documentTypes.length > 0) ||
+      Boolean(values.personName?.ar?.trim()) ||
+      Boolean(values.personName?.latin?.trim()) ||
+      Boolean(values.personSex) ||
       Boolean(values.description?.trim()) ||
       Boolean(values.contact?.trim()) ||
       Boolean(values.exactLocation?.trim()) ||
@@ -594,6 +597,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // A documents listing carries no photo, so its document title is the
       // only thing that says what was lost - required, like the category.
       requiresDocumentTitle: isDocumentsListing(categories, values),
+      isPerson: isPersonListing(categories, values),
     });
 
     if (missingFields.length > 0) {
@@ -670,6 +674,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     // own document by when there is no picture of it.
     documentTypes: [],
     documentOwnerName: { ar: "", latin: "" },
+    personName: { ar: "", latin: "" },
+    personSex: "",
     foundLost: getDefaultFoundLost(),
     city: "",
     exactLocation: "",
@@ -832,6 +838,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         if (!validateStep) return;
         const stepResult = validateStep(values, t, {
           requiresDocumentTitle: isDocumentsListing(categories, values),
+          isPerson: isPersonListing(categories, values),
         });
         if (stepResult.missingFields.length > 0) {
           missingFields.push(...stepResult.missingFields);
@@ -905,6 +912,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               latin: values.documentOwnerName?.latin?.trim() || '',
             }
           : { ar: '', latin: '' },
+        personName: isPersonListing(categories, values)
+          ? {
+              ar: values.personName?.ar?.trim() || '',
+              latin: values.personName?.latin?.trim() || '',
+            }
+          : { ar: '', latin: '' },
+        personSex: isPersonListing(categories, values)
+          ? (values.personSex || '')
+          : '',
       };
       
       // Handle city - check if it's an API city or database city

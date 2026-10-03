@@ -1056,6 +1056,23 @@ export const translations = {
     photoDocumentsMixedNotice: "Do not photograph the document or card, even if sensitive information is hidden — you may only photograph the {categories} if you have an image of it.",
     photoDocumentsMixedNoticeGeneric: "Do not photograph the document or card, even if sensitive information is hidden — you may only photograph the item itself if you have an image of it.",
 
+    // Person Details
+    personSectionTitle: "Person Details",
+    personSectionHint: "Enter details about the person to help identify them.",
+    personNameSectionTitle: "Name of the person",
+    personNameSectionHint: "Enter the name of the person in both Arabic and Latin letters.",
+    personNameArabic: "Name in Arabic",
+    personNameLatin: "Name in Latin letters",
+    personNameArabicPlaceholder: "Enter the name of the person (e.g. محمد العلوي)",
+    personNameLatinPlaceholder: "Enter the name of the person (e.g. Mohamed Alaoui)",
+    personSex: "Sex",
+    male: "Male",
+    female: "Female",
+    personNameRequired: "Please enter the name of the person in Arabic and Latin letters",
+    personNameArabicScriptRequired: "The Arabic name must be written in Arabic letters.",
+    personNameLatinScriptRequired: "The Latin name must be written in Latin letters.",
+    personName: "Name of the person",
+
     // Form fields
     description: "Description",
     descriptionPlaceholder: "Describe the item you found/lost",
@@ -3336,6 +3353,23 @@ export const translations = {
     documentOwner: "Nom figurant sur le document",
     photoDocumentsMixedNotice: "Ne photographiez pas le document ou la carte, même si les informations sensibles sont masquées — vous pouvez photographier uniquement {categories} si vous en avez une photo.",
     photoDocumentsMixedNoticeGeneric: "Ne photographiez pas le document ou la carte, même si les informations sensibles sont masquées — vous pouvez photographier uniquement l'objet lui-même si vous en avez une photo.",
+
+    // Person Details
+    personSectionTitle: "Détails de la personne",
+    personSectionHint: "Entrez les détails de la personne pour faciliter son identification.",
+    personNameSectionTitle: "Nom de la personne",
+    personNameSectionHint: "Entrez le nom de la personne en arabe et en lettres latines.",
+    personNameArabic: "Nom en arabe",
+    personNameLatin: "Nom en lettres latines",
+    personNameArabicPlaceholder: "Entrez le nom de la personne (ex. محمد العلوي)",
+    personNameLatinPlaceholder: "Entrez le nom de la personne (ex. Mohamed Alaoui)",
+    personSex: "Sexe",
+    male: "Masculin",
+    female: "Féminin",
+    personNameRequired: "Veuillez entrer le nom de la personne en arabe et en lettres latines",
+    personNameArabicScriptRequired: "Le nom arabe doit être écrit en lettres arabes.",
+    personNameLatinScriptRequired: "Le nom latin doit être écrit en lettres latines.",
+    personName: "Nom de la personne",
     
     // Form fields
     description: "Description",
@@ -5579,6 +5613,23 @@ export const translations = {
     documentOwner: "الاسم المكتوب على الوثيقة",
     photoDocumentsMixedNotice: "لا تصوّر الوثيقة أو البطاقة حتى وإن قمت بإخفاء المعلومات الحساسة — يمكنك تصوير {categories} فقط إذا كانت لديك صورتها.",
     photoDocumentsMixedNoticeGeneric: "لا تصوّر الوثيقة أو البطاقة حتى وإن قمت بإخفاء المعلومات الحساسة — يمكنك تصوير الغرض نفسه فقط إذا كانت لديك صورته.",
+
+    // Person Details
+    personSectionTitle: "بيانات الشخص",
+    personSectionHint: "أدخل معلومات وبيانات الشخص للمساعدة في التعرف عليه بسرعة.",
+    personNameSectionTitle: "اسم الشخص",
+    personNameSectionHint: "أدخل اسم الشخص بالعربية وبالحروف اللاتينية لتسهيل عملية العثور عليه.",
+    personNameArabic: "الاسم بالعربية",
+    personNameLatin: "الاسم بالحروف اللاتينية",
+    personNameArabicPlaceholder: "أدخل اسم الشخص (مثال: محمد العلوي)",
+    personNameLatinPlaceholder: "أدخل اسم الشخص (مثال: Mohamed Alaoui)",
+    personSex: "الجنس",
+    male: "ذكر",
+    female: "أنثى",
+    personNameRequired: "يرجى إدخال اسم الشخص بالعربية وبالحروف اللاتينية",
+    personNameArabicScriptRequired: "يجب كتابة الاسم العربي بحروف عربية.",
+    personNameLatinScriptRequired: "يجب كتابة الاسم اللاتيني بحروف لاتينية.",
+    personName: "اسم الشخص",
     
     // Form fields
     description: "الوصف",

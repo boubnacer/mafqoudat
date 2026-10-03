@@ -33,6 +33,10 @@ const FIELD_LIMITS = {
     // four-part Arabic name, short enough that a description cannot be filed
     // as one.
     documentOwnerName: 100,
+    // The name of a person reported missing or found.
+    personName: 100,
+    // Sex / gender of the person (male, female).
+    personSex: 20,
     // Digits and separators.
     promotionPhoneNumber: 30,
     tag: 50,

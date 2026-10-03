@@ -58,6 +58,27 @@ const postSchema = new mongoose.Schema(
         maxlength: [POST_LIMITS.documentOwnerName, `Name cannot exceed ${POST_LIMITS.documentOwnerName} characters`],
       },
     },
+    // The name of a person in Arabic and Latin letters, and their sex (male/female)
+    // when filed under the PERSON category.
+    personName: {
+      ar: {
+        type: String,
+        trim: true,
+        default: "",
+        maxlength: [POST_LIMITS.personName, `Name cannot exceed ${POST_LIMITS.personName} characters`],
+      },
+      latin: {
+        type: String,
+        trim: true,
+        default: "",
+        maxlength: [POST_LIMITS.personName, `Name cannot exceed ${POST_LIMITS.personName} characters`],
+      },
+    },
+    personSex: {
+      type: String,
+      enum: ["male", "female", ""],
+      default: "",
+    },
     // Legacy single category field - kept for backward compatibility during migration
     category: {
       type: mongoose.Schema.Types.ObjectId,

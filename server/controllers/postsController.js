@@ -216,7 +216,9 @@ const getAllPosts = async (req, res) => {
         // these listings carry no photo and often no description worth
         // matching, so leaving it out of the search made them unfindable.
         { 'documentOwnerName.ar': { $regex: escapeRegex(search), $options: 'i' } },
-        { 'documentOwnerName.latin': { $regex: escapeRegex(search), $options: 'i' } }
+        { 'documentOwnerName.latin': { $regex: escapeRegex(search), $options: 'i' } },
+        { 'personName.ar': { $regex: escapeRegex(search), $options: 'i' } },
+        { 'personName.latin': { $regex: escapeRegex(search), $options: 'i' } }
       ];
     }
   }
@@ -233,7 +235,9 @@ const getAllPosts = async (req, res) => {
       { description: { $regex: escapeRegex(search), $options: 'i' } },
       // See above: a documents listing is found by the name on the document.
       { 'documentOwnerName.ar': { $regex: escapeRegex(search), $options: 'i' } },
-      { 'documentOwnerName.latin': { $regex: escapeRegex(search), $options: 'i' } }
+      { 'documentOwnerName.latin': { $regex: escapeRegex(search), $options: 'i' } },
+      { 'personName.ar': { $regex: escapeRegex(search), $options: 'i' } },
+      { 'personName.latin': { $regex: escapeRegex(search), $options: 'i' } }
     ];
     
     if (match.$or) {
@@ -613,6 +617,8 @@ const getPost = async (req, res) => {
           // the author ticked them in - $lookup answers in the foreign
           // collection's own order, so the ids are re-walked here.
           documentOwnerName: 1,
+          personName: 1,
+          personSex: 1,
           DocumentTypes: {
             // A title deleted since the listing was written maps to null and
             // is dropped, rather than leaving an empty chip on the page.
@@ -827,7 +833,9 @@ const getFilteredPosts = async (req, res) => {
         // See getAllPosts: a documents listing is found by the name on the
         // document, not by a description it usually does not have.
         { 'documentOwnerName.ar': { $regex: escapeRegex(search), $options: 'i' } },
-        { 'documentOwnerName.latin': { $regex: escapeRegex(search), $options: 'i' } }
+        { 'documentOwnerName.latin': { $regex: escapeRegex(search), $options: 'i' } },
+        { 'personName.ar': { $regex: escapeRegex(search), $options: 'i' } },
+        { 'personName.latin': { $regex: escapeRegex(search), $options: 'i' } }
       ];
       
       if (match.$or) {
@@ -1389,6 +1397,12 @@ const resolveDocumentOwnerName = (raw) => {
   return { ar: read(raw.ar), latin: read(raw.latin) };
 };
 
+const resolvePersonName = (raw) => {
+  const read = (value) => (typeof value === 'string' ? value.trim() : '');
+  if (!raw || typeof raw !== 'object') return { ar: '', latin: '' };
+  return { ar: read(raw.ar), latin: read(raw.latin) };
+};
+
 /**
  * Bumps `usageCount` on the titles a listing named. Fire-and-forget: this is a
  * statistic about the vocabulary, and a failed increment must never turn a
@@ -1410,7 +1424,7 @@ const createNewPost = async (req, res) => {
   
   try {
     // Use parsed data from validation middleware if available, otherwise parse from req.body
-    let postData, user, country, category, categories, contact, foundLost, city, cityData, exactLocation, exactDate, description, contactPreferences, documentTypes, documentOwnerName;
+    let postData, user, country, category, categories, contact, foundLost, city, cityData, exactLocation, exactDate, description, contactPreferences, documentTypes, documentOwnerName, personName, personSex;
     
     if (req.parsedPostData) {
       // Use data parsed by validation middleware
@@ -1429,6 +1443,8 @@ const createNewPost = async (req, res) => {
       contactPreferences = postData.contactPreferences;
       documentTypes = postData.documentTypes;
       documentOwnerName = postData.documentOwnerName;
+      personName = postData.personName;
+      personSex = postData.personSex;
     } else if (req.body.postData) {
       // Fallback: parse from postData JSON field
       postData = JSON.parse(req.body.postData);
@@ -1446,6 +1462,8 @@ const createNewPost = async (req, res) => {
       contactPreferences = postData.contactPreferences;
       documentTypes = postData.documentTypes;
       documentOwnerName = postData.documentOwnerName;
+      personName = postData.personName;
+      personSex = postData.personSex;
     } else {
       // Legacy format: individual fields
       user = req.body.user;
@@ -1462,6 +1480,8 @@ const createNewPost = async (req, res) => {
       contactPreferences = req.body.contactPreferences;
       documentTypes = req.body.documentTypes;
       documentOwnerName = req.body.documentOwnerName;
+      personName = req.body.personName;
+      personSex = req.body.personSex;
     }
     
     
@@ -1724,6 +1744,13 @@ const createNewPost = async (req, res) => {
      newPostData.documentOwnerName = resolveDocumentOwnerName(documentOwnerName);
    }
 
+   if (personName) {
+     newPostData.personName = resolvePersonName(personName);
+   }
+   if (personSex) {
+     newPostData.personSex = typeof personSex === 'string' ? personSex.trim().toLowerCase() : '';
+   }
+
      // Handle city field - cityId is already processed above
    if (cityId) {
      newPostData.city = cityId;
@@ -1982,6 +2009,8 @@ const updatePost = async (req, res) => {
     image,
     documentTypes,
     documentOwnerName,
+    personName,
+    personSex,
   } = requestData;
 
   // Determine which category field to use - prefer categories array, fallback to category
@@ -2073,7 +2102,7 @@ const updatePost = async (req, res) => {
   }
 
   // Confirm post exists to update - only select fields needed for update
-  const post = await Post.findById(id).select('_id user country category categories documentTypes documentOwnerName city exactLocation contact returned foundLost description isAutoGeneratedDescription mainDate cloudinaryPublicId socialImage').exec();
+  const post = await Post.findById(id).select('_id user country category categories documentTypes documentOwnerName personName personSex city exactLocation contact returned foundLost description isAutoGeneratedDescription mainDate cloudinaryPublicId socialImage').exec();
 
   if (!post) {
     return res.status(400).json({ message: "Post not found" });
@@ -2118,6 +2147,13 @@ const updatePost = async (req, res) => {
     post.documentOwnerName = post.documentTypes.length > 0
       ? resolveDocumentOwnerName(documentOwnerName)
       : { ar: '', latin: '' };
+  }
+
+  if (personName !== undefined) {
+    post.personName = resolvePersonName(personName);
+  }
+  if (personSex !== undefined) {
+    post.personSex = typeof personSex === 'string' ? personSex.trim().toLowerCase() : '';
   }
   if (city !== undefined) {
     // Convert string ObjectId to actual ObjectId if needed

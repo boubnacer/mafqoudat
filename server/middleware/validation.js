@@ -212,6 +212,15 @@ const assertPostTextLengths = (postData) => {
     check('documentOwnerName.latin', postData.documentOwnerName.latin, POST_LIMITS.documentOwnerName, 'Name in Latin letters');
   }
 
+  // The name of a person and sex, sent as { ar, latin } and string
+  if (postData.personName && typeof postData.personName === 'object') {
+    check('personName.ar', postData.personName.ar, POST_LIMITS.personName, 'Person name in Arabic');
+    check('personName.latin', postData.personName.latin, POST_LIMITS.personName, 'Person name in Latin letters');
+  }
+  if (postData.personSex) {
+    check('personSex', postData.personSex, POST_LIMITS.personSex, 'Person sex');
+  }
+
   if (Array.isArray(postData.tags)) {
     for (const tag of postData.tags) {
       check('tags', tag, POST_LIMITS.tag, 'Tag');

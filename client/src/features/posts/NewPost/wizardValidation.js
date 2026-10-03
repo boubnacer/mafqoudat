@@ -8,6 +8,7 @@ const FIELD_TESTID = {
   category: 'category',
   documentTypes: 'documentTypes',
   documentOwnerName: 'documentOwnerName',
+  personName: 'personNameAr',
   country: 'country-select',
   city: 'city-select',
   exactLocation: 'exactLocation',
@@ -15,7 +16,7 @@ const FIELD_TESTID = {
   contact: 'contact',
 };
 
-const PRIORITY_ORDER = ['foundLost', 'category', 'documentTypes', 'documentOwnerName', 'country', 'city', 'exactLocation', 'exactDate', 'contact'];
+const PRIORITY_ORDER = ['foundLost', 'category', 'documentTypes', 'documentOwnerName', 'personName', 'country', 'city', 'exactLocation', 'exactDate', 'contact'];
 
 // Checked by script rather than by alphabet, so accents and Arabic diacritics
 // pass: the point is only that the Arabic field is not holding a Latin name
@@ -27,7 +28,7 @@ const HAS_LATIN = /\p{Script=Latin}/u;
 // include DOCUMENTS: those listings carry no photo, so the document's own
 // title is the only thing identifying what was lost, and it is required for
 // exactly the same reason a category is.
-export const validateStep1 = (values, t, { requiresDocumentTitle = false } = {}) => {
+export const validateStep1 = (values, t, { requiresDocumentTitle = false, isPerson = false } = {}) => {
   const missingFields = [];
   const fieldErrors = {};
 
@@ -63,6 +64,18 @@ export const validateStep1 = (values, t, { requiresDocumentTitle = false } = {})
     } else if (!HAS_LATIN.test(ownerLatin)) {
       missingFields.push(t('documentOwnerSectionTitle'));
       fieldErrors.documentOwnerName = t('documentOwnerNameLatinScriptRequired');
+    }
+  }
+
+  if (isPerson) {
+    const pAr = values.personName?.ar?.trim() || '';
+    const pLatin = values.personName?.latin?.trim() || '';
+    if (pAr && !HAS_ARABIC.test(pAr)) {
+      missingFields.push(t('personNameSectionTitle'));
+      fieldErrors.personName = t('personNameArabicScriptRequired');
+    } else if (pLatin && !HAS_LATIN.test(pLatin)) {
+      missingFields.push(t('personNameSectionTitle'));
+      fieldErrors.personName = t('personNameLatinScriptRequired');
     }
   }
 

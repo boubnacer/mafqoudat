@@ -7,14 +7,16 @@ import {
   MenuItem,
   FormControl,
   TextField,
+  Checkbox,
+  Divider,
   useTheme,
   alpha,
 } from "@mui/material";
-import { TaskAltOutlined, SearchOffOutlined, LockOutlined } from "@mui/icons-material";
+import { TaskAltOutlined, SearchOffOutlined, LockOutlined, Male, Female, PersonOutline } from "@mui/icons-material";
 import CategoryPickerField from "../../../../components/CategoryPickerField";
 import DocumentTypePickerField from "../../../../components/DocumentTypePickerField";
 import { useTranslation } from "../../../../utils/translations";
-import { isDocumentsListing } from "../documentCategory";
+import { isDocumentsListing, isPersonListing } from "../documentCategory";
 import RequiredMark from "./RequiredMark";
 
 // Labeling helper mirrors the one SelectOption used internally, so the
@@ -35,6 +37,7 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
   // Documents are the one category that changes what this step asks for: no
   // photo later on, and the document's own title here instead.
   const documentsSelected = isDocumentsListing(categories, values);
+  const personSelected = isPersonListing(categories, values);
 
   return (
     <Box display="flex" flexDirection="column" gap={3}>
@@ -305,6 +308,335 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
               inputProps={{ dir: 'ltr', maxLength: 100 }}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
+          </Box>
+        </Box>
+      )}
+
+      {personSelected && (
+        <Box
+          data-testid="personDetailsBlock"
+          sx={{
+            p: { xs: 2, sm: 2.5 },
+            borderRadius: 2.5,
+            border: `1px solid ${alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.28 : 0.2)}`,
+            backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.07 : 0.03),
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2.25,
+            transition: 'all 0.25s ease-in-out',
+          }}
+        >
+          {/* Section Header */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
+                color: theme.custom.color.brandPrimary,
+                flexShrink: 0,
+              }}
+            >
+              <PersonOutline />
+            </Box>
+            <Box>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 700,
+                  color: theme.palette.text.primary,
+                  fontSize: '1.05rem',
+                  lineHeight: 1.25,
+                }}
+              >
+                {t('personSectionTitle')}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  display: 'block',
+                  fontSize: '0.85rem',
+                  mt: 0.25,
+                }}
+              >
+                {t('personSectionHint')}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Divider sx={{ borderColor: alpha(theme.custom.color.brandPrimary, 0.12) }} />
+
+          {/* Person Name Inputs */}
+          <Box data-testid="personNameBlock">
+            <FormLabel
+              htmlFor="personNameAr"
+              sx={{
+                mb: 0.5,
+                display: 'block',
+                fontWeight: 600,
+                fontSize: '1rem',
+                color: theme.palette.text.primary,
+              }}
+            >
+              {t('personNameSectionTitle')}
+            </FormLabel>
+            <Typography
+              variant="caption"
+              sx={{
+                mb: 1.5,
+                display: 'block',
+                fontSize: '0.85rem',
+                color: theme.palette.text.secondary,
+                fontWeight: 500,
+              }}
+            >
+              {t('personNameSectionHint')}
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
+              <TextField
+                fullWidth
+                id="personNameAr"
+                data-testid="personNameAr"
+                label={t('personNameArabic')}
+                placeholder={t('personNameArabicPlaceholder')}
+                value={values.personName?.ar || ''}
+                onChange={(event) => {
+                  setFieldValue('personName', {
+                    ...(values.personName || {}),
+                    ar: event.target.value,
+                  });
+                  clearFieldError('personName');
+                }}
+                error={!!fieldErrors.personName}
+                inputProps={{ dir: 'rtl', maxLength: 100 }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    backgroundColor: theme.palette.background.paper,
+                  },
+                }}
+              />
+              <TextField
+                fullWidth
+                id="personNameLatin"
+                data-testid="personNameLatin"
+                label={t('personNameLatin')}
+                placeholder={t('personNameLatinPlaceholder')}
+                value={values.personName?.latin || ''}
+                onChange={(event) => {
+                  setFieldValue('personName', {
+                    ...(values.personName || {}),
+                    latin: event.target.value,
+                  });
+                  clearFieldError('personName');
+                }}
+                error={!!fieldErrors.personName}
+                helperText={fieldErrors.personName || ''}
+                inputProps={{ dir: 'ltr', maxLength: 100 }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    backgroundColor: theme.palette.background.paper,
+                  },
+                }}
+              />
+            </Box>
+          </Box>
+
+          {/* Sex (Male / Female) as Checkbox Options */}
+          <Box sx={{ mt: 0.5 }}>
+            <FormLabel
+              sx={{
+                mb: 1,
+                display: 'block',
+                fontWeight: 600,
+                fontSize: '1rem',
+                color: theme.palette.text.primary,
+              }}
+            >
+              {t('personSex')}
+            </FormLabel>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                gap: 1.5,
+              }}
+            >
+              {/* Male Option */}
+              <Box
+                role="checkbox"
+                aria-checked={values.personSex === 'male'}
+                tabIndex={0}
+                data-testid="personSexMale"
+                onClick={() => {
+                  const nextVal = values.personSex === 'male' ? '' : 'male';
+                  setFieldValue('personSex', nextVal);
+                  clearFieldError('personSex');
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    const nextVal = values.personSex === 'male' ? '' : 'male';
+                    setFieldValue('personSex', nextVal);
+                    clearFieldError('personSex');
+                  }
+                }}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  p: 1.5,
+                  borderRadius: 2,
+                  cursor: 'pointer',
+                  border: `2px solid ${
+                    values.personSex === 'male'
+                      ? theme.custom.color.brandPrimary
+                      : alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.25 : 0.15)
+                  }`,
+                  backgroundColor: values.personSex === 'male'
+                    ? alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.08)
+                    : theme.palette.background.paper,
+                  transition: 'all 0.2s ease-in-out',
+                  userSelect: 'none',
+                  '&:hover': {
+                    borderColor: values.personSex === 'male'
+                      ? theme.custom.color.brandPrimary
+                      : alpha(theme.custom.color.brandPrimary, 0.5),
+                    backgroundColor: values.personSex === 'male'
+                      ? alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.22 : 0.12)
+                      : alpha(theme.custom.color.brandPrimary, 0.04),
+                  },
+                }}
+              >
+                <Checkbox
+                  checked={values.personSex === 'male'}
+                  tabIndex={-1}
+                  sx={{
+                    p: 0.5,
+                    color: alpha(theme.custom.color.ink, 0.4),
+                    '&.Mui-checked': {
+                      color: theme.custom.color.brandPrimary,
+                    },
+                  }}
+                />
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: alpha('#1976D2', 0.12),
+                    color: '#1976D2',
+                  }}
+                >
+                  <Male fontSize="small" />
+                </Box>
+                <Typography
+                  sx={{
+                    fontWeight: values.personSex === 'male' ? 700 : 500,
+                    color: values.personSex === 'male'
+                      ? theme.custom.color.brandPrimary
+                      : theme.palette.text.primary,
+                    fontSize: '1rem',
+                  }}
+                >
+                  {t('male')}
+                </Typography>
+              </Box>
+
+              {/* Female Option */}
+              <Box
+                role="checkbox"
+                aria-checked={values.personSex === 'female'}
+                tabIndex={0}
+                data-testid="personSexFemale"
+                onClick={() => {
+                  const nextVal = values.personSex === 'female' ? '' : 'female';
+                  setFieldValue('personSex', nextVal);
+                  clearFieldError('personSex');
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    const nextVal = values.personSex === 'female' ? '' : 'female';
+                    setFieldValue('personSex', nextVal);
+                    clearFieldError('personSex');
+                  }
+                }}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  p: 1.5,
+                  borderRadius: 2,
+                  cursor: 'pointer',
+                  border: `2px solid ${
+                    values.personSex === 'female'
+                      ? theme.custom.color.brandPrimary
+                      : alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.25 : 0.15)
+                  }`,
+                  backgroundColor: values.personSex === 'female'
+                    ? alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.08)
+                    : theme.palette.background.paper,
+                  transition: 'all 0.2s ease-in-out',
+                  userSelect: 'none',
+                  '&:hover': {
+                    borderColor: values.personSex === 'female'
+                      ? theme.custom.color.brandPrimary
+                      : alpha(theme.custom.color.brandPrimary, 0.5),
+                    backgroundColor: values.personSex === 'female'
+                      ? alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.22 : 0.12)
+                      : alpha(theme.custom.color.brandPrimary, 0.04),
+                  },
+                }}
+              >
+                <Checkbox
+                  checked={values.personSex === 'female'}
+                  tabIndex={-1}
+                  sx={{
+                    p: 0.5,
+                    color: alpha(theme.custom.color.ink, 0.4),
+                    '&.Mui-checked': {
+                      color: theme.custom.color.brandPrimary,
+                    },
+                  }}
+                />
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: alpha('#E91E63', 0.12),
+                    color: '#E91E63',
+                  }}
+                >
+                  <Female fontSize="small" />
+                </Box>
+                <Typography
+                  sx={{
+                    fontWeight: values.personSex === 'female' ? 700 : 500,
+                    color: values.personSex === 'female'
+                      ? theme.custom.color.brandPrimary
+                      : theme.palette.text.primary,
+                    fontSize: '1rem',
+                  }}
+                >
+                  {t('female')}
+                </Typography>
+              </Box>
+            </Box>
           </Box>
         </Box>
       )}

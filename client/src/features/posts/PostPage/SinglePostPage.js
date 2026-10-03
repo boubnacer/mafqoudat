@@ -421,6 +421,9 @@ const SinglePostPage = ({
   // And the name written on the document, in both scripts - what its owner
   // recognises it by, and what a searcher types in.
   documentOwnerName,
+  // Person details when category is Person
+  personName,
+  personSex,
   // API transformation fields
   foundLostLabel,
   // Refetch function
@@ -695,6 +698,14 @@ const SinglePostPage = ({
     const ordered = currentLanguage === 'ar' ? [ar, latin] : [latin, ar];
     return ordered.filter(Boolean);
   }, [documentOwnerName, currentLanguage]);
+
+  // Person names in Arabic / Latin
+  const personNames = useMemo(() => {
+    const ar = (personName?.ar || '').trim();
+    const latin = (personName?.latin || '').trim();
+    const ordered = currentLanguage === 'ar' ? [ar, latin] : [latin, ar];
+    return ordered.filter(Boolean);
+  }, [personName, currentLanguage]);
 
   // Memoized category display names computation
   const categoryNames = useMemo(() => {
@@ -1273,6 +1284,61 @@ const SinglePostPage = ({
                           {name}
                         </Typography>
                       ))}
+                    </Box>
+                  )}
+                </Box>
+              )}
+
+              {/* Person Details */}
+              {(personNames.length > 0 || personSex) && (
+                <Box
+                  sx={{
+                    mb: 3,
+                    p: { xs: 2, md: 2.5 },
+                    borderRadius: `${theme.custom.radius.md}px`,
+                    border: `1px solid ${alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.3 : 0.2)}`,
+                    backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.08 : 0.03),
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 700,
+                      color: theme.palette.text.primary,
+                      mb: 1.5,
+                      fontSize: { xs: '1.05rem', md: '1.15rem' },
+                    }}
+                  >
+                    {t('personSectionTitle')}
+                  </Typography>
+
+                  {personNames.length > 0 && (
+                    <Box sx={{ mb: personSex ? 1.5 : 0 }}>
+                      <Typography
+                        variant="overline"
+                        sx={{ display: 'block', fontWeight: 600, letterSpacing: 1, color: 'text.secondary' }}
+                      >
+                        {t('personName')}
+                      </Typography>
+                      {personNames.map((name) => (
+                        <Typography key={name} variant="body1" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                          {name}
+                        </Typography>
+                      ))}
+                    </Box>
+                  )}
+
+                  {personSex && (
+                    <Box>
+                      <Typography
+                        variant="overline"
+                        sx={{ display: 'block', fontWeight: 600, letterSpacing: 1, color: 'text.secondary' }}
+                      >
+                        {t('personSex')}
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                        {personSex === 'male' ? t('male') : t('female')}
+                      </Typography>
                     </Box>
                   )}
                 </Box>
