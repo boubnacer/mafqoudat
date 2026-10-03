@@ -31,12 +31,12 @@ const LOCALES = ['ar', 'fr', 'en'];
 // the hashtags (how it's found) further down the feed card.
 const LOCALE_TEXT = {
   ar: {
-    docFoundTitle: (name) => (name ? `عُثر على وثائق باسم: 👤 ${name}` : 'عُثر على وثائق'),
-    docLostTitle: (name) => (name ? `إعلان فقدان وثائق باسم: 👤 ${name}` : 'إعلان فقدان وثائق'),
+    docFoundTitle: (name, docClause = '') => (name ? `عُثر على وثائق${docClause} باسم: 👤 ${name}` : `عُثر على وثائق${docClause}`),
+    docLostTitle: (name, docClause = '') => (name ? `إعلان عن فقدان وثائق${docClause} باسم: 👤 ${name}` : `إعلان عن فقدان وثائق${docClause}`),
     personFoundTitle: (name) => (name ? `العثور على شخص (تائه/مفقود): 👤 ${name}` : 'العثور على شخص (تائه/مفقود)'),
     personLostTitle: (name) => (name ? `إعلان عن شخص مفقود: 👤 ${name}` : 'إعلان عن شخص مفقود'),
     itemFoundTitle: (cat) => `تم العثور على: ${cat}`,
-    itemLostTitle: (cat) => `إعلان فقدان: ${cat}`,
+    itemLostTitle: (cat) => `إعلان عن فقدان: ${cat}`,
     typePrefix: 'النوع: ',
     cityPrefix: 'المدينة: ',
     locationPrefix: 'المكان: ',
@@ -54,8 +54,8 @@ const LOCALE_TEXT = {
     listSeparator: '، ',
   },
   fr: {
-    docFoundTitle: (name) => (name ? `Documents trouvés au nom de : 👤 ${name}` : 'Documents trouvés'),
-    docLostTitle: (name) => (name ? `Perte de documents au nom de : 👤 ${name}` : 'Perte de documents'),
+    docFoundTitle: (name, docClause = '') => (name ? `Documents${docClause} trouvés au nom de : 👤 ${name}` : `Documents${docClause} trouvés`),
+    docLostTitle: (name, docClause = '') => (name ? `Perte de documents${docClause} au nom de : 👤 ${name}` : `Perte de documents${docClause}`),
     personFoundTitle: (name) => (name ? `Personne retrouvée / égarée : 👤 ${name}` : 'Personne retrouvée / égarée'),
     personLostTitle: (name) => (name ? `Avis de recherche - Personne disparue : 👤 ${name}` : 'Avis de recherche - Personne disparue'),
     itemFoundTitle: (cat) => `Objet trouvé : ${cat}`,
@@ -77,8 +77,8 @@ const LOCALE_TEXT = {
     listSeparator: ', ',
   },
   en: {
-    docFoundTitle: (name) => (name ? `Documents found under the name of: 👤 ${name}` : 'Documents found'),
-    docLostTitle: (name) => (name ? `Lost documents under the name of: 👤 ${name}` : 'Lost documents'),
+    docFoundTitle: (name, docClause = '') => (name ? `Documents${docClause} found under the name of: 👤 ${name}` : `Documents${docClause} found`),
+    docLostTitle: (name, docClause = '') => (name ? `Lost documents${docClause} under the name of: 👤 ${name}` : `Lost documents${docClause}`),
     personFoundTitle: (name) => (name ? `Person Located / Found: 👤 ${name}` : 'Person Located / Found'),
     personLostTitle: (name) => (name ? `Missing Person Alert: 👤 ${name}` : 'Missing Person Alert'),
     itemFoundTitle: (cat) => `Found item: ${cat}`,
@@ -269,7 +269,9 @@ function buildLocaleBlock(locale, data) {
   const {
     statusCode,
     categoryLabel,
+    otherCategoriesLabel,
     hasDocuments,
+    docClause,
     isPerson,
     ownerName,
     personName,
@@ -299,7 +301,7 @@ function buildLocaleBlock(locale, data) {
     const title = isFound ? t.personFoundTitle(personName) : t.personLostTitle(personName);
     lines.push(`${mark}${statusEmoji} ${title}`);
   } else if (hasDocuments) {
-    const title = isFound ? t.docFoundTitle(ownerName) : t.docLostTitle(ownerName);
+    const title = isFound ? t.docFoundTitle(ownerName, docClause) : t.docLostTitle(ownerName, docClause);
     lines.push(`${mark}📢 ${title}`);
   } else {
     const title = isFound ? t.itemFoundTitle(categoryLabel) : t.itemLostTitle(categoryLabel);
@@ -321,7 +323,7 @@ function buildLocaleBlock(locale, data) {
     lines.push(locLine);
   }
 
-  // Line 3: Category / Specific details (Sex for Person, Type for Documents)
+  // Line 3: Category / Specific details (Sex for Person, Type for other categories when Documents is present)
   if (isPerson) {
     if (personSex) {
       const sexLabel = t.sexLabels?.[String(personSex).toLowerCase()];
@@ -330,7 +332,11 @@ function buildLocaleBlock(locale, data) {
       }
     }
   } else if (hasDocuments) {
-    lines.push(`${mark}${statusEmoji} ${t.typePrefix}${categoryLabel}`);
+    // Documents category and document types are already merged into the header line (Line 1).
+    // Only show other non-document categories here if present (e.g. Keys, Wallet) to avoid duplication.
+    if (otherCategoriesLabel) {
+      lines.push(`${mark}${statusEmoji} ${t.typePrefix}${otherCategoriesLabel}`);
+    }
   }
 
   // Line 4: Social action / share prompt
@@ -432,14 +438,12 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
   const hasPersonData = Boolean(personNameAr || personNameLatin || (post.personSex || '').trim());
   const isPerson = hasPersonCategory || hasPersonData;
 
-  // Bilingual name formatting with script direction isolation
-  const personNameForAr = (personNameAr && personNameLatin)
-    ? `${personNameAr} (${LRM}${personNameLatin}${RLM})`
-    : (personNameAr || (personNameLatin ? `${LRM}${personNameLatin}${RLM}` : ''));
-
-  const personNameForLatin = (personNameLatin && personNameAr)
-    ? `${personNameLatin} (${RLM}${personNameAr}${LRM})`
-    : (personNameLatin || (personNameAr ? `${RLM}${personNameAr}${LRM}` : ''));
+  // Name formatting per script, falling back to other script if only one was provided
+  const cleanPersonName = (locale) => (
+    locale === 'ar'
+      ? (personNameAr || personNameLatin)
+      : (personNameLatin || personNameAr)
+  );
 
   const cleanExactLocation = (post.exactLocation || '').replace(/[\r\n]+/g, ' ').trim();
 
@@ -471,12 +475,17 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
       ? ` (${docLabels.join(t.listSeparator)})`
       : '';
 
-    // The document type names go in parentheses right after the Documents category:
-    // "Lost Keys, Documents (passport, driving licence)" instead of appending after all categories.
+    // Non-document categories (e.g. if the post has both Keys and Documents)
+    const otherCategories = sortedCategories.filter((c) => c !== docCategory);
+    const otherCategoryParts = otherCategories
+      .map((c) => c.labels?.[locale] || c.labels?.en || '')
+      .filter(Boolean);
+    const otherCategoriesLabel = otherCategoryParts.join(t.listSeparator);
+
+    // All categories (for non-document posts)
     const categoryParts = sortedCategories.map((c) => {
       const label = c.labels?.[locale] || c.labels?.en || '';
-      if (!label) return '';
-      return c === docCategory ? `${label}${docClause}` : label;
+      return label;
     }).filter(Boolean);
 
     const categoryLabel = categoryParts.join(t.listSeparator);
@@ -484,15 +493,17 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
     return buildLocaleBlock(locale, {
       statusCode,
       categoryLabel,
+      otherCategoriesLabel,
       hasDocuments,
+      docClause,
       isPerson,
       // Each block gets the name in its own script, falling back to the other
       // one when only that was written - an Arabic block with a Latin name still
       // beats no name at all on a listing whose photo nobody will ever see.
-      ownerName: orderedDocumentTypes.length > 0
+      ownerName: (orderedDocumentTypes.length > 0 || hasDocuments)
         ? (locale === 'ar' ? (ownerNameAr || ownerNameLatin) : (ownerNameLatin || ownerNameAr))
         : '',
-      personName: locale === 'ar' ? personNameForAr : personNameForLatin,
+      personName: cleanPersonName(locale),
       personSex: post.personSex,
       cityLabel: city?.labels?.[locale] || '',
       exactLocation: cleanExactLocation,
