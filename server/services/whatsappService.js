@@ -399,146 +399,44 @@ const resolveLanguage = (post, explicitLang) => {
 };
 
 const SOCIAL_PUBLISH_TEMPLATES = {
-  ar: ({ platform, platformLabel, pLabel, siteLink, permalink, facebookPermalink, instagramPermalink }) => {
-    if (platform === 'both') {
-      const lines = [
-        'مرحبًا! 👋',
-        '',
-        'نبشرك بأن إعلانك على موقع *مفقودات* قد تم نشره رسميًا على صفحتينا في فيسبوك وإنستغرام 🟦📸',
-        '',
-        '🔗 رابط الإعلان على الموقع:',
-        siteLink,
-      ];
-      if (facebookPermalink) {
-        lines.push('', '📲 رابط المنشور على فيسبوك:', facebookPermalink);
-      }
-      if (instagramPermalink) {
-        lines.push('', '📲 رابط المنشور على إنستغرام:', instagramPermalink);
-      }
-      lines.push(
-        '',
-        'نتمنى أن يساعدك ذلك في إيجاد ما تبحث عنه بأسرع وقت ممكن 🤲',
-        '— فريق مفقودات',
-        '',
-        '💾 احفظ بطاقة جهة الاتصال المرفقة (mafqoudat.com | مفقودات) لتصلك إشعارات إعلاناتك باسم الموقع مباشرة.'
-      );
-      return lines.join('\n');
-    }
+  ar: ({ siteLink }) => [
+    'مرحبًا! 👋',
+    '',
+    'نبشرك بأن إعلانك على موقع *مفقودات* قد تم نشره رسميًا على صفحتينا في فيسبوك وإنستغرام 🟦📸.',
+    '',
+    'يمكنك مشاهدة المنشور وتفاعلاته مباشرة من خلال صفحة إعلانك:',
+    '🔗 رابط الإعلان:',
+    siteLink,
+    '',
+    'نتمنى أن يساعدك ذلك في إيجاد ما تبحث عنه بأسرع وقت ممكن 🤲',
+    '— فريق مفقودات',
+  ].join('\n'),
 
-    const lines = [
-      'مرحبًا! 👋',
-      '',
-      `نبشرك بأن إعلانك على موقع *مفقودات* قد تم نشره رسميًا على صفحتنا في ${platformLabel}`,
-      '',
-      '🔗 رابط الإعلان على الموقع:',
-      siteLink,
-    ];
-    if (permalink) {
-      lines.push('', `📲 رابط المنشور على ${pLabel}:`, permalink);
-    }
-    lines.push(
-      '',
-      'نتمنى أن يساعدك ذلك في إيجاد ما تبحث عنه بأسرع وقت ممكن 🤲',
-      '— فريق مفقودات',
-      '',
-      '💾 احفظ بطاقة جهة الاتصال المرفقة (mafqoudat.com | مفقودات) لتصلك إشعارات إعلاناتك باسم الموقع مباشرة.'
-    );
-    return lines.join('\n');
-  },
+  fr: ({ siteLink }) => [
+    'Bonjour ! 👋',
+    '',
+    'Bonne nouvelle ! Votre annonce sur *Mafqoudat* a été officiellement publiée sur nos pages Facebook et Instagram 🟦📸.',
+    '',
+    'Vous pouvez consulter les publications et suivre leurs interactions directement depuis les cartes réseaux sociaux de votre annonce :',
+    '🔗 Lien de votre annonce :',
+    siteLink,
+    '',
+    'Nous espérons que cela vous aidera à retrouver ce que vous cherchez au plus vite 🤲',
+    "— L'équipe Mafqoudat",
+  ].join('\n'),
 
-  fr: ({ platform, platformLabel, pLabel, siteLink, permalink, facebookPermalink, instagramPermalink }) => {
-    if (platform === 'both') {
-      const lines = [
-        'Bonjour ! 👋',
-        '',
-        'Bonne nouvelle ! Votre annonce sur *Mafqoudat* a été officiellement publiée sur nos pages Facebook et Instagram 🟦📸.',
-        '',
-        '🔗 Lien de votre annonce sur le site :',
-        siteLink,
-      ];
-      if (facebookPermalink) {
-        lines.push('', '📲 Lien de la publication sur Facebook :', facebookPermalink);
-      }
-      if (instagramPermalink) {
-        lines.push('', '📲 Lien de la publication sur Instagram :', instagramPermalink);
-      }
-      lines.push(
-        '',
-        'Nous espérons que cela vous aidera à retrouver ce que vous cherchez au plus vite 🤲',
-        "— L'équipe Mafqoudat",
-        '',
-        '💾 Enregistrez la fiche contact ci-jointe (mafqoudat.com | مفقودات) pour afficher directement le nom du site lors des prochains messages.'
-      );
-      return lines.join('\n');
-    }
-
-    const lines = [
-      'Bonjour ! 👋',
-      '',
-      `Bonne nouvelle ! Votre annonce sur *Mafqoudat* a été officiellement publiée sur notre page ${platformLabel}.`,
-      '',
-      '🔗 Lien de votre annonce sur le site :',
-      siteLink,
-    ];
-    if (permalink) {
-      lines.push('', `📲 Lien de la publication sur ${pLabel} :`, permalink);
-    }
-    lines.push(
-      '',
-      'Nous espérons que cela vous aidera à retrouver ce que vous cherchez au plus vite 🤲',
-      "— L'équipe Mafqoudat",
-      '',
-      '💾 Enregistrez la fiche contact ci-jointe (mafqoudat.com | مفقودات) pour afficher directement le nom du site lors des prochains messages.'
-    );
-    return lines.join('\n');
-  },
-
-  en: ({ platform, platformLabel, pLabel, siteLink, permalink, facebookPermalink, instagramPermalink }) => {
-    if (platform === 'both') {
-      const lines = [
-        'Hello! 👋',
-        '',
-        'Great news! Your listing on *Mafqoudat* has been officially published on our Facebook and Instagram pages 🟦📸.',
-        '',
-        '🔗 Listing link on the website:',
-        siteLink,
-      ];
-      if (facebookPermalink) {
-        lines.push('', '📲 Facebook post link:', facebookPermalink);
-      }
-      if (instagramPermalink) {
-        lines.push('', '📲 Instagram post link:', instagramPermalink);
-      }
-      lines.push(
-        '',
-        'We hope this helps you find what you are looking for as soon as possible 🤲',
-        '— The Mafqoudat Team',
-        '',
-        '💾 Save the attached contact card (mafqoudat.com | مفقودات) so future updates display our website name directly.'
-      );
-      return lines.join('\n');
-    }
-
-    const lines = [
-      'Hello! 👋',
-      '',
-      `Great news! Your listing on *Mafqoudat* has been officially published on our ${platformLabel} page.`,
-      '',
-      '🔗 Listing link on the website:',
-      siteLink,
-    ];
-    if (permalink) {
-      lines.push('', `📲 Post link on ${pLabel}:`, permalink);
-    }
-    lines.push(
-      '',
-      'We hope this helps you find what you are looking for as soon as possible 🤲',
-      '— The Mafqoudat Team',
-      '',
-      '💾 Save the attached contact card (mafqoudat.com | مفقودات) so future updates display our website name directly.'
-    );
-    return lines.join('\n');
-  },
+  en: ({ siteLink }) => [
+    'Hello! 👋',
+    '',
+    'Great news! Your listing on *Mafqoudat* has been officially published on our Facebook and Instagram pages 🟦📸.',
+    '',
+    'You can view the posts and their interactions directly via the social media cards on your listing page:',
+    '🔗 Listing link:',
+    siteLink,
+    '',
+    'We hope this helps you find what you are looking for as soon as possible 🤲',
+    '— The Mafqoudat Team',
+  ].join('\n'),
 };
 
 const MATCH_ALERT_TEMPLATES = {
@@ -620,10 +518,7 @@ const sendSocialPublishMessage = async ({
 
     const lang = resolveLanguage(post, language);
     const siteBase = getSiteBaseUrl();
-    const siteLink = `${siteBase}/dash/posts/${post._id}`;
-
-    const fbLink = facebookPermalink || post?.social?.facebook?.permalink || (platform === 'facebook' ? permalink : null);
-    const igLink = instagramPermalink || post?.social?.instagram?.permalink || (platform === 'instagram' ? permalink : null);
+    const siteLink = `${siteBase}/dash/posts/${post._id}?section=social-reach`;
 
     let platformLabel;
     let pLabel;
@@ -644,14 +539,10 @@ const sendSocialPublishMessage = async ({
       platformLabel,
       pLabel,
       siteLink,
-      permalink,
-      facebookPermalink: fbLink,
-      instagramPermalink: igLink,
     });
 
     const textSent = await queueMessage(jid, text);
-    const cardSent = await queueMessage(jid, buildContactMessagePayload());
-    return textSent || cardSent;
+    return textSent;
   } catch (err) {
     console.error('[WhatsApp] sendSocialPublishMessage error:', err?.message || err);
     return false;
