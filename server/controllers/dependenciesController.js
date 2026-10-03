@@ -810,6 +810,12 @@ const getDashboard = async (req, res) => {
       currentDate.getDate() + 1
     );
 
+    // Rolling 24-hour window from the current request time so a post created
+    // at e.g. 8 PM remains active for the full 24 hours rather than
+    // disappearing after only a few hours at midnight. Both the header
+    // statistics ("+N today") and the map's city chips share this exact window.
+    const past24hCutoff = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
+
     const countsResult = await Post.aggregate([
       {
         $match: {
@@ -838,8 +844,8 @@ const getDashboard = async (req, res) => {
               $match: {
                 foundLost: foundOption._id,
                 createdAt: {
-                  $gte: todayStart,
-                  $lt: todayEnd
+                  $gte: past24hCutoff,
+                  $lte: currentDate
                 }
               }
             },
@@ -850,8 +856,8 @@ const getDashboard = async (req, res) => {
               $match: {
                 foundLost: lostOption._id,
                 createdAt: {
-                  $gte: todayStart,
-                  $lt: todayEnd
+                  $gte: past24hCutoff,
+                  $lte: currentDate
                 }
               }
             },
@@ -1064,10 +1070,9 @@ const getDashboard = async (req, res) => {
     };
 
     const currentCountryDoc = await Country.findById(currentCountry).select("code").lean();
-    // Rolling 24-hour window from the current request time so a post created
+    // Rolling 24-hour window (past24hCutoff defined above) so a post created
     // at e.g. 8 PM remains active on the map for the full 24 hours rather than
     // disappearing after only a few hours at midnight.
-    const past24hCutoff = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
     const cityCounts = new Map();
     cityActivityPosts.forEach((post) => {
       const hasCityDoc = Boolean(post.geocodeName);
@@ -1634,36 +1639,22 @@ const postsPerDay = async () => {
     return;
   }
 
-  // today's founds
+  const past24hCutoff = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
+
+  // today's founds (rolling 24h)
   const todaysFoundPosts = await Post.find({
     createdAt: {
-      $gte: new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        currentDate.getDate()
-      ),
-      $lt: new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        currentDate.getDate() + 1
-      ),
+      $gte: past24hCutoff,
+      $lte: currentDate,
     },
     foundLost: foundOption._id,
   }).countDocuments();
 
-  // today's losts
+  // today's losts (rolling 24h)
   const todaysLostPosts = await Post.find({
     createdAt: {
-      $gte: new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        currentDate.getDate()
-      ),
-      $lt: new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        currentDate.getDate() + 1
-      ),
+      $gte: past24hCutoff,
+      $lte: currentDate,
     },
     foundLost: lostOption._id,
   }).countDocuments();

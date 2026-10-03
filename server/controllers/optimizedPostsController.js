@@ -491,17 +491,16 @@ const getDashboardOptimized = async (req, res) => {
     const recentLosts = result.recentLosts || [];
     const counts = result.counts[0] || { totalFounds: 0, totalLosts: 0, totalReturned: 0, totalPosts: 0 };
 
-    // Get today's statistics (separate optimized query)
+    // Get today's statistics (separate optimized query) - rolling 24-hour window
     const currentDate = new Date();
-    const startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-    const endOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
+    const past24hCutoff = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
 
     const [todayStats] = await Post.aggregate([
       {
         $match: {
           country: new mongoose.Types.ObjectId(currentCountry),
           status: 'active',
-          createdAt: { $gte: startOfDay, $lt: endOfDay }
+          createdAt: { $gte: past24hCutoff, $lte: currentDate }
         }
       },
       {
