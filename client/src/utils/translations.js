@@ -958,7 +958,7 @@ export const translations = {
     imageWarningBulletSharePrivately: "Share exact identifying details only after verifying the claimant.",
     imageWarningProceed: "Continue",
     imageWarningProceedCountdown: "Continue ({seconds})",
-    faceBlurScanning: "Checking the photo for faces...",
+    faceBlurScanning: "Searching for faces...",
     faceBlurFoundOne: "1 face found in this photo",
     faceBlurFoundTwo: "2 faces found in this photo",
     faceBlurFoundMany: "{count} faces found in this photo",

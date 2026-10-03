@@ -953,13 +953,15 @@ and the redaction all run client-side, and the covered copy is what
   photographed with the ID card still in it, a phone showing a lock-screen
   photo, a bystander in the frame of a lost-bag shot. Gating on category would
   miss exactly those, and scanning costs nothing when there is no face.
-- **But the photo is never silently rewritten.** Detection produces an *offer*.
-  Both variants stay in memory, the panel says how many faces were found, and a
-  toggle switches which one `selectedImage` points at. Category and direction
-  only choose the toggle's **default**: off for **LOST + PERSON**, on for
-  everything else. A missing-person appeal exists to be recognized, so covering
-  the eyes there defeats the post - it is the one case where the feature does
-  harm. Found-person and ID-card listings are the opposite and start covered.
+- **Face scanning runs inside the photo component (dropzone) alongside compression.**
+  When a user picks a photo, the dropzone first indicates "Compressing...", followed
+  by "Searching for faces...". The image preview is only shown once processing and
+  detection are complete.
+- **Detected faces are automatically redacted without a user toggle.**
+  If faces are detected, eyes are automatically covered by the mosaic bar before the
+  preview is shown, and the redacted file is uploaded. An informative badge is displayed
+  below the image preview explaining that eyes are covered to protect privacy, with no
+  toggle allowing the user to unhide them.
 - **The redaction is a mosaic, not a blur.** The only way to blur on a canvas
   is `CanvasRenderingContext2D.filter`, which Safari did not support before 17
   and *ignores silently* where it is missing - for a privacy feature that means

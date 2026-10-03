@@ -107,27 +107,6 @@ const DOCUMENTS_STEP_COUNT = 3;
 const categoryIdOf = (category) => String(category?.id || category?._id || "");
 
 // Whether the eye-redaction toggle starts on for a photo that has faces in it.
-// A missing-person appeal exists to be recognized, so covering the eyes there
-// would defeat the post - that is the one case where the feature does harm.
-// Everywhere else (a found person, an ID card, a bystander caught in the frame
-// of a lost-bag photo) privacy is the safer starting point, and the author can
-// still switch it off.
-const shouldRedactByDefault = ({ values, categories, flOptions }) => {
-  const direction = flOptions?.find((option) => option.id === values?.foundLost)?.code;
-  if (direction !== 'LOST') return true;
-
-  const selectedIds = new Set(
-    (values?.categories?.length ? values.categories : [values?.category])
-      .filter(Boolean)
-      .map(String)
-  );
-  const isMissingPersonPost = (categories || []).some(
-    (category) => category?.code === 'PERSON' && selectedIds.has(categoryIdOf(category))
-  );
-
-  return !isMissingPersonPost;
-};
-
 // Formik owns the values; the wizard shell around it needs two facts out of
 // them - whether this listing is about documents (which is what asks for a
 // title and the name on it) and what else it is about (which is what decides
@@ -251,10 +230,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [showImageDialog, setShowImageDialog] = useState(false);
 
-  // Eye redaction (utils/faceRedaction.js). Both variants of the photo are
-  // held here so the toggle can switch between them: the author's original is
-  // never discarded, and it is never silently replaced either - `enabled` only
-  // ever decides which of the two `selectedImage` currently points at.
+  // Eye redaction (utils/faceRedaction.js). When faces are detected, eyes are
+  // automatically obscured to protect privacy.
   const [faceRedaction, setFaceRedaction] = useState(null);
   const [isScanningFaces, setIsScanningFaces] = useState(false);
   // Monotonic token, same guard as the city search below: detection runs after
@@ -1339,71 +1316,73 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   // Handle image selection
   const handleImageSelect = useCallback(async (event) => {
-    const file = event.currentTarget.files[0];
+    const file = event.currentTarget.files?.[0];
     if (!file) return;
+
+    // Reset input value so selecting the same file again triggers onChange
+    event.currentTarget.value = "";
 
     const selectionId = imageSelectionIdRef.current + 1;
     imageSelectionIdRef.current = selectionId;
 
-    // Clear previous compression info
+    // Clear previous preview & selection so loading state shows inside the dropzone picture component
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+      setImagePreview(null);
+    }
+    setSelectedImage(null);
+    setSelectedFileName("");
     setCompressionInfo(null);
     setFaceRedaction(null);
 
+    let compressedFile = file;
     try {
-      const compressedFile = await compressImage(file);
+      compressedFile = await compressImage(file);
       if (imageSelectionIdRef.current !== selectionId) return;
 
-      setSelectedImage(compressedFile);
-      setSelectedFileName(compressedFile.name);
-
-      // Create preview URL
-      const previewUrl = URL.createObjectURL(compressedFile);
-      setImagePreview(previewUrl);
-
-      // Detection runs on the compressed file, so the covered pixels are the
-      // ones that get uploaded - there is no point at which an un-redacted
-      // copy exists downstream of this.
+      // Detection runs inside the dropzone picture component before preview is shown
       setIsScanningFaces(true);
-      const { faceCount, file: redactedFile } = await redactFacesInImage(compressedFile);
-      if (imageSelectionIdRef.current !== selectionId) return;
-      if (!faceCount || !redactedFile) return;
+      let finalFile = compressedFile;
 
-      const enabled = shouldRedactByDefault({
-        values: formikRef.current?.values,
-        categories,
-        flOptions,
-      });
-      setFaceRedaction({
-        count: faceCount,
-        enabled,
-        original: compressedFile,
-        redacted: redactedFile,
-      });
-      if (enabled) {
-        setSelectedImage(redactedFile);
-        setSelectedFileName(redactedFile.name);
-        setImagePreview(URL.createObjectURL(redactedFile));
-        syncCompressionInfo(redactedFile);
+      try {
+        const { faceCount, file: redactedFile } = await redactFacesInImage(compressedFile);
+        if (imageSelectionIdRef.current !== selectionId) return;
+
+        // If face is detected, automatically hide eyes without user toggle
+        if (faceCount > 0 && redactedFile) {
+          finalFile = redactedFile;
+          setFaceRedaction({
+            count: faceCount,
+            enabled: true,
+            redacted: redactedFile,
+          });
+          syncCompressionInfo(redactedFile);
+        } else {
+          setFaceRedaction(null);
+        }
+      } catch (faceError) {
+        console.warn('Error detecting/redacting faces:', faceError);
+        setFaceRedaction(null);
       }
+
+      if (imageSelectionIdRef.current !== selectionId) return;
+
+      setSelectedImage(finalFile);
+      setSelectedFileName(finalFile.name);
+      setImagePreview(URL.createObjectURL(finalFile));
     } catch (error) {
       console.error('Error processing image:', error);
+      if (imageSelectionIdRef.current === selectionId) {
+        setSelectedImage(compressedFile);
+        setSelectedFileName(compressedFile.name);
+        setImagePreview(URL.createObjectURL(compressedFile));
+      }
     } finally {
       if (imageSelectionIdRef.current === selectionId) {
         setIsScanningFaces(false);
       }
     }
-  }, [compressImage, categories, flOptions, syncCompressionInfo]);
-
-  const handleFaceRedactionToggle = useCallback((enabled) => {
-    if (!faceRedaction) return;
-
-    const nextFile = enabled ? faceRedaction.redacted : faceRedaction.original;
-    setFaceRedaction({ ...faceRedaction, enabled });
-    setSelectedImage(nextFile);
-    setSelectedFileName(nextFile.name);
-    setImagePreview(URL.createObjectURL(nextFile));
-    syncCompressionInfo(nextFile);
-  }, [faceRedaction, syncCompressionInfo]);
+  }, [compressImage, imagePreview, syncCompressionInfo]);
 
   // Handle image removal
   const handleImageRemove = useCallback(() => {
@@ -1414,12 +1393,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     setFaceRedaction(null);
     setIsScanningFaces(false);
 
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+
     // Clean up preview URL
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
       setImagePreview(null);
     }
-  }, [imagePreview]);
+  }, [imagePreview, fileInputRef]);
 
   // Turning a listing into a documents listing removes the Photo step, so
   // anything already picked there has to go with it - otherwise a photo
@@ -1790,7 +1773,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           isCompressing={isCompressing}
                           isScanningFaces={isScanningFaces}
                           faceRedaction={faceRedaction}
-                          onFaceRedactionToggle={handleFaceRedactionToggle}
                           fileInputRef={fileInputRef}
                           handleImageButtonClick={handleImageButtonClick}
                           handleImageSelect={handleImageSelect}

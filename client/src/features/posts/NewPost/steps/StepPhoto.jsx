@@ -14,7 +14,6 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Switch,
   useTheme,
   alpha,
 } from "@mui/material";
@@ -24,7 +23,6 @@ import {
   PhotoCamera as PhotoCameraIcon,
   Close as CloseIcon,
   FaceRetouchingOffOutlined as FaceRedactedIcon,
-  FaceRetouchingNaturalOutlined as FaceVisibleIcon,
   LockOutlined,
 } from '@mui/icons-material';
 import { useTranslation } from "../../../../utils/translations";
@@ -55,7 +53,6 @@ const StepPhoto = ({
   isCompressing,
   isScanningFaces,
   faceRedaction,
-  onFaceRedactionToggle,
   fileInputRef,
   handleImageButtonClick,
   handleImageSelect,
@@ -105,7 +102,7 @@ const StepPhoto = ({
   }, [showWarningDialog, documentsMode]);
 
   const handleDropzoneClick = () => {
-    if (isCompressing) return;
+    if (isCompressing || isScanningFaces) return;
     setShowWarningDialog(true);
   };
 
@@ -202,18 +199,18 @@ const StepPhoto = ({
               mb: 2,
               p: 4,
               textAlign: 'center',
-              cursor: isCompressing ? 'default' : 'pointer',
+              cursor: isCompressing || isScanningFaces ? 'default' : 'pointer',
               borderRadius: 3,
               border: `2px dashed ${theme.palette.divider}`,
               backgroundColor: alpha(theme.custom.color.ink, 0.02),
               transition: 'all 0.2s ease-in-out',
-              '&:hover': isCompressing ? {} : {
+              '&:hover': isCompressing || isScanningFaces ? {} : {
                 borderColor: accentColor,
                 backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.08 : 0.05),
               },
             }}
           >
-            {isCompressing ? (
+            {isCompressing || isScanningFaces ? (
               <CircularProgress size={32} sx={{ color: accentColor }} />
             ) : isFoundItem ? (
               <PhotoCameraIcon sx={{ fontSize: 40, color: theme.palette.text.secondary }} />
@@ -221,9 +218,13 @@ const StepPhoto = ({
               <CloudUploadIcon sx={{ fontSize: 40, color: theme.palette.text.secondary }} />
             )}
             <Typography sx={{ fontWeight: 600, mt: 1, color: theme.palette.text.primary }}>
-              {isCompressing ? t('compressingImage') : t(isFoundItem ? 'chooseFileFound' : 'chooseFile')}
+              {isCompressing
+                ? t('compressingImage')
+                : isScanningFaces
+                  ? t('faceBlurScanning')
+                  : t(isFoundItem ? 'chooseFileFound' : 'chooseFile')}
             </Typography>
-            {!isCompressing && (
+            {!isCompressing && !isScanningFaces && (
               <Typography variant="caption" sx={{ display: 'block', color: theme.palette.text.secondary, mt: 0.5 }}>
                 {t(isFoundItem ? 'wizardDropzoneHintFound' : 'wizardDropzoneHint')}
               </Typography>
@@ -247,44 +248,19 @@ const StepPhoto = ({
           onChange={handleImageSelect}
         />
 
-        {/* Eye redaction. Detection runs on every photo (see
-            utils/faceRedaction.js); this panel only appears once it has
-            actually found a face, and the toggle swaps between the covered
-            copy and the author's original. */}
-        {isScanningFaces && (
-          <Box
-            sx={{
-              mt: 1,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.25,
-              px: 2,
-              py: 1.5,
-              borderRadius: `${theme.custom.radius.md}px`,
-              backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.04),
-            }}
-          >
-            <CircularProgress size={18} sx={{ color: accentColor }} />
-            <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
-              {t('faceBlurScanning')}
-            </Typography>
-          </Box>
-        )}
-
-        {!isScanningFaces && faceRedaction && (
+        {/* Eye redaction notice. When faces are detected, eyes are automatically
+            covered for privacy without user toggle. */}
+        {faceRedaction && (
           <Box
             sx={{
               mt: 1,
               display: 'flex',
               alignItems: 'flex-start',
-              flexWrap: 'wrap',
               gap: 1.5,
               px: 2,
               py: 1.75,
               borderRadius: `${theme.custom.radius.md}px`,
-              backgroundColor: faceRedaction.enabled
-                ? alpha(accentColor, theme.palette.mode === 'dark' ? 0.16 : 0.08)
-                : alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.05),
+              backgroundColor: alpha(accentColor, theme.palette.mode === 'dark' ? 0.16 : 0.08),
               transition: 'background-color 0.2s ease-in-out',
             }}
           >
@@ -297,16 +273,14 @@ const StepPhoto = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: faceRedaction.enabled
-                  ? alpha(accentColor, 0.18)
-                  : alpha(theme.custom.color.ink, 0.08),
-                color: faceRedaction.enabled ? accentColor : theme.palette.text.secondary,
+                backgroundColor: alpha(accentColor, 0.18),
+                color: accentColor,
               }}
             >
-              {faceRedaction.enabled ? <FaceRedactedIcon fontSize="small" /> : <FaceVisibleIcon fontSize="small" />}
+              <FaceRedactedIcon fontSize="small" />
             </Box>
 
-            <Box sx={{ flex: '1 1 200px', minWidth: 0 }}>
+            <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
               <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
                 {t(faceCountKey(faceRedaction.count), { count: faceRedaction.count })}
               </Typography>
@@ -314,37 +288,8 @@ const StepPhoto = ({
                 variant="caption"
                 sx={{ display: 'block', mt: 0.25, color: theme.palette.text.secondary }}
               >
-                {faceRedaction.enabled ? t('faceBlurOnHint') : t('faceBlurOffHint')}
+                {t('faceBlurOnHint')}
               </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontWeight: 600,
-                  color: faceRedaction.enabled ? accentColor : theme.palette.text.secondary,
-                }}
-              >
-                {t('faceBlurToggleLabel')}
-              </Typography>
-              <Switch
-                checked={faceRedaction.enabled}
-                onChange={(event) => onFaceRedactionToggle(event.target.checked)}
-                inputProps={{ 'aria-label': t('faceBlurToggleLabel') }}
-                // Stated from the token: an unstyled Switch takes its checked
-                // color from theme.js's legacy palette.primary, which is white
-                // in light mode.
-                sx={{
-                  '& .MuiSwitch-switchBase.Mui-checked': { color: accentColor },
-                  '& .MuiSwitch-switchBase.Mui-checked:hover': {
-                    backgroundColor: alpha(accentColor, 0.08),
-                  },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                    backgroundColor: accentColor,
-                  },
-                }}
-              />
             </Box>
           </Box>
         )}
