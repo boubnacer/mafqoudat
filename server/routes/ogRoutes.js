@@ -35,7 +35,7 @@ const Post = require("../models/Post");
 const City = require("../models/City");
 
 const BASE_URL = "https://www.mafqoudat.com";
-const LOGO = `${BASE_URL}/maflogo1200-630.png`;
+const LOGO = `${BASE_URL}/maflogo1200-630.png?v=2`;
 
 // Arabic is what a first-time visitor with no stored preference gets
 // (languageContext.resolveLanguage), and a crawler never has one - so these

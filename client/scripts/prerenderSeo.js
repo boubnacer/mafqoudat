@@ -121,7 +121,7 @@ const buildHeadInjection = ({ routePath, title, description, image, structuredDa
   const canonicalUrl = `${BASE_URL}${routePath}`;
   const absoluteImage = image
     ? (image.startsWith('http') ? image : `${BASE_URL}${image}`)
-    : `${BASE_URL}/maflogo1200-630.png`;
+    : `${BASE_URL}/maflogo1200-630.png?v=2`;
   const parts = [
     `    <link rel="canonical" href="${escapeHtml(canonicalUrl)}" ${RH} />`,
     `    <meta property="og:type" content="${ogType || 'website'}" ${RH} />`,

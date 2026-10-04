@@ -14,7 +14,7 @@ export const defaultSeo = {
   description:
     'Mafqoudat is the leading lost and found platform in Morocco and the Arab world. Report lost items, share found items, and reunite communities with their belongings.',
   path: '/',
-  image: `${BASE_URL}/maflogo1200-630.png`,
+  image: `${BASE_URL}/maflogo1200-630.png?v=2`,
   // Intentionally empty. The site-wide WebSite and Organization schemas live in
   // public/index.html, which is the only place that reaches crawlers that don't
   // run JavaScript. Emitting a WebSite schema here too put two of them on every
