@@ -1132,6 +1132,16 @@ const getUserPosts = async (req, res) => {
       {
         $limit: pageSize
       },
+      // Lookup categories array (new format)
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categories",
+          foreignField: "_id",
+          as: "Categories"
+        }
+      },
+      // Lookup single category (legacy format)
       {
         $lookup: {
           from: "categories",
@@ -1188,13 +1198,23 @@ const getUserPosts = async (req, res) => {
           },
           category: {
             $cond: {
-              if: { $ne: ["$Category", null] },
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
               then: {
-                id: "$Category._id",
-                code: "$Category.code",
-                labels: "$Category.labels"
+                id: { $arrayElemAt: ["$Categories._id", 0] },
+                code: { $arrayElemAt: ["$Categories.code", 0] },
+                labels: { $arrayElemAt: ["$Categories.labels", 0] }
               },
-              else: null
+              else: {
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: {
+                    id: "$Category._id",
+                    code: "$Category.code",
+                    labels: "$Category.labels"
+                  },
+                  else: null
+                }
+              }
             }
           },
           foundLost: {
@@ -1231,24 +1251,54 @@ const getUserPosts = async (req, res) => {
           // Add computed fields for easier frontend usage
           title: {
             $cond: {
-              if: { $ne: ["$Category", null] },
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
               then: {
                 $cond: {
                   if: { $ne: ["$Floptions", null] },
                   then: {
                     $concat: [
-                      { $ifNull: ["$Category.labels.en", "Unknown"] },
+                      { $ifNull: [{ $arrayElemAt: ["$Categories.labels.en", 0] }, "Unknown"] },
                       " ",
                       { $ifNull: ["$Floptions.labels.en", "Item"] }
                     ]
                   },
-                  else: { $ifNull: ["$Category.labels.en", "Unknown Item"] }
+                  else: { $ifNull: [{ $arrayElemAt: ["$Categories.labels.en", 0] }, "Unknown Item"] }
                 }
               },
-              else: "Unknown Item"
+              else: {
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: {
+                    $cond: {
+                      if: { $ne: ["$Floptions", null] },
+                      then: {
+                        $concat: [
+                          { $ifNull: ["$Category.labels.en", "Unknown"] },
+                          " ",
+                          { $ifNull: ["$Floptions.labels.en", "Item"] }
+                        ]
+                      },
+                      else: { $ifNull: ["$Category.labels.en", "Unknown Item"] }
+                    }
+                  },
+                  else: "Unknown Item"
+                }
+              }
             }
           },
-          categoryname: { $ifNull: ["$Category.code", "UNKNOWN"] },
+          categoryname: {
+            $cond: {
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+              then: { $arrayElemAt: ["$Categories.code", 0] },
+              else: {
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: "$Category.code",
+                  else: "UNKNOWN"
+                }
+              }
+            }
+          },
           floptionName: { $ifNull: ["$Floptions.code", "UNKNOWN"] },
           countryname: { $ifNull: ["$Country.code", "UNKNOWN"] },
           cityName: {
@@ -1806,6 +1856,7 @@ const createNewPost = async (req, res) => {
       // Invalidate related cache entries
       await cacheService.invalidatePattern('posts:*');
       await cacheService.invalidatePattern('dashboard:*');
+      await cacheService.invalidatePattern('user-posts:*');
 
       // Queue the Facebook/Instagram copies rather than publishing them here.
       // This used to fire both Graph calls inline, concurrently, and drop
@@ -2327,6 +2378,7 @@ const updatePost = async (req, res) => {
     // Invalidate related cache entries
     await cacheService.invalidatePattern('posts:*');
     await cacheService.invalidatePattern('dashboard:*');
+    await cacheService.invalidatePattern('user-posts:*');
 
     // An edit can change every signal the match engine scores on (category,
     // city, description, date), so the stored pairs are re-derived. A post that
@@ -2381,6 +2433,7 @@ const deletePost = async (req, res) => {
   // Invalidate related cache entries
   await cacheService.invalidatePattern('posts:*');
   await cacheService.invalidatePattern('dashboard:*');
+  await cacheService.invalidatePattern('user-posts:*');
 
   const reply = `Post with ID ${result._id} deleted`;
 
@@ -2436,6 +2489,7 @@ const markPostAsReturned = async (req, res) => {
     // Invalidate related cache entries
     await cacheService.invalidatePattern('posts:*');
     await cacheService.invalidatePattern('dashboard:*');
+    await cacheService.invalidatePattern('user-posts:*');
 
     res.json({ 
       success: true,

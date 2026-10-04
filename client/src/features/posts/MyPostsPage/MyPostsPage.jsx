@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Box, 
@@ -8,21 +8,31 @@ import {
   CardMedia, 
   Chip, 
   Button, 
-  Grid,
-  useTheme,
-  useMediaQuery,
-  Skeleton,
-  Container,
-  Paper,
-  alpha
+  Grid, 
+  useTheme, 
+  useMediaQuery, 
+  Skeleton, 
+  Container, 
+  Paper, 
+  alpha,
+  Pagination,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Snackbar,
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { 
   PersonOutline, 
   Edit, 
-  Visibility,
-  Add,
-  AccessTime,
-  ArrowBack
+  Visibility, 
+  Add, 
+  AccessTime, 
+  ArrowBack,
+  DeleteOutline 
 } from '@mui/icons-material';
 import { useTranslation } from '../../../utils/translations';
 import { getOptimizedImageUrl } from '../../../utils/cloudinaryUtils';
@@ -30,7 +40,7 @@ import ReachRow from '../../../components/ReachRow';
 import noImageSvg from '../../../img/noimage.svg';
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
-import { useGetUserPostsQuery } from '../postsApiSlice';
+import { useGetUserPostsQuery, useDeletePostMutation } from '../postsApiSlice';
 import useAuth from '../../../hooks/useAuth';
 import { API_BASE_URL } from '../../../config/api';
 
@@ -41,13 +51,26 @@ const MyPostsPage = () => {
   const { t, currentLanguage } = useTranslation();
   const user = useAuth();
 
+  const [page, setPage] = useState(1);
+  const pageSize = 12;
+
   // Fetch user posts
-  const { data: userPostsData, isLoading } = useGetUserPostsQuery(undefined, {
-    skip: !user?.username,
+  const { data: userPostsData, isLoading, isFetching } = useGetUserPostsQuery({
+    page,
+    pageSize,
+    language: currentLanguage || 'ar'
+  }, {
+    skip: !user?.username && !user?._id && !user?.usernameId,
     refetchOnMountOrArgChange: true
   });
 
+  const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
+  const [postToDelete, setPostToDelete] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
   const userPosts = userPostsData?.postsWithUser || [];
+  const totalPostsCount = userPostsData?.total ?? userPosts.length;
+  const totalPages = userPostsData?.totalPages || 0;
 
   // Format date using date-fns with proper locale support
   const getLocale = () => {
@@ -74,6 +97,35 @@ const MyPostsPage = () => {
     navigate('/dash');
   };
 
+  const handleDeleteClick = (postId) => {
+    setPostToDelete(postId);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!postToDelete) return;
+    try {
+      await deletePost({ id: postToDelete }).unwrap();
+      setSnackbar({
+        open: true,
+        message: t('postDeletedSuccess') || 'Post deleted successfully',
+        severity: 'success',
+      });
+      setPostToDelete(null);
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: err?.data?.message || t('error') || 'Failed to delete post',
+        severity: 'error',
+      });
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    if (!isDeleting) {
+      setPostToDelete(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <Box 
@@ -90,9 +142,9 @@ const MyPostsPage = () => {
           <Box sx={{ p: { xs: 2, sm: 3 } }}>
             <Skeleton variant="text" width="30%" height={50} sx={{ mb: 3 }} />
             <Grid container spacing={3}>
-              {[1, 2, 3, 4, 5, 6].map((item) => (
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={item}>
-                  <Skeleton variant="rounded" height={300} />
+                  <Skeleton variant="rounded" height={320} sx={{ borderRadius: 2 }} />
                 </Grid>
               ))}
             </Grid>
@@ -159,14 +211,11 @@ const MyPostsPage = () => {
                 {t('myPosts')}
               </Typography>
               <Chip
-                label={userPosts.length}
+                label={totalPostsCount}
                 size="small"
                 sx={{
                   fontWeight: 700,
                   fontSize: '14px',
-                  // Not color="primary": palette.primary.main is #FFFFFF in
-                  // light mode (see the other fixes in this file), which
-                  // would render a white chip with white-on-white text.
                   backgroundColor: theme.custom.color.brandPrimary,
                   color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
                 }}
@@ -245,172 +294,211 @@ const MyPostsPage = () => {
             <>
               {/* Posts Grid */}
               <Grid container spacing={3}>
-                {userPosts.map((post) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={post._id}>
-                    <Card
-                      sx={{
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        borderRadius: 2,
-                        boxShadow: theme.palette.mode === 'dark'
-                          ? '0 4px 12px rgba(0,0,0,0.3)'
-                          : '0 4px 12px rgba(0,0,0,0.1)',
-                        backgroundColor: theme.custom.color.surfaceRaised,
-                        border: theme.palette.mode === 'dark' 
-                          ? '1px solid rgba(255,255,255,0.1)'
-                          : '1px solid rgba(0,0,0,0.1)',
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateY(-4px)',
+                {userPosts.map((post) => {
+                  const isFound = String(post.floptionName || '').toUpperCase() === 'FOUND';
+                  const postTitle = post.category?.labels?.[currentLanguage] ||
+                    post.Category?.labels?.[currentLanguage] ||
+                    post.title ||
+                    post.categoryname ||
+                    t('unknownItem');
+
+                  return (
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={post._id}>
+                      <Card
+                        sx={{
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          borderRadius: 2,
                           boxShadow: theme.palette.mode === 'dark'
-                            ? '0 8px 24px rgba(0,0,0,0.4)'
-                            : '0 8px 24px rgba(0,0,0,0.15)',
-                        }
-                      }}
-                    >
-                      {/* Image */}
-                      <Box sx={{ position: 'relative', height: 200 }}>
-                        <CardMedia
-                          component="img"
-                          height="200"
-                          image={post.image && typeof post.image === 'string' ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : `${API_BASE_URL}/${post.image}`) : noImageSvg}
-                          alt={String(post.title || post.categoryname || 'Unknown Item')}
-                          sx={{ 
-                            objectFit: post.image && typeof post.image === 'string' ? 'cover' : 'contain',
-                            backgroundColor: theme.custom.color.surfaceBase
-                          }}
-                        />
-                        <Chip
-                          label={post.foundLost?.labels?.[currentLanguage] || t(String(post.floptionName || 'unknown'))}
-                          color={String(post.floptionName) === 'found' ? 'success' : 'error'}
-                          size="small"
-                          sx={{
-                            position: 'absolute',
-                            top: 12,
-                            right: 12,
-                            fontWeight: 600,
-                            backgroundColor: String(post.floptionName) === 'found'
-                              ? theme.custom.status.found.main
-                              : theme.custom.status.lost.main,
-                            color: theme.palette.getContrastText(
-                              String(post.floptionName) === 'found'
+                            ? '0 4px 12px rgba(0,0,0,0.3)'
+                            : '0 4px 12px rgba(0,0,0,0.1)',
+                          backgroundColor: theme.custom.color.surfaceRaised,
+                          border: theme.palette.mode === 'dark' 
+                            ? '1px solid rgba(255,255,255,0.1)'
+                            : '1px solid rgba(0,0,0,0.1)',
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            transform: 'translateY(-4px)',
+                            boxShadow: theme.palette.mode === 'dark'
+                              ? '0 8px 24px rgba(0,0,0,0.4)'
+                              : '0 8px 24px rgba(0,0,0,0.15)',
+                          }
+                        }}
+                      >
+                        {/* Image */}
+                        <Box sx={{ position: 'relative', height: 200 }}>
+                          <CardMedia
+                            component="img"
+                            height="200"
+                            image={post.image && typeof post.image === 'string' ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : `${API_BASE_URL}/${post.image}`) : noImageSvg}
+                            alt={String(postTitle)}
+                            sx={{ 
+                              objectFit: post.image && typeof post.image === 'string' ? 'cover' : 'contain',
+                              backgroundColor: theme.custom.color.surfaceBase
+                            }}
+                          />
+                          <Chip
+                            label={post.foundLost?.labels?.[currentLanguage] || (isFound ? (t('found') || 'Found') : (t('lost') || 'Lost'))}
+                            size="small"
+                            sx={{
+                              position: 'absolute',
+                              top: 12,
+                              right: currentLanguage === 'ar' ? 'auto' : 12,
+                              left: currentLanguage === 'ar' ? 12 : 'auto',
+                              fontWeight: 700,
+                              backgroundColor: isFound
                                 ? theme.custom.status.found.main
-                                : theme.custom.status.lost.main
-                            )
-                          }}
-                        />
-                      </Box>
-
-                      {/* Content */}
-                      <CardContent sx={{ flexGrow: 1, p: 2 }}>
-                        <Typography
-                          variant="h6"
-                          component="h3"
-                          sx={{
-                            fontSize: '18px',
-                            fontWeight: 600,
-                            mb: 1.5,
-                            color: theme.custom.color.ink,
-                            lineHeight: 1.3,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            minHeight: '48px'
-                          }}
-                        >
-                          {post.category?.labels?.[currentLanguage] || post.categoryname || 'Unknown Item'}
-                        </Typography>
-
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: 'text.secondary',
-                            mb: 1.5,
-                            fontSize: '14px',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            minHeight: '40px'
-                          }}
-                        >
-                          {String(post.exactLocation || 'No location specified')}
-                        </Typography>
-
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: 'text.secondary',
-                            fontSize: '12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 0.5,
-                            mb: 2
-                          }}
-                        >
-                          <AccessTime sx={{ fontSize: '14px' }} />
-                          {formatDistanceToNow(new Date(post.createdAt), {
-                            addSuffix: true,
-                            locale: getLocale()
-                          })}
-                        </Typography>
-
-                        {/* Reach — this is the author's own listing, the one
-                            page whose whole point is "how is my post doing". */}
-                        <ReachRow post={post} sx={{ pt: 0, mb: 2 }} />
-
-                        {/* Actions */}
-                        <Box sx={{ 
-                          display: 'flex', 
-                          gap: 1,
-                          flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                        }}>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={<Visibility />}
-                            onClick={() => handleViewPost(post._id)}
-                            sx={{
-                              flex: 1,
-                              fontSize: '13px',
-                              py: 0.75,
-                              borderColor: theme.custom.color.brandPrimary,
-                              color: theme.custom.color.brandPrimary,
-                              '&:hover': {
-                                borderColor: theme.custom.color.brandPrimary,
-                                backgroundColor: alpha(theme.custom.color.brandPrimary, 0.1),
-                              },
+                                : theme.custom.status.lost.main,
+                              color: theme.palette.common.white,
+                              boxShadow: theme.custom.elevation.e1,
                             }}
-                          >
-                            {t('view')}
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={<Edit />}
-                            onClick={() => handleEditPost(post._id)}
-                            sx={{
-                              flex: 1,
-                              fontSize: '13px',
-                              py: 0.75,
-                              borderColor: theme.custom.status.pending.main,
-                              color: theme.custom.status.pending.main,
-                              '&:hover': {
-                                borderColor: theme.custom.status.pending.main,
-                                backgroundColor: alpha(theme.custom.status.pending.main, 0.1),
-                              },
-                            }}
-                          >
-                            {t('editPost')}
-                          </Button>
+                          />
                         </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
+
+                        {/* Content */}
+                        <CardContent sx={{ flexGrow: 1, p: 2, display: 'flex', flexDirection: 'column' }}>
+                          <Typography
+                            variant="h6"
+                            component="h3"
+                            sx={{
+                              fontSize: '18px',
+                              fontWeight: 600,
+                              mb: 1.5,
+                              color: theme.custom.color.ink,
+                              lineHeight: 1.3,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              minHeight: '48px'
+                            }}
+                          >
+                            {postTitle}
+                          </Typography>
+
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: 'text.secondary',
+                              mb: 1.5,
+                              fontSize: '14px',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              minHeight: '40px'
+                            }}
+                          >
+                            {String(post.exactLocation || t('noLocationSpecified') || 'No location specified')}
+                          </Typography>
+
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: 'text.secondary',
+                              fontSize: '12px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                              mb: 2
+                            }}
+                          >
+                            <AccessTime sx={{ fontSize: '14px' }} />
+                            {formatDistanceToNow(new Date(post.createdAt), {
+                              addSuffix: true,
+                              locale: getLocale()
+                            })}
+                          </Typography>
+
+                          {/* Reach stats */}
+                          <ReachRow post={post} sx={{ pt: 0, mb: 2 }} />
+
+                          {/* Actions */}
+                          <Box sx={{ 
+                            display: 'flex', 
+                            gap: 1,
+                            mt: 'auto',
+                            flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                          }}>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              startIcon={<Visibility />}
+                              onClick={() => handleViewPost(post._id)}
+                              sx={{
+                                flex: 1,
+                                fontSize: '12px',
+                                py: 0.75,
+                                borderColor: theme.custom.color.brandPrimary,
+                                color: theme.custom.color.brandPrimary,
+                                '&:hover': {
+                                  borderColor: theme.custom.color.brandPrimary,
+                                  backgroundColor: alpha(theme.custom.color.brandPrimary, 0.1),
+                                },
+                              }}
+                            >
+                              {t('view')}
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              startIcon={<Edit />}
+                              onClick={() => handleEditPost(post._id)}
+                              sx={{
+                                flex: 1,
+                                fontSize: '12px',
+                                py: 0.75,
+                                borderColor: theme.custom.status.pending.main,
+                                color: theme.custom.status.pending.main,
+                                '&:hover': {
+                                  borderColor: theme.custom.status.pending.main,
+                                  backgroundColor: alpha(theme.custom.status.pending.main, 0.1),
+                                },
+                              }}
+                            >
+                              {t('editPost')}
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              startIcon={<DeleteOutline />}
+                              onClick={() => handleDeleteClick(post._id)}
+                              sx={{
+                                flex: 1,
+                                fontSize: '12px',
+                                py: 0.75,
+                                borderColor: alpha(theme.custom.status.lost.main, 0.5),
+                                color: theme.custom.status.lost.main,
+                                '&:hover': {
+                                  borderColor: theme.custom.status.lost.main,
+                                  backgroundColor: theme.custom.status.lost.bg,
+                                },
+                              }}
+                            >
+                              {t('delete')}
+                            </Button>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  );
+                })}
               </Grid>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, mb: 2 }}>
+                  <Pagination
+                    count={totalPages}
+                    page={page}
+                    onChange={(e, val) => setPage(val)}
+                    color="primary"
+                    shape="rounded"
+                    size={isMobile ? "small" : "medium"}
+                  />
+                </Box>
+              )}
 
               {/* Mobile FAB for creating new post */}
               <Box
@@ -449,9 +537,66 @@ const MyPostsPage = () => {
           )}
         </Box>
       </Container>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={Boolean(postToDelete)}
+        onClose={handleDeleteCancel}
+        PaperProps={{
+          sx: {
+            borderRadius: `${theme.custom.radius.md}px`,
+            p: 1,
+            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, color: theme.custom.color.ink }}>
+          {t('deletePost')}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ color: 'text.secondary' }}>
+            {t('confirmDeletePost')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={handleDeleteCancel} disabled={isDeleting} sx={{ color: theme.custom.color.ink }}>
+            {t('cancel')}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleDeleteConfirm}
+            disabled={isDeleting}
+            sx={{
+              backgroundColor: theme.custom.status.lost.main,
+              color: theme.palette.common.white,
+              '&:hover': {
+                backgroundColor: theme.custom.status.lost.main,
+                opacity: 0.9,
+              },
+            }}
+          >
+            {isDeleting ? <CircularProgress size={20} color="inherit" /> : t('delete')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Toast Feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          sx={{ width: '100%', borderRadius: 2 }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
 
 export default MyPostsPage;
-

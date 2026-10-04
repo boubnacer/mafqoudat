@@ -608,6 +608,17 @@ const Navbar = () => {
         tone: option.code === "FOUND" ? "found" : "lost",
       };
     }) || []),
+    ...(authLoggedIn
+      ? [
+          {
+            title: t("myPosts"),
+            icon: <PostAdd sx={{ fontSize: 20, color: theme.custom.color.brandPrimary }} />,
+            action: () => navigate("/dash/myposts"),
+            description: t("viewMyPosts"),
+            tone: "neutral",
+          },
+        ]
+      : []),
     {
       title: t("blog"),
       icon: <PostAdd sx={{ fontSize: 20, color: theme.custom.color.brandPrimary }} />,
@@ -1438,6 +1449,17 @@ const Navbar = () => {
                   <Person sx={{ fontSize: 22 }} />
                 </ListItemIcon>
                 <ListItemText primary={t("myProfile")} primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }} />
+              </DrawerRow>
+              <DrawerRow
+                onClick={() => {
+                  handleMobileDrawerClose();
+                  navigate("/dash/myposts");
+                }}
+              >
+                <ListItemIcon>
+                  <PostAdd sx={{ fontSize: 22, color: theme.custom.color.brandPrimary }} />
+                </ListItemIcon>
+                <ListItemText primary={t("myPosts")} primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }} />
               </DrawerRow>
               <DrawerRow
                 onClick={() => {

@@ -174,7 +174,12 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         },
       }),
       providesTags: (result, error, arg) => {
-        if (result?.ids) {
+        if (result?.postsWithUser) {
+          return [
+            { type: "Post", id: "USER_POSTS" },
+            ...result.postsWithUser.map(post => ({ type: "Post", id: post._id }))
+          ];
+        } else if (result?.ids) {
           return [
             { type: "Post", id: "USER_POSTS" },
             ...result.ids.map(id => ({ type: "Post", id }))
@@ -213,6 +218,7 @@ export const postsApiSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: [
         { type: "Post", id: "LIST" },
+        { type: "Post", id: "USER_POSTS" },
         { type: "Dashboard" },
         // A new listing can produce match pairs on the opposite side, so the
         // match panels are stale from here on. The scan itself runs
@@ -254,7 +260,9 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         return response;
       },
       invalidatesTags: (result, error, arg) => [
-        { type: "Post", id: arg.id },
+        { type: "Post", id: arg.id || arg._id },
+        { type: "Post", id: "USER_POSTS" },
+        { type: "Post", id: "LIST" },
         // Editing changes the fields the matcher scores on, and deleting drops
         // the pairs entirely - either way the stored matches are re-derived.
         "PostMatch",
@@ -293,6 +301,9 @@ export const postsApiSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: (result, error, arg) => [
         { type: "Post", id: arg.id },
+        { type: "Post", id: "USER_POSTS" },
+        { type: "Post", id: "LIST" },
+        { type: "Dashboard" },
         // Editing changes the fields the matcher scores on, and deleting drops
         // the pairs entirely - either way the stored matches are re-derived.
         "PostMatch",

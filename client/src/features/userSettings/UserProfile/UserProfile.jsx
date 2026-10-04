@@ -35,6 +35,7 @@ import {
   Public,
   Block as BlockIcon,
   DeleteForever as DeleteForeverIcon,
+  PostAdd,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -356,6 +357,27 @@ const UserProfile = () => {
                   {getCountryName(user?.country?._id || user?.country)}
                 </Typography>
               </Box>
+              <Divider sx={{ my: 2 }} />
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<PostAdd />}
+                onClick={() => navigate('/dash/myposts')}
+                sx={{
+                  borderRadius: 2,
+                  py: 1,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  color: theme.custom.color.brandPrimary,
+                  borderColor: theme.custom.color.brandPrimary,
+                  '&:hover': {
+                    borderColor: theme.custom.color.brandPrimary,
+                    backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
+                  },
+                }}
+              >
+                {t('myPosts')}
+              </Button>
             </CardContent>
           </Card>
         </Grid>
