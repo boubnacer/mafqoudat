@@ -36,6 +36,7 @@ import AuthPageSkeleton from "./features/auth/AuthPageSkeleton";
 import DashboardSkeleton from "./components/dashboard/DashboardSkeleton";
 import PostsListSkeleton from "./features/posts/PostsList/PostsListSkeleton";
 import LoadingFallback from "./components/LoadingFallback";
+import SectionErrorBoundary from "./components/SectionErrorBoundary";
 
 // Lazy load all major page components for better code splitting
 const WelcomePage = lazy(() => import("./components/WelcomePage"));
@@ -138,7 +139,11 @@ const AppContent = () => {
   // Track page views when route changes. No-ops until the CMP has reported
   // analytics consent and analytics.js has loaded gtag.js on the back of it.
   useEffect(() => {
-    trackPageView(location.pathname + location.search, document.title);
+    // Defer one frame so Helmet has committed the new title to the DOM
+    const id = setTimeout(() => {
+      trackPageView(location.pathname + location.search, document.title);
+    }, 0);
+    return () => clearTimeout(id);
   }, [location]);
 
   return (
@@ -328,14 +333,26 @@ const AppContent = () => {
               </ProtectedRoute>
             }>
               <Route path="posts/new" element={
-                <Suspense fallback={<PostFormSkeleton />}>
-                  <NewPost />
-                </Suspense>
+                <SectionErrorBoundary
+                  title={currentLanguage === 'ar' ? 'حدث خطأ في نموذج نشر الإعلان' : 'Error in Post Creation Form'}
+                  backUrl="/dash/posts"
+                  backLabel={currentLanguage === 'ar' ? 'العودة إلى المنشورات' : 'Back to Posts'}
+                >
+                  <Suspense fallback={<PostFormSkeleton />}>
+                    <NewPost />
+                  </Suspense>
+                </SectionErrorBoundary>
               } />
               <Route path="posts/edit/:id" element={
-                <Suspense fallback={<PostFormSkeleton />}>
-                  <EditPost />
-                </Suspense>
+                <SectionErrorBoundary
+                  title={currentLanguage === 'ar' ? 'حدث خطأ في نموذج تعديل الإعلان' : 'Error in Post Edit Form'}
+                  backUrl="/dash/posts"
+                  backLabel={currentLanguage === 'ar' ? 'العودة إلى المنشورات' : 'Back to Posts'}
+                >
+                  <Suspense fallback={<PostFormSkeleton />}>
+                    <EditPost />
+                  </Suspense>
+                </SectionErrorBoundary>
               } />
               <Route path="profile" element={
                 <Suspense fallback={<LoadingFallback />}>
@@ -376,9 +393,15 @@ const AppContent = () => {
                   </Suspense>
                 } />
                 <Route path="admin" element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <AdminLayout />
-                  </Suspense>
+                  <SectionErrorBoundary
+                    title={currentLanguage === 'ar' ? 'حدث خطأ في لوحة الإدارة' : 'Error in Admin Panel'}
+                    backUrl="/dash"
+                    backLabel={currentLanguage === 'ar' ? 'لوحة التحكم' : 'Dashboard'}
+                  >
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AdminLayout />
+                    </Suspense>
+                  </SectionErrorBoundary>
                 }>
                   <Route index element={
                     <Suspense fallback={<LoadingFallback />}>
@@ -447,8 +470,6 @@ const AppContent = () => {
 };
 
 function App() {
-  // useTitle("Dan D. Repairs");
-
   // Initialize visitor session on app load
   // This MUST run first, before any other API calls
   // The session ID is created synchronously in getVisitorSessionId(),

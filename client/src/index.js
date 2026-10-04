@@ -17,9 +17,6 @@ silenceProductionLogs();
 
 const rootElement = document.getElementById('root');
 
-// Check if react-snap has pre-rendered the page
-const isPreRendered = rootElement.hasChildNodes();
-
 // Create root (React 18's createRoot works for both initial render and hydration)
 const root = ReactDOM.createRoot(rootElement);
 

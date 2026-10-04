@@ -10,17 +10,20 @@
 const getSupportedFormats = () => {
   if (typeof window === 'undefined') return ['auto'];
   
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  
-  // Check AVIF support
-  const avifSupported = canvas.toDataURL('image/avif').indexOf('data:image/avif') === 0;
-  // Check WebP support  
-  const webpSupported = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
-  
-  if (avifSupported) return ['avif', 'auto'];
-  if (webpSupported) return ['webp', 'auto'];
-  return ['auto'];
+  try {
+    const canvas = document.createElement('canvas');
+    
+    // Check AVIF support
+    const avifSupported = canvas.toDataURL('image/avif').indexOf('data:image/avif') === 0;
+    // Check WebP support  
+    const webpSupported = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+    
+    if (avifSupported) return ['avif', 'auto'];
+    if (webpSupported) return ['webp', 'auto'];
+    return ['auto'];
+  } catch {
+    return ['auto'];
+  }
 };
 
 /**

@@ -42,19 +42,6 @@ const useAuthErrorHandler = () => {
       authErrorHandler.removeErrorListener(handleAuthError);
     };
   }, [dispatch]);
-
-  // Function to dispatch authentication errors (legacy support)
-  const dispatchAuthError = (error) => {
-    if (error?.status === 401 || error?.status === 403) {
-      // Use the centralized error handler instead of custom events
-      authErrorHandler.handleAuthError(error, {
-        cleanupState: true,
-        redirect: true
-      });
-    }
-  };
-
-  return { dispatchAuthError };
 };
 
 export default useAuthErrorHandler;
