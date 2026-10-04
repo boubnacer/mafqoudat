@@ -1285,7 +1285,7 @@ export const translations = {
     email: "Email",
     call: "Call",
     emailAction: "Email",
-    supportEmail: "team.mafqoudat@gmail.com",
+    supportEmail: "support@mafqoudat.com",
     support24_7: "24/7",
     immediateAssistance: "For immediate assistance, please call us.",
     beHonestInReports: "Be honest in your reports",
@@ -1499,7 +1499,7 @@ export const translations = {
     disclaimerLiabilityTitle: "6. Limitation of Liability & 'As-Is' Warranty",
     disclaimerLiabilityText: "The Mafqoudat platform, its features, and all associated content are provided on an 'as is' and 'as available' basis without warranties of any kind, whether express, implied, or statutory. To the maximum extent permitted by applicable law, Mafqoudat, its founders, and operators shall not be liable for any direct, indirect, incidental, punitive, or consequential damages resulting from the use of or inability to use the platform.",
     disclaimerLegalContactTitle: "7. Legal & Compliance Inquiries",
-    disclaimerLegalContactText: "If you have any questions, copyright concerns, or legal inquiries regarding this disclaimer, please contact our support and compliance team directly at team.mafqoudat@gmail.com.",
+    disclaimerLegalContactText: "If you have any questions, copyright concerns, or legal inquiries regarding this disclaimer, please contact our legal and compliance team directly at legal@mafqoudat.com.",
 
     // Author Signal & Credibility
     authorBioTitle: "About the Author",
@@ -3591,7 +3591,7 @@ export const translations = {
     email: "Email",
     call: "Appeler",
     emailAction: "Email",
-    supportEmail: "team.mafqoudat@gmail.com",
+    supportEmail: "support@mafqoudat.com",
     support24_7: "24/7",
     immediateAssistance: "Pour une assistance immédiate, veuillez nous appeler.",
     beHonestInReports: "Soyez honnête dans vos signalements",
@@ -3782,7 +3782,7 @@ export const translations = {
     disclaimerLiabilityTitle: "6. Limitation de responsabilité et service 'en l'état'",
     disclaimerLiabilityText: "La plateforme Mafqoudat et l'ensemble de ses services sont fournis 'en l'état' et 'selon disponibilité', sans garantie d'aucune sorte. Dans toute la mesure permise par la législation applicable, Mafqoudat et ses fondateurs ne sauraient être tenus responsables des dommages directs ou indirects résultant de l'utilisation de la plateforme.",
     disclaimerLegalContactTitle: "7. Questions juridiques et conformité",
-    disclaimerLegalContactText: "Pour toute question juridique ou demande relative à cet avertissement, veuillez contacter notre équipe directement à team.mafqoudat@gmail.com.",
+    disclaimerLegalContactText: "Pour toute question juridique ou demande relative à cet avertissement, veuillez contacter notre équipe directement à legal@mafqoudat.com.",
 
     // Author Signal & Credibility
     authorBioTitle: "À propos de l'auteur",
@@ -5857,7 +5857,7 @@ export const translations = {
     email: "البريد الإلكتروني",
     call: "اتصال",
     emailAction: "بريد إلكتروني",
-    supportEmail: "team.mafqoudat@gmail.com",
+    supportEmail: "support@mafqoudat.com",
     support24_7: "24/7",
     immediateAssistance: "للمساعدة الفورية، يرجى الاتصال بنا.",
     beHonestInReports: "كن صادقاً في تقاريرك",
@@ -6047,7 +6047,7 @@ export const translations = {
     disclaimerLiabilityTitle: "6. حدود المسؤولية والخدمة 'كما هي'",
     disclaimerLiabilityText: "تُقدم منصة مفقودات وجميع خدماتها 'كما هي' و'حسب توفرها' دون أي ضمانات صريحة أو ضمنية. إلى أقصى حد يسمح به القانون المعمول به، لا تتحمل مفقودات أو مؤسسوها أي مسؤولية عن أي أضرار مباشرة أو غير مباشرة ناتجة عن استخدام المنصة أو عدم القدرة على استخدامها.",
     disclaimerLegalContactTitle: "7. الاستفسارات القانونية والامتثال",
-    disclaimerLegalContactText: "إذا كانت لديك أي استفسارات قانونية أو حقوقية بشأن إخلاء المسؤولية هذا، يرجى التواصل مباشرة مع فريق الدعم والامتثال عبر البريد الإلكتروني: team.mafqoudat@gmail.com.",
+    disclaimerLegalContactText: "إذا كانت لديك أي استفسارات قانونية أو حقوقية بشأن إخلاء المسؤولية هذا، يرجى التواصل مباشرة مع فريق الشؤون القانونية والامتثال عبر البريد الإلكتروني: legal@mafqoudat.com.",
 
     // Author Signal & Credibility
     authorBioTitle: "عن الكاتب",

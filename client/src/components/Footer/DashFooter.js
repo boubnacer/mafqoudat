@@ -405,12 +405,17 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
             {t("contactUs")}
           </Typography>
           <List dense>
-            <ListItem>
+            <ListItem
+              button
+              component="a"
+              href="mailto:contact@mafqoudat.com"
+              sx={{ textDecoration: 'none', color: 'inherit', borderRadius: 1 }}
+            >
               <ListItemIcon>
                 <Email sx={{ color: theme.custom.color.brandPrimary, fontSize: { xs: "22px", "@media (min-width: 1920px)": "28px" } }} />
               </ListItemIcon>
               <ListItemText
-                primary="team.mafqoudat@gmail.com"
+                primary="contact@mafqoudat.com"
                 secondary={t("emailUsForSupport")}
                 sx={{
                   "& .MuiListItemText-primary": { fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } },

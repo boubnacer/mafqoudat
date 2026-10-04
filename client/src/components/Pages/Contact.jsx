@@ -99,13 +99,15 @@ const Contact = () => {
     {
       icon: <Email color="primary" />,
       title: t('emailUs'),
-      details: 'team.mafqoudat@gmail.com',
+      details: 'contact@mafqoudat.com',
+      link: 'mailto:contact@mafqoudat.com',
       description: t('emailDescription'),
     },
     {
       icon: <Phone color="primary" />,
       title: t('callUs'),
       details: '+212 711 621 132',
+      link: 'tel:+212711621132',
       description: t('phoneDescription'),
     },
     {
@@ -317,7 +319,19 @@ const Contact = () => {
                               {info.title}
                             </Typography>
                           </Box>
-                          <Typography variant="body1" sx={{ fontWeight: '600', mb: 1 }}>
+                          <Typography
+                            variant="body1"
+                            component={info.link ? 'a' : 'p'}
+                            href={info.link || undefined}
+                            sx={{
+                              fontWeight: '600',
+                              mb: 1,
+                              display: 'inline-block',
+                              color: info.link ? 'primary.main' : 'inherit',
+                              textDecoration: 'none',
+                              '&:hover': info.link ? { textDecoration: 'underline' } : {}
+                            }}
+                          >
                             {info.details}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">

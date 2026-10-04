@@ -408,7 +408,19 @@ const CommunityGuidelines = () => {
                     {t('guidelinesQuestions')}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {t('email')}: team.mafqoudat@gmail.com
+                    {t('email')}:{' '}
+                    <Box
+                      component="a"
+                      href="mailto:support@mafqoudat.com"
+                      sx={{
+                        color: 'primary.main',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        '&:hover': { textDecoration: 'underline' }
+                      }}
+                    >
+                      support@mafqoudat.com
+                    </Box>
                   </Typography>
                 </Box>
               </Paper>

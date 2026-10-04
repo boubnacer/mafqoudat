@@ -256,7 +256,7 @@ const HelpSupportSection = () => {
 
                 <Box
                   component="a"
-                  href="mailto:team.mafqoudat@gmail.com"
+                  href="mailto:support@mafqoudat.com"
                   sx={{
                     display: 'flex',
                     alignItems: 'center',

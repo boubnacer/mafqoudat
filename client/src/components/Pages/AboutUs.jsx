@@ -379,7 +379,7 @@ const AboutUs = () => {
                           </Button>
                           <Button
                             component="a"
-                            href="mailto:team.mafqoudat@gmail.com"
+                            href="mailto:nacer@mafqoudat.com"
                             variant="contained"
                             size="small"
                             startIcon={<Email sx={{ fontSize: 18 }} />}
@@ -474,12 +474,12 @@ const AboutUs = () => {
                     {t('getInTouch')}
                   </Typography>
                   <List dense>
-                    <ListItem>
+                    <ListItem component="a" href="mailto:contact@mafqoudat.com" sx={{ textDecoration: 'none', color: 'inherit' }}>
                       <ListItemIcon>
                         <Email color="primary" />
                       </ListItemIcon>
                       <ListItemText 
-                        primary="team.mafqoudat@gmail.com"
+                        primary="contact@mafqoudat.com"
                         secondary={t('emailUsForSupport')}
                       />
                     </ListItem>

@@ -295,7 +295,19 @@ const TermsOfUse = () => {
                     {t('termsQuestions')}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {t('email')}: team.mafqoudat@gmail.com
+                    {t('email')}:{' '}
+                    <Box
+                      component="a"
+                      href="mailto:legal@mafqoudat.com"
+                      sx={{
+                        color: 'primary.main',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        '&:hover': { textDecoration: 'underline' }
+                      }}
+                    >
+                      legal@mafqoudat.com
+                    </Box>
                   </Typography>
                 </Box>
               </Paper>

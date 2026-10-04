@@ -204,8 +204,9 @@ const sendMatchAlert = async ({ recipient, ownPostId, matchedPostId, score, reas
       copy.footer,
     ].join('\n');
 
+    const senderEmail = process.env.NOTIFICATION_EMAIL || process.env.EMAIL_USER;
     await createTransporter().sendMail({
-      from: `"Mafqoudat" <${process.env.EMAIL_USER}>`,
+      from: `"Mafqoudat" <${senderEmail}>`,
       to: recipient.email,
       subject: copy.subject,
       text,
