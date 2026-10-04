@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
+import { BASE_URL } from "../../config/api";
 import {
   Box,
   Card,
@@ -46,12 +47,12 @@ export const useAuthCompactLayout = () =>
   useMediaQuery((theme) => theme.breakpoints.down("sm"));
 
 export const redirectToGoogleAuth = () => {
-  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+  const apiUrl = BASE_URL;
   window.location.href = `${apiUrl}/auth/google`;
 };
 
 export const redirectToFacebookAuth = () => {
-  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+  const apiUrl = BASE_URL;
   window.location.href = `${apiUrl}/auth/facebook`;
 };
 

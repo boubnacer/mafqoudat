@@ -17,6 +17,7 @@ import { SearchLoadingStates } from "../LoadingStates";
 import { useTranslation } from "../../utils/translations";
 import LazyCardMedia from "../LazyCardMedia";
 import noImageSvg from "../../img/noimage.svg";
+import { API_BASE_URL } from "../../config/api";
 
 const SearchSection = ({
   searchQuery,
@@ -89,7 +90,7 @@ const SearchSection = ({
                         sx={{ 
                           height: 150,
                         }}
-                        image={post.image ? `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/${post.image}` : noImageSvg}
+                        image={post.image ? `${API_BASE_URL}/${post.image}` : noImageSvg}
                         alt={post.image}
                         fallback={noImageSvg}
                       />

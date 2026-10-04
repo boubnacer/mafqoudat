@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useUpdatePostMutation, useDeletePostMutation } from "../postsApiSlice";
 import { useSelector } from "react-redux";
 import { selectCurrentToken } from "../../auth/authSlice";
+import { BASE_URL, API_BASE_URL } from "../../../config/api";
 import * as Yup from "yup";
 import { Formik, Form } from "formik";
 import Textfield from "../../../components/Textfield";
@@ -360,7 +361,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const fetchCitiesByCountry = useCallback(async (countryId) => {
     try {
       setLoadingCities(true);
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const baseUrl = BASE_URL;
       const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
       
       // Include Authorization header if token exists (needed for admin bypass during maintenance)
@@ -398,7 +399,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
         ? countryCode.toUpperCase() 
         : null;
       
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const baseUrl = BASE_URL;
       let url = `${baseUrl}/cities/search?q=${encodeURIComponent(searchQuery)}&language=${currentLanguage || 'en'}&limit=10`;
       
       // Only add countryCode if it's valid
@@ -439,7 +440,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   // Traditional city search function (fallback)
   const searchCitiesTraditional = useCallback(async (searchQuery, countryId) => {
     try {
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const baseUrl = BASE_URL;
       const url = `${baseUrl}/cities/search-name?query=${encodeURIComponent(searchQuery)}&countryId=${countryId}&limit=10`;
       
       // Include Authorization header if token exists (needed for admin bypass during maintenance)
@@ -853,7 +854,6 @@ if (typeof document !== 'undefined') {
       return imagePreview;
     }
     if (post?.image) {
-      const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
       return post.image.startsWith('http') 
         ? getOptimizedImageUrl(post.image, 'card') 
         : `${API_BASE_URL}/${post.image}`;
@@ -1103,7 +1103,7 @@ if (typeof document !== 'undefined') {
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3500';
+          const baseUrl = BASE_URL;
           const headers = {};
           if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -1145,7 +1145,7 @@ if (typeof document !== 'undefined') {
   // Create custom city in backend
   const createCustomCity = async (cityName, countryId) => {
     try {
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const baseUrl = BASE_URL;
       const headers = {
         'Content-Type': 'application/json',
       };
@@ -1585,7 +1585,7 @@ if (typeof document !== 'undefined') {
         formData.append("image", selectedImage);
         
         // Use fetch directly for FormData
-        const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+        const baseUrl = BASE_URL;
         try {
           const response = await fetch(`${baseUrl}/posts`, {
             method: 'PATCH',

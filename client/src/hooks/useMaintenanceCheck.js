@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux';
 import axios from 'axios';
 import useAuth from './useAuth';
 import { setMaintenanceMode, clearMaintenanceMode } from '../app/state/maintenanceSlice';
+import { API_URL } from '../config/api';
 
 /**
  * Custom hook to check maintenance mode status
@@ -56,9 +57,6 @@ const useMaintenanceCheck = () => {
     }
 
     try {
-      
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3500';
-      
       // Make a request to the health endpoint
       const response = await axios.get(`${API_URL}/health`, {
         timeout: 10000, // 10 second timeout

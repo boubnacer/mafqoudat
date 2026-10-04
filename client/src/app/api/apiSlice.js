@@ -4,6 +4,7 @@ import { setMaintenanceMode } from "../state/maintenanceSlice";
 import { getVisitorSessionId } from "../../utils/visitorSession";
 import { authStorage } from "../../utils/authStorage";
 import { refreshAccessToken } from "../../utils/refreshClient";
+import { BASE_URL } from "../../config/api";
 
 // Enhanced error handling for network failures
 const isNetworkError = (error) => {
@@ -54,7 +55,7 @@ const isSessionFailure = (url, error) => {
 };
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: process.env.REACT_APP_API_URL || "http://localhost:3500",
+  baseUrl: BASE_URL,
   credentials: "include", // important, to send the cookie back to the server along with the token
   // `timeout` is a real fetchBaseQuery option, but only from RTK Query 1.9 -
   // this app is pinned to "@reduxjs/toolkit": "1.8.4" (see package-lock.json),

@@ -32,8 +32,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import { useGetUserPostsQuery } from '../postsApiSlice';
 import useAuth from '../../../hooks/useAuth';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
+import { API_BASE_URL } from '../../../config/api';
 
 const MyPostsPage = () => {
   const theme = useTheme();

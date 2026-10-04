@@ -5,6 +5,7 @@
  */
 
 import { getVisitorSessionId } from './visitorSession';
+import { BASE_URL } from '../config/api';
 
 /**
  * Initialize visitor session on app load
@@ -12,7 +13,7 @@ import { getVisitorSessionId } from './visitorSession';
  */
 export const initializeVisitorSession = async () => {
   try {
-    const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+    const baseUrl = BASE_URL;
     const existingSessionId = getVisitorSessionId();
     
     // Call backend to sync session ID

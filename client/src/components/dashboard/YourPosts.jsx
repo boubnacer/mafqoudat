@@ -25,8 +25,7 @@ import { getOptimizedImageUrl } from '../../utils/cloudinaryUtils';
 import noImageSvg from '../../img/noimage.svg';
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
+import { API_BASE_URL } from '../../config/api';
 
 const YourPosts = ({ userPosts = [], isLoading = false }) => {
   const theme = useTheme();

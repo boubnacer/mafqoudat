@@ -1,7 +1,7 @@
 // Fixed Vercel routing - added basename and removed homepage field
 import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import { Box, CircularProgress, CssBaseline, ThemeProvider } from "@mui/material";
+import { CssBaseline, ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -35,6 +35,7 @@ import SinglePostSkeleton from "./components/SinglePostSkeleton";
 import AuthPageSkeleton from "./features/auth/AuthPageSkeleton";
 import DashboardSkeleton from "./components/dashboard/DashboardSkeleton";
 import PostsListSkeleton from "./features/posts/PostsList/PostsListSkeleton";
+import LoadingFallback from "./components/LoadingFallback";
 
 // Lazy load all major page components for better code splitting
 const WelcomePage = lazy(() => import("./components/WelcomePage"));
@@ -58,6 +59,7 @@ const Blog = lazy(() => import("./components/Pages/Blog"));
 const BlogPostPage = lazy(() => import("./components/Pages/BlogPostPage"));
 const Contact = lazy(() => import("./components/Pages/Contact"));
 const HelpCenter = lazy(() => import("./components/Pages/HelpCenter"));
+const NotFoundPage = lazy(() => import("./components/Pages/NotFoundPage"));
 
 // Lazy load heavy components
 const PostsList = lazy(() => import("./features/posts/PostsList/PostsList"));
@@ -90,24 +92,7 @@ const AdminAnalyticsPage = lazy(() => import("./features/admin/pages/AnalyticsPa
 const AdminPlacesPage = lazy(() => import("./features/admin/pages/PlacesPage"));
 const AdminSystemPage = lazy(() => import("./features/admin/pages/SystemPage"));
 
-// Minimal fallback for the handful of routes that don't have a page-shaped
-// skeleton yet (admin/manager tools, profile, myposts, the dash layout
-// shell, auth callback) — a small centered spinner rather than the old
-// full-viewport logo splash, which never matched the destination page.
-const LoadingFallback = () => (
-  <Box
-    sx={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '40vh',
-      width: '100%',
-      py: 8,
-    }}
-  >
-    <CircularProgress />
-  </Box>
-);
+
 
 // Inner App component that has access to language context
 const AppContent = () => {
@@ -449,12 +434,11 @@ const AppContent = () => {
           </Route>
         </Route>
 
-        {/* Catch-all route for debugging */}
+        {/* 404 fallback route */}
         <Route path="*" element={
-          <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'red', color: 'white' }}>
-            <h1>404 - Route Not Found</h1>
-            <p>Path: {window.location.pathname}</p>
-          </div>
+          <Suspense fallback={<InfoPageSkeleton />}>
+            <NotFoundPage />
+          </Suspense>
         } />
       </Routes>
       )}

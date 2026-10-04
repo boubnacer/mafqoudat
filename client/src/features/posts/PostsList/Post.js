@@ -38,10 +38,7 @@ import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
 import LazyCardMedia from "../../../components/LazyCardMedia";
 import ReachRow from "../../../components/ReachRow";
 import { summarizeSocialStats, readSiteViews, readTotalViews } from "../../../utils/socialStats";
-
-
-// Get the API base URL for image construction
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
+import { API_BASE_URL } from "../../../config/api";
 
 // Post card DNA - canonical here, mirrored by TrendingItem.jsx: surfaceRaised,
 // radius (xl on this card), elevation.e1 -> e2 hover-lift, no border. The page

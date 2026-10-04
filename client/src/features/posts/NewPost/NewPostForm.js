@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAddNewPostMutation } from "../postsApiSlice";
 import { useSelector } from "react-redux";
 import { selectCurrentToken } from "../../auth/authSlice";
+import { BASE_URL } from "../../../config/api";
 import * as Yup from "yup";
 import { Formik, Form, useFormikContext } from "formik";
 import imageCompression from "browser-image-compression";
@@ -313,7 +314,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const fetchCitiesByCountry = useCallback(async (countryId) => {
     try {
       setLoadingCities(true);
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const baseUrl = BASE_URL;
       const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
       
       // Include Authorization header if token exists (needed for admin bypass during maintenance)
@@ -679,7 +680,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         ? countryCode.toUpperCase() 
         : null;
       
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const baseUrl = BASE_URL;
       let url = `${baseUrl}/cities/search?q=${encodeURIComponent(searchQuery)}&language=${currentLanguage || 'en'}&limit=10`;
       
       // Only add countryCode if it's valid
@@ -720,7 +721,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Traditional city search function (fallback)
   const searchCitiesTraditional = useCallback(async (searchQuery, countryId) => {
     try {
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const baseUrl = BASE_URL;
       const url = `${baseUrl}/cities/search-name?query=${encodeURIComponent(searchQuery)}&countryId=${countryId}&limit=10`;
       
       // Include Authorization header if token exists (needed for admin bypass during maintenance)
@@ -1164,7 +1165,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3500';
+          const baseUrl = BASE_URL;
           const headers = {};
           if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -1211,7 +1212,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Create custom city in backend
   const createCustomCity = async (cityName, countryId) => {
     try {
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const baseUrl = BASE_URL;
       const headers = {
         'Content-Type': 'application/json',
       };

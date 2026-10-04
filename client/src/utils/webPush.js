@@ -1,5 +1,6 @@
 import { authStorage } from './authStorage';
 import { refreshSession } from './refreshClient';
+import { API_URL } from '../config/api';
 
 /**
  * Browser push notifications: permission, subscription, and keeping the server
@@ -17,8 +18,6 @@ import { refreshSession } from './refreshClient';
  * their listing. `requestSubscription` is called from the New Post flow, and a
  * person who cannot subscribe still has to be able to post.
  */
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3500';
 
 const SERVICE_WORKER_PATH = '/push-sw.js';
 

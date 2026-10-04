@@ -18,8 +18,7 @@
 
 import { authStorage } from './authStorage';
 import { isStoredTokenExpired } from '../features/auth/authSlice';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3500';
+import { API_URL } from '../config/api';
 
 // How long to wait before re-checking storage for a token another tab won.
 // Long enough to cover the gap between the two tabs' responses, short enough

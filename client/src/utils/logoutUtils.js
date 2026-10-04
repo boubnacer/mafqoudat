@@ -9,12 +9,12 @@
 
 import { authStorage, decodeTokenPayload } from './authStorage';
 import { unsubscribe as unsubscribeFromWebPush } from './webPush';
+import { API_URL } from '../config/api';
 
 // Same pattern as refreshClient.js: a plain fetch needs the API origin
 // itself, not a relative path - vercel.json only rewrites a handful of
 // specific paths, and a wrong one here silently 404s to index.html instead
 // of ever reaching the server.
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3500';
 
 /**
  * Comprehensive logout function that handles all scenarios

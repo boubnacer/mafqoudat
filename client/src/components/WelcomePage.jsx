@@ -14,6 +14,7 @@ import WorldActivityMap from "./dashboard/WorldActivityMap";
 import SkeletonBlock from "./SkeletonBlock";
 import WelcomePageSkeleton from "./WelcomePageSkeleton";
 import { getCategoryConfig, getCategoryIcon } from "../config/categories";
+import { API_BASE_URL } from "../config/api";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import {
@@ -55,8 +56,6 @@ import {
 } from "@mui/icons-material";
 
 gsap.registerPlugin(useGSAP);
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
 const formatShortDate = (dateString, lang) => {
   try {

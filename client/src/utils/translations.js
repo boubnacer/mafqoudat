@@ -2305,7 +2305,13 @@ export const translations = {
     matchOneDayApart: "1 day apart",
     matchTwoDaysApart: "2 days apart",
     matchDaysApartFew: "{days} days apart",
-    matchDaysApart: "{days} days apart"
+    matchDaysApart: "{days} days apart",
+    pageNotFoundTitle: "Page Not Found",
+    pageNotFoundSubtitle: "The page you are looking for doesn't exist, has been removed, or is temporarily unavailable.",
+    pageNotFoundBackHome: "Back to Home",
+    pageNotFoundSearchListings: "Search Listings",
+    seoPageNotFoundTitle: "Page Not Found | Mafqoudat",
+    seoPageNotFoundDescription: "The page you requested could not be found on Mafqoudat."
   },
   fr: {
 
@@ -4579,7 +4585,13 @@ export const translations = {
     matchOneDayApart: "1 jour d'écart",
     matchTwoDaysApart: "2 jours d'écart",
     matchDaysApartFew: "{days} jours d'écart",
-    matchDaysApart: "{days} jours d'écart"
+    matchDaysApart: "{days} jours d'écart",
+    pageNotFoundTitle: "Page introuvable",
+    pageNotFoundSubtitle: "La page que vous recherchez n'existe pas, a été supprimée ou est temporairement indisponible.",
+    pageNotFoundBackHome: "Retour à l'accueil",
+    pageNotFoundSearchListings: "Rechercher des annonces",
+    seoPageNotFoundTitle: "Page introuvable | Mafqoudat",
+    seoPageNotFoundDescription: "La page demandée est introuvable sur Mafqoudat."
   },
   ar: {
 
@@ -6837,7 +6849,13 @@ export const translations = {
     matchOneDayApart: "بفارق يوم واحد",
     matchTwoDaysApart: "بفارق يومين",
     matchDaysApartFew: "بفارق {days} أيام",
-    matchDaysApart: "بفارق {days} يومًا"
+    matchDaysApart: "بفارق {days} يومًا",
+    pageNotFoundTitle: "الصفحة غير موجودة",
+    pageNotFoundSubtitle: "الصفحة التي تبحث عنها غير موجودة، أو قد تم حذفها أو نقلها إلى عنوان آخر.",
+    pageNotFoundBackHome: "العودة إلى الرئيسية",
+    pageNotFoundSearchListings: "البحث في الإعلانات",
+    seoPageNotFoundTitle: "الصفحة غير موجودة | مفقودات",
+    seoPageNotFoundDescription: "الصفحة المطلوبة غير موجودة على مفقودات."
   }
 };
 

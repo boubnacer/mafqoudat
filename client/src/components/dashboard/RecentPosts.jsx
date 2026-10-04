@@ -14,8 +14,7 @@ import LazyCardMedia from "../LazyCardMedia";
 import { useTranslation } from "../../utils/translations";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
 import { getCategoryConfig, getCategoryIcon } from "../../config/categories";
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
+import { API_BASE_URL } from "../../config/api";
 
 // Frosted circle icon + label pill for no-image states (same as Post.js)
 const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) => {

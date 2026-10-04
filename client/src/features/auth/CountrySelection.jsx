@@ -7,6 +7,7 @@ import useTitle from "../../hooks/useTitle";
 import AuthPageSkeleton from "./AuthPageSkeleton";
 import { useTranslation } from "../../utils/translations";
 import axios from "axios";
+import { BASE_URL } from "../../config/api";
 
 import { CardContent, Alert, Box, InputLabel, Select, MenuItem, InputAdornment, useTheme } from "@mui/material";
 import { LocationOn } from "@mui/icons-material";
@@ -86,7 +87,7 @@ const CountrySelection = () => {
     setIsSubmitting(true);
 
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const apiUrl = BASE_URL;
       // Google's completion route is legacy-named `/auth/complete`; every
       // provider added since (Facebook, etc.) lives at `/auth/<provider>/complete`.
       const completeUrl = provider === 'google'

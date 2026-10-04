@@ -5,11 +5,12 @@ import './index.css';
 // tree - see the file header.
 import './styles/consentMessage.css';
 import App from './App';
+import AppErrorBoundary from './components/AppErrorBoundary';
 import { BrowserRouter } from 'react-router-dom';
 
-import { store } from './app/store'
-import { Provider } from 'react-redux'
-import silenceProductionLogs from './utils/silenceProductionLogs'
+import { store } from './app/store';
+import { Provider } from 'react-redux';
+import silenceProductionLogs from './utils/silenceProductionLogs';
 
 // Before anything renders, so no module's import-time logging slips through.
 silenceProductionLogs();
@@ -29,7 +30,9 @@ root.render(
   <React.StrictMode>
     <Provider store={store}>
       <BrowserRouter>
-        <App />
+        <AppErrorBoundary>
+          <App />
+        </AppErrorBoundary>
       </BrowserRouter>
     </Provider>
   </React.StrictMode>
