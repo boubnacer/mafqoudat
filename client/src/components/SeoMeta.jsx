@@ -76,6 +76,7 @@ const SeoMeta = ({
       <meta name="description" content={metaDescription} />
       <link rel="canonical" href={canonicalUrl} />
 
+      <meta property="fb:app_id" content="1045900571165468" />
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content={defaultSeo.siteName} />
       <meta property="og:title" content={metaTitle} />

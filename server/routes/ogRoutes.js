@@ -338,6 +338,7 @@ const renderDocument = ({ title, description, canonical, head, body }) => `<!DOC
     <meta name="description" content="${escapeHtml(description)}" />
     <meta name="robots" content="index, follow" />
 
+    <meta property="fb:app_id" content="1045900571165468" />
     <meta property="og:site_name" content="Mafqoudat" />
     <meta property="og:locale" content="ar_AR" />
     <meta property="og:title" content="${escapeHtml(title)}" />
