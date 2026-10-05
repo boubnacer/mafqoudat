@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -25,8 +25,11 @@ import {
   ScheduleOutlined,
   SearchOffOutlined,
   InfoOutlined,
+  NotificationsActiveOutlined,
+  NotificationsNoneOutlined,
 } from '@mui/icons-material';
 import { useTranslation } from '../../../utils/translations';
+import { getSubscriptionState, requestSubscription } from '../../../utils/webPush';
 import {
   useGetSocialReviewPostsQuery,
   useApproveSocialPostMutation,
@@ -73,6 +76,36 @@ const AdminSocialReviewPage = () => {
     contact: '',
     exactLocation: '',
   });
+
+  // Browser Push notification subscription state
+  const [pushState, setPushState] = useState('loading'); // 'loading' | 'on' | 'off' | 'blocked' | 'unsupported'
+
+  useEffect(() => {
+    let active = true;
+    getSubscriptionState().then((state) => {
+      if (active) setPushState(state);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleEnablePush = async () => {
+    try {
+      const outcome = await requestSubscription(currentLanguage);
+      if (outcome.status === 'subscribed') {
+        setPushState('on');
+        notify(t('browserPushSubscribedSuccess') || 'Browser review alerts enabled successfully!', 'success');
+      } else if (outcome.status === 'denied') {
+        setPushState('blocked');
+        notify(t('browserPushDenied') || 'Notifications were blocked in your browser settings.', 'warning');
+      } else {
+        notify(t('browserPushFailed') || 'Could not enable browser notifications.', 'error');
+      }
+    } catch (err) {
+      notify(err?.message || 'Failed to enable notifications', 'error');
+    }
+  };
 
   const { data, isFetching, error, refetch } = useGetSocialReviewPostsQuery({
     page: page + 1,
@@ -355,6 +388,33 @@ const AdminSocialReviewPage = () => {
         description={
           t('adminNavSocialReviewDescription') ||
           'Review newly created posts, edit errors or photos, and approve them to be posted to Facebook and Instagram.'
+        }
+        actions={
+          pushState === 'on' ? (
+            <Chip
+              icon={<NotificationsActiveOutlined sx={{ fontSize: '1rem !important' }} />}
+              label={t('browserAlertsActive') || 'Browser alerts active'}
+              color="success"
+              variant="outlined"
+              size="small"
+              sx={{ fontWeight: 600, py: 1.5, px: 0.5 }}
+            />
+          ) : pushState === 'off' ? (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<NotificationsNoneOutlined />}
+              onClick={handleEnablePush}
+              sx={{
+                borderRadius: '8px',
+                textTransform: 'none',
+                fontWeight: 600,
+                borderColor: theme.palette.primary.main,
+              }}
+            >
+              {t('enableBrowserAlerts') || 'Enable browser alerts'}
+            </Button>
+          ) : null
         }
       />
 

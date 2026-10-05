@@ -639,10 +639,87 @@ const sendSocialPublishAlert = async ({ user, postId, notificationId, platform, 
   return accepted > 0 || acceptedOnWeb > 0;
 };
 
+/**
+ * Browser push notification sent to all active Admins when a new post is created
+ * and is waiting for review in the Admin Console (/dash/admin/social-review).
+ *
+ * This completely replaces the WhatsApp alert with a direct, 1-click browser push
+ * that takes the administrator straight to the review page.
+ *
+ * @param {{ post: Object, authorName?: string }} params
+ * @returns {Promise<number>} number of browser notifications delivered
+ */
+const sendNewPostAdminReviewAlert = async ({ post, authorName = 'مستخدم الموقع' }) => {
+  if (!isEnabled() || !webPushService.isConfigured()) return 0;
+
+  try {
+    // Find all active admins who have web push subscriptions
+    const admins = await User.find({
+      role: 'admin',
+      isActive: true,
+      'webPushSubscriptions.0': { $exists: true },
+    }).select('webPushSubscriptions language').lean();
+
+    if (!admins || admins.length === 0) {
+      console.log('[push] No active admin with browser push subscriptions found. Skipping admin review push.');
+      return 0;
+    }
+
+    const allSubscriptions = admins.flatMap((admin) => admin.webPushSubscriptions || []);
+    if (allSubscriptions.length === 0) return 0;
+
+    const isLost = post?.foundLost?.code === 'LOST' || post?.type === 'lost';
+    const typeLabelAr = isLost ? '🔍 مفقود' : '🟢 تم العثور عليه';
+    const typeLabelEn = isLost ? '🔍 Lost' : '🟢 Found';
+    const typeLabelFr = isLost ? '🔍 Objet perdu' : '🟢 Objet trouvé';
+    const snippet = (post?.description || '').slice(0, 80).trim() || '—';
+
+    const targetUrl = `${clientOrigin()}/dash/admin/social-review`;
+    const data = {
+      type: 'admin_social_review',
+      postId: String(post?._id || ''),
+      url: targetUrl,
+    };
+
+    const copyFor = (language) => {
+      if (language === 'ar') {
+        return {
+          title: '🔔 إعلان جديد بانتظار مراجعتك للنشر',
+          body: `قام ${authorName} بنشر إعلان جديد (${typeLabelAr}): "${snippet}"`,
+        };
+      }
+      if (language === 'fr') {
+        return {
+          title: '🔔 Nouvelle annonce à valider',
+          body: `${authorName} a publié une annonce (${typeLabelFr}) : "${snippet}"`,
+        };
+      }
+      return {
+        title: '🔔 New listing awaiting social review',
+        body: `${authorName} published a new listing (${typeLabelEn}): "${snippet}"`,
+      };
+    };
+
+    const accepted = await sendToBrowsers(
+      allSubscriptions,
+      copyFor,
+      data,
+      { ttl: 24 * 60 * 60 }
+    );
+
+    console.log(`[push] Sent admin review browser push notification to ${accepted} browser(s) for post ${post?._id}`);
+    return accepted;
+  } catch (err) {
+    console.error('[push] Failed to send admin review browser alert:', err?.message || err);
+    return 0;
+  }
+};
+
 module.exports = {
   sendMatchAlert,
   sendCommentAlert,
   sendSocialPublishAlert,
+  sendNewPostAdminReviewAlert,
   isValidPushToken,
   removeToken,
   ANDROID_CHANNEL_ID,

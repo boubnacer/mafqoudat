@@ -12,7 +12,7 @@ const mongoose = require("mongoose");
 const TranslationService = require("../services/translationService");
 const socialPublishQueue = require("../services/socialPublishQueue");
 const matchingService = require("../services/matchingService");
-const { sendNewPostAdminAlert } = require("../services/whatsappService");
+const pushNotificationService = require("../services/pushNotificationService");
 const { cacheService } = require("../config/cache");
 // Every $regex built from the client-supplied `search` term goes through
 // escapeRegex. The term reaches three fields on three separate code paths and
@@ -1864,13 +1864,18 @@ const createNewPost = async (req, res) => {
 
       // Social Publishing Approval Gate:
       // Rather than immediately publishing to Facebook and Instagram, listings start
-      // in 'pending' status. The site admin is notified via WhatsApp and can review,
-      // edit mistakes/images in the Admin Console (/dash/admin/social-review), and approve.
+      // in 'pending' status. The site admin is notified via browser push notification
+      // and can review, edit mistakes/images in the Admin Console (/dash/admin/social-review), and approve.
       // Once approved, the post enters socialPublishQueue with paced intervals to avoid
       // Meta rate limits and restrictions.
-      sendNewPostAdminAlert({ post, user: req.user }).catch((alertError) => {
-        console.error(`[WhatsApp] Failed to dispatch admin alert for new post ${post._id}:`, alertError?.message || alertError);
-      });
+      pushNotificationService
+        .sendNewPostAdminReviewAlert({
+          post,
+          authorName: req.username || 'مستخدم الموقع',
+        })
+        .catch((alertError) => {
+          console.error(`[push] Failed to dispatch admin review alert for new post ${post._id}:`, alertError?.message || alertError);
+        });
 
       // Statistic only, and never on the request's critical path.
       recordDocumentTypeUsage(resolvedDocumentTypes);

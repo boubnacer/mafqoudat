@@ -559,14 +559,14 @@ const MATCH_ALERT_TEMPLATES = {
  */
 const sendNewPostAdminAlert = async ({ post, user }) => {
   try {
-    let adminPhone = process.env.ADMIN_WA_PHONE || process.env.ADMIN_PHONE;
+    let adminPhone = process.env.ADMIN_WA_PHONE || process.env.ADMIN_PHONE || process.env.ADMIN_WHATSAPP_PHONE;
     if (!adminPhone) {
       const User = require('../models/User');
       const adminUser = await User.findOne({
         role: 'admin',
         isActive: true,
         phone: { $exists: true, $nin: [null, ''] },
-      }).select('phone').lean();
+      }).sort({ createdAt: 1 }).select('phone').lean();
       if (adminUser?.phone) {
         adminPhone = adminUser.phone;
       }
@@ -577,10 +577,27 @@ const sendNewPostAdminAlert = async ({ post, user }) => {
       return false;
     }
 
-    const jid = toJid(adminPhone);
-    if (!jid) {
+    const adminJid = toJid(adminPhone);
+    if (!adminJid) {
       console.warn('[WhatsApp] Invalid admin phone number format:', adminPhone);
       return false;
+    }
+
+    // Resolve post author name
+    let authorName = 'مستخدم الموقع';
+    if (user && typeof user === 'object' && user.username) {
+      authorName = user.username;
+    } else if (post?.user?.username) {
+      authorName = post.user.username;
+    } else {
+      const authorId = typeof user === 'string' ? user : (user?._id || post?.user);
+      if (authorId) {
+        const User = require('../models/User');
+        const authorUser = await User.findById(authorId).select('username role phone').lean();
+        if (authorUser?.username) {
+          authorName = authorUser.username;
+        }
+      }
     }
 
     const siteBase = getSiteBaseUrl();
@@ -590,16 +607,18 @@ const sendNewPostAdminAlert = async ({ post, user }) => {
     const isLost = post?.foundLost?.code === 'LOST' || post?.type === 'lost';
     const typeLabel = isLost ? '🔍 مفقود (Lost)' : '🟢 تم العثور عليه (Found)';
     const snippet = (post?.description || '').slice(0, 140).trim() || '—';
-    const authorName = user?.username || post?.user?.username || 'مستخدم الموقع';
     const contactPhone = post?.contact || '—';
 
+    // Administrative review notification:
+    // This message is sent EXCLUSIVELY to the admin WhatsApp number (adminJid)
+    // and is never sent to the post creator or to post.contact.
     const message = [
       '🔔 *إشعار إعلان جديد بانتظار الموافقة للنشر* 📣',
       'قام مستخدم بنشر إعلان جديد على *مفقودات*. الإعلان بانتظار مراجعتك وموافقتك للنشر على فيسبوك وإنستغرام:',
       '',
       `📌 *النوع:* ${typeLabel}`,
-      `👤 *الناشر:* ${authorName}`,
-      `📞 *الاتصال:* ${contactPhone}`,
+      `👤 *صاحب الإعلان:* ${authorName}`,
+      `📞 *رقم هاتف المعلن:* ${contactPhone}`,
       `📝 *الوصف:* ${snippet}${snippet.length >= 140 ? '...' : ''}`,
       '',
       '⚙️ *للمراجعة، التعديل أو الموافقة على النشر:*',
@@ -611,7 +630,8 @@ const sendNewPostAdminAlert = async ({ post, user }) => {
       '— لوحة تحكم مفقودات (Mafqoudat Admin)',
     ].join('\n');
 
-    await queueMessageDirect(jid, { text: message });
+    console.log(`[WhatsApp] Dispatching admin review alert for post ${post?._id} strictly to admin (${adminPhone}). Post creator (${contactPhone}) is not messaged.`);
+    await queueMessageDirect(adminJid, { text: message });
     return true;
   } catch (err) {
     console.error('[WhatsApp] Failed to send new post admin alert:', err?.message || err);
