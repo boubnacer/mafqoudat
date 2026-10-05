@@ -218,7 +218,7 @@ const CategoryTags = ({ items }) => (
 // (CategoryTags) still carries this when there's a photo; it would
 // duplicate this icon+label treatment stacked next to it, so it only
 // renders when there's no photo to pin it to instead.
-const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize, code }) => {
+const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) => {
   const theme = useTheme();
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
@@ -237,7 +237,24 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize, cod
       >
         <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />
       </Box>
-      <CategoryChip tone={{ main: color }} label={label} code={code} />
+      <Box
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
+          backdropFilter: 'blur(6px)',
+          border: `1px solid ${color}`,
+          color,
+          fontWeight: 800,
+          fontSize: { xs: '13px', sm: '14px' },
+          lineHeight: 1,
+          borderRadius: '999px',
+          px: { xs: 1.25, sm: 1.5 },
+          py: { xs: 0.5, sm: 0.625 },
+        }}
+      >
+        {label}
+      </Box>
     </Box>
   );
 };
@@ -1091,7 +1108,6 @@ const SinglePostPage = ({
                       key={iconData.code || idx}
                       icon={iconData.IconComponent}
                       label={iconData.label}
-                      code={iconData.code}
                       color={iconData.style?.main || theme.palette.text.secondary}
                       iconSize={
                         categoryIconsData.length === 1

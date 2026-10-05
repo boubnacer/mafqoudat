@@ -17,9 +17,8 @@ import { getCategoryConfig, getCategoryIcon, getCategoryBadgeStyle } from "../..
 import { API_BASE_URL } from "../../config/api";
 
 // Frosted circle icon + label pill for no-image states (same as Post.js)
-const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize, code }) => {
+const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) => {
   const theme = useTheme();
-  const badge = code ? getCategoryBadgeStyle(code) : null;
   return (
     <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.75 }}>
       <Box
@@ -41,11 +40,10 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize, cod
         sx={{
           display: { xs: "none", sm: "inline-flex" },
           alignItems: "center",
-          backgroundColor: badge ? badge.backgroundColor : alpha(theme.custom.color.surfaceRaised, 0.55),
-          backdropFilter: badge ? badge.backdropFilter : "blur(6px)",
-          border: badge ? badge.border : `1px solid ${color}`,
-          color: badge ? badge.color : color,
-          boxShadow: badge ? badge.boxShadow : "none",
+          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
+          backdropFilter: "blur(6px)",
+          border: `1px solid ${color}`,
+          color,
           fontWeight: 800,
           fontSize: { xs: "11px", sm: "12px" },
           lineHeight: 1,
@@ -343,7 +341,6 @@ const RecentPosts = (props) => {
                 key={iconData.code || idx}
                 icon={iconData.IconComponent}
                 label={iconData.label}
-                code={iconData.code}
                 color={iconData.style?.main || theme.palette.text.secondary}
                 iconSize={categoryIconsData.length === 1 ? "48px" : "28px"}
                 circleSize={categoryIconsData.length === 1 ? 72 : 46}
