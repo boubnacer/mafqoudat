@@ -46,7 +46,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
 import { authStorage } from "../../../utils/authStorage";
-import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
+import { getCategoryConfig, getCategoryIcon, getCategoryBadgeStyle } from "../../../config/categories";
 import PromotionDialog from "../../../components/PromotionDialog";
 import ClaimItemDialog from "../../../components/ClaimItemDialog";
 import PostMatchesPanel from "../../notifications/PostMatchesPanel";
@@ -164,17 +164,19 @@ const StatusTag = ({ tone, icon, label }) => (
 // the icon already reads against any hue. Only the text takes the
 // category's own color. Wraps instead of stacking so it stays compact next
 // to the status tag for a multi-category post.
-const CategoryChip = ({ tone, label }) => {
+const CategoryChip = ({ tone, label, code }) => {
   const theme = useTheme();
+  const badgeStyle = code ? getCategoryBadgeStyle(code) : null;
   return (
     <Box
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
-        backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-        backdropFilter: 'blur(6px)',
-        border: `1px solid ${tone.main}`,
-        color: tone.main,
+        backgroundColor: badgeStyle ? badgeStyle.backgroundColor : alpha(theme.custom.color.surfaceRaised, 0.55),
+        backdropFilter: 'blur(8px)',
+        border: badgeStyle ? badgeStyle.border : `1px solid ${tone?.main}`,
+        color: badgeStyle ? badgeStyle.color : tone?.main,
+        boxShadow: badgeStyle ? badgeStyle.boxShadow : 'none',
         fontWeight: 800,
         fontSize: { xs: '13px', sm: '14px' },
         lineHeight: 1,
@@ -203,7 +205,7 @@ const CategoryTags = ({ items }) => (
     }}
   >
     {items.map((item) => (
-      <CategoryChip key={item.code} tone={item.tone} label={item.label} />
+      <CategoryChip key={item.code} tone={item.tone} label={item.label} code={item.code} />
     ))}
   </Box>
 );
@@ -216,7 +218,7 @@ const CategoryTags = ({ items }) => (
 // (CategoryTags) still carries this when there's a photo; it would
 // duplicate this icon+label treatment stacked next to it, so it only
 // renders when there's no photo to pin it to instead.
-const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) => {
+const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize, code }) => {
   const theme = useTheme();
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
@@ -235,7 +237,7 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
       >
         <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />
       </Box>
-      <CategoryChip tone={{ main: color }} label={label} />
+      <CategoryChip tone={{ main: color }} label={label} code={code} />
     </Box>
   );
 };
@@ -1089,6 +1091,7 @@ const SinglePostPage = ({
                       key={iconData.code || idx}
                       icon={iconData.IconComponent}
                       label={iconData.label}
+                      code={iconData.code}
                       color={iconData.style?.main || theme.palette.text.secondary}
                       iconSize={
                         categoryIconsData.length === 1

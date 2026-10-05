@@ -34,7 +34,7 @@ import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
 import { formatDistanceToNow, format } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
-import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
+import { getCategoryConfig, getCategoryIcon, getCategoryBadgeStyle } from "../../../config/categories";
 import LazyCardMedia from "../../../components/LazyCardMedia";
 import ReachRow from "../../../components/ReachRow";
 import { summarizeSocialStats, readSiteViews, readTotalViews } from "../../../utils/socialStats";
@@ -111,8 +111,9 @@ const ResolvedBadge = ({ label }) => {
 // category name beneath it as a matching translucent pill, centered - same
 // treatment as SinglePostPage's CategoryIconLabel, so a photo-less post
 // reads the same on the listing card as it does on its own detail page.
-const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) => {
+const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize, code }) => {
   const theme = useTheme();
+  const badge = code ? getCategoryBadgeStyle(code) : null;
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
       <Box
@@ -134,10 +135,11 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
         sx={{
           display: 'inline-flex',
           alignItems: 'center',
-          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-          backdropFilter: 'blur(6px)',
-          border: `1px solid ${color}`,
-          color,
+          backgroundColor: badge ? badge.backgroundColor : alpha(theme.custom.color.surfaceRaised, 0.55),
+          backdropFilter: badge ? badge.backdropFilter : 'blur(6px)',
+          border: badge ? badge.border : `1px solid ${color}`,
+          color: badge ? badge.color : color,
+          boxShadow: badge ? badge.boxShadow : 'none',
           fontWeight: 800,
           fontSize: { xs: '11px', sm: '12px' },
           lineHeight: 1,
@@ -309,13 +311,15 @@ const Post = ({ post, type }) => {
     return categories.map(cat => {
       try {
         const config = getCategoryConfig(cat.code);
+        const badge = getCategoryBadgeStyle(cat.code);
         return {
           main: config.color,
           light: config.backgroundColor,
           dark: config.color,
           icon: config.color,
           background: config.backgroundColor,
-          text: config.color
+          text: config.color,
+          badge,
         };
       } catch (error) {
         return {
@@ -537,6 +541,7 @@ const Post = ({ post, type }) => {
                 key={iconData.code || idx}
                 icon={iconData.IconComponent}
                 label={iconData.label}
+                code={iconData.code}
                 color={iconData.style?.main || theme.palette.text.secondary}
                 iconSize={categoryIconsData.length === 1 ? '56px' : '32px'}
                 circleSize={categoryIconsData.length === 1 ? 84 : 56}
@@ -609,16 +614,18 @@ const Post = ({ post, type }) => {
           {categories.map((cat, index) => {
             const catStyle = categoryStyles[index];
             const catName = categoryNames[index];
+            const badge = catStyle?.badge || getCategoryBadgeStyle(cat.code);
             return (
               <Box
                 key={cat.code || index}
                 sx={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-                  backdropFilter: 'blur(6px)',
-                  border: `1px solid ${catStyle.main}`,
-                  color: catStyle.main,
+                  backgroundColor: badge.backgroundColor,
+                  backdropFilter: badge.backdropFilter,
+                  border: badge.border,
+                  color: badge.color,
+                  boxShadow: badge.boxShadow,
                   fontWeight: 700,
                   fontSize: { xs: '12px', sm: '13px' },
                   lineHeight: 1,

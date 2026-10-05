@@ -13,12 +13,13 @@ import noImageSvg from "../../img/noimage.svg";
 import LazyCardMedia from "../LazyCardMedia";
 import { useTranslation } from "../../utils/translations";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
-import { getCategoryConfig, getCategoryIcon } from "../../config/categories";
+import { getCategoryConfig, getCategoryIcon, getCategoryBadgeStyle } from "../../config/categories";
 import { API_BASE_URL } from "../../config/api";
 
 // Frosted circle icon + label pill for no-image states (same as Post.js)
-const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) => {
+const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize, code }) => {
   const theme = useTheme();
+  const badge = code ? getCategoryBadgeStyle(code) : null;
   return (
     <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.75 }}>
       <Box
@@ -40,10 +41,11 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
         sx={{
           display: { xs: "none", sm: "inline-flex" },
           alignItems: "center",
-          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-          backdropFilter: "blur(6px)",
-          border: `1px solid ${color}`,
-          color,
+          backgroundColor: badge ? badge.backgroundColor : alpha(theme.custom.color.surfaceRaised, 0.55),
+          backdropFilter: badge ? badge.backdropFilter : "blur(6px)",
+          border: badge ? badge.border : `1px solid ${color}`,
+          color: badge ? badge.color : color,
+          boxShadow: badge ? badge.boxShadow : "none",
           fontWeight: 800,
           fontSize: { xs: "11px", sm: "12px" },
           lineHeight: 1,
@@ -161,11 +163,18 @@ const RecentPosts = (props) => {
     return categories.map((cat) => {
       try {
         const config = getCategoryConfig(cat.code);
-        return { main: config.color, background: config.backgroundColor };
+        const badge = getCategoryBadgeStyle(cat.code);
+        return { main: config.color, background: config.backgroundColor, badge };
       } catch (error) {
         return {
           main: theme.custom.color.brandPrimary,
           background: alpha(theme.custom.color.brandPrimary, 0.1),
+          badge: {
+            color: theme.custom.color.brandPrimary,
+            backgroundColor: "rgba(15, 23, 42, 0.85)",
+            border: `1px solid ${theme.custom.color.brandPrimary}`,
+            backdropFilter: "blur(8px)",
+          },
         };
       }
     });
@@ -334,6 +343,7 @@ const RecentPosts = (props) => {
                 key={iconData.code || idx}
                 icon={iconData.IconComponent}
                 label={iconData.label}
+                code={iconData.code}
                 color={iconData.style?.main || theme.palette.text.secondary}
                 iconSize={categoryIconsData.length === 1 ? "48px" : "28px"}
                 circleSize={categoryIconsData.length === 1 ? 72 : 46}
@@ -429,16 +439,18 @@ const RecentPosts = (props) => {
           {categories.map((cat, index) => {
             const catStyle = categoryStyles[index];
             const catName = categoryNames[index];
+            const badge = catStyle?.badge || getCategoryBadgeStyle(cat.code);
             return (
               <Box
                 key={cat.code || index}
                 sx={{
                   display: "inline-flex",
                   alignItems: "center",
-                  backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-                  backdropFilter: "blur(6px)",
-                  border: `1px solid ${catStyle.main}`,
-                  color: catStyle.main,
+                  backgroundColor: badge.backgroundColor,
+                  backdropFilter: badge.backdropFilter,
+                  border: badge.border,
+                  color: badge.color,
+                  boxShadow: badge.boxShadow,
                   fontWeight: 700,
                   fontSize: { xs: "11px", md: "12px" },
                   lineHeight: 1,
