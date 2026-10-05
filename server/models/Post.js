@@ -240,6 +240,19 @@ const postSchema = new mongoose.Schema(
     // there is nothing to ask the Graph API about afterwards, so the reach a
     // listing gets on the Pages was invisible to the site.
     social: {
+      // Admin approval gate for social publishing. A freshly created listing
+      // lands here as 'pending'; the admin reviews it via /dash/admin/social-review
+      // and either clicks "Approve & Publish" (→ 'approved', jobs are enqueued)
+      // or "Skip" (→ 'skipped', never posted to social media). Only listings
+      // that reach 'approved' ever enter the socialPublishQueue.
+      approvalStatus: {
+        type: String,
+        enum: ['pending', 'approved', 'skipped'],
+        default: 'pending',
+      },
+      approvedAt: { type: Date, default: null },
+      approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+      skippedAt: { type: Date, default: null },
       facebook: {
         postId: { type: String, default: null },
         permalink: { type: String, default: null },

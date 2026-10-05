@@ -7,3 +7,4 @@ export { default as SupportPage } from './SupportPage';
 export { default as AnalyticsPage } from './AnalyticsPage';
 export { default as PlacesPage } from './PlacesPage';
 export { default as SystemPage } from './SystemPage';
+export { default as AdminSocialReviewPage } from './AdminSocialReviewPage';

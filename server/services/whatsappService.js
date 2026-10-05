@@ -552,6 +552,74 @@ const MATCH_ALERT_TEMPLATES = {
 };
 
 /**
+ * Sent to the admin when a new listing is created on the site and is waiting
+ * for social media review and approval before being published to Facebook and Instagram.
+ *
+ * @param {{ post: Object, user?: Object }} opts
+ */
+const sendNewPostAdminAlert = async ({ post, user }) => {
+  try {
+    let adminPhone = process.env.ADMIN_WA_PHONE || process.env.ADMIN_PHONE;
+    if (!adminPhone) {
+      const User = require('../models/User');
+      const adminUser = await User.findOne({
+        role: 'admin',
+        isActive: true,
+        phone: { $exists: true, $nin: [null, ''] },
+      }).select('phone').lean();
+      if (adminUser?.phone) {
+        adminPhone = adminUser.phone;
+      }
+    }
+
+    if (!adminPhone) {
+      console.log('[WhatsApp] No admin WhatsApp phone configured (ADMIN_WA_PHONE or admin user phone). Skipping admin alert.');
+      return false;
+    }
+
+    const jid = toJid(adminPhone);
+    if (!jid) {
+      console.warn('[WhatsApp] Invalid admin phone number format:', adminPhone);
+      return false;
+    }
+
+    const siteBase = getSiteBaseUrl();
+    const reviewLink = `${siteBase}/dash/admin/social-review`;
+    const postLink = `${siteBase}/dash/posts/${post?._id || ''}`;
+    
+    const isLost = post?.foundLost?.code === 'LOST' || post?.type === 'lost';
+    const typeLabel = isLost ? '🔍 مفقود (Lost)' : '🟢 تم العثور عليه (Found)';
+    const snippet = (post?.description || '').slice(0, 140).trim() || '—';
+    const authorName = user?.username || post?.user?.username || 'مستخدم الموقع';
+    const contactPhone = post?.contact || '—';
+
+    const message = [
+      '🔔 *إشعار إعلان جديد بانتظار الموافقة للنشر* 📣',
+      'قام مستخدم بنشر إعلان جديد على *مفقودات*. الإعلان بانتظار مراجعتك وموافقتك للنشر على فيسبوك وإنستغرام:',
+      '',
+      `📌 *النوع:* ${typeLabel}`,
+      `👤 *الناشر:* ${authorName}`,
+      `📞 *الاتصال:* ${contactPhone}`,
+      `📝 *الوصف:* ${snippet}${snippet.length >= 140 ? '...' : ''}`,
+      '',
+      '⚙️ *للمراجعة، التعديل أو الموافقة على النشر:*',
+      `👉 ${reviewLink}`,
+      '',
+      '🔗 *عرض الإعلان بالموقع:*',
+      postLink,
+      '',
+      '— لوحة تحكم مفقودات (Mafqoudat Admin)',
+    ].join('\n');
+
+    await queueMessageDirect(jid, { text: message });
+    return true;
+  } catch (err) {
+    console.error('[WhatsApp] Failed to send new post admin alert:', err?.message || err);
+    return false;
+  }
+};
+
+/**
  * Sent when a listing is successfully published to Facebook or Instagram (or both).
  * Supports Arabic ('ar'), French ('fr'), and English ('en').
  *
@@ -717,6 +785,7 @@ const init = async () => {
 
 module.exports = {
   init,
+  sendNewPostAdminAlert,
   sendSocialPublishMessage,
   sendMatchAlertMessage,
   sendContactCard,

@@ -92,6 +92,7 @@ const AdminSupportPage = lazy(() => import("./features/admin/pages/SupportPage")
 const AdminAnalyticsPage = lazy(() => import("./features/admin/pages/AnalyticsPage"));
 const AdminPlacesPage = lazy(() => import("./features/admin/pages/PlacesPage"));
 const AdminSystemPage = lazy(() => import("./features/admin/pages/SystemPage"));
+const AdminSocialReviewPage = lazy(() => import("./features/admin/pages/AdminSocialReviewPage"));
 
 
 
@@ -411,6 +412,11 @@ const AppContent = () => {
                   <Route path="moderation" element={
                     <Suspense fallback={<LoadingFallback />}>
                       <AdminModerationPage />
+                    </Suspense>
+                  } />
+                  <Route path="social-review" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AdminSocialReviewPage />
                     </Suspense>
                   } />
                   <Route path="posts" element={

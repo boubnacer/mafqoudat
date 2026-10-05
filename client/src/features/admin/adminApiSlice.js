@@ -237,6 +237,40 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       query: (cityId) => ({ url: `/admin/cities/${cityId}`, method: 'DELETE' }),
       invalidatesTags: ['AdminCities'],
     }),
+
+    /* ----------------------------------------------------- social review */
+
+    getSocialReviewPosts: builder.query({
+      query: ({ page = 1, limit = 10, status = 'pending', search } = {}) =>
+        `/admin/social-review/posts${buildQuery({ page, limit, status, search })}`,
+      providesTags: ['AdminSocialReview'],
+    }),
+
+    approveSocialPost: builder.mutation({
+      query: ({ postId, customDescription, customContact }) => ({
+        url: `/admin/social-review/${postId}/approve`,
+        method: 'POST',
+        body: { customDescription, customContact },
+      }),
+      invalidatesTags: ['AdminSocialReview', 'AdminOverview', 'Post'],
+    }),
+
+    skipSocialPost: builder.mutation({
+      query: ({ postId }) => ({
+        url: `/admin/social-review/${postId}/skip`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['AdminSocialReview', 'AdminOverview'],
+    }),
+
+    updateSocialPost: builder.mutation({
+      query: ({ postId, description, contact, exactLocation, returned, cloudinaryUrl }) => ({
+        url: `/admin/social-review/${postId}/update`,
+        method: 'PATCH',
+        body: { description, contact, exactLocation, returned, cloudinaryUrl },
+      }),
+      invalidatesTags: ['AdminSocialReview', 'Post'],
+    }),
   }),
 });
 
@@ -267,4 +301,8 @@ export const {
   useGetCitiesByCountryAdminQuery,
   useUpdateCityAdminMutation,
   useDeleteCityAdminMutation,
+  useGetSocialReviewPostsQuery,
+  useApproveSocialPostMutation,
+  useSkipSocialPostMutation,
+  useUpdateSocialPostMutation,
 } = adminApiSlice;

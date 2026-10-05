@@ -12,6 +12,7 @@ const mongoose = require("mongoose");
 const TranslationService = require("../services/translationService");
 const socialPublishQueue = require("../services/socialPublishQueue");
 const matchingService = require("../services/matchingService");
+const { sendNewPostAdminAlert } = require("../services/whatsappService");
 const { cacheService } = require("../config/cache");
 // Every $regex built from the client-supplied `search` term goes through
 // escapeRegex. The term reaches three fields on three separate code paths and
@@ -1858,22 +1859,15 @@ const createNewPost = async (req, res) => {
       await cacheService.invalidatePattern('dashboard:*');
       await cacheService.invalidatePattern('user-posts:*');
 
-      // Queue the Facebook/Instagram copies rather than publishing them here.
-      // This used to fire both Graph calls inline, concurrently, and drop
-      // whatever failed - which is fine for one listing and wrong for a burst,
-      // since Meta limits both platforms and a refused publish was lost with
-      // nothing to say so. services/socialPublishQueue.js paces them out
-      // instead and retries or defers anything that is refused.
-      //
-      // Awaited, unlike the publishing it replaces: it is two small upserts,
-      // and the whole point is that the work is durably recorded before the
-      // author is told the post exists. It still cannot fail the request - a
-      // queue that is unreachable is a missing social copy, not a failed post.
-      try {
-        await socialPublishQueue.enqueuePost(post);
-      } catch (queueError) {
-        console.error(`Failed to queue social publishing for post ${post._id}:`, queueError.message);
-      }
+      // Social Publishing Approval Gate:
+      // Rather than immediately publishing to Facebook and Instagram, listings start
+      // in 'pending' status. The site admin is notified via WhatsApp and can review,
+      // edit mistakes/images in the Admin Console (/dash/admin/social-review), and approve.
+      // Once approved, the post enters socialPublishQueue with paced intervals to avoid
+      // Meta rate limits and restrictions.
+      sendNewPostAdminAlert({ post, user: req.user }).catch((alertError) => {
+        console.error(`[WhatsApp] Failed to dispatch admin alert for new post ${post._id}:`, alertError?.message || alertError);
+      });
 
       // Statistic only, and never on the request's critical path.
       recordDocumentTypeUsage(resolvedDocumentTypes);

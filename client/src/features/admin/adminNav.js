@@ -8,6 +8,7 @@ import {
   InsightsOutlined,
   PublicOutlined,
   TuneOutlined,
+  ShareOutlined,
 } from '@mui/icons-material';
 
 /**
@@ -80,6 +81,15 @@ export const ADMIN_NAV_GROUPS = [
         descriptionKey: 'adminNavSupportDescription',
         badge: (overview) =>
           (overview?.queues?.contacts || 0) + (overview?.queues?.resetRequests || 0),
+        badgeTone: 'attention',
+      },
+      {
+        id: 'social-review',
+        path: 'social-review',
+        icon: ShareOutlined,
+        labelKey: 'adminNavSocialReview',
+        descriptionKey: 'adminNavSocialReviewDescription',
+        badge: (overview) => overview?.queues?.socialReview || 0,
         badgeTone: 'attention',
       },
     ],

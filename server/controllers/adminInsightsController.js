@@ -212,6 +212,7 @@ const getAdminOverview = async (req, res) => {
       pendingPromotions,
       pendingResetRequests,
       contactStats,
+      pendingSocialReview,
       totalComments,
       totalVisitors,
       visitorsToday,
@@ -224,6 +225,7 @@ const getAdminOverview = async (req, res) => {
       Post.countDocuments({ promotionRequested: true, promotionProcessed: false }),
       PasswordResetRequest.countDocuments({ status: "pending" }),
       Contact.getStats(),
+      Post.countDocuments({ "social.approvalStatus": "pending", isDeleted: false, status: { $ne: "resolved" } }),
       Comment.countDocuments({ status: "active" }),
       Visitor.countDocuments(),
       Visitor.countDocuments({ visitedAt: { $gte: startOfToday } }),
@@ -298,6 +300,7 @@ const getAdminOverview = async (req, res) => {
           resetRequests: pendingResetRequests,
           contacts: contactStats?.new || 0,
           urgentContacts: contactStats?.urgent || 0,
+          socialReview: pendingSocialReview,
         },
         totals: {
           posts: facetCount(postFacet, "total"),

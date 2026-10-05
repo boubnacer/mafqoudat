@@ -160,4 +160,33 @@ router.put("/cities/:id", cityController.updateCity);
 // @access Private (Admin only)
 router.delete("/cities/:id", cityController.deleteCity);
 
+/* -------------------------------------------------------- social review */
+
+const {
+  getSocialReviewPosts,
+  approveSocialPost,
+  skipSocialPost,
+  updateSocialPost,
+} = require("../controllers/adminSocialController");
+
+// @route GET /admin/social-review/posts
+// @desc Get posts pending social publishing review
+// @access Private (Admin only)
+router.get("/social-review/posts", getSocialReviewPosts);
+
+// @route POST /admin/social-review/:postId/approve
+// @desc Approve and enqueue post for social media publishing
+// @access Private (Admin only)
+router.post("/social-review/:postId/approve", approveSocialPost);
+
+// @route POST /admin/social-review/:postId/skip
+// @desc Skip social media publishing for post
+// @access Private (Admin only)
+router.post("/social-review/:postId/skip", skipSocialPost);
+
+// @route PATCH /admin/social-review/:postId/update
+// @desc Update post details from social review page
+// @access Private (Admin only)
+router.patch("/social-review/:postId/update", updateSocialPost);
+
 module.exports = router;
