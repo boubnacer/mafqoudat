@@ -25,21 +25,42 @@ const getSocialReviewPosts = async (req, res) => {
     const status = req.query.status || 'pending'; // 'pending' | 'approved' | 'skipped' | 'all'
     const search = (req.query.search || '').trim();
 
-    const filter = {
-      isDeleted: false,
-    };
+    const conditions = [{ isDeleted: false }];
 
-    if (status !== 'all') {
-      filter['social.approvalStatus'] = status;
+    if (status === 'pending') {
+      conditions.push({
+        $or: [
+          { 'social.approvalStatus': 'pending' },
+          { 'social.approvalStatus': { $exists: false } },
+          { 'social.approvalStatus': null },
+          { social: { $exists: false } },
+        ],
+        'social.facebook.postId': null,
+        'social.instagram.mediaId': null,
+      });
+    } else if (status === 'approved') {
+      conditions.push({
+        $or: [
+          { 'social.approvalStatus': 'approved' },
+          { 'social.facebook.postId': { $ne: null } },
+          { 'social.instagram.mediaId': { $ne: null } },
+        ],
+      });
+    } else if (status === 'skipped') {
+      conditions.push({ 'social.approvalStatus': 'skipped' });
     }
 
     if (search) {
-      filter.$or = [
-        { description: { $regex: search, $options: 'i' } },
-        { contact: { $regex: search, $options: 'i' } },
-        { exactLocation: { $regex: search, $options: 'i' } },
-      ];
+      conditions.push({
+        $or: [
+          { description: { $regex: search, $options: 'i' } },
+          { contact: { $regex: search, $options: 'i' } },
+          { exactLocation: { $regex: search, $options: 'i' } },
+        ],
+      });
     }
+
+    const filter = conditions.length > 1 ? { $and: conditions } : conditions[0];
 
     const [posts, total, pendingCount, approvedCount, skippedCount] = await Promise.all([
       Post.find(filter)
@@ -54,8 +75,25 @@ const getSocialReviewPosts = async (req, res) => {
         .limit(limit)
         .lean(),
       Post.countDocuments(filter),
-      Post.countDocuments({ isDeleted: false, 'social.approvalStatus': 'pending' }),
-      Post.countDocuments({ isDeleted: false, 'social.approvalStatus': 'approved' }),
+      Post.countDocuments({
+        isDeleted: false,
+        $or: [
+          { 'social.approvalStatus': 'pending' },
+          { 'social.approvalStatus': { $exists: false } },
+          { 'social.approvalStatus': null },
+          { social: { $exists: false } },
+        ],
+        'social.facebook.postId': null,
+        'social.instagram.mediaId': null,
+      }),
+      Post.countDocuments({
+        isDeleted: false,
+        $or: [
+          { 'social.approvalStatus': 'approved' },
+          { 'social.facebook.postId': { $ne: null } },
+          { 'social.instagram.mediaId': { $ne: null } },
+        ],
+      }),
       Post.countDocuments({ isDeleted: false, 'social.approvalStatus': 'skipped' }),
     ]);
 

@@ -85,9 +85,10 @@ const AdminSocialReviewPage = () => {
   const [skipPost, { isLoading: skipping }] = useSkipSocialPostMutation();
   const [updatePost, { isLoading: updating }] = useUpdateSocialPostMutation();
 
-  const posts = data?.data?.posts || [];
-  const total = data?.data?.total || 0;
-  const counts = data?.data?.counts || { pending: 0, approved: 0, skipped: 0 };
+  const payload = data?.data || data || {};
+  const posts = payload.posts || [];
+  const total = payload.total || 0;
+  const counts = payload.counts || { pending: 0, approved: 0, skipped: 0 };
 
   const handleApprove = async (post) => {
     try {
@@ -407,12 +408,17 @@ const AdminSocialReviewPage = () => {
       <DataTable
         columns={columns}
         rows={posts}
-        loading={isFetching}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        totalRows={total}
-        onPageChange={setPage}
-        onRowsPerPageChange={setRowsPerPage}
+        isLoading={isFetching}
+        pagination={{
+          page,
+          rowsPerPage,
+          count: total,
+          onPageChange: setPage,
+          onRowsPerPageChange: (val) => {
+            setRowsPerPage(val);
+            setPage(0);
+          },
+        }}
         emptyState={
           <EmptyState
             icon={ShareOutlined}
