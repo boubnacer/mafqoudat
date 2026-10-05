@@ -25,49 +25,64 @@ const getSocialReviewPosts = async (req, res) => {
     const status = req.query.status || 'pending'; // 'pending' | 'approved' | 'skipped' | 'all'
     const search = (req.query.search || '').trim();
 
-    const conditions = [{ isDeleted: false }];
+    // Base filter: exclude suspended posts from social review
+    const baseCondition = { status: { $ne: 'suspended' } };
 
+    const pendingCondition = {
+      ...baseCondition,
+      $or: [
+        { 'social.approvalStatus': 'pending' },
+        { 'social.approvalStatus': { $exists: false } },
+        { 'social.approvalStatus': null },
+        { social: { $exists: false } },
+      ],
+      'social.facebook.postId': null,
+      'social.instagram.mediaId': null,
+    };
+
+    const approvedCondition = {
+      ...baseCondition,
+      $or: [
+        { 'social.approvalStatus': 'approved' },
+        { 'social.facebook.postId': { $ne: null } },
+        { 'social.instagram.mediaId': { $ne: null } },
+      ],
+    };
+
+    const skippedCondition = {
+      ...baseCondition,
+      'social.approvalStatus': 'skipped',
+    };
+
+    let statusCondition;
     if (status === 'pending') {
-      conditions.push({
-        $or: [
-          { 'social.approvalStatus': 'pending' },
-          { 'social.approvalStatus': { $exists: false } },
-          { 'social.approvalStatus': null },
-          { social: { $exists: false } },
-        ],
-        'social.facebook.postId': null,
-        'social.instagram.mediaId': null,
-      });
+      statusCondition = pendingCondition;
     } else if (status === 'approved') {
-      conditions.push({
-        $or: [
-          { 'social.approvalStatus': 'approved' },
-          { 'social.facebook.postId': { $ne: null } },
-          { 'social.instagram.mediaId': { $ne: null } },
-        ],
-      });
+      statusCondition = approvedCondition;
     } else if (status === 'skipped') {
-      conditions.push({ 'social.approvalStatus': 'skipped' });
+      statusCondition = skippedCondition;
+    } else {
+      statusCondition = baseCondition;
     }
 
+    let filter = statusCondition;
     if (search) {
-      conditions.push({
+      const searchCondition = {
         $or: [
           { description: { $regex: search, $options: 'i' } },
           { contact: { $regex: search, $options: 'i' } },
           { exactLocation: { $regex: search, $options: 'i' } },
         ],
-      });
+      };
+      filter = { $and: [statusCondition, searchCondition] };
     }
-
-    const filter = conditions.length > 1 ? { $and: conditions } : conditions[0];
 
     const [posts, total, pendingCount, approvedCount, skippedCount] = await Promise.all([
       Post.find(filter)
         .populate('user', 'username email phone')
         .populate('category', 'labels code')
         .populate('categories', 'labels code')
-        .populate('city', 'labels')
+        .populate({ path: 'city', model: 'City', select: 'labels' })
         .populate('country', 'labels names code')
         .populate('foundLost', 'code labels')
         .sort({ createdAt: -1 })
@@ -75,26 +90,9 @@ const getSocialReviewPosts = async (req, res) => {
         .limit(limit)
         .lean(),
       Post.countDocuments(filter),
-      Post.countDocuments({
-        isDeleted: false,
-        $or: [
-          { 'social.approvalStatus': 'pending' },
-          { 'social.approvalStatus': { $exists: false } },
-          { 'social.approvalStatus': null },
-          { social: { $exists: false } },
-        ],
-        'social.facebook.postId': null,
-        'social.instagram.mediaId': null,
-      }),
-      Post.countDocuments({
-        isDeleted: false,
-        $or: [
-          { 'social.approvalStatus': 'approved' },
-          { 'social.facebook.postId': { $ne: null } },
-          { 'social.instagram.mediaId': { $ne: null } },
-        ],
-      }),
-      Post.countDocuments({ isDeleted: false, 'social.approvalStatus': 'skipped' }),
+      Post.countDocuments(pendingCondition),
+      Post.countDocuments(approvedCondition),
+      Post.countDocuments(skippedCondition),
     ]);
 
     const totalPages = Math.ceil(total / limit) || 1;

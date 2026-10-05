@@ -74,7 +74,7 @@ const AdminSocialReviewPage = () => {
     exactLocation: '',
   });
 
-  const { data, isFetching, refetch } = useGetSocialReviewPostsQuery({
+  const { data, isFetching, error, refetch } = useGetSocialReviewPostsQuery({
     page: page + 1,
     limit: rowsPerPage,
     status: status || undefined,
@@ -180,7 +180,7 @@ const AdminSocialReviewPage = () => {
         label: t('listing') || 'Listing',
         primary: true,
         render: (post) => {
-          const isLost = post.foundLost?.code === 'LOST';
+          const isLost = post.foundLost?.code === 'LOST' || post.type === 'lost';
           return (
             <Box sx={{ minWidth: 0, maxWidth: 360 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
@@ -190,7 +190,7 @@ const AdminSocialReviewPage = () => {
                 />
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
                   {[
-                    labelOf(post.category, currentLanguage, ''),
+                    labelOf(post.category || post.categories?.[0], currentLanguage, ''),
                     labelOf(post.city, currentLanguage, ''),
                   ]
                     .filter(Boolean)
@@ -409,6 +409,7 @@ const AdminSocialReviewPage = () => {
         columns={columns}
         rows={posts}
         isLoading={isFetching}
+        error={error ? (error?.data?.message || t('genericActionError') || 'Failed to load listings') : null}
         pagination={{
           page,
           rowsPerPage,

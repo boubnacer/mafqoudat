@@ -226,8 +226,7 @@ const getAdminOverview = async (req, res) => {
       PasswordResetRequest.countDocuments({ status: "pending" }),
       Contact.getStats(),
       Post.countDocuments({
-        isDeleted: false,
-        status: { $ne: "resolved" },
+        status: { $nin: ["resolved", "suspended"] },
         $or: [
           { "social.approvalStatus": "pending" },
           { "social.approvalStatus": { $exists: false } },
