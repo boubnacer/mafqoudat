@@ -107,14 +107,20 @@ const ResolvedBadge = ({ label }) => {
   );
 };
 
-// No-image state: category icon on a frosted circle backdrop with the
-// category name beneath it as a matching translucent pill, centered - same
-// treatment as SinglePostPage's CategoryIconLabel, so a photo-less post
-// reads the same on the listing card as it does on its own detail page.
-const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) => {
+// No-image state: category icon on a frosted circle backdrop with optional
+// category name beneath it as a matching translucent pill, centered
+const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize, showLabel = true }) => {
   const theme = useTheme();
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: showLabel ? 1 : 0,
+        flexShrink: 0,
+      }}
+    >
       <Box
         sx={{
           width: circleSize,
@@ -126,33 +132,36 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
           backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
           backdropFilter: 'blur(6px)',
           border: `1px solid ${color}`,
+          flexShrink: 0,
         }}
       >
         <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />
       </Box>
-      <Box
-        sx={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-          backdropFilter: 'blur(6px)',
-          border: `1px solid ${color}`,
-          color,
-          fontWeight: 800,
-          fontSize: { xs: '11px', sm: '12px' },
-          lineHeight: 1,
-          borderRadius: '999px',
-          px: { xs: 1, sm: 1.25 },
-          py: { xs: 0.5, sm: 0.5 },
-          textAlign: 'center',
-          maxWidth: 120,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}
-      >
-        {label}
-      </Box>
+      {showLabel && (
+        <Box
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
+            backdropFilter: 'blur(6px)',
+            border: `1px solid ${color}`,
+            color,
+            fontWeight: 800,
+            fontSize: { xs: '11px', sm: '12px' },
+            lineHeight: 1,
+            borderRadius: '999px',
+            px: { xs: 1, sm: 1.25 },
+            py: { xs: 0.5, sm: 0.5 },
+            textAlign: 'center',
+            maxWidth: 120,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {label}
+        </Box>
+      )}
     </Box>
   );
 };
@@ -438,6 +447,31 @@ const Post = ({ post, type }) => {
     }).filter(Boolean); // Remove null entries
   }, [post?.image, categories, categoryStyles, categoryNames]);
 
+  const hasImage = Boolean(post?.image);
+  const isMultiCategoryNoImage = !hasImage && (categories.length > 2 || categoryIconsData.length > 2);
+  const showTopCategoryBadges = hasImage || isMultiCategoryNoImage;
+
+  const multiIconCircleSize = useMemo(() => {
+    if (categoryIconsData.length === 1) return 84;
+    if (categoryIconsData.length === 2) return 56;
+    if (categoryIconsData.length === 3) return { xs: 46, sm: 54, md: 58 };
+    return { xs: 40, sm: 46, md: 50 };
+  }, [categoryIconsData.length]);
+
+  const multiIconFontSize = useMemo(() => {
+    if (categoryIconsData.length === 1) return '56px';
+    if (categoryIconsData.length === 2) return '32px';
+    if (categoryIconsData.length === 3) return { xs: '26px', sm: '30px', md: '32px' };
+    return { xs: '22px', sm: '26px', md: '28px' };
+  }, [categoryIconsData.length]);
+
+  const multiIconGap = useMemo(() => {
+    if (categoryIconsData.length === 1) return 0;
+    if (categoryIconsData.length === 2) return 2;
+    if (categoryIconsData.length === 3) return { xs: 1.25, sm: 1.75, md: 2 };
+    return { xs: 1, sm: 1.25, md: 1.5 };
+  }, [categoryIconsData.length]);
+
   // Memoized error handler for image
   const handleImageError = useCallback((e) => {
     // Image failed to load
@@ -529,21 +563,23 @@ const Post = ({ post, type }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: categoryIconsData.length === 1 ? 0 : 2,
-              flexWrap: 'wrap',
+              flexDirection: 'row',
+              flexWrap: isMultiCategoryNoImage ? 'nowrap' : 'wrap',
+              gap: multiIconGap,
               padding: 2,
               width: '100%',
               height: '100%',
             }}
           >
-            {categoryIconsData.slice(0, 4).map((iconData, idx) => (
+            {categoryIconsData.slice(0, isMultiCategoryNoImage ? undefined : 4).map((iconData, idx) => (
               <CategoryIconLabel
                 key={iconData.code || idx}
                 icon={iconData.IconComponent}
                 label={iconData.label}
+                showLabel={!isMultiCategoryNoImage}
                 color={iconData.style?.main || theme.palette.text.secondary}
-                iconSize={categoryIconsData.length === 1 ? '56px' : '32px'}
-                circleSize={categoryIconsData.length === 1 ? 84 : 56}
+                iconSize={multiIconFontSize}
+                circleSize={multiIconCircleSize}
               />
             ))}
           </Box>
@@ -591,12 +627,9 @@ const Post = ({ post, type }) => {
         </Box>
 
         {/* Category: on the opposite end of the same top row (insetInlineEnd)
-            from the status badge. Uses the same frosted surfaceRaised
-            background as SinglePostPage's CategoryChip over photos, with a
-            solid border matching the actual category color. Photo-only:
-            with no photo, the centered CategoryIconLabel carries the category
-            name and stacking this pill on top would duplicate it. */}
-        {post?.image && (
+            from the status badge. Displays when post has image OR when post has
+            more than 2 categories without image. */}
+        {showTopCategoryBadges && (
         <Box
           sx={{
             position: 'absolute',
