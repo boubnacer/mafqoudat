@@ -155,17 +155,57 @@ router.get('/stats', verifyJWT, verifyAdmin, async (req, res) => {
         const db = mongoose.connection.db;
         const stats = await db.stats();
         
+        const dataSizeMB = stats.dataSize / 1024 / 1024;
+        const storageSizeMB = stats.storageSize / 1024 / 1024;
+        const indexSizeMB = stats.indexSize / 1024 / 1024;
+
+        const limitMB = 512; // Atlas Free Tier limit
+        const totalUsedMB = storageSizeMB + indexSizeMB;
+        const totalPercent = (totalUsedMB / limitMB) * 100;
+
+        let status = 'healthy';
+        if (totalPercent > 90) {
+            status = 'critical';
+        } else if (totalPercent >= 75) {
+            status = 'warning';
+        }
+
+        const memUsage = process.memoryUsage();
+        const processMemory = {
+            heapUsed: `${(memUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
+            heapTotal: `${(memUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`,
+            rss: `${(memUsage.rss / 1024 / 1024).toFixed(2)} MB`
+        };
+
+        const quota = {
+            limitMB: limitMB,
+            dataSize: {
+                mb: parseFloat(dataSizeMB.toFixed(2)),
+                percent: parseFloat(((dataSizeMB / limitMB) * 100).toFixed(2))
+            },
+            storageSize: {
+                mb: parseFloat(storageSizeMB.toFixed(2)),
+                percent: parseFloat(((storageSizeMB / limitMB) * 100).toFixed(2))
+            },
+            indexSize: {
+                mb: parseFloat(indexSizeMB.toFixed(2)),
+                percent: parseFloat(((indexSizeMB / limitMB) * 100).toFixed(2))
+            },
+            totalUsedMB: parseFloat(totalUsedMB.toFixed(2)),
+            totalPercent: parseFloat(totalPercent.toFixed(2))
+        };
+
         res.json({
             timestamp: new Date().toISOString(),
+            status: status,
             database: {
                 name: stats.db,
                 collections: stats.collections,
-                dataSize: `${(stats.dataSize / 1024 / 1024).toFixed(2)} MB`,
-                storageSize: `${(stats.storageSize / 1024 / 1024).toFixed(2)} MB`,
-                indexes: stats.indexes,
-                indexSize: `${(stats.indexSize / 1024 / 1024).toFixed(2)} MB`,
-                objects: stats.objects
-            }
+                objects: stats.objects,
+                indexes: stats.indexes
+            },
+            quota: quota,
+            processMemory: processMemory
         });
     } catch (error) {
         console.error('Failed to get database stats:', error);
