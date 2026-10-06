@@ -5018,8 +5018,8 @@ export const translations = {
     },
 
     // Post-related translations
-    found: "عثر على",
-    lost: "فقدان",
+    found: "عُثر على",
+    lost: "فُقدان",
     foundAt: "وُجد بتاريخ",
     lostAt: "فُقد بتاريخ",
     in: "في",

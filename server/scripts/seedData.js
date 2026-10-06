@@ -368,7 +368,7 @@ const postTypesData = [
     labels: {
       en: 'Found',
       fr: 'Trouvé',
-      ar: 'عثر على'
+      ar: 'عُثر على'
     },
     color: '#4CAF50',
     icon: '🔍',
@@ -379,7 +379,7 @@ const postTypesData = [
     labels: {
       en: 'Lost',
       fr: 'Perdu',
-      ar: 'فقدان'
+      ar: 'فُقدان'
     },
     color: '#F44336',
     icon: '❓',

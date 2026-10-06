@@ -10,7 +10,7 @@ const foundLostOptionsData = [
     labels: {
       en: 'Found',
       fr: 'Trouvé',
-      ar: 'عثر على'
+      ar: 'عُثر على'
     },
     flag: '✅',
     icon: '✅',
@@ -22,7 +22,7 @@ const foundLostOptionsData = [
     labels: {
       en: 'Lost',
       fr: 'Perdu',
-      ar: 'فقدان'
+      ar: 'فُقدان'
     },
     flag: '❌',
     icon: '❌',
