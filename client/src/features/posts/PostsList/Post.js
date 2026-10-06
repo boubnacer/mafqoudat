@@ -125,13 +125,24 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize, sho
         sx={{
           width: circleSize,
           height: circleSize,
-          borderRadius: '50%',
+          borderRadius:
+            typeof circleSize === 'object' && circleSize !== null
+              ? {
+                  xs: `${theme.custom.radius.md}px`,
+                  sm: '14px',
+                  md: '16px',
+                }
+              : typeof circleSize === 'number' && circleSize > 70
+                ? `${theme.custom.radius.lg + 4}px`
+                : { xs: `${theme.custom.radius.md}px`, sm: '14px' },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-          backdropFilter: 'blur(6px)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
           border: `1px solid ${color}`,
+          boxShadow: `0 2px 8px ${alpha(color, 0.12)}`,
           flexShrink: 0,
         }}
       >
@@ -143,13 +154,14 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize, sho
             display: 'inline-flex',
             alignItems: 'center',
             backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-            backdropFilter: 'blur(6px)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
             border: `1px solid ${color}`,
             color,
             fontWeight: 800,
             fontSize: { xs: '11px', sm: '12px' },
             lineHeight: 1,
-            borderRadius: '999px',
+            borderRadius: `${theme.custom.radius.sm}px`,
             px: { xs: 1, sm: 1.25 },
             py: { xs: 0.5, sm: 0.5 },
             textAlign: 'center',

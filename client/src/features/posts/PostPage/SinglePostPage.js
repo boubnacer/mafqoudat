@@ -226,13 +226,24 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
         sx={{
           width: circleSize,
           height: circleSize,
-          borderRadius: '50%',
+          borderRadius:
+            typeof circleSize === 'object' && circleSize !== null
+              ? {
+                  xs: circleSize.xs > 100 ? `${theme.custom.radius.xl}px` : `${theme.custom.radius.lg}px`,
+                  sm: circleSize.sm > 120 ? '28px' : '18px',
+                  md: circleSize.md > 150 ? '34px' : '22px',
+                }
+              : typeof circleSize === 'number' && circleSize > 70
+                ? `${theme.custom.radius.lg + 4}px`
+                : { xs: `${theme.custom.radius.md}px`, sm: '14px' },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-          backdropFilter: 'blur(6px)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
           border: `1px solid ${color}`,
+          boxShadow: `0 2px 8px ${alpha(color, 0.12)}`,
         }}
       >
         <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />
@@ -242,13 +253,14 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
           display: 'inline-flex',
           alignItems: 'center',
           backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-          backdropFilter: 'blur(6px)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
           border: `1px solid ${color}`,
           color,
           fontWeight: 800,
           fontSize: { xs: '13px', sm: '14px' },
           lineHeight: 1,
-          borderRadius: '999px',
+          borderRadius: `${theme.custom.radius.sm}px`,
           px: { xs: 1.25, sm: 1.5 },
           py: { xs: 0.5, sm: 0.625 },
         }}
