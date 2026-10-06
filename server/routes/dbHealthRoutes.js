@@ -154,6 +154,7 @@ router.get('/stats', verifyJWT, verifyAdmin, async (req, res) => {
     try {
         const db = mongoose.connection.db;
         const stats = await db.stats();
+        const memUsage = process.memoryUsage();
         
         res.json({
             timestamp: new Date().toISOString(),
@@ -165,6 +166,12 @@ router.get('/stats', verifyJWT, verifyAdmin, async (req, res) => {
                 indexes: stats.indexes,
                 indexSize: `${(stats.indexSize / 1024 / 1024).toFixed(2)} MB`,
                 objects: stats.objects
+            },
+            memoryUsage: {
+                heapUsed: memUsage.heapUsed,
+                heapTotal: memUsage.heapTotal,
+                rss: memUsage.rss,
+                external: memUsage.external
             }
         });
     } catch (error) {
