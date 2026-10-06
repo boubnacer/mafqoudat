@@ -370,7 +370,9 @@ const RecentPosts = (props) => {
               flexDirection: "row",
               flexWrap: isMultiCategoryNoImage ? "nowrap" : "wrap",
               gap: multiIconGap,
-              padding: { xs: 1.5, sm: 2 },
+              px: { xs: 1.5, sm: 2 },
+              pt: { xs: 3.5, sm: 4 },
+              pb: { xs: 4.5, sm: 5 },
               width: "100%",
               height: "100%",
             }}
@@ -520,7 +522,7 @@ const RecentPosts = (props) => {
         </Box>
       </Box>
 
-      {/* Bottom row: location + relative date */}
+      {/* Bottom row: location + relative date in a frosted bar with top split line */}
       <Box
         sx={{
           position: "absolute",
@@ -528,7 +530,20 @@ const RecentPosts = (props) => {
           insetInlineStart: 0,
           insetInlineEnd: 0,
           zIndex: 2,
-          p: { xs: 1.25, md: 1.5 },
+          px: { xs: 1.25, md: 1.5 },
+          py: { xs: 1, md: 1.125 },
+          backgroundColor: finalImageUrl
+            ? alpha("#000000", 0.45)
+            : alpha(theme.custom.color.surfaceRaised, isDark ? 0.45 : 0.65),
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          borderTop: `1px solid ${
+            finalImageUrl
+              ? alpha("#FFFFFF", 0.15)
+              : alpha(theme.custom.color.ink, isDark ? 0.12 : 0.08)
+          }`,
+          borderBottomLeftRadius: `${theme.custom.radius.lg}px`,
+          borderBottomRightRadius: `${theme.custom.radius.lg}px`,
           display: { xs: "grid", sm: "flex" },
           gridTemplateColumns: { xs: "1fr" },
           alignItems: { xs: "flex-start", sm: "center" },
