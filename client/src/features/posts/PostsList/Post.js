@@ -206,7 +206,8 @@ const Post = ({ post, type }) => {
       const flOption = post.Floptions[0];
       if (flOption && flOption.code) {
         foundLostValue = flOption.code;
-        foundLostLabel = getLabel(flOption.labels, currentLanguage) ||
+        foundLostLabel = (flOption.code === 'FOUND' ? t('found') : flOption.code === 'LOST' ? t('lost') : null) ||
+                        getLabel(flOption.labels, currentLanguage) ||
                         (flOption.code === 'FOUND' ? t('found') : t('lost'));
         foundLostColor = flOption.color ||
                         (flOption.code === 'FOUND' ? theme.custom.status.found.main : theme.custom.status.lost.main);
@@ -235,7 +236,8 @@ const Post = ({ post, type }) => {
         }
       } else if (post.foundLost.code) {
         foundLostValue = post.foundLost.code;
-        foundLostLabel = getLabel(post.foundLost.labels, currentLanguage) ||
+        foundLostLabel = (post.foundLost.code === 'FOUND' ? t('found') : post.foundLost.code === 'LOST' ? t('lost') : null) ||
+                        getLabel(post.foundLost.labels, currentLanguage) ||
                         (post.foundLost.code === 'FOUND' ? t('found') : t('lost'));
         foundLostColor = post.foundLost.color ||
                         (post.foundLost.code === 'FOUND' ? theme.custom.status.found.main : theme.custom.status.lost.main);
@@ -251,7 +253,7 @@ const Post = ({ post, type }) => {
 
     const isFound = foundLostValue === "FOUND";
     const statusColor = foundLostColor;
-    const statusText = foundLostLabel;
+    const statusText = t(isFound ? 'found' : 'lost');
 
     return { isFound, statusColor, statusText };
   }, [post?.Floptions, post?.foundLost, post?.type, type, currentLanguage, t, theme.custom.status.found.main, theme.custom.status.lost.main]);

@@ -339,7 +339,7 @@ const MyPostsPage = () => {
                             }}
                           />
                           <Chip
-                            label={post.foundLost?.labels?.[currentLanguage] || (isFound ? (t('found') || 'Found') : (t('lost') || 'Lost'))}
+                            label={isFound ? (t('found') || 'Found') : (t('lost') || 'Lost')}
                             size="small"
                             sx={{
                               position: 'absolute',

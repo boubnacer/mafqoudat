@@ -810,18 +810,10 @@ const SinglePostPage = ({
     let displayLabel = null;
 
     // Priority 1: Use Floptions.code if available (populated object from server)
-    if (Floptions) {
-
-      // Handle both array and object formats
-      let flOption = Floptions;
-      if (Array.isArray(Floptions)) {
-        flOption = Floptions[0]; // Take first element if it's an array
-      }
-
+    if (Floptions && (!Array.isArray(Floptions) || Floptions.length > 0)) {
+      let flOption = Array.isArray(Floptions) ? Floptions[0] : Floptions;
       if (flOption && flOption.code) {
         foundLostValue = flOption.code;
-
-        // Set label based on code
         if (flOption.code === 'FOUND') {
           displayLabel = t('found');
         } else if (flOption.code === 'LOST') {
@@ -829,27 +821,19 @@ const SinglePostPage = ({
         }
       }
     }
+
     // Priority 2: Use foundLost as fallback (could be ObjectId or object)
-    else if (foundLost) {
+    if (!foundLostValue && foundLost) {
       if (typeof foundLost === 'string') {
-        // If it's a string, check if it's an ObjectId or a code
-        if (foundLost.length === 24) {
-          // It's likely an ObjectId, we can't determine the value from this
-          // This should be handled by the server to populate Floptions
-          foundLostValue = null;
-        } else {
-          // It's a code string
-          foundLostValue = foundLost.toUpperCase();
-          if (foundLost.toUpperCase() === 'FOUND') {
-            displayLabel = t('found');
-          } else if (foundLost.toUpperCase() === 'LOST') {
-            displayLabel = t('lost');
+        if (foundLost.length !== 24) {
+          const code = foundLost.toUpperCase();
+          if (code === 'FOUND' || code === 'LOST') {
+            foundLostValue = code;
+            displayLabel = code === 'FOUND' ? t('found') : t('lost');
           }
         }
       } else if (foundLost.code) {
-        // It's an object with code
         foundLostValue = foundLost.code;
-
         if (foundLost.code === 'FOUND') {
           displayLabel = t('found');
         } else if (foundLost.code === 'LOST') {
@@ -860,15 +844,13 @@ const SinglePostPage = ({
 
     // If we still don't have a value, we need to determine it from the data
     if (!foundLostValue) {
-
       // Check if we can determine from the post title or description
-      // This is a fallback for when the server doesn't populate the foundLost field
       if (titleLabels && titleLabels[currentLanguage]) {
         const titleText = titleLabels[currentLanguage].toLowerCase();
-        if (titleText.includes('lost') || titleText.includes('perdu') || titleText.includes('مفقود')) {
+        if (titleText.includes('lost') || titleText.includes('perdu') || titleText.includes('مفقود') || titleText.includes('فقدان')) {
           foundLostValue = "LOST";
           displayLabel = t('lost');
-        } else if (titleText.includes('found') || titleText.includes('trouvé') || titleText.includes('موجود')) {
+        } else if (titleText.includes('found') || titleText.includes('trouvé') || titleText.includes('موجود') || titleText.includes('عثر')) {
           foundLostValue = "FOUND";
           displayLabel = t('found');
         }
@@ -877,10 +859,10 @@ const SinglePostPage = ({
       // If still no value, check description
       if (!foundLostValue && description) {
         const desc = description.toLowerCase();
-        if (desc.includes('lost') || desc.includes('perdu') || desc.includes('مفقود')) {
+        if (desc.includes('lost') || desc.includes('perdu') || desc.includes('مفقود') || desc.includes('فقدان')) {
           foundLostValue = "LOST";
           displayLabel = t('lost');
-        } else if (desc.includes('found') || desc.includes('trouvé') || desc.includes('موجود')) {
+        } else if (desc.includes('found') || desc.includes('trouvé') || desc.includes('موجود') || desc.includes('عثر')) {
           foundLostValue = "FOUND";
           displayLabel = t('found');
         }
@@ -889,10 +871,10 @@ const SinglePostPage = ({
       // If still no value, check if we have a foundLostLabel from the API transformation
       if (!foundLostValue && foundLostLabel) {
         const label = foundLostLabel.toLowerCase();
-        if (label.includes('lost') || label.includes('perdu') || label.includes('مفقود')) {
+        if (label.includes('lost') || label.includes('perdu') || label.includes('مفقود') || label.includes('فقدان')) {
           foundLostValue = "LOST";
           displayLabel = t('lost');
-        } else if (label.includes('found') || label.includes('trouvé') || label.includes('موجود')) {
+        } else if (label.includes('found') || label.includes('trouvé') || label.includes('موجود') || label.includes('عثر')) {
           foundLostValue = "FOUND";
           displayLabel = t('found');
         }

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const FoundLost = require('../models/FoundLost');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 // FoundLost options data
 const foundLostOptionsData = [
@@ -9,7 +10,7 @@ const foundLostOptionsData = [
     labels: {
       en: 'Found',
       fr: 'Trouvé',
-      ar: 'تم العثور عليه'
+      ar: 'عثر على'
     },
     flag: '✅',
     icon: '✅',
@@ -21,7 +22,7 @@ const foundLostOptionsData = [
     labels: {
       en: 'Lost',
       fr: 'Perdu',
-      ar: 'مفقود'
+      ar: 'فقدان'
     },
     flag: '❌',
     icon: '❌',
@@ -32,7 +33,8 @@ const foundLostOptionsData = [
 
 const fixFoundLostOptions = async () => {
   try {
-    await mongoose.connect(process.env.DATABASE_URI, { 
+    const mongoUri = process.env.MONGODB_URI || process.env.DATABASE_URI;
+    await mongoose.connect(mongoUri, { 
       useNewUrlParser: true, 
       useUnifiedTopology: true 
     });

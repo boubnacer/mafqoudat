@@ -23,14 +23,14 @@ const countriesData = [
 const postTypesData = [
   {
     code: 'FOUND',
-    labels: { en: 'Found', fr: 'Trouvé', ar: 'تم العثور عليه' },
+    labels: { en: 'Found', fr: 'Trouvé', ar: 'عثر على' },
     color: '#4CAF50',
     icon: '🔍',
     description: 'Items that have been found'
   },
   {
     code: 'LOST',
-    labels: { en: 'Lost', fr: 'Perdu', ar: 'مفقود' },
+    labels: { en: 'Lost', fr: 'Perdu', ar: 'فقدان' },
     color: '#F44336',
     icon: '❓',
     description: 'Items that have been lost'

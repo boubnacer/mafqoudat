@@ -209,7 +209,8 @@ const RecentPosts = (props) => {
     if (Floptions && Floptions.length > 0 && Floptions[0]?.code) {
       const flOption = Floptions[0];
       foundLostValue = flOption.code;
-      foundLostLabel = (flOption.labels && (flOption.labels[currentLanguage] || flOption.labels.en)) ||
+      foundLostLabel = (flOption.code === "FOUND" ? t("found") : flOption.code === "LOST" ? t("lost") : null) ||
+                      (flOption.labels && (flOption.labels[currentLanguage] || flOption.labels.en)) ||
                       (flOption.code === "FOUND" ? t("found") : t("lost"));
       foundLostColor = flOption.color ||
                       (flOption.code === "FOUND" ? theme.custom.status.found.main : theme.custom.status.lost.main);
@@ -234,7 +235,8 @@ const RecentPosts = (props) => {
         }
       } else if (foundLost.code) {
         foundLostValue = foundLost.code;
-        foundLostLabel = (foundLost.labels && (foundLost.labels[currentLanguage] || foundLost.labels.en)) ||
+        foundLostLabel = (foundLost.code === "FOUND" ? t("found") : foundLost.code === "LOST" ? t("lost") : null) ||
+                        (foundLost.labels && (foundLost.labels[currentLanguage] || foundLost.labels.en)) ||
                         (foundLost.code === "FOUND" ? t("found") : t("lost"));
         foundLostColor = foundLost.color ||
                         (foundLost.code === "FOUND" ? theme.custom.status.found.main : theme.custom.status.lost.main);
