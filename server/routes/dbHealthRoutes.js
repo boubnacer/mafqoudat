@@ -154,6 +154,7 @@ router.get('/stats', verifyJWT, verifyAdmin, async (req, res) => {
     try {
         const db = mongoose.connection.db;
         const stats = await db.stats();
+        const memUsage = process.memoryUsage();
         
         const dataSizeMB = stats.dataSize / 1024 / 1024;
         const storageSizeMB = stats.storageSize / 1024 / 1024;
@@ -170,7 +171,6 @@ router.get('/stats', verifyJWT, verifyAdmin, async (req, res) => {
             status = 'warning';
         }
 
-        const memUsage = process.memoryUsage();
         const processMemory = {
             heapUsed: `${(memUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
             heapTotal: `${(memUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`,
@@ -201,11 +201,20 @@ router.get('/stats', verifyJWT, verifyAdmin, async (req, res) => {
             database: {
                 name: stats.db,
                 collections: stats.collections,
-                objects: stats.objects,
-                indexes: stats.indexes
+                dataSize: `${dataSizeMB.toFixed(2)} MB`,
+                storageSize: `${storageSizeMB.toFixed(2)} MB`,
+                indexes: stats.indexes,
+                indexSize: `${indexSizeMB.toFixed(2)} MB`,
+                objects: stats.objects
             },
             quota: quota,
-            processMemory: processMemory
+            processMemory: processMemory,
+            memoryUsage: {
+                heapUsed: memUsage.heapUsed,
+                heapTotal: memUsage.heapTotal,
+                rss: memUsage.rss,
+                external: memUsage.external
+            }
         });
     } catch (error) {
         console.error('Failed to get database stats:', error);
