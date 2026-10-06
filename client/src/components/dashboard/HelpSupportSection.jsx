@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -56,6 +56,15 @@ const HelpSupportSection = () => {
   });
   const [isContactSubmitted, setIsContactSubmitted] = useState(false);
   const [contactSubmitError, setContactSubmitError] = useState(null);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   // RTK Query mutation hook
   const [submitContactForm, { isLoading: isContactLoading }] = useSubmitContactFormMutation();
@@ -89,7 +98,8 @@ const HelpSupportSection = () => {
       setContactFormData({ name: '', email: '', subject: '', message: '' });
 
       // Reset success message after 5 seconds
-      setTimeout(() => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
         setIsContactSubmitted(false);
       }, 5000);
 
