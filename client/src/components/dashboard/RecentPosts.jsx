@@ -33,13 +33,18 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize, sho
         sx={{
           width: circleSize,
           height: circleSize,
-          borderRadius: "50%",
+          borderRadius:
+            typeof circleSize === "number" && circleSize > 60
+              ? `${theme.custom.radius.lg}px`
+              : { xs: `${theme.custom.radius.md}px`, sm: "14px" },
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-          backdropFilter: "blur(6px)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
           border: `1px solid ${color}`,
+          boxShadow: `0 2px 8px ${alpha(color, 0.12)}`,
           flexShrink: 0,
         }}
       >
