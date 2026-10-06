@@ -62,11 +62,13 @@ const LeftSide = ({
   const dispatch = useDispatch();
 
   // Get found/lost options for navigation
-  const { data: flOptionsData } = useGetflOptionsQuery({
+  const { data: flOptionsData, isError, isLoading } = useGetflOptionsQuery({
     language: currentLanguage
   }, {
-    selectFromResult: ({ data }) => ({
+    selectFromResult: ({ data, isError, isLoading }) => ({
       data: data?.ids?.map((id) => data?.entities[id]) || [],
+      isError,
+      isLoading
     }),
   });
 
@@ -335,6 +337,14 @@ const LeftSide = ({
     top: -90,
     insetInlineStart: -70,
   };
+
+  if (isError) {
+    return (
+      <Box sx={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", p: 4, textAlign: 'center' }}>
+        <Typography color="error">{t("errorLoadingData") || "Error loading options"}</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box

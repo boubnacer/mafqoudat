@@ -14,13 +14,14 @@ const CostMonitoring = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchMetrics = async () => {
+  const fetchMetrics = async (signal) => {
     try {
       setLoading(true);
       const response = await fetch('/cost-monitoring/metrics', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        },
+        signal
       });
       
       if (!response.ok) throw new Error('Failed to fetch metrics');
@@ -28,18 +29,21 @@ const CostMonitoring = () => {
       const data = await response.json();
       setMetrics(data.data);
     } catch (err) {
-      setError(err.message);
+      if (err.name !== 'AbortError') {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchReport = async () => {
+  const fetchReport = async (signal) => {
     try {
       const response = await fetch('/cost-monitoring/report', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        },
+        signal
       });
       
       if (!response.ok) throw new Error('Failed to fetch report');
@@ -47,7 +51,9 @@ const CostMonitoring = () => {
       const data = await response.json();
       setReport(data.data);
     } catch (err) {
-      setError(err.message);
+      if (err.name !== 'AbortError') {
+        setError(err.message);
+      }
     }
   };
 
@@ -70,8 +76,13 @@ const CostMonitoring = () => {
   };
 
   useEffect(() => {
-    fetchMetrics();
-    fetchReport();
+    const controller = new AbortController();
+    fetchMetrics(controller.signal);
+    fetchReport(controller.signal);
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   if (loading) {

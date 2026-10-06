@@ -42,15 +42,24 @@ const Categories = () => {
     { scope: gridRef, dependencies: [showAllCategories, collapsedCount], revertOnUpdate: true }
   );
   
-  const { categories, isLoading, isFetching } = useGetCategoriesQuery({
+  const { categories, isLoading, isFetching, isError } = useGetCategoriesQuery({
     language: currentLanguage
   }, {
-    selectFromResult: ({ data, isLoading, isFetching }) => ({
+    selectFromResult: ({ data, isLoading, isFetching, isError }) => ({
       categories: data?.ids.map((id) => data?.entities[id]),
       isLoading,
-      isFetching
+      isFetching,
+      isError
     }),
   });
+
+  if (isError) {
+    return (
+      <Box sx={{ p: 4, textAlign: 'center' }}>
+        <Typography color="error">{t("errorLoadingData") || "Error loading categories"}</Typography>
+      </Box>
+    );
+  }
 
   const handleCategoryClick = (categoryId) => {
     navigate("/dash/posts", { 
