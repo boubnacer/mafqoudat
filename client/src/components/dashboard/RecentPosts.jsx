@@ -16,11 +16,19 @@ import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
 import { getCategoryConfig, getCategoryIcon, getCategoryBadgeStyle } from "../../config/categories";
 import { API_BASE_URL } from "../../config/api";
 
-// Frosted circle icon + label pill for no-image states (same as Post.js)
-const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) => {
+// Frosted circle icon + optional label pill for no-image states (same as Post.js)
+const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize, showLabel = true }) => {
   const theme = useTheme();
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.75 }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: showLabel ? 0.75 : 0,
+        flexShrink: 0,
+      }}
+    >
       <Box
         sx={{
           width: circleSize,
@@ -32,33 +40,36 @@ const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) =
           backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
           backdropFilter: "blur(6px)",
           border: `1px solid ${color}`,
+          flexShrink: 0,
         }}
       >
         <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />
       </Box>
-      <Box
-        sx={{
-          display: { xs: "none", sm: "inline-flex" },
-          alignItems: "center",
-          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-          backdropFilter: "blur(6px)",
-          border: `1px solid ${color}`,
-          color,
-          fontWeight: 800,
-          fontSize: { xs: "11px", sm: "12px" },
-          lineHeight: 1,
-          borderRadius: `${theme.custom.radius.sm}px`,
-          px: { xs: 1, sm: 1.25 },
-          py: { xs: 0.5, sm: 0.5 },
-          textAlign: "center",
-          maxWidth: 120,
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-        }}
-      >
-        {label}
-      </Box>
+      {showLabel && (
+        <Box
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
+            backdropFilter: "blur(6px)",
+            border: `1px solid ${color}`,
+            color,
+            fontWeight: 800,
+            fontSize: { xs: "10px", sm: "12px" },
+            lineHeight: 1,
+            borderRadius: `${theme.custom.radius.sm}px`,
+            px: { xs: 0.75, sm: 1.25 },
+            py: { xs: 0.375, sm: 0.5 },
+            textAlign: "center",
+            maxWidth: { xs: 80, sm: 120 },
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {label}
+        </Box>
+      )}
     </Box>
   );
 };
@@ -182,7 +193,7 @@ const RecentPosts = (props) => {
     ? (image.startsWith("http") ? getOptimizedImageUrl(image, "card") : `${API_BASE_URL}/${image}`)
     : null;
 
-  // Category icons data for no-image cards (all categories up to 4)
+  // Category icons data for no-image cards
   const categoryIconsData = useMemo(() => {
     if (finalImageUrl) return [];
     if (!categories || categories.length === 0) return [];
@@ -199,6 +210,31 @@ const RecentPosts = (props) => {
       };
     }).filter(Boolean);
   }, [finalImageUrl, categories, categoryStyles, categoryNames]);
+
+  const hasImage = Boolean(finalImageUrl);
+  const isMultiCategoryNoImage = !hasImage && (categories.length > 2 || categoryIconsData.length > 2);
+  const showTopCategoryBadges = hasImage || isMultiCategoryNoImage;
+
+  const multiIconCircleSize = useMemo(() => {
+    if (categoryIconsData.length === 1) return 72;
+    if (categoryIconsData.length === 2) return 46;
+    if (categoryIconsData.length === 3) return { xs: 38, sm: 46, md: 48 };
+    return { xs: 32, sm: 38, md: 42 };
+  }, [categoryIconsData.length]);
+
+  const multiIconFontSize = useMemo(() => {
+    if (categoryIconsData.length === 1) return "48px";
+    if (categoryIconsData.length === 2) return "28px";
+    if (categoryIconsData.length === 3) return { xs: "20px", sm: "24px", md: "26px" };
+    return { xs: "18px", sm: "20px", md: "22px" };
+  }, [categoryIconsData.length]);
+
+  const multiIconGap = useMemo(() => {
+    if (categoryIconsData.length === 1) return 0;
+    if (categoryIconsData.length === 2) return { xs: 1, sm: 1.5 };
+    if (categoryIconsData.length === 3) return { xs: 1, sm: 1.5, md: 1.75 };
+    return { xs: 0.75, sm: 1, md: 1.25 };
+  }, [categoryIconsData.length]);
 
   // Compute status badge (FOUND / LOST)
   const foundLostStatus = useMemo(() => {
@@ -322,7 +358,7 @@ const RecentPosts = (props) => {
           />
         </>
       ) : (
-        /* No-image state: displays all category icons and labels up to 4 like Post.js */
+        /* No-image state: displays category icons (alone in one line when > 2 categories) */
         categoryIconsData.length > 0 && (
           <Box
             sx={{
@@ -331,21 +367,23 @@ const RecentPosts = (props) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: categoryIconsData.length === 1 ? 0 : { xs: 1, sm: 1.5 },
-              flexWrap: "wrap",
-              padding: 2,
+              flexDirection: "row",
+              flexWrap: isMultiCategoryNoImage ? "nowrap" : "wrap",
+              gap: multiIconGap,
+              padding: { xs: 1.5, sm: 2 },
               width: "100%",
               height: "100%",
             }}
           >
-            {categoryIconsData.slice(0, 4).map((iconData, idx) => (
+            {categoryIconsData.slice(0, isMultiCategoryNoImage ? undefined : 4).map((iconData, idx) => (
               <CategoryIconLabel
                 key={iconData.code || idx}
                 icon={iconData.IconComponent}
                 label={iconData.label}
+                showLabel={!isMultiCategoryNoImage}
                 color={iconData.style?.main || theme.palette.text.secondary}
-                iconSize={categoryIconsData.length === 1 ? "48px" : "28px"}
-                circleSize={categoryIconsData.length === 1 ? 72 : 46}
+                iconSize={multiIconFontSize}
+                circleSize={multiIconCircleSize}
               />
             ))}
           </Box>
@@ -428,7 +466,7 @@ const RecentPosts = (props) => {
         {/* Categories: positioned at top right (or top left in RTL) */}
         <Box
           sx={{
-            display: { xs: "flex", sm: finalImageUrl ? "flex" : "none" },
+            display: showTopCategoryBadges ? "flex" : "none",
             flexWrap: "wrap",
             justifyContent: "flex-end",
             gap: { xs: 0.5, md: 0.75 },
