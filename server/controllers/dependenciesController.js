@@ -73,7 +73,7 @@ const getDashboard = async (req, res) => {
           labels: {
             en: "Found",
             fr: "Trouvé",
-            ar: "تم العثور عليه"
+            ar: "عثر على"
           },
           color: "#4CAF50",
           icon: "🔍",
@@ -86,7 +86,7 @@ const getDashboard = async (req, res) => {
           labels: {
             en: "Lost",
             fr: "Perdu",
-            ar: "مفقود"
+            ar: "فقدان"
           },
           color: "#F44336",
           icon: "❓",
@@ -320,7 +320,7 @@ const getDashboard = async (req, res) => {
                 labels: {
                   en: "Found",
                   fr: "Trouvé",
-                  ar: "تم العثور عليه"
+                  ar: "عثر على"
                 }
               }
             }
