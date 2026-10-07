@@ -8,13 +8,16 @@ const { randomUUID: uuidv4 } = require('crypto');
 // NOTE: Visit tracking happens in the middleware, not here
 router.get('/visitor-session', async (req, res) => {
   try {
-    // Get session ID from header (preferred) or cookie (fallback)
-    let sessionId = req.get('X-Visitor-Session') ||
+    // Get session ID from res.locals (populated by visitorTracker middleware),
+    // fallback to header/cookie, or generate a new one
+    let sessionId = res.locals.visitorSessionId ||
+                    req.get('X-Visitor-Session') ||
                     req.headers['x-visitor-session'] ||
                     req.cookies?.visitorSession;
 
     // If no session ID, create a new one
     // This should rarely happen since client creates one synchronously
+    // and middleware normally populates it.
     if (!sessionId) {
       sessionId = uuidv4();
     }

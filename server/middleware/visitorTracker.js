@@ -1,5 +1,7 @@
 const Visitor = require('../models/Visitor');
 const { randomUUID: uuidv4 } = require('crypto');
+const { isbot } = require('isbot');
+const geoip = require('geoip-lite');
 
 // Cache for visitor sessions to avoid repeated database calls
 const sessionCache = new Map();
@@ -40,6 +42,21 @@ const visitorTracker = async (req, res, next) => {
     // Skip non-GET requests
     if (req.method !== 'GET') {
       return next();
+    }
+
+    // Skip bots and crawlers
+    const userAgent = req.get('User-Agent') || 'unknown';
+    if (isbot(userAgent)) {
+      return next();
+    }
+
+    // Skip tracking for authenticated admins (using JWT cookie presence as a heuristic)
+    if (req.cookies?.jwt) {
+      // If we wanted to be more precise, we could parse the JWT, but just having the token
+      // is usually enough to indicate an authenticated user, which in this case might be admin.
+      // But we specifically want to avoid counting admins navigating the admin portal.
+      // We will skip if the referer or landing page contains '/dash'
+      // We do this below after extracting landing page.
     }
 
     // Skip API routes, admin routes, and static assets
@@ -99,6 +116,19 @@ const visitorTracker = async (req, res, next) => {
       return next();
     }
 
+    // Read and sanitize true landing page from header (max 200 chars)
+    let firstPage = req.get('X-Visitor-Landing-Page') || req.headers['x-visitor-landing-page'];
+    if (firstPage && typeof firstPage === 'string') {
+      firstPage = firstPage.substring(0, 200);
+    } else {
+      firstPage = req.path || '/';
+    }
+
+    // Skip tracking for admins navigating the admin portal
+    if (req.cookies?.jwt && (firstPage.startsWith('/dash') || req.get('Referer')?.includes('/dash'))) {
+      return next();
+    }
+
     let isNewSession = false;
 
     // If no session ID exists (neither header nor cookie), create a new one
@@ -106,6 +136,9 @@ const visitorTracker = async (req, res, next) => {
       sessionId = uuidv4();
       isNewSession = true;
       
+      // Store session ID in res.locals for next middleware/routes to use (Unify session ID assignment)
+      res.locals.visitorSessionId = sessionId;
+
       // Return session ID in response header so client can store it in localStorage
       res.setHeader('X-Visitor-Session', sessionId);
       
@@ -126,6 +159,7 @@ const visitorTracker = async (req, res, next) => {
         // Check if cache is still valid
         if (Date.now() - cached.timestamp < SESSION_CACHE_TTL) {
           // Session exists in cache, skip database query
+          res.locals.visitorSessionId = sessionId;
           res.setHeader('X-Visitor-Session', sessionId);
           res.cookie('visitorSession', sessionId, {
             maxAge: COOKIE_MAX_AGE,
@@ -141,6 +175,9 @@ const visitorTracker = async (req, res, next) => {
         }
       }
       
+      // Store session ID in res.locals for next middleware/routes to use
+      res.locals.visitorSessionId = sessionId;
+
       // Return session ID in response header to keep it in sync
       res.setHeader('X-Visitor-Session', sessionId);
       
@@ -164,7 +201,6 @@ const visitorTracker = async (req, res, next) => {
                req.connection?.remoteAddress ||
                req.socket?.remoteAddress ||
                'unknown';
-    const userAgent = req.get('User-Agent') || 'unknown';
     
     // Try multiple header variations for country detection
     // Cloudflare, Vercel, Render, and other platforms use different headers
@@ -175,17 +211,25 @@ const visitorTracker = async (req, res, next) => {
                   req.headers['cf-ip-country'] ||
                   req.headers['x-geoip-country'] ||
                   req.headers['cf-ip-country-code'] ||
-                  req.headers['x-country'] ||
-                  'Unknown';
+                  req.headers['x-country'];
 
+    let city = req.headers['cf-ipcity'] ||
+               req.headers['x-vercel-ip-city'] ||
+               req.headers['x-city'] ||
+               req.headers['cf-ip-city'] ||
+               req.headers['x-geoip-city'];
 
-    const city = req.headers['cf-ipcity'] || 
-                req.headers['x-vercel-ip-city'] ||
-                req.headers['x-city'] ||
-                req.headers['cf-ip-city'] ||
-                req.headers['x-geoip-city'] ||
-                'Unknown';
-    const firstPage = req.path || '/';
+    // Fallback to geoip-lite if proxy headers are missing and IP is valid
+    if ((!country || !city) && ip && ip !== 'unknown') {
+      const geo = geoip.lookup(ip);
+      if (geo) {
+        if (!country) country = geo.country;
+        if (!city) city = geo.city;
+      }
+    }
+
+    country = country || 'Unknown';
+    city = city || 'Unknown';
 
     try {
       // Use findOneAndUpdate with upsert: true
