@@ -187,11 +187,14 @@ class ResilienceManager {
   }
 
   getOverallHealthStatus() {
-    const services = Object.values(this.healthStatus).filter(status => status !== 'unknown');
-    const healthyServices = services.filter(status => status === 'healthy');
-    
-    if (services.length === 0) return 'unknown';
-    if (healthyServices.length === services.length) return 'healthy';
+    const serviceKeys = ['database', 'redis', 'cloudinary'];
+    const serviceStatuses = serviceKeys
+      .map((key) => this.healthStatus[key])
+      .filter((status) => status && status !== 'unknown');
+    const healthyServices = serviceStatuses.filter((status) => status === 'healthy');
+
+    if (serviceStatuses.length === 0) return 'unknown';
+    if (healthyServices.length === serviceStatuses.length) return 'healthy';
     if (healthyServices.length === 0) return 'unhealthy';
     return 'degraded';
   }
