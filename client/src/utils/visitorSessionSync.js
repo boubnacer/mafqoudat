@@ -16,12 +16,16 @@ export const initializeVisitorSession = async () => {
     const baseUrl = BASE_URL;
     const existingSessionId = getVisitorSessionId();
     
+    // Capture the current landing page URL path and query string
+    const landingPage = window.location.pathname + window.location.search;
+
     // Call backend to sync session ID
     const response = await fetch(`${baseUrl}/visitor-session`, {
       method: 'GET',
       credentials: 'include',
       headers: {
         'X-Visitor-Session': existingSessionId || '',
+        'X-Visitor-Landing-Page': landingPage,
         'Accept': 'application/json'
       }
     });

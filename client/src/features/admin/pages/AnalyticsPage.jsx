@@ -333,7 +333,7 @@ const AnalyticsPage = () => {
         </Grid>
       </Section>
 
-      <Section title={t('mostViewedListings')}>
+      <Section title={`${t('mostViewedListings')} (All Time)`}>
         <AdminCard>
           {isFetching ? (
             <Skeleton variant="rounded" height={180} />
