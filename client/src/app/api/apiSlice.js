@@ -191,6 +191,8 @@ export const apiSlice = createApi({
     "AdminContactStats",
     "AdminCities",
     "AdminSocialReview",
+    "AdminSystemHealth",
+    "AdminSystemLogs",
   ],
   endpoints: (builder) => ({}),
 });

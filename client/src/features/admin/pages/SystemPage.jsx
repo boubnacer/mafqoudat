@@ -21,7 +21,9 @@ import {
   WarningAmberOutlined,
   ErrorOutlineOutlined,
   SaveOutlined,
+  TerminalOutlined,
 } from '@mui/icons-material';
+import HealthAndLogsSection from './HealthAndLogsSection';
 import { useTranslation } from '../../../utils/translations';
 import {
   useGetSystemSettingsQuery,
@@ -539,7 +541,7 @@ const AuditSection = () => {
 const SystemPage = () => {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const view = ['database', 'activity'].includes(searchParams.get('view'))
+  const view = ['database', 'activity', 'logs'].includes(searchParams.get('view'))
     ? searchParams.get('view')
     : 'maintenance';
 
@@ -565,6 +567,7 @@ const SystemPage = () => {
               { value: 'maintenance', label: t('maintenanceMode'), icon: BuildOutlined },
               { value: 'database', label: t('database'), icon: StorageOutlined },
               { value: 'activity', label: t('activityLog'), icon: HistoryOutlined },
+              { value: 'logs', label: t('serverHealthLogs'), icon: TerminalOutlined },
             ]}
           />
         }
@@ -573,6 +576,7 @@ const SystemPage = () => {
       {view === 'maintenance' ? <MaintenanceSection /> : null}
       {view === 'database' ? <DatabaseSection /> : null}
       {view === 'activity' ? <AuditSection /> : null}
+      {view === 'logs' ? <HealthAndLogsSection /> : null}
     </>
   );
 };

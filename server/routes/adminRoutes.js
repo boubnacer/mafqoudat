@@ -168,6 +168,11 @@ const {
   skipSocialPost,
   updateSocialPost,
 } = require("../controllers/adminSocialController");
+const {
+  getSystemHealth,
+  getSystemLogs,
+  clearSystemLogs,
+} = require("../controllers/adminSystemController");
 
 // @route GET /admin/social-review/posts
 // @desc Get posts pending social publishing review
@@ -189,4 +194,22 @@ router.post("/social-review/:postId/skip", skipSocialPost);
 // @access Private (Admin only)
 router.patch("/social-review/:postId/update", updateSocialPost);
 
+/* -------------------------------------------------- system health & logs */
+
+// @route GET /admin/system/health
+// @desc Real-time system health, services, and memory/CPU metrics
+// @access Private (Admin only)
+router.get("/system/health", getSystemHealth);
+
+// @route GET /admin/system/logs
+// @desc View application and database error logs
+// @access Private (Admin only)
+router.get("/system/logs", getSystemLogs);
+
+// @route DELETE /admin/system/logs/:file
+// @desc Clear/truncate a specific log file
+// @access Private (Admin only)
+router.delete("/system/logs/:file", clearSystemLogs);
+
 module.exports = router;
+

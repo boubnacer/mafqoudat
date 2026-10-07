@@ -271,6 +271,27 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['AdminSocialReview', 'Post'],
     }),
+
+    /* ------------------------------------------------ system health & logs */
+
+    getSystemHealth: builder.query({
+      query: () => '/admin/system/health',
+      providesTags: ['AdminSystemHealth'],
+    }),
+
+    getSystemLogs: builder.query({
+      query: ({ file = 'errLog', limit = 100, search, level } = {}) =>
+        `/admin/system/logs${buildQuery({ file, limit, search, level })}`,
+      providesTags: ['AdminSystemLogs'],
+    }),
+
+    clearSystemLogs: builder.mutation({
+      query: (file) => ({
+        url: `/admin/system/logs/${file}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['AdminSystemLogs', 'AdminAudit'],
+    }),
   }),
 });
 
@@ -305,4 +326,8 @@ export const {
   useApproveSocialPostMutation,
   useSkipSocialPostMutation,
   useUpdateSocialPostMutation,
+  useGetSystemHealthQuery,
+  useGetSystemLogsQuery,
+  useClearSystemLogsMutation,
 } = adminApiSlice;
+
