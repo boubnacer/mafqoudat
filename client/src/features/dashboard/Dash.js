@@ -24,7 +24,6 @@ import Categories from "../../components/dashboard/Categories";
 import Process from "../../components/dashboard/Process";
 import RecentSection from "../../components/dashboard/RecentSection";
 import HelpSupportSection from "../../components/dashboard/HelpSupportSection";
-import StorageQuotaMonitor from "../../components/dashboard/StorageQuotaMonitor";
 import DashRecents from "../../components/dashboard/DashRecents";
 import DashboardSkeleton from "../../components/dashboard/DashboardSkeleton";
 
@@ -459,9 +458,6 @@ const Dash = () => {
             <HelpSupportSection />
           </Box>
 
-          <Box mb={4} mx={{ xs: 1, sm: 2 }}>
-            <StorageQuotaMonitor />
-          </Box>
         </>
       )}
 
@@ -528,9 +524,6 @@ const Dash = () => {
             <HelpSupportSection />
           </Box>
 
-          <Box mb={4} mx={{ xs: 1, sm: 2 }}>
-            <StorageQuotaMonitor />
-          </Box>
         </>
       )}
 
