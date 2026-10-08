@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { useLanguage } from '../utils/languageContext';
 import { translations } from '../utils/translations';
-import { defaultSeo, pageSeoConfig, SUPPORTED_LANGUAGES, LOCALE_MAP, buildAbsoluteUrl } from '../utils/seoConfig';
+import { defaultSeo, pageSeoConfig, SUPPORTED_LANGUAGES, LOCALE_MAP, buildAbsoluteUrl, normalizePath } from '../utils/seoConfig';
 
 // Per-page title/description in the language the page is actually rendering in.
 //
@@ -39,9 +39,11 @@ const SeoMeta = ({
   const metaTitle = title || (localized && localized.title) || config.title || defaultSeo.title;
   const metaDescription =
     description || (localized && localized.description) || config.description || defaultSeo.description;
-  // Use explicit path from config, or fall back to current location pathname
-  // This ensures canonical is always set correctly even if config path is wrong
-  const metaPath = path || config.path || location.pathname || defaultSeo.path;
+  // Use explicit path from config, or fall back to current location pathname.
+  // Normalize trailing slashes (except root '/') and query strings so canonical
+  // and og:url are strictly uniform.
+  const rawPath = path || config.path || (location && location.pathname) || defaultSeo.path;
+  const metaPath = normalizePath(rawPath);
   const metaImage = image || config.image || defaultSeo.image;
   const metaStructuredData = structuredData || config.structuredData || defaultSeo.structuredData;
 

@@ -79,7 +79,16 @@
          document ending up with two competing rel=canonical links. -->
     <script>
       (function() {
-        var path = window.location.pathname;
+        var path = window.location.pathname || '/';
+        // Strip query strings and hash fragments if present, ignoring search
+        path = path.split('?')[0].split('#')[0];
+        // Normalize trailing slashes: trim trailing '/' if path !== '/'
+        if (path.length > 1 && path.charAt(path.length - 1) === '/') {
+          path = path.replace(/\/+$/, '');
+        }
+        if (!path) {
+          path = '/';
+        }
         var canonical = document.createElement('link');
         canonical.setAttribute('rel', 'canonical');
         canonical.setAttribute('href', 'https://www.mafqoudat.com' + path);

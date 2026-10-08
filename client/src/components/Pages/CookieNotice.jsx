@@ -16,6 +16,7 @@ import {
   ListItemText,
   ListItemIcon,
   Chip,
+  Link,
 } from '@mui/material';
 import {
   Cookie,
@@ -26,6 +27,8 @@ import {
   Security,
   CheckCircle,
   Warning,
+  Campaign,
+  OpenInNew,
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
 import { isConsentManagerConfigured, openConsentManager } from '../../utils/consent';
@@ -108,6 +111,7 @@ const CookieNotice = () => {
       color: 'warning',
       examples: [
         t('targetedAdvertising'),
+        t('googleAdSenseCookies'),
         t('socialMediaIntegration'),
         t('trackingCampaigns'),
       ],
@@ -380,6 +384,144 @@ const CookieNotice = () => {
                     )}
                   </Box>
                 )}
+
+                {/* Advertising & Third-Party Cookies (Dedicated Google AdSense & Partner Disclosures) */}
+                <Box
+                  sx={{
+                    mb: 4,
+                    p: { xs: 2.5, md: 3.5 },
+                    borderRadius: 2,
+                    backgroundColor: theme.palette.mode === 'dark' 
+                      ? 'rgba(33, 150, 243, 0.08)' 
+                      : 'rgba(33, 150, 243, 0.04)',
+                    border: `1px solid ${theme.palette.primary.main}20`,
+                  }}
+                >
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <ListItemIcon sx={{ minWidth: 'auto', marginInlineEnd: 2 }}>
+                      <Campaign color="primary" />
+                    </ListItemIcon>
+                    <Typography
+                      variant="h5"
+                      component="h2"
+                      sx={{
+                        fontWeight: '600',
+                        color: theme.palette.text.primary,
+                      }}
+                    >
+                      {t('advertisingAndCookiesTitle')}
+                    </Typography>
+                  </Box>
+
+                  <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={{ mb: 2, lineHeight: 1.8 }}
+                  >
+                    {t('thirdPartyVendorsContent')}
+                  </Typography>
+
+                  <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={{ mb: 2, lineHeight: 1.8 }}
+                  >
+                    {t('googleCookiesUsage')}
+                  </Typography>
+
+                  <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={{ mb: 2, lineHeight: 1.8 }}
+                  >
+                    {t('privacyLawComplianceContent')}
+                  </Typography>
+
+                  <Typography
+                    variant="subtitle1"
+                    component="h3"
+                    sx={{
+                      mb: 1.5,
+                      fontWeight: '600',
+                      color: theme.palette.text.primary,
+                    }}
+                  >
+                    {t('optOutAdvertisingTitle')}
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2, lineHeight: 1.7 }}
+                  >
+                    {t('optOutAdvertisingDesc')}
+                  </Typography>
+
+                  <List dense sx={{ py: 0 }}>
+                    <ListItem sx={{ paddingInlineStart: 0, py: 0.75 }}>
+                      <Link
+                        href="https://www.google.com/settings/ads"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 0.75,
+                          fontWeight: 600,
+                          color: 'primary.main',
+                          textDecoration: 'none',
+                          flexWrap: 'wrap',
+                          '&:hover': { textDecoration: 'underline' },
+                        }}
+                      >
+                        <span>{t('googleAdSettingsLinkText')}</span>
+                        <Typography
+                          component="span"
+                          dir="ltr"
+                          sx={{
+                            fontSize: '0.85em',
+                            color: 'text.secondary',
+                            fontWeight: 400,
+                          }}
+                        >
+                          (https://www.google.com/settings/ads)
+                        </Typography>
+                        <OpenInNew sx={{ fontSize: 16 }} />
+                      </Link>
+                    </ListItem>
+                    <ListItem sx={{ paddingInlineStart: 0, py: 0.75 }}>
+                      <Link
+                        href="https://www.aboutads.info/choices/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 0.75,
+                          fontWeight: 600,
+                          color: 'primary.main',
+                          textDecoration: 'none',
+                          flexWrap: 'wrap',
+                          '&:hover': { textDecoration: 'underline' },
+                        }}
+                      >
+                        <span>{t('aboutAdsLinkText')}</span>
+                        <Typography
+                          component="span"
+                          dir="ltr"
+                          sx={{
+                            fontSize: '0.85em',
+                            color: 'text.secondary',
+                            fontWeight: 400,
+                          }}
+                        >
+                          (https://www.aboutads.info/choices/)
+                        </Typography>
+                        <OpenInNew sx={{ fontSize: 16 }} />
+                      </Link>
+                    </ListItem>
+                  </List>
+                </Box>
 
                 {/* Contact Information */}
                 <Box

@@ -1,4 +1,5 @@
 {
+  "trailingSlash": false,
   "env": {
     "GENERATE_SOURCEMAP": "false"
   },

@@ -117,8 +117,14 @@ const stripGenericOgTags = (html) =>
 // page and switches language client-side; until there are genuinely distinct
 // localised URLs (/ar/..., /fr/...) with self-referencing canonicals, the
 // honest markup is a single canonical and no alternates.
+const normalizeRoutePath = (p) => {
+  if (!p || p === '/') return '/';
+  const clean = p.split('?')[0].split('#')[0].replace(/\/+$/, '');
+  return clean.startsWith('/') ? clean : `/${clean}`;
+};
+
 const buildHeadInjection = ({ routePath, title, description, image, structuredData, locale, ogType }) => {
-  const canonicalUrl = `${BASE_URL}${routePath}`;
+  const canonicalUrl = `${BASE_URL}${normalizeRoutePath(routePath)}`;
   const absoluteImage = image
     ? (image.startsWith('http') ? image : `${BASE_URL}${image}`)
     : `${BASE_URL}/maflogo1200-630.png?v=2`;

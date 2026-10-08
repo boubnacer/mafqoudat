@@ -75,15 +75,46 @@ export const createArticleSchema = ({
   },
 });
 
+export const normalizePath = (path = '/') => {
+  if (!path) return '/';
+  let clean = String(path).split('?')[0].split('#')[0];
+  if (!clean.startsWith('/')) {
+    clean = `/${clean}`;
+  }
+  clean = clean.replace(/\/+/g, '/');
+  if (clean.length > 1 && clean.endsWith('/')) {
+    clean = clean.replace(/\/+$/, '');
+  }
+  return clean || '/';
+};
+
 export const buildAbsoluteUrl = (path = '/') => {
-  if (!path) return BASE_URL;
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
+  if (!path) return `${BASE_URL}/`;
+
+  // Preserve third-party external URLs (e.g., CDN images)
+  if (typeof path === 'string' && (path.startsWith('http://') || path.startsWith('https://'))) {
+    try {
+      const parsed = new URL(path);
+      const host = parsed.hostname.toLowerCase();
+      const isMafqoudatOrLocal =
+        host === 'www.mafqoudat.com' ||
+        host === 'mafqoudat.com' ||
+        host === 'localhost' ||
+        host === '127.0.0.1';
+      if (!isMafqoudatOrLocal) {
+        return path;
+      }
+      path = parsed.pathname;
+    } catch (e) {
+      // Fall through to path normalization
+    }
   }
-  if (path.startsWith('/')) {
-    return `${BASE_URL}${path}`;
+
+  const normalized = normalizePath(path);
+  if (normalized === '/') {
+    return `${BASE_URL}/`;
   }
-  return `${BASE_URL}/${path}`;
+  return `${BASE_URL}${normalized}`;
 };
 
 // Per-page path + structured data.
