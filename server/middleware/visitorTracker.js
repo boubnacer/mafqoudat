@@ -45,8 +45,8 @@ const visitorTracker = async (req, res, next) => {
     }
 
     // Skip bots and crawlers
-    const userAgent = req.get('User-Agent') || 'unknown';
-    if (isbot(userAgent)) {
+    const userAgent = req.get('User-Agent') || '';
+    if (userAgent && isbot(userAgent)) {
       return next();
     }
 
@@ -116,16 +116,19 @@ const visitorTracker = async (req, res, next) => {
       return next();
     }
 
-    // Read and sanitize true landing page from header (max 200 chars)
-    let firstPage = req.get('X-Visitor-Landing-Page') || req.headers['x-visitor-landing-page'];
+    // Read and sanitize true landing page from query param or header (max 200 chars)
+    let firstPage = req.query.landingPage ||
+                    req.get('X-Visitor-Landing-Page') ||
+                    req.headers['x-visitor-landing-page'];
     if (firstPage && typeof firstPage === 'string') {
       firstPage = firstPage.substring(0, 200);
     } else {
       firstPage = req.path || '/';
     }
 
-    // Skip tracking for admins navigating the admin portal
-    if (req.cookies?.jwt && (firstPage.startsWith('/dash') || req.get('Referer')?.includes('/dash'))) {
+    // Skip tracking for admins navigating the admin portal (/dash/admin)
+    // Regular users browsing /dash or /dash/posts must not be skipped
+    if (req.cookies?.jwt && (firstPage.startsWith('/dash/admin') || req.get('Referer')?.includes('/dash/admin'))) {
       return next();
     }
 

@@ -30,6 +30,10 @@
       "destination": "https://mafqoudat-production.up.railway.app/sitemap-posts.xml"
     },
     {
+      "source": "/visitor-session",
+      "destination": "https://mafqoudat-production.up.railway.app/visitor-session"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://mafqoudat-production.up.railway.app/api/:path*"
     },

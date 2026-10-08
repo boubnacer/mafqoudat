@@ -51,7 +51,8 @@ const corsOptions = {
                'Cache-Control',
                'X-CSRF-Token',
                'Cookie', // Add Cookie header for cross-domain requests
-               'X-Visitor-Session' // Add visitor session header for cross-origin tracking
+               'X-Visitor-Session', // Add visitor session header for cross-origin tracking
+               'X-Visitor-Landing-Page' // Add visitor landing page header for cross-origin tracking
            ],
     exposedHeaders: [
         'X-RateLimit-Limit',

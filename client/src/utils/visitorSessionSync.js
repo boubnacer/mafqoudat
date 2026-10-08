@@ -18,9 +18,10 @@ export const initializeVisitorSession = async () => {
     
     // Capture the current landing page URL path and query string
     const landingPage = window.location.pathname + window.location.search;
+    const queryParam = landingPage ? `?landingPage=${encodeURIComponent(landingPage)}` : '';
 
     // Call backend to sync session ID
-    const response = await fetch(`${baseUrl}/visitor-session`, {
+    const response = await fetch(`${baseUrl}/visitor-session${queryParam}`, {
       method: 'GET',
       credentials: 'include',
       headers: {
