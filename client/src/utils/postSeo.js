@@ -272,15 +272,42 @@ export const buildPostSeo = ({ post, language = 'en', t }) => {
     };
   }
 
+  const primaryCategory = Array.isArray(post?.categories) && post.categories.length > 0
+    ? post.categories[0]
+    : post?.category;
+  const primaryCategoryLabel = categoryLabels[0] || null;
+  const primaryCategoryParam = primaryCategory?.code
+    ? primaryCategory.code.toLowerCase()
+    : (primaryCategory?._id ? String(primaryCategory._id) : null);
+
+  let cityParam = null;
+  if (post?.city && typeof post.city === 'object') {
+    cityParam = post.city.code ? post.city.code.toLowerCase() : (post.city._id ? String(post.city._id) : null);
+  } else if (post?.city && typeof post.city === 'string') {
+    cityParam = post.city;
+  }
+
+  const breadcrumbItems = [
+    { name: defaultSeo.siteName, path: '/' },
+    { name: translate('posts'), path: '/dash/posts' },
+  ];
+  if (primaryCategoryLabel && primaryCategoryParam) {
+    breadcrumbItems.push({
+      name: primaryCategoryLabel,
+      path: `/dash/posts?category=${encodeURIComponent(primaryCategoryParam)}`,
+    });
+  }
+  if (cityLabel && cityParam) {
+    breadcrumbItems.push({
+      name: cityLabel,
+      path: `/dash/posts?city=${encodeURIComponent(cityParam)}`,
+    });
+  }
+  breadcrumbItems.push({ name: stripBrandSuffix(title), path });
+
   const structuredData = [
     itemPageSchema,
-    createBreadcrumbSchema([
-      { name: defaultSeo.siteName, path: '/' },
-      { name: translate('posts'), path: '/dash/posts' },
-      // Breadcrumb trails show the page's place in the site, so the brand
-      // suffix the <title> carries would just repeat the first crumb.
-      { name: stripBrandSuffix(title), path },
-    ]),
+    createBreadcrumbSchema(breadcrumbItems),
   ];
 
   return {

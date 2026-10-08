@@ -9,9 +9,11 @@ import {
   useTheme,
   alpha,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Breadcrumbs,
+  Link as MuiLink,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
 import noImageSvg from "../../../img/noimage.svg";
 import { useState, useCallback, useMemo } from "react";
@@ -35,6 +37,8 @@ import {
   AccessTime as TimeIcon,
   Flag as FlagIcon,
   Block as BlockIcon,
+  NavigateNext as NavigateNextIcon,
+  NavigateBefore as NavigateBeforeIcon,
 } from "@mui/icons-material";
 
 import { useTranslation } from "../../../utils/translations";
@@ -53,6 +57,7 @@ import PostMatchesPanel from "../../notifications/PostMatchesPanel";
 import { useSectionDeepLink, SOCIAL_REACH_SECTION } from "../../../hooks/useSectionDeepLink";
 import SocialReach, { hasSocialReach } from "./SocialReach";
 import CommentsSection from "./CommentsSection";
+import RelatedPosts from "./RelatedPosts";
 
 // Blends two hex colors at `ratio` (0-1, share of colorA) into a solid,
 // fully opaque rgb() — used to tint a badge's fill with its status color
@@ -413,8 +418,11 @@ const SinglePostPage = ({
   username,
   createdAt,
   updatedAt,
+  country,
   countryname,
   countryLabels,
+  categories,
+  category,
   foundLost,
   Floptions,
   description,
@@ -1032,6 +1040,34 @@ const SinglePostPage = ({
     ? `linear-gradient(${currentLanguage === 'ar' ? 'to left' : 'to right'}, ${categoryTints.join(', ')})`
     : categoryTints[0];
 
+  const primaryBreadcrumbCategory = useMemo(() => {
+    if (categoryBadges && categoryBadges.length > 0) {
+      const b = categoryBadges[0];
+      return { label: b.label, param: (b.code || '').toLowerCase() };
+    }
+    if (categoryname) {
+      return { label: categoryname, param: categoryname.toLowerCase() };
+    }
+    return null;
+  }, [categoryBadges, categoryname]);
+
+  const breadcrumbCityParam = useMemo(() => {
+    if (city && typeof city === 'object') {
+      return (city.code || city._id || '').toLowerCase();
+    }
+    if (typeof city === 'string' && city.trim()) {
+      return city.trim().toLowerCase();
+    }
+    return '';
+  }, [city]);
+
+  const postDisplayTitle = useMemo(() => {
+    const rawTitle = (titleLabels && titleLabels[currentLanguage]) || title;
+    if (rawTitle && rawTitle.trim()) return rawTitle.trim();
+    if (primaryBreadcrumbCategory) return `${foundLostStatus.statusText}: ${primaryBreadcrumbCategory.label}`;
+    return foundLostStatus.statusText || t('post');
+  }, [titleLabels, currentLanguage, title, primaryBreadcrumbCategory, foundLostStatus.statusText, t]);
+
   return (
     <Box
       sx={{
@@ -1042,6 +1078,96 @@ const SinglePostPage = ({
         backgroundColor: theme.custom.color.surfaceBase
       }}
     >
+      {/* Contextual Breadcrumb Navigation */}
+      <Box component="nav" aria-label="breadcrumb" sx={{ mb: { xs: 2, md: 3 } }}>
+        <Breadcrumbs
+          separator={
+            currentLanguage === 'ar' ? (
+              <NavigateBeforeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+            ) : (
+              <NavigateNextIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+            )
+          }
+          sx={{
+            fontSize: '0.875rem',
+            '& .MuiBreadcrumbs-li': {
+              display: 'inline-flex',
+              alignItems: 'center',
+            },
+          }}
+        >
+          <MuiLink
+            component={RouterLink}
+            to="/"
+            underline="hover"
+            sx={{
+              color: 'text.secondary',
+              fontWeight: 500,
+              '&:hover': { color: theme.custom.color.brandPrimary },
+            }}
+          >
+            {t('home') || (currentLanguage === 'ar' ? 'الرئيسية' : 'Home')}
+          </MuiLink>
+
+          <MuiLink
+            component={RouterLink}
+            to="/dash/posts"
+            underline="hover"
+            sx={{
+              color: 'text.secondary',
+              fontWeight: 500,
+              '&:hover': { color: theme.custom.color.brandPrimary },
+            }}
+          >
+            {t('posts') || (currentLanguage === 'ar' ? 'المفقودات والموجودات' : 'Posts')}
+          </MuiLink>
+
+          {primaryBreadcrumbCategory && (
+            <MuiLink
+              component={RouterLink}
+              to={`/dash/posts?category=${encodeURIComponent(primaryBreadcrumbCategory.param)}`}
+              underline="hover"
+              sx={{
+                color: 'text.secondary',
+                fontWeight: 500,
+                '&:hover': { color: theme.custom.color.brandPrimary },
+              }}
+            >
+              {primaryBreadcrumbCategory.label}
+            </MuiLink>
+          )}
+
+          {displayCityName && (
+            <MuiLink
+              component={RouterLink}
+              to={`/dash/posts?city=${encodeURIComponent(breadcrumbCityParam || displayCityName)}`}
+              underline="hover"
+              sx={{
+                color: 'text.secondary',
+                fontWeight: 500,
+                '&:hover': { color: theme.custom.color.brandPrimary },
+              }}
+            >
+              {displayCityName}
+            </MuiLink>
+          )}
+
+          <Typography
+            color="text.primary"
+            sx={{
+              fontWeight: 700,
+              fontSize: '0.875rem',
+              maxWidth: { xs: 180, sm: 260, md: 360 },
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {postDisplayTitle}
+          </Typography>
+        </Breadcrumbs>
+      </Box>
+
       <Grid container spacing={{ xs: 2, md: 4 }}>
         {/* Main Content */}
         <Grid item xs={12} lg={8}>
@@ -1676,6 +1802,25 @@ const SinglePostPage = ({
       {/* Possible matches — owner-only. Renders nothing for anyone else, and
           nothing once the item is marked returned. */}
       <PostMatchesPanel postId={_id} isOwner={isAuthor && isAuthenticated} postReturned={!!returned} />
+
+      {/* Related Posts — renders 4-6 crawlable HTML internal links to sibling posts */}
+      <RelatedPosts
+        currentPost={{
+          _id,
+          categories: Categories || categories,
+          category: Category || category,
+          categoryname,
+          city,
+          cityName,
+          cityLabels,
+          country,
+          countryname,
+          countryLabels,
+          foundLost,
+          Floptions,
+          status,
+        }}
+      />
 
       {/* Success Message */}
       {showSuccessMessage && (

@@ -85,7 +85,9 @@ const AR = {
   locationLabel: "الموقع بالتحديد",
   dateLabel: "التاريخ",
   descriptionLabel: "الوصف",
-  relatedLabel: "منشورات أخرى قد تهمّك",
+  relatedLabel: "إعلانات مشابهة قد تهمّك",
+  popularCategoriesLabel: "أشهر الفئات",
+  topCitiesLabel: "أهم المدن",
   moreLink: "تصفّح كل المفقودات والموجودات",
   aboutLink: "من نحن",
   helpLink: "مركز المساعدة",
@@ -101,6 +103,27 @@ const AR = {
     "هذه أحدث البلاغات المنشورة على مفقودات. كل بلاغ يحمل صورة الغرض ومدينته وتاريخه، ويمكنك فتحه للاطلاع على التفاصيل الكاملة والتواصل مع صاحبه.",
   listEmpty: "لا توجد بلاغات منشورة حالياً.",
 };
+
+const POPULAR_CATEGORIES = [
+  { code: "phones", label: "الهواتف والأجهزة اللوحية" },
+  { code: "documents", label: "الوثائق والمستندات" },
+  { code: "wallets", label: "الحقائب والمحافظ" },
+  { code: "electronics", label: "الأجهزة الإلكترونية" },
+  { code: "keys", label: "المفاتيح" },
+  { code: "person", label: "أشخاص مفقودون" },
+  { code: "jewelry", label: "المجوهرات والساعات" },
+];
+
+const TOP_CITIES = [
+  { code: "casablanca", label: "الدار البيضاء" },
+  { code: "rabat", label: "الرباط" },
+  { code: "marrakech", label: "مراكش" },
+  { code: "tangier", label: "طنجة" },
+  { code: "agadir", label: "أكادير" },
+  { code: "fes", label: "فاس" },
+  { code: "meknes", label: "مكناس" },
+  { code: "oujda", label: "وجدة" },
+];
 
 const CACHE_SECONDS = 3600;
 const LIST_CACHE_SECONDS = 900;
@@ -316,12 +339,16 @@ const CSS = `
   dt { font-weight:600; }
   dd { margin:0; }
   nav ul, ul.cards { list-style:none; padding:0; margin:0; }
-  nav li { display:inline; }
-  nav li + li::before { content:" / "; color:#6B7280; }
+  nav.breadcrumbs li { display:inline; }
+  nav.breadcrumbs li + li::before { content:" / "; color:#6B7280; }
+  .footer-links { list-style:none; padding:0; margin:.35rem 0 0; display:flex; flex-wrap:wrap; gap:.5rem 1rem; }
+  .footer-links li { display:inline; }
+  .footer-section { margin-top:1.25rem; }
+  .footer-section h3 { font-size:0.95rem; font-weight:700; margin:0 0 .25rem; color:#374151; }
   ul.cards li { margin:0 0 1rem; }
   .cta { display:inline-block; padding:.75rem 1.5rem; border-radius:12px;
          background:#1B4DFF; color:#fff; text-decoration:none; font-weight:600; }
-  footer { margin-top:2.5rem; padding-top:1rem; border-top:1px solid #D9DEE8; }
+  footer { margin-top:2.5rem; padding-top:1.5rem; border-top:1px solid #D9DEE8; }
 `;
 
 // The shared document. `head` carries the page-specific meta, `body` the
@@ -360,16 +387,30 @@ ${head}
     <main>
 ${body}
       <footer>
-        <nav>
-          <ul>
-            <li><a href="${BASE_URL}/">${escapeHtml(AR.home)}</a></li>
-            <li><a href="${BASE_URL}/dash/posts">${escapeHtml(AR.posts)}</a></li>
-            <li><a href="${BASE_URL}/blog">${escapeHtml(AR.blogLink)}</a></li>
-            <li><a href="${BASE_URL}/about">${escapeHtml(AR.aboutLink)}</a></li>
-            <li><a href="${BASE_URL}/help">${escapeHtml(AR.helpLink)}</a></li>
-            <li><a href="${BASE_URL}/safety">${escapeHtml(AR.safetyLink)}</a></li>
+        <div class="footer-section">
+          <h3>${escapeHtml(AR.popularCategoriesLabel)}</h3>
+          <ul class="footer-links">
+            ${POPULAR_CATEGORIES.map(c => `<li><a href="${BASE_URL}/dash/posts?category=${escapeHtml(c.code)}">${escapeHtml(c.label)}</a></li>`).join("\n            ")}
           </ul>
-        </nav>
+        </div>
+        <div class="footer-section">
+          <h3>${escapeHtml(AR.topCitiesLabel)}</h3>
+          <ul class="footer-links">
+            ${TOP_CITIES.map(c => `<li><a href="${BASE_URL}/dash/posts?city=${escapeHtml(c.code)}">${escapeHtml(c.label)}</a></li>`).join("\n            ")}
+          </ul>
+        </div>
+        <div class="footer-section" style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid #E5E7EB;">
+          <nav aria-label="روابط الموقع">
+            <ul class="footer-links">
+              <li><a href="${BASE_URL}/">${escapeHtml(AR.home)}</a></li>
+              <li><a href="${BASE_URL}/dash/posts">${escapeHtml(AR.posts)}</a></li>
+              <li><a href="${BASE_URL}/blog">${escapeHtml(AR.blogLink)}</a></li>
+              <li><a href="${BASE_URL}/about">${escapeHtml(AR.aboutLink)}</a></li>
+              <li><a href="${BASE_URL}/help">${escapeHtml(AR.helpLink)}</a></li>
+              <li><a href="${BASE_URL}/safety">${escapeHtml(AR.safetyLink)}</a></li>
+            </ul>
+          </nav>
+        </div>
       </footer>
     </main>
   </body>
@@ -450,26 +491,138 @@ router.get("/og/posts/:id", async (req, res) => {
     // Moderation-suspended posts get no shareable card and no indexable page.
     if (!post || post.status === "suspended") return sendNotFound();
 
-    // Siblings in the same country, so a crawler landing here has somewhere to
-    // go. Same filter the sitemap uses (active only), newest first, this post
-    // excluded.
-    const related = await Post.find({
-      _id: { $ne: post._id },
-      status: "active",
-      ...(post.country ? { country: post.country._id || post.country } : {}),
-    })
-      .select("_id categories category foundLost country city exactLocation mainDate returned cloudinaryUrl image createdAt personName personSex")
-      .populate("categories", "code labels")
-      .populate("category", "code labels")
-      .populate("foundLost", "code")
-      .populate("country", "code names labels")
-      .sort({ createdAt: -1 })
-      .limit(RELATED_LIMIT)
-      .lean();
+    // Extract category IDs for related posts search
+    const relatedCatIds = [];
+    if (Array.isArray(post.categories)) {
+      post.categories.forEach((cat) => {
+        const cid = cat?._id || cat;
+        if (cid && mongoose.Types.ObjectId.isValid(String(cid))) {
+          relatedCatIds.push(new mongoose.Types.ObjectId(String(cid)));
+        }
+      });
+    }
+    if (post.category) {
+      const cid = post.category?._id || post.category;
+      if (cid && mongoose.Types.ObjectId.isValid(String(cid))) {
+        relatedCatIds.push(new mongoose.Types.ObjectId(String(cid)));
+      }
+    }
+
+    const cityRaw = post.city?._id || post.city;
+    const countryRaw = post.country?._id || post.country;
+
+    // Prioritize active posts sharing the same city or category
+    const sameTopicConditions = [];
+    if (relatedCatIds.length > 0) {
+      sameTopicConditions.push({ categories: { $in: relatedCatIds } });
+      sameTopicConditions.push({ category: { $in: relatedCatIds } });
+    }
+    if (cityRaw) {
+      if (mongoose.Types.ObjectId.isValid(String(cityRaw))) {
+        sameTopicConditions.push({ city: new mongoose.Types.ObjectId(String(cityRaw)) });
+      } else if (typeof cityRaw === "string" && collapse(cityRaw)) {
+        sameTopicConditions.push({ city: collapse(cityRaw) });
+      }
+    }
+
+    let related = [];
+    if (sameTopicConditions.length > 0) {
+      related = await Post.find({
+        _id: { $ne: post._id },
+        status: "active",
+        ...(countryRaw ? { country: countryRaw } : {}),
+        $or: sameTopicConditions,
+      })
+        .select("_id categories category foundLost country city exactLocation mainDate returned cloudinaryUrl image createdAt personName personSex")
+        .populate("categories", "code labels")
+        .populate("category", "code labels")
+        .populate("foundLost", "code")
+        .populate("country", "code names labels")
+        .sort({ createdAt: -1 })
+        .limit(RELATED_LIMIT)
+        .lean();
+    }
+
+    // Backfill with active posts from the same country if fewer than RELATED_LIMIT
+    if (related.length < RELATED_LIMIT) {
+      const existingIds = [post._id, ...related.map((p) => p._id)];
+      const backfill = await Post.find({
+        _id: { $nin: existingIds },
+        status: "active",
+        ...(countryRaw ? { country: countryRaw } : {}),
+      })
+        .select("_id categories category foundLost country city exactLocation mainDate returned cloudinaryUrl image createdAt personName personSex")
+        .populate("categories", "code labels")
+        .populate("category", "code labels")
+        .populate("foundLost", "code")
+        .populate("country", "code names labels")
+        .sort({ createdAt: -1 })
+        .limit(RELATED_LIMIT - related.length)
+        .lean();
+
+      related = [...related, ...backfill];
+    }
+
+    // Global backfill if still fewer than 4 (ensures at least 4 crawlable internal links)
+    if (related.length < 4) {
+      const existingIds = [post._id, ...related.map((p) => p._id)];
+      const globalBackfill = await Post.find({
+        _id: { $nin: existingIds },
+        status: "active",
+      })
+        .select("_id categories category foundLost country city exactLocation mainDate returned cloudinaryUrl image createdAt personName personSex")
+        .populate("categories", "code labels")
+        .populate("category", "code labels")
+        .populate("foundLost", "code")
+        .populate("country", "code names labels")
+        .sort({ createdAt: -1 })
+        .limit(4 - related.length)
+        .lean();
+
+      related = [...related, ...globalBackfill];
+    }
 
     const cityOf = await buildCityResolver([post, ...related]);
     const info = describePost(post, cityOf);
     const image = socialImage(post);
+
+    // Primary category information for breadcrumbs
+    const primaryCat = (Array.isArray(post.categories) && post.categories.length > 0)
+      ? post.categories[0]
+      : post.category;
+    const primaryCategoryLabel = primaryCat ? arLabel(primaryCat.labels, primaryCat.code) : null;
+    const primaryCategoryParam = primaryCat?.code
+      ? primaryCat.code.toLowerCase()
+      : (primaryCat?._id ? String(primaryCat._id) : null);
+
+    // City identifier for breadcrumbs
+    let cityParam = null;
+    if (post.city && typeof post.city === "object") {
+      cityParam = post.city.code ? post.city.code.toLowerCase() : String(post.city._id || "");
+    } else if (post.city && mongoose.Types.ObjectId.isValid(String(post.city))) {
+      cityParam = String(post.city);
+    } else if (typeof post.city === "string" && collapse(post.city)) {
+      cityParam = collapse(post.city);
+    }
+
+    // Contextual breadcrumb trail: Home > Posts > [Category] > [City] > [Post Title]
+    const breadcrumbs = [
+      { name: AR.home, url: `${BASE_URL}/` },
+      { name: AR.posts, url: `${BASE_URL}/dash/posts` },
+    ];
+    if (primaryCategoryLabel && primaryCategoryParam) {
+      breadcrumbs.push({
+        name: primaryCategoryLabel,
+        url: `${BASE_URL}/dash/posts?category=${encodeURIComponent(primaryCategoryParam)}`,
+      });
+    }
+    if (info.city && info.city !== AR.unknownLocation && cityParam) {
+      breadcrumbs.push({
+        name: info.city,
+        url: `${BASE_URL}/dash/posts?city=${encodeURIComponent(cityParam)}`,
+      });
+    }
+    breadcrumbs.push({ name: info.heading, url });
 
     const facts = [
       [AR.statusLabel, info.status],
@@ -498,13 +651,7 @@ router.get("/og/posts/:id", async (req, res) => {
       `    <meta property="og:image:height" content="630" />`,
       `    <meta property="og:image:alt" content="${escapeHtml(info.heading)}" />`,
       `    <meta name="twitter:image" content="${escapeHtml(image)}" />`,
-      jsonLd(
-        breadcrumbSchema([
-          { name: AR.home, url: `${BASE_URL}/` },
-          { name: AR.posts, url: `${BASE_URL}/dash/posts` },
-          { name: info.heading, url },
-        ])
-      ),
+      jsonLd(breadcrumbSchema(breadcrumbs)),
       // Deliberately WebPage + a plain Thing, not Product/Offer. Nothing here
       // is for sale and none of it is rated, and schema.org has no lost-and-
       // found type - claiming one that carries commercial semantics would be
@@ -530,12 +677,20 @@ router.get("/og/posts/:id", async (req, res) => {
       }),
     ].join("\n");
 
-    const body = `      <nav>
+    const breadcrumbHtml = `      <nav class="breadcrumbs" aria-label="مسار التصفح">
         <ul>
-          <li><a href="${BASE_URL}/">${escapeHtml(AR.home)}</a></li>
-          <li><a href="${BASE_URL}/dash/posts">${escapeHtml(AR.posts)}</a></li>
+${breadcrumbs
+  .map((crumb, idx) => {
+    const isLast = idx === breadcrumbs.length - 1;
+    return isLast
+      ? `          <li><span>${escapeHtml(crumb.name)}</span></li>`
+      : `          <li><a href="${escapeHtml(crumb.url)}">${escapeHtml(crumb.name)}</a></li>`;
+  })
+  .join("\n")}
         </ul>
-      </nav>
+      </nav>`;
+
+    const body = `${breadcrumbHtml}
       <h1>${escapeHtml(info.heading)}</h1>
       <img src="${escapeHtml(image)}" alt="${escapeHtml(info.heading)}" width="1200" height="630" />
       <p>${escapeHtml(info.metaDescription)}</p>

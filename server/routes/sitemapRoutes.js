@@ -51,11 +51,14 @@ router.get("/sitemap-posts.xml", async (req, res) => {
       .lean();
 
     const urls = posts
+      .filter((post) => post && post._id && String(post._id).trim().length > 0)
       .map((post) => {
+        const cleanId = String(post._id).trim().replace(/\/+$/, "");
+        const loc = `${BASE_URL}/dash/posts/${cleanId}`;
         const lastmod = toIsoDate(post.updatedAt || post.createdAt);
         return [
           "  <url>",
-          `    <loc>${escapeXml(`${BASE_URL}/dash/posts/${post._id}`)}</loc>`,
+          `    <loc>${escapeXml(loc)}</loc>`,
           ...(lastmod ? [`    <lastmod>${lastmod}</lastmod>`] : []),
           "    <changefreq>weekly</changefreq>",
           "    <priority>0.6</priority>",
@@ -71,6 +74,7 @@ ${urls}
 `;
 
     res.set("Content-Type", "application/xml; charset=utf-8");
+    res.set("X-Content-Type-Options", "nosniff");
     res.set("Cache-Control", `public, max-age=${CACHE_SECONDS}, s-maxage=${CACHE_SECONDS}`);
     res.status(200).send(xml);
   } catch (error) {

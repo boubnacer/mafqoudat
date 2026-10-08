@@ -20,6 +20,37 @@ const escapeXml = (value) =>
     '"': '&quot;',
   }[char]));
 
+/**
+ * Normalizes a route path to a strictly canonical sitemap URL:
+ * - Root path ('/' or empty) resolves to canonical 'https://www.mafqoudat.com/'
+ * - Non-root paths always strip trailing slashes to prevent Vercel 308 redirects
+ * - Legacy paths like '/posts' are automatically mapped to '/dash/posts'
+ * - Query strings and hash fragments are stripped
+ */
+const normalizeSitemapUrl = (routePath) => {
+  if (!routePath || routePath === '/') {
+    return `${BASE_URL}/`;
+  }
+
+  // Strip query parameters and hash fragments
+  const cleanPath = String(routePath).split('?')[0].split('#')[0].trim();
+
+  // Collapse consecutive slashes and strip leading/trailing slashes
+  const collapsed = cleanPath.replace(/\/+/g, '/');
+  const trimmed = collapsed.replace(/^\/+|\/+$/g, '');
+
+  if (!trimmed) {
+    return `${BASE_URL}/`;
+  }
+
+  // Intercept legacy routes that redirect (e.g. /posts -> /dash/posts)
+  if (trimmed === 'posts') {
+    return `${BASE_URL}/dash/posts`;
+  }
+
+  return `${BASE_URL}/${trimmed}`;
+};
+
 const buildUrlEntry = ({ loc, lastmod, changefreq, priority }) => `  <url>
     <loc>${escapeXml(loc)}</loc>
     <lastmod>${lastmod}</lastmod>
@@ -29,28 +60,58 @@ const buildUrlEntry = ({ loc, lastmod, changefreq, priority }) => `  <url>
 
 const generateSitemap = () => {
   const today = new Date().toISOString().slice(0, 10);
+  const seenUrls = new Set();
+  const urlEntries = [];
 
-  const staticEntries = [...STATIC_ROUTES, ...SITEMAP_ONLY_ROUTES].map((route) =>
-    buildUrlEntry({
-      loc: `${BASE_URL}${route.path}`,
+  const addEntry = ({ rawPath, lastmod, changefreq, priority }) => {
+    const loc = normalizeSitemapUrl(rawPath);
+
+    // Invariant checks:
+    // 1. Must use canonical protocol and domain
+    if (!loc.startsWith(`${BASE_URL}/`)) {
+      throw new Error(`Sitemap URL violates canonical domain: ${loc}`);
+    }
+    // 2. Non-root URLs must NEVER have a trailing slash (avoids 308 redirect)
+    if (loc.length > `${BASE_URL}/`.length && loc.endsWith('/')) {
+      throw new Error(`Sitemap URL contains trailing slash: ${loc}`);
+    }
+    // 3. No legacy routes (e.g. /posts)
+    if (loc === `${BASE_URL}/posts`) {
+      throw new Error(`Legacy redirecting route detected in sitemap: ${loc}`);
+    }
+
+    if (seenUrls.has(loc)) {
+      return; // Deduplicate
+    }
+    seenUrls.add(loc);
+
+    urlEntries.push(buildUrlEntry({ loc, lastmod, changefreq, priority }));
+  };
+
+  // Add static and listing routes
+  [...STATIC_ROUTES, ...SITEMAP_ONLY_ROUTES].forEach((route) => {
+    addEntry({
+      rawPath: route.path,
       lastmod: today,
       changefreq: route.changefreq,
       priority: route.priority,
-    })
-  );
+    });
+  });
 
-  const blogEntries = blogPosts.map((post) =>
-    buildUrlEntry({
-      loc: `${BASE_URL}/blog/${post.slug}`,
-      lastmod: post.date,
+  // Add individual blog post routes
+  blogPosts.forEach((post) => {
+    if (!post?.slug) return;
+    addEntry({
+      rawPath: `/blog/${post.slug}`,
+      lastmod: post.date || today,
       changefreq: 'monthly',
       priority: '0.7',
-    })
-  );
+    });
+  });
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${[...staticEntries, ...blogEntries].join('\n')}
+${urlEntries.join('\n')}
 </urlset>
 `;
 };
@@ -96,7 +157,13 @@ const writeSitemaps = (outputDir) => {
   console.log(`Sitemap index written: ${indexPath} (static + dynamic posts)`);
 };
 
-module.exports = { generateSitemap, generateSitemapIndex, writeSitemaps };
+module.exports = {
+  generateSitemap,
+  generateSitemapIndex,
+  writeSitemaps,
+  normalizeSitemapUrl,
+  BASE_URL,
+};
 
 if (require.main === module) {
   const target = process.argv[2] || path.join(__dirname, '..', 'public');

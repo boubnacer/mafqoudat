@@ -182,51 +182,74 @@ const getAllPosts = async (req, res) => {
     match.foundLost = new mongoose.Types.ObjectId(req.query.fl);
   }
 
-  // Handle category filtering - support both single categoryId (backward compatibility) and multiple categoryIds
-  if (categoryIds) {
-    // Multiple categories: parse comma-separated string or array
-    let categoryIdArray = [];
-    if (typeof categoryIds === 'string') {
-      categoryIdArray = categoryIds.split(',').map(id => id.trim()).filter(id => id);
-    } else if (Array.isArray(categoryIds)) {
-      categoryIdArray = categoryIds;
+    let resolvedCategoryId = req.query.categoryId || req.query.category;
+    if (resolvedCategoryId && !mongoose.Types.ObjectId.isValid(resolvedCategoryId)) {
+      const foundCategory = await Category.findOne({ code: String(resolvedCategoryId).toUpperCase() }).select('_id');
+      if (foundCategory) {
+        resolvedCategoryId = String(foundCategory._id);
+      }
     }
-    
-    if (categoryIdArray.length > 0) {
-      // Filter posts that have ANY of the specified categories
-      match.categories = { 
-        $in: categoryIdArray.map(id => new mongoose.Types.ObjectId(id)) 
-      };
-    }
-  } else if (categoryId) {
-    // Single category (backward compatibility) - check both categories array and legacy category field
-    const categoryObjectId = new mongoose.Types.ObjectId(categoryId);
-    match.$or = [
-      { categories: categoryObjectId },
-      { category: categoryObjectId }
-    ];
-    // If there's already an $or condition from search, combine them
-    if (match.$or && search) {
-      const existingOr = match.$or;
-      match.$or = [
-        ...existingOr,
-        { exactLocation: { $regex: escapeRegex(search), $options: 'i' } },
-        { contact: { $regex: escapeRegex(search), $options: 'i' } },
-        { description: { $regex: escapeRegex(search), $options: 'i' } },
-        // The name on a lost document is the field its owner searches by -
-        // these listings carry no photo and often no description worth
-        // matching, so leaving it out of the search made them unfindable.
-        { 'documentOwnerName.ar': { $regex: escapeRegex(search), $options: 'i' } },
-        { 'documentOwnerName.latin': { $regex: escapeRegex(search), $options: 'i' } },
-        { 'personName.ar': { $regex: escapeRegex(search), $options: 'i' } },
-        { 'personName.latin': { $regex: escapeRegex(search), $options: 'i' } }
-      ];
-    }
-  }
 
-  if (req.query.cityId && mongoose.Types.ObjectId.isValid(cityId)) {
-    match.city = new mongoose.Types.ObjectId(cityId);
-  }
+    // Handle category filtering - support both single categoryId (backward compatibility) and multiple categoryIds
+    if (categoryIds) {
+      // Multiple categories: parse comma-separated string or array
+      let categoryIdArray = [];
+      if (typeof categoryIds === 'string') {
+        categoryIdArray = categoryIds.split(',').map(id => id.trim()).filter(id => id);
+      } else if (Array.isArray(categoryIds)) {
+        categoryIdArray = categoryIds;
+      }
+      
+      if (categoryIdArray.length > 0) {
+        // Filter posts that have ANY of the specified categories
+        match.categories = { 
+          $in: categoryIdArray.filter(id => mongoose.Types.ObjectId.isValid(id)).map(id => new mongoose.Types.ObjectId(id)) 
+        };
+      }
+    } else if (resolvedCategoryId && mongoose.Types.ObjectId.isValid(resolvedCategoryId)) {
+      // Single category (backward compatibility) - check both categories array and legacy category field
+      const categoryObjectId = new mongoose.Types.ObjectId(resolvedCategoryId);
+      match.$or = [
+        { categories: categoryObjectId },
+        { category: categoryObjectId }
+      ];
+      // If there's already an $or condition from search, combine them
+      if (match.$or && search) {
+        const existingOr = match.$or;
+        match.$or = [
+          ...existingOr,
+          { exactLocation: { $regex: escapeRegex(search), $options: 'i' } },
+          { contact: { $regex: escapeRegex(search), $options: 'i' } },
+          { description: { $regex: escapeRegex(search), $options: 'i' } },
+          // The name on a lost document is the field its owner searches by -
+          // these listings carry no photo and often no description worth
+          // matching, so leaving it out of the search made them unfindable.
+          { 'documentOwnerName.ar': { $regex: escapeRegex(search), $options: 'i' } },
+          { 'documentOwnerName.latin': { $regex: escapeRegex(search), $options: 'i' } },
+          { 'personName.ar': { $regex: escapeRegex(search), $options: 'i' } },
+          { 'personName.latin': { $regex: escapeRegex(search), $options: 'i' } }
+        ];
+      }
+    }
+
+    const cityParam = req.query.cityId || req.query.city;
+    if (cityParam) {
+      if (mongoose.Types.ObjectId.isValid(cityParam)) {
+        match.city = new mongoose.Types.ObjectId(cityParam);
+      } else {
+        const foundCity = await City.findOne({
+          $or: [
+            { code: { $regex: new RegExp(`^${escapeRegex(cityParam)}$`, 'i') } },
+            { 'labels.en': { $regex: new RegExp(`^${escapeRegex(cityParam)}$`, 'i') } },
+            { 'labels.ar': { $regex: new RegExp(`^${escapeRegex(cityParam)}$`, 'i') } },
+            { 'labels.fr': { $regex: new RegExp(`^${escapeRegex(cityParam)}$`, 'i') } },
+          ],
+        }).select('_id');
+        if (foundCity) {
+          match.city = foundCity._id;
+        }
+      }
+    }
 
   // Handle search - combine with category $or if it exists
   if (search) {

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { memo, useCallback, useMemo } from "react";
 import React from "react";
 import noImageSvg from "../../../img/noimage.svg";
@@ -538,8 +538,11 @@ const Post = ({ post, type }) => {
 
   return (
     <PostCardRoot
-      onClick={handleViewDetails}
+      component={Link}
+      to={`/dash/posts/${post?._id}`}
       sx={{
+        textDecoration: 'none',
+        color: 'inherit',
         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
         position: 'relative',
         backgroundColor: theme.custom.color.surfaceRaised,

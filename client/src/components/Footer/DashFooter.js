@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import {
   Facebook,
   Instagram,
@@ -29,6 +29,27 @@ import {
   Divider,
   useMediaQuery,
 } from "@mui/material";
+
+const POPULAR_CATEGORIES = [
+  { code: "phones", labels: { ar: "هواتف و أجهزة لوحية", fr: "Téléphones et Tablettes", en: "Phones & Tablets" } },
+  { code: "documents", labels: { ar: "وثائق و بطاقات", fr: "Documents et Cartes", en: "Documents & Cards" } },
+  { code: "wallets", labels: { ar: "محافظ و حقائب", fr: "Portefeuilles et Sacs", en: "Wallets & Bags" } },
+  { code: "electronics", labels: { ar: "إلكترونيات", fr: "Électronique", en: "Electronics" } },
+  { code: "keys", labels: { ar: "مفاتيح", fr: "Clés", en: "Keys" } },
+  { code: "person", labels: { ar: "أشخاص مفقودون", fr: "Personnes Disparues", en: "Missing Persons" } },
+  { code: "jewelry", labels: { ar: "مجوهرات و ساعات", fr: "Bijoux et Montres", en: "Jewelry & Watches" } },
+];
+
+const TOP_CITIES = [
+  { slug: "casablanca", labels: { ar: "الدار البيضاء", fr: "Casablanca", en: "Casablanca" } },
+  { slug: "rabat", labels: { ar: "الرباط", fr: "Rabat", en: "Rabat" } },
+  { slug: "marrakech", labels: { ar: "مراكش", fr: "Marrakech", en: "Marrakech" } },
+  { slug: "tangier", labels: { ar: "طنجة", fr: "Tanger", en: "Tangier" } },
+  { slug: "agadir", labels: { ar: "أكادير", fr: "Agadir", en: "Agadir" } },
+  { slug: "fes", labels: { ar: "فاس", fr: "Fès", en: "Fes" } },
+  { slug: "meknes", labels: { ar: "مكناس", fr: "Meknès", en: "Meknes" } },
+  { slug: "oujda", labels: { ar: "وجدة", fr: "Oujda", en: "Oujda" } },
+];
 
 const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
   const navigate = useNavigate();
@@ -265,7 +286,7 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
         }}
       >
         {/* Company Info */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <Typography
             variant="h6"
             sx={{
@@ -314,90 +335,159 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
           </Box>
         </Grid>
 
+        {/* Popular Categories */}
+        <Grid item xs={6} sm={6} md={2}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: "bold", fontSize: { xs: "18px", sm: "16px" }, "@media (min-width: 1920px)": { fontSize: "22px" } }}
+          >
+            {t("popularCategories")}
+          </Typography>
+          <List dense disablePadding>
+            {POPULAR_CATEGORIES.map((cat) => (
+              <ListItem
+                key={cat.code}
+                button
+                component={RouterLink}
+                to={`/dash/posts?category=${cat.code}`}
+                sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
+              >
+                <ListItemText
+                  primary={cat.labels[currentLanguage] || cat.labels.en || cat.code}
+                  sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Grid>
+
+        {/* Top Cities */}
+        <Grid item xs={6} sm={6} md={2}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: "bold", fontSize: { xs: "18px", sm: "16px" }, "@media (min-width: 1920px)": { fontSize: "22px" } }}
+          >
+            {t("topCities")}
+          </Typography>
+          <List dense disablePadding>
+            {TOP_CITIES.map((city) => (
+              <ListItem
+                key={city.slug}
+                button
+                component={RouterLink}
+                to={`/dash/posts?city=${city.slug}`}
+                sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
+              >
+                <ListItemText
+                  primary={city.labels[currentLanguage] || city.labels.en || city.slug}
+                  sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Grid>
+
         {/* Quick Links */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={6} sm={6} md={2}>
           <Typography
             variant="h6"
             sx={{ mb: 2, fontWeight: "bold", fontSize: { xs: "18px", sm: "16px" }, "@media (min-width: 1920px)": { fontSize: "22px" } }}
           >
             {t("quickLinks")}
           </Typography>
-          <List dense>
+          <List dense disablePadding>
             <ListItem
               button
-              onClick={() => {
-                if (!token) {
-                  const intendedDestination = "/dash/posts/new?type=lost";
-                  authStorage.setRedirectAfterLoginWithMessage(intendedDestination, "loginRequiredCreatePost");
-                  navigate("/login");
-                } else {
-                  navigate("/dash/posts/new?type=lost");
-                }
-              }}
+              component={RouterLink}
+              to="/dash/posts/new?type=lost"
+              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
             >
               <ListItemText
                 primary={t("reportLostItem")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } } }}
+                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
               />
             </ListItem>
             <ListItem
               button
-              onClick={() => {
-                if (!token) {
-                  const intendedDestination = "/dash/posts/new?type=found";
-                  authStorage.setRedirectAfterLoginWithMessage(intendedDestination, "loginRequiredCreatePost");
-                  navigate("/login");
-                } else {
-                  navigate("/dash/posts/new?type=found");
-                }
-              }}
+              component={RouterLink}
+              to="/dash/posts/new?type=found"
+              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
             >
               <ListItemText
                 primary={t("reportFoundItem")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } } }}
+                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
               />
             </ListItem>
-            <ListItem button onClick={() => navigate("/dash/posts")}>
+            <ListItem
+              button
+              component={RouterLink}
+              to="/dash/posts"
+              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
+            >
               <ListItemText
                 primary={t("searchItems")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } } }}
+                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
               />
             </ListItem>
-            <ListItem button onClick={scrollToHelpSection}>
+            <ListItem
+              button
+              onClick={scrollToHelpSection}
+              sx={{ px: 0, py: 0.35, color: "inherit" }}
+            >
               <ListItemText
                 primary={t("getHelp")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } } }}
+                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
               />
             </ListItem>
-            <ListItem button onClick={() => navigate("/about")}>
+            <ListItem
+              button
+              component={RouterLink}
+              to="/about"
+              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
+            >
               <ListItemText
                 primary={t("aboutUs")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } } }}
+                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
               />
             </ListItem>
-            <ListItem button onClick={() => navigate("/blog")}>
+            <ListItem
+              button
+              component={RouterLink}
+              to="/blog"
+              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
+            >
               <ListItemText
                 primary={t("blog")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } } }}
+                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
               />
             </ListItem>
-            <ListItem button onClick={() => navigate("/help")}>
+            <ListItem
+              button
+              component={RouterLink}
+              to="/help"
+              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
+            >
               <ListItemText
                 primary={t("helpCenter")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } } }}
+                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
               />
             </ListItem>
-            <ListItem button onClick={() => navigate("/contact")}>
+            <ListItem
+              button
+              component={RouterLink}
+              to="/contact"
+              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
+            >
               <ListItemText
                 primary={t("contactUs")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } } }}
+                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
               />
             </ListItem>
           </List>
         </Grid>
 
         {/* Contact Info */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} sm={6} md={3}>
           <Typography
             variant="h6"
             sx={{ mb: 2, fontWeight: "bold", fontSize: { xs: "18px", sm: "16px" }, "@media (min-width: 1920px)": { fontSize: "22px" } }}
@@ -508,41 +598,42 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
               display: "flex",
               justifyContent: { xs: "flex-start", md: "flex-end" },
               gap: 2,
+              flexWrap: "wrap",
             }}
           >
             <Link
-              component="button"
-              onClick={() => navigate("/privacy")}
+              component={RouterLink}
+              to="/privacy"
               color="text.secondary"
               underline="hover"
-              sx={{ background: "none", border: "none", cursor: "pointer", fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
+              sx={{ fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
             >
               {t("privacyPolicy")}
             </Link>
             <Link
-              component="button"
-              onClick={() => navigate("/terms")}
+              component={RouterLink}
+              to="/terms"
               color="text.secondary"
               underline="hover"
-              sx={{ background: "none", border: "none", cursor: "pointer", fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
+              sx={{ fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
             >
               {t("termsOfUse")}
             </Link>
             <Link
-              component="button"
-              onClick={() => navigate("/cookies")}
+              component={RouterLink}
+              to="/cookies"
               color="text.secondary"
               underline="hover"
-              sx={{ background: "none", border: "none", cursor: "pointer", fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
+              sx={{ fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
             >
               {t("cookieNotice")}
             </Link>
             <Link
-              component="button"
-              onClick={() => navigate("/disclaimer")}
+              component={RouterLink}
+              to="/disclaimer"
               color="text.secondary"
               underline="hover"
-              sx={{ background: "none", border: "none", cursor: "pointer", fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
+              sx={{ fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
             >
               {t("disclaimer")}
             </Link>

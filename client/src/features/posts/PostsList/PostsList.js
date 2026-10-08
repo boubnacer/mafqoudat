@@ -157,6 +157,8 @@ const PostsList = () => {
   // Get URL parameters for filter
   const searchParams = new URLSearchParams(search);
   const urlFilter = searchParams.get('fl'); // Changed from 'filter' to 'fl' to match NavLinks
+  const urlCategory = searchParams.get('category') || searchParams.get('categoryId');
+  const urlCity = searchParams.get('city') || searchParams.get('cityId');
 
   // Get current language
   const { t, currentLanguage } = useTranslation();
@@ -263,6 +265,59 @@ const PostsList = () => {
     setSelectedFl(urlFilter || '');
     setPage(1);
   }, [urlFilter]);
+
+  // Sync category filter from URL query param (?category= or ?categoryId=)
+  useEffect(() => {
+    if (!urlCategory) return;
+    if (categoriesData && categoriesData.length > 0) {
+      const match = categoriesData.find(
+        (cat) =>
+          cat._id === urlCategory ||
+          String(cat.code).toLowerCase() === String(urlCategory).toLowerCase()
+      );
+      if (match) {
+        setSelectedCategories([match._id]);
+        setDraftSelectedCategories([match._id]);
+        setLocalCategoryFilter(match._id);
+        setPage(1);
+      } else {
+        setSelectedCategories([urlCategory]);
+        setDraftSelectedCategories([urlCategory]);
+        setLocalCategoryFilter(urlCategory);
+        setPage(1);
+      }
+    } else {
+      setSelectedCategories([urlCategory]);
+      setDraftSelectedCategories([urlCategory]);
+      setLocalCategoryFilter(urlCategory);
+    }
+  }, [urlCategory, categoriesData]);
+
+  // Sync city filter from URL query param (?city= or ?cityId=)
+  useEffect(() => {
+    if (!urlCity) return;
+    if (allCitiesData && allCitiesData.length > 0) {
+      const match = allCitiesData.find((c) => {
+        const idMatch = c._id === urlCity || c.id === urlCity;
+        const codeMatch = c.code && String(c.code).toLowerCase() === String(urlCity).toLowerCase();
+        const labelArMatch = c.labels?.ar && String(c.labels.ar).toLowerCase() === String(urlCity).toLowerCase();
+        const labelEnMatch = c.labels?.en && String(c.labels.en).toLowerCase() === String(urlCity).toLowerCase();
+        return idMatch || codeMatch || labelArMatch || labelEnMatch;
+      });
+      if (match) {
+        setSelectedCity(match);
+        setDraftSelectedCity(match);
+        setPage(1);
+      } else {
+        setSelectedCity({ _id: urlCity, label: urlCity });
+        setDraftSelectedCity({ _id: urlCity, label: urlCity });
+        setPage(1);
+      }
+    } else {
+      setSelectedCity({ _id: urlCity, label: urlCity });
+      setDraftSelectedCity({ _id: urlCity, label: urlCity });
+    }
+  }, [urlCity, allCitiesData]);
 
   // Memoize effectiveFl computation
   const effectiveFl = useMemo(() => {

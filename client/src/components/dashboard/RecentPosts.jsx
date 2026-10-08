@@ -1,5 +1,5 @@
 import { Box, Typography, useTheme, alpha } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   LocationOnOutlined,
   CheckCircle as CheckCircleIcon,
@@ -318,17 +318,13 @@ const RecentPosts = (props) => {
 
   return (
     <Box
+      component={Link}
+      to={`/dash/posts/${_id}`}
       data-reveal-item=""
-      role="button"
-      tabIndex={0}
-      onClick={handleViewDetails}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          handleViewDetails();
-        }
-      }}
       sx={{
+        textDecoration: "none",
+        color: "inherit",
+        display: "block",
         position: "relative",
         width: "100%",
         height: fillHeight ? "100%" : undefined,

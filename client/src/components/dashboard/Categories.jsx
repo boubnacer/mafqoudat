@@ -4,7 +4,7 @@ import SkeletonBlock from "../SkeletonBlock";
 import { getCategoryIcon, getCategoryColor, sortCategoriesForBrowse } from "../../config/categories";
 import { useTranslation } from "../../utils/translations";
 import { useLanguage } from "../../utils/languageContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { ExpandMore, ExpandLess } from "@mui/icons-material";
 import { useRef, useState } from "react";
 import { gsap, useGSAP } from "../../utils/gsapSetup";
@@ -62,12 +62,7 @@ const Categories = () => {
   }
 
   const handleCategoryClick = (categoryId) => {
-    navigate("/dash/posts", { 
-      state: { 
-        categoryFilter: categoryId,
-        fromCategory: true 
-      } 
-    });
+    navigate(`/dash/posts?category=${categoryId}`);
   };
 
   const toggleShowAllCategories = () => {
@@ -134,19 +129,14 @@ const Categories = () => {
               ? t('categoryDocuments')
               : (labels[currentLanguage] || labels.en);
 
+            const categoryHref = `/dash/posts?category=${encodeURIComponent(code ? code.toLowerCase() : _id)}`;
+
             return (
               <Box key={_id}>
                 <Box data-reveal-item="" sx={{ height: '100%' }}>
                   <Card
-                    onClick={() => handleCategoryClick(_id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleCategoryClick(_id);
-                      }
-                    }}
-                    role="button"
-                    tabIndex={0}
+                    component={Link}
+                    to={categoryHref}
                     elevation={0}
                     sx={{
                       height: '100%',
@@ -154,6 +144,8 @@ const Categories = () => {
                       backgroundColor: tint,
                       borderRadius: `${theme.custom.radius.lg}px`,
                       cursor: 'pointer',
+                      textDecoration: 'none',
+                      color: 'inherit',
                       border: 'none',
                       boxShadow: 'none',
                       display: 'flex',
