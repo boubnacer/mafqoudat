@@ -43,8 +43,8 @@ const CategoryBentoPod = ({ items }) => {
         p: count === 1
           ? { xs: "16px 24px", sm: "20px 30px" }
           : count <= 3
-            ? { xs: "14px 18px", sm: "16px 22px" }
-            : { xs: "14px 16px", sm: "16px 20px" },
+            ? { xs: "12px 18px", sm: "14px 20px" }
+            : { xs: "10px 16px", sm: "12px 18px" },
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -85,31 +85,38 @@ const CategoryBentoPod = ({ items }) => {
         );
       })()}
 
-      {/* 2 Categories */}
-      {count === 2 && (
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {items.map((item, idx) => {
+      {/* 2 or more Categories: Vertical Line-by-Line list with hairline dividers */}
+      {count >= 2 && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            minWidth: { xs: 180, sm: 210 },
+          }}
+        >
+          {items.slice(0, 5).map((item, idx) => {
             const Icon = item.IconComponent;
             return (
               <Fragment key={item.code || idx}>
                 {idx > 0 && (
                   <Box
                     sx={{
-                      width: "1px",
-                      height: 36,
+                      width: "100%",
+                      height: "1px",
                       bgcolor: dividerColor,
-                      mx: { xs: 1.25, sm: 1.5 },
-                      flexShrink: 0,
+                      my: count >= 5 ? 0.35 : 0.5,
                     }}
                   />
                 )}
                 <Box
                   sx={{
                     display: "flex",
-                    flexDirection: "column",
                     alignItems: "center",
-                    gap: 0.75,
-                    px: { xs: 1, sm: 1.5 },
+                    gap: { xs: 1, sm: 1.25 },
+                    width: "100%",
+                    minWidth: 0,
+                    py: count >= 5 ? 0.2 : 0.35,
                   }}
                 >
                   <Box
@@ -118,7 +125,10 @@ const CategoryBentoPod = ({ items }) => {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      "& svg": { fontSize: { xs: 26, sm: 30 } },
+                      flexShrink: 0,
+                      "& svg": {
+                        fontSize: count >= 5 ? { xs: 17, sm: 19 } : { xs: 19, sm: 22 },
+                      },
                     }}
                   >
                     <Icon />
@@ -127,10 +137,10 @@ const CategoryBentoPod = ({ items }) => {
                     noWrap
                     sx={{
                       fontWeight: 750,
-                      fontSize: { xs: "11px", sm: "12px" },
-                      color: item.style?.main || theme.custom.color.ink,
-                      textAlign: "center",
-                      maxWidth: 100,
+                      fontSize: count >= 5 ? { xs: "11px", sm: "11.5px" } : { xs: "11.5px", sm: "12.5px" },
+                      color: theme.custom.color.ink,
+                      maxWidth: "100%",
+                      lineHeight: 1.2,
                     }}
                   >
                     {item.label}
@@ -139,297 +149,6 @@ const CategoryBentoPod = ({ items }) => {
               </Fragment>
             );
           })}
-        </Box>
-      )}
-
-      {/* 3 Categories: 3 Balanced Columns with vertical dividers */}
-      {count === 3 && (
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "100%",
-          }}
-        >
-          {items.map((item, idx) => {
-            const Icon = item.IconComponent;
-            return (
-              <Fragment key={item.code || idx}>
-                {idx > 0 && (
-                  <Box
-                    sx={{
-                      width: "1px",
-                      height: 34,
-                      bgcolor: dividerColor,
-                      flexShrink: 0,
-                    }}
-                  />
-                )}
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    flex: 1,
-                    minWidth: 0,
-                    gap: 0.75,
-                    px: { xs: 1, sm: 1.5 },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      color: item.style?.main || theme.palette.text.primary,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      "& svg": { fontSize: { xs: 24, sm: 26 } },
-                    }}
-                  >
-                    <Icon />
-                  </Box>
-                  <Typography
-                    noWrap
-                    sx={{
-                      fontWeight: 750,
-                      fontSize: { xs: "11px", sm: "12px" },
-                      color: item.style?.main || theme.custom.color.ink,
-                      textAlign: "center",
-                      maxWidth: "100%",
-                    }}
-                  >
-                    {item.label}
-                  </Typography>
-                </Box>
-              </Fragment>
-            );
-          })}
-        </Box>
-      )}
-
-      {/* 4 Categories: Structured 2x2 Grid with hairline divider */}
-      {count === 4 && (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 1.25,
-            width: "100%",
-            minWidth: { xs: 220, sm: 240 },
-          }}
-        >
-          {/* Row 1: Item 0 & Item 1 */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 1.5,
-            }}
-          >
-            {items.slice(0, 2).map((item, idx) => {
-              const Icon = item.IconComponent;
-              return (
-                <Box
-                  key={item.code || idx}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    flex: 1,
-                    minWidth: 0,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      color: item.style?.main || theme.palette.text.primary,
-                      display: "flex",
-                      flexShrink: 0,
-                      "& svg": { fontSize: { xs: 20, sm: 22 } },
-                    }}
-                  >
-                    <Icon />
-                  </Box>
-                  <Typography
-                    noWrap
-                    sx={{
-                      fontWeight: 750,
-                      fontSize: { xs: "11px", sm: "12px" },
-                      color: item.style?.main || theme.custom.color.ink,
-                      maxWidth: "100%",
-                    }}
-                  >
-                    {item.label}
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Box>
-
-          {/* Hairline Divider */}
-          <Box sx={{ width: "100%", height: "1px", bgcolor: dividerColor }} />
-
-          {/* Row 2: Item 2 & Item 3 */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 1.5,
-            }}
-          >
-            {items.slice(2, 4).map((item, idx) => {
-              const Icon = item.IconComponent;
-              return (
-                <Box
-                  key={item.code || idx}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    flex: 1,
-                    minWidth: 0,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      color: item.style?.main || theme.palette.text.primary,
-                      display: "flex",
-                      flexShrink: 0,
-                      "& svg": { fontSize: { xs: 20, sm: 22 } },
-                    }}
-                  >
-                    <Icon />
-                  </Box>
-                  <Typography
-                    noWrap
-                    sx={{
-                      fontWeight: 750,
-                      fontSize: { xs: "11px", sm: "12px" },
-                      color: item.style?.main || theme.custom.color.ink,
-                      maxWidth: "100%",
-                    }}
-                  >
-                    {item.label}
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Box>
-        </Box>
-      )}
-
-      {/* 5+ Categories: 3 on top row, 2 on bottom row with hairline divider */}
-      {count >= 5 && (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 1.25,
-            width: "100%",
-            minWidth: { xs: 230, sm: 260 },
-          }}
-        >
-          {/* Top Row: 3 items (vertical pair style) */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-around",
-              alignItems: "center",
-              width: "100%",
-              gap: 1,
-            }}
-          >
-            {items.slice(0, 3).map((item, idx) => {
-              const Icon = item.IconComponent;
-              return (
-                <Box
-                  key={item.code || idx}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    flex: 1,
-                    minWidth: 0,
-                    gap: 0.5,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      color: item.style?.main || theme.palette.text.primary,
-                      display: "flex",
-                      "& svg": { fontSize: { xs: 20, sm: 22 } },
-                    }}
-                  >
-                    <Icon />
-                  </Box>
-                  <Typography
-                    noWrap
-                    sx={{
-                      fontWeight: 750,
-                      fontSize: { xs: "10px", sm: "11px" },
-                      color: item.style?.main || theme.custom.color.ink,
-                      maxWidth: "100%",
-                      textAlign: "center",
-                    }}
-                  >
-                    {item.label}
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Box>
-
-          {/* Hairline Divider */}
-          <Box sx={{ width: "90%", height: "1px", bgcolor: dividerColor }} />
-
-          {/* Bottom Row: 2 items (horizontal pair style) */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              width: "100%",
-              gap: { xs: 2, sm: 3 },
-            }}
-          >
-            {items.slice(3, 5).map((item, idx) => {
-              const Icon = item.IconComponent;
-              return (
-                <Box
-                  key={item.code || idx}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.75,
-                    minWidth: 0,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      color: item.style?.main || theme.palette.text.primary,
-                      display: "flex",
-                      flexShrink: 0,
-                      "& svg": { fontSize: { xs: 18, sm: 20 } },
-                    }}
-                  >
-                    <Icon />
-                  </Box>
-                  <Typography
-                    noWrap
-                    sx={{
-                      fontWeight: 750,
-                      fontSize: { xs: "10px", sm: "11px" },
-                      color: item.style?.main || theme.custom.color.ink,
-                    }}
-                  >
-                    {item.label}
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Box>
         </Box>
       )}
     </Box>
