@@ -551,6 +551,47 @@ const Post = ({ post, type }) => {
     navigate(`/dash/posts/${post?._id}`);
   }, [navigate, post?._id]);
 
+  // Ambient Aura Mesh background for no-image cards (Option 1)
+  const noImageBackground = useMemo(() => {
+    const isDark = isDarkMode;
+    const isRtl = isRTLMode();
+    const baseBg = isDark
+      ? (theme.custom?.color?.surfaceBase || '#0F172A')
+      : (theme.custom?.color?.surfaceBase || '#F8FAFC');
+
+    if (!categoryStyles || categoryStyles.length === 0) {
+      return baseBg;
+    }
+
+    const c1 = categoryStyles[0]?.main || theme.custom?.color?.brandPrimary || '#00BCD4';
+    const c2 = categoryStyles[1]?.main || c1;
+    const c3 = categoryStyles[2]?.main;
+
+    // 1 Category: Centered ambient aura framing the category pod
+    if (categoryStyles.length === 1) {
+      return `radial-gradient(circle at 50% 45%, ${alpha(c1, isDark ? 0.36 : 0.26)} 0%, ${alpha(c1, isDark ? 0.08 : 0.05)} 65%, transparent 100%), ${baseBg}`;
+    }
+
+    // 2 or more Categories: Ambient multi-radial glow orbs
+    const pos1 = isRtl ? '80% 25%' : '20% 25%';
+    const pos2 = isRtl ? '15% 75%' : '85% 75%';
+    const pos3 = isRtl ? '30% 20%' : '70% 20%';
+
+    const layers = [
+      `radial-gradient(circle at ${pos1}, ${alpha(c1, isDark ? 0.34 : 0.26)} 0%, ${alpha(c1, isDark ? 0.08 : 0.05)} 65%, transparent 100%)`,
+      `radial-gradient(circle at ${pos2}, ${alpha(c2, isDark ? 0.30 : 0.22)} 0%, ${alpha(c2, isDark ? 0.06 : 0.04)} 65%, transparent 100%)`,
+    ];
+
+    if (c3 && categoryStyles.length >= 3) {
+      layers.push(
+        `radial-gradient(circle at ${pos3}, ${alpha(c3, isDark ? 0.22 : 0.15)} 0%, transparent 100%)`
+      );
+    }
+
+    layers.push(baseBg);
+    return layers.join(', ');
+  }, [categoryStyles, isDarkMode, currentLanguage, theme]);
+
   // Early return after all hooks
   if (!post) return null;
 
@@ -563,19 +604,6 @@ const Post = ({ post, type }) => {
   // best in a grid cell is the only one it renders.
   const tone = foundLostStatus.isFound ? theme.custom.status.found : theme.custom.status.lost;
   const StatusIcon = foundLostStatus.isFound ? TaskAltOutlined : SearchOffOutlined;
-
-  // No-image icon backdrop: same per-category tint as above, bumped up from
-  // the badge's 0.12/0.2 ratio (too faint stretched across the whole photo
-  // box) so it actually reads as color. Blended across every category on a
-  // multi-category post - a linear-gradient in reading direction, so it runs
-  // start-to-end the same way the icons row itself lays out (icons render in
-  // `categories` order inside a flex row that already reverses under
-  // `direction: rtl`, so mirroring the gradient's direction the same way
-  // keeps each stop under its own icon instead of just reversing the ramp).
-  const categoryTints = categoryStyles.map(cs => alpha(cs.main, isDarkMode ? 0.32 : 0.22));
-  const noImageBackground = categoryTints.length > 1
-    ? `linear-gradient(${currentLanguage === 'ar' ? 'to left' : 'to right'}, ${categoryTints.join(', ')})`
-    : categoryTints[0];
 
   const totalViews = readTotalViews(post);
   const socialStats = summarizeSocialStats(post);

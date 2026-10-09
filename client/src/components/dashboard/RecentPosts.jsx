@@ -363,17 +363,46 @@ const RecentPosts = (props) => {
   const tone = { main: foundLostStatus.statusColor };
   const StatusIcon = foundLostStatus.isFound ? TaskAltOutlined : SearchOffOutlined;
 
-  // Background tint when no image is present (matching Post.js)
-  const categoryTints = useMemo(
-    () => categoryStyles.map((cs) => alpha(cs.main, isDark ? 0.32 : 0.22)),
-    [categoryStyles, isDark]
-  );
+  // Ambient Aura Mesh background for no-image cards (Option 1)
   const noImageBackground = useMemo(() => {
-    if (categoryTints.length > 1) {
-      return `linear-gradient(${currentLanguage === "ar" ? "to left" : "to right"}, ${categoryTints.join(", ")})`;
+    const isDark = theme.palette.mode === "dark";
+    const isRtl = currentLanguage === "ar";
+    const baseBg = isDark
+      ? (theme.custom?.color?.surfaceBase || "#0F172A")
+      : (theme.custom?.color?.surfaceBase || "#F8FAFC");
+
+    if (!categoryStyles || categoryStyles.length === 0) {
+      return baseBg;
     }
-    return categoryTints[0];
-  }, [categoryTints, currentLanguage]);
+
+    const c1 = categoryStyles[0]?.main || theme.custom?.color?.brandPrimary || "#00BCD4";
+    const c2 = categoryStyles[1]?.main || c1;
+    const c3 = categoryStyles[2]?.main;
+
+    // 1 Category: Centered ambient aura framing the category pod
+    if (categoryStyles.length === 1) {
+      return `radial-gradient(circle at 50% 45%, ${alpha(c1, isDark ? 0.36 : 0.26)} 0%, ${alpha(c1, isDark ? 0.08 : 0.05)} 65%, transparent 100%), ${baseBg}`;
+    }
+
+    // 2 or more Categories: Ambient multi-radial glow orbs
+    const pos1 = isRtl ? "80% 25%" : "20% 25%";
+    const pos2 = isRtl ? "15% 75%" : "85% 75%";
+    const pos3 = isRtl ? "30% 20%" : "70% 20%";
+
+    const layers = [
+      `radial-gradient(circle at ${pos1}, ${alpha(c1, isDark ? 0.34 : 0.26)} 0%, ${alpha(c1, isDark ? 0.08 : 0.05)} 65%, transparent 100%)`,
+      `radial-gradient(circle at ${pos2}, ${alpha(c2, isDark ? 0.30 : 0.22)} 0%, ${alpha(c2, isDark ? 0.06 : 0.04)} 65%, transparent 100%)`,
+    ];
+
+    if (c3 && categoryStyles.length >= 3) {
+      layers.push(
+        `radial-gradient(circle at ${pos3}, ${alpha(c3, isDark ? 0.22 : 0.15)} 0%, transparent 100%)`
+      );
+    }
+
+    layers.push(baseBg);
+    return layers.join(", ");
+  }, [categoryStyles, currentLanguage, theme]);
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
   const textColor = finalImageUrl ? "#FFFFFF" : theme.custom.color.ink;
