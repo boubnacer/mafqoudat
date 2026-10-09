@@ -195,6 +195,25 @@ app.use(requestTimeout(30000)); // 30 second timeout
 // CORS
 app.use(cors(corsOptions));
 
+// High-performance static asset caching options for Google PageSpeed & mobile delivery
+const staticCacheOptions = {
+  maxAge: process.env.NODE_ENV === "production" ? "1d" : 0,
+  etag: true,
+  lastModified: true,
+  setHeaders: (res, filePath) => {
+    // Immutable caching for media, images, and fonts (30 days)
+    if (/\.(jpg|jpeg|png|gif|webp|avif|svg|ico|woff|woff2|ttf|eot)$/i.test(filePath)) {
+      res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+    }
+  }
+};
+
+// Fast favicon fallback - browsers frequently ping /favicon.ico; never throttle or 404-log
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+// Serve static files before rate limiting so assets do not consume API quota
+app.use("/", express.static(path.join(__dirname, "public"), staticCacheOptions));
+
 // Rate limiting
 app.use(generalRateLimit);
 
@@ -230,23 +249,6 @@ app.use(visitorTracker);
 // read back in each provider's callback - no server-side session needed,
 // and every authenticate() call already passes { session: false }.
 app.use(passport.initialize());
-
-// High-performance static asset caching options for Google PageSpeed & mobile delivery
-const staticCacheOptions = {
-  maxAge: process.env.NODE_ENV === "production" ? "1d" : 0,
-  etag: true,
-  lastModified: true,
-  setHeaders: (res, filePath) => {
-    // Immutable caching for media, images, and fonts (30 days)
-    if (/\.(jpg|jpeg|png|gif|webp|avif|svg|ico|woff|woff2|ttf|eot)$/i.test(filePath)) {
-      res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
-    }
-  }
-};
-
-// Serve static files
-app.use("/", express.static(path.join(__dirname, "public"), staticCacheOptions));
-
 
 // Maintenance mode middleware (after auth setup, before routes)
 const maintenanceMode = require("./middleware/maintenanceMode");

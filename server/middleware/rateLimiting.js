@@ -11,6 +11,7 @@ const createRateLimiter = (options) => {
     skipSuccessfulRequests = false,
     skipFailedRequests = false,
     keyGenerator = (req) => req.ip,
+    skip,
     handler = (req, res, next, options) => {
       logEvents(
         `Rate Limit Exceeded: ${options.message}\t${req.method}\t${req.url}\t${req.ip}\t${req.headers.origin}`,
@@ -35,7 +36,8 @@ const createRateLimiter = (options) => {
     standardHeaders: true,
     legacyHeaders: false,
     // Trust proxy for accurate IP detection
-    trustProxy: true
+    trustProxy: true,
+    ...(typeof skip === 'function' ? { skip } : {})
   });
 };
 
@@ -99,11 +101,29 @@ const rateLimiters = {
     skipSuccessfulRequests: true
   }),
 
-  // Moderate rate limiter for general API usage
+  // Moderate rate limiter for general API usage.
+  // Raised to 1000 requests per 15 min (~66 req/min):
+  // 100 was far too low for a React SPA where initial page load fires 8-12 calls,
+  // users navigate multiple views, and shared CGNAT mobile carrier IPs are standard in North Africa.
   general: createRateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // 100 requests per 15 minutes
-    message: "Too many requests, please slow down"
+    max: 1000, // 1000 requests per 15 minutes per IP
+    message: "Too many requests, please slow down",
+    skip: (req) => {
+      // 1. Never throttle health check probes
+      if (req.path === '/health' || req.path === '/resilience/live' || req.path === '/resilience/ready' || req.path === '/admin/system/health') {
+        return true;
+      }
+      // 2. Never throttle static assets or favicon
+      if (req.path === '/favicon.ico' || req.path.startsWith('/uploads/') || req.path.startsWith('/static/')) {
+        return true;
+      }
+      // 3. Never throttle external platform webhooks
+      if (req.path.startsWith('/webhooks')) {
+        return true;
+      }
+      return false;
+    }
   }),
 
   // Strict rate limiter for file uploads
@@ -179,14 +199,14 @@ const rateLimiters = {
   // Rate limiter for admin operations
   admin: createRateLimiter({
     windowMs: 5 * 60 * 1000, // 5 minutes
-    max: 50, // 50 admin operations per 5 minutes
+    max: 300, // 300 admin operations per 5 minutes (supports dashboard polling & log inspection)
     message: "Too many admin operations, please slow down"
   }),
 
   // Rate limiter for public endpoints (more lenient)
   public: createRateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 200, // 200 requests per 15 minutes
+    max: 1000, // 1000 requests per 15 minutes
     message: "Too many requests to public endpoints, please slow down"
   }),
 
