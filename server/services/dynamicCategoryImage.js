@@ -96,16 +96,19 @@ const DOT_RADIUS = 3;
  * category background color and accented borders.
  */
 function buildCategorySvg(categoryCodes) {
-  const cats = categoryCodes.map((code) => {
+  // Deduplicate and filter category codes (up to 10 categories max)
+  const rawCodes = Array.isArray(categoryCodes) ? categoryCodes : [categoryCodes];
+  const uniqueCodes = [...new Set(rawCodes.map((code) => (typeof code === 'string' ? code.trim().toUpperCase() : '')).filter(Boolean))];
+  const activeCodes = uniqueCodes.length > 0 ? uniqueCodes.slice(0, 10) : ['OTHER'];
+
+  const cats = activeCodes.map((code) => {
     const colors = getCategoryColors(code);
-    const icon = CATEGORY_ICONS[code.toUpperCase()] || CATEGORY_ICONS.OTHER;
+    const icon = CATEGORY_ICONS[code] || CATEGORY_ICONS.OTHER;
     const badgeBg = colors.backgroundColor;
-    return { code: code.toUpperCase(), ...colors, badgeBg, icon };
+    return { code, ...colors, badgeBg, icon };
   });
 
-  // Limit to 3 categories max for the image
-  const display = cats.slice(0, 3);
-  const count = display.length;
+  const count = cats.length;
 
   const parts = [];
 
@@ -152,40 +155,64 @@ function buildCategorySvg(categoryCodes) {
   }
   parts.push(logoSvg);
 
-  // 3. Category icons enclosed in squircle badges
-  const badgeSize = count === 1 ? 400 : (count === 2 ? 300 : 230);
+  // 3. Category icons enclosed in squircle badges (adaptive 1–10 categories grid)
+  const LAYOUT_CONFIGS = {
+    1:  { rows: [1],       badgeSize: 400, gapX: 0,  gapY: 0,  rx: 52, borderWidth: 8 },
+    2:  { rows: [2],       badgeSize: 300, gapX: 60, gapY: 0,  rx: 40, borderWidth: 7 },
+    3:  { rows: [3],       badgeSize: 230, gapX: 40, gapY: 0,  rx: 32, borderWidth: 6 },
+    4:  { rows: [2, 2],    badgeSize: 210, gapX: 44, gapY: 40, rx: 30, borderWidth: 6 },
+    5:  { rows: [3, 2],    badgeSize: 180, gapX: 36, gapY: 32, rx: 26, borderWidth: 5 },
+    6:  { rows: [3, 3],    badgeSize: 180, gapX: 36, gapY: 32, rx: 26, borderWidth: 5 },
+    7:  { rows: [4, 3],    badgeSize: 150, gapX: 28, gapY: 28, rx: 22, borderWidth: 4.5 },
+    8:  { rows: [4, 4],    badgeSize: 150, gapX: 28, gapY: 28, rx: 22, borderWidth: 4.5 },
+    9:  { rows: [3, 3, 3], badgeSize: 135, gapX: 24, gapY: 24, rx: 20, borderWidth: 4 },
+    10: { rows: [5, 5],    badgeSize: 130, gapX: 22, gapY: 24, rx: 18, borderWidth: 4 },
+  };
+
+  const config = LAYOUT_CONFIGS[count] || LAYOUT_CONFIGS[Math.min(count, 10)] || LAYOUT_CONFIGS[1];
+  const { rows: rowCounts, badgeSize, gapX, gapY, rx, borderWidth } = config;
   const iconSize = Math.round(badgeSize * 0.58);
-  const gap = count === 1 ? 0 : (count === 2 ? 60 : 40);
-  const borderWidth = count === 1 ? 8 : (count === 2 ? 7 : 6);
-  const totalWidth = count * badgeSize + (count - 1) * gap;
-  const startX = (CANVAS - totalWidth) / 2;
+  const inset = borderWidth / 2;
+
+  let itemIndex = 0;
+  const rowGroups = rowCounts.map((num) => {
+    const slice = cats.slice(itemIndex, itemIndex + num);
+    itemIndex += num;
+    return slice;
+  }).filter((group) => group.length > 0);
+
+  const totalGridHeight = rowGroups.length * badgeSize + (rowGroups.length - 1) * gapY;
   const centerY = CANVAS / 2 + 20;
+  const startGridY = centerY - totalGridHeight / 2;
 
-  display.forEach((cat, i) => {
-    const badgeX = startX + i * (badgeSize + gap);
-    const badgeY = centerY - badgeSize / 2;
-    const rx = count === 1 ? 52 : (count === 2 ? 40 : 32);
-    const inset = borderWidth / 2;
+  rowGroups.forEach((group, rIdx) => {
+    const rowWidth = group.length * badgeSize + (group.length - 1) * gapX;
+    const startRowX = (CANVAS - rowWidth) / 2;
+    const badgeY = startGridY + rIdx * (badgeSize + gapY);
 
-    // Squircle container
-    parts.push(
-      `<rect x="${badgeX + inset}" y="${badgeY + inset}" width="${badgeSize - borderWidth}" height="${badgeSize - borderWidth}" rx="${rx}" fill="${cat.badgeBg}" stroke="${cat.color}" stroke-width="${borderWidth}"/>`
-    );
+    group.forEach((cat, cIdx) => {
+      const badgeX = startRowX + cIdx * (badgeSize + gapX);
 
-    // Centered icon inside badge
-    const iconX = badgeX + (badgeSize - iconSize) / 2;
-    const iconY = badgeY + (badgeSize - iconSize) / 2;
+      // Squircle container
+      parts.push(
+        `<rect x="${badgeX + inset}" y="${badgeY + inset}" width="${badgeSize - borderWidth}" height="${badgeSize - borderWidth}" rx="${rx}" fill="${cat.badgeBg}" stroke="${cat.color}" stroke-width="${borderWidth}"/>`
+      );
 
-    const iconContent = cat.icon.body || (cat.icon.paths ? cat.icon.paths.map((d) => `<path d="${d}"/>`).join('') : '');
-    const paint = cat.icon.body
-      ? `color="${cat.color}" stroke="${cat.color}" fill="currentColor"`
-      : (cat.icon.stroked
-        ? `fill="none" stroke="${cat.color}" stroke-width="${cat.icon.strokeWidth || 1.5}" stroke-linecap="round" stroke-linejoin="round"`
-        : `fill="${cat.color}"`);
+      // Centered icon inside badge
+      const iconX = badgeX + (badgeSize - iconSize) / 2;
+      const iconY = badgeY + (badgeSize - iconSize) / 2;
 
-    parts.push(
-      `<svg x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" viewBox="${cat.icon.viewBox}" ${paint}>${iconContent}</svg>`
-    );
+      const iconContent = cat.icon.body || (cat.icon.paths ? cat.icon.paths.map((d) => `<path d="${d}"/>`).join('') : '');
+      const paint = cat.icon.body
+        ? `color="${cat.color}" stroke="${cat.color}" fill="currentColor"`
+        : (cat.icon.stroked
+          ? `fill="none" stroke="${cat.color}" stroke-width="${cat.icon.strokeWidth || 1.5}" stroke-linecap="round" stroke-linejoin="round"`
+          : `fill="${cat.color}"`);
+
+      parts.push(
+        `<svg x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" viewBox="${cat.icon.viewBox}" ${paint}>${iconContent}</svg>`
+      );
+    });
   });
 
   // 4. Domain wordmark at the bottom (crisp white on dark background)

@@ -141,6 +141,11 @@ const approveSocialPost = async (req, res) => {
       post.contact = customContact.trim();
     }
 
+    const isAlreadyPublished = Boolean(
+      post.social?.facebook?.postId ||
+      post.social?.instagram?.mediaId
+    );
+
     if (!post.social) {
       post.social = {};
     }
@@ -156,9 +161,11 @@ const approveSocialPost = async (req, res) => {
     let queued = false;
     let queueMessage = '';
     try {
-      await socialPublishQueue.enqueuePost(post);
+      await socialPublishQueue.enqueuePost(post, { isUpdate: isAlreadyPublished });
       queued = true;
-      queueMessage = 'Listing approved and successfully enqueued for social publishing with safety pacing.';
+      queueMessage = isAlreadyPublished
+        ? 'Listing enqueued to be re-shared on social media with safety pacing.'
+        : 'Listing approved and successfully enqueued for social publishing with safety pacing.';
     } catch (queueErr) {
       console.error(`[AdminSocial] Failed to enqueue post ${post._id}:`, queueErr);
       queueMessage = 'Listing approved, but social media queueing experienced an issue: ' + queueErr.message;
@@ -260,6 +267,12 @@ const updateSocialPost = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Listing not found' });
     }
 
+    const wasApprovedOrPublished = (
+      post.social?.approvalStatus === 'approved' ||
+      Boolean(post.social?.facebook?.postId) ||
+      Boolean(post.social?.instagram?.mediaId)
+    );
+
     if (description !== undefined) post.description = description;
     if (contact !== undefined) post.contact = contact;
     if (exactLocation !== undefined) post.exactLocation = exactLocation;
@@ -273,19 +286,34 @@ const updateSocialPost = async (req, res) => {
       await cacheService.invalidatePattern('dashboard:*');
     } catch (_) {}
 
+    // If this listing was ALREADY approved/published, re-enqueue it to share the updates.
+    // If it is still pending review, DO NOT share it yet: the admin is editing it before approving,
+    // so we wait until they click "Approve & Publish" so only ONE post is shared.
+    let reQueued = false;
+    if (wasApprovedOrPublished && !post.returned && post.status !== 'suspended') {
+      try {
+        await socialPublishQueue.enqueuePost(post, { isUpdate: true });
+        reQueued = true;
+      } catch (err) {
+        console.error(`[AdminSocial] Failed to re-enqueue updated post ${post._id}:`, err);
+      }
+    }
+
     scheduleAdminAction({
       actorId: req.user,
       targetType: 'post',
       targetId: post._id,
       action: 'social_update',
       label: (post.description || 'Listing').slice(0, 50),
-      details: { postId: post._id },
+      details: { postId: post._id, reQueued },
       req,
     });
 
     res.status(200).json({
       success: true,
-      message: 'Listing updated successfully.',
+      message: reQueued
+        ? 'Listing updated and enqueued to be re-shared on social media.'
+        : 'Listing updated successfully.',
       data: post,
     });
   } catch (error) {

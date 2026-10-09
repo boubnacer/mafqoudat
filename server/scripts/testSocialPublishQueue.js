@@ -759,6 +759,27 @@ const run = async () => {
   check('and the job is closed out with the existing id', jobFor(mirrored._id, 'facebook').publishedId, 'fb_already_there');
 
   // -------------------------------------------------------------------------
+  console.log('\n--- an updated listing can be re-published to social media ---');
+
+  setup();
+  const updatedListing = addPost({ social: { facebook: { postId: 'fb_initial' }, instagram: { mediaId: 'ig_initial' } } });
+  // Initial enqueue without isUpdate should skip both platforms because they are already published
+  const skippedPlatforms = await queue.enqueuePost(updatedListing);
+  check('without isUpdate flag, already published post is skipped', skippedPlatforms.length, 0);
+
+  // Now re-enqueue with isUpdate: true
+  const reQueued = await queue.enqueuePost(updatedListing, { isUpdate: true });
+  check('with isUpdate flag, platforms are re-queued', reQueued, ['facebook', 'instagram']);
+  check('facebook job is pending with isUpdate flag', jobFor(updatedListing._id, 'facebook').status, 'pending');
+  check('facebook job has isUpdate true', jobFor(updatedListing._id, 'facebook').isUpdate, true);
+
+  // Run queue to publish the updated listing
+  const updateOutcome = await queue.runOnce();
+  check('updated listing is published', updateOutcome.facebook, 'published');
+  check('Facebook API call was made for update', publishCalls.filter((c) => c.platform === 'facebook' && c.post === updatedListing._id).length, 1);
+  check('job is marked done with isUpdate reset', jobFor(updatedListing._id, 'facebook').isUpdate, false);
+
+  // -------------------------------------------------------------------------
   console.log('\n--- an interrupted publish comes back, but not forever ---');
 
   setup();

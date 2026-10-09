@@ -373,6 +373,17 @@ const AdminSocialReviewPage = () => {
                   </Button>
                 </>
               )}
+              {!isPending && post.social?.approvalStatus === 'approved' && (
+                <Button
+                  size="small"
+                  onClick={() => handleApprove(post)}
+                  disabled={approving}
+                  startIcon={<ShareOutlined />}
+                  sx={{ ...actionButtonSx('primary'), px: 1.5 }}
+                >
+                  {t('reshareToSocial') || 'Share Again'}
+                </Button>
+              )}
             </Box>
           );
         },

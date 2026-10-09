@@ -292,7 +292,7 @@ class SocialPublishQueue {
    * inline publishing did - a job nobody can ever run is not a record worth
    * keeping.
    */
-  async enqueuePost(post) {
+  async enqueuePost(post, { isUpdate = false } = {}) {
     const postId = post?._id;
     if (!postId) return [];
 
@@ -310,24 +310,39 @@ class SocialPublishQueue {
       }
 
       const publisher = this.publishers[platform];
-      if (readPath(post, publisher.postIdPath)) continue;
+      // For initial publish: skip if already published to this platform
+      if (!isUpdate && readPath(post, publisher.postIdPath)) continue;
 
       try {
-        await this.jobs.updateOne(
-          { post: postId, platform },
-          {
-            // `post` and `platform` are deliberately not repeated here: an
-            // upsert builds the new document from the filter's equality terms
-            // as well as the update operators, and naming the same field twice
-            // is how a write conflict is invited.
-            $setOnInsert: {
-              status: 'pending',
-              attempts: 0,
-              nextAttemptAt: new Date(this.now()),
+        if (isUpdate) {
+          await this.jobs.updateOne(
+            { post: postId, platform },
+            {
+              $set: {
+                status: 'pending',
+                attempts: 0,
+                nextAttemptAt: new Date(this.now()),
+                lockedAt: null,
+                lastError: null,
+                isUpdate: true,
+              },
             },
-          },
-          { upsert: true }
-        );
+            { upsert: true }
+          );
+        } else {
+          await this.jobs.updateOne(
+            { post: postId, platform },
+            {
+              $setOnInsert: {
+                status: 'pending',
+                attempts: 0,
+                nextAttemptAt: new Date(this.now()),
+                isUpdate: false,
+              },
+            },
+            { upsert: true }
+          );
+        }
         queued.push(platform);
       } catch (error) {
         // Two concurrent enqueues for the same post race to insert; the unique
@@ -550,14 +565,17 @@ class SocialPublishQueue {
     // Already published - by the inline path this replaced, or by a previous
     // run of this job whose bookkeeping did not survive. The point of the
     // check is that it is the last line of defence against a second copy.
+    // If job.isUpdate is true, the listing was intentionally updated and should
+    // be shared again rather than treated as already published.
     const existingId = readPath(post, publisher.postIdPath);
-    if (existingId) {
+    if (!job.isUpdate && existingId) {
       await this.finishJob(job._id, {
         status: 'done',
         publishedId: existingId,
         permalink: readPath(post, publisher.postPermalinkPath) || null,
         publishedAt: readPath(post, publisher.postPostedAtPath) || new Date(this.now()),
         lastError: null,
+        isUpdate: false,
       });
       return 'already-published';
     }
@@ -594,8 +612,9 @@ class SocialPublishQueue {
     // account itself can settle it. Skipped on a job that has never run,
     // where there is by definition nothing to have duplicated, so the common
     // case pays nothing for this.
+    // NOTE: Skipped for updates since the old listing is expected to be on the account.
     const hasBeenTried = (job.attempts || 0) > 0 || job.lastError === REQUEUED_BY_HAND;
-    if (hasBeenTried && typeof publisher.service.findPublishedListing === 'function') {
+    if (!job.isUpdate && hasBeenTried && typeof publisher.service.findPublishedListing === 'function') {
       const alreadyThere = await publisher.service.findPublishedListing(post, targetOptions);
       if (alreadyThere?.[publisher.idKey]) {
         console.warn(
@@ -653,6 +672,7 @@ class SocialPublishQueue {
       publishedId,
       permalink: result.permalink || null,
       lastError: null,
+      isUpdate: false,
     });
 
     try {
@@ -661,6 +681,10 @@ class SocialPublishQueue {
           [publisher.postIdPath]: publishedId,
           [publisher.postPermalinkPath]: result.permalink || null,
           [publisher.postPostedAtPath]: publishedAt,
+          'social.lastSharedAt': publishedAt,
+        },
+        $inc: {
+          'social.shareCount': 1,
         },
       });
     } catch (error) {

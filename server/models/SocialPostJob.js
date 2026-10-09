@@ -50,6 +50,12 @@ const socialPostJobSchema = new mongoose.Schema(
       default: 'pending',
       required: true,
     },
+    // True when this job represents re-publishing an updated post rather than
+    // an initial publish.
+    isUpdate: {
+      type: Boolean,
+      default: false,
+    },
     // Failed publishes only. Being deferred for a rate limit or a daily quota
     // is not an attempt - the request was never made, or was refused for a
     // reason that resolves by itself, so it must not count towards giving up.

@@ -263,6 +263,8 @@ const postSchema = new mongoose.Schema(
         permalink: { type: String, default: null },
         postedAt: { type: Date, default: null },
       },
+      lastSharedAt: { type: Date, default: null },
+      shareCount: { type: Number, default: 0 },
     },
     // Counters mirrored back from the Pages by services/socialStatsService.js.
     // Every number defaults to null rather than 0 so the UI can tell "never

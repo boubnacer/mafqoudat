@@ -21,6 +21,9 @@ async function main() {
     { name: 'single-pets', codes: ['PETS'] },
     { name: 'dual-pets-keys', codes: ['PETS', 'KEYS'] },
     { name: 'triple-pets-keys-electronics', codes: ['PETS', 'KEYS', 'ELECTRONICS'] },
+    { name: 'quad-pets-keys-electronics-phones', codes: ['PETS', 'KEYS', 'ELECTRONICS', 'PHONES'] },
+    { name: 'five-categories-sample', codes: ['PETS', 'KEYS', 'ELECTRONICS', 'PHONES', 'DOCUMENTS'] },
+    { name: 'ten-categories-max', codes: ['PETS', 'KEYS', 'ELECTRONICS', 'PHONES', 'DOCUMENTS', 'JEWELRY', 'CLOTHING', 'VEHICLES', 'WALLET', 'BAGS'] },
   ];
 
   for (const { name, codes } of tests) {
