@@ -52,7 +52,7 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
         background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
         backdropFilter: "blur(10px)",
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
-        padding: isMobile ? "1.5rem" : "1.65rem 1.75rem",
+        padding: isMobile ? { xs: "1.125rem 0.875rem", sm: "1.25rem 1rem" } : "1.65rem 1.75rem",
         boxShadow: 'none',
       }}
     >

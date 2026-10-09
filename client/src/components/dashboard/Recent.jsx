@@ -28,7 +28,7 @@ const Recent = ({ recent, type, maxItems }) => {
     <Box
       width="100%"
       display="grid"
-      gap={isMobile ? 1.5 : 2}
+      gap={isMobile ? 1.25 : 2}
       sx={{
         gridTemplateColumns: "repeat(2, 1fr)",
       }}

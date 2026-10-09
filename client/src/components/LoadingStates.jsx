@@ -84,7 +84,7 @@ export const RecentItemsSkeleton = () => {
     <Box
       sx={{
         display: 'grid',
-        gap: { xs: 1.5, sm: 2 },
+        gap: { xs: 1.25, sm: 2 },
         gridTemplateColumns: 'repeat(2, 1fr)',
       }}
     >
@@ -92,7 +92,11 @@ export const RecentItemsSkeleton = () => {
         <SkeletonBlock
           key={item}
           radius={theme.custom.radius.lg}
-          sx={{ width: '100%', aspectRatio: { xs: '3 / 4', md: '4 / 4.5' } }}
+          sx={{
+            width: '100%',
+            aspectRatio: { xs: '3 / 4.25', sm: '3 / 4.1', md: '4 / 4.5' },
+            minHeight: { xs: 230, sm: 240, md: 'auto' },
+          }}
         />
       ))}
     </Box>
