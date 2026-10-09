@@ -173,6 +173,7 @@ const {
   approveSocialPost,
   skipSocialPost,
   updateSocialPost,
+  updatePostSocialUrls,
 } = require("../controllers/adminSocialController");
 const {
   getSystemHealth,
@@ -199,6 +200,11 @@ router.post("/social-review/:postId/skip", skipSocialPost);
 // @desc Update post details from social review page
 // @access Private (Admin only)
 router.patch("/social-review/:postId/update", updateSocialPost);
+
+// @route PATCH /admin/posts/:postId/social-urls
+// @desc Update Facebook and Instagram URLs for a post
+// @access Private (Admin only)
+router.patch("/posts/:postId/social-urls", updatePostSocialUrls);
 
 /* -------------------------------------------------- system health & logs */
 

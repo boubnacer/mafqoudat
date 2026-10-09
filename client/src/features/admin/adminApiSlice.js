@@ -280,6 +280,20 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ['AdminSocialReview', 'Post'],
     }),
 
+    updatePostSocialUrls: builder.mutation({
+      query: ({ postId, facebookUrl, instagramUrl, facebookPostId, instagramMediaId }) => ({
+        url: `/admin/posts/${postId}/social-urls`,
+        method: 'PATCH',
+        body: { facebookUrl, instagramUrl, facebookPostId, instagramMediaId },
+      }),
+      invalidatesTags: (result, error, { postId }) => [
+        { type: 'Post', id: postId },
+        { type: 'Post', id: 'LIST' },
+        'AdminSocialReview',
+        'AdminOverview',
+      ],
+    }),
+
     /* ------------------------------------------------ system health & logs */
 
     getSystemHealth: builder.query({
@@ -335,6 +349,7 @@ export const {
   useApproveSocialPostMutation,
   useSkipSocialPostMutation,
   useUpdateSocialPostMutation,
+  useUpdatePostSocialUrlsMutation,
   useGetSystemHealthQuery,
   useGetSystemLogsQuery,
   useClearSystemLogsMutation,

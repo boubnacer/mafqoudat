@@ -3,6 +3,8 @@ const User = require("../models/User");
 const socialPublishQueue = require("../services/socialPublishQueue");
 const { scheduleAdminAction } = require("../services/adminAudit");
 const { cacheService } = require("../config/cache");
+const socialStatsService = require("../services/socialStatsService");
+const { SocialStatsService } = require("../services/socialStatsService");
 
 /**
  * Admin Social Media Review Controller
@@ -326,9 +328,175 @@ const updateSocialPost = async (req, res) => {
   }
 };
 
+// @desc    Update Facebook and Instagram reach URLs/IDs for a post
+// @route   PATCH /admin/posts/:postId/social-urls
+// @access  Private (Admin only)
+const updatePostSocialUrls = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const {
+      facebookUrl,
+      instagramUrl,
+      facebookPostId,
+      instagramMediaId,
+    } = req.body;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Listing not found' });
+    }
+
+    if (!post.social) {
+      post.social = {};
+    }
+    if (!post.social.facebook) {
+      post.social.facebook = {};
+    }
+    if (!post.social.instagram) {
+      post.social.instagram = {};
+    }
+
+    // Helper to extract Facebook post ID from URL if possible
+    const extractFbId = (url) => {
+      if (!url || typeof url !== 'string') return null;
+      const trimmed = url.trim();
+      if (/^\d+(_\d+)?$/.test(trimmed)) return trimmed;
+      try {
+        const parsed = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+        const storyFbid = parsed.searchParams.get('story_fbid');
+        const id = parsed.searchParams.get('id');
+        if (storyFbid) return id ? `${id}_${storyFbid}` : storyFbid;
+        const fbid = parsed.searchParams.get('fbid');
+        if (fbid) return fbid;
+        const postMatch = parsed.pathname.match(/\/(?:posts|videos|reel|photos)\/([0-9]+)/);
+        if (postMatch) return postMatch[1];
+        const slashParts = parsed.pathname.split('/').filter(Boolean);
+        for (let i = 0; i < slashParts.length; i++) {
+          if (['posts', 'videos', 'reel'].includes(slashParts[i]) && slashParts[i + 1]) {
+            return slashParts[i + 1];
+          }
+        }
+      } catch (_) {}
+      return null;
+    };
+
+    // Helper to extract Instagram media code from URL if possible
+    const extractIgCode = (url) => {
+      if (!url || typeof url !== 'string') return null;
+      const trimmed = url.trim();
+      try {
+        const parsed = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+        const match = parsed.pathname.match(/\/(?:p|reel|tv)\/([a-zA-Z0-9_-]+)/);
+        if (match) return match[1];
+      } catch (_) {}
+      return null;
+    };
+
+    // Handle Facebook URL / ID
+    if (facebookUrl !== undefined) {
+      const cleanFbUrl = facebookUrl && typeof facebookUrl === 'string' ? facebookUrl.trim() : null;
+      post.social.facebook.permalink = cleanFbUrl;
+      if (cleanFbUrl && !post.social.facebook.postedAt) {
+        post.social.facebook.postedAt = new Date();
+      }
+    }
+
+    if (facebookPostId !== undefined) {
+      post.social.facebook.postId = facebookPostId && typeof facebookPostId === 'string' ? facebookPostId.trim() : null;
+    } else if (facebookUrl !== undefined && post.social.facebook.permalink) {
+      const detectedId = extractFbId(post.social.facebook.permalink);
+      if (detectedId && !post.social.facebook.postId) {
+        post.social.facebook.postId = detectedId;
+      }
+    }
+
+    // Handle Instagram URL / ID
+    if (instagramUrl !== undefined) {
+      const cleanIgUrl = instagramUrl && typeof instagramUrl === 'string' ? instagramUrl.trim() : null;
+      post.social.instagram.permalink = cleanIgUrl;
+      if (cleanIgUrl && !post.social.instagram.postedAt) {
+        post.social.instagram.postedAt = new Date();
+      }
+    }
+
+    if (instagramMediaId !== undefined) {
+      post.social.instagram.mediaId = instagramMediaId && typeof instagramMediaId === 'string' ? instagramMediaId.trim() : null;
+    }
+
+    // If social approval was still pending and at least one social URL is provided, mark approved
+    const hasAnyLink = Boolean(post.social.facebook.permalink || post.social.instagram.permalink);
+    if (hasAnyLink && post.social.approvalStatus === 'pending') {
+      post.social.approvalStatus = 'approved';
+      post.social.approvedAt = new Date();
+      post.social.approvedBy = req.user;
+    }
+
+    // Reset unavailable flags if links are newly set
+    if (post.socialStats?.facebook && post.social.facebook.permalink) {
+      post.socialStats.facebook.unavailable = false;
+    }
+    if (post.socialStats?.instagram && post.social.instagram.permalink) {
+      post.socialStats.instagram.unavailable = false;
+    }
+
+    post.markModified('social');
+    if (post.socialStats) {
+      post.markModified('socialStats');
+    }
+
+    await post.save();
+
+    // Invalidate caches
+    try {
+      await cacheService.invalidatePattern('posts:*');
+      await cacheService.invalidatePattern('dashboard:*');
+    } catch (_) {}
+
+    // Audit log
+    scheduleAdminAction({
+      actorId: req.user,
+      targetType: 'post',
+      targetId: post._id,
+      action: 'social_urls_update',
+      label: (post.description || 'Listing').slice(0, 50),
+      details: {
+        postId: post._id,
+        facebookPermalink: post.social?.facebook?.permalink,
+        instagramPermalink: post.social?.instagram?.permalink,
+        facebookPostId: post.social?.facebook?.postId,
+        instagramMediaId: post.social?.instagram?.mediaId,
+      },
+      req,
+    });
+
+    // If social targets exist, trigger background refresh of stats
+    try {
+      if (SocialStatsService.hasSocialTargets(post)) {
+        socialStatsService.scheduleRefresh([post]);
+      }
+    } catch (err) {
+      console.warn(`[AdminSocial] Could not schedule stats refresh for ${post._id}:`, err.message);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Social media URLs updated successfully.',
+      data: post,
+    });
+  } catch (error) {
+    console.error('[AdminSocial] Error updating social URLs:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update social media URLs',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getSocialReviewPosts,
   approveSocialPost,
   skipSocialPost,
   updateSocialPost,
+  updatePostSocialUrls,
 };

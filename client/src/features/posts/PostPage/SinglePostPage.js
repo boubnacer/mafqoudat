@@ -473,7 +473,8 @@ const SinglePostPage = ({
   const { usernameId, isAuthenticated, role } = useAuth();
   const { t, currentLanguage } = useTranslation();
 
-  const canEdit = (user === usernameId || role === 'admin') && isAuthenticated;
+  const isAdmin = role === 'admin' && isAuthenticated;
+  const canEdit = (user === usernameId || isAdmin);
   const canDelete = canEdit;
   const isAuthor = user === usernameId;
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
@@ -1530,7 +1531,7 @@ const SinglePostPage = ({
                   destination of the "your listing is on our Facebook page"
                   notification, which links here with ?section=social-reach -
                   hence the deep-link ref and the brief arrival highlight. */}
-              {hasSocialReach({ social, socialStats }) && (
+              {(hasSocialReach({ social, socialStats }) || isAdmin) && (
                 <Box
                   ref={reachSection.ref}
                   sx={{
@@ -1542,7 +1543,12 @@ const SinglePostPage = ({
                       : 'none',
                   }}
                 >
-                  <SocialReach post={{ social, socialStats }} />
+                  <SocialReach
+                    post={{ _id, social, socialStats }}
+                    postId={_id}
+                    isAdmin={isAdmin}
+                    onUpdateSuccess={refetchPost}
+                  />
                 </Box>
               )}
 

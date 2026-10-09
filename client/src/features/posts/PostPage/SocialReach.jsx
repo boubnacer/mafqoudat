@@ -1,4 +1,5 @@
-import { Box, Typography, useTheme, alpha, CircularProgress } from "@mui/material";
+import { useState } from "react";
+import { Box, Typography, useTheme, alpha, CircularProgress, Button } from "@mui/material";
 import {
   StackedBarChartOutlined as ReachIcon,
   Facebook as FacebookIcon,
@@ -12,9 +13,11 @@ import {
   TouchAppOutlined as ClicksIcon,
   BookmarkBorderOutlined as SavedIcon,
   OpenInNew as OpenIcon,
+  Edit as EditIcon,
 } from "@mui/icons-material";
 import { useTranslation } from "../../../utils/translations";
 import { summarizeSocialStats } from "../../../utils/socialStats";
+import UpdateSocialUrlsDialog from "./UpdateSocialUrlsDialog";
 
 /**
  * What the listing's auto-posted copies are doing on the Facebook Page and the
@@ -179,9 +182,10 @@ export const hasSocialReach = (post) => {
   );
 };
 
-const SocialReach = ({ post }) => {
+const SocialReach = ({ post, postId, isAdmin, onUpdateSuccess }) => {
   const { t } = useTranslation();
   const theme = useTheme();
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { facebook, instagram, hasStats } = summarizeSocialStats(post);
   const isDark = theme.palette.mode === 'dark';
   const isPublishing = !!post?.social?.isPublishing;
@@ -189,9 +193,10 @@ const SocialReach = ({ post }) => {
   const showFacebook = showsPlatform(facebook) || (isPublishing && !facebook.unavailable);
   const showInstagram = showsPlatform(instagram) || (isPublishing && !instagram.unavailable);
 
-  if (!showFacebook && !showInstagram && !isPublishing) return null;
+  if (!showFacebook && !showInstagram && !isPublishing && !isAdmin) return null;
 
-  const awaitingNumbers = !hasStats;
+  const hasPlatforms = showFacebook || showInstagram;
+  const awaitingNumbers = !hasStats && hasPlatforms;
   const brand = theme.custom.color.brandPrimary;
   // radial-gradient has no logical-property equivalent, so the glow's start
   // corner is picked from theme.direction instead of a fixed 0% 0%.
@@ -213,55 +218,125 @@ const SocialReach = ({ post }) => {
         boxShadow: `${theme.custom.elevation.e2}, 0 0 32px ${alpha(brand, isDark ? 0.16 : 0.08)}`,
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.25 }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25, minWidth: 0, flex: 1 }}>
+          <Box
+            sx={{
+              width: 34,
+              height: 34,
+              borderRadius: `${theme.custom.radius.sm}px`,
+              backgroundImage: `linear-gradient(135deg, ${brand}, #EC4899)`,
+              boxShadow: `0 0 16px ${alpha(brand, 0.45)}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <ReachIcon sx={{ fontSize: 18, color: '#FFFFFF' }} />
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: { xs: '1rem', md: '1.1rem' } }}
+            >
+              {t('socialReach')}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+              {t('socialReachNote')}
+            </Typography>
+            {awaitingNumbers && !isPublishing && (
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                {t('socialReachPending')}
+              </Typography>
+            )}
+            {isPublishing && (
+              <Typography
+                variant="caption"
+                sx={{
+                  color: theme.custom.color.brandPrimary,
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  mt: 0.5,
+                }}
+              >
+                <CircularProgress size={12} thickness={5} sx={{ color: theme.custom.color.brandPrimary }} />
+                {t('socialPublishingInProgress')}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+
+        {isAdmin && (
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => setDialogOpen(true)}
+            startIcon={<EditIcon sx={{ fontSize: 15 }} />}
+            sx={{
+              borderRadius: `${theme.custom.radius.sm}px`,
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: '0.75rem',
+              borderColor: alpha(brand, 0.4),
+              color: brand,
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              py: 0.5,
+              px: 1.25,
+              '&:hover': {
+                borderColor: brand,
+                backgroundColor: alpha(brand, 0.08),
+              },
+            }}
+          >
+            {t('updateSocialUrls')}
+          </Button>
+        )}
+      </Box>
+
+      {/* Admin empty state when no posts are linked yet */}
+      {!showFacebook && !showInstagram && !isPublishing && isAdmin && (
         <Box
           sx={{
-            width: 34,
-            height: 34,
-            borderRadius: `${theme.custom.radius.sm}px`,
-            backgroundImage: `linear-gradient(135deg, ${brand}, #EC4899)`,
-            boxShadow: `0 0 16px ${alpha(brand, 0.45)}`,
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            flexShrink: 0,
+            p: 2.5,
+            gap: 1.5,
+            textAlign: 'center',
+            borderRadius: `${theme.custom.radius.md}px`,
+            backgroundColor: alpha(theme.custom.color.ink, isDark ? 0.06 : 0.03),
+            border: `1px dashed ${alpha(theme.custom.color.ink, 0.15)}`,
           }}
         >
-          <ReachIcon sx={{ fontSize: 18, color: '#FFFFFF' }} />
-        </Box>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 700, color: theme.custom.color.ink, fontSize: { xs: '1rem', md: '1.1rem' } }}
+          <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 450 }}>
+            {t('noSocialReachAdmin')}
+          </Typography>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => setDialogOpen(true)}
+            startIcon={<EditIcon sx={{ fontSize: 16 }} />}
+            sx={{
+              borderRadius: `${theme.custom.radius.sm}px`,
+              textTransform: 'none',
+              fontWeight: 600,
+              backgroundColor: brand,
+              color: '#FFFFFF',
+              '&:hover': {
+                backgroundColor: brand,
+                filter: 'brightness(0.92)',
+              },
+            }}
           >
-            {t('socialReach')}
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-            {t('socialReachNote')}
-          </Typography>
-          {awaitingNumbers && !isPublishing && (
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-              {t('socialReachPending')}
-            </Typography>
-          )}
-          {isPublishing && (
-            <Typography
-              variant="caption"
-              sx={{
-                color: theme.custom.color.brandPrimary,
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.75,
-                mt: 0.5,
-              }}
-            >
-              <CircularProgress size={12} thickness={5} sx={{ color: theme.custom.color.brandPrimary }} />
-              {t('socialPublishingInProgress')}
-            </Typography>
-          )}
+            {t('addSocialUrls')}
+          </Button>
         </Box>
-      </Box>
+      )}
 
       {showFacebook && (
         <PlatformBlock
@@ -295,6 +370,23 @@ const SocialReach = ({ post }) => {
           <Metric icon={CommentsIcon} value={instagram.comments} label={t('comments')} tint="#E1306C" />
           <Metric icon={SavedIcon} value={instagram.saved} label={t('saved')} tint="#E1306C" />
         </PlatformBlock>
+      )}
+
+      {isAdmin && (
+        <UpdateSocialUrlsDialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          postId={postId || post?._id}
+          currentFacebookUrl={post?.social?.facebook?.permalink || ''}
+          currentInstagramUrl={post?.social?.instagram?.permalink || ''}
+          currentFacebookPostId={post?.social?.facebook?.postId || ''}
+          currentInstagramMediaId={post?.social?.instagram?.mediaId || ''}
+          onSuccess={(updatedData) => {
+            if (onUpdateSuccess) {
+              onUpdateSuccess(updatedData);
+            }
+          }}
+        />
       )}
     </Box>
   );
