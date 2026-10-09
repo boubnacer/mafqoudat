@@ -1,5 +1,5 @@
 import { useNavigate, Link } from "react-router-dom";
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, Fragment } from "react";
 import React from "react";
 import noImageSvg from "../../../img/noimage.svg";
 import {
@@ -107,71 +107,149 @@ const ResolvedBadge = ({ label }) => {
   );
 };
 
-// No-image state: category icon on a frosted circle backdrop with optional
-// category name beneath it as a matching translucent pill, centered
-const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize, showLabel = true }) => {
+// Unified Frosted Pod for no-image states: 1 category has prominent icon + label,
+// 2 or more categories has line-by-line vertical rows with hairline dividers
+const CategoryBentoPod = ({ items }) => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  const dividerColor = isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)";
+  const count = items?.length || 0;
+
+  if (count === 0) return null;
+
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: showLabel ? 1 : 0,
-        flexShrink: 0,
+        backgroundColor: isDark
+          ? alpha(theme.custom.color.surfaceRaised || "#1e293b", 0.82)
+          : "rgba(255, 255, 255, 0.88)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
+        border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.14)" : "rgba(255, 255, 255, 0.95)"}`,
+        boxShadow: isDark
+          ? "0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2)"
+          : "0 10px 28px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)",
+        borderRadius: { xs: "18px", sm: "22px" },
+        width: count === 1 ? "fit-content" : "100%",
+        maxWidth: count === 1 ? { xs: "88%", sm: "84%" } : { xs: "92%", sm: "88%" },
+        boxSizing: "border-box",
+        overflow: "hidden",
+        p: count === 1
+          ? { xs: "16px 24px", sm: "20px 30px" }
+          : { xs: "12px 14px", sm: "14px 18px" },
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      <Box
-        sx={{
-          width: circleSize,
-          height: circleSize,
-          borderRadius:
-            typeof circleSize === 'object' && circleSize !== null
-              ? {
-                  xs: `${theme.custom.radius.md}px`,
-                  sm: '14px',
-                  md: '16px',
-                }
-              : typeof circleSize === 'number' && circleSize > 70
-                ? `${theme.custom.radius.lg + 4}px`
-                : { xs: `${theme.custom.radius.md}px`, sm: '14px' },
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          border: `1px solid ${color}`,
-          boxShadow: `0 2px 8px ${alpha(color, 0.12)}`,
-          flexShrink: 0,
-        }}
-      >
-        <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />
-      </Box>
-      {showLabel && (
+      {/* 1 Category: current centered icon + label design */}
+      {count === 1 && (() => {
+        const item = items[0];
+        const Icon = item.IconComponent;
+        return (
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1, width: "100%", minWidth: 0 }}>
+            <Box
+              sx={{
+                color: item.style?.main || theme.palette.text.primary,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "& svg": { fontSize: { xs: 44, sm: 54 } },
+              }}
+            >
+              <Icon />
+            </Box>
+            <Typography
+              noWrap
+              sx={{
+                fontWeight: 750,
+                fontSize: { xs: "13px", sm: "14px" },
+                color: item.style?.main || theme.custom.color.ink,
+                lineHeight: 1.2,
+                textAlign: "center",
+                maxWidth: 160,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {item.label}
+            </Typography>
+          </Box>
+        );
+      })()}
+
+      {/* 2 or more Categories: Vertical Line-by-Line list with hairline dividers */}
+      {count >= 2 && (
         <Box
           sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            border: `1px solid ${color}`,
-            color,
-            fontWeight: 800,
-            fontSize: { xs: '11px', sm: '12px' },
-            lineHeight: 1,
-            borderRadius: `${theme.custom.radius.sm}px`,
-            px: { xs: 1, sm: 1.25 },
-            py: { xs: 0.5, sm: 0.5 },
-            textAlign: 'center',
-            maxWidth: 120,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            minWidth: 0,
+            boxSizing: "border-box",
           }}
         >
-          {label}
+          {items.slice(0, 5).map((item, idx) => {
+            const Icon = item.IconComponent;
+            return (
+              <Fragment key={item.code || idx}>
+                {idx > 0 && (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      height: "1px",
+                      bgcolor: dividerColor,
+                      my: count >= 5 ? 0.35 : 0.5,
+                      flexShrink: 0,
+                      boxSizing: "border-box",
+                    }}
+                  />
+                )}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: { xs: 1, sm: 1.25 },
+                    width: "100%",
+                    minWidth: 0,
+                    boxSizing: "border-box",
+                    py: count >= 5 ? 0.2 : 0.35,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      color: item.style?.main || theme.palette.text.primary,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      "& svg": {
+                        fontSize: count >= 5 ? { xs: 17, sm: 19 } : { xs: 19, sm: 22 },
+                      },
+                    }}
+                  >
+                    <Icon />
+                  </Box>
+                  <Typography
+                    noWrap
+                    sx={{
+                      flex: 1,
+                      minWidth: 0,
+                      fontWeight: 750,
+                      fontSize: count >= 5 ? { xs: "11px", sm: "11.5px" } : { xs: "11.5px", sm: "12.5px" },
+                      color: theme.custom.color.ink,
+                      lineHeight: 1.2,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {item.label}
+                  </Typography>
+                </Box>
+              </Fragment>
+            );
+          })}
         </Box>
       )}
     </Box>
@@ -460,29 +538,7 @@ const Post = ({ post, type }) => {
   }, [post?.image, categories, categoryStyles, categoryNames]);
 
   const hasImage = Boolean(post?.image);
-  const isMultiCategoryNoImage = !hasImage && (categories.length > 2 || categoryIconsData.length > 2);
-  const showTopCategoryBadges = hasImage || isMultiCategoryNoImage;
-
-  const multiIconCircleSize = useMemo(() => {
-    if (categoryIconsData.length === 1) return 84;
-    if (categoryIconsData.length === 2) return 56;
-    if (categoryIconsData.length === 3) return { xs: 46, sm: 54, md: 58 };
-    return { xs: 40, sm: 46, md: 50 };
-  }, [categoryIconsData.length]);
-
-  const multiIconFontSize = useMemo(() => {
-    if (categoryIconsData.length === 1) return '56px';
-    if (categoryIconsData.length === 2) return '32px';
-    if (categoryIconsData.length === 3) return { xs: '26px', sm: '30px', md: '32px' };
-    return { xs: '22px', sm: '26px', md: '28px' };
-  }, [categoryIconsData.length]);
-
-  const multiIconGap = useMemo(() => {
-    if (categoryIconsData.length === 1) return 0;
-    if (categoryIconsData.length === 2) return 2;
-    if (categoryIconsData.length === 3) return { xs: 1.25, sm: 1.75, md: 2 };
-    return { xs: 1, sm: 1.25, md: 1.5 };
-  }, [categoryIconsData.length]);
+  const showTopCategoryBadges = hasImage;
 
   // Memoized error handler for image
   const handleImageError = useCallback((e) => {
@@ -575,28 +631,19 @@ const Post = ({ post, type }) => {
         ) : categoryIconsData.length > 0 ? (
           <Box
             sx={{
+              position: 'absolute',
+              inset: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              flexDirection: 'row',
-              flexWrap: isMultiCategoryNoImage ? 'nowrap' : 'wrap',
-              gap: multiIconGap,
-              padding: 2,
+              p: { xs: 1.5, sm: 2 },
               width: '100%',
               height: '100%',
+              zIndex: 1,
+              boxSizing: 'border-box',
             }}
           >
-            {categoryIconsData.slice(0, isMultiCategoryNoImage ? undefined : 4).map((iconData, idx) => (
-              <CategoryIconLabel
-                key={iconData.code || idx}
-                icon={iconData.IconComponent}
-                label={iconData.label}
-                showLabel={!isMultiCategoryNoImage}
-                color={iconData.style?.main || theme.palette.text.secondary}
-                iconSize={multiIconFontSize}
-                circleSize={multiIconCircleSize}
-              />
-            ))}
+            <CategoryBentoPod items={categoryIconsData} />
           </Box>
         ) : null}
 

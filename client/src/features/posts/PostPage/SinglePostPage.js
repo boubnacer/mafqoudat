@@ -16,7 +16,7 @@ import {
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
 import noImageSvg from "../../../img/noimage.svg";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, Fragment } from "react";
 import ReportDialog from "../../../components/ReportDialog";
 import { useSubmitReportMutation } from "../reportsApiSlice";
 import { useBlockUserMutation } from "../../userSettings/usersApiSlice";
@@ -217,61 +217,151 @@ const CategoryTags = ({ items }) => (
 
 // No-image state only: the category icon sits on a soft frosted circle
 // (translucent surfaceRaised, blurred), with the category name underneath
-// it as the same translucent chip (CategoryChip) used by the on-image
-// corner badge - a plain colored label with a halo text-shadow used to sit
-// here instead, which read as text, not a badge. The corner badge
-// (CategoryTags) still carries this when there's a photo; it would
-// duplicate this icon+label treatment stacked next to it, so it only
-// renders when there's no photo to pin it to instead.
-const CategoryIconLabel = ({ icon: Icon, label, color, iconSize, circleSize }) => {
+// Unified Frosted Pod for no-image states: 1 category has prominent icon + label,
+// 2 or more categories has line-by-line vertical rows with hairline dividers
+const CategoryBentoPod = ({ items }) => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  const dividerColor = isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)";
+  const count = items?.length || 0;
+
+  if (count === 0) return null;
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-      <Box
-        sx={{
-          width: circleSize,
-          height: circleSize,
-          borderRadius:
-            typeof circleSize === 'object' && circleSize !== null
-              ? {
-                  xs: circleSize.xs > 100 ? `${theme.custom.radius.xl}px` : `${theme.custom.radius.lg}px`,
-                  sm: circleSize.sm > 120 ? '28px' : '18px',
-                  md: circleSize.md > 150 ? '34px' : '22px',
-                }
-              : typeof circleSize === 'number' && circleSize > 70
-                ? `${theme.custom.radius.lg + 4}px`
-                : { xs: `${theme.custom.radius.md}px`, sm: '14px' },
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          border: `1px solid ${color}`,
-          boxShadow: `0 2px 8px ${alpha(color, 0.12)}`,
-        }}
-      >
-        <Icon sx={{ fontSize: iconSize, color, opacity: 0.9 }} />
-      </Box>
-      <Box
-        sx={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.55),
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          border: `1px solid ${color}`,
-          color,
-          fontWeight: 800,
-          fontSize: { xs: '13px', sm: '14px' },
-          lineHeight: 1,
-          borderRadius: `${theme.custom.radius.sm}px`,
-          px: { xs: 1.25, sm: 1.5 },
-          py: { xs: 0.5, sm: 0.625 },
-        }}
-      >
-        {label}
-      </Box>
+    <Box
+      sx={{
+        backgroundColor: isDark
+          ? alpha(theme.custom.color.surfaceRaised || "#1e293b", 0.82)
+          : "rgba(255, 255, 255, 0.88)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
+        border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.14)" : "rgba(255, 255, 255, 0.95)"}`,
+        boxShadow: isDark
+          ? "0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2)"
+          : "0 10px 28px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)",
+        borderRadius: { xs: "22px", sm: "28px" },
+        width: count === 1 ? "fit-content" : "100%",
+        maxWidth: count === 1 ? { xs: "85%", sm: 320 } : { xs: "92%", sm: 380, md: 420 },
+        boxSizing: "border-box",
+        overflow: "hidden",
+        p: count === 1
+          ? { xs: "24px 32px", sm: "32px 42px" }
+          : { xs: "16px 20px", sm: "20px 26px" },
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {/* 1 Category: prominent centered icon and label */}
+      {count === 1 && (() => {
+        const item = items[0];
+        const Icon = item.IconComponent;
+        return (
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1.5, width: "100%", minWidth: 0 }}>
+            <Box
+              sx={{
+                color: item.style?.main || theme.palette.text.primary,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "& svg": { fontSize: { xs: 64, sm: 84, md: 96 } },
+              }}
+            >
+              <Icon />
+            </Box>
+            <Typography
+              noWrap
+              sx={{
+                fontWeight: 750,
+                fontSize: { xs: "15px", sm: "17px" },
+                color: item.style?.main || theme.custom.color.ink,
+                lineHeight: 1.2,
+                textAlign: "center",
+                maxWidth: 240,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {item.label}
+            </Typography>
+          </Box>
+        );
+      })()}
+
+      {/* 2 or more Categories: Vertical Line-by-Line list with hairline dividers */}
+      {count >= 2 && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            minWidth: 0,
+            boxSizing: "border-box",
+          }}
+        >
+          {items.slice(0, 5).map((item, idx) => {
+            const Icon = item.IconComponent;
+            return (
+              <Fragment key={item.code || idx}>
+                {idx > 0 && (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      height: "1px",
+                      bgcolor: dividerColor,
+                      my: 0.6,
+                      flexShrink: 0,
+                      boxSizing: "border-box",
+                    }}
+                  />
+                )}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: { xs: 1.25, sm: 1.75 },
+                    width: "100%",
+                    minWidth: 0,
+                    boxSizing: "border-box",
+                    py: 0.45,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      color: item.style?.main || theme.palette.text.primary,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      "& svg": {
+                        fontSize: { xs: 22, sm: 26 },
+                      },
+                    }}
+                  >
+                    <Icon />
+                  </Box>
+                  <Typography
+                    noWrap
+                    sx={{
+                      flex: 1,
+                      minWidth: 0,
+                      fontWeight: 750,
+                      fontSize: { xs: "13px", sm: "14.5px" },
+                      color: theme.custom.color.ink,
+                      lineHeight: 1.2,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {item.label}
+                  </Typography>
+                </Box>
+              </Fragment>
+            );
+          })}
+        </Box>
+      )}
     </Box>
   );
 };
@@ -1221,31 +1311,14 @@ const SinglePostPage = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: categoryIconsData.length === 1 ? 0 : { xs: 3, sm: 3.5, md: 4 },
-                    flexWrap: 'wrap',
-                    padding: 2,
+                    p: { xs: 2, sm: 3 },
                     width: '100%',
                     height: { xs: 300, sm: 400, md: 500 },
+                    boxSizing: 'border-box',
+                    zIndex: 1,
                   }}
                 >
-                  {categoryIconsData.slice(0, 4).map((iconData, idx) => (
-                    <CategoryIconLabel
-                      key={iconData.code || idx}
-                      icon={iconData.IconComponent}
-                      label={iconData.label}
-                      color={iconData.style?.main || theme.palette.text.secondary}
-                      iconSize={
-                        categoryIconsData.length === 1
-                          ? { xs: '96px', sm: '120px', md: '144px' }
-                          : { xs: '44px', sm: '56px', md: '68px' }
-                      }
-                      circleSize={
-                        categoryIconsData.length === 1
-                          ? { xs: 132, sm: 164, md: 196 }
-                          : { xs: 68, sm: 84, md: 100 }
-                      }
-                    />
-                  ))}
+                  <CategoryBentoPod items={categoryIconsData} />
                 </Box>
               ) : null}
 
