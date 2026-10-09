@@ -369,15 +369,17 @@ class InstagramService {
    * from it, so it has to be asked for.
    */
   async resolvePermalink(mediaId, options = {}) {
+    if (!mediaId) return null;
+    const targetToken = options.accessToken || this.accessToken;
+    const targetIgUserId = options.igUserId || options.accountId || this.igUserId;
+    if (!targetToken) return null;
+
     const maxAttempts = 3;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        const response = await this.get(`/${mediaId}`, { fields: 'permalink,shortcode' }, READ_TIMEOUT_MS, options);
+        const response = await this.get(`/${mediaId}`, { fields: 'permalink' }, READ_TIMEOUT_MS, { accessToken: targetToken });
         if (response.data?.permalink) {
           return response.data.permalink;
-        }
-        if (response.data?.shortcode) {
-          return `https://www.instagram.com/p/${response.data.shortcode}/`;
         }
       } catch (error) {
         if (attempt === maxAttempts) {
@@ -388,6 +390,25 @@ class InstagramService {
         await new Promise((resolve) => setTimeout(resolve, 1500));
       }
     }
+
+    // Fallback: Query recent media of the account to find this media's permalink
+    if (targetIgUserId && targetToken) {
+      try {
+        const listResponse = await this.get(
+          `/${targetIgUserId}/media`,
+          { fields: 'id,permalink', limit: 25 },
+          READ_TIMEOUT_MS,
+          { accessToken: targetToken }
+        );
+        const match = (listResponse.data?.data || []).find((item) => String(item.id) === String(mediaId));
+        if (match?.permalink) {
+          return match.permalink;
+        }
+      } catch (listErr) {
+        console.warn(`Instagram recent media lookup fallback failed for ${mediaId}: ${describeGraphError(listErr)}`);
+      }
+    }
+
     return null;
   }
 
@@ -455,9 +476,14 @@ class InstagramService {
     // The account just spent a slot; the cached figure is now stale.
     this.invalidateQuota();
 
+    const permalink = await this.resolvePermalink(publishResult.mediaId, {
+      accessToken: targetToken,
+      igUserId: targetIgUserId,
+    });
+
     return {
       mediaId: publishResult.mediaId,
-      permalink: await this.resolvePermalink(publishResult.mediaId, { accessToken: targetToken }),
+      permalink,
       usage: publishResult.usage,
     };
   }

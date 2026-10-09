@@ -155,7 +155,11 @@ const PlatformBlock = ({ icon: Icon, name, tint, permalink, linkLabel, children 
  * drops itself when its value is null.
  */
 const showsPlatform = (platform) => (
-  platform.interactions !== null || platform.views !== null || !!platform.permalink
+  platform.interactions !== null ||
+  platform.views !== null ||
+  !!platform.permalink ||
+  !!platform.id ||
+  !!platform.postedAt
 );
 
 /**
@@ -166,7 +170,13 @@ const showsPlatform = (platform) => (
  */
 export const hasSocialReach = (post) => {
   const { facebook, instagram } = summarizeSocialStats(post);
-  return showsPlatform(facebook) || showsPlatform(instagram) || !!post?.social?.isPublishing;
+  return (
+    showsPlatform(facebook) ||
+    showsPlatform(instagram) ||
+    !!post?.social?.isPublishing ||
+    !!post?.social?.facebook?.postId ||
+    !!post?.social?.instagram?.mediaId
+  );
 };
 
 const SocialReach = ({ post }) => {
@@ -176,8 +186,8 @@ const SocialReach = ({ post }) => {
   const isDark = theme.palette.mode === 'dark';
   const isPublishing = !!post?.social?.isPublishing;
 
-  const showFacebook = showsPlatform(facebook);
-  const showInstagram = showsPlatform(instagram);
+  const showFacebook = showsPlatform(facebook) || (isPublishing && !facebook.unavailable);
+  const showInstagram = showsPlatform(instagram) || (isPublishing && !instagram.unavailable);
 
   if (!showFacebook && !showInstagram && !isPublishing) return null;
 

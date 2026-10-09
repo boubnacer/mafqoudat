@@ -46,6 +46,8 @@ const applyLiveStats = (post, live) => {
 };
 
 const SocialPostJob = require("../models/SocialPostJob");
+const instagramService = require("../services/instagramService");
+const { getSocialConfig, resolveCountryCode } = require("../config/socialChannels");
 
 const enrichSocialPermalinks = (social) => {
   if (!social) return;
@@ -61,7 +63,7 @@ const mergeLiveStats = async (data) => {
   // merged into the response - it exists only so scheduleRefresh can apply
   // the shorter freshness window to a post its owner is still watching.
   if (data._id && mongoose.Types.ObjectId.isValid(data._id)) {
-    const live = await Post.findById(data._id).select('views social socialStats createdAt').lean();
+    const live = await Post.findById(data._id).select('views social socialStats country createdAt').lean();
     if (!live) return;
 
     enrichSocialPermalinks(live.social);
@@ -78,21 +80,21 @@ const mergeLiveStats = async (data) => {
           }
 
           for (const job of jobs) {
-            if (job.status === 'done' && job.permalink) {
+            if (job.status === 'done') {
               const platform = job.platform;
               if (platform === 'facebook' || platform === 'instagram') {
                 live.social[platform] = live.social[platform] || {};
                 const currentPostedAt = live.social[platform].postedAt ? new Date(live.social[platform].postedAt).getTime() : 0;
                 const jobPublishedAt = job.publishedAt ? new Date(job.publishedAt).getTime() : 0;
-                if (!live.social[platform].permalink || jobPublishedAt >= currentPostedAt) {
+                if (job.publishedId && (jobPublishedAt >= currentPostedAt || (!live.social[platform].postId && !live.social[platform].mediaId))) {
+                  if (platform === 'facebook') live.social.facebook.postId = job.publishedId;
+                  if (platform === 'instagram') live.social.instagram.mediaId = job.publishedId;
+                }
+                if (job.permalink && (jobPublishedAt >= currentPostedAt || !live.social[platform].permalink)) {
                   live.social[platform].permalink = job.permalink;
-                  if (job.publishedId) {
-                    if (platform === 'facebook') live.social.facebook.postId = job.publishedId;
-                    if (platform === 'instagram') live.social.instagram.mediaId = job.publishedId;
-                  }
-                  if (job.publishedAt) {
-                    live.social[platform].postedAt = job.publishedAt;
-                  }
+                }
+                if (job.publishedAt && (jobPublishedAt >= currentPostedAt || !live.social[platform].postedAt)) {
+                  live.social[platform].postedAt = job.publishedAt;
                 }
               }
             }
@@ -100,6 +102,34 @@ const mergeLiveStats = async (data) => {
         }
       }
     } catch (_) {}
+
+    // If Instagram was published but permalink is missing, resolve it dynamically
+    if (live.social?.instagram?.mediaId && !live.social?.instagram?.permalink) {
+      try {
+        const countryCode = await resolveCountryCode(data.country || live.country);
+        const socialConfig = getSocialConfig(countryCode);
+        const targetOptions = {
+          accessToken: socialConfig?.instagram?.accessToken,
+          igUserId: socialConfig?.instagram?.accountId,
+        };
+        const resolved = await instagramService.resolvePermalink(live.social.instagram.mediaId, targetOptions);
+        if (resolved) {
+          live.social.instagram.permalink = resolved;
+          if (typeof Post?.updateOne === 'function') {
+            Post.updateOne(
+              { _id: data._id },
+              { $set: { 'social.instagram.permalink': resolved } }
+            ).catch(() => {});
+          }
+          if (typeof SocialPostJob?.updateMany === 'function') {
+            SocialPostJob.updateMany(
+              { post: data._id, platform: 'instagram', status: 'done' },
+              { $set: { permalink: resolved } }
+            ).catch(() => {});
+          }
+        }
+      } catch (_) {}
+    }
 
     applyLiveStats(data, live);
     socialStatsService.scheduleRefresh([live]);

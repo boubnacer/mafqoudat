@@ -43,6 +43,8 @@ const readPlatform = (stats, links, countKeys, extraKeys = []) => {
     ...extras,
     views: asCount(stats?.views),
     permalink: links?.permalink || null,
+    id: links?.postId || links?.mediaId || null,
+    postedAt: links?.postedAt || null,
     // Interactions, not views: a reaction and an impression are not the same
     // unit and are never mixed into one number.
     interactions: sumKnown(countKeys.map((key) => counts[key])),

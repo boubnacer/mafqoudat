@@ -270,7 +270,9 @@ class SocialPublishQueue {
 
   /** Platforms this deployment is actually set up to post to. */
   configuredPlatforms() {
-    return PLATFORMS.filter((platform) => this.publishers[platform]?.service.isConfigured());
+    return PLATFORMS.filter((platform) => (
+      this.publishers[platform]?.service?.isConfigured?.() || isPlatformConfiguredForCountry(platform, 'MA')
+    ));
   }
 
   isEnabled() {
@@ -652,7 +654,7 @@ class SocialPublishQueue {
 
     await this.applyUsage(platform, result.usage);
 
-    return this.recordPublished(job, platform, post, result, 'published');
+    return this.recordPublished(job, platform, post, result, 'published', targetOptions);
   }
 
   /**
@@ -665,7 +667,7 @@ class SocialPublishQueue {
    * published copy nobody can ever ask Meta about, and a retry that posts it
    * a second time.
    */
-  async recordPublished(job, platform, post, result, outcome) {
+  async recordPublished(job, platform, post, result, outcome, targetOptions = {}) {
     const publisher = this.publishers[platform];
     const publishedId = result[publisher.idKey];
     const publishedAt = new Date(this.now());
@@ -673,7 +675,15 @@ class SocialPublishQueue {
     let permalink = result.permalink || null;
     if (!permalink && typeof publisher.service?.resolvePermalink === 'function' && publishedId) {
       try {
-        permalink = await publisher.service.resolvePermalink(publishedId);
+        permalink = await publisher.service.resolvePermalink(publishedId, targetOptions);
+      } catch (_) {}
+    }
+    if (!permalink && platform === 'instagram' && typeof publisher.service?.findPublishedListing === 'function') {
+      try {
+        const found = await publisher.service.findPublishedListing(post, targetOptions);
+        if (found?.permalink) {
+          permalink = found.permalink;
+        }
       } catch (_) {}
     }
     if (!permalink && platform === 'facebook' && publishedId) {
@@ -1046,7 +1056,8 @@ class SocialPublishQueue {
    */
   async runPlatform(platform) {
     const publisher = this.publishers[platform];
-    if (!publisher?.service.isConfigured()) return 'unconfigured';
+    const isConfigured = publisher?.service?.isConfigured?.() || isPlatformConfiguredForCountry(platform, 'MA');
+    if (!isConfigured) return 'unconfigured';
 
     const pausedUntil = this.pausedUntil.get(platform);
     if (pausedUntil && this.now() < pausedUntil) return 'paused';

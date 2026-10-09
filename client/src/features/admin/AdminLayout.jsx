@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { AdminPanelSettingsOutlined } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
-import { useGetAdminOverviewQuery } from './adminApiSlice';
+import { useGetAdminQueueCountsQuery } from './adminApiSlice';
 import { ADMIN_NAV_GROUPS, adminItemPath } from './adminNav';
 import { AdminToastProvider, adminTone } from './ui';
 
@@ -28,11 +28,10 @@ import { AdminToastProvider, adminTone } from './ui';
  * destinations that an admin switches between constantly should cost one tap,
  * not two, and a scroller shows the counts without being opened.
  *
- * The overview query lives here rather than on the Overview page, because the
- * badge counts belong to the navigation - and it is the ONE request the panel
- * makes on arrival. Every list is fetched by its own page. The old panel fired
- * fourteen on mount and kept them all subscribed while seven eighths of them
- * were behind a hidden tab.
+ * Only lightweight badge queue counts are fetched here (/admin/queue-counts),
+ * keeping the shell lightning-fast (~5ms) and decoupled from the heavy Overview
+ * dashboard. Each routed page (Overview, Moderation, Users, etc.) fetches only
+ * the specific data it needs when accessed.
  */
 
 const NavBadge = ({ count, tone }) => {
@@ -63,9 +62,9 @@ const NavBadge = ({ count, tone }) => {
   );
 };
 
-const RailLink = ({ item, overview, t }) => {
+const RailLink = ({ item, queueCounts, t }) => {
   const Icon = item.icon;
-  const count = item.badge ? item.badge(overview) : 0;
+  const count = item.badge ? item.badge(queueCounts) : 0;
 
   return (
     <NavLink
@@ -111,9 +110,9 @@ const RailLink = ({ item, overview, t }) => {
   );
 };
 
-const PillLink = ({ item, overview, t }) => {
+const PillLink = ({ item, queueCounts, t }) => {
   const Icon = item.icon;
-  const count = item.badge ? item.badge(overview) : 0;
+  const count = item.badge ? item.badge(queueCounts) : 0;
 
   return (
     <NavLink to={adminItemPath(item)} end={!item.path} style={{ textDecoration: 'none' }}>
@@ -179,15 +178,12 @@ const AdminLayout = () => {
   const location = useLocation();
   const pillRowRef = useRef(null);
 
-  const { data, isLoading, error, refetch } = useGetAdminOverviewQuery(undefined, {
-    // The queue counts are the reason an admin has the panel open; a poll keeps
-    // them honest without anyone reloading. Long enough not to be a cost on a
-    // free-tier cluster, short enough that a new report shows up while you are
-    // still looking at the screen.
+  const { data, isLoading, error, refetch } = useGetAdminQueueCountsQuery(undefined, {
+    // Only queue counts are polled for navigation badges without heavy database scans
     pollingInterval: 120000,
-    refetchOnMountOrArgChange: true,
+    refetchOnMountOrArgChange: 60,
   });
-  const overview = data?.data;
+  const queueCounts = data?.data;
 
   // The active pill can start off-screen in the scroller - scroll it into view
   // on arrival so an admin can always see where they are.
@@ -200,7 +196,14 @@ const AdminLayout = () => {
     }
   }, [location.pathname, isWide]);
 
-  const context = { overview, overviewLoading: isLoading, overviewError: error, refetchOverview: refetch };
+  const context = {
+    queueCounts,
+    queueCountsLoading: isLoading,
+    queueCountsError: error,
+    refetchQueueCounts: refetch,
+    // Backward compatibility for components inspecting overview?.queues
+    overview: queueCounts,
+  };
 
   return (
     <AdminToastProvider>
@@ -268,7 +271,7 @@ const AdminLayout = () => {
               }}
             >
               {ADMIN_NAV_GROUPS.flatMap((group) => group.items).map((item) => (
-                <PillLink key={item.id} item={item} overview={overview} t={t} />
+                <PillLink key={item.id} item={item} queueCounts={queueCounts} t={t} />
               ))}
             </Box>
           ) : null}
@@ -312,7 +315,7 @@ const AdminLayout = () => {
                     ) : null}
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
                       {group.items.map((item) => (
-                        <RailLink key={item.id} item={item} overview={overview} t={t} />
+                        <RailLink key={item.id} item={item} queueCounts={queueCounts} t={t} />
                       ))}
                     </Box>
                   </Box>

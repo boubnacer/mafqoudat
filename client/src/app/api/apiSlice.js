@@ -179,6 +179,7 @@ export const apiSlice = createApi({
     // invalidation, so every admin mutation ran, succeeded, and left the list
     // it had just changed showing the old rows until a hard reload.
     "AdminOverview",
+    "AdminQueueCounts",
     "AdminAnalytics",
     "AdminAudit",
     "AdminReports",

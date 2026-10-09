@@ -23,6 +23,7 @@ const {
 } = require("../controllers/adminController");
 const {
   getAdminOverview,
+  getAdminQueueCounts,
   getAdminAnalytics,
   getAuditLog,
 } = require("../controllers/adminInsightsController");
@@ -32,6 +33,11 @@ router.use(verifyJWT);
 router.use(verifyAdmin);
 
 /* ---------------------------------------------------------------- insights */
+
+// @route GET /admin/queue-counts
+// @desc Fast badge counts for the admin navigation rail
+// @access Private (Admin only)
+router.get("/queue-counts", getAdminQueueCounts);
 
 // @route GET /admin/overview
 // @desc Everything the panel's Overview page renders, in one request

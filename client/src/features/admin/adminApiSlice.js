@@ -30,9 +30,15 @@ export const adminApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     /* ------------------------------------------------------------ insights */
 
+    getAdminQueueCounts: builder.query({
+      query: () => '/admin/queue-counts',
+      providesTags: ['AdminQueueCounts'],
+    }),
+
     getAdminOverview: builder.query({
       query: () => '/admin/overview',
       providesTags: ['AdminOverview'],
+      keepUnusedDataFor: 300,
     }),
 
     getAdminAnalytics: builder.query({
@@ -40,6 +46,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       providesTags: (result, error, arg) => [
         { type: 'AdminAnalytics', id: arg?.days || 30 },
       ],
+      keepUnusedDataFor: 300,
     }),
 
     getAdminAudit: builder.query({
@@ -62,7 +69,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         method: 'PATCH',
         body: { status, adminNotes },
       }),
-      invalidatesTags: ['AdminReports', 'AdminOverview', 'AdminAudit'],
+      invalidatesTags: ['AdminReports', 'AdminOverview', 'AdminQueueCounts', 'AdminAudit'],
     }),
 
     getAdminComments: builder.query({
@@ -77,7 +84,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         method: 'PATCH',
         body: { status },
       }),
-      invalidatesTags: ['AdminComments', 'AdminReports', 'AdminOverview', 'AdminAudit'],
+      invalidatesTags: ['AdminComments', 'AdminReports', 'AdminOverview', 'AdminQueueCounts', 'AdminAudit'],
     }),
 
     /* --------------------------------------------------------------- posts */
@@ -94,7 +101,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         method: 'PATCH',
         body: { status },
       }),
-      invalidatesTags: ['AdminPosts', 'AdminOverview', 'AdminReports', 'AdminAudit'],
+      invalidatesTags: ['AdminPosts', 'AdminOverview', 'AdminQueueCounts', 'AdminReports', 'AdminAudit'],
     }),
 
     deletePostAdmin: builder.mutation({
@@ -108,6 +115,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         'AdminPromotions',
         'AdminComments',
         'AdminOverview',
+        'AdminQueueCounts',
         'AdminAudit',
       ],
     }),
@@ -124,7 +132,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         method: 'PATCH',
         body: { processed },
       }),
-      invalidatesTags: ['AdminPromotions', 'AdminOverview', 'AdminAudit'],
+      invalidatesTags: ['AdminPromotions', 'AdminOverview', 'AdminQueueCounts', 'AdminAudit'],
     }),
 
     /* --------------------------------------------------------------- users */
@@ -164,7 +172,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         if (!userId) throw new Error('User ID is required for deletion');
         return { url: `/admin/users/${userId}`, method: 'DELETE' };
       },
-      invalidatesTags: ['AdminUsers', 'AdminPosts', 'AdminOverview', 'AdminAudit'],
+      invalidatesTags: ['AdminUsers', 'AdminPosts', 'AdminOverview', 'AdminQueueCounts', 'AdminAudit'],
     }),
 
     /* ------------------------------------------------------------- support */
@@ -181,7 +189,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         method: 'PATCH',
         body: { status, adminNotes },
       }),
-      invalidatesTags: ['AdminResetRequests', 'AdminOverview', 'AdminAudit'],
+      invalidatesTags: ['AdminResetRequests', 'AdminOverview', 'AdminQueueCounts', 'AdminAudit'],
     }),
 
     getContactsAdmin: builder.query({
@@ -201,12 +209,12 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         method: 'PATCH',
         body: { status, response },
       }),
-      invalidatesTags: ['AdminContacts', 'AdminContactStats', 'AdminOverview'],
+      invalidatesTags: ['AdminContacts', 'AdminContactStats', 'AdminOverview', 'AdminQueueCounts'],
     }),
 
     deleteContactAdmin: builder.mutation({
       query: (contactId) => ({ url: `/contact/${contactId}`, method: 'DELETE' }),
-      invalidatesTags: ['AdminContacts', 'AdminContactStats', 'AdminOverview'],
+      invalidatesTags: ['AdminContacts', 'AdminContactStats', 'AdminOverview', 'AdminQueueCounts'],
     }),
 
     /* -------------------------------------------------------------- places */
@@ -252,7 +260,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         method: 'POST',
         body: { customDescription, customContact },
       }),
-      invalidatesTags: ['AdminSocialReview', 'AdminOverview', 'Post'],
+      invalidatesTags: ['AdminSocialReview', 'AdminOverview', 'AdminQueueCounts', 'Post'],
     }),
 
     skipSocialPost: builder.mutation({
@@ -260,7 +268,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         url: `/admin/social-review/${postId}/skip`,
         method: 'POST',
       }),
-      invalidatesTags: ['AdminSocialReview', 'AdminOverview'],
+      invalidatesTags: ['AdminSocialReview', 'AdminOverview', 'AdminQueueCounts'],
     }),
 
     updateSocialPost: builder.mutation({
@@ -296,6 +304,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
+  useGetAdminQueueCountsQuery,
   useGetAdminOverviewQuery,
   useGetAdminAnalyticsQuery,
   useGetAdminAuditQuery,

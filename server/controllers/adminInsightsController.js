@@ -10,6 +10,7 @@ const Country = require("../models/Country");
 const FoundLost = require("../models/FoundLost");
 const PasswordResetRequest = require("../models/PasswordResetRequest");
 const AdminAction = require("../models/AdminAction");
+const { unifiedCacheService } = require("../config/unifiedCache");
 
 /**
  * The panel's read-only half: the overview, the analytics page and the audit
@@ -116,11 +117,84 @@ const resolveRefCounts = async (rows, Model, extraSelect = "") => {
     .filter(Boolean);
 };
 
+// @desc  Lightweight queue counts for the navigation badges (fast, ~5ms)
+// @route GET /admin/queue-counts
+// @access Private (Admin only)
+const getAdminQueueCounts = async (req, res) => {
+  try {
+    const cacheKey = "admin:queue-counts";
+    if (req.query?.force !== "true" && unifiedCacheService) {
+      const cached = await unifiedCacheService.get(cacheKey);
+      if (cached) {
+        return res.status(200).json(cached);
+      }
+    }
+
+    const [
+      pendingReports,
+      pendingPromotions,
+      pendingResetRequests,
+      contactStats,
+      pendingSocialReview,
+    ] = await Promise.all([
+      Report.countDocuments({ status: "pending" }),
+      Post.countDocuments({ promotionRequested: true, promotionProcessed: false }),
+      PasswordResetRequest.countDocuments({ status: "pending" }),
+      Contact.getStats(),
+      Post.countDocuments({
+        status: { $nin: ["resolved", "suspended"] },
+        $or: [
+          { "social.approvalStatus": "pending" },
+          { "social.approvalStatus": { $exists: false } },
+          { "social.approvalStatus": null },
+          { social: { $exists: false } },
+        ],
+        "social.facebook.postId": null,
+        "social.instagram.mediaId": null,
+      }),
+    ]);
+
+    const result = {
+      success: true,
+      data: {
+        queues: {
+          reports: pendingReports,
+          promotions: pendingPromotions,
+          resetRequests: pendingResetRequests,
+          contacts: contactStats?.new || 0,
+          urgentContacts: contactStats?.urgent || 0,
+          socialReview: pendingSocialReview,
+        },
+      },
+    };
+
+    if (unifiedCacheService) {
+      await unifiedCacheService.set(cacheKey, result, 30);
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error fetching admin queue counts:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching admin queue counts",
+    });
+  }
+};
+
 // @desc  Everything the Overview page renders, in one request
 // @route GET /admin/overview
 // @access Private (Admin only)
 const getAdminOverview = async (req, res) => {
   try {
+    const cacheKey = "admin:overview";
+    if (req.query?.force !== "true" && unifiedCacheService) {
+      const cached = await unifiedCacheService.get(cacheKey);
+      if (cached) {
+        return res.status(200).json(cached);
+      }
+    }
+
     const startOfToday = utcDayStart(0);
     const start7 = utcDayStart(6);
     const prev7 = utcDayStart(13);
@@ -301,7 +375,7 @@ const getAdminOverview = async (req, res) => {
     const usersLast7 = facetCount(userFacet, "last7");
     const usersPrior7 = facetCount(userFacet, "prior7");
 
-    res.status(200).json({
+    const payload = {
       success: true,
       data: {
         queues: {
@@ -372,7 +446,13 @@ const getAdminOverview = async (req, res) => {
         recent: { posts: recentPosts, users: recentUsers },
         generatedAt: new Date().toISOString(),
       },
-    });
+    };
+
+    if (unifiedCacheService) {
+      await unifiedCacheService.set(cacheKey, payload, 120);
+    }
+
+    res.status(200).json(payload);
   } catch (error) {
     console.error("Error building admin overview:", error);
     res.status(500).json({ success: false, message: "Error building admin overview" });
@@ -648,6 +728,7 @@ const getAuditLog = async (req, res) => {
 
 module.exports = {
   getAdminOverview,
+  getAdminQueueCounts,
   getAdminAnalytics,
   getAuditLog,
   // Exported for the offline check - the day-bucketing and the delta rule are

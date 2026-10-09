@@ -211,6 +211,11 @@ const getSystemLogs = async (req, res) => {
       // Iterate newest to oldest
       for (let i = lines.length - 1; i >= 0; i -= 1) {
         const line = lines[i];
+        // Routine token expiration is normal session lifecycle and does not disrupt the user.
+        // Omit it from Application Errors (errLog) so administrators only see genuine errors.
+        if (fileKey === "errLog" && (line.includes("TokenExpiredError") || line.includes("jwt expired"))) {
+          continue;
+        }
         if (search && !line.toLowerCase().includes(search)) {
           continue;
         }

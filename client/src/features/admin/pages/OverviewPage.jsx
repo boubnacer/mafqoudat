@@ -26,7 +26,7 @@ import {
 } from '@mui/icons-material';
 import { useTranslation } from '../../../utils/translations';
 import { useGetSystemSettingsQuery } from '../systemSettingsApiSlice';
-import { useAdminOverview } from '../AdminLayout';
+import { useGetAdminOverviewQuery } from '../adminApiSlice';
 import { ADMIN_NAV_ITEMS, adminItemPath } from '../adminNav';
 import {
   AdminCard,
@@ -216,7 +216,16 @@ const OverviewPage = () => {
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
-  const { overview, overviewLoading, overviewError, refetchOverview } = useAdminOverview();
+  const {
+    data: overviewData,
+    isLoading: overviewLoading,
+    error: overviewError,
+    refetch: refetchOverview,
+  } = useGetAdminOverviewQuery(undefined, {
+    refetchOnMountOrArgChange: 120,
+    refetchOnFocus: false,
+  });
+  const overview = overviewData?.data;
   const { data: settingsData } = useGetSystemSettingsQuery();
   const maintenance = settingsData?.data?.maintenanceMode;
   const palette = chartPalette(theme);

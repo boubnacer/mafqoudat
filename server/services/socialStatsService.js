@@ -420,6 +420,7 @@ class SocialStatsService {
     const buildFields = (withCommentText) => [
       'like_count',
       'comments_count',
+      'permalink',
       // Instagram keeps the count and the comments on separate fields (unlike
       // Facebook's single summary-plus-edge expression), but both still ride
       // along in the same request.
@@ -432,6 +433,7 @@ class SocialStatsService {
     const stats = {};
     for (const [id, data] of Object.entries(values)) {
       stats[id] = {
+        permalink: data?.permalink || null,
         likes: typeof data?.like_count === 'number' ? data.like_count : null,
         comments: typeof data?.comments_count === 'number' ? data.comments_count : null,
         commentList: SocialStatsService.readComments(data?.comments, {
@@ -515,6 +517,9 @@ class SocialStatsService {
         update['socialStats.facebook.reactions'] = fb.reactions;
         update['socialStats.facebook.comments'] = fb.comments;
         update['socialStats.facebook.shares'] = fb.shares;
+        if (!post.social?.facebook?.permalink && fbId) {
+          update['social.facebook.permalink'] = `https://www.facebook.com/${fbId}`;
+        }
         // Insight-derived fields can legitimately be unavailable (no
         // read_insights) while the counts are fine - keep whatever was
         // stored rather than nulling it out.
@@ -535,6 +540,9 @@ class SocialStatsService {
         update['socialStats.instagram.comments'] = ig.comments;
         if (ig.views !== null) update['socialStats.instagram.views'] = ig.views;
         if (ig.saved !== null) update['socialStats.instagram.saved'] = ig.saved;
+        if (ig.permalink && (!post.social?.instagram?.permalink || post.social?.instagram?.permalink !== ig.permalink)) {
+          update['social.instagram.permalink'] = ig.permalink;
+        }
         if (ig.commentList !== null) {
           update['socialComments.instagram'] = ig.commentList;
           update['socialComments.fetchedAt'] = fetchedAt;

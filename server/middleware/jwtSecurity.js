@@ -129,22 +129,27 @@ const verifyJWT = (req, res, next) => {
       if (err.name === 'TokenExpiredError') {
         errorMessage = "Token expired";
         errorCode = 'TOKEN_EXPIRED';
-      } else if (err.name === 'JsonWebTokenError') {
-        errorMessage = "Invalid token format";
-        errorCode = 'MALFORMED_TOKEN';
-      } else if (err.name === 'NotBeforeError') {
-        errorMessage = "Token not active";
-        errorCode = 'TOKEN_NOT_ACTIVE';
-      } else if (err.name === 'TokenUsedTooEarly') {
-        errorMessage = "Token used too early";
-        errorCode = 'TOKEN_EARLY';
-      }
+        // Normal session lifecycle: the client's silent refresh handles this
+        // transparently without interrupting the user. We do not log this to
+        // errLog.log so Application Errors only tracks real disruptive errors.
+      } else {
+        if (err.name === 'JsonWebTokenError') {
+          errorMessage = "Invalid token format";
+          errorCode = 'MALFORMED_TOKEN';
+        } else if (err.name === 'NotBeforeError') {
+          errorMessage = "Token not active";
+          errorCode = 'TOKEN_NOT_ACTIVE';
+        } else if (err.name === 'TokenUsedTooEarly') {
+          errorMessage = "Token used too early";
+          errorCode = 'TOKEN_EARLY';
+        }
 
-      // Log JWT verification failures with more context
-      logEvents(
-        `JWT Verification Failed: ${err.name} - ${err.message}\t${req.method}\t${req.url}\t${req.ip}\t${req.get('User-Agent')}`,
-        "errLog.log"
-      );
+        // Only log genuine, unexpected JWT failures to errLog.log
+        logEvents(
+          `JWT Verification Failed: ${err.name} - ${err.message}\t${req.method}\t${req.url}\t${req.ip}\t${req.get('User-Agent')}`,
+          "errLog.log"
+        );
+      }
 
       return unauthorized(res, errorMessage, errorCode);
     }

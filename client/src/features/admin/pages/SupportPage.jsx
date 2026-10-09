@@ -18,6 +18,7 @@ import {
   useDeleteContactAdminMutation,
   useGetPasswordResetRequestsQuery,
   useUpdatePasswordResetRequestStatusMutation,
+  useGetAdminOverviewQuery,
 } from '../adminApiSlice';
 import {
   AdminDialog,
@@ -36,7 +37,6 @@ import {
   useAdminToast,
 } from '../ui';
 import { formatDateTime, formatRelative, truncate } from '../adminFormat';
-import { useAdminOverview } from '../AdminLayout';
 
 /**
  * One inbox for the two things a person can ask a human for: a message through
@@ -52,8 +52,9 @@ import { useAdminOverview } from '../AdminLayout';
 const SupportPage = () => {
   const { t, currentLanguage } = useTranslation();
   const notify = useAdminToast();
-  const { overview } = useAdminOverview();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { data: overviewData } = useGetAdminOverviewQuery();
+  const overview = overviewData?.data;
 
   const view = searchParams.get('view') === 'resets' ? 'resets' : 'messages';
   const setView = (next) => {

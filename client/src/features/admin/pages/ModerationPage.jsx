@@ -21,6 +21,7 @@ import {
   useUpdateCommentAdminMutation,
   useUpdatePostStatusAdminMutation,
   useDeletePostAdminMutation,
+  useGetAdminOverviewQuery,
 } from '../adminApiSlice';
 import {
   AdminDialog,
@@ -39,7 +40,6 @@ import {
   useAdminToast,
 } from '../ui';
 import { formatDateTime, formatRelative, truncate, postTitle } from '../adminFormat';
-import { useAdminOverview } from '../AdminLayout';
 
 /**
  * The moderation queue: what people have objected to, and the comments they
@@ -74,8 +74,9 @@ const REASON_KEYS = {
 const ModerationPage = () => {
   const { t, currentLanguage } = useTranslation();
   const notify = useAdminToast();
-  const { overview } = useAdminOverview();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { data: overviewData } = useGetAdminOverviewQuery();
+  const overview = overviewData?.data;
 
   const view = searchParams.get('view') === 'comments' ? 'comments' : 'reports';
   const setView = (next) => {
