@@ -38,25 +38,25 @@ const CategoryBentoPod = ({ items }) => {
           ? "0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2)"
           : "0 10px 28px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)",
         borderRadius: { xs: "18px", sm: "22px" },
-        maxWidth: { xs: "88%", sm: "84%" },
-        width: "fit-content",
+        width: count === 1 ? "fit-content" : "100%",
+        maxWidth: count === 1 ? { xs: "88%", sm: "84%" } : { xs: "92%", sm: "88%" },
+        boxSizing: "border-box",
+        overflow: "hidden",
         p: count === 1
           ? { xs: "16px 24px", sm: "20px 30px" }
-          : count <= 3
-            ? { xs: "12px 18px", sm: "14px 20px" }
-            : { xs: "10px 16px", sm: "12px 18px" },
+          : { xs: "12px 14px", sm: "14px 18px" },
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      {/* 1 Category */}
+      {/* 1 Category: current centered icon + label design */}
       {count === 1 && (() => {
         const item = items[0];
         const Icon = item.IconComponent;
         return (
-          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1, width: "100%", minWidth: 0 }}>
             <Box
               sx={{
                 color: item.style?.main || theme.palette.text.primary,
@@ -77,6 +77,8 @@ const CategoryBentoPod = ({ items }) => {
                 lineHeight: 1.2,
                 textAlign: "center",
                 maxWidth: 160,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
               }}
             >
               {item.label}
@@ -92,7 +94,8 @@ const CategoryBentoPod = ({ items }) => {
             display: "flex",
             flexDirection: "column",
             width: "100%",
-            minWidth: { xs: 180, sm: 210 },
+            minWidth: 0,
+            boxSizing: "border-box",
           }}
         >
           {items.slice(0, 5).map((item, idx) => {
@@ -106,6 +109,8 @@ const CategoryBentoPod = ({ items }) => {
                       height: "1px",
                       bgcolor: dividerColor,
                       my: count >= 5 ? 0.35 : 0.5,
+                      flexShrink: 0,
+                      boxSizing: "border-box",
                     }}
                   />
                 )}
@@ -116,6 +121,7 @@ const CategoryBentoPod = ({ items }) => {
                     gap: { xs: 1, sm: 1.25 },
                     width: "100%",
                     minWidth: 0,
+                    boxSizing: "border-box",
                     py: count >= 5 ? 0.2 : 0.35,
                   }}
                 >
@@ -136,11 +142,14 @@ const CategoryBentoPod = ({ items }) => {
                   <Typography
                     noWrap
                     sx={{
+                      flex: 1,
+                      minWidth: 0,
                       fontWeight: 750,
                       fontSize: count >= 5 ? { xs: "11px", sm: "11.5px" } : { xs: "11.5px", sm: "12.5px" },
                       color: theme.custom.color.ink,
-                      maxWidth: "100%",
                       lineHeight: 1.2,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
                     }}
                   >
                     {item.label}
@@ -413,7 +422,7 @@ const RecentPosts = (props) => {
           />
         </>
       ) : (
-        /* No-image state: displays Unified Frosted Pod with Structured Bento Pair Grid (Approach 3) */
+        /* No-image state: displays Unified Frosted Pod (Vertical lines for 2+ categories) */
         categoryIconsData.length > 0 && (
           <Box
             sx={{
@@ -426,6 +435,7 @@ const RecentPosts = (props) => {
               width: "100%",
               height: "100%",
               zIndex: 1,
+              boxSizing: "border-box",
             }}
           >
             <CategoryBentoPod items={categoryIconsData} />
