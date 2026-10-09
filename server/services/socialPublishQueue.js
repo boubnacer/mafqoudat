@@ -569,10 +569,14 @@ class SocialPublishQueue {
     // be shared again rather than treated as already published.
     const existingId = readPath(post, publisher.postIdPath);
     if (!job.isUpdate && existingId) {
+      let existingPermalink = readPath(post, publisher.postPermalinkPath) || null;
+      if (!existingPermalink && platform === 'facebook' && existingId) {
+        existingPermalink = `https://www.facebook.com/${existingId}`;
+      }
       await this.finishJob(job._id, {
         status: 'done',
         publishedId: existingId,
-        permalink: readPath(post, publisher.postPermalinkPath) || null,
+        permalink: existingPermalink,
         publishedAt: readPath(post, publisher.postPostedAtPath) || new Date(this.now()),
         lastError: null,
         isUpdate: false,
@@ -666,11 +670,21 @@ class SocialPublishQueue {
     const publishedId = result[publisher.idKey];
     const publishedAt = new Date(this.now());
 
+    let permalink = result.permalink || null;
+    if (!permalink && typeof publisher.service?.resolvePermalink === 'function' && publishedId) {
+      try {
+        permalink = await publisher.service.resolvePermalink(publishedId);
+      } catch (_) {}
+    }
+    if (!permalink && platform === 'facebook' && publishedId) {
+      permalink = `https://www.facebook.com/${publishedId}`;
+    }
+
     await this.finishJob(job._id, {
       status: 'done',
       publishedAt,
       publishedId,
-      permalink: result.permalink || null,
+      permalink: permalink || null,
       lastError: null,
       isUpdate: false,
     });
@@ -679,7 +693,7 @@ class SocialPublishQueue {
       await this.posts.updateOne({ _id: post._id }, {
         $set: {
           [publisher.postIdPath]: publishedId,
-          [publisher.postPermalinkPath]: result.permalink || null,
+          [publisher.postPermalinkPath]: permalink || null,
           [publisher.postPostedAtPath]: publishedAt,
           'social.lastSharedAt': publishedAt,
         },
@@ -697,11 +711,25 @@ class SocialPublishQueue {
     // Patch the in-memory post so announce() – and the WhatsApp message it
     // triggers – can read the permalink without a second DB round-trip.
     // The DB was updated two lines above; this just mirrors it locally.
-    if (result.permalink) {
+    if (permalink) {
       post.social = post.social || {};
       post.social[platform] = post.social[platform] || {};
-      post.social[platform].permalink = result.permalink;
+      post.social[platform].permalink = permalink;
+      if (publisher.idKey && publishedId) {
+        post.social[platform][publisher.idKey] = publishedId;
+      }
     }
+
+    // Invalidate caches so the updated post detail (and single post page)
+    // reflects the newly published social media permalinks immediately.
+    try {
+      const { cacheService } = require('../config/cache');
+      if (cacheService && typeof cacheService.invalidatePattern === 'function') {
+        await cacheService.invalidatePattern(`*${post._id}*`);
+        await cacheService.invalidatePattern('posts:*');
+        await cacheService.invalidatePattern('dashboard:*');
+      }
+    } catch (_) {}
 
     await this.announce(post, platform, 'published');
     await this.cleanupPostSocialImages(post);

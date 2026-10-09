@@ -18,6 +18,20 @@ const SinglePost = () => {
     language: currentLanguage
   });
 
+  // When a post is updated or newly approved, the background queue paces and
+  // publishes the Facebook/Instagram copies. If a publish job is currently
+  // pending or processing, poll briefly until completed so the new permalinks
+  // and social reach links update dynamically on this page.
+  React.useEffect(() => {
+    if (!post?.social?.isPublishing) return;
+
+    const timer = setInterval(() => {
+      refetch();
+    }, 4000);
+
+    return () => clearInterval(timer);
+  }, [post?.social?.isPublishing, refetch]);
+
   // Deliberately no SeoMeta while loading: a crawler that snapshots the page
   // mid-fetch (the API is on a cold-start-prone host) would otherwise capture
   // whatever we emitted here. Falling through to the static shell's tags is

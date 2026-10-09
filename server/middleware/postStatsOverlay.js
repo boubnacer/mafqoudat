@@ -45,6 +45,15 @@ const applyLiveStats = (post, live) => {
   post.socialStats = live.socialStats;
 };
 
+const SocialPostJob = require("../models/SocialPostJob");
+
+const enrichSocialPermalinks = (social) => {
+  if (!social) return;
+  if (social.facebook?.postId && !social.facebook?.permalink) {
+    social.facebook.permalink = `https://www.facebook.com/${social.facebook.postId}`;
+  }
+};
+
 const mergeLiveStats = async (data) => {
   if (!data) return;
 
@@ -54,6 +63,44 @@ const mergeLiveStats = async (data) => {
   if (data._id && mongoose.Types.ObjectId.isValid(data._id)) {
     const live = await Post.findById(data._id).select('views social socialStats createdAt').lean();
     if (!live) return;
+
+    enrichSocialPermalinks(live.social);
+
+    // Overlay freshest permalinks and publishing status from SocialPostJob
+    try {
+      if (mongoose.connection?.readyState === 1 && typeof SocialPostJob?.find === 'function') {
+        const jobs = await SocialPostJob.find({ post: data._id }).lean();
+        if (jobs && jobs.length > 0) {
+          live.social = live.social || {};
+          const isPublishing = jobs.some((j) => j.status === 'pending' || j.status === 'processing');
+          if (isPublishing) {
+            live.social.isPublishing = true;
+          }
+
+          for (const job of jobs) {
+            if (job.status === 'done' && job.permalink) {
+              const platform = job.platform;
+              if (platform === 'facebook' || platform === 'instagram') {
+                live.social[platform] = live.social[platform] || {};
+                const currentPostedAt = live.social[platform].postedAt ? new Date(live.social[platform].postedAt).getTime() : 0;
+                const jobPublishedAt = job.publishedAt ? new Date(job.publishedAt).getTime() : 0;
+                if (!live.social[platform].permalink || jobPublishedAt >= currentPostedAt) {
+                  live.social[platform].permalink = job.permalink;
+                  if (job.publishedId) {
+                    if (platform === 'facebook') live.social.facebook.postId = job.publishedId;
+                    if (platform === 'instagram') live.social.instagram.mediaId = job.publishedId;
+                  }
+                  if (job.publishedAt) {
+                    live.social[platform].postedAt = job.publishedAt;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
     applyLiveStats(data, live);
     socialStatsService.scheduleRefresh([live]);
     return;
@@ -72,7 +119,10 @@ const mergeLiveStats = async (data) => {
   const liveById = new Map(liveDocs.map((doc) => [String(doc._id), doc]));
   for (const post of posts) {
     const live = liveById.get(String(post._id));
-    if (live) applyLiveStats(post, live);
+    if (live) {
+      enrichSocialPermalinks(live.social);
+      applyLiveStats(post, live);
+    }
   }
   socialStatsService.scheduleRefresh(liveDocs);
 };

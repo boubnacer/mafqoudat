@@ -369,13 +369,26 @@ class InstagramService {
    * from it, so it has to be asked for.
    */
   async resolvePermalink(mediaId, options = {}) {
-    try {
-      const response = await this.get(`/${mediaId}`, { fields: 'permalink' }, READ_TIMEOUT_MS, options);
-      return response.data?.permalink || null;
-    } catch (error) {
-      console.warn(`Instagram permalink lookup failed for ${mediaId}: ${describeGraphError(error)}`);
-      return null;
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const response = await this.get(`/${mediaId}`, { fields: 'permalink,shortcode' }, READ_TIMEOUT_MS, options);
+        if (response.data?.permalink) {
+          return response.data.permalink;
+        }
+        if (response.data?.shortcode) {
+          return `https://www.instagram.com/p/${response.data.shortcode}/`;
+        }
+      } catch (error) {
+        if (attempt === maxAttempts) {
+          console.warn(`Instagram permalink lookup failed for ${mediaId}: ${describeGraphError(error)}`);
+        }
+      }
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
     }
+    return null;
   }
 
   /**

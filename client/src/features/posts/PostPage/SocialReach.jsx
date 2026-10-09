@@ -1,4 +1,4 @@
-import { Box, Typography, useTheme, alpha } from "@mui/material";
+import { Box, Typography, useTheme, alpha, CircularProgress } from "@mui/material";
 import {
   StackedBarChartOutlined as ReachIcon,
   Facebook as FacebookIcon,
@@ -166,7 +166,7 @@ const showsPlatform = (platform) => (
  */
 export const hasSocialReach = (post) => {
   const { facebook, instagram } = summarizeSocialStats(post);
-  return showsPlatform(facebook) || showsPlatform(instagram);
+  return showsPlatform(facebook) || showsPlatform(instagram) || !!post?.social?.isPublishing;
 };
 
 const SocialReach = ({ post }) => {
@@ -174,11 +174,12 @@ const SocialReach = ({ post }) => {
   const theme = useTheme();
   const { facebook, instagram, hasStats } = summarizeSocialStats(post);
   const isDark = theme.palette.mode === 'dark';
+  const isPublishing = !!post?.social?.isPublishing;
 
   const showFacebook = showsPlatform(facebook);
   const showInstagram = showsPlatform(instagram);
 
-  if (!showFacebook && !showInstagram) return null;
+  if (!showFacebook && !showInstagram && !isPublishing) return null;
 
   const awaitingNumbers = !hasStats;
   const brand = theme.custom.color.brandPrimary;
@@ -228,9 +229,25 @@ const SocialReach = ({ post }) => {
           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
             {t('socialReachNote')}
           </Typography>
-          {awaitingNumbers && (
+          {awaitingNumbers && !isPublishing && (
             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
               {t('socialReachPending')}
+            </Typography>
+          )}
+          {isPublishing && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: theme.custom.color.brandPrimary,
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.75,
+                mt: 0.5,
+              }}
+            >
+              <CircularProgress size={12} thickness={5} sx={{ color: theme.custom.color.brandPrimary }} />
+              {t('socialPublishingInProgress')}
             </Typography>
           )}
         </Box>
