@@ -421,7 +421,7 @@ const SinglePostPage = ({
   country,
   countryname,
   countryLabels,
-  categories,
+  categories: propCategories,
   category,
   foundLost,
   Floptions,
@@ -685,9 +685,13 @@ const SinglePostPage = ({
   const categories = useMemo(() => {
     const cats = [];
 
-    // First priority: Use the Categories array from API aggregation (new format)
-    if (Categories && Array.isArray(Categories) && Categories.length > 0) {
-      Categories.forEach(cat => {
+    // First priority: Use the Categories array from API aggregation (new format) or propCategories
+    const sourceCategories = (Categories && Array.isArray(Categories) && Categories.length > 0)
+      ? Categories
+      : (propCategories && Array.isArray(propCategories) && propCategories.length > 0 ? propCategories : null);
+
+    if (sourceCategories) {
+      sourceCategories.forEach(cat => {
         if (cat && cat.code) {
           cats.push({
             code: cat.code,
@@ -717,7 +721,7 @@ const SinglePostPage = ({
     }
 
     return cats.length > 0 ? cats : [{ code: 'OTHER', labels: null, _id: null }];
-  }, [Categories, Category, categoryname]);
+  }, [Categories, propCategories, Category, categoryname]);
 
   // The document titles this listing names, in the reader's language. Empty
   // for every listing that is not about documents.
