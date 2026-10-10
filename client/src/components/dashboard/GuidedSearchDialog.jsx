@@ -421,10 +421,10 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           backdropFilter: 'blur(28px)',
           WebkitBackdropFilter: 'blur(28px)',
           borderRadius: { xs: '20px', sm: '24px' },
-          border: '1px solid rgba(0, 242, 254, 0.35)',
+          border: isDark ? '1px solid rgba(0, 242, 254, 0.35)' : '1.5px solid rgba(0, 242, 254, 0.65)',
           boxShadow: isDark
             ? '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)'
-            : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 35px -8px rgba(0, 242, 254, 0.2)',
+            : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 35px -5px rgba(0, 242, 254, 0.35)',
           overflow: 'hidden',
           p: { xs: 2, sm: 2.5, md: 3 },
           position: 'relative',
@@ -457,7 +457,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           height: '2px',
           background: isDark
             ? 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)'
-            : 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.85) 50%, transparent 95%)',
+            : 'linear-gradient(90deg, transparent 5%, #00F2FE 50%, transparent 95%)',
           pointerEvents: 'none',
           zIndex: 1,
         }}
@@ -472,14 +472,14 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          opacity: isDark ? 0.12 : 0.45,
+          opacity: isDark ? 0.12 : 0.55,
           zIndex: 0,
         }}
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
           <pattern id="dot-matrix-guided" width="24" height="24" patternUnits="userSpaceOnUse">
-            <circle cx="12" cy="12" r={isDark ? 1 : 1.3} fill={isDark ? '#00F2FE' : '#00b4d8'} />
+            <circle cx="12" cy="12" r={isDark ? 1 : 1.25} fill="#00F2FE" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#dot-matrix-guided)" />
@@ -499,7 +499,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           height: 34,
           borderRadius: '50%',
           backgroundColor: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(241, 245, 249, 0.85)',
-          border: isDark ? '1px solid rgba(51, 65, 85, 0.6)' : '1px solid rgba(203, 213, 225, 0.8)',
+          border: isDark ? '1px solid rgba(51, 65, 85, 0.6)' : '1px solid rgba(0, 242, 254, 0.45)',
           color: isDark ? '#94a3b8' : '#64748b',
           transition: 'all 0.25s ease',
           '&:hover': {
@@ -651,7 +651,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                           fontSize: '0.92rem',
                           transition: 'all 0.2s ease',
                           '& fieldset': {
-                            borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(203, 213, 225, 0.9)',
+                            borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(0, 242, 254, 0.45)',
                           },
                           '&:hover fieldset': {
                             borderColor: '#00F2FE',
@@ -779,7 +779,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                           fontSize: '0.92rem',
                           transition: 'all 0.2s ease',
                           '& fieldset': {
-                            borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(203, 213, 225, 0.9)',
+                            borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(0, 242, 254, 0.45)',
                           },
                           '&:hover fieldset': {
                             borderColor: '#00F2FE',
@@ -917,7 +917,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       color: isDark ? '#ffffff' : '#0f172a',
                       fontSize: '0.84rem',
                       '& fieldset': {
-                        borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(203, 213, 225, 0.9)',
+                        borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(0, 242, 254, 0.45)',
                       },
                       '&:hover fieldset': {
                         borderColor: '#00F2FE',
@@ -1033,7 +1033,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                           : (isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.85)'),
                         border: isSelected
                           ? '2px solid #00F2FE'
-                          : (isDark ? '1px solid rgba(51, 65, 85, 0.6)' : '1px solid rgba(203, 213, 225, 0.85)'),
+                          : (isDark ? '1px solid rgba(51, 65, 85, 0.6)' : '1px solid rgba(0, 242, 254, 0.35)'),
                         boxShadow: isSelected
                           ? (isDark ? '0 0 18px rgba(0, 242, 254, 0.35)' : '0 0 16px rgba(0, 242, 254, 0.25)')
                           : 'none',
@@ -1116,7 +1116,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     fontWeight: 700,
                     textTransform: 'none',
                     backgroundColor: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.85)',
-                    borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(203, 213, 225, 0.9)',
+                    borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(0, 242, 254, 0.45)',
                     color: isDark ? '#cbd5e1' : '#475569',
                     transition: 'all 0.25s ease',
                     '&:hover': {
