@@ -121,14 +121,14 @@ const CategoryBentoPod = ({ items }) => {
     <Box
       sx={{
         backgroundColor: isDark
-          ? alpha(theme.custom.color.surfaceRaised || "#1e293b", 0.25)
-          : "rgba(255, 255, 255, 0.35)",
+          ? alpha(theme.custom.color.surfaceRaised || "#1e293b", 0.12)
+          : "rgba(255, 255, 255, 0.18)",
         backdropFilter: "blur(10px)",
         WebkitBackdropFilter: "blur(10px)",
-        border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.18)" : "rgba(255, 255, 255, 0.60)"}`,
+        border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.40)"}`,
         boxShadow: isDark
-          ? "0 8px 32px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15)"
-          : "0 10px 28px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.03)",
+          ? "0 8px 32px rgba(0, 0, 0, 0.20), 0 2px 6px rgba(0, 0, 0, 0.10)"
+          : "0 10px 28px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02)",
         borderRadius: { xs: "18px", sm: "22px" },
         width: count === 1 ? "fit-content" : "100%",
         maxWidth: count === 1 ? { xs: "88%", sm: "84%" } : { xs: "92%", sm: "88%" },
