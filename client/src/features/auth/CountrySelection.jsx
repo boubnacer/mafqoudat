@@ -106,7 +106,7 @@ const CountrySelection = () => {
           accessToken: response.data.accessToken
         }));
 
-        navigate('/dash');
+        navigate('/');
       } else {
         setError(t('registrationCompletionFailed'));
       }

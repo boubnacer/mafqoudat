@@ -437,12 +437,12 @@ const Navbar = () => {
 
       if (isProtectedRoute) {
         // Redirect to dashboard if on protected route
-        navigate("/dash");
+        navigate("/");
       }
     }
   }, [isSuccess, navigate]);
 
-  const onGoHomeClicked = () => navigate("/dash");
+  const onGoHomeClicked = () => navigate("/");
 
   // Menu handlers
   const handleMobileDrawerClose = () => setMobileDrawerOpen(false);
@@ -562,7 +562,7 @@ const Navbar = () => {
     {
       title: t("dashboard"),
       icon: <Dashboard sx={{ fontSize: 20 }} />,
-      action: () => navigate("/dash"),
+      action: () => navigate("/"),
       description: t("goToDashboard"),
       tone: "neutral",
     },

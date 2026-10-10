@@ -441,7 +441,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       if (createdPostId) {
         navigate(`/dash/posts/${createdPostId}`, { replace: true });
       } else {
-        navigate("/dash", { replace: true });
+        navigate("/", { replace: true });
       }
     }
   }, [isSuccess, newPostData, navigate]);
@@ -941,7 +941,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       if (createdPostId) {
         navigate(`/dash/posts/${createdPostId}`, { replace: true });
       } else {
-        navigate("/dash", { replace: true });
+        navigate("/", { replace: true });
       }
     } catch (error) {
       console.error('Error in handleSubmit:', error);

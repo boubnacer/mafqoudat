@@ -690,7 +690,7 @@ const SinglePostPage = ({
         setShowSuccessMessage(true);
         setTimeout(() => {
           setShowSuccessMessage(false);
-          navigate('/dash');
+          navigate('/');
         }, 2000);
       } catch (error) {
         console.error('Delete failed:', error);

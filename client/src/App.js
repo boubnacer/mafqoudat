@@ -28,7 +28,6 @@ import { initializeGA, trackPageView } from "./utils/analytics";
 import { initializeMetaPixel } from "./utils/metaPixel";
 import { startConsentListener } from "./utils/consent";
 import { applyDocumentTheme } from "./utils/documentTheme";
-import WelcomePageSkeleton from "./components/WelcomePageSkeleton";
 import InfoPageSkeleton from "./components/InfoPageSkeleton";
 import PostFormSkeleton from "./components/PostFormSkeleton";
 import SinglePostSkeleton from "./components/SinglePostSkeleton";
@@ -39,7 +38,6 @@ import LoadingFallback from "./components/LoadingFallback";
 import SectionErrorBoundary from "./components/SectionErrorBoundary";
 
 // Lazy load all major page components for better code splitting
-const WelcomePage = lazy(() => import("./components/WelcomePage"));
 const Login = lazy(() => import("./features/auth/Login/Login"));
 const CountrySelection = lazy(() => import("./features/auth/CountrySelection"));
 const OAuthCallback = lazy(() => import("./features/auth/OAuthCallback"));
@@ -162,18 +160,6 @@ const AppContent = () => {
       ) : (
         /* Show normal app routes */
         <Routes>
-        {/* Welcome page - first time access */}
-        <Route path="/" element={
-          <Suspense fallback={<WelcomePageSkeleton />}>
-            <WelcomePage />
-          </Suspense>
-        } />
-
-        {/* No "/posts" route: it was a superseded second listing page that
-            duplicated /dash/posts, and the vercel.json "/posts/:path*" rewrite
-            proxies that path to the API anyway, so it could not reliably serve
-            a page in production. /dash/posts is the only listing. */}
-
         {/* Legal and Information Pages - Public Access */}
         <Route path="/privacy" element={
           <Suspense fallback={<InfoPageSkeleton />}>
@@ -270,43 +256,14 @@ const AppContent = () => {
           </Suspense>
         } />
 
-        {/* Dashboard layout - shared chrome (navbar/sidebar/footer) for every
-            /dash/* route. The country requirement deliberately does NOT live
-            here: it sits on the nested pathless CountryGuard route further
-            down, wrapping only the auth-gated subtree that has no fallback UI
-            of its own for a missing country. Post detail, dashboard home, and
-            the posts listing all stay outside it - see the comments at each.
-            Guarding the whole layout redirected every visitor with no stored
-            country - which includes search engine crawlers, who carry no
-            localStorage - straight back to "/", making those pages impossible
-            to index and breaking shared links for first-time visitors. */}
-        <Route path="dash" element={
+        {/* Main Application Layout (shared chrome: navbar/sidebar/footer)
+            Root '/' serves as the official, content-rich Homepage of Mafqoudat. */}
+        <Route path="/" element={
           <Suspense fallback={<LoadingFallback />}>
             <DashLayout />
           </Suspense>
         }>
-          {/* Post detail - public, and intentionally outside CountryGuard: a
-              post already carries its own country (countryname/countryLabels
-              come from the post itself), so no global country selection is
-              needed to render it. Static-segment routes like "posts/new" still
-              win over this one under React Router's ranking, so declaring it
-              first changes no other match. */}
-          <Route path="posts/:id" element={
-            <Suspense fallback={<SinglePostSkeleton />}>
-              <SinglePost />
-            </Suspense>
-          } />
-
-          {/* Dashboard home and the posts listing are also outside
-              CountryGuard, for the same reason as post detail above: both
-              Dash.js and PostsList.js already render their own
-              "please select a country" screen (with real SeoMeta) when
-              currentCountry is empty - CountryGuard's hard redirect to "/"
-              was firing first and pre-empting that, so a crawler with no
-              stored country (i.e. every crawler) never reached it. That made
-              /dash/posts the one page linking to individual posts
-              unreachable, even after post detail pages themselves were
-              fixed. */}
+          {/* Official Homepage: Dashboard at root '/' */}
           <Route index element={
             <PrefetchDependencies>
               <Suspense fallback={<DashboardSkeleton />}>
@@ -314,13 +271,32 @@ const AppContent = () => {
               </Suspense>
             </PrefetchDependencies>
           } />
-          <Route path="posts" element={
-            <PrefetchDependencies>
-              <Suspense fallback={<PostsListSkeleton />}>
-                <PostsList />
+
+          {/* Subroutes under /dash: bookmarks and legacy links redirect /dash to '/',
+              while keeping sub-routes (/dash/posts, /dash/posts/:id, etc.) intact
+              to protect API proxies and crawler OpenGraph rewrites. */}
+          <Route path="dash">
+            {/* Seamless redirect: /dash -> / */}
+            <Route index element={<Navigate to="/" replace />} />
+
+            {/* Post detail - public, and intentionally outside CountryGuard: a
+                post already carries its own country (countryname/countryLabels
+                come from the post itself), so no global country selection is
+                needed to render it. */}
+            <Route path="posts/:id" element={
+              <Suspense fallback={<SinglePostSkeleton />}>
+                <SinglePost />
               </Suspense>
-            </PrefetchDependencies>
-          } />
+            } />
+
+            {/* Posts listing */}
+            <Route path="posts" element={
+              <PrefetchDependencies>
+                <Suspense fallback={<PostsListSkeleton />}>
+                  <PostsList />
+                </Suspense>
+              </PrefetchDependencies>
+            } />
 
           {/* Everything below needs a country to filter its data by, and has
               no fallback UI of its own for a missing one. */}
@@ -396,8 +372,8 @@ const AppContent = () => {
                 <Route path="admin" element={
                   <SectionErrorBoundary
                     title={currentLanguage === 'ar' ? 'حدث خطأ في لوحة الإدارة' : 'Error in Admin Panel'}
-                    backUrl="/dash"
-                    backLabel={currentLanguage === 'ar' ? 'لوحة التحكم' : 'Dashboard'}
+                    backUrl="/"
+                    backLabel={currentLanguage === 'ar' ? 'الرئيسية' : 'Home'}
                   >
                     <Suspense fallback={<LoadingFallback />}>
                       <AdminLayout />
@@ -462,6 +438,7 @@ const AppContent = () => {
             </Route>
           </Route>
         </Route>
+      </Route>
 
         {/* 404 fallback route */}
         <Route path="*" element={

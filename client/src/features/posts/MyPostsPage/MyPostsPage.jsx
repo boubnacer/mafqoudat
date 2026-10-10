@@ -94,7 +94,7 @@ const MyPostsPage = () => {
   };
 
   const handleGoBack = () => {
-    navigate('/dash');
+    navigate('/');
   };
 
   const handleDeleteClick = (postId) => {

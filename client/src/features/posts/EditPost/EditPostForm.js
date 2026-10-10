@@ -506,7 +506,7 @@ if (typeof document !== 'undefined') {
       setShowSuccessMessage(true);
       setTimeout(() => {
         setShowSuccessMessage(false);
-        navigate("/dash");
+        navigate("/");
       }, 2000);
     }
     if (isDelSuccess) {
@@ -514,7 +514,7 @@ if (typeof document !== 'undefined') {
       setShowSuccessMessage(true);
       setTimeout(() => {
         setShowSuccessMessage(false);
-        navigate("/dash");
+        navigate("/");
       }, 2000);
     }
   }, [isSuccess, isDelSuccess, navigate, t]);
@@ -1624,7 +1624,7 @@ if (typeof document !== 'undefined') {
           setShowSuccessMessage(true);
           setTimeout(() => {
             setShowSuccessMessage(false);
-            navigate("/dash");
+            navigate("/");
           }, 2000);
         } catch (fetchError) {
           // Re-throw fetch errors with better context
@@ -1661,7 +1661,7 @@ if (typeof document !== 'undefined') {
       setSuccessMessage(t('postDeletedSuccessfully'));
       setShowSuccessMessage(true);
       setTimeout(() => {
-        navigate("/dash");
+        navigate("/");
       }, 2000);
     } catch (error) {
       console.error('Delete failed:', error?.data?.message || error.message);

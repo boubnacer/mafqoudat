@@ -269,16 +269,11 @@ export const pageSeoConfig = {
     ],
   },
   dash: {
-    path: '/dash',
-    title: 'Dashboard | Mafqoudat Lost and Found',
+    path: '/',
+    title: 'Mafqoudat - Lost and Found Platform | Morocco',
     description:
       'Browse lost and found items on Mafqoudat dashboard. View trending posts, recent items, and help reunite belongings with their owners across Morocco.',
-    structuredData: [
-      createBreadcrumbSchema([
-        { name: 'Home', path: '/' },
-        { name: 'Dashboard', path: '/dash' },
-      ]),
-    ],
+    structuredData: [],
   },
   dashPosts: {
     path: '/dash/posts',
@@ -288,7 +283,6 @@ export const pageSeoConfig = {
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
-        { name: 'Dashboard', path: '/dash' },
         { name: 'Posts', path: '/dash/posts' },
       ]),
     ],

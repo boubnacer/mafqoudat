@@ -279,7 +279,7 @@ const UserProfile = () => {
       {/* Header */}
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
         <IconButton
-          onClick={() => navigate('/dash')}
+          onClick={() => navigate('/')}
           aria-label={t('back')}
           sx={{
             color: theme.palette.text.primary,

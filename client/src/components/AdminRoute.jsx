@@ -26,7 +26,7 @@ const AdminRoute = ({ children }) => {
   }
 
   if (role !== 'admin') {
-    return <Navigate to="/dash" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children || <Outlet />;

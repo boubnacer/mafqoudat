@@ -28,7 +28,7 @@ const useRedirectAfterLogin = () => {
           // If no redirect URL, go to dashboard
           hasRedirected.current = true;
           setTimeout(() => {
-            navigate("/dash");
+            navigate("/");
           }, 200);
         }
       } else if (!token) {

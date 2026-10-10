@@ -17,12 +17,6 @@ const STATIC_ROUTES = [
   { path: '/terms', changefreq: 'monthly', priority: '0.6' },
   { path: '/cookies', changefreq: 'monthly', priority: '0.5' },
   { path: '/disclaimer', changefreq: 'monthly', priority: '0.5' },
-  // Prerendered mainly so it stops inheriting the homepage's markup. '/' is the
-  // SPA fallback, so every route without a build-time file of its own answers
-  // with build/index.html - which now carries the homepage's own <h1>. /dash is
-  // the one remaining public route where that would read as duplicated content,
-  // so it gets its own file and its own title.
-  { path: '/dash', changefreq: 'daily', priority: '0.7' },
 ];
 
 // Routes that belong in the sitemap but must NOT get a build-time HTML file.

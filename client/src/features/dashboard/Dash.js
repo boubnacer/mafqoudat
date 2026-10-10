@@ -208,11 +208,32 @@ const Dash = () => {
 
 
 
-  // If no country is selected, show country selection prompt
+  // If no country is selected yet: while countriesData is loading or being resolved,
+  // render the DashboardSkeleton so users and crawlers don't see a blocking "Please select country" gate.
   if (!currentCountry) {
+    if (!countriesData || !countriesData.ids || countriesData.ids.length === 0) {
+      return (
+        <>
+          <SeoMeta pageKey="home" />
+          <Box
+            pt={{ xs: "5rem", sm: "4rem" }}
+            width="100%"
+            sx={{
+              background: `linear-gradient(180deg, ${theme.custom.color.surfaceBase} 0%, ${theme.custom.color.surfaceBase} 100%)`,
+              minHeight: '100vh',
+              direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+              overflowX: 'hidden',
+            }}
+          >
+            <DashboardSkeleton />
+          </Box>
+        </>
+      );
+    }
+
     return (
       <>
-        <SeoMeta pageKey="dash" />
+        <SeoMeta pageKey="home" />
         <Box 
           pt={{ xs: "5.5rem", sm: "5.5rem" }} 
           width="100%"
@@ -273,7 +294,7 @@ const Dash = () => {
   if (isLoading && !data) {
     return (
       <>
-        <SeoMeta pageKey="dash" />
+        <SeoMeta pageKey="home" />
         <Box
           pt={{ xs: "5rem", sm: "4rem" }}
           width="100%"
@@ -297,7 +318,7 @@ const Dash = () => {
 
   return (
     <>
-      <SeoMeta pageKey="dash" />
+      <SeoMeta pageKey="home" />
       <Box 
         ref={pageRef}
         pt={{ xs: "5rem", sm: "4rem" }} 

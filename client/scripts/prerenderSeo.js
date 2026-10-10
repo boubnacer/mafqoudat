@@ -51,8 +51,7 @@ const BRAND_AR = 'مفقودات';
 // the page's own heading, just already assembled. If a page's heading changes,
 // the key here is what has to be repointed; the copy follows automatically.
 const STATIC_PAGE_SEO = {
-  // WelcomePage.jsx renders t('heroHeadline') as its h1, then
-  // t('welcomeMessage') under it.
+  // Official Homepage: Dashboard at '/' (renders hero headline as crawler crawlable heading)
   '/': { pageKey: 'home', h1Key: 'heroHeadline', subKey: 'welcomeMessage' },
   '/about': { pageKey: 'about', h1Key: 'aboutUs', subKey: 'reunitingCommunities' },
   '/blog': { pageKey: 'blog', h1Key: 'blog', subKey: 'blogSubtitle' },
@@ -66,11 +65,6 @@ const STATIC_PAGE_SEO = {
   '/terms': { pageKey: 'terms', h1Key: 'termsOfUse', subKey: null },
   '/cookies': { pageKey: 'cookies', h1Key: 'cookieNotice', subKey: null },
   '/disclaimer': { pageKey: 'disclaimer', h1Key: 'disclaimer', subKey: 'disclaimerSubtitle' },
-  // No h1Key: Dash.js is a panel layout with no single page heading, and
-  // inventing one here would put text on the page React never renders. Meta
-  // only - the point of prerendering this route is that it stops answering with
-  // the homepage's markup, not that it gains copy.
-  '/dash': { pageKey: 'dash', h1Key: null, subKey: null },
 };
 
 const escapeHtml = (value) =>

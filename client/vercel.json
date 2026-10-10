@@ -3,6 +3,13 @@
   "env": {
     "GENERATE_SOURCEMAP": "false"
   },
+  "redirects": [
+    {
+      "source": "/dash",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/dash/posts/:id",

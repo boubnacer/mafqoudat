@@ -125,7 +125,7 @@ const LoginComponent = () => {
       if (redirectUrl) {
         navigate(redirectUrl);
       } else {
-        navigate("/dash");
+        navigate("/");
       }
     }
   }, [navigate]);
@@ -177,7 +177,7 @@ const LoginComponent = () => {
           localStorage.removeItem('redirectAfterCountrySelection');
           navigate(countryRedirectUrl);
         } else {
-          navigate("/dash");
+          navigate("/");
         }
       }
     } catch (err) {

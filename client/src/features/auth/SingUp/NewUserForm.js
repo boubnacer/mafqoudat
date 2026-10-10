@@ -68,7 +68,7 @@ const NewUserFormComponent = ({ countries }) => {
       if (redirectUrl) {
         navigate(redirectUrl);
       } else {
-        navigate("/dash");
+        navigate("/");
       }
     }
   }, [navigate]);
@@ -196,7 +196,7 @@ const NewUserFormComponent = ({ countries }) => {
       if (redirectUrl) {
         navigate(redirectUrl);
       } else {
-        navigate("/dash");
+        navigate("/");
       }
     } catch (err) {
       const serverMessage = err?.data?.message || err?.message || null;

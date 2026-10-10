@@ -182,10 +182,10 @@ const SectionErrorFallback = ({
           <Button
             variant="text"
             startIcon={<Home />}
-            onClick={() => navigate('/dash')}
+            onClick={() => navigate('/')}
             sx={{ px: 2, py: 1 }}
           >
-            {isAr ? 'لوحة التحكم' : 'Dashboard'}
+            {isAr ? 'الرئيسية' : 'Home'}
           </Button>
         </Box>
 
