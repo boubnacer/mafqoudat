@@ -189,6 +189,18 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
   const [isSearchingCity, setIsSearchingCity] = useState(false);
   const searchDebounceRef = useRef(null);
 
+  // Dependencies queries
+  const { data: countriesData } = useGetCountriesQuery({ language: currentLanguage });
+  const { data: flOptionsData } = useGetflOptionsQuery({ language: currentLanguage });
+  const { data: categoriesData } = useGetCategoriesQuery({ language: currentLanguage });
+
+  const countriesList = useMemo(() => {
+    if (!countriesData?.ids) return [];
+    return countriesData.ids
+      .map((id) => countriesData.entities[id])
+      .filter(Boolean);
+  }, [countriesData]);
+
   // Reset and sync state when modal opens
   useEffect(() => {
     if (open) {
@@ -207,18 +219,6 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
       setHybridCities([]);
     }
   }, [open, reduxCountry, countriesList]);
-
-  // Dependencies queries
-  const { data: countriesData } = useGetCountriesQuery({ language: currentLanguage });
-  const { data: flOptionsData } = useGetflOptionsQuery({ language: currentLanguage });
-  const { data: categoriesData } = useGetCategoriesQuery({ language: currentLanguage });
-
-  const countriesList = useMemo(() => {
-    if (!countriesData?.ids) return [];
-    return countriesData.ids
-      .map((id) => countriesData.entities[id])
-      .filter(Boolean);
-  }, [countriesData]);
 
   // If no selected country yet, default to reduxCountry or Morocco ('MA') or first available country
   useEffect(() => {
