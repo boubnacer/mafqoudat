@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,19 +15,18 @@ import {
   useTheme,
   useMediaQuery,
   alpha,
-  Paper,
+  Chip,
+  InputAdornment,
 } from '@mui/material';
 import {
   Close as CloseIcon,
   Search as SearchIcon,
   ArrowForward as ArrowForwardIcon,
   ArrowBack as ArrowBackIcon,
-  SearchOffOutlined,
-  TaskAltOutlined,
   PlaceOutlined,
-  CategoryOutlined,
   CheckCircleRounded,
   Clear as ClearIcon,
+  FilterListRounded,
 } from '@mui/icons-material';
 import { selectCurrentCountry, setCurrentCountry } from '../../app/state';
 import {
@@ -128,13 +127,14 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
 
   const reduxCountry = useSelector(selectCurrentCountry);
 
-  // Wizard state
+  // Wizard state: Step 1 (Location: Country & City) -> Step 2 (Categories: Multi-select)
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
-  const [selectedType, setSelectedType] = useState(initialType || 'lost');
+  const selectedType = initialType || 'lost'; // Preserved from the button user clicked
   const [selectedCountry, setSelectedCountry] = useState(reduxCountry || '');
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCity, setSelectedCity] = useState(null);
+  const [selectedCategories, setSelectedCategories] = useState([]); // Multiple category IDs
+  const [categoryFilterQuery, setCategoryFilterQuery] = useState('');
 
   // City hybrid search state
   const [cityInput, setCityInput] = useState('');
@@ -147,16 +147,16 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
     if (open) {
       setStep(1);
       setDirection(1);
-      setSelectedType(initialType || 'lost');
       if (reduxCountry) {
         setSelectedCountry(reduxCountry);
       }
-      setSelectedCategory('');
       setSelectedCity(null);
+      setSelectedCategories([]);
+      setCategoryFilterQuery('');
       setCityInput('');
       setHybridCities([]);
     }
-  }, [open, initialType, reduxCountry]);
+  }, [open, reduxCountry]);
 
   // Dependencies queries
   const { data: countriesData } = useGetCountriesQuery({ language: currentLanguage });
@@ -200,13 +200,35 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
       .find((opt) => opt?.code === 'LOST')?.id;
   }, [flOptionsData]);
 
-  const categoriesList = useMemo(() => {
+  const allCategories = useMemo(() => {
     if (!categoriesData?.ids) return [];
     const raw = categoriesData.ids
       .map((id) => categoriesData.entities[id])
       .filter(Boolean);
     return sortCategoriesForBrowse(raw);
   }, [categoriesData]);
+
+  // Filtered categories in Slide 2 by user search query
+  const displayedCategories = useMemo(() => {
+    if (!categoryFilterQuery.trim()) return allCategories;
+    const q = categoryFilterQuery.toLowerCase().trim();
+    return allCategories.filter((cat) => {
+      const name = (cat.name || '').toLowerCase();
+      const label = (cat.label || '').toLowerCase();
+      const code = (cat.code || '').toLowerCase();
+      const labelEn = (cat.labels?.en || '').toLowerCase();
+      const labelAr = (cat.labels?.ar || '').toLowerCase();
+      const labelFr = (cat.labels?.fr || '').toLowerCase();
+      return (
+        name.includes(q) ||
+        label.includes(q) ||
+        code.includes(q) ||
+        labelEn.includes(q) ||
+        labelAr.includes(q) ||
+        labelFr.includes(q)
+      );
+    });
+  }, [allCategories, categoryFilterQuery]);
 
   // Fetch standard database cities for selected country
   const { data: citiesData } = useGetCitiesQuery(
@@ -274,7 +296,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
 
   // Slide navigation
   const handleNext = () => {
-    if (!selectedType || !selectedCountry) return;
+    if (!selectedCountry) return;
     setDirection(1);
     setStep(2);
   };
@@ -294,6 +316,22 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
     }
   };
 
+  // Multiple category selection handler (toggle in/out)
+  const handleToggleCategory = (catId) => {
+    setSelectedCategories((prev) =>
+      prev.includes(catId) ? prev.filter((id) => id !== catId) : [...prev, catId]
+    );
+  };
+
+  const handleClearCategories = () => {
+    setSelectedCategories([]);
+  };
+
+  const handleSelectAllCategories = () => {
+    const allIds = allCategories.map((c) => c._id || c.id).filter(Boolean);
+    setSelectedCategories(allIds);
+  };
+
   const handleSearchSubmit = () => {
     // 1. Dispatch updated country to Redux store
     if (selectedCountry) {
@@ -304,7 +342,10 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
     const params = new URLSearchParams();
     const flParam = selectedType === 'found' ? (foundsId || '') : (lostsId || '');
     if (flParam) params.set('fl', flParam);
-    if (selectedCategory) params.set('category', selectedCategory);
+
+    if (selectedCategories.length > 0) {
+      params.set('category', selectedCategories.join(','));
+    }
 
     const cityParam = selectedCity
       ? (selectedCity._id || selectedCity.id || selectedCity.code || '')
@@ -331,6 +372,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
     ...position,
   });
 
+  const accentColor =
+    selectedType === 'found' ? theme.custom.status.found.main : theme.custom.status.lost.main;
+
   return (
     <Dialog
       open={open}
@@ -344,7 +388,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.94)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.98)} 100%)`,
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          border: `1px solid ${alpha(theme.custom.color.brandPrimary, isDark ? 0.28 : 0.18)}`,
+          border: `1px solid ${alpha(accentColor, isDark ? 0.35 : 0.22)}`,
           borderRadius: `${theme.custom.radius.xl}px`,
           boxShadow: theme.custom.elevation.e3,
           p: { xs: 2.5, sm: 3.5 },
@@ -352,7 +396,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
         },
       }}
     >
-      <Box sx={blob(theme.custom.color.brandPrimary, { top: -80, insetInlineStart: -60 })} />
+      <Box sx={blob(accentColor, { top: -80, insetInlineStart: -60 })} />
       <Box sx={blob(theme.custom.color.brandLogo, { bottom: -90, insetInlineEnd: -60 })} />
 
       <DialogContent sx={{ p: 0, position: 'relative', zIndex: 1, overflow: 'visible' }}>
@@ -374,16 +418,12 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                 borderRadius: '999px',
                 fontSize: '0.8rem',
                 fontWeight: 700,
-                backgroundColor: step === 1
-                  ? theme.custom.color.brandPrimary
-                  : alpha(theme.custom.color.ink, 0.08),
-                color: step === 1
-                  ? theme.palette.common.white
-                  : alpha(theme.custom.color.ink, 0.6),
+                backgroundColor: step === 1 ? accentColor : alpha(theme.custom.color.ink, 0.08),
+                color: step === 1 ? theme.palette.common.white : alpha(theme.custom.color.ink, 0.6),
                 transition: 'all 0.25s ease',
               }}
             >
-              1. {t('step1TypeAndCountry') || 'Type & Country'}
+              1. {t('step1Location') || 'Location'}
             </Box>
             <Box
               sx={{
@@ -399,16 +439,12 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                 borderRadius: '999px',
                 fontSize: '0.8rem',
                 fontWeight: 700,
-                backgroundColor: step === 2
-                  ? theme.custom.color.brandPrimary
-                  : alpha(theme.custom.color.ink, 0.08),
-                color: step === 2
-                  ? theme.palette.common.white
-                  : alpha(theme.custom.color.ink, 0.6),
+                backgroundColor: step === 2 ? accentColor : alpha(theme.custom.color.ink, 0.08),
+                color: step === 2 ? theme.palette.common.white : alpha(theme.custom.color.ink, 0.6),
                 transition: 'all 0.25s ease',
               }}
             >
-              2. {t('step2CategoryAndCity') || 'Category & City'}
+              2. {t('step2Categories') || 'Categories'}
             </Box>
           </Box>
 
@@ -432,7 +468,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
         <AnimatePresence mode="wait" custom={direction}>
           {step === 1 ? (
             <motion.div
-              key="slide-1"
+              key="slide-1-location"
               custom={direction}
               variants={slideVariants}
               initial="enter"
@@ -440,7 +476,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
               exit="exit"
               transition={{ duration: 0.22, ease: 'easeOut' }}
             >
-              {/* Title */}
+              {/* Slide 1 Header */}
               <Box sx={{ mb: 3 }}>
                 <Typography
                   variant="h5"
@@ -452,7 +488,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     mb: 0.5,
                   }}
                 >
-                  {t('whatHappenedAndWhere') || 'What happened & Where?'}
+                  {selectedType === 'found'
+                    ? t('whereDidYouFindIt') || 'Where did you find the item?'
+                    : t('whereDidYouLoseIt') || 'Where did you lose your item?'}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -461,179 +499,16 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     fontSize: { xs: '0.85rem', sm: '0.9rem' },
                   }}
                 >
-                  {t('browseBeforeReport') || 'Select if you lost or found an item and your country.'}
+                  {selectedType === 'found'
+                    ? t('selectLocationSubtitleFound') ||
+                      'Select the country and city where you found the item to search owner reports.'
+                    : t('selectLocationSubtitleLost') ||
+                      'Select the country and city where you lost your item to find community reports.'}
                 </Typography>
               </Box>
 
-              {/* Type Selector (Lost vs Found) */}
-              <Typography
-                variant="subtitle2"
-                fontWeight={600}
-                sx={{ color: theme.custom.color.ink, mb: 1.25 }}
-              >
-                {t('postStatus') || 'Status'}
-              </Typography>
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: { xs: 1.5, sm: 2 },
-                  mb: 3,
-                }}
-              >
-                {/* I Lost Something Card */}
-                <Box
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setSelectedType('lost')}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setSelectedType('lost');
-                    }
-                  }}
-                  sx={{
-                    p: { xs: 2, sm: 2.5 },
-                    borderRadius: `${theme.custom.radius.lg}px`,
-                    cursor: 'pointer',
-                    outline: 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    gap: 1.2,
-                    position: 'relative',
-                    transition: 'all 0.2s ease',
-                    backgroundColor: selectedType === 'lost'
-                      ? alpha(theme.custom.status.lost.main, isDark ? 0.24 : 0.12)
-                      : alpha(theme.custom.color.surfaceRaised, 0.6),
-                    border: selectedType === 'lost'
-                      ? `2px solid ${theme.custom.status.lost.main}`
-                      : `1px solid ${alpha(theme.custom.color.ink, 0.12)}`,
-                    boxShadow: selectedType === 'lost'
-                      ? `0 6px 18px ${alpha(theme.custom.status.lost.main, 0.2)}`
-                      : 'none',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      backgroundColor: alpha(theme.custom.status.lost.main, isDark ? 0.28 : 0.16),
-                    },
-                  }}
-                >
-                  {selectedType === 'lost' && (
-                    <CheckCircleRounded
-                      sx={{
-                        position: 'absolute',
-                        top: 8,
-                        insetInlineEnd: 8,
-                        fontSize: 18,
-                        color: theme.custom.status.lost.main,
-                      }}
-                    />
-                  )}
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: theme.custom.status.lost.bg,
-                      color: theme.custom.status.lost.main,
-                    }}
-                  >
-                    <SearchOffOutlined sx={{ fontSize: 26 }} />
-                  </Box>
-                  <Typography
-                    variant="body1"
-                    fontWeight={700}
-                    sx={{
-                      color: theme.custom.color.ink,
-                      fontSize: { xs: '0.95rem', sm: '1.05rem' },
-                    }}
-                  >
-                    {t('iLostSomething') || 'I Lost Something'}
-                  </Typography>
-                </Box>
-
-                {/* I Found Something Card */}
-                <Box
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setSelectedType('found')}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setSelectedType('found');
-                    }
-                  }}
-                  sx={{
-                    p: { xs: 2, sm: 2.5 },
-                    borderRadius: `${theme.custom.radius.lg}px`,
-                    cursor: 'pointer',
-                    outline: 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    gap: 1.2,
-                    position: 'relative',
-                    transition: 'all 0.2s ease',
-                    backgroundColor: selectedType === 'found'
-                      ? alpha(theme.custom.status.found.main, isDark ? 0.24 : 0.12)
-                      : alpha(theme.custom.color.surfaceRaised, 0.6),
-                    border: selectedType === 'found'
-                      ? `2px solid ${theme.custom.status.found.main}`
-                      : `1px solid ${alpha(theme.custom.color.ink, 0.12)}`,
-                    boxShadow: selectedType === 'found'
-                      ? `0 6px 18px ${alpha(theme.custom.status.found.main, 0.2)}`
-                      : 'none',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      backgroundColor: alpha(theme.custom.status.found.main, isDark ? 0.28 : 0.16),
-                    },
-                  }}
-                >
-                  {selectedType === 'found' && (
-                    <CheckCircleRounded
-                      sx={{
-                        position: 'absolute',
-                        top: 8,
-                        insetInlineEnd: 8,
-                        fontSize: 18,
-                        color: theme.custom.status.found.main,
-                      }}
-                    />
-                  )}
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: theme.custom.status.found.bg,
-                      color: theme.custom.status.found.main,
-                    }}
-                  >
-                    <TaskAltOutlined sx={{ fontSize: 26 }} />
-                  </Box>
-                  <Typography
-                    variant="body1"
-                    fontWeight={700}
-                    sx={{
-                      color: theme.custom.color.ink,
-                      fontSize: { xs: '0.95rem', sm: '1.05rem' },
-                    }}
-                  >
-                    {t('iFoundSomething') || 'I Found Something'}
-                  </Typography>
-                </Box>
-              </Box>
-
               {/* Country Picker */}
-              <Box sx={{ mb: 4 }}>
+              <Box sx={{ mb: 3 }}>
                 <Typography
                   variant="subtitle2"
                   fontWeight={600}
@@ -697,184 +572,8 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                 />
               </Box>
 
-              {/* Next Step Action */}
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
-                <Button
-                  variant="contained"
-                  size="large"
-                  onClick={handleNext}
-                  disabled={!selectedType || !selectedCountry}
-                  endIcon={isRTLMode ? <ArrowBackIcon /> : <ArrowForwardIcon />}
-                  sx={{
-                    borderRadius: `${theme.custom.radius.md}px`,
-                    px: 3.5,
-                    py: 1.25,
-                    fontWeight: 700,
-                    textTransform: 'none',
-                    backgroundColor: theme.custom.color.brandPrimary,
-                    boxShadow: theme.custom.elevation.e1,
-                    '&:hover': {
-                      backgroundColor: theme.custom.color.brandPrimary,
-                      opacity: 0.92,
-                      transform: 'translateY(-1px)',
-                    },
-                  }}
-                >
-                  {t('nextStep') || 'Next'}
-                </Button>
-              </Box>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="slide-2"
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: 0.22, ease: 'easeOut' }}
-            >
-              {/* Title */}
-              <Box sx={{ mb: 2.5 }}>
-                <Typography
-                  variant="h5"
-                  fontWeight={700}
-                  sx={{
-                    fontFamily: theme.custom.font.display,
-                    color: theme.custom.color.ink,
-                    fontSize: { xs: '1.25rem', sm: '1.45rem' },
-                    mb: 0.5,
-                  }}
-                >
-                  {t('categoryAndCity') || 'Category & City'}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: alpha(theme.custom.color.ink, 0.68),
-                    fontSize: { xs: '0.85rem', sm: '0.9rem' },
-                  }}
-                >
-                  {t('searchPostsDesc') || 'Narrow down by category and city to find matching posts.'}
-                </Typography>
-              </Box>
-
-              {/* Category Picker */}
-              <Box sx={{ mb: 3 }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    mb: 1,
-                  }}
-                >
-                  <Typography variant="subtitle2" fontWeight={600} sx={{ color: theme.custom.color.ink }}>
-                    {t('selectCategory') || 'Category (Optional)'}
-                  </Typography>
-                  {selectedCategory && (
-                    <Button
-                      size="small"
-                      onClick={() => setSelectedCategory('')}
-                      sx={{
-                        fontSize: '0.75rem',
-                        textTransform: 'none',
-                        color: alpha(theme.custom.color.ink, 0.6),
-                        py: 0,
-                      }}
-                    >
-                      {t('allCategories') || 'Clear category'}
-                    </Button>
-                  )}
-                </Box>
-
-                {/* Quick Interactive Category Grid */}
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: { xs: 'repeat(3, 1fr)', sm: 'repeat(4, 1fr)' },
-                    gap: 1,
-                    maxHeight: 180,
-                    overflowY: 'auto',
-                    pr: 0.5,
-                    mb: 1.5,
-                  }}
-                >
-                  {categoriesList.map((cat) => {
-                    const catId = cat._id || cat.id;
-                    const isSelected = selectedCategory === catId;
-                    const IconComponent = getCategoryIcon(cat.code);
-                    const catColor = getCategoryColor(cat.code) || theme.custom.color.brandPrimary;
-                    const catLabel = cat.labels?.[currentLanguage] || cat.name || cat.label || cat.code;
-
-                    return (
-                      <Box
-                        key={catId}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setSelectedCategory(isSelected ? '' : catId)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            setSelectedCategory(isSelected ? '' : catId);
-                          }
-                        }}
-                        sx={{
-                          p: 1,
-                          borderRadius: `${theme.custom.radius.md}px`,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          textAlign: 'center',
-                          gap: 0.5,
-                          transition: 'all 0.18s ease',
-                          backgroundColor: isSelected
-                            ? alpha(catColor, isDark ? 0.28 : 0.16)
-                            : alpha(theme.custom.color.surfaceRaised, 0.6),
-                          border: isSelected
-                            ? `2px solid ${catColor}`
-                            : `1px solid ${alpha(theme.custom.color.ink, 0.1)}`,
-                          '&:hover': {
-                            transform: 'translateY(-2px)',
-                            backgroundColor: alpha(catColor, isDark ? 0.22 : 0.12),
-                          },
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: alpha(catColor, 0.16),
-                            color: catColor,
-                          }}
-                        >
-                          <IconComponent sx={{ fontSize: 18 }} />
-                        </Box>
-                        <Typography
-                          variant="caption"
-                          noWrap
-                          sx={{
-                            fontWeight: isSelected ? 700 : 500,
-                            color: theme.custom.color.ink,
-                            fontSize: '0.75rem',
-                            maxWidth: '100%',
-                          }}
-                        >
-                          {catLabel}
-                        </Typography>
-                      </Box>
-                    );
-                  })}
-                </Box>
-              </Box>
-
               {/* City Autocomplete */}
-              <Box sx={{ mb: 3.5 }}>
+              <Box sx={{ mb: 4 }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -925,7 +624,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                         px: 1.5,
                       }}
                     >
-                      <PlaceOutlined sx={{ fontSize: 20, color: theme.custom.color.brandPrimary }} />
+                      <PlaceOutlined sx={{ fontSize: 20, color: accentColor }} />
                       <Box>
                         <Typography sx={{ fontWeight: 600, fontSize: '0.9rem' }}>
                           {getCityDisplayName(option, currentLanguage)}
@@ -977,6 +676,255 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                 />
               </Box>
 
+              {/* Next Step Action */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={handleNext}
+                  disabled={!selectedCountry}
+                  endIcon={isRTLMode ? <ArrowBackIcon /> : <ArrowForwardIcon />}
+                  sx={{
+                    borderRadius: `${theme.custom.radius.md}px`,
+                    px: 3.5,
+                    py: 1.25,
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    backgroundColor: accentColor,
+                    boxShadow: theme.custom.elevation.e1,
+                    '&:hover': {
+                      backgroundColor: accentColor,
+                      opacity: 0.92,
+                      transform: 'translateY(-1px)',
+                    },
+                  }}
+                >
+                  {t('nextStep') || 'Next'}
+                </Button>
+              </Box>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="slide-2-categories"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+            >
+              {/* Slide 2 Header: "Select the things you found/lost" */}
+              <Box sx={{ mb: 2 }}>
+                <Typography
+                  variant="h5"
+                  fontWeight={700}
+                  sx={{
+                    fontFamily: theme.custom.font.display,
+                    color: theme.custom.color.ink,
+                    fontSize: { xs: '1.25rem', sm: '1.45rem' },
+                    mb: 0.5,
+                  }}
+                >
+                  {selectedType === 'found'
+                    ? t('selectWhatYouFound') || 'Select the things you found'
+                    : t('selectWhatYouLost') || 'Select the things you lost'}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: alpha(theme.custom.color.ink, 0.68),
+                    fontSize: { xs: '0.85rem', sm: '0.9rem' },
+                  }}
+                >
+                  {t('selectCategoriesSubtitle') ||
+                    'You can choose one or multiple categories to find matching reports.'}
+                </Typography>
+              </Box>
+
+              {/* Controls bar: search input + counter & clear */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 1.5,
+                  mb: 1.5,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <TextField
+                  size="small"
+                  value={categoryFilterQuery}
+                  onChange={(e) => setCategoryFilterQuery(e.target.value)}
+                  placeholder={t('search') || 'Filter categories...'}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <FilterListRounded sx={{ fontSize: 18, color: alpha(theme.custom.color.ink, 0.5) }} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: categoryFilterQuery ? (
+                      <InputAdornment position="end">
+                        <IconButton size="small" onClick={() => setCategoryFilterQuery('')}>
+                          <ClearIcon fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : null,
+                  }}
+                  sx={{
+                    flex: '1 1 180px',
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.7),
+                      borderRadius: `${theme.custom.radius.md}px`,
+                      fontSize: '0.85rem',
+                    },
+                  }}
+                />
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {selectedCategories.length > 0 && (
+                    <Chip
+                      size="small"
+                      label={`${selectedCategories.length} ${t('categoriesSelected') || 'selected'}`}
+                      sx={{
+                        fontWeight: 700,
+                        backgroundColor: alpha(accentColor, 0.16),
+                        color: accentColor,
+                        border: `1px solid ${alpha(accentColor, 0.3)}`,
+                      }}
+                    />
+                  )}
+                  {selectedCategories.length > 0 ? (
+                    <Button
+                      size="small"
+                      onClick={handleClearCategories}
+                      sx={{
+                        fontSize: '0.78rem',
+                        textTransform: 'none',
+                        color: alpha(theme.custom.color.ink, 0.7),
+                        p: 0.5,
+                      }}
+                    >
+                      {t('clearSelection') || 'Clear'}
+                    </Button>
+                  ) : (
+                    <Button
+                      size="small"
+                      onClick={handleSelectAllCategories}
+                      sx={{
+                        fontSize: '0.78rem',
+                        textTransform: 'none',
+                        color: alpha(theme.custom.color.ink, 0.7),
+                        p: 0.5,
+                      }}
+                    >
+                      {t('selectAll') || 'Select All'}
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Multi-Select Category Cards Grid */}
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: 'repeat(3, 1fr)', sm: 'repeat(4, 1fr)' },
+                  gap: 1.25,
+                  maxHeight: 270,
+                  overflowY: 'auto',
+                  pr: 0.5,
+                  mb: 3,
+                }}
+              >
+                {displayedCategories.map((cat) => {
+                  const catId = cat._id || cat.id;
+                  const isSelected = selectedCategories.includes(catId);
+                  const IconComponent = getCategoryIcon(cat.code);
+                  const catColor = getCategoryColor(cat.code) || accentColor;
+                  const catLabel =
+                    cat.labels?.[currentLanguage] || cat.name || cat.label || cat.code;
+
+                  return (
+                    <Box
+                      key={catId}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleToggleCategory(catId)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleToggleCategory(catId);
+                        }
+                      }}
+                      sx={{
+                        position: 'relative',
+                        p: { xs: 1.25, sm: 1.5 },
+                        borderRadius: `${theme.custom.radius.md}px`,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        gap: 0.75,
+                        transition: 'all 0.18s ease',
+                        backgroundColor: isSelected
+                          ? alpha(catColor, isDark ? 0.3 : 0.16)
+                          : alpha(theme.custom.color.surfaceRaised, 0.6),
+                        border: isSelected
+                          ? `2px solid ${catColor}`
+                          : `1px solid ${alpha(theme.custom.color.ink, 0.12)}`,
+                        boxShadow: isSelected
+                          ? `0 4px 12px ${alpha(catColor, 0.25)}`
+                          : 'none',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          backgroundColor: alpha(catColor, isDark ? 0.24 : 0.12),
+                          borderColor: catColor,
+                        },
+                      }}
+                    >
+                      {isSelected && (
+                        <CheckCircleRounded
+                          sx={{
+                            position: 'absolute',
+                            top: 4,
+                            insetInlineEnd: 4,
+                            fontSize: 16,
+                            color: catColor,
+                          }}
+                        />
+                      )}
+                      <Box
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: alpha(catColor, 0.16),
+                          color: catColor,
+                        }}
+                      >
+                        <IconComponent sx={{ fontSize: 20 }} />
+                      </Box>
+                      <Typography
+                        variant="caption"
+                        noWrap
+                        sx={{
+                          fontWeight: isSelected ? 700 : 500,
+                          color: theme.custom.color.ink,
+                          fontSize: '0.78rem',
+                          maxWidth: '100%',
+                        }}
+                      >
+                        {catLabel}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </Box>
+
               {/* Actions Footer */}
               <Box
                 sx={{
@@ -1000,8 +948,8 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     color: theme.custom.color.ink,
                     borderColor: alpha(theme.custom.color.ink, 0.25),
                     '&:hover': {
-                      borderColor: theme.custom.color.brandPrimary,
-                      backgroundColor: alpha(theme.custom.color.brandPrimary, 0.06),
+                      borderColor: accentColor,
+                      backgroundColor: alpha(accentColor, 0.06),
                     },
                   }}
                 >
@@ -1019,10 +967,10 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     py: 1.25,
                     fontWeight: 700,
                     textTransform: 'none',
-                    backgroundColor: theme.custom.color.brandPrimary,
+                    backgroundColor: accentColor,
                     boxShadow: theme.custom.elevation.e2,
                     '&:hover': {
-                      backgroundColor: theme.custom.color.brandPrimary,
+                      backgroundColor: accentColor,
                       opacity: 0.92,
                       transform: 'translateY(-1px)',
                     },

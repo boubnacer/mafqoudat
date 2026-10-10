@@ -8,7 +8,6 @@ import {
   SearchOffOutlined,
   Search,
   ArrowForwardIosRounded,
-  InfoOutlined,
 } from '@mui/icons-material';
 import GuidedSearchDialog from './GuidedSearchDialog';
 
@@ -184,83 +183,7 @@ const SearchReportHub = () => {
             </Typography>
           </Box>
 
-          {/* Search all listings prompt bar */}
-          <Box
-            sx={{
-              ...glassPanel(theme.custom.radius.md),
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: { xs: 1.25, sm: 1.5 },
-              p: { xs: 1.25, sm: 1.5 },
-              mb: { xs: 2, sm: 2.5 },
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, flex: '1 1 220px', minWidth: 0 }}>
-              <InfoOutlined sx={{ fontSize: 20, color: brandPrimary, flexShrink: 0, mt: '1px' }} />
-              <Typography
-                variant="body2"
-                sx={{
-                  fontFamily: theme.custom.font.body,
-                  color: alpha(ink, 0.8),
-                  fontSize: { xs: '0.82rem', sm: '0.88rem' },
-                  lineHeight: 1.4,
-                }}
-              >
-                {t('browseBeforePostTip') ||
-                  'Check existing listings first. Many lost items have already been found and reported!'}
-              </Typography>
-            </Box>
 
-            <Box
-              data-reveal-item=""
-              role="button"
-              tabIndex={0}
-              onClick={goToAllListings}
-              onKeyDown={(e) => handleKeyActivate(e, goToAllListings)}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                handleTouchEnd(e, goToAllListings);
-              }}
-              sx={{
-                flexShrink: 0,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.75,
-                px: { xs: 1.75, sm: 2.25 },
-                py: { xs: 0.75, sm: 0.9 },
-                borderRadius: '999px',
-                backgroundColor: brandPrimary,
-                cursor: 'pointer',
-                outline: 'none',
-                boxShadow: theme.custom.elevation.e1,
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                '&:hover': {
-                  boxShadow: theme.custom.elevation.e2,
-                  transform: 'translateY(-2px)',
-                },
-                '&:focus-visible': {
-                  boxShadow: `0 0 0 2px ${alpha(white, 0.6)}`,
-                },
-              }}
-            >
-              <Search sx={{ fontSize: 18, color: white }} />
-              <Typography
-                sx={{
-                  fontFamily: theme.custom.font.body,
-                  fontWeight: 600,
-                  fontSize: { xs: '0.82rem', sm: '0.88rem' },
-                  color: white,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {t('searchAllListings') || 'Search all listings'}
-              </Typography>
-            </Box>
-          </Box>
 
           {/* Two prominent action cards */}
           <Box
@@ -367,6 +290,58 @@ const SearchReportHub = () => {
                 </Box>
               );
             })}
+          </Box>
+
+          {/* Centered link / pill to search all listings without filters */}
+          <Box sx={{ mt: { xs: 2.5, sm: 3 }, textAlign: 'center' }}>
+            <Box
+              data-reveal-item=""
+              role="button"
+              tabIndex={0}
+              onClick={goToAllListings}
+              onKeyDown={(e) => handleKeyActivate(e, goToAllListings)}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                handleTouchEnd(e, goToAllListings);
+              }}
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 1,
+                px: { xs: 2.5, sm: 3 },
+                py: { xs: 0.9, sm: 1.1 },
+                borderRadius: '999px',
+                backgroundColor: alpha(brandPrimary, isDark ? 0.16 : 0.09),
+                border: `1px solid ${alpha(brandPrimary, isDark ? 0.35 : 0.22)}`,
+                cursor: 'pointer',
+                outline: 'none',
+                boxShadow: theme.custom.elevation.e1,
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: alpha(brandPrimary, isDark ? 0.26 : 0.16),
+                  transform: 'translateY(-2px)',
+                  boxShadow: theme.custom.elevation.e2,
+                },
+                '&:focus-visible': {
+                  boxShadow: `0 0 0 2px ${brandPrimary}`,
+                },
+              }}
+            >
+              <Search sx={{ fontSize: 18, color: brandPrimary }} />
+              <Typography
+                sx={{
+                  fontFamily: theme.custom.font.body,
+                  fontWeight: 600,
+                  fontSize: { xs: '0.85rem', sm: '0.92rem' },
+                  color: brandPrimary,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {t('searchAllListings') || 'Search all listings'}
+              </Typography>
+            </Box>
           </Box>
         </Box>
       </Box>

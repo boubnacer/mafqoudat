@@ -157,7 +157,7 @@ const PostsList = () => {
   // Get URL parameters for filter
   const searchParams = new URLSearchParams(search);
   const urlFilter = searchParams.get('fl'); // Changed from 'filter' to 'fl' to match NavLinks
-  const urlCategory = searchParams.get('category') || searchParams.get('categoryId');
+  const urlCategory = searchParams.get('category') || searchParams.get('categories') || searchParams.get('categoryId');
   const urlCity = searchParams.get('city') || searchParams.get('cityId');
   const urlCountry = searchParams.get('country') || searchParams.get('countryId');
 
@@ -280,30 +280,31 @@ const PostsList = () => {
     setPage(1);
   }, [urlFilter]);
 
-  // Sync category filter from URL query param (?category= or ?categoryId=)
+  // Sync category filter from URL query param (?category= or ?categories= or ?categoryId=)
   useEffect(() => {
     if (!urlCategory) return;
+    const rawIds = urlCategory.split(',').map((id) => id.trim()).filter(Boolean);
+    if (rawIds.length === 0) return;
+
     if (categoriesData && categoriesData.length > 0) {
-      const match = categoriesData.find(
-        (cat) =>
-          cat._id === urlCategory ||
-          String(cat.code).toLowerCase() === String(urlCategory).toLowerCase()
-      );
-      if (match) {
-        setSelectedCategories([match._id]);
-        setDraftSelectedCategories([match._id]);
-        setLocalCategoryFilter(match._id);
-        setPage(1);
-      } else {
-        setSelectedCategories([urlCategory]);
-        setDraftSelectedCategories([urlCategory]);
-        setLocalCategoryFilter(urlCategory);
-        setPage(1);
-      }
+      const matchedIds = rawIds.map((val) => {
+        const match = categoriesData.find(
+          (cat) =>
+            cat._id === val ||
+            cat.id === val ||
+            String(cat.code).toLowerCase() === String(val).toLowerCase()
+        );
+        return match ? (match._id || match.id) : val;
+      });
+
+      setSelectedCategories(matchedIds);
+      setDraftSelectedCategories(matchedIds);
+      setLocalCategoryFilter(matchedIds.length === 1 ? matchedIds[0] : "all");
+      setPage(1);
     } else {
-      setSelectedCategories([urlCategory]);
-      setDraftSelectedCategories([urlCategory]);
-      setLocalCategoryFilter(urlCategory);
+      setSelectedCategories(rawIds);
+      setDraftSelectedCategories(rawIds);
+      setLocalCategoryFilter(rawIds.length === 1 ? rawIds[0] : "all");
     }
   }, [urlCategory, categoriesData]);
 
@@ -720,11 +721,15 @@ const PostsList = () => {
   const newPostUrl = useMemo(() => {
     const newPostParams = new URLSearchParams();
     if (selectedFl) newPostParams.set('type', selectedFl === foundsId ? 'found' : 'lost');
-    if (localCategoryFilter && localCategoryFilter !== 'all') newPostParams.set('category', localCategoryFilter);
+    if (selectedCategories.length > 0) {
+      newPostParams.set('category', selectedCategories.join(','));
+    } else if (localCategoryFilter && localCategoryFilter !== 'all') {
+      newPostParams.set('category', localCategoryFilter);
+    }
     if (selectedCity?._id || selectedCity?.id) newPostParams.set('city', selectedCity._id || selectedCity.id);
     if (currentCountryId) newPostParams.set('country', currentCountryId);
     return `/dash/posts/new${newPostParams.toString() ? `?${newPostParams.toString()}` : ''}`;
-  }, [selectedFl, foundsId, localCategoryFilter, selectedCity, currentCountryId]);
+  }, [selectedFl, foundsId, selectedCategories, localCategoryFilter, selectedCity, currentCountryId]);
 
   const handleAddNewPost = useCallback(() => {
     if (!user.username) {

@@ -204,37 +204,8 @@ const QuickActions = () => {
           </Typography>
         </Box>
 
-        {/* Nudge to search before posting — avoids duplicate reports of the
-            same item by another user. Search Items sits right beside the
-            nudge it acts on, instead of as a separate pill below the primary
-            buttons. */}
-        <Box
-          sx={{
-            ...glassPanel(theme.custom.radius.md),
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: { xs: 1.25, sm: 1.5 },
-            p: { xs: 1.25, sm: 1.5 },
-            mb: { xs: 2, sm: 2.5 },
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, flex: '1 1 220px', minWidth: 0 }}>
-            <InfoOutlined sx={{ fontSize: 20, color: brandPrimary, flexShrink: 0, mt: '1px' }} />
-            <Typography
-              variant="body2"
-              sx={{
-                fontFamily: theme.custom.font.body,
-                color: alpha(ink, 0.8),
-                fontSize: { xs: '0.82rem', sm: '0.88rem' },
-                lineHeight: 1.4,
-              }}
-            >
-              {t('browseBeforePostTip')}
-            </Typography>
-          </Box>
-
+        {/* Search All Listings Button */}
+        <Box sx={{ mb: { xs: 2, sm: 2.5 }, display: 'flex', justifyContent: 'center' }}>
           <Box
             data-reveal-item=""
             role="button"
@@ -248,12 +219,11 @@ const QuickActions = () => {
               handleTouchEnd(e, goToSearch);
             }}
             sx={{
-              flexShrink: 0,
               display: 'inline-flex',
               alignItems: 'center',
               gap: 0.75,
-              px: { xs: 1.75, sm: 2 },
-              py: { xs: 0.75, sm: 0.85 },
+              px: { xs: 2.25, sm: 2.75 },
+              py: { xs: 0.85, sm: 1 },
               borderRadius: '999px',
               backgroundColor: brandPrimary,
               cursor: 'pointer',
@@ -274,7 +244,7 @@ const QuickActions = () => {
               sx={{
                 fontFamily: theme.custom.font.body,
                 fontWeight: 600,
-                fontSize: { xs: '0.8rem', sm: '0.85rem' },
+                fontSize: { xs: '0.85rem', sm: '0.9rem' },
                 color: white,
                 whiteSpace: 'nowrap',
               }}

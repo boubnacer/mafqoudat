@@ -167,7 +167,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   // Extract URL search parameters for pre-filling
   const urlParams = new URLSearchParams(window.location.search);
-  const urlCategory = urlParams.get('category');
+  const urlCategoryParam = urlParams.get('category') || urlParams.get('categories') || '';
+  const initialCategories = urlCategoryParam
+    ? urlCategoryParam.split(',').map((s) => s.trim()).filter(Boolean)
+    : [];
   const urlCity = urlParams.get('city');
   const urlCountry = urlParams.get('country');
   
@@ -682,16 +685,23 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Function to get default foundLost value based on URL parameters
   const getDefaultFoundLost = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const type = urlParams.get('type');
+    const rawType = (urlParams.get('type') || urlParams.get('fl') || '').trim();
+    const type = rawType.toLowerCase();
     
-    if (type === 'found') {
+    if (type === 'found' || type === 'founds') {
       // Find the "found" option
       const foundOption = flOptions.find(option => option.code === 'FOUND');
       return foundOption?.id || flOptions[0]?.id || "";
-    } else if (type === 'lost') {
+    } else if (type === 'lost' || type === 'losts') {
       // Find the "lost" option
       const lostOption = flOptions.find(option => option.code === 'LOST');
       return lostOption?.id || flOptions[0]?.id || "";
+    }
+
+    // Direct ID match from flOptions
+    const directOption = flOptions.find(option => option.id === rawType || option._id === rawType);
+    if (directOption) {
+      return directOption.id || directOption._id;
     }
     
     // Default to first option if no type parameter or unknown type
@@ -701,8 +711,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const initialFormState = {
     country: urlCountry || user.country || "",
     contact: "",
-    categories: urlCategory ? [urlCategory] : [], // Pre-filled from URL
-    category: urlCategory || "", // Keep for backward compatibility during transition
+    categories: initialCategories, // Pre-filled from URL (supports multiple categories)
+    category: initialCategories[0] || "", // Keep for backward compatibility during transition
     // Which documents a DOCUMENTS listing is about - the field that stands in
     // for the photo those listings never carry (see documentCategory.js) -
     // and the name written on them, which is what an owner recognises their
