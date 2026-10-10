@@ -103,43 +103,50 @@ const getCountryFlag = (code) => {
   return String.fromCodePoint(...codePoints);
 };
 
-// Custom Paper component for Autocomplete to strictly enforce cyber-obsidian styling matching CountryWelcomeDialog
-const CustomAutocompletePaper = (props) => (
-  <Paper
-    {...props}
-    sx={{
-      mt: 1,
-      borderRadius: '16px !important',
-      backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
-      backgroundImage: 'none !important',
-      backdropFilter: 'blur(24px) !important',
-      WebkitBackdropFilter: 'blur(24px) !important',
-      border: '1px solid rgba(0, 242, 254, 0.3) !important',
-      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15) !important',
-      color: '#f8fafc !important',
-      '& .MuiAutocomplete-listbox': {
-        p: '8px !important',
-        backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
-        '& .MuiAutocomplete-option': {
-          borderRadius: '10px !important',
-          my: '2px !important',
-          py: '10px !important',
-          px: '14px !important',
-          color: '#f8fafc !important',
-          backgroundColor: 'transparent !important',
-          '&:hover, &.Mui-focused': {
-            backgroundColor: 'rgba(0, 242, 254, 0.12) !important',
-          },
-          '&[aria-selected="true"]': {
-            backgroundColor: 'rgba(0, 242, 254, 0.2) !important',
-            fontWeight: '600 !important',
+// Custom Paper component for Autocomplete supporting both Cyber-Obsidian and Light Frosted Glass
+const CustomAutocompletePaper = (props) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
+  return (
+    <Paper
+      {...props}
+      sx={{
+        mt: 1,
+        borderRadius: '16px !important',
+        backgroundColor: isDark ? 'rgba(11, 18, 32, 0.98) !important' : 'rgba(255, 255, 255, 0.98) !important',
+        backgroundImage: 'none !important',
+        backdropFilter: 'blur(24px) !important',
+        WebkitBackdropFilter: 'blur(24px) !important',
+        border: '1px solid rgba(0, 242, 254, 0.3) !important',
+        boxShadow: isDark
+          ? '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15) !important'
+          : '0 20px 50px rgba(15, 23, 42, 0.12), 0 0 25px rgba(0, 242, 254, 0.15) !important',
+        color: isDark ? '#f8fafc !important' : '#0f172a !important',
+        '& .MuiAutocomplete-listbox': {
+          p: '8px !important',
+          backgroundColor: isDark ? 'rgba(11, 18, 32, 0.98) !important' : 'rgba(255, 255, 255, 0.98) !important',
+          '& .MuiAutocomplete-option': {
+            borderRadius: '10px !important',
+            my: '2px !important',
+            py: '10px !important',
+            px: '14px !important',
+            color: isDark ? '#f8fafc !important' : '#0f172a !important',
+            backgroundColor: 'transparent !important',
+            '&:hover, &.Mui-focused': {
+              backgroundColor: isDark ? 'rgba(0, 242, 254, 0.12) !important' : 'rgba(0, 242, 254, 0.1) !important',
+            },
+            '&[aria-selected="true"]': {
+              backgroundColor: isDark ? 'rgba(0, 242, 254, 0.2) !important' : 'rgba(0, 242, 254, 0.18) !important',
+              fontWeight: '600 !important',
+            },
           },
         },
-      },
-      ...props.sx,
-    }}
-  />
-);
+        ...props.sx,
+      }}
+    />
+  );
+};
 
 const slideVariants = {
   enter: (direction) => ({
@@ -158,6 +165,7 @@ const slideVariants = {
 
 const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isRTLMode = isRTL();
   const dispatch = useDispatch();
@@ -409,16 +417,18 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
       PaperProps={{
         elevation: 0,
         sx: {
-          backgroundColor: 'rgba(11, 18, 32, 0.94)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
+          backgroundColor: isDark ? 'rgba(11, 18, 32, 0.94)' : 'rgba(255, 255, 255, 0.92)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
           borderRadius: { xs: '20px', sm: '24px' },
           border: '1px solid rgba(0, 242, 254, 0.35)',
-          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)',
+          boxShadow: isDark
+            ? '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)'
+            : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 35px -8px rgba(0, 242, 254, 0.2)',
           overflow: 'hidden',
           p: { xs: 2, sm: 2.5, md: 3 },
           position: 'relative',
-          color: '#ffffff',
+          color: isDark ? '#ffffff' : '#0f172a',
           direction: isRTLMode ? 'rtl' : 'ltr',
           maxWidth: { xs: 'calc(100% - 24px)', sm: '560px', md: '600px' },
           width: '100%',
@@ -431,7 +441,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
       }}
       BackdropProps={{
         sx: {
-          backgroundColor: 'rgba(0, 0, 0, 0.78)',
+          backgroundColor: isDark ? 'rgba(0, 0, 0, 0.78)' : 'rgba(15, 23, 42, 0.35)',
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
         },
@@ -445,7 +455,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           left: 0,
           right: 0,
           height: '2px',
-          background: 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)',
+          background: isDark
+            ? 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)'
+            : 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.85) 50%, transparent 95%)',
           pointerEvents: 'none',
           zIndex: 1,
         }}
@@ -460,7 +472,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          opacity: 0.12,
+          opacity: isDark ? 0.12 : 0.08,
           zIndex: 0,
         }}
         xmlns="http://www.w3.org/2000/svg"
@@ -486,15 +498,15 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           width: 34,
           height: 34,
           borderRadius: '50%',
-          backgroundColor: 'rgba(15, 23, 42, 0.75)',
-          border: '1px solid rgba(51, 65, 85, 0.6)',
-          color: '#94a3b8',
+          backgroundColor: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(241, 245, 249, 0.85)',
+          border: isDark ? '1px solid rgba(51, 65, 85, 0.6)' : '1px solid rgba(203, 213, 225, 0.8)',
+          color: isDark ? '#94a3b8' : '#64748b',
           transition: 'all 0.25s ease',
           '&:hover': {
-            backgroundColor: '#1e293b',
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
             borderColor: 'rgba(0, 242, 254, 0.5)',
-            boxShadow: '0 0 12px rgba(0, 242, 254, 0.35)',
-            color: '#ffffff',
+            boxShadow: isDark ? '0 0 12px rgba(0, 242, 254, 0.35)' : '0 0 12px rgba(0, 242, 254, 0.25)',
+            color: isDark ? '#ffffff' : '#0f172a',
             transform: 'scale(1.05)',
           },
         }}
@@ -516,55 +528,12 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           '&::-webkit-scrollbar': { width: 5 },
           '&::-webkit-scrollbar-track': { backgroundColor: 'transparent' },
           '&::-webkit-scrollbar-thumb': {
-            backgroundColor: 'rgba(51, 65, 85, 0.6)',
+            backgroundColor: isDark ? 'rgba(51, 65, 85, 0.6)' : 'rgba(203, 213, 225, 0.8)',
             borderRadius: 8,
             '&:hover': { backgroundColor: 'rgba(0, 242, 254, 0.4)' },
           },
         }}
       >
-        {/* Step Indicator Pills */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.25, mb: { xs: 1.5, sm: 2 } }}>
-          <Box
-            sx={{
-              px: { xs: 1.5, sm: 2 },
-              py: 0.35,
-              borderRadius: '999px',
-              fontSize: { xs: '0.74rem', sm: '0.78rem' },
-              fontWeight: 700,
-              backgroundColor: step === 1 ? 'rgba(0, 242, 254, 0.18)' : 'rgba(15, 23, 42, 0.7)',
-              color: step === 1 ? '#00F2FE' : '#94a3b8',
-              border: step === 1 ? '1px solid #00F2FE' : '1px solid rgba(51, 65, 85, 0.6)',
-              boxShadow: step === 1 ? '0 0 12px rgba(0, 242, 254, 0.25)' : 'none',
-              transition: 'all 0.25s ease',
-            }}
-          >
-            1. {t('step1Location') || 'Location'}
-          </Box>
-          <Box
-            sx={{
-              width: 16,
-              height: 2,
-              backgroundColor: 'rgba(51, 65, 85, 0.8)',
-            }}
-          />
-          <Box
-            sx={{
-              px: { xs: 1.5, sm: 2 },
-              py: 0.35,
-              borderRadius: '999px',
-              fontSize: { xs: '0.74rem', sm: '0.78rem' },
-              fontWeight: 700,
-              backgroundColor: step === 2 ? 'rgba(0, 242, 254, 0.18)' : 'rgba(15, 23, 42, 0.7)',
-              color: step === 2 ? '#00F2FE' : '#94a3b8',
-              border: step === 2 ? '1px solid #00F2FE' : '1px solid rgba(51, 65, 85, 0.6)',
-              boxShadow: step === 2 ? '0 0 12px rgba(0, 242, 254, 0.25)' : 'none',
-              transition: 'all 0.25s ease',
-            }}
-          >
-            2. {t('step2Categories') || 'Categories'}
-          </Box>
-        </Box>
-
         {/* Step Transition Slides */}
         <AnimatePresence mode="wait" custom={direction}>
           {step === 1 ? (
@@ -578,7 +547,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
               transition={{ duration: 0.22, ease: 'easeOut' }}
             >
               {/* Slide 1 Header */}
-              <Box sx={{ mb: { xs: 1.75, sm: 2 }, textAlign: 'center' }}>
+              <Box sx={{ mb: { xs: 2, sm: 2.25 }, pt: { xs: 0.5, sm: 0.75 }, px: { xs: 3, sm: 4 }, textAlign: 'center' }}>
                 <Typography
                   variant="h5"
                   component="h2"
@@ -586,7 +555,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     fontWeight: 800,
                     fontSize: { xs: '1.2rem', sm: '1.35rem', md: '1.45rem' },
                     lineHeight: 1.25,
-                    color: '#ffffff',
+                    color: isDark ? '#ffffff' : '#0f172a',
                     mb: 0.5,
                     letterSpacing: '-0.02em',
                   }}
@@ -598,7 +567,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: '#cbd5e1',
+                    color: isDark ? '#cbd5e1' : '#475569',
                     lineHeight: 1.45,
                     fontSize: { xs: '0.82rem', sm: '0.88rem' },
                     maxWidth: 420,
@@ -620,7 +589,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   sx={{
                     display: 'block',
                     fontWeight: 600,
-                    color: '#cbd5e1',
+                    color: isDark ? '#cbd5e1' : '#334155',
                     mb: 0.8,
                     fontSize: '0.82rem',
                   }}
@@ -651,7 +620,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       <Typography sx={{ fontSize: '1.3rem', lineHeight: 1 }}>
                         {getCountryFlag(option.code)}
                       </Typography>
-                      <Typography sx={{ fontWeight: 500, color: '#f1f5f9' }}>
+                      <Typography sx={{ fontWeight: 500, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                         {getCountryDisplayName(option, currentLanguage)}
                       </Typography>
                     </Box>
@@ -677,12 +646,12 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           borderRadius: '14px',
-                          backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                          color: '#ffffff',
+                          backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.85)',
+                          color: isDark ? '#ffffff' : '#0f172a',
                           fontSize: '0.92rem',
                           transition: 'all 0.2s ease',
                           '& fieldset': {
-                            borderColor: 'rgba(51, 65, 85, 0.8)',
+                            borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(203, 213, 225, 0.9)',
                           },
                           '&:hover fieldset': {
                             borderColor: '#00F2FE',
@@ -690,13 +659,13 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                           '&.Mui-focused fieldset': {
                             borderColor: '#00F2FE',
                             borderWidth: '2px',
-                            boxShadow: '0 0 12px rgba(0, 242, 254, 0.25)',
+                            boxShadow: isDark ? '0 0 12px rgba(0, 242, 254, 0.25)' : '0 0 12px rgba(0, 242, 254, 0.3)',
                           },
                           '& .MuiAutocomplete-input': {
-                            color: '#ffffff',
+                            color: isDark ? '#ffffff' : '#0f172a',
                           },
                           '& .MuiAutocomplete-popupIndicator, & .MuiAutocomplete-clearIndicator': {
-                            color: '#94a3b8',
+                            color: isDark ? '#94a3b8' : '#64748b',
                           },
                         },
                       }}
@@ -720,13 +689,13 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     sx={{
                       display: 'block',
                       fontWeight: 600,
-                      color: '#cbd5e1',
+                      color: isDark ? '#cbd5e1' : '#334155',
                       fontSize: '0.82rem',
                     }}
                   >
                     {t('selectCity') || 'City'}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.74rem' }}>
+                  <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.74rem' }}>
                     {t('leaveEmptyForWholeCountry') || 'Optional — Leave empty for entire country'}
                   </Typography>
                 </Box>
@@ -749,7 +718,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   }}
                   loading={isSearchingCity}
                   noOptionsText={
-                    <Typography sx={{ color: '#94a3b8', fontSize: '0.88rem' }}>
+                    <Typography sx={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.88rem' }}>
                       {isSearchingCity
                         ? t('searching') || 'Searching...'
                         : t('noCitiesFound') || 'No matching cities found'}
@@ -770,11 +739,11 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     >
                       <PlaceRoundedIcon sx={{ fontSize: 19, color: '#00F2FE' }} />
                       <Box>
-                        <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#f1f5f9' }}>
+                        <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: isDark ? '#f1f5f9' : '#0f172a' }}>
                           {getCityDisplayName(option, currentLanguage)}
                         </Typography>
                         {option.region && (
-                          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                          <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                             {option.region}
                           </Typography>
                         )}
@@ -805,12 +774,12 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           borderRadius: '14px',
-                          backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                          color: '#ffffff',
+                          backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.85)',
+                          color: isDark ? '#ffffff' : '#0f172a',
                           fontSize: '0.92rem',
                           transition: 'all 0.2s ease',
                           '& fieldset': {
-                            borderColor: 'rgba(51, 65, 85, 0.8)',
+                            borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(203, 213, 225, 0.9)',
                           },
                           '&:hover fieldset': {
                             borderColor: '#00F2FE',
@@ -818,13 +787,13 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                           '&.Mui-focused fieldset': {
                             borderColor: '#00F2FE',
                             borderWidth: '2px',
-                            boxShadow: '0 0 12px rgba(0, 242, 254, 0.25)',
+                            boxShadow: isDark ? '0 0 12px rgba(0, 242, 254, 0.25)' : '0 0 12px rgba(0, 242, 254, 0.3)',
                           },
                           '& .MuiAutocomplete-input': {
-                            color: '#ffffff',
+                            color: isDark ? '#ffffff' : '#0f172a',
                           },
                           '& .MuiAutocomplete-popupIndicator, & .MuiAutocomplete-clearIndicator': {
-                            color: '#94a3b8',
+                            color: isDark ? '#94a3b8' : '#64748b',
                           },
                         },
                       }}
@@ -878,7 +847,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
               transition={{ duration: 0.22, ease: 'easeOut' }}
             >
               {/* Slide 2 Header */}
-              <Box sx={{ mb: { xs: 1.5, sm: 1.75 }, textAlign: 'center' }}>
+              <Box sx={{ mb: { xs: 1.5, sm: 1.75 }, pt: { xs: 0.5, sm: 0.75 }, px: { xs: 3, sm: 4 }, textAlign: 'center' }}>
                 <Typography
                   variant="h5"
                   component="h2"
@@ -886,7 +855,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     fontWeight: 800,
                     fontSize: { xs: '1.2rem', sm: '1.35rem', md: '1.45rem' },
                     lineHeight: 1.25,
-                    color: '#ffffff',
+                    color: isDark ? '#ffffff' : '#0f172a',
                     mb: 0.5,
                     letterSpacing: '-0.02em',
                   }}
@@ -898,7 +867,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: '#cbd5e1',
+                    color: isDark ? '#cbd5e1' : '#475569',
                     lineHeight: 1.45,
                     fontSize: { xs: '0.82rem', sm: '0.88rem' },
                     maxWidth: 420,
@@ -934,7 +903,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     ),
                     endAdornment: categoryFilterQuery ? (
                       <InputAdornment position="end">
-                        <IconButton size="small" onClick={() => setCategoryFilterQuery('')} sx={{ color: '#94a3b8' }}>
+                        <IconButton size="small" onClick={() => setCategoryFilterQuery('')} sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                           <ClearIcon fontSize="small" />
                         </IconButton>
                       </InputAdornment>
@@ -944,11 +913,11 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     flex: '1 1 180px',
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '12px',
-                      backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                      color: '#ffffff',
+                      backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.85)',
+                      color: isDark ? '#ffffff' : '#0f172a',
                       fontSize: '0.84rem',
                       '& fieldset': {
-                        borderColor: 'rgba(51, 65, 85, 0.8)',
+                        borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(203, 213, 225, 0.9)',
                       },
                       '&:hover fieldset': {
                         borderColor: '#00F2FE',
@@ -968,8 +937,8 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       sx={{
                         fontWeight: 700,
                         backgroundColor: 'rgba(0, 242, 254, 0.16)',
-                        color: '#00F2FE',
-                        border: '1px solid rgba(0, 242, 254, 0.35)',
+                        color: isDark ? '#00F2FE' : '#0284c7',
+                        border: isDark ? '1px solid rgba(0, 242, 254, 0.35)' : '1px solid rgba(0, 242, 254, 0.4)',
                       }}
                     />
                   )}
@@ -981,7 +950,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                         fontSize: '0.76rem',
                         fontWeight: 600,
                         textTransform: 'none',
-                        color: '#38bdf8',
+                        color: isDark ? '#38bdf8' : '#0284c7',
                         p: 0.5,
                         '&:hover': { color: '#00F2FE' },
                       }}
@@ -996,7 +965,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                         fontSize: '0.76rem',
                         fontWeight: 600,
                         textTransform: 'none',
-                        color: '#38bdf8',
+                        color: isDark ? '#38bdf8' : '#0284c7',
                         p: 0.5,
                         '&:hover': { color: '#00F2FE' },
                       }}
@@ -1018,9 +987,12 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   pr: 0.5,
                   mb: { xs: 2, sm: 2.25 },
                   '&::-webkit-scrollbar': { width: 5 },
-                  '&::-webkit-scrollbar-track': { backgroundColor: 'rgba(15, 23, 42, 0.5)', borderRadius: 8 },
+                  '&::-webkit-scrollbar-track': {
+                    backgroundColor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'rgba(241, 245, 249, 0.7)',
+                    borderRadius: 8,
+                  },
                   '&::-webkit-scrollbar-thumb': {
-                    backgroundColor: 'rgba(51, 65, 85, 0.8)',
+                    backgroundColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(203, 213, 225, 0.8)',
                     borderRadius: 8,
                     '&:hover': { backgroundColor: 'rgba(0, 242, 254, 0.5)' },
                   },
@@ -1057,19 +1029,19 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                         gap: 0.5,
                         transition: 'all 0.2s ease',
                         backgroundColor: isSelected
-                          ? 'rgba(0, 242, 254, 0.18)'
-                          : 'rgba(15, 23, 42, 0.75)',
+                          ? (isDark ? 'rgba(0, 242, 254, 0.18)' : 'rgba(0, 242, 254, 0.14)')
+                          : (isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.85)'),
                         border: isSelected
                           ? '2px solid #00F2FE'
-                          : '1px solid rgba(51, 65, 85, 0.6)',
+                          : (isDark ? '1px solid rgba(51, 65, 85, 0.6)' : '1px solid rgba(203, 213, 225, 0.85)'),
                         boxShadow: isSelected
-                          ? '0 0 18px rgba(0, 242, 254, 0.35)'
+                          ? (isDark ? '0 0 18px rgba(0, 242, 254, 0.35)' : '0 0 16px rgba(0, 242, 254, 0.25)')
                           : 'none',
                         '&:hover': {
                           transform: 'translateY(-2px)',
                           backgroundColor: isSelected
-                            ? 'rgba(0, 242, 254, 0.24)'
-                            : 'rgba(0, 242, 254, 0.08)',
+                            ? (isDark ? 'rgba(0, 242, 254, 0.24)' : 'rgba(0, 242, 254, 0.2)')
+                            : (isDark ? 'rgba(0, 242, 254, 0.08)' : 'rgba(0, 242, 254, 0.1)'),
                           borderColor: '#00F2FE',
                           boxShadow: '0 0 14px rgba(0, 242, 254, 0.2)',
                         },
@@ -1095,9 +1067,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                           alignItems: 'center',
                           justifyContent: 'center',
                           backgroundColor: isSelected
-                            ? 'rgba(0, 242, 254, 0.25)'
-                            : 'rgba(30, 41, 59, 0.8)',
-                          color: isSelected ? '#00F2FE' : '#94a3b8',
+                            ? (isDark ? 'rgba(0, 242, 254, 0.25)' : 'rgba(0, 242, 254, 0.22)')
+                            : (isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(241, 245, 249, 0.9)'),
+                          color: isSelected ? (isDark ? '#00F2FE' : '#0284c7') : (isDark ? '#94a3b8' : '#64748b'),
                           transition: 'all 0.2s ease',
                         }}
                       >
@@ -1108,7 +1080,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                         noWrap
                         sx={{
                           fontWeight: isSelected ? 700 : 500,
-                          color: isSelected ? '#ffffff' : '#cbd5e1',
+                          color: isSelected ? (isDark ? '#ffffff' : '#0f172a') : (isDark ? '#cbd5e1' : '#334155'),
                           fontSize: { xs: '0.72rem', sm: '0.76rem' },
                           maxWidth: '100%',
                         }}
@@ -1143,14 +1115,14 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     fontSize: '0.92rem',
                     fontWeight: 700,
                     textTransform: 'none',
-                    backgroundColor: 'rgba(15, 23, 42, 0.8)',
-                    borderColor: 'rgba(51, 65, 85, 0.8)',
-                    color: '#cbd5e1',
+                    backgroundColor: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.85)',
+                    borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(203, 213, 225, 0.9)',
+                    color: isDark ? '#cbd5e1' : '#475569',
                     transition: 'all 0.25s ease',
                     '&:hover': {
                       borderColor: '#00F2FE',
-                      color: '#ffffff',
-                      backgroundColor: '#1e293b',
+                      color: isDark ? '#ffffff' : '#0f172a',
+                      backgroundColor: isDark ? '#1e293b' : '#ffffff',
                     },
                   }}
                 >

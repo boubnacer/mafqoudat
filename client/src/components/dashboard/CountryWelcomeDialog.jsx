@@ -14,6 +14,7 @@ import {
   Paper,
   Fade,
   Tooltip,
+  useTheme,
 } from '@mui/material';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import LanguageRoundedIcon from '@mui/icons-material/LanguageRounded';
@@ -105,43 +106,50 @@ const languageOptions = [
   { code: 'fr', label: 'Français (French)', flag: '🇫🇷' },
 ];
 
-// Custom Paper component for Autocomplete to strictly enforce cyber-obsidian styling matching language dropdown
-const CustomAutocompletePaper = (props) => (
-  <Paper
-    {...props}
-    sx={{
-      mt: 1,
-      borderRadius: '16px !important',
-      backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
-      backgroundImage: 'none !important',
-      backdropFilter: 'blur(24px) !important',
-      WebkitBackdropFilter: 'blur(24px) !important',
-      border: '1px solid rgba(0, 242, 254, 0.3) !important',
-      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15) !important',
-      color: '#f8fafc !important',
-      '& .MuiAutocomplete-listbox': {
-        p: '8px !important',
-        backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
-        '& .MuiAutocomplete-option': {
-          borderRadius: '10px !important',
-          my: '2px !important',
-          py: '10px !important',
-          px: '14px !important',
-          color: '#f8fafc !important',
-          backgroundColor: 'transparent !important',
-          '&:hover, &.Mui-focused': {
-            backgroundColor: 'rgba(0, 242, 254, 0.12) !important',
-          },
-          '&[aria-selected="true"]': {
-            backgroundColor: 'rgba(0, 242, 254, 0.2) !important',
-            fontWeight: '600 !important',
+// Custom Paper component for Autocomplete supporting both Cyber-Obsidian and Light Frosted Glass
+const CustomAutocompletePaper = (props) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
+  return (
+    <Paper
+      {...props}
+      sx={{
+        mt: 1,
+        borderRadius: '16px !important',
+        backgroundColor: isDark ? 'rgba(11, 18, 32, 0.98) !important' : 'rgba(255, 255, 255, 0.98) !important',
+        backgroundImage: 'none !important',
+        backdropFilter: 'blur(24px) !important',
+        WebkitBackdropFilter: 'blur(24px) !important',
+        border: '1px solid rgba(0, 242, 254, 0.3) !important',
+        boxShadow: isDark
+          ? '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15) !important'
+          : '0 20px 50px rgba(15, 23, 42, 0.12), 0 0 25px rgba(0, 242, 254, 0.15) !important',
+        color: isDark ? '#f8fafc !important' : '#0f172a !important',
+        '& .MuiAutocomplete-listbox': {
+          p: '8px !important',
+          backgroundColor: isDark ? 'rgba(11, 18, 32, 0.98) !important' : 'rgba(255, 255, 255, 0.98) !important',
+          '& .MuiAutocomplete-option': {
+            borderRadius: '10px !important',
+            my: '2px !important',
+            py: '10px !important',
+            px: '14px !important',
+            color: isDark ? '#f8fafc !important' : '#0f172a !important',
+            backgroundColor: 'transparent !important',
+            '&:hover, &.Mui-focused': {
+              backgroundColor: isDark ? 'rgba(0, 242, 254, 0.12) !important' : 'rgba(0, 242, 254, 0.1) !important',
+            },
+            '&[aria-selected="true"]': {
+              backgroundColor: isDark ? 'rgba(0, 242, 254, 0.2) !important' : 'rgba(0, 242, 254, 0.18) !important',
+              fontWeight: '600 !important',
+            },
           },
         },
-      },
-      ...props.sx,
-    }}
-  />
-);
+        ...props.sx,
+      }}
+    />
+  );
+};
 
 const CountryWelcomeDialog = ({
   open,
@@ -152,6 +160,7 @@ const CountryWelcomeDialog = ({
 }) => {
   const dispatch = useDispatch();
   const mode = useSelector((state) => state.global.mode);
+  const isDark = mode === 'dark';
   const { t } = useTranslation();
   const { currentLanguage, setLanguage } = useLanguage();
   const isRTL = currentLanguage === 'ar';
@@ -279,22 +288,24 @@ const CountryWelcomeDialog = ({
       PaperProps={{
         elevation: 0,
         sx: {
-          backgroundColor: 'rgba(11, 18, 32, 0.92)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
+          backgroundColor: isDark ? 'rgba(11, 18, 32, 0.92)' : 'rgba(255, 255, 255, 0.92)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
           borderRadius: '24px',
           border: '1px solid rgba(0, 242, 254, 0.35)',
-          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)',
+          boxShadow: isDark
+            ? '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)'
+            : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 35px -8px rgba(0, 242, 254, 0.2)',
           overflow: 'hidden',
           p: { xs: 3, sm: 4 },
           position: 'relative',
-          color: '#ffffff',
+          color: isDark ? '#ffffff' : '#0f172a',
           direction: isRTL ? 'rtl' : 'ltr',
         },
       }}
       BackdropProps={{
         sx: {
-          backgroundColor: 'rgba(0, 0, 0, 0.78)',
+          backgroundColor: isDark ? 'rgba(0, 0, 0, 0.78)' : 'rgba(15, 23, 42, 0.35)',
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
         },
@@ -308,7 +319,9 @@ const CountryWelcomeDialog = ({
           left: 0,
           right: 0,
           height: '2px',
-          background: 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)',
+          background: isDark
+            ? 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)'
+            : 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.85) 50%, transparent 95%)',
           pointerEvents: 'none',
           zIndex: 1,
         }}
@@ -323,7 +336,7 @@ const CountryWelcomeDialog = ({
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          opacity: 0.15,
+          opacity: isDark ? 0.15 : 0.08,
           zIndex: 0,
         }}
         xmlns="http://www.w3.org/2000/svg"
@@ -339,7 +352,7 @@ const CountryWelcomeDialog = ({
       {/* Theme Mode Toggle Button */}
       <Tooltip
         title={
-          mode === 'dark'
+          isDark
             ? (isArabic ? 'الوضع الفاتح' : isFrench ? 'Mode clair' : 'Light mode')
             : (isArabic ? 'الوضع الداكن' : isFrench ? 'Mode sombre' : 'Dark mode')
         }
@@ -356,22 +369,22 @@ const CountryWelcomeDialog = ({
             width: 36,
             height: 36,
             borderRadius: '50%',
-            backgroundColor: 'rgba(15, 23, 42, 0.75)',
-            border: '1px solid rgba(51, 65, 85, 0.6)',
-            color: mode === 'dark' ? '#facc15' : '#00F2FE',
+            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(241, 245, 249, 0.85)',
+            border: isDark ? '1px solid rgba(51, 65, 85, 0.6)' : '1px solid rgba(203, 213, 225, 0.8)',
+            color: isDark ? '#facc15' : '#0284c7',
             transition: 'all 0.25s ease',
             '&:hover': {
-              backgroundColor: '#1e293b',
-              borderColor: 'rgba(0, 242, 254, 0.5)',
-              boxShadow: '0 0 12px rgba(0, 242, 254, 0.35)',
+              backgroundColor: isDark ? '#1e293b' : '#ffffff',
+              borderColor: 'rgba(0, 242, 254, 0.6)',
+              boxShadow: isDark ? '0 0 12px rgba(0, 242, 254, 0.35)' : '0 0 12px rgba(0, 242, 254, 0.25)',
               transform: 'scale(1.05)',
             },
           }}
         >
-          {mode === 'dark' ? (
+          {isDark ? (
             <LightModeOutlinedIcon sx={{ fontSize: 20, color: '#facc15' }} />
           ) : (
-            <DarkModeOutlinedIcon sx={{ fontSize: 20, color: '#00F2FE' }} />
+            <DarkModeOutlinedIcon sx={{ fontSize: 20, color: '#0284c7' }} />
           )}
         </IconButton>
       </Tooltip>
@@ -413,8 +426,9 @@ const CountryWelcomeDialog = ({
                 width: 52,
                 height: 52,
                 borderRadius: '18px',
-                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(12px)',
+                boxShadow: isDark ? 'none' : '0 4px 14px rgba(0, 242, 254, 0.15)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -443,7 +457,7 @@ const CountryWelcomeDialog = ({
             fontWeight: 800,
             fontSize: { xs: '1.35rem', sm: '1.5rem' },
             lineHeight: 1.25,
-            color: '#ffffff',
+            color: isDark ? '#ffffff' : '#0f172a',
             mb: 1.2,
             letterSpacing: '-0.02em',
           }}
@@ -455,7 +469,7 @@ const CountryWelcomeDialog = ({
         <Typography
           variant="body2"
           sx={{
-            color: '#cbd5e1',
+            color: isDark ? '#cbd5e1' : '#475569',
             lineHeight: 1.6,
             fontSize: { xs: '0.86rem', sm: '0.92rem' },
             maxWidth: 380,
@@ -487,7 +501,7 @@ const CountryWelcomeDialog = ({
               sx={{
                 display: 'block',
                 fontWeight: 600,
-                color: '#cbd5e1',
+                color: isDark ? '#cbd5e1' : '#334155',
                 mb: 0.8,
                 fontSize: '0.82rem',
               }}
@@ -505,7 +519,7 @@ const CountryWelcomeDialog = ({
                   return (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
                       <span style={{ fontSize: '18px', lineHeight: 1 }}>{langConfig.flag}</span>
-                      <Typography sx={{ color: '#ffffff', fontSize: '0.92rem', fontWeight: 500 }}>
+                      <Typography sx={{ color: isDark ? '#ffffff' : '#0f172a', fontSize: '0.92rem', fontWeight: 500 }}>
                         {langConfig.label}
                       </Typography>
                     </Box>
@@ -514,7 +528,7 @@ const CountryWelcomeDialog = ({
                 startAdornment={
                   <LanguageRoundedIcon
                     sx={{
-                      color: '#00F2FE',
+                      color: isDark ? '#00F2FE' : '#0284c7',
                       fontSize: 20,
                       marginInlineStart: 0.5,
                       marginInlineEnd: 1.2,
@@ -524,12 +538,12 @@ const CountryWelcomeDialog = ({
                 }
                 sx={{
                   borderRadius: '14px',
-                  backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                  color: '#ffffff',
+                  backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.85)',
+                  color: isDark ? '#ffffff' : '#0f172a',
                   fontSize: '0.92rem',
                   transition: 'all 0.2s ease',
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(51, 65, 85, 0.8)',
+                    borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(203, 213, 225, 0.9)',
                   },
                   '&:hover .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#00F2FE',
@@ -537,10 +551,10 @@ const CountryWelcomeDialog = ({
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#00F2FE',
                     borderWidth: '2px',
-                    boxShadow: '0 0 12px rgba(0, 242, 254, 0.25)',
+                    boxShadow: isDark ? '0 0 12px rgba(0, 242, 254, 0.25)' : '0 0 12px rgba(0, 242, 254, 0.3)',
                   },
                   '& .MuiSelect-icon': {
-                    color: '#94a3b8',
+                    color: isDark ? '#94a3b8' : '#64748b',
                   },
                 }}
                 MenuProps={{
@@ -548,26 +562,28 @@ const CountryWelcomeDialog = ({
                     sx: {
                       mt: 0.8,
                       borderRadius: '16px !important',
-                      backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
+                      backgroundColor: isDark ? 'rgba(11, 18, 32, 0.98) !important' : 'rgba(255, 255, 255, 0.98) !important',
                       backgroundImage: 'none !important',
                       backdropFilter: 'blur(24px) !important',
                       WebkitBackdropFilter: 'blur(24px) !important',
                       border: '1px solid rgba(0, 242, 254, 0.3) !important',
-                      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15) !important',
-                      color: '#f8fafc !important',
+                      boxShadow: isDark
+                        ? '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15) !important'
+                        : '0 20px 50px rgba(15, 23, 42, 0.12), 0 0 25px rgba(0, 242, 254, 0.15) !important',
+                      color: isDark ? '#f8fafc !important' : '#0f172a !important',
                       '& .MuiMenuItem-root': {
                         py: '10px !important',
                         px: '14px !important',
-                        color: '#f1f5f9 !important',
+                        color: isDark ? '#f1f5f9 !important' : '#0f172a !important',
                         fontSize: '0.92rem',
                         '&:hover': {
-                          backgroundColor: 'rgba(0, 242, 254, 0.12) !important',
+                          backgroundColor: isDark ? 'rgba(0, 242, 254, 0.12) !important' : 'rgba(0, 242, 254, 0.1) !important',
                         },
                         '&.Mui-selected': {
-                          backgroundColor: 'rgba(0, 242, 254, 0.2) !important',
+                          backgroundColor: isDark ? 'rgba(0, 242, 254, 0.2) !important' : 'rgba(0, 242, 254, 0.18) !important',
                           fontWeight: '600 !important',
                           '&:hover': {
-                            backgroundColor: 'rgba(0, 242, 254, 0.28) !important',
+                            backgroundColor: isDark ? 'rgba(0, 242, 254, 0.28) !important' : 'rgba(0, 242, 254, 0.24) !important',
                           },
                         },
                       },
@@ -579,7 +595,7 @@ const CountryWelcomeDialog = ({
                   <MenuItem key={opt.code} value={opt.code}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
                       <span style={{ fontSize: '20px', lineHeight: 1 }}>{opt.flag}</span>
-                      <Typography sx={{ fontSize: '0.92rem', color: '#f8fafc' }}>{opt.label}</Typography>
+                      <Typography sx={{ fontSize: '0.92rem', color: isDark ? '#f8fafc' : '#0f172a' }}>{opt.label}</Typography>
                     </Box>
                   </MenuItem>
                 ))}
@@ -594,7 +610,7 @@ const CountryWelcomeDialog = ({
               sx={{
                 display: 'block',
                 fontWeight: 600,
-                color: '#cbd5e1',
+                color: isDark ? '#cbd5e1' : '#334155',
                 mb: 0.8,
                 fontSize: '0.82rem',
               }}
@@ -636,30 +652,32 @@ const CountryWelcomeDialog = ({
                   sx: {
                     zIndex: 99999,
                     '& .MuiPaper-root, & .MuiAutocomplete-paper': {
-                      backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
+                      backgroundColor: isDark ? 'rgba(11, 18, 32, 0.98) !important' : 'rgba(255, 255, 255, 0.98) !important',
                       backgroundImage: 'none !important',
                       backdropFilter: 'blur(24px) !important',
                       WebkitBackdropFilter: 'blur(24px) !important',
                       border: '1px solid rgba(0, 242, 254, 0.3) !important',
                       borderRadius: '16px !important',
-                      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15) !important',
-                      color: '#f8fafc !important',
+                      boxShadow: isDark
+                        ? '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15) !important'
+                        : '0 20px 50px rgba(15, 23, 42, 0.12), 0 0 25px rgba(0, 242, 254, 0.15) !important',
+                      color: isDark ? '#f8fafc !important' : '#0f172a !important',
                     },
                     '& .MuiAutocomplete-listbox': {
-                      backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
+                      backgroundColor: isDark ? 'rgba(11, 18, 32, 0.98) !important' : 'rgba(255, 255, 255, 0.98) !important',
                       p: '8px !important',
                       '& .MuiAutocomplete-option': {
                         borderRadius: '10px !important',
                         my: '2px !important',
                         py: '10px !important',
                         px: '14px !important',
-                        color: '#f1f5f9 !important',
+                        color: isDark ? '#f1f5f9 !important' : '#0f172a !important',
                         backgroundColor: 'transparent !important',
                         '&:hover, &.Mui-focused': {
-                          backgroundColor: 'rgba(0, 242, 254, 0.12) !important',
+                          backgroundColor: isDark ? 'rgba(0, 242, 254, 0.12) !important' : 'rgba(0, 242, 254, 0.1) !important',
                         },
                         '&[aria-selected="true"]': {
-                          backgroundColor: 'rgba(0, 242, 254, 0.2) !important',
+                          backgroundColor: isDark ? 'rgba(0, 242, 254, 0.2) !important' : 'rgba(0, 242, 254, 0.18) !important',
                           fontWeight: '600 !important',
                         },
                       },
@@ -696,7 +714,7 @@ const CountryWelcomeDialog = ({
                     sx={{
                       fontWeight: 500,
                       fontSize: '0.92rem',
-                      color: '#f1f5f9',
+                      color: isDark ? '#f1f5f9' : '#0f172a',
                     }}
                   >
                     {getCountryLabel(option, currentLanguage)}
@@ -740,12 +758,12 @@ const CountryWelcomeDialog = ({
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '14px',
-                      backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                      color: '#ffffff',
+                      backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.85)',
+                      color: isDark ? '#ffffff' : '#0f172a',
                       fontSize: '0.92rem',
                       transition: 'all 0.2s ease',
                       '& fieldset': {
-                        borderColor: 'rgba(51, 65, 85, 0.8)',
+                        borderColor: isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(203, 213, 225, 0.9)',
                       },
                       '&:hover fieldset': {
                         borderColor: '#00F2FE',
@@ -753,13 +771,13 @@ const CountryWelcomeDialog = ({
                       '&.Mui-focused fieldset': {
                         borderColor: '#00F2FE',
                         borderWidth: '2px',
-                        boxShadow: '0 0 12px rgba(0, 242, 254, 0.25)',
+                        boxShadow: isDark ? '0 0 12px rgba(0, 242, 254, 0.25)' : '0 0 12px rgba(0, 242, 254, 0.3)',
                       },
                       '& .MuiAutocomplete-input': {
-                        color: '#ffffff',
+                        color: isDark ? '#ffffff' : '#0f172a',
                       },
                       '& .MuiAutocomplete-popupIndicator, & .MuiAutocomplete-clearIndicator': {
-                        color: '#94a3b8',
+                        color: isDark ? '#94a3b8' : '#64748b',
                       },
                     },
                   }}
