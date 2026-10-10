@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Dialog,
   Box,
@@ -12,12 +13,15 @@ import {
   MenuItem,
   Paper,
   Fade,
+  Tooltip,
 } from '@mui/material';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import LanguageRoundedIcon from '@mui/icons-material/LanguageRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+import { setMode } from '../../app/state';
 import { useTranslation } from '../../utils/translations';
 import { useLanguage } from '../../utils/languageContext';
 import { languageStorage } from '../../utils/authStorage';
@@ -101,14 +105,53 @@ const languageOptions = [
   { code: 'fr', label: 'Français (French)', flag: '🇫🇷' },
 ];
 
+// Custom Paper component for Autocomplete to strictly enforce cyber-obsidian styling matching language dropdown
+const CustomAutocompletePaper = (props) => (
+  <Paper
+    {...props}
+    sx={{
+      mt: 1,
+      borderRadius: '16px !important',
+      backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
+      backgroundImage: 'none !important',
+      backdropFilter: 'blur(24px) !important',
+      WebkitBackdropFilter: 'blur(24px) !important',
+      border: '1px solid rgba(0, 242, 254, 0.3) !important',
+      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15) !important',
+      color: '#f8fafc !important',
+      '& .MuiAutocomplete-listbox': {
+        p: '8px !important',
+        backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
+        '& .MuiAutocomplete-option': {
+          borderRadius: '10px !important',
+          my: '2px !important',
+          py: '10px !important',
+          px: '14px !important',
+          color: '#f8fafc !important',
+          backgroundColor: 'transparent !important',
+          '&:hover, &.Mui-focused': {
+            backgroundColor: 'rgba(0, 242, 254, 0.12) !important',
+          },
+          '&[aria-selected="true"]': {
+            backgroundColor: 'rgba(0, 242, 254, 0.2) !important',
+            fontWeight: '600 !important',
+          },
+        },
+      },
+      ...props.sx,
+    }}
+  />
+);
+
 const CountryWelcomeDialog = ({
   open,
   onConfirm,
-  onClose,
   countriesData,
   detectedCountryCode,
   currentCountryId,
 }) => {
+  const dispatch = useDispatch();
+  const mode = useSelector((state) => state.global.mode);
   const { t } = useTranslation();
   const { currentLanguage, setLanguage } = useLanguage();
   const isRTL = currentLanguage === 'ar';
@@ -174,19 +217,15 @@ const CountryWelcomeDialog = ({
     window.dispatchEvent(new Event('languageChange'));
   };
 
+  const handleThemeToggle = () => {
+    dispatch(setMode());
+  };
+
   const handleConfirm = () => {
     const chosen = selectedCountry || countriesList[0];
     const countryId = chosen?._id || chosen?.id;
     if (onConfirm && countryId) {
       onConfirm(countryId);
-    }
-  };
-
-  const handleDismiss = () => {
-    const chosen = selectedCountry || countriesList[0];
-    const countryId = chosen?._id || chosen?.id;
-    if (onClose) {
-      onClose(countryId);
     }
   };
 
@@ -226,7 +265,13 @@ const CountryWelcomeDialog = ({
   return (
     <Dialog
       open={open}
-      onClose={handleDismiss}
+      onClose={(event, reason) => {
+        // Prevent dialog from closing on backdrop click or escape key
+        if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+          return;
+        }
+      }}
+      disableEscapeKeyDown
       maxWidth="xs"
       fullWidth
       TransitionComponent={Fade}
@@ -291,32 +336,45 @@ const CountryWelcomeDialog = ({
         <rect width="100%" height="100%" fill="url(#dot-matrix-welcome)" />
       </Box>
 
-      {/* Close button */}
-      <IconButton
-        onClick={handleDismiss}
-        size="small"
-        aria-label="Close"
-        sx={{
-          position: 'absolute',
-          top: 14,
-          insetInlineEnd: 14,
-          zIndex: 20,
-          width: 32,
-          height: 32,
-          borderRadius: '50%',
-          backgroundColor: 'rgba(15, 23, 42, 0.7)',
-          border: '1px solid rgba(51, 65, 85, 0.6)',
-          color: '#94a3b8',
-          transition: 'all 0.2s ease',
-          '&:hover': {
-            backgroundColor: '#1e293b',
-            color: '#ffffff',
-            borderColor: 'rgba(0, 242, 254, 0.4)',
-          },
-        }}
+      {/* Theme Mode Toggle Button */}
+      <Tooltip
+        title={
+          mode === 'dark'
+            ? (isArabic ? 'الوضع الفاتح' : isFrench ? 'Mode clair' : 'Light mode')
+            : (isArabic ? 'الوضع الداكن' : isFrench ? 'Mode sombre' : 'Dark mode')
+        }
       >
-        <CloseRoundedIcon sx={{ fontSize: 18 }} />
-      </IconButton>
+        <IconButton
+          onClick={handleThemeToggle}
+          size="small"
+          aria-label="Toggle theme mode"
+          sx={{
+            position: 'absolute',
+            top: 14,
+            insetInlineEnd: 14,
+            zIndex: 20,
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            border: '1px solid rgba(51, 65, 85, 0.6)',
+            color: mode === 'dark' ? '#facc15' : '#00F2FE',
+            transition: 'all 0.25s ease',
+            '&:hover': {
+              backgroundColor: '#1e293b',
+              borderColor: 'rgba(0, 242, 254, 0.5)',
+              boxShadow: '0 0 12px rgba(0, 242, 254, 0.35)',
+              transform: 'scale(1.05)',
+            },
+          }}
+        >
+          {mode === 'dark' ? (
+            <LightModeOutlinedIcon sx={{ fontSize: 20, color: '#facc15' }} />
+          ) : (
+            <DarkModeOutlinedIcon sx={{ fontSize: 20, color: '#00F2FE' }} />
+          )}
+        </IconButton>
+      </Tooltip>
 
       {/* Centered Capsule Content */}
       <Box
@@ -489,25 +547,27 @@ const CountryWelcomeDialog = ({
                   PaperProps: {
                     sx: {
                       mt: 0.8,
-                      borderRadius: '16px',
-                      backgroundColor: 'rgba(11, 18, 32, 0.96)',
-                      backdropFilter: 'blur(20px)',
-                      WebkitBackdropFilter: 'blur(20px)',
-                      border: '1px solid rgba(0, 242, 254, 0.3)',
-                      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15)',
+                      borderRadius: '16px !important',
+                      backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
+                      backgroundImage: 'none !important',
+                      backdropFilter: 'blur(24px) !important',
+                      WebkitBackdropFilter: 'blur(24px) !important',
+                      border: '1px solid rgba(0, 242, 254, 0.3) !important',
+                      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15) !important',
+                      color: '#f8fafc !important',
                       '& .MuiMenuItem-root': {
-                        py: 1.2,
-                        px: 2,
-                        color: '#f1f5f9',
+                        py: '10px !important',
+                        px: '14px !important',
+                        color: '#f1f5f9 !important',
                         fontSize: '0.92rem',
                         '&:hover': {
-                          backgroundColor: 'rgba(0, 242, 254, 0.12)',
+                          backgroundColor: 'rgba(0, 242, 254, 0.12) !important',
                         },
                         '&.Mui-selected': {
-                          backgroundColor: 'rgba(0, 242, 254, 0.2)',
-                          fontWeight: 600,
+                          backgroundColor: 'rgba(0, 242, 254, 0.2) !important',
+                          fontWeight: '600 !important',
                           '&:hover': {
-                            backgroundColor: 'rgba(0, 242, 254, 0.28)',
+                            backgroundColor: 'rgba(0, 242, 254, 0.28) !important',
                           },
                         },
                       },
@@ -570,40 +630,43 @@ const CountryWelcomeDialog = ({
                   );
                 });
               }}
-              PaperComponent={({ children, ...paperProps }) => (
-                <Paper
-                  {...paperProps}
-                  sx={{
-                    mt: 1,
-                    borderRadius: '16px',
-                    backgroundColor: 'rgba(11, 18, 32, 0.96)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(0, 242, 254, 0.3)',
-                    boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15)',
-                    color: '#f8fafc',
+              PaperComponent={CustomAutocompletePaper}
+              componentsProps={{
+                popper: {
+                  sx: {
+                    zIndex: 99999,
+                    '& .MuiPaper-root, & .MuiAutocomplete-paper': {
+                      backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
+                      backgroundImage: 'none !important',
+                      backdropFilter: 'blur(24px) !important',
+                      WebkitBackdropFilter: 'blur(24px) !important',
+                      border: '1px solid rgba(0, 242, 254, 0.3) !important',
+                      borderRadius: '16px !important',
+                      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15) !important',
+                      color: '#f8fafc !important',
+                    },
                     '& .MuiAutocomplete-listbox': {
-                      p: 1,
+                      backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
+                      p: '8px !important',
                       '& .MuiAutocomplete-option': {
-                        borderRadius: '10px',
-                        my: 0.25,
-                        py: 1.2,
-                        px: 1.5,
-                        color: '#f8fafc',
+                        borderRadius: '10px !important',
+                        my: '2px !important',
+                        py: '10px !important',
+                        px: '14px !important',
+                        color: '#f1f5f9 !important',
+                        backgroundColor: 'transparent !important',
                         '&:hover, &.Mui-focused': {
-                          backgroundColor: 'rgba(0, 242, 254, 0.12)',
+                          backgroundColor: 'rgba(0, 242, 254, 0.12) !important',
                         },
                         '&[aria-selected="true"]': {
-                          backgroundColor: 'rgba(0, 242, 254, 0.2)',
-                          fontWeight: 600,
+                          backgroundColor: 'rgba(0, 242, 254, 0.2) !important',
+                          fontWeight: '600 !important',
                         },
                       },
                     },
-                  }}
-                >
-                  {children}
-                </Paper>
-              )}
+                  },
+                },
+              }}
               renderOption={(props, option) => (
                 <Box
                   component="li"
