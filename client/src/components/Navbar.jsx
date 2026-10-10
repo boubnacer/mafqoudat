@@ -707,7 +707,7 @@ const Navbar = () => {
       <StyledToolbar>
         {/* Left: brand only */}
         <Box sx={{ display: "flex", alignItems: "center", justifySelf: "start", minWidth: 0 }}>
-          <LogoButton component={Link} to="/" onClick={onGoHomeClicked}>
+          <LogoButton component={Link} to="/" onClick={scrollToTop}>
             <img
               src="/maflogoSVG.svg?v=2"
               alt={t("brandName")}

@@ -91,7 +91,9 @@ const ProtectedRoute = ({
   useEffect(() => {
     if (!isInitialized) return;
 
-    if (requireAuth && !isLoggedIn) {
+    const isAuth = Boolean(isLoggedIn || authStorage.isAuthenticated());
+
+    if (requireAuth && !isAuth) {
       const redirectUrl = location.pathname + location.search;
       if (redirectUrl !== '/login') {
         // The return URL is always ours to set. The message is not: a session that
@@ -107,7 +109,7 @@ const ProtectedRoute = ({
       return;
     }
 
-    if (requireCountry && !currentCountry && isLoggedIn && !userCountry) {
+    if (requireCountry && !currentCountry && isAuth && !userCountry) {
       const redirectUrl = location.pathname + location.search;
       if (redirectUrl !== '/') {
         localStorage.setItem('redirectAfterCountrySelection', redirectUrl);

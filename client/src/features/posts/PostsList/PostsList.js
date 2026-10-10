@@ -287,12 +287,13 @@ const PostsList = () => {
 
   // Clear city selection when country changes (unless city is provided via URL or state)
   useEffect(() => {
+    if (location.pathname !== '/dash/posts') return;
     if (!urlCity && !location.state?.selectedCityObj) {
       setSelectedCity(null);
       setDraftSelectedCity(null);
       setCitySearchTerm("");
     }
-  }, [currentCountryId, urlCity, location.state]);
+  }, [currentCountryId, urlCity, location.state, location.pathname]);
 
   // Type (Found/Lost) filter is driven by selectedFl (the panel's own state),
   // not urlFilter directly - this effect is what keeps it in sync whenever
@@ -300,12 +301,14 @@ const PostsList = () => {
   // found/lost links), the same way the mobile filter dialog stages its own
   // draft before applying.
   useEffect(() => {
+    if (location.pathname !== '/dash/posts') return;
     setSelectedFl(urlFilter || '');
     setPage(1);
-  }, [urlFilter]);
+  }, [urlFilter, location.pathname]);
 
   // Sync category filter from URL query param (?category= or ?categories= or ?categoryId=)
   useEffect(() => {
+    if (location.pathname !== '/dash/posts') return;
     if (!urlCategory) return;
     const rawIds = urlCategory.split(',').map((id) => id.trim()).filter(Boolean);
     if (rawIds.length === 0) return;
@@ -330,10 +333,11 @@ const PostsList = () => {
       setDraftSelectedCategories(rawIds);
       setLocalCategoryFilter(rawIds.length === 1 ? rawIds[0] : "all");
     }
-  }, [urlCategory, categoriesData]);
+  }, [urlCategory, categoriesData, location.pathname]);
 
   // Sync city filter from navigation state (GuidedSearchDialog) or URL query param (?city= or ?cityId=)
   useEffect(() => {
+    if (location.pathname !== '/dash/posts') return;
     if (location.state?.selectedCityObj) {
       const cityObj = location.state.selectedCityObj;
       setSelectedCity(cityObj);
@@ -366,7 +370,7 @@ const PostsList = () => {
       setSelectedCity({ _id: urlCity, label: urlCity });
       setDraftSelectedCity({ _id: urlCity, label: urlCity });
     }
-  }, [location.state, urlCity, allCitiesData, getCityDisplayName]);
+  }, [location.state, urlCity, allCitiesData, getCityDisplayName, location.pathname]);
 
   // Memoize effectiveFl computation
   const effectiveFl = useMemo(() => {
@@ -454,6 +458,7 @@ const PostsList = () => {
 
   // Initialize category filter from navigation state - MOVED AFTER query hooks
   useEffect(() => {
+    if (location.pathname !== '/dash/posts') return;
     if (location.state?.fromCategory && location.state?.categoryFilter) {
 
       setLocalCategoryFilter(location.state.categoryFilter);
@@ -744,7 +749,8 @@ const PostsList = () => {
   }, [selectedFl, foundsId, selectedCategories, localCategoryFilter, selectedCity, currentCountryId]);
 
   const handleAddNewPost = useCallback(() => {
-    if (!user.username) {
+    const isUserLoggedIn = Boolean(user.username || authStorage.isAuthenticated());
+    if (!isUserLoggedIn) {
       // Store the intended destination for redirect after login
       authStorage.setRedirectAfterLoginWithMessage(newPostUrl, 'loginRequiredCreatePost');
       navigate('/login');
