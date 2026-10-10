@@ -445,9 +445,10 @@ const Navbar = () => {
   }, [isSuccess, navigate]);
 
   const onGoHomeClicked = (e) => {
-    e?.preventDefault?.();
     scrollToTop();
-    navigate("/");
+    if (window.location.pathname !== '/') {
+      window.location.href = '/';
+    }
   };
 
   // Menu handlers
@@ -707,7 +708,7 @@ const Navbar = () => {
       <StyledToolbar>
         {/* Left: brand only */}
         <Box sx={{ display: "flex", alignItems: "center", justifySelf: "start", minWidth: 0 }}>
-          <LogoButton component={Link} to="/" onClick={scrollToTop}>
+          <LogoButton component={Link} to="/" onClick={onGoHomeClicked}>
             <img
               src="/maflogoSVG.svg?v=2"
               alt={t("brandName")}

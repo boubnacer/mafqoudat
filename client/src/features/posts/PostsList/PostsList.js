@@ -753,15 +753,15 @@ const PostsList = () => {
     if (!isUserLoggedIn) {
       // Store the intended destination for redirect after login
       authStorage.setRedirectAfterLoginWithMessage(newPostUrl, 'loginRequiredCreatePost');
-      navigate('/login');
+      window.location.href = '/login';
     } else {
-      navigate(newPostUrl);
+      window.location.href = newPostUrl;
     }
-  }, [user.username, navigate, newPostUrl]);
+  }, [user.username, newPostUrl]);
 
   const handleSelectCountry = useCallback(() => {
-    navigate('/');
-  }, [navigate]);
+    window.location.href = '/';
+  }, []);
 
   const handleClearAllFilters = useCallback(() => {
     setSearchTerm("");

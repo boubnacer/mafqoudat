@@ -48,7 +48,7 @@ const DashLayout = () => {
           }}
         >
           <Navbar />
-          <Outlet key={location.pathname} />
+          <Outlet />
           <DashFooter />
         </Box>
       </Box>

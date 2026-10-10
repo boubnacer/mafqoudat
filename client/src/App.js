@@ -159,7 +159,7 @@ const AppContent = () => {
         <MaintenanceMode />
       ) : (
         /* Show normal app routes */
-        <Routes location={location}>
+        <Routes>
         {/* Legal and Information Pages - Public Access */}
         <Route path="/privacy" element={
           <Suspense fallback={<InfoPageSkeleton />}>
