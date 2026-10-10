@@ -1,26 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
-  DialogContent,
-  DialogActions,
   Box,
   Typography,
   Button,
   IconButton,
   Autocomplete,
   TextField,
-  Chip,
-  useTheme,
-  alpha,
+  FormControl,
+  Select,
+  MenuItem,
+  Paper,
   Fade,
 } from '@mui/material';
-import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
-import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import LanguageRoundedIcon from '@mui/icons-material/LanguageRounded';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import { useTranslation } from '../../utils/translations';
 import { useLanguage } from '../../utils/languageContext';
+import { languageStorage } from '../../utils/authStorage';
 
 // Multilingual country names mapping for reliable display across EN, AR, and FR
 const countryCodeToName = {
@@ -95,6 +95,12 @@ const getCountryLabel = (option, lang) => {
   return option.label || option.code || '';
 };
 
+const languageOptions = [
+  { code: 'ar', label: 'العربية (Arabic)', flag: '🇲🇦' },
+  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'fr', label: 'Français (French)', flag: '🇫🇷' },
+];
+
 const CountryWelcomeDialog = ({
   open,
   onConfirm,
@@ -103,10 +109,11 @@ const CountryWelcomeDialog = ({
   detectedCountryCode,
   currentCountryId,
 }) => {
-  const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
   const { t } = useTranslation();
-  const { currentLanguage } = useLanguage();
+  const { currentLanguage, setLanguage } = useLanguage();
+  const isRTL = currentLanguage === 'ar';
+  const isArabic = currentLanguage === 'ar';
+  const isFrench = currentLanguage === 'fr';
 
   const countriesList = useMemo(() => {
     if (countriesData?.entities && countriesData?.ids?.length > 0) {
@@ -160,6 +167,13 @@ const CountryWelcomeDialog = ({
     }
   };
 
+  const handleLanguageSelect = (newLang) => {
+    if (!newLang) return;
+    languageStorage.setLanguage(newLang, false);
+    setLanguage(newLang);
+    window.dispatchEvent(new Event('languageChange'));
+  };
+
   const handleConfirm = () => {
     const chosen = selectedCountry || countriesList[0];
     const countryId = chosen?._id || chosen?.id;
@@ -178,6 +192,37 @@ const CountryWelcomeDialog = ({
 
   if (!open) return null;
 
+  // Localized texts synchronized with platform strings
+  const titleText =
+    t('welcomeCountryTitle') ||
+    (isArabic ? 'مرحباً بك في مفقودات' : isFrench ? 'Bienvenue sur Mafqoudat' : 'Welcome to Mafqoudat');
+
+  const descText =
+    t('welcomeCountryDescription') ||
+    (isArabic
+      ? 'اختر بلدك ولغتك المفضلة لتصفح الإعلانات والموجودات في منطقتك.'
+      : isFrench
+      ? 'Choisissez votre pays et votre langue préférée pour voir les objets perdus et trouvés dans votre région.'
+      : 'Choose your country and preferred language to view lost and found items in your area.');
+
+  const languageLabel = isArabic
+    ? 'اختر لغتك المفضلة'
+    : isFrench
+    ? 'Choisissez votre langue préférée'
+    : 'Choose your preferred language';
+
+  const countryLabel =
+    t('chooseCountry') ||
+    (isArabic ? 'اختر دولتك' : isFrench ? 'Choisissez votre pays' : 'Choose your country');
+
+  const searchCountryPlaceholder =
+    t('searchCountry') ||
+    (isArabic ? 'ابحث عن الدولة...' : isFrench ? 'Rechercher un pays...' : 'Search country...');
+
+  const confirmBtnText =
+    t('confirmAndBrowse') ||
+    (isArabic ? 'تأكيد ومتابعة' : isFrench ? 'Confirmer et continuer' : 'Confirm & Browse');
+
   return (
     <Dialog
       open={open}
@@ -189,306 +234,509 @@ const CountryWelcomeDialog = ({
       PaperProps={{
         elevation: 0,
         sx: {
-          borderRadius: { xs: '20px', sm: '24px' },
-          backgroundColor: isDark
-            ? alpha('#131720', 0.96)
-            : alpha('#ffffff', 0.98),
-          backdropFilter: 'blur(16px)',
-          border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
-          boxShadow: isDark
-            ? '0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06)'
-            : '0 24px 64px rgba(15,23,42,0.18), 0 0 0 1px rgba(0,0,0,0.04)',
+          backgroundColor: 'rgba(11, 18, 32, 0.92)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          borderRadius: '24px',
+          border: '1px solid rgba(0, 242, 254, 0.35)',
+          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)',
           overflow: 'hidden',
-          p: { xs: 2.5, sm: 3.5 },
+          p: { xs: 3, sm: 4 },
           position: 'relative',
+          color: '#ffffff',
+          direction: isRTL ? 'rtl' : 'ltr',
+        },
+      }}
+      BackdropProps={{
+        sx: {
+          backgroundColor: 'rgba(0, 0, 0, 0.78)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
         },
       }}
     >
-      {/* Subtle close button */}
+      {/* Top glowing hairline gradient */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '2px',
+          background: 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }}
+      />
+
+      {/* Cyber dot matrix SVG background */}
+      <Box
+        component="svg"
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          opacity: 0.15,
+          zIndex: 0,
+        }}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <pattern id="dot-matrix-welcome" width="24" height="24" patternUnits="userSpaceOnUse">
+            <circle cx="12" cy="12" r="1" fill="#00F2FE" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#dot-matrix-welcome)" />
+      </Box>
+
+      {/* Close button */}
       <IconButton
         onClick={handleDismiss}
         size="small"
-        aria-label="Close country confirmation dialog"
+        aria-label="Close"
         sx={{
           position: 'absolute',
           top: 14,
           insetInlineEnd: 14,
-          color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+          zIndex: 20,
+          width: 32,
+          height: 32,
+          borderRadius: '50%',
+          backgroundColor: 'rgba(15, 23, 42, 0.7)',
+          border: '1px solid rgba(51, 65, 85, 0.6)',
+          color: '#94a3b8',
+          transition: 'all 0.2s ease',
           '&:hover': {
-            color: isDark ? '#ffffff' : '#000000',
-            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+            backgroundColor: '#1e293b',
+            color: '#ffffff',
+            borderColor: 'rgba(0, 242, 254, 0.4)',
           },
         }}
       >
-        <CloseRoundedIcon fontSize="small" />
+        <CloseRoundedIcon sx={{ fontSize: 18 }} />
       </IconButton>
 
-      <DialogContent sx={{ p: 0, textAlign: 'center' }}>
-        {/* Glowing Globe Badge */}
-        <Box
-          sx={{
-            width: { xs: 64, sm: 72 },
-            height: { xs: 64, sm: 72 },
-            mx: 'auto',
-            mb: 2.5,
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: isDark
-              ? 'linear-gradient(135deg, rgba(230,81,0,0.24) 0%, rgba(255,152,0,0.12) 100%)'
-              : 'linear-gradient(135deg, rgba(230,81,0,0.12) 0%, rgba(255,167,38,0.2) 100%)',
-            border: `2px solid ${alpha(theme.palette.primary.main, isDark ? 0.4 : 0.25)}`,
-            boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, isDark ? 0.3 : 0.2)}`,
-            animation: 'welcomePulse 3s ease-in-out infinite',
-            '@keyframes welcomePulse': {
-              '0%, 100%': { transform: 'scale(1)' },
-              '50%': { transform: 'scale(1.04)' },
-            },
-          }}
-        >
-          <PublicRoundedIcon
+      {/* Centered Capsule Content */}
+      <Box
+        sx={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+        }}
+      >
+        {/* Header Badge with Website logoIcon */}
+        <Box sx={{ mb: 2.5, position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box
             sx={{
-              fontSize: { xs: 34, sm: 40 },
-              color: theme.palette.primary.main,
+              position: 'relative',
+              p: '2px',
+              borderRadius: '20px',
+              overflow: 'hidden',
+              boxShadow: '0 8px 24px rgba(0, 242, 254, 0.25)',
             }}
-          />
+          >
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '20px',
+                opacity: 0.85,
+                background: 'linear-gradient(135deg, #00F2FE, transparent 60%, #00F2FE)',
+              }}
+            />
+            <Box
+              sx={{
+                position: 'relative',
+                width: 52,
+                height: 52,
+                borderRadius: '18px',
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                backdropFilter: 'blur(12px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Box
+                component="img"
+                src="/maficonSVG.svg"
+                alt="Mafqoudat Logo"
+                sx={{
+                  width: 30,
+                  height: 34,
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 0 8px rgba(0, 242, 254, 0.45))',
+                }}
+              />
+            </Box>
+          </Box>
         </Box>
 
-        {/* Welcome Title */}
+        {/* Dialog Title */}
         <Typography
           variant="h5"
           component="h2"
           sx={{
             fontWeight: 800,
-            fontSize: { xs: '1.35rem', sm: '1.55rem' },
+            fontSize: { xs: '1.35rem', sm: '1.5rem' },
             lineHeight: 1.25,
-            color: isDark ? '#f8fafc' : '#0f172a',
+            color: '#ffffff',
             mb: 1.2,
             letterSpacing: '-0.02em',
           }}
         >
-          {t('welcomeCountryTitle') || 'Welcome to Mafqoudat / مرحباً بك في مفقودات'}
+          {titleText}
         </Typography>
 
         {/* Localized Description */}
         <Typography
           variant="body2"
           sx={{
-            color: isDark ? '#94a3b8' : '#64748b',
+            color: '#cbd5e1',
             lineHeight: 1.6,
-            fontSize: { xs: '0.88rem', sm: '0.94rem' },
-            maxWidth: 340,
+            fontSize: { xs: '0.86rem', sm: '0.92rem' },
+            maxWidth: 380,
             mx: 'auto',
             mb: 3,
           }}
         >
-          {t('welcomeCountryDescription') ||
-            'Select your country to view local lost and found items in your area.'}
+          {descText}
         </Typography>
 
-        {/* Autocomplete Country Picker */}
-        <Box sx={{ mb: 2.5, textAlign: 'start' }}>
-          <Typography
-            variant="caption"
-            sx={{
-              display: 'block',
-              fontWeight: 600,
-              color: isDark ? '#cbd5e1' : '#475569',
-              mb: 0.8,
-              fontSize: '0.8rem',
-            }}
-          >
-            {t('selectYourCountry') || 'Select your country'}
-          </Typography>
+        {/* Form Container */}
+        <Box
+          component="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleConfirm();
+          }}
+          sx={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2.2,
+          }}
+        >
+          {/* Field 1: Website Preferred Language */}
+          <Box sx={{ width: '100%', textAlign: 'start' }}>
+            <Typography
+              variant="caption"
+              sx={{
+                display: 'block',
+                fontWeight: 600,
+                color: '#cbd5e1',
+                mb: 0.8,
+                fontSize: '0.82rem',
+              }}
+            >
+              {languageLabel}
+            </Typography>
 
-          <Autocomplete
-            options={countriesList}
-            autoHighlight
-            disableClearable
-            value={selectedCountry || countriesList[0]}
-            onChange={handleCountryChange}
-            getOptionLabel={(option) => getCountryLabel(option, currentLanguage)}
-            isOptionEqualToValue={(option, val) =>
-              (option?._id || option?.id) === (val?._id || val?.id)
-            }
-            filterOptions={(options, state) => {
-              const query = (state.inputValue || '').trim().toLowerCase();
-              if (!query) return options;
-              return options.filter((option) => {
-                const label = getCountryLabel(option, currentLanguage).toLowerCase();
-                const code = (option.code || '').toLowerCase();
-                const enName = (option.names?.en || countryCodeToName[option.code]?.en || '').toLowerCase();
-                const arName = (option.names?.ar || countryCodeToName[option.code]?.ar || '').toLowerCase();
-                const frName = (option.names?.fr || countryCodeToName[option.code]?.fr || '').toLowerCase();
-                return (
-                  label.includes(query) ||
-                  code.includes(query) ||
-                  enName.includes(query) ||
-                  arName.includes(query) ||
-                  frName.includes(query)
-                );
-              });
-            }}
-            renderOption={(props, option) => (
-              <Box
-                component="li"
+            <FormControl fullWidth size="medium">
+              <Select
+                value={currentLanguage || 'ar'}
+                onChange={(e) => handleLanguageSelect(e.target.value)}
+                displayEmpty
+                renderValue={(selected) => {
+                  const langConfig = languageOptions.find((l) => l.code === selected) || languageOptions[0];
+                  return (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                      <span style={{ fontSize: '18px', lineHeight: 1 }}>{langConfig.flag}</span>
+                      <Typography sx={{ color: '#ffffff', fontSize: '0.92rem', fontWeight: 500 }}>
+                        {langConfig.label}
+                      </Typography>
+                    </Box>
+                  );
+                }}
+                startAdornment={
+                  <LanguageRoundedIcon
+                    sx={{
+                      color: '#00F2FE',
+                      fontSize: 20,
+                      marginInlineStart: 0.5,
+                      marginInlineEnd: 1.2,
+                      flexShrink: 0,
+                    }}
+                  />
+                }
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  width: '100%',
-                  py: 1.25,
-                  px: 2,
-                  gap: 1.5,
-                  borderRadius: 1.5,
-                  '&:hover': {
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  borderRadius: '14px',
+                  backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                  color: '#ffffff',
+                  fontSize: '0.92rem',
+                  transition: 'all 0.2s ease',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(51, 65, 85, 0.8)',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#00F2FE',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#00F2FE',
+                    borderWidth: '2px',
+                    boxShadow: '0 0 12px rgba(0, 242, 254, 0.25)',
+                  },
+                  '& .MuiSelect-icon': {
+                    color: '#94a3b8',
                   },
                 }}
-                {...props}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      mt: 0.8,
+                      borderRadius: '16px',
+                      backgroundColor: 'rgba(11, 18, 32, 0.96)',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(0, 242, 254, 0.3)',
+                      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15)',
+                      '& .MuiMenuItem-root': {
+                        py: 1.2,
+                        px: 2,
+                        color: '#f1f5f9',
+                        fontSize: '0.92rem',
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 242, 254, 0.12)',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(0, 242, 254, 0.2)',
+                          fontWeight: 600,
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 242, 254, 0.28)',
+                          },
+                        },
+                      },
+                    },
+                  },
+                }}
               >
-                {option.flag ? (
-                  <span style={{ fontSize: '22px', lineHeight: 1 }}>{option.flag}</span>
-                ) : (
-                  <img
-                    loading="lazy"
-                    width="22"
-                    height="16"
-                    src={`https://flagcdn.com/w20/${(option.code || '').toLowerCase()}.png`}
-                    srcSet={`https://flagcdn.com/w40/${(option.code || '').toLowerCase()}.png 2x`}
-                    alt=""
-                    style={{ borderRadius: '2px', objectFit: 'cover' }}
-                  />
-                )}
-                <Typography
-                  variant="body2"
+                {languageOptions.map((opt) => (
+                  <MenuItem key={opt.code} value={opt.code}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
+                      <span style={{ fontSize: '20px', lineHeight: 1 }}>{opt.flag}</span>
+                      <Typography sx={{ fontSize: '0.92rem', color: '#f8fafc' }}>{opt.label}</Typography>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {/* Field 2: Country Dropdown */}
+          <Box sx={{ width: '100%', textAlign: 'start' }}>
+            <Typography
+              variant="caption"
+              sx={{
+                display: 'block',
+                fontWeight: 600,
+                color: '#cbd5e1',
+                mb: 0.8,
+                fontSize: '0.82rem',
+              }}
+            >
+              {countryLabel}
+            </Typography>
+
+            <Autocomplete
+              options={countriesList}
+              autoHighlight
+              disableClearable
+              value={selectedCountry || countriesList[0]}
+              onChange={handleCountryChange}
+              getOptionLabel={(option) => getCountryLabel(option, currentLanguage)}
+              isOptionEqualToValue={(option, val) =>
+                (option?._id || option?.id) === (val?._id || val?.id)
+              }
+              filterOptions={(options, state) => {
+                const query = (state.inputValue || '').trim().toLowerCase();
+                if (!query) return options;
+                return options.filter((option) => {
+                  const label = getCountryLabel(option, currentLanguage).toLowerCase();
+                  const code = (option.code || '').toLowerCase();
+                  const enName = (option.names?.en || countryCodeToName[option.code]?.en || '').toLowerCase();
+                  const arName = (option.names?.ar || countryCodeToName[option.code]?.ar || '').toLowerCase();
+                  const frName = (option.names?.fr || countryCodeToName[option.code]?.fr || '').toLowerCase();
+                  return (
+                    label.includes(query) ||
+                    code.includes(query) ||
+                    enName.includes(query) ||
+                    arName.includes(query) ||
+                    frName.includes(query)
+                  );
+                });
+              }}
+              PaperComponent={({ children, ...paperProps }) => (
+                <Paper
+                  {...paperProps}
                   sx={{
-                    fontWeight: 600,
-                    fontSize: '0.92rem',
-                    color: isDark ? '#f1f5f9' : '#1e293b',
+                    mt: 1,
+                    borderRadius: '16px',
+                    backgroundColor: 'rgba(11, 18, 32, 0.96)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(0, 242, 254, 0.3)',
+                    boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15)',
+                    color: '#f8fafc',
+                    '& .MuiAutocomplete-listbox': {
+                      p: 1,
+                      '& .MuiAutocomplete-option': {
+                        borderRadius: '10px',
+                        my: 0.25,
+                        py: 1.2,
+                        px: 1.5,
+                        color: '#f8fafc',
+                        '&:hover, &.Mui-focused': {
+                          backgroundColor: 'rgba(0, 242, 254, 0.12)',
+                        },
+                        '&[aria-selected="true"]': {
+                          backgroundColor: 'rgba(0, 242, 254, 0.2)',
+                          fontWeight: 600,
+                        },
+                      },
+                    },
                   }}
                 >
-                  {getCountryLabel(option, currentLanguage)}
-                </Typography>
-              </Box>
-            )}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                size="medium"
-                placeholder={t('searchCountry') || 'Search country...'}
-                InputProps={{
-                  ...params.InputProps,
-                  startAdornment: (
-                    <Box sx={{ display: 'flex', alignItems: 'center', marginInlineStart: 1, marginInlineEnd: 0.5 }}>
-                      {selectedCountry?.flag ? (
-                        <span style={{ fontSize: '20px', lineHeight: 1 }}>{selectedCountry.flag}</span>
-                      ) : selectedCountry?.code ? (
-                        <img
-                          loading="lazy"
-                          width="20"
-                          height="15"
-                          src={`https://flagcdn.com/w20/${selectedCountry.code.toLowerCase()}.png`}
-                          alt=""
-                          style={{ borderRadius: '2px' }}
-                        />
-                      ) : (
-                        <PlaceRoundedIcon sx={{ fontSize: 20, color: theme.palette.primary.main }} />
-                      )}
-                    </Box>
-                  ),
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '14px',
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-                    transition: 'all 0.2s ease',
-                    '& fieldset': {
-                      borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
+                  {children}
+                </Paper>
+              )}
+              renderOption={(props, option) => (
+                <Box
+                  component="li"
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%',
+                    gap: 1.5,
+                  }}
+                  {...props}
+                >
+                  {option.flag ? (
+                    <span style={{ fontSize: '20px', lineHeight: 1 }}>{option.flag}</span>
+                  ) : (
+                    <img
+                      loading="lazy"
+                      width="20"
+                      height="15"
+                      src={`https://flagcdn.com/w20/${(option.code || '').toLowerCase()}.png`}
+                      srcSet={`https://flagcdn.com/w40/${(option.code || '').toLowerCase()}.png 2x`}
+                      alt=""
+                      style={{ borderRadius: '2px', objectFit: 'cover' }}
+                    />
+                  )}
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: '0.92rem',
+                      color: '#f1f5f9',
+                    }}
+                  >
+                    {getCountryLabel(option, currentLanguage)}
+                  </Typography>
+                </Box>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  size="medium"
+                  placeholder={searchCountryPlaceholder}
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          marginInlineStart: 0.5,
+                          marginInlineEnd: 1,
+                          flexShrink: 0,
+                        }}
+                      >
+                        <PlaceRoundedIcon sx={{ fontSize: 20, color: '#10B981' }} />
+                        {selectedCountry?.flag ? (
+                          <span style={{ fontSize: '18px', lineHeight: 1 }}>{selectedCountry.flag}</span>
+                        ) : selectedCountry?.code ? (
+                          <img
+                            loading="lazy"
+                            width="18"
+                            height="13"
+                            src={`https://flagcdn.com/w20/${selectedCountry.code.toLowerCase()}.png`}
+                            alt=""
+                            style={{ borderRadius: '2px' }}
+                          />
+                        ) : null}
+                      </Box>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '14px',
+                      backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                      color: '#ffffff',
+                      fontSize: '0.92rem',
+                      transition: 'all 0.2s ease',
+                      '& fieldset': {
+                        borderColor: 'rgba(51, 65, 85, 0.8)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#00F2FE',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#00F2FE',
+                        borderWidth: '2px',
+                        boxShadow: '0 0 12px rgba(0, 242, 254, 0.25)',
+                      },
+                      '& .MuiAutocomplete-input': {
+                        color: '#ffffff',
+                      },
+                      '& .MuiAutocomplete-popupIndicator, & .MuiAutocomplete-clearIndicator': {
+                        color: '#94a3b8',
+                      },
                     },
-                    '&:hover fieldset': {
-                      borderColor: theme.palette.primary.main,
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: theme.palette.primary.main,
-                      borderWidth: '2px',
-                    },
-                  },
-                }}
-              />
-            )}
-          />
-        </Box>
+                  }}
+                />
+              )}
+            />
+          </Box>
 
-        {/* Feature Highlights */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 1,
-            flexWrap: 'wrap',
-            mb: 3,
-          }}
-        >
-          <Chip
-            icon={<PlaceRoundedIcon sx={{ fontSize: '15px !important', color: `${theme.palette.primary.main} !important` }} />}
-            label={t('localizedCommunity') || 'Localized community'}
-            size="small"
+          {/* Submit Action Button */}
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            size="large"
+            endIcon={isRTL ? <ArrowBackRoundedIcon /> : <ArrowForwardRoundedIcon />}
             sx={{
-              borderRadius: '8px',
-              fontWeight: 500,
-              fontSize: '0.78rem',
-              backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-              color: isDark ? '#94a3b8' : '#64748b',
-              border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
+              mt: 1,
+              py: 1.4,
+              borderRadius: '14px',
+              fontSize: '0.96rem',
+              fontWeight: 800,
+              textTransform: 'none',
+              backgroundColor: '#00F2FE',
+              color: '#020617',
+              boxShadow: '0 6px 24px rgba(0, 242, 254, 0.35)',
+              transition: 'all 0.25s ease',
+              '&:hover': {
+                backgroundColor: '#38f6ff',
+                boxShadow: '0 8px 32px rgba(0, 242, 254, 0.55)',
+                transform: 'translateY(-1px)',
+              },
+              '&:active': {
+                transform: 'translateY(0)',
+              },
             }}
-          />
-          <Chip
-            icon={<BoltRoundedIcon sx={{ fontSize: '15px !important', color: `${theme.palette.primary.main} !important` }} />}
-            label="Live Updates"
-            size="small"
-            sx={{
-              borderRadius: '8px',
-              fontWeight: 500,
-              fontSize: '0.78rem',
-              backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-              color: isDark ? '#94a3b8' : '#64748b',
-              border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
-            }}
-          />
+          >
+            {confirmBtnText}
+          </Button>
         </Box>
-      </DialogContent>
-
-      <DialogActions sx={{ p: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Button
-          fullWidth
-          variant="contained"
-          size="large"
-          onClick={handleConfirm}
-          startIcon={<CheckCircleRoundedIcon />}
-          sx={{
-            py: 1.4,
-            borderRadius: '14px',
-            fontSize: '1rem',
-            fontWeight: 700,
-            textTransform: 'none',
-            background: 'linear-gradient(135deg, #e65100 0%, #ff6d00 100%)',
-            boxShadow: '0 8px 20px rgba(230,81,0,0.3)',
-            transition: 'all 0.25s ease',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #d84315 0%, #f55100 100%)',
-              boxShadow: '0 12px 28px rgba(230,81,0,0.4)',
-              transform: 'translateY(-1px)',
-            },
-            '&:active': {
-              transform: 'translateY(0)',
-            },
-          }}
-        >
-          {t('confirmAndBrowse') || 'Confirm & Browse / تأكيد ومتابعة'}
-        </Button>
-      </DialogActions>
+      </Box>
     </Dialog>
   );
 };
