@@ -1399,6 +1399,12 @@ export const translations = {
     // Country Selection
     selectCountry: "Select Country",
     changeCountry: "Change Country",
+    welcomeCountryTitle: "Welcome to Mafqoudat",
+    welcomeCountryDescription: "Select your country to view local lost and found items in your area.",
+    confirmAndBrowse: "Confirm & Browse",
+    selectYourCountry: "Select your country",
+    searchCountry: "Search country...",
+    localizedCommunity: "Localized listings in your area",
     
     // Additional translations
     showingResults: "Showing results",
@@ -3787,6 +3793,12 @@ export const translations = {
     // Country Selection
     selectCountry: "Sélectionner un pays",
     changeCountry: "Changer de pays",
+    welcomeCountryTitle: "Bienvenue sur Mafqoudat",
+    welcomeCountryDescription: "Sélectionnez votre pays pour consulter les objets perdus et trouvés dans votre région.",
+    confirmAndBrowse: "Confirmer et continuer",
+    selectYourCountry: "Sélectionnez votre pays",
+    searchCountry: "Rechercher un pays...",
+    localizedCommunity: "Annonces locales dans votre région",
     
     // Additional translations
     showingResults: "Affichage des résultats",
@@ -6135,6 +6147,12 @@ export const translations = {
     // Country Selection
     selectCountry: "اختر البلد",
     changeCountry: "تغيير البلد",
+    welcomeCountryTitle: "مرحباً بك في مفقودات",
+    welcomeCountryDescription: "اختر بلدك لعرض المفقودات والموجودات في منطقتك.",
+    confirmAndBrowse: "تأكيد ومتابعة",
+    selectYourCountry: "اختر بلدك",
+    searchCountry: "ابحث عن بلد...",
+    localizedCommunity: "إعلانات محلية في منطقتك",
     
     // Additional translations
     showingResults: "عرض النتائج",

@@ -2,7 +2,7 @@ import React, { useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Box, useMediaQuery, useTheme, Typography, Button, Paper, alpha } from "@mui/material";
-import { setActiveLink, setFoundOrLost, setOpenModal } from "../../app/state";
+import { setActiveLink, setCurrentCountry, setFoundOrLost, setOpenModal } from "../../app/state";
 import { DashboardEmptyStates } from "../../components/LoadingStates";
 import { Language } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
@@ -26,6 +26,7 @@ import RecentSection from "../../components/dashboard/RecentSection";
 import HelpSupportSection from "../../components/dashboard/HelpSupportSection";
 import DashRecents from "../../components/dashboard/DashRecents";
 import DashboardSkeleton from "../../components/dashboard/DashboardSkeleton";
+import CountryWelcomeDialog from "../../components/dashboard/CountryWelcomeDialog";
 
 
 const Dash = () => {
@@ -48,6 +49,9 @@ const Dash = () => {
     isLoading,
     currentCountry,
     countriesData,
+    showCountryWelcomeDialog,
+    setShowCountryWelcomeDialog,
+    detectedCountryCode,
   } = useDashboard();
 
   // The FoundLost options' own database ids, for the "see all" links below -
@@ -104,6 +108,33 @@ const Dash = () => {
       navigate(`/dash/posts/new?type=${type}`);
     }
   };
+
+  const handleConfirmCountry = (countryId) => {
+    if (countryId) {
+      dispatch(setCurrentCountry({ currentCountry: countryId }));
+    }
+    localStorage.setItem('countryConfirmed', 'true');
+    setShowCountryWelcomeDialog(false);
+  };
+
+  const handleCloseCountryWelcome = (countryId) => {
+    if (countryId) {
+      dispatch(setCurrentCountry({ currentCountry: countryId }));
+    }
+    localStorage.setItem('countryConfirmed', 'true');
+    setShowCountryWelcomeDialog(false);
+  };
+
+  const welcomeDialogElement = (
+    <CountryWelcomeDialog
+      open={Boolean(showCountryWelcomeDialog)}
+      onConfirm={handleConfirmCountry}
+      onClose={handleCloseCountryWelcome}
+      countriesData={countriesData}
+      detectedCountryCode={detectedCountryCode}
+      currentCountryId={currentCountry}
+    />
+  );
 
   // Same glass-panel treatment QuickActions uses just below this section on
   // the page: the surfaceRaised gradient + blur it already had, now with a
@@ -227,6 +258,7 @@ const Dash = () => {
           >
             <DashboardSkeleton />
           </Box>
+          {welcomeDialogElement}
         </>
       );
     }
@@ -284,6 +316,7 @@ const Dash = () => {
           </Button>
         </Paper>
       </Box>
+      {welcomeDialogElement}
       </>
     );
   }
@@ -307,6 +340,7 @@ const Dash = () => {
         >
           <DashboardSkeleton />
         </Box>
+        {welcomeDialogElement}
       </>
     );
   }
@@ -550,6 +584,7 @@ const Dash = () => {
 
       
     </Box>
+    {welcomeDialogElement}
     </>
   );
 };

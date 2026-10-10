@@ -350,6 +350,7 @@ const Navbar = () => {
   const handleCountrySelect = (_, value) => {
     setSelectedCountry(value);
     if (value) {
+      localStorage.setItem('countryConfirmed', 'true');
       dispatch(setCurrentCountry({ currentCountry: value._id }));
     }
     setRegionAnchorEl(null);
