@@ -421,10 +421,10 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           backdropFilter: 'blur(28px)',
           WebkitBackdropFilter: 'blur(28px)',
           borderRadius: { xs: '20px', sm: '24px' },
-          border: isDark ? '1px solid rgba(0, 242, 254, 0.35)' : '1.5px solid rgba(0, 242, 254, 0.65)',
+          border: '1px solid rgba(0, 242, 254, 0.35)',
           boxShadow: isDark
             ? '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)'
-            : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 35px -5px rgba(0, 242, 254, 0.35)',
+            : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 35px -5px rgba(0, 242, 254, 0.25)',
           overflow: 'hidden',
           p: { xs: 2, sm: 2.5, md: 3 },
           position: 'relative',
@@ -455,15 +455,13 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           left: 0,
           right: 0,
           height: '2px',
-          background: isDark
-            ? 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)'
-            : 'linear-gradient(90deg, transparent 5%, #00F2FE 50%, transparent 95%)',
+          background: 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)',
           pointerEvents: 'none',
           zIndex: 1,
         }}
       />
 
-      {/* Cyber dot matrix SVG background */}
+      {/* Cyber dot matrix SVG background with Corner Clusters */}
       <Box
         component="svg"
         sx={{
@@ -472,17 +470,34 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          opacity: isDark ? 0.12 : 0.55,
+          opacity: isDark ? 0.28 : 0.45,
           zIndex: 0,
         }}
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          <pattern id="dot-matrix-guided" width="24" height="24" patternUnits="userSpaceOnUse">
-            <circle cx="12" cy="12" r={isDark ? 1 : 1.25} fill="#00F2FE" />
+          <pattern id="dot-matrix-guided" width="12" height="12" patternUnits="userSpaceOnUse">
+            <circle cx="6" cy="6" r="1" fill="#00F2FE" />
           </pattern>
+          <radialGradient id="tr-glow-guided" cx="100%" cy="0%" r="55%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+            <stop offset="35%" stopColor="#ffffff" stopOpacity="0.7" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="bl-glow-guided" cx="0%" cy="100%" r="55%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+            <stop offset="35%" stopColor="#ffffff" stopOpacity="0.7" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+          </radialGradient>
+          <mask id="tr-mask-guided">
+            <rect width="100%" height="100%" fill="url(#tr-glow-guided)" />
+          </mask>
+          <mask id="bl-mask-guided">
+            <rect width="100%" height="100%" fill="url(#bl-glow-guided)" />
+          </mask>
         </defs>
-        <rect width="100%" height="100%" fill="url(#dot-matrix-guided)" />
+        <rect width="100%" height="100%" fill="url(#dot-matrix-guided)" mask="url(#tr-mask-guided)" />
+        <rect width="100%" height="100%" fill="url(#dot-matrix-guided)" mask="url(#bl-mask-guided)" />
       </Box>
 
       {/* Close Button matching CountryWelcomeDialog style */}
