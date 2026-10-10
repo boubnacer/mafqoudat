@@ -472,14 +472,14 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          opacity: isDark ? 0.12 : 0.08,
+          opacity: isDark ? 0.12 : 0.45,
           zIndex: 0,
         }}
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
           <pattern id="dot-matrix-guided" width="24" height="24" patternUnits="userSpaceOnUse">
-            <circle cx="12" cy="12" r="1" fill="#00F2FE" />
+            <circle cx="12" cy="12" r={isDark ? 1 : 1.3} fill={isDark ? '#00F2FE' : '#00b4d8'} />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#dot-matrix-guided)" />
