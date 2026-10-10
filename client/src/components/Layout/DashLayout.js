@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import DashFooter from "../Footer/DashFooter";
 
 import "./layout.css";
@@ -6,12 +6,19 @@ import { Box, useMediaQuery, useTheme } from "@mui/material";
 import Navbar from "../Navbar";
 import Sidebar from "../Sidebar";
 import { useTranslation } from "../../utils/translations";
+import scrollToTop from "../../utils/scrollToTop";
+import { useEffect } from "react";
 
 const DashLayout = () => {
 
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const theme = useTheme();
   const { currentLanguage } = useTranslation();
+  const location = useLocation();
+
+  useEffect(() => {
+    scrollToTop();
+  }, [location.pathname]);
 
   return (
     <>

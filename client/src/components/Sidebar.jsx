@@ -24,6 +24,7 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import NavLinks from "./NavLinks";
 import { useTranslation } from "../utils/translations";
+import scrollToTop from "../utils/scrollToTop";
 
 const Sidebar = () => {
   const theme = useTheme();
@@ -76,7 +77,17 @@ const Sidebar = () => {
           <Box width="100%">
             <Box m="1.5rem 2rem 2rem 3rem">
               <FlexBetween color={theme.palette.secondary.main}>
-                <Box display="flex" alignItems="center" gap="0.5rem">
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  gap="0.5rem"
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => {
+                    scrollToTop();
+                    dispatch(setIsSidebarOpen(false));
+                    navigate("/");
+                  }}
+                >
                   <Typography variant="h4" fontWeight="bold">
                     MAFQOUDAT
                   </Typography>

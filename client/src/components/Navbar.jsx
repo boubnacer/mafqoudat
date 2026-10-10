@@ -57,8 +57,9 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useSendLogoutMutation } from "../features/auth/authApiSlice";
 import { unsubscribe as unsubscribeFromWebPush } from "../utils/webPush";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useRef, useState, useMemo } from "react";
+import scrollToTop from "../utils/scrollToTop";
 import { useGetCountriesQuery } from "../features/countries/countriesApiSlice";
 import useAuth from "../hooks/useAuth";
 import { useTranslation } from "../utils/translations";
@@ -443,7 +444,14 @@ const Navbar = () => {
     }
   }, [isSuccess, navigate]);
 
-  const onGoHomeClicked = () => navigate("/");
+  const onGoHomeClicked = (e) => {
+    scrollToTop();
+    if (window.location.pathname === "/") {
+      e?.preventDefault?.();
+    } else {
+      navigate("/");
+    }
+  };
 
   // Menu handlers
   const handleMobileDrawerClose = () => setMobileDrawerOpen(false);
@@ -563,7 +571,10 @@ const Navbar = () => {
     {
       title: t("dashboard"),
       icon: <Dashboard sx={{ fontSize: 20 }} />,
-      action: () => navigate("/"),
+      action: () => {
+        scrollToTop();
+        navigate("/");
+      },
       description: t("goToDashboard"),
       tone: "neutral",
     },
@@ -699,7 +710,7 @@ const Navbar = () => {
       <StyledToolbar>
         {/* Left: brand only */}
         <Box sx={{ display: "flex", alignItems: "center", justifySelf: "start", minWidth: 0 }}>
-          <LogoButton onClick={onGoHomeClicked}>
+          <LogoButton component={Link} to="/" onClick={onGoHomeClicked}>
             <img
               src="/maflogoSVG.svg?v=2"
               alt={t("brandName")}

@@ -416,15 +416,17 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           border: '1px solid rgba(0, 242, 254, 0.35)',
           boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)',
           overflow: 'hidden',
-          p: { xs: 2.5, sm: 3.5, md: 4 },
+          p: { xs: 2, sm: 2.5, md: 3 },
           position: 'relative',
           color: '#ffffff',
           direction: isRTLMode ? 'rtl' : 'ltr',
-          maxWidth: { xs: 'calc(100% - 24px)', sm: '580px', md: '640px' },
+          maxWidth: { xs: 'calc(100% - 24px)', sm: '560px', md: '600px' },
           width: '100%',
           mx: 'auto',
-          my: { xs: 1.5, sm: 3 },
-          maxHeight: { xs: 'calc(100% - 24px)', sm: 'calc(100% - 48px)' },
+          my: { xs: 1.5, sm: 2 },
+          maxHeight: { xs: 'calc(100% - 24px)', sm: 'calc(100% - 40px)', md: 'min(90vh, 660px)' },
+          display: 'flex',
+          flexDirection: 'column',
         },
       }}
       BackdropProps={{
@@ -478,11 +480,11 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
         aria-label="close"
         sx={{
           position: 'absolute',
-          top: { xs: 12, sm: 16 },
-          insetInlineEnd: { xs: 12, sm: 16 },
+          top: { xs: 10, sm: 14 },
+          insetInlineEnd: { xs: 10, sm: 14 },
           zIndex: 20,
-          width: 36,
-          height: 36,
+          width: 34,
+          height: 34,
           borderRadius: '50%',
           backgroundColor: 'rgba(15, 23, 42, 0.75)',
           border: '1px solid rgba(51, 65, 85, 0.6)',
@@ -500,63 +502,34 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
         <CloseIcon sx={{ fontSize: 18 }} />
       </IconButton>
 
-      <DialogContent sx={{ p: 0, position: 'relative', zIndex: 1, overflow: 'visible' }}>
-        {/* Header Badge with Website logoIcon */}
-        <Box sx={{ mb: 2, position: 'relative', display: 'flex', justifyContent: 'center' }}>
-          <Box
-            sx={{
-              position: 'relative',
-              p: '2px',
-              borderRadius: '20px',
-              overflow: 'hidden',
-              boxShadow: '0 8px 24px rgba(0, 242, 254, 0.25)',
-            }}
-          >
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                borderRadius: '20px',
-                opacity: 0.85,
-                background: 'linear-gradient(135deg, #00F2FE, transparent 60%, #00F2FE)',
-              }}
-            />
-            <Box
-              sx={{
-                position: 'relative',
-                width: { xs: 44, sm: 48 },
-                height: { xs: 44, sm: 48 },
-                borderRadius: '18px',
-                backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                backdropFilter: 'blur(12px)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Box
-                component="img"
-                src="/maficonSVG.svg"
-                alt="Mafqoudat Logo"
-                sx={{
-                  width: { xs: 24, sm: 26 },
-                  height: { xs: 28, sm: 30 },
-                  objectFit: 'contain',
-                  filter: 'drop-shadow(0 0 8px rgba(0, 242, 254, 0.45))',
-                }}
-              />
-            </Box>
-          </Box>
-        </Box>
-
+      <DialogContent
+        sx={{
+          p: 0,
+          position: 'relative',
+          zIndex: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          pr: 0.25,
+          '&::-webkit-scrollbar': { width: 5 },
+          '&::-webkit-scrollbar-track': { backgroundColor: 'transparent' },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(51, 65, 85, 0.6)',
+            borderRadius: 8,
+            '&:hover': { backgroundColor: 'rgba(0, 242, 254, 0.4)' },
+          },
+        }}
+      >
         {/* Step Indicator Pills */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5, mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.25, mb: { xs: 1.5, sm: 2 } }}>
           <Box
             sx={{
               px: { xs: 1.5, sm: 2 },
-              py: 0.5,
+              py: 0.35,
               borderRadius: '999px',
-              fontSize: { xs: '0.76rem', sm: '0.82rem' },
+              fontSize: { xs: '0.74rem', sm: '0.78rem' },
               fontWeight: 700,
               backgroundColor: step === 1 ? 'rgba(0, 242, 254, 0.18)' : 'rgba(15, 23, 42, 0.7)',
               color: step === 1 ? '#00F2FE' : '#94a3b8',
@@ -569,7 +542,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           </Box>
           <Box
             sx={{
-              width: 18,
+              width: 16,
               height: 2,
               backgroundColor: 'rgba(51, 65, 85, 0.8)',
             }}
@@ -577,9 +550,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           <Box
             sx={{
               px: { xs: 1.5, sm: 2 },
-              py: 0.5,
+              py: 0.35,
               borderRadius: '999px',
-              fontSize: { xs: '0.76rem', sm: '0.82rem' },
+              fontSize: { xs: '0.74rem', sm: '0.78rem' },
               fontWeight: 700,
               backgroundColor: step === 2 ? 'rgba(0, 242, 254, 0.18)' : 'rgba(15, 23, 42, 0.7)',
               color: step === 2 ? '#00F2FE' : '#94a3b8',
@@ -605,16 +578,16 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
               transition={{ duration: 0.22, ease: 'easeOut' }}
             >
               {/* Slide 1 Header */}
-              <Box sx={{ mb: 2.5, textAlign: 'center' }}>
+              <Box sx={{ mb: { xs: 1.75, sm: 2 }, textAlign: 'center' }}>
                 <Typography
                   variant="h5"
                   component="h2"
                   sx={{
                     fontWeight: 800,
-                    fontSize: { xs: '1.25rem', sm: '1.45rem', md: '1.55rem' },
+                    fontSize: { xs: '1.2rem', sm: '1.35rem', md: '1.45rem' },
                     lineHeight: 1.25,
                     color: '#ffffff',
-                    mb: 0.8,
+                    mb: 0.5,
                     letterSpacing: '-0.02em',
                   }}
                 >
@@ -626,9 +599,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   variant="body2"
                   sx={{
                     color: '#cbd5e1',
-                    lineHeight: 1.55,
-                    fontSize: { xs: '0.84rem', sm: '0.9rem' },
-                    maxWidth: 440,
+                    lineHeight: 1.45,
+                    fontSize: { xs: '0.82rem', sm: '0.88rem' },
+                    maxWidth: 420,
                     mx: 'auto',
                   }}
                 >
@@ -641,7 +614,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
               </Box>
 
               {/* Country Picker */}
-              <Box sx={{ mb: 2.5, textAlign: 'start' }}>
+              <Box sx={{ mb: { xs: 1.75, sm: 2 }, textAlign: 'start' }}>
                 <Typography
                   variant="caption"
                   sx={{
@@ -733,13 +706,13 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
               </Box>
 
               {/* City Autocomplete */}
-              <Box sx={{ mb: 3.5, textAlign: 'start' }}>
+              <Box sx={{ mb: { xs: 2.25, sm: 2.75 }, textAlign: 'start' }}>
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    mb: 0.8,
+                    mb: 0.6,
                   }}
                 >
                   <Typography
@@ -753,7 +726,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   >
                     {t('selectCity') || 'City'}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.76rem' }}>
+                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.74rem' }}>
                     {t('leaveEmptyForWholeCountry') || 'Optional — Leave empty for entire country'}
                   </Typography>
                 </Box>
@@ -870,9 +843,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   disabled={!selectedCountry}
                   endIcon={isRTLMode ? <ArrowBackRoundedIcon /> : <ArrowForwardRoundedIcon />}
                   sx={{
-                    py: { xs: 1.25, sm: 1.4 },
+                    py: { xs: 1.15, sm: 1.25 },
                     borderRadius: '14px',
-                    fontSize: '0.96rem',
+                    fontSize: '0.94rem',
                     fontWeight: 800,
                     textTransform: 'none',
                     backgroundColor: '#00F2FE',
@@ -905,16 +878,16 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
               transition={{ duration: 0.22, ease: 'easeOut' }}
             >
               {/* Slide 2 Header */}
-              <Box sx={{ mb: 2, textAlign: 'center' }}>
+              <Box sx={{ mb: { xs: 1.5, sm: 1.75 }, textAlign: 'center' }}>
                 <Typography
                   variant="h5"
                   component="h2"
                   sx={{
                     fontWeight: 800,
-                    fontSize: { xs: '1.25rem', sm: '1.45rem', md: '1.55rem' },
+                    fontSize: { xs: '1.2rem', sm: '1.35rem', md: '1.45rem' },
                     lineHeight: 1.25,
                     color: '#ffffff',
-                    mb: 0.8,
+                    mb: 0.5,
                     letterSpacing: '-0.02em',
                   }}
                 >
@@ -926,9 +899,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   variant="body2"
                   sx={{
                     color: '#cbd5e1',
-                    lineHeight: 1.55,
-                    fontSize: { xs: '0.84rem', sm: '0.9rem' },
-                    maxWidth: 440,
+                    lineHeight: 1.45,
+                    fontSize: { xs: '0.82rem', sm: '0.88rem' },
+                    maxWidth: 420,
                     mx: 'auto',
                   }}
                 >
@@ -943,8 +916,8 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  gap: 1.5,
-                  mb: 1.5,
+                  gap: 1.25,
+                  mb: 1.25,
                   flexWrap: 'wrap',
                 }}
               >
@@ -973,7 +946,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       borderRadius: '12px',
                       backgroundColor: 'rgba(15, 23, 42, 0.9)',
                       color: '#ffffff',
-                      fontSize: '0.86rem',
+                      fontSize: '0.84rem',
                       '& fieldset': {
                         borderColor: 'rgba(51, 65, 85, 0.8)',
                       },
@@ -1005,7 +978,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       size="small"
                       onClick={handleClearCategories}
                       sx={{
-                        fontSize: '0.78rem',
+                        fontSize: '0.76rem',
                         fontWeight: 600,
                         textTransform: 'none',
                         color: '#38bdf8',
@@ -1020,7 +993,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       size="small"
                       onClick={handleSelectAllCategories}
                       sx={{
-                        fontSize: '0.78rem',
+                        fontSize: '0.76rem',
                         fontWeight: 600,
                         textTransform: 'none',
                         color: '#38bdf8',
@@ -1039,12 +1012,12 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                 sx={{
                   display: 'grid',
                   gridTemplateColumns: { xs: 'repeat(3, 1fr)', sm: 'repeat(4, 1fr)' },
-                  gap: { xs: 1, sm: 1.25 },
-                  maxHeight: { xs: '38vh', sm: '270px', md: '300px' },
+                  gap: { xs: 0.85, sm: 1 },
+                  maxHeight: { xs: '32vh', sm: '210px', md: '230px' },
                   overflowY: 'auto',
                   pr: 0.5,
-                  mb: 3,
-                  '&::-webkit-scrollbar': { width: 6 },
+                  mb: { xs: 2, sm: 2.25 },
+                  '&::-webkit-scrollbar': { width: 5 },
                   '&::-webkit-scrollbar-track': { backgroundColor: 'rgba(15, 23, 42, 0.5)', borderRadius: 8 },
                   '&::-webkit-scrollbar-thumb': {
                     backgroundColor: 'rgba(51, 65, 85, 0.8)',
@@ -1074,14 +1047,14 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       }}
                       sx={{
                         position: 'relative',
-                        p: { xs: 1.2, sm: 1.4 },
+                        p: { xs: 1, sm: 1.15 },
                         borderRadius: '14px',
                         cursor: 'pointer',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         textAlign: 'center',
-                        gap: 0.75,
+                        gap: 0.5,
                         transition: 'all 0.2s ease',
                         backgroundColor: isSelected
                           ? 'rgba(0, 242, 254, 0.18)'
@@ -1108,15 +1081,15 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                             position: 'absolute',
                             top: 4,
                             insetInlineEnd: 4,
-                            fontSize: 16,
+                            fontSize: 15,
                             color: '#00F2FE',
                           }}
                         />
                       )}
                       <Box
                         sx={{
-                          width: { xs: 34, sm: 38 },
-                          height: { xs: 34, sm: 38 },
+                          width: { xs: 32, sm: 36 },
+                          height: { xs: 32, sm: 36 },
                           borderRadius: '50%',
                           display: 'flex',
                           alignItems: 'center',
@@ -1128,7 +1101,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                           transition: 'all 0.2s ease',
                         }}
                       >
-                        <IconComponent sx={{ fontSize: { xs: 19, sm: 21 } }} />
+                        <IconComponent sx={{ fontSize: { xs: 18, sm: 20 } }} />
                       </Box>
                       <Typography
                         variant="caption"
@@ -1136,7 +1109,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                         sx={{
                           fontWeight: isSelected ? 700 : 500,
                           color: isSelected ? '#ffffff' : '#cbd5e1',
-                          fontSize: { xs: '0.74rem', sm: '0.78rem' },
+                          fontSize: { xs: '0.72rem', sm: '0.76rem' },
                           maxWidth: '100%',
                         }}
                       >
@@ -1154,6 +1127,8 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   gap: 1.5,
+                  mt: 'auto',
+                  pt: 0.5,
                 }}
               >
                 <Button
@@ -1164,7 +1139,8 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   sx={{
                     borderRadius: '14px',
                     px: { xs: 2.5, sm: 3 },
-                    py: { xs: 1.2, sm: 1.35 },
+                    py: { xs: 1.1, sm: 1.2 },
+                    fontSize: '0.92rem',
                     fontWeight: 700,
                     textTransform: 'none',
                     backgroundColor: 'rgba(15, 23, 42, 0.8)',
@@ -1188,8 +1164,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   startIcon={<SearchIcon />}
                   sx={{
                     borderRadius: '14px',
-                    px: { xs: 3, sm: 4 },
-                    py: { xs: 1.2, sm: 1.35 },
+                    px: { xs: 3, sm: 3.5 },
+                    py: { xs: 1.1, sm: 1.2 },
+                    fontSize: '0.94rem',
                     fontWeight: 800,
                     textTransform: 'none',
                     backgroundColor: '#00F2FE',
