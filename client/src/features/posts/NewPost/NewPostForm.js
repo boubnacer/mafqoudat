@@ -164,6 +164,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   
   const navigate = useNavigate();
   const theme = useTheme();
+
+  // Extract URL search parameters for pre-filling
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlCategory = urlParams.get('category');
+  const urlCity = urlParams.get('city');
+  const urlCountry = urlParams.get('country');
   
   const [selectedFileName, setSelectedFileName] = useState("");
   const [cities, setCities] = useState([]);
@@ -340,14 +346,65 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [currentLanguage, token]);
 
-  // Preload cities for the initial country (values.country, seeded from user.country)
+  // Preload cities for the initial country (values.country, seeded from urlCountry || user.country)
   // exactly once - subsequent country changes are handled by handleCountryChange.
   useEffect(() => {
-    if (user.country && countries.length > 0 && !hasInitializedCitiesRef.current) {
+    const targetCountry = urlCountry || user.country;
+    if (targetCountry && countries.length > 0 && !hasInitializedCitiesRef.current) {
       hasInitializedCitiesRef.current = true;
-      fetchCitiesByCountry(user.country);
+      fetchCitiesByCountry(targetCountry);
     }
-  }, [user.country, countries, fetchCitiesByCountry]);
+  }, [user.country, countries, fetchCitiesByCountry, urlCountry]);
+
+  // Pre-fill cityDisplayValue and selectedCityFromSearch when urlCity is present
+  useEffect(() => {
+    if (!urlCity) return;
+
+    // Check if matching city exists in already fetched cities
+    const foundCity = cities.find((c) =>
+      c._id === urlCity ||
+      c.id === urlCity ||
+      c.code === urlCity ||
+      (c.labels && (c.labels.en === urlCity || c.labels.ar === urlCity || c.labels.fr === urlCity))
+    );
+
+    if (foundCity) {
+      setSelectedCityFromSearch(foundCity);
+      setCityDisplayValue(getCityDisplayName(foundCity, currentLanguage));
+      return;
+    }
+
+    // If not found in current list, try resolving via search-name endpoint
+    let isCancelled = false;
+    const resolveCityAsync = async () => {
+      try {
+        const countryId = urlCountry || user.country;
+        const baseUrl = BASE_URL;
+        const res = await fetch(`${baseUrl}/cities/search-name?query=${encodeURIComponent(urlCity)}&countryId=${countryId}&limit=1`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.data && data.data.length > 0) {
+            const cityObj = data.data[0];
+            if (!isCancelled) {
+              setSelectedCityFromSearch(cityObj);
+              setCityDisplayValue(getCityDisplayName(cityObj, currentLanguage));
+              return;
+            }
+          }
+        }
+        if (!isCancelled && !cityDisplayValue) {
+          setCityDisplayValue(urlCity);
+        }
+      } catch (err) {
+        if (!isCancelled && !cityDisplayValue) {
+          setCityDisplayValue(urlCity);
+        }
+      }
+    };
+
+    resolveCityAsync();
+    return () => { isCancelled = true; };
+  }, [urlCity, cities, currentLanguage, urlCountry, user.country, cityDisplayValue]);
 
   // Check if form has started being filled or modified
   const isFormDirty = useCallback(() => {
@@ -642,10 +699,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   };
 
   const initialFormState = {
-    country: user.country,
+    country: urlCountry || user.country || "",
     contact: "",
-    categories: [], // Changed to array for multiple categories
-    category: "", // Keep for backward compatibility during transition
+    categories: urlCategory ? [urlCategory] : [], // Pre-filled from URL
+    category: urlCategory || "", // Keep for backward compatibility during transition
     // Which documents a DOCUMENTS listing is about - the field that stands in
     // for the photo those listings never carry (see documentCategory.js) -
     // and the name written on them, which is what an owner recognises their
@@ -655,7 +712,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     personName: { ar: "", latin: "" },
     personSex: "",
     foundLost: getDefaultFoundLost(),
-    city: "",
+    city: urlCity || "",
     exactLocation: "",
     exactDate: "", // Empty by default - placeholder will show example
     description: "",

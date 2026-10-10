@@ -53,7 +53,7 @@ import {
 import Pagination from "@mui/material/Pagination";
 import { useEffect, useState, useMemo, useCallback, useLayoutEffect } from "react";
 import useAuth from "../../../hooks/useAuth";
-import { selectCurrentCountry, selectFoundOrLost, selectCategoryFilter, selectActiveLink } from "../../../app/state";
+import { selectCurrentCountry, setCurrentCountry as setReduxCurrentCountry, selectFoundOrLost, selectCategoryFilter, selectActiveLink } from "../../../app/state";
 import FlexCenter from "../../../components/FlexCenter";
 import { authStorage } from "../../../utils/authStorage";
 import { smoothScrollToTop } from "../../../utils/scrollToTop";
@@ -159,6 +159,7 @@ const PostsList = () => {
   const urlFilter = searchParams.get('fl'); // Changed from 'filter' to 'fl' to match NavLinks
   const urlCategory = searchParams.get('category') || searchParams.get('categoryId');
   const urlCity = searchParams.get('city') || searchParams.get('cityId');
+  const urlCountry = searchParams.get('country') || searchParams.get('countryId');
 
   // Get current language
   const { t, currentLanguage } = useTranslation();
@@ -228,6 +229,11 @@ const PostsList = () => {
     return [allOption, ...mappedFlOptions];
   }, [flOptionsData, currentLanguage, t, theme.custom.status]);
 
+  const foundsId = useMemo(() => {
+    const foundOption = (flOptionsData || []).find((opt) => opt?.code === 'FOUND');
+    return foundOption?.id || foundOption?._id;
+  }, [flOptionsData]);
+
   // Get current country ID
   const currentCountryId = useMemo(() => {
     if (!currentCountry) return undefined;
@@ -236,6 +242,14 @@ const PostsList = () => {
     }
     return currentCountry;
   }, [currentCountry]);
+
+  // Sync country from URL parameter if provided
+  useEffect(() => {
+    if (urlCountry && urlCountry !== currentCountryId) {
+      setCurrentCountry(urlCountry);
+      dispatch(setReduxCurrentCountry({ currentCountry: urlCountry }));
+    }
+  }, [urlCountry, currentCountryId, dispatch]);
 
   // Fetch only the cities that actually contain posts in the current country
   const { data: citiesWithPostsData = [], isLoading: citiesLoading } = useGetCitiesWithPostsQuery({
@@ -702,17 +716,25 @@ const PostsList = () => {
     smoothScrollToTop();
   }, [draftLocalCategoryFilter, draftSelectedCategories, draftSelectedCity, draftSelectedFl, getCityDisplayName]);
 
+  // Build dynamic new post URL preserving current filters
+  const newPostUrl = useMemo(() => {
+    const newPostParams = new URLSearchParams();
+    if (selectedFl) newPostParams.set('type', selectedFl === foundsId ? 'found' : 'lost');
+    if (localCategoryFilter && localCategoryFilter !== 'all') newPostParams.set('category', localCategoryFilter);
+    if (selectedCity?._id || selectedCity?.id) newPostParams.set('city', selectedCity._id || selectedCity.id);
+    if (currentCountryId) newPostParams.set('country', currentCountryId);
+    return `/dash/posts/new${newPostParams.toString() ? `?${newPostParams.toString()}` : ''}`;
+  }, [selectedFl, foundsId, localCategoryFilter, selectedCity, currentCountryId]);
+
   const handleAddNewPost = useCallback(() => {
     if (!user.username) {
       // Store the intended destination for redirect after login
-      const intendedDestination = "/dash/posts/new";
-      authStorage.setRedirectAfterLoginWithMessage(intendedDestination, 'loginRequiredCreatePost');
-      
+      authStorage.setRedirectAfterLoginWithMessage(newPostUrl, 'loginRequiredCreatePost');
       navigate('/login');
     } else {
-      navigate("/dash/posts/new");
+      navigate(newPostUrl);
     }
-  }, [user.username, navigate]);
+  }, [user.username, navigate, newPostUrl]);
 
   const handleSelectCountry = useCallback(() => {
     navigate('/');
@@ -1351,7 +1373,7 @@ const PostsList = () => {
                 : t('noPostsInArea')}
         </Typography>
         <Box display="flex" gap={2} flexWrap="wrap" justifyContent="center">
-          <Link to="/dash/posts/new">
+          <Link to={newPostUrl}>
             <Button
               variant="contained"
               startIcon={<AddIcon />}

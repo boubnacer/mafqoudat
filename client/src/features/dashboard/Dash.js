@@ -16,10 +16,9 @@ import { useDashboard } from "../../hooks/useDashboard";
 import { useDashboardMotion } from "./useDashboardMotion";
 import { useGetflOptionsQuery } from "../dependencies/dependenciesApiSlice";
 
-// Components
 import LeftSide from "../../components/dashboard/LeftSide";
 import WorldActivityMap from "../../components/dashboard/WorldActivityMap";
-import QuickActions from "../../components/dashboard/QuickActions";
+import SearchReportHub from "../../components/dashboard/SearchReportHub";
 import Categories from "../../components/dashboard/Categories";
 import Process from "../../components/dashboard/Process";
 import RecentSection from "../../components/dashboard/RecentSection";
@@ -481,6 +480,8 @@ const Dash = () => {
       {hasNoData && (
         <>
           {sectionDivider}
+          <SearchReportHub />
+          {sectionDivider}
           <Box mb={4} data-reveal="section">
             <DashboardEmptyStates.NoPosts
               country={currentCountry}
@@ -521,6 +522,11 @@ const Dash = () => {
         <>
           {sectionDivider}
 
+          {/* Search & Report Hub */}
+          <SearchReportHub />
+
+          {sectionDivider}
+
           {/* Recent Founds / Recent Losts - paired panels, side by side on
               desktop, stacked on mobile. Rendered together whenever the
               country has any data at all; each panel independently falls
@@ -552,11 +558,6 @@ const Dash = () => {
               foundOrlostId={lostsId}
             />
           </Box>
-
-          {sectionDivider}
-
-          {/* Quick Actions */}
-          <QuickActions />
 
           {sectionDivider}
 
