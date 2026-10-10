@@ -823,7 +823,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                         endAdornment: (
                           <>
                             {isSearchingCity ? (
-                              <CircularProgress sx={{ color: '#00F2FE' }} size={18} sx={{ mr: 1 }} />
+                              <CircularProgress sx={{ color: '#00F2FE', mr: 1 }} size={18} />
                             ) : null}
                             {params.InputProps.endAdornment}
                           </>
