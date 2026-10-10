@@ -17,13 +17,15 @@ import {
   alpha,
   Chip,
   InputAdornment,
+  Paper,
+  Fade,
 } from '@mui/material';
 import {
   Close as CloseIcon,
   Search as SearchIcon,
-  ArrowForward as ArrowForwardIcon,
-  ArrowBack as ArrowBackIcon,
-  PlaceOutlined,
+  ArrowForwardRounded as ArrowForwardRoundedIcon,
+  ArrowBackRounded as ArrowBackRoundedIcon,
+  PlaceRounded as PlaceRoundedIcon,
   CheckCircleRounded,
   Clear as ClearIcon,
   FilterListRounded,
@@ -101,9 +103,47 @@ const getCountryFlag = (code) => {
   return String.fromCodePoint(...codePoints);
 };
 
+// Custom Paper component for Autocomplete to strictly enforce cyber-obsidian styling matching CountryWelcomeDialog
+const CustomAutocompletePaper = (props) => (
+  <Paper
+    {...props}
+    sx={{
+      mt: 1,
+      borderRadius: '16px !important',
+      backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
+      backgroundImage: 'none !important',
+      backdropFilter: 'blur(24px) !important',
+      WebkitBackdropFilter: 'blur(24px) !important',
+      border: '1px solid rgba(0, 242, 254, 0.3) !important',
+      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15) !important',
+      color: '#f8fafc !important',
+      '& .MuiAutocomplete-listbox': {
+        p: '8px !important',
+        backgroundColor: 'rgba(11, 18, 32, 0.98) !important',
+        '& .MuiAutocomplete-option': {
+          borderRadius: '10px !important',
+          my: '2px !important',
+          py: '10px !important',
+          px: '14px !important',
+          color: '#f8fafc !important',
+          backgroundColor: 'transparent !important',
+          '&:hover, &.Mui-focused': {
+            backgroundColor: 'rgba(0, 242, 254, 0.12) !important',
+          },
+          '&[aria-selected="true"]': {
+            backgroundColor: 'rgba(0, 242, 254, 0.2) !important',
+            fontWeight: '600 !important',
+          },
+        },
+      },
+      ...props.sx,
+    }}
+  />
+);
+
 const slideVariants = {
   enter: (direction) => ({
-    x: direction > 0 ? 40 : -40,
+    x: direction > 0 ? 30 : -30,
     opacity: 0,
   }),
   center: {
@@ -111,14 +151,13 @@ const slideVariants = {
     opacity: 1,
   },
   exit: (direction) => ({
-    x: direction > 0 ? -40 : 40,
+    x: direction > 0 ? -30 : 30,
     opacity: 0,
   }),
 };
 
 const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isRTLMode = isRTL();
   const dispatch = useDispatch();
@@ -359,109 +398,198 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
     navigate(`/dash/posts?${params.toString()}`);
   };
 
-  // Background ambient blobs
-  const blob = (color, position) => ({
-    position: 'absolute',
-    width: 240,
-    height: 240,
-    borderRadius: '50%',
-    background: `radial-gradient(circle, ${alpha(color, isDark ? 0.28 : 0.18)} 0%, ${alpha(color, 0)} 70%)`,
-    filter: 'blur(24px)',
-    pointerEvents: 'none',
-    zIndex: 0,
-    ...position,
-  });
-
-  const accentColor =
-    selectedType === 'found' ? theme.custom.status.found.main : theme.custom.status.lost.main;
-
   return (
     <Dialog
       open={open}
       onClose={onClose}
       maxWidth="sm"
       fullWidth
+      TransitionComponent={Fade}
+      transitionDuration={300}
       PaperProps={{
+        elevation: 0,
         sx: {
-          position: 'relative',
+          backgroundColor: 'rgba(11, 18, 32, 0.94)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          borderRadius: { xs: '20px', sm: '24px' },
+          border: '1px solid rgba(0, 242, 254, 0.35)',
+          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)',
           overflow: 'hidden',
-          background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.94)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.98)} 100%)`,
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: `1px solid ${alpha(accentColor, isDark ? 0.35 : 0.22)}`,
-          borderRadius: `${theme.custom.radius.xl}px`,
-          boxShadow: theme.custom.elevation.e3,
-          p: { xs: 2.5, sm: 3.5 },
+          p: { xs: 2.5, sm: 3.5, md: 4 },
+          position: 'relative',
+          color: '#ffffff',
           direction: isRTLMode ? 'rtl' : 'ltr',
+          maxWidth: { xs: 'calc(100% - 24px)', sm: '580px', md: '640px' },
+          width: '100%',
+          mx: 'auto',
+          my: { xs: 1.5, sm: 3 },
+          maxHeight: { xs: 'calc(100% - 24px)', sm: 'calc(100% - 48px)' },
+        },
+      }}
+      BackdropProps={{
+        sx: {
+          backgroundColor: 'rgba(0, 0, 0, 0.78)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
         },
       }}
     >
-      <Box sx={blob(accentColor, { top: -80, insetInlineStart: -60 })} />
-      <Box sx={blob(theme.custom.color.brandLogo, { bottom: -90, insetInlineEnd: -60 })} />
+      {/* Top glowing hairline gradient */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '2px',
+          background: 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }}
+      />
+
+      {/* Cyber dot matrix SVG background */}
+      <Box
+        component="svg"
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          opacity: 0.12,
+          zIndex: 0,
+        }}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <pattern id="dot-matrix-guided" width="24" height="24" patternUnits="userSpaceOnUse">
+            <circle cx="12" cy="12" r="1" fill="#00F2FE" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#dot-matrix-guided)" />
+      </Box>
+
+      {/* Close Button matching CountryWelcomeDialog style */}
+      <IconButton
+        onClick={onClose}
+        size="small"
+        aria-label="close"
+        sx={{
+          position: 'absolute',
+          top: { xs: 12, sm: 16 },
+          insetInlineEnd: { xs: 12, sm: 16 },
+          zIndex: 20,
+          width: 36,
+          height: 36,
+          borderRadius: '50%',
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          border: '1px solid rgba(51, 65, 85, 0.6)',
+          color: '#94a3b8',
+          transition: 'all 0.25s ease',
+          '&:hover': {
+            backgroundColor: '#1e293b',
+            borderColor: 'rgba(0, 242, 254, 0.5)',
+            boxShadow: '0 0 12px rgba(0, 242, 254, 0.35)',
+            color: '#ffffff',
+            transform: 'scale(1.05)',
+          },
+        }}
+      >
+        <CloseIcon sx={{ fontSize: 18 }} />
+      </IconButton>
 
       <DialogContent sx={{ p: 0, position: 'relative', zIndex: 1, overflow: 'visible' }}>
-        {/* Header Bar */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mb: 2,
-          }}
-        >
-          {/* Step Pill Indicators */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {/* Header Badge with Website logoIcon */}
+        <Box sx={{ mb: 2, position: 'relative', display: 'flex', justifyContent: 'center' }}>
+          <Box
+            sx={{
+              position: 'relative',
+              p: '2px',
+              borderRadius: '20px',
+              overflow: 'hidden',
+              boxShadow: '0 8px 24px rgba(0, 242, 254, 0.25)',
+            }}
+          >
             <Box
               sx={{
-                px: 1.5,
-                py: 0.5,
-                borderRadius: '999px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                backgroundColor: step === 1 ? accentColor : alpha(theme.custom.color.ink, 0.08),
-                color: step === 1 ? theme.palette.common.white : alpha(theme.custom.color.ink, 0.6),
-                transition: 'all 0.25s ease',
-              }}
-            >
-              1. {t('step1Location') || 'Location'}
-            </Box>
-            <Box
-              sx={{
-                width: 16,
-                height: 2,
-                backgroundColor: alpha(theme.custom.color.ink, 0.2),
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '20px',
+                opacity: 0.85,
+                background: 'linear-gradient(135deg, #00F2FE, transparent 60%, #00F2FE)',
               }}
             />
             <Box
               sx={{
-                px: 1.5,
-                py: 0.5,
-                borderRadius: '999px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                backgroundColor: step === 2 ? accentColor : alpha(theme.custom.color.ink, 0.08),
-                color: step === 2 ? theme.palette.common.white : alpha(theme.custom.color.ink, 0.6),
-                transition: 'all 0.25s ease',
+                position: 'relative',
+                width: { xs: 44, sm: 48 },
+                height: { xs: 44, sm: 48 },
+                borderRadius: '18px',
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                backdropFilter: 'blur(12px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              2. {t('step2Categories') || 'Categories'}
+              <Box
+                component="img"
+                src="/maficonSVG.svg"
+                alt="Mafqoudat Logo"
+                sx={{
+                  width: { xs: 24, sm: 26 },
+                  height: { xs: 28, sm: 30 },
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 0 8px rgba(0, 242, 254, 0.45))',
+                }}
+              />
             </Box>
           </Box>
+        </Box>
 
-          <IconButton
-            size="small"
-            onClick={onClose}
-            aria-label="close"
+        {/* Step Indicator Pills */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5, mb: 2 }}>
+          <Box
             sx={{
-              color: alpha(theme.custom.color.ink, 0.6),
-              '&:hover': {
-                color: theme.custom.color.ink,
-                backgroundColor: alpha(theme.custom.color.ink, 0.08),
-              },
+              px: { xs: 1.5, sm: 2 },
+              py: 0.5,
+              borderRadius: '999px',
+              fontSize: { xs: '0.76rem', sm: '0.82rem' },
+              fontWeight: 700,
+              backgroundColor: step === 1 ? 'rgba(0, 242, 254, 0.18)' : 'rgba(15, 23, 42, 0.7)',
+              color: step === 1 ? '#00F2FE' : '#94a3b8',
+              border: step === 1 ? '1px solid #00F2FE' : '1px solid rgba(51, 65, 85, 0.6)',
+              boxShadow: step === 1 ? '0 0 12px rgba(0, 242, 254, 0.25)' : 'none',
+              transition: 'all 0.25s ease',
             }}
           >
-            <CloseIcon fontSize="small" />
-          </IconButton>
+            1. {t('step1Location') || 'Location'}
+          </Box>
+          <Box
+            sx={{
+              width: 18,
+              height: 2,
+              backgroundColor: 'rgba(51, 65, 85, 0.8)',
+            }}
+          />
+          <Box
+            sx={{
+              px: { xs: 1.5, sm: 2 },
+              py: 0.5,
+              borderRadius: '999px',
+              fontSize: { xs: '0.76rem', sm: '0.82rem' },
+              fontWeight: 700,
+              backgroundColor: step === 2 ? 'rgba(0, 242, 254, 0.18)' : 'rgba(15, 23, 42, 0.7)',
+              color: step === 2 ? '#00F2FE' : '#94a3b8',
+              border: step === 2 ? '1px solid #00F2FE' : '1px solid rgba(51, 65, 85, 0.6)',
+              boxShadow: step === 2 ? '0 0 12px rgba(0, 242, 254, 0.25)' : 'none',
+              transition: 'all 0.25s ease',
+            }}
+          >
+            2. {t('step2Categories') || 'Categories'}
+          </Box>
         </Box>
 
         {/* Step Transition Slides */}
@@ -477,15 +605,17 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
               transition={{ duration: 0.22, ease: 'easeOut' }}
             >
               {/* Slide 1 Header */}
-              <Box sx={{ mb: 3 }}>
+              <Box sx={{ mb: 2.5, textAlign: 'center' }}>
                 <Typography
                   variant="h5"
-                  fontWeight={700}
+                  component="h2"
                   sx={{
-                    fontFamily: theme.custom.font.display,
-                    color: theme.custom.color.ink,
-                    fontSize: { xs: '1.25rem', sm: '1.45rem' },
-                    mb: 0.5,
+                    fontWeight: 800,
+                    fontSize: { xs: '1.25rem', sm: '1.45rem', md: '1.55rem' },
+                    lineHeight: 1.25,
+                    color: '#ffffff',
+                    mb: 0.8,
+                    letterSpacing: '-0.02em',
                   }}
                 >
                   {selectedType === 'found'
@@ -495,8 +625,11 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: alpha(theme.custom.color.ink, 0.68),
-                    fontSize: { xs: '0.85rem', sm: '0.9rem' },
+                    color: '#cbd5e1',
+                    lineHeight: 1.55,
+                    fontSize: { xs: '0.84rem', sm: '0.9rem' },
+                    maxWidth: 440,
+                    mx: 'auto',
                   }}
                 >
                   {selectedType === 'found'
@@ -508,11 +641,16 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
               </Box>
 
               {/* Country Picker */}
-              <Box sx={{ mb: 3 }}>
+              <Box sx={{ mb: 2.5, textAlign: 'start' }}>
                 <Typography
-                  variant="subtitle2"
-                  fontWeight={600}
-                  sx={{ color: theme.custom.color.ink, mb: 1 }}
+                  variant="caption"
+                  sx={{
+                    display: 'block',
+                    fontWeight: 600,
+                    color: '#cbd5e1',
+                    mb: 0.8,
+                    fontSize: '0.82rem',
+                  }}
                 >
                   {t('selectCountry') || 'Country'}
                 </Typography>
@@ -524,6 +662,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   isOptionEqualToValue={(option, value) =>
                     (option._id || option.id) === (value._id || value.id)
                   }
+                  PaperComponent={CustomAutocompletePaper}
                   renderOption={(props, option) => (
                     <Box
                       component="li"
@@ -539,7 +678,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       <Typography sx={{ fontSize: '1.3rem', lineHeight: 1 }}>
                         {getCountryFlag(option.code)}
                       </Typography>
-                      <Typography sx={{ fontWeight: 500 }}>
+                      <Typography sx={{ fontWeight: 500, color: '#f1f5f9' }}>
                         {getCountryDisplayName(option, currentLanguage)}
                       </Typography>
                     </Box>
@@ -551,20 +690,41 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       InputProps={{
                         ...params.InputProps,
                         startAdornment: (
-                          <>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 0.5, mr: 1, flexShrink: 0 }}>
+                            <PlaceRoundedIcon sx={{ fontSize: 20, color: '#10B981' }} />
                             {selectedCountryObj && (
-                              <Typography sx={{ fontSize: '1.25rem', mr: 1, ml: 0.5 }}>
+                              <Typography sx={{ fontSize: '1.25rem', lineHeight: 1 }}>
                                 {getCountryFlag(selectedCountryObj.code)}
                               </Typography>
                             )}
                             {params.InputProps.startAdornment}
-                          </>
+                          </Box>
                         ),
                       }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
-                          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.7),
-                          borderRadius: `${theme.custom.radius.md}px`,
+                          borderRadius: '14px',
+                          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                          color: '#ffffff',
+                          fontSize: '0.92rem',
+                          transition: 'all 0.2s ease',
+                          '& fieldset': {
+                            borderColor: 'rgba(51, 65, 85, 0.8)',
+                          },
+                          '&:hover fieldset': {
+                            borderColor: '#00F2FE',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: '#00F2FE',
+                            borderWidth: '2px',
+                            boxShadow: '0 0 12px rgba(0, 242, 254, 0.25)',
+                          },
+                          '& .MuiAutocomplete-input': {
+                            color: '#ffffff',
+                          },
+                          '& .MuiAutocomplete-popupIndicator, & .MuiAutocomplete-clearIndicator': {
+                            color: '#94a3b8',
+                          },
                         },
                       }}
                     />
@@ -573,20 +733,28 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
               </Box>
 
               {/* City Autocomplete */}
-              <Box sx={{ mb: 4 }}>
+              <Box sx={{ mb: 3.5, textAlign: 'start' }}>
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    mb: 1,
+                    mb: 0.8,
                   }}
                 >
-                  <Typography variant="subtitle2" fontWeight={600} sx={{ color: theme.custom.color.ink }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      display: 'block',
+                      fontWeight: 600,
+                      color: '#cbd5e1',
+                      fontSize: '0.82rem',
+                    }}
+                  >
                     {t('selectCity') || 'City'}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: alpha(theme.custom.color.ink, 0.6) }}>
-                    {t('leaveEmptyForWholeCountry') || 'Optional — Leave empty to search entire country'}
+                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.76rem' }}>
+                    {t('leaveEmptyForWholeCountry') || 'Optional — Leave empty for entire country'}
                   </Typography>
                 </Box>
 
@@ -608,10 +776,13 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   }}
                   loading={isSearchingCity}
                   noOptionsText={
-                    isSearchingCity
-                      ? t('searching') || 'Searching...'
-                      : t('noCitiesFound') || 'No matching cities found'
+                    <Typography sx={{ color: '#94a3b8', fontSize: '0.88rem' }}>
+                      {isSearchingCity
+                        ? t('searching') || 'Searching...'
+                        : t('noCitiesFound') || 'No matching cities found'}
+                    </Typography>
                   }
+                  PaperComponent={CustomAutocompletePaper}
                   renderOption={(props, option) => (
                     <Box
                       component="li"
@@ -624,13 +795,13 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                         px: 1.5,
                       }}
                     >
-                      <PlaceOutlined sx={{ fontSize: 20, color: accentColor }} />
+                      <PlaceRoundedIcon sx={{ fontSize: 19, color: '#00F2FE' }} />
                       <Box>
-                        <Typography sx={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                        <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#f1f5f9' }}>
                           {getCityDisplayName(option, currentLanguage)}
                         </Typography>
                         {option.region && (
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
                             {option.region}
                           </Typography>
                         )}
@@ -644,22 +815,15 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       InputProps={{
                         ...params.InputProps,
                         startAdornment: (
-                          <>
-                            <PlaceOutlined
-                              sx={{
-                                color: alpha(theme.custom.color.ink, 0.5),
-                                mr: 1,
-                                ml: 0.5,
-                                fontSize: 20,
-                              }}
-                            />
+                          <Box sx={{ display: 'flex', alignItems: 'center', ml: 0.5, mr: 1, flexShrink: 0 }}>
+                            <PlaceRoundedIcon sx={{ fontSize: 20, color: '#00F2FE' }} />
                             {params.InputProps.startAdornment}
-                          </>
+                          </Box>
                         ),
                         endAdornment: (
                           <>
                             {isSearchingCity ? (
-                              <CircularProgress color="inherit" size={18} sx={{ mr: 1 }} />
+                              <CircularProgress sx={{ color: '#00F2FE' }} size={18} sx={{ mr: 1 }} />
                             ) : null}
                             {params.InputProps.endAdornment}
                           </>
@@ -667,8 +831,28 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
-                          backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.7),
-                          borderRadius: `${theme.custom.radius.md}px`,
+                          borderRadius: '14px',
+                          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                          color: '#ffffff',
+                          fontSize: '0.92rem',
+                          transition: 'all 0.2s ease',
+                          '& fieldset': {
+                            borderColor: 'rgba(51, 65, 85, 0.8)',
+                          },
+                          '&:hover fieldset': {
+                            borderColor: '#00F2FE',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: '#00F2FE',
+                            borderWidth: '2px',
+                            boxShadow: '0 0 12px rgba(0, 242, 254, 0.25)',
+                          },
+                          '& .MuiAutocomplete-input': {
+                            color: '#ffffff',
+                          },
+                          '& .MuiAutocomplete-popupIndicator, & .MuiAutocomplete-clearIndicator': {
+                            color: '#94a3b8',
+                          },
                         },
                       }}
                     />
@@ -676,26 +860,33 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                 />
               </Box>
 
-              {/* Next Step Action */}
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+              {/* Next Step Action Button matching CountryWelcomeDialog */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Button
+                  fullWidth
                   variant="contained"
                   size="large"
                   onClick={handleNext}
                   disabled={!selectedCountry}
-                  endIcon={isRTLMode ? <ArrowBackIcon /> : <ArrowForwardIcon />}
+                  endIcon={isRTLMode ? <ArrowBackRoundedIcon /> : <ArrowForwardRoundedIcon />}
                   sx={{
-                    borderRadius: `${theme.custom.radius.md}px`,
-                    px: 3.5,
-                    py: 1.25,
-                    fontWeight: 700,
+                    py: { xs: 1.25, sm: 1.4 },
+                    borderRadius: '14px',
+                    fontSize: '0.96rem',
+                    fontWeight: 800,
                     textTransform: 'none',
-                    backgroundColor: accentColor,
-                    boxShadow: theme.custom.elevation.e1,
+                    backgroundColor: '#00F2FE',
+                    color: '#020617',
+                    boxShadow: '0 6px 24px rgba(0, 242, 254, 0.35)',
+                    transition: 'all 0.25s ease',
                     '&:hover': {
-                      backgroundColor: accentColor,
-                      opacity: 0.92,
+                      backgroundColor: '#38f6ff',
+                      boxShadow: '0 8px 32px rgba(0, 242, 254, 0.55)',
                       transform: 'translateY(-1px)',
+                    },
+                    '&:disabled': {
+                      backgroundColor: 'rgba(51, 65, 85, 0.5)',
+                      color: 'rgba(255, 255, 255, 0.4)',
                     },
                   }}
                 >
@@ -713,16 +904,18 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
               exit="exit"
               transition={{ duration: 0.22, ease: 'easeOut' }}
             >
-              {/* Slide 2 Header: "Select the things you found/lost" */}
-              <Box sx={{ mb: 2 }}>
+              {/* Slide 2 Header */}
+              <Box sx={{ mb: 2, textAlign: 'center' }}>
                 <Typography
                   variant="h5"
-                  fontWeight={700}
+                  component="h2"
                   sx={{
-                    fontFamily: theme.custom.font.display,
-                    color: theme.custom.color.ink,
-                    fontSize: { xs: '1.25rem', sm: '1.45rem' },
-                    mb: 0.5,
+                    fontWeight: 800,
+                    fontSize: { xs: '1.25rem', sm: '1.45rem', md: '1.55rem' },
+                    lineHeight: 1.25,
+                    color: '#ffffff',
+                    mb: 0.8,
+                    letterSpacing: '-0.02em',
                   }}
                 >
                   {selectedType === 'found'
@@ -732,12 +925,15 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: alpha(theme.custom.color.ink, 0.68),
-                    fontSize: { xs: '0.85rem', sm: '0.9rem' },
+                    color: '#cbd5e1',
+                    lineHeight: 1.55,
+                    fontSize: { xs: '0.84rem', sm: '0.9rem' },
+                    maxWidth: 440,
+                    mx: 'auto',
                   }}
                 >
                   {t('selectCategoriesSubtitle') ||
-                    'You can choose one or multiple categories to find matching reports.'}
+                    'Choose one or multiple categories to find matching reports.'}
                 </Typography>
               </Box>
 
@@ -760,12 +956,12 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <FilterListRounded sx={{ fontSize: 18, color: alpha(theme.custom.color.ink, 0.5) }} />
+                        <FilterListRounded sx={{ fontSize: 18, color: '#00F2FE' }} />
                       </InputAdornment>
                     ),
                     endAdornment: categoryFilterQuery ? (
                       <InputAdornment position="end">
-                        <IconButton size="small" onClick={() => setCategoryFilterQuery('')}>
+                        <IconButton size="small" onClick={() => setCategoryFilterQuery('')} sx={{ color: '#94a3b8' }}>
                           <ClearIcon fontSize="small" />
                         </IconButton>
                       </InputAdornment>
@@ -774,9 +970,19 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   sx={{
                     flex: '1 1 180px',
                     '& .MuiOutlinedInput-root': {
-                      backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.7),
-                      borderRadius: `${theme.custom.radius.md}px`,
-                      fontSize: '0.85rem',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                      color: '#ffffff',
+                      fontSize: '0.86rem',
+                      '& fieldset': {
+                        borderColor: 'rgba(51, 65, 85, 0.8)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#00F2FE',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#00F2FE',
+                      },
                     },
                   }}
                 />
@@ -788,9 +994,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       label={`${selectedCategories.length} ${t('categoriesSelected') || 'selected'}`}
                       sx={{
                         fontWeight: 700,
-                        backgroundColor: alpha(accentColor, 0.16),
-                        color: accentColor,
-                        border: `1px solid ${alpha(accentColor, 0.3)}`,
+                        backgroundColor: 'rgba(0, 242, 254, 0.16)',
+                        color: '#00F2FE',
+                        border: '1px solid rgba(0, 242, 254, 0.35)',
                       }}
                     />
                   )}
@@ -800,9 +1006,11 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       onClick={handleClearCategories}
                       sx={{
                         fontSize: '0.78rem',
+                        fontWeight: 600,
                         textTransform: 'none',
-                        color: alpha(theme.custom.color.ink, 0.7),
+                        color: '#38bdf8',
                         p: 0.5,
+                        '&:hover': { color: '#00F2FE' },
                       }}
                     >
                       {t('clearSelection') || 'Clear'}
@@ -813,9 +1021,11 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       onClick={handleSelectAllCategories}
                       sx={{
                         fontSize: '0.78rem',
+                        fontWeight: 600,
                         textTransform: 'none',
-                        color: alpha(theme.custom.color.ink, 0.7),
+                        color: '#38bdf8',
                         p: 0.5,
+                        '&:hover': { color: '#00F2FE' },
                       }}
                     >
                       {t('selectAll') || 'Select All'}
@@ -829,18 +1039,24 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                 sx={{
                   display: 'grid',
                   gridTemplateColumns: { xs: 'repeat(3, 1fr)', sm: 'repeat(4, 1fr)' },
-                  gap: 1.25,
-                  maxHeight: 270,
+                  gap: { xs: 1, sm: 1.25 },
+                  maxHeight: { xs: '38vh', sm: '270px', md: '300px' },
                   overflowY: 'auto',
                   pr: 0.5,
                   mb: 3,
+                  '&::-webkit-scrollbar': { width: 6 },
+                  '&::-webkit-scrollbar-track': { backgroundColor: 'rgba(15, 23, 42, 0.5)', borderRadius: 8 },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: 'rgba(51, 65, 85, 0.8)',
+                    borderRadius: 8,
+                    '&:hover': { backgroundColor: 'rgba(0, 242, 254, 0.5)' },
+                  },
                 }}
               >
                 {displayedCategories.map((cat) => {
                   const catId = cat._id || cat.id;
                   const isSelected = selectedCategories.includes(catId);
                   const IconComponent = getCategoryIcon(cat.code);
-                  const catColor = getCategoryColor(cat.code) || accentColor;
                   const catLabel =
                     cat.labels?.[currentLanguage] || cat.name || cat.label || cat.code;
 
@@ -858,28 +1074,31 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       }}
                       sx={{
                         position: 'relative',
-                        p: { xs: 1.25, sm: 1.5 },
-                        borderRadius: `${theme.custom.radius.md}px`,
+                        p: { xs: 1.2, sm: 1.4 },
+                        borderRadius: '14px',
                         cursor: 'pointer',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         textAlign: 'center',
                         gap: 0.75,
-                        transition: 'all 0.18s ease',
+                        transition: 'all 0.2s ease',
                         backgroundColor: isSelected
-                          ? alpha(catColor, isDark ? 0.3 : 0.16)
-                          : alpha(theme.custom.color.surfaceRaised, 0.6),
+                          ? 'rgba(0, 242, 254, 0.18)'
+                          : 'rgba(15, 23, 42, 0.75)',
                         border: isSelected
-                          ? `2px solid ${catColor}`
-                          : `1px solid ${alpha(theme.custom.color.ink, 0.12)}`,
+                          ? '2px solid #00F2FE'
+                          : '1px solid rgba(51, 65, 85, 0.6)',
                         boxShadow: isSelected
-                          ? `0 4px 12px ${alpha(catColor, 0.25)}`
+                          ? '0 0 18px rgba(0, 242, 254, 0.35)'
                           : 'none',
                         '&:hover': {
                           transform: 'translateY(-2px)',
-                          backgroundColor: alpha(catColor, isDark ? 0.24 : 0.12),
-                          borderColor: catColor,
+                          backgroundColor: isSelected
+                            ? 'rgba(0, 242, 254, 0.24)'
+                            : 'rgba(0, 242, 254, 0.08)',
+                          borderColor: '#00F2FE',
+                          boxShadow: '0 0 14px rgba(0, 242, 254, 0.2)',
                         },
                       }}
                     >
@@ -890,31 +1109,34 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                             top: 4,
                             insetInlineEnd: 4,
                             fontSize: 16,
-                            color: catColor,
+                            color: '#00F2FE',
                           }}
                         />
                       )}
                       <Box
                         sx={{
-                          width: 36,
-                          height: 36,
+                          width: { xs: 34, sm: 38 },
+                          height: { xs: 34, sm: 38 },
                           borderRadius: '50%',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: alpha(catColor, 0.16),
-                          color: catColor,
+                          backgroundColor: isSelected
+                            ? 'rgba(0, 242, 254, 0.25)'
+                            : 'rgba(30, 41, 59, 0.8)',
+                          color: isSelected ? '#00F2FE' : '#94a3b8',
+                          transition: 'all 0.2s ease',
                         }}
                       >
-                        <IconComponent sx={{ fontSize: 20 }} />
+                        <IconComponent sx={{ fontSize: { xs: 19, sm: 21 } }} />
                       </Box>
                       <Typography
                         variant="caption"
                         noWrap
                         sx={{
                           fontWeight: isSelected ? 700 : 500,
-                          color: theme.custom.color.ink,
-                          fontSize: '0.78rem',
+                          color: isSelected ? '#ffffff' : '#cbd5e1',
+                          fontSize: { xs: '0.74rem', sm: '0.78rem' },
                           maxWidth: '100%',
                         }}
                       >
@@ -938,18 +1160,21 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   variant="outlined"
                   size="large"
                   onClick={handleBack}
-                  startIcon={isRTLMode ? <ArrowForwardIcon /> : <ArrowBackIcon />}
+                  startIcon={isRTLMode ? <ArrowForwardRoundedIcon /> : <ArrowBackRoundedIcon />}
                   sx={{
-                    borderRadius: `${theme.custom.radius.md}px`,
-                    px: 2.5,
-                    py: 1.25,
-                    fontWeight: 600,
+                    borderRadius: '14px',
+                    px: { xs: 2.5, sm: 3 },
+                    py: { xs: 1.2, sm: 1.35 },
+                    fontWeight: 700,
                     textTransform: 'none',
-                    color: theme.custom.color.ink,
-                    borderColor: alpha(theme.custom.color.ink, 0.25),
+                    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+                    borderColor: 'rgba(51, 65, 85, 0.8)',
+                    color: '#cbd5e1',
+                    transition: 'all 0.25s ease',
                     '&:hover': {
-                      borderColor: accentColor,
-                      backgroundColor: alpha(accentColor, 0.06),
+                      borderColor: '#00F2FE',
+                      color: '#ffffff',
+                      backgroundColor: '#1e293b',
                     },
                   }}
                 >
@@ -962,16 +1187,18 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   onClick={handleSearchSubmit}
                   startIcon={<SearchIcon />}
                   sx={{
-                    borderRadius: `${theme.custom.radius.md}px`,
-                    px: 3.5,
-                    py: 1.25,
-                    fontWeight: 700,
+                    borderRadius: '14px',
+                    px: { xs: 3, sm: 4 },
+                    py: { xs: 1.2, sm: 1.35 },
+                    fontWeight: 800,
                     textTransform: 'none',
-                    backgroundColor: accentColor,
-                    boxShadow: theme.custom.elevation.e2,
+                    backgroundColor: '#00F2FE',
+                    color: '#020617',
+                    boxShadow: '0 6px 24px rgba(0, 242, 254, 0.35)',
+                    transition: 'all 0.25s ease',
                     '&:hover': {
-                      backgroundColor: accentColor,
-                      opacity: 0.92,
+                      backgroundColor: '#38f6ff',
+                      boxShadow: '0 8px 32px rgba(0, 242, 254, 0.55)',
                       transform: 'translateY(-1px)',
                     },
                   }}
