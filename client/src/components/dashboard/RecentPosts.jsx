@@ -29,11 +29,11 @@ const CategoryBentoPod = ({ items }) => {
     <Box
       sx={{
         backgroundColor: isDark
-          ? alpha(theme.custom.color.surfaceRaised || "#1e293b", 0.55)
-          : "rgba(255, 255, 255, 0.60)",
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
-        border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.70)"}`,
+          ? alpha(theme.custom.color.surfaceRaised || "#1e293b", 0.25)
+          : "rgba(255, 255, 255, 0.35)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+        border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.18)" : "rgba(255, 255, 255, 0.60)"}`,
         boxShadow: isDark
           ? "0 8px 32px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15)"
           : "0 10px 28px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.03)",
