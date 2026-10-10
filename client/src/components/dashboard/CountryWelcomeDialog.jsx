@@ -334,23 +334,25 @@ const CountryWelcomeDialog = ({
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          opacity: isDark ? 0.3 : 0.45,
+          opacity: isDark ? 0.32 : 0.85,
           zIndex: 0,
         }}
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
           <pattern id="dot-matrix-welcome" width="12" height="12" patternUnits="userSpaceOnUse">
-            <circle cx="6" cy="6" r="1" fill="#00F2FE" />
+            <circle cx="6" cy="6" r={isDark ? 1 : 1.35} fill={isDark ? '#00F2FE' : '#00C4DF'} />
           </pattern>
-          <radialGradient id="tr-glow-welcome" cx="100%" cy="0%" r="55%">
+          <radialGradient id="tr-glow-welcome" cx="100%" cy="0%" r="65%">
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-            <stop offset="35%" stopColor="#ffffff" stopOpacity="0.7" />
+            <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
+            <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
-          <radialGradient id="bl-glow-welcome" cx="0%" cy="100%" r="55%">
+          <radialGradient id="bl-glow-welcome" cx="0%" cy="100%" r="65%">
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-            <stop offset="35%" stopColor="#ffffff" stopOpacity="0.7" />
+            <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
+            <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
           <mask id="tr-mask-welcome">

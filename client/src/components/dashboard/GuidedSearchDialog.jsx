@@ -196,6 +196,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
       setDirection(1);
       if (reduxCountry) {
         setSelectedCountry(reduxCountry);
+      } else if (countriesList.length > 0) {
+        const morocco = countriesList.find((c) => c?.code?.toUpperCase() === 'MA');
+        setSelectedCountry((morocco?._id || morocco?.id) || countriesList[0]._id || countriesList[0].id);
       }
       setSelectedCity(null);
       setSelectedCategories([]);
@@ -203,7 +206,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
       setCityInput('');
       setHybridCities([]);
     }
-  }, [open, reduxCountry]);
+  }, [open, reduxCountry, countriesList]);
 
   // Dependencies queries
   const { data: countriesData } = useGetCountriesQuery({ language: currentLanguage });
@@ -217,12 +220,17 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
       .filter(Boolean);
   }, [countriesData]);
 
-  // If no selected country yet, default to first available country from query
+  // If no selected country yet, default to reduxCountry or Morocco ('MA') or first available country
   useEffect(() => {
     if (!selectedCountry && countriesList.length > 0) {
-      setSelectedCountry(countriesList[0]._id || countriesList[0].id);
+      if (reduxCountry) {
+        setSelectedCountry(reduxCountry);
+      } else {
+        const morocco = countriesList.find((c) => c?.code?.toUpperCase() === 'MA');
+        setSelectedCountry((morocco?._id || morocco?.id) || countriesList[0]._id || countriesList[0].id);
+      }
     }
-  }, [selectedCountry, countriesList]);
+  }, [selectedCountry, countriesList, reduxCountry]);
 
   const selectedCountryObj = useMemo(() => {
     if (!selectedCountry) return null;
@@ -380,9 +388,10 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
   };
 
   const handleSearchSubmit = () => {
-    // 1. Dispatch updated country to Redux store
+    // 1. Dispatch updated country to Redux store and confirm in localStorage
     if (selectedCountry) {
       dispatch(setCurrentCountry({ currentCountry: selectedCountry }));
+      localStorage.setItem('countryConfirmed', 'true');
     }
 
     // 2. Build URL query params
@@ -403,7 +412,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
 
     // 3. Close dialog and navigate
     onClose();
-    navigate(`/dash/posts?${params.toString()}`);
+    navigate(`/dash/posts?${params.toString()}`, {
+      state: { selectedCityObj: selectedCity }
+    });
   };
 
   return (
@@ -470,23 +481,25 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          opacity: isDark ? 0.28 : 0.45,
+          opacity: isDark ? 0.3 : 0.85,
           zIndex: 0,
         }}
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
           <pattern id="dot-matrix-guided" width="12" height="12" patternUnits="userSpaceOnUse">
-            <circle cx="6" cy="6" r="1" fill="#00F2FE" />
+            <circle cx="6" cy="6" r={isDark ? 1 : 1.35} fill={isDark ? '#00F2FE' : '#00C4DF'} />
           </pattern>
-          <radialGradient id="tr-glow-guided" cx="100%" cy="0%" r="55%">
+          <radialGradient id="tr-glow-guided" cx="100%" cy="0%" r="65%">
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-            <stop offset="35%" stopColor="#ffffff" stopOpacity="0.7" />
+            <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
+            <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
-          <radialGradient id="bl-glow-guided" cx="0%" cy="100%" r="55%">
+          <radialGradient id="bl-glow-guided" cx="0%" cy="100%" r="65%">
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-            <stop offset="35%" stopColor="#ffffff" stopOpacity="0.7" />
+            <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
+            <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
           <mask id="tr-mask-guided">

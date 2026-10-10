@@ -445,12 +445,9 @@ const Navbar = () => {
   }, [isSuccess, navigate]);
 
   const onGoHomeClicked = (e) => {
+    e?.preventDefault?.();
     scrollToTop();
-    if (window.location.pathname === "/") {
-      e?.preventDefault?.();
-    } else {
-      navigate("/");
-    }
+    navigate("/");
   };
 
   // Menu handlers

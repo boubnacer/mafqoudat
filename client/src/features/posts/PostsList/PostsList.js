@@ -263,12 +263,36 @@ const PostsList = () => {
     return Array.isArray(citiesWithPostsData) ? citiesWithPostsData : [];
   }, [citiesWithPostsData]);
 
-  // Clear city selection when country changes
+  // Helper function to get city display name - prioritize current language
+  // Match the Admin Panel logic: use labels directly, not pre-computed label
+  const getCityDisplayName = useCallback((city) => {
+    if (!city) return '';
+    
+    // Priority: current language -> English -> French -> Arabic -> pre-computed label -> code
+    // Always prioritize labels object over pre-computed label to ensure correct language
+    if (city.labels?.[currentLanguage]) {
+      return city.labels[currentLanguage];
+    }
+    // Fallback to other languages in order
+    if (city.labels?.en) return city.labels.en;
+    if (city.labels?.fr) return city.labels.fr;
+    if (city.labels?.ar) return city.labels.ar;
+    // Use pre-computed label only as last resort (might be in wrong language)
+    if (city.label) {
+      return city.label;
+    }
+    if (city.code) return city.code;
+    return '';
+  }, [currentLanguage]);
+
+  // Clear city selection when country changes (unless city is provided via URL or state)
   useEffect(() => {
-    setSelectedCity(null);
-    setDraftSelectedCity(null);
-    setCitySearchTerm("");
-  }, [currentCountryId]);
+    if (!urlCity && !location.state?.selectedCityObj) {
+      setSelectedCity(null);
+      setDraftSelectedCity(null);
+      setCitySearchTerm("");
+    }
+  }, [currentCountryId, urlCity, location.state]);
 
   // Type (Found/Lost) filter is driven by selectedFl (the panel's own state),
   // not urlFilter directly - this effect is what keeps it in sync whenever
@@ -308,8 +332,17 @@ const PostsList = () => {
     }
   }, [urlCategory, categoriesData]);
 
-  // Sync city filter from URL query param (?city= or ?cityId=)
+  // Sync city filter from navigation state (GuidedSearchDialog) or URL query param (?city= or ?cityId=)
   useEffect(() => {
+    if (location.state?.selectedCityObj) {
+      const cityObj = location.state.selectedCityObj;
+      setSelectedCity(cityObj);
+      setDraftSelectedCity(cityObj);
+      setCitySearchTerm(getCityDisplayName(cityObj));
+      setPage(1);
+      return;
+    }
+
     if (!urlCity) return;
     if (allCitiesData && allCitiesData.length > 0) {
       const match = allCitiesData.find((c) => {
@@ -322,6 +355,7 @@ const PostsList = () => {
       if (match) {
         setSelectedCity(match);
         setDraftSelectedCity(match);
+        setCitySearchTerm(getCityDisplayName(match));
         setPage(1);
       } else {
         setSelectedCity({ _id: urlCity, label: urlCity });
@@ -332,34 +366,12 @@ const PostsList = () => {
       setSelectedCity({ _id: urlCity, label: urlCity });
       setDraftSelectedCity({ _id: urlCity, label: urlCity });
     }
-  }, [urlCity, allCitiesData]);
+  }, [location.state, urlCity, allCitiesData, getCityDisplayName]);
 
   // Memoize effectiveFl computation
   const effectiveFl = useMemo(() => {
     return selectedFl || '';
   }, [selectedFl]);
-
-  // Helper function to get city display name - prioritize current language
-  // Match the Admin Panel logic: use labels directly, not pre-computed label
-  const getCityDisplayName = useCallback((city) => {
-    if (!city) return '';
-    
-    // Priority: current language -> English -> French -> Arabic -> pre-computed label -> code
-    // Always prioritize labels object over pre-computed label to ensure correct language
-    if (city.labels?.[currentLanguage]) {
-      return city.labels[currentLanguage];
-    }
-    // Fallback to other languages in order
-    if (city.labels?.en) return city.labels.en;
-    if (city.labels?.fr) return city.labels.fr;
-    if (city.labels?.ar) return city.labels.ar;
-    // Use pre-computed label only as last resort (might be in wrong language)
-    if (city.label) {
-      return city.label;
-    }
-    if (city.code) return city.code;
-    return '';
-  }, [currentLanguage]);
 
   // Get cityId from selectedCity
   const cityId = useMemo(() => {
@@ -743,6 +755,20 @@ const PostsList = () => {
 
   const handleSelectCountry = useCallback(() => {
     navigate('/');
+  }, [navigate]);
+
+  const handleClearAllFilters = useCallback(() => {
+    setSearchTerm("");
+    setDebouncedSearchTerm("");
+    setLocalCategoryFilter("all");
+    setSelectedCategories([]);
+    setSelectedCity(null);
+    setCitySearchTerm("");
+    setSelectedFl("");
+    setSortBy("newest");
+    setPage(1);
+    navigate("/dash/posts", { replace: true });
+    smoothScrollToTop();
   }, [navigate]);
 
   // Check if we have active filters
@@ -1378,33 +1404,31 @@ const PostsList = () => {
                 : t('noPostsInArea')}
         </Typography>
         <Box display="flex" gap={2} flexWrap="wrap" justifyContent="center">
-          <Link to={newPostUrl}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              sx={{
-                borderRadius: `${theme.custom.radius.md}px`,
-                px: 3,
-                py: 1,
-                textTransform: 'none',
-                fontWeight: 600,
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleAddNewPost}
+            sx={{
+              borderRadius: `${theme.custom.radius.md}px`,
+              px: 3,
+              py: 1,
+              textTransform: 'none',
+              fontWeight: 600,
+              backgroundColor: theme.custom.color.brandPrimary,
+              '&:hover': {
                 backgroundColor: theme.custom.color.brandPrimary,
-                '&:hover': {
-                  backgroundColor: theme.custom.color.brandPrimary,
-                  opacity: 0.9,
-                },
-              }}
-            >
-              {selectedCity
-                ? t('createPostInCity', { cityName: getCityDisplayName(selectedCity) })
-                : t('addNewPost')}
-            </Button>
-          </Link>
-          {!selectedCity && (
+                opacity: 0.9,
+              },
+            }}
+          >
+            {selectedCity
+              ? t('createPostInCity', { cityName: getCityDisplayName(selectedCity) })
+              : t('addNewPost')}
+          </Button>
+          {hasActiveFilters && (
             <Button
               variant="outlined"
-              startIcon={<Language />}
-              onClick={handleSelectCountry}
+              onClick={handleClearAllFilters}
               sx={{
                 borderRadius: `${theme.custom.radius.md}px`,
                 px: 3,
@@ -1419,9 +1443,29 @@ const PostsList = () => {
                 },
               }}
             >
-              {t('changeCountry')}
+              {t('clearFilters')}
             </Button>
           )}
+          <Button
+            variant="outlined"
+            startIcon={<Language />}
+            onClick={handleSelectCountry}
+            sx={{
+              borderRadius: `${theme.custom.radius.md}px`,
+              px: 3,
+              py: 1,
+              textTransform: 'none',
+              fontWeight: 600,
+              borderColor: alpha(theme.custom.color.ink, 0.25),
+              color: theme.custom.color.ink,
+              '&:hover': {
+                borderColor: theme.custom.color.brandPrimary,
+                backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
+              },
+            }}
+          >
+            {t('changeCountry')}
+          </Button>
         </Box>
       </Box>
     );
