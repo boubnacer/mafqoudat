@@ -125,11 +125,27 @@ const Dash = () => {
     setShowCountryWelcomeDialog(false);
   };
 
+  const handleSubscribeAlerts = ({ email, city }) => {
+    try {
+      localStorage.setItem(
+        'mafqoudat_newsletter_alert',
+        JSON.stringify({
+          email,
+          city,
+          subscribedAt: new Date().toISOString(),
+        })
+      );
+    } catch (_) {}
+    localStorage.setItem('countryConfirmed', 'true');
+  };
+
   const welcomeDialogElement = (
     <CountryWelcomeDialog
       open={Boolean(showCountryWelcomeDialog)}
+      isOpen={Boolean(showCountryWelcomeDialog)}
       onConfirm={handleConfirmCountry}
       onClose={handleCloseCountryWelcome}
+      onSubscribe={handleSubscribeAlerts}
       countriesData={countriesData}
       detectedCountryCode={detectedCountryCode}
       currentCountryId={currentCountry}
