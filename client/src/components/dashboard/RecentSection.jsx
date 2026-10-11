@@ -44,7 +44,7 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
       <CyberDotMatrix
         idPrefix={`dots-recent-${type}`}
         color={tone.main}
-        inverted={type === 'lost'}
+        inverted={false}
         zIndex={0}
       />
 
