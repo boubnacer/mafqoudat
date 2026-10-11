@@ -1562,7 +1562,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           backgroundColor: isDark ? 'rgba(11, 18, 32, 0.94)' : 'rgba(255, 255, 255, 0.92)',
           backdropFilter: 'blur(28px)',
           WebkitBackdropFilter: 'blur(28px)',
-          border: '1px solid rgba(0, 242, 254, 0.35)',
           boxShadow: isDark
             ? '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)'
             : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 35px -5px rgba(0, 242, 254, 0.25)',
@@ -1586,57 +1585,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           }}
         />
 
-        {/* Cyber dot matrix SVG background with Corner Clusters matching Dialog / Statistics style */}
-        <CyberDotMatrix idPrefix="newpost-dots" />
-
-        {/* Header Badge with Website logoIcon matching CountryWelcomeDialog */}
-        <Box sx={{ mb: 2.5, position: 'relative', display: 'flex', justifyContent: 'center', zIndex: 1 }}>
-          <Box
-            sx={{
-              position: 'relative',
-              p: '2px',
-              borderRadius: '20px',
-              overflow: 'hidden',
-              boxShadow: '0 8px 24px rgba(0, 242, 254, 0.25)',
-            }}
-          >
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                borderRadius: '20px',
-                opacity: 0.85,
-                background: 'linear-gradient(135deg, #00F2FE, transparent 60%, #00F2FE)',
-              }}
-            />
-            <Box
-              sx={{
-                position: 'relative',
-                width: 52,
-                height: 52,
-                borderRadius: '18px',
-                backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(12px)',
-                boxShadow: isDark ? 'none' : '0 4px 14px rgba(0, 242, 254, 0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Box
-                component="img"
-                src="/maficonSVG.svg"
-                alt="Mafqoudat Logo"
-                sx={{
-                  width: 30,
-                  height: 34,
-                  objectFit: 'contain',
-                  filter: 'drop-shadow(0 0 8px rgba(0, 242, 254, 0.45))',
-                }}
-              />
-            </Box>
-          </Box>
-        </Box>
+        {/* Cyber dot matrix SVG background with Corner Clusters: Inverted (RTL: top-left & bottom-right, LTR: top-right & bottom-left) */}
+        <CyberDotMatrix idPrefix="newpost-dots" inverted={true} />
 
         <Typography 
           variant="h3" 
