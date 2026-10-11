@@ -350,8 +350,8 @@ const LeftSide = ({
         padding: isMobile ? '1.5rem' : '2rem',
         paddingBottom: isMobile ? 'calc(1.5rem + 0.5cm)' : 'calc(2rem + 0.5cm)',
         boxShadow: 'none',
-        width: isMobile ? '100%' : 'auto', // Full width on mobile
-        mx: isMobile ? 0 : 'auto', // Remove horizontal margin on mobile
+        width: '100%',
+        mx: 0,
         maxWidth: '100%', // Prevent overflow
         minWidth: 0, // Allow shrinking if needed
       }}

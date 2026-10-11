@@ -529,8 +529,15 @@ const Dash = () => {
             </Box>
           )}
 
-          <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'flex-start' }}>
-            <Box sx={{ width: '50%', minWidth: 0, p: { sm: 3, md: 4, lg: 5, xl: 6 } }}>
+          <Box
+            sx={{
+              position: 'relative',
+              display: 'flex',
+              justifyContent: 'flex-start',
+              p: { sm: 3, md: 4, lg: 5, xl: 6 },
+            }}
+          >
+            <Box sx={{ width: '50%', minWidth: 0 }}>
               <LeftSide
                 totalFounds={data?.totalFounds}
                 totalLosts={data?.totalLosts}
@@ -545,7 +552,6 @@ const Dash = () => {
                 sx={{
                   width: '50%',
                   minWidth: 0,
-                  p: { sm: 3, md: 4, lg: 5, xl: 6 },
                   display: 'flex',
                   flexDirection: 'column',
                   position: 'relative',
