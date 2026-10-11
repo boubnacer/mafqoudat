@@ -371,8 +371,8 @@ const LeftSide = ({
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          <pattern id="dot-matrix-stats" width="12" height="12" patternUnits="userSpaceOnUse">
-            <circle cx="6" cy="6" r={isDark ? 1 : 1.35} fill={isDark ? '#00F2FE' : '#00C4DF'} />
+          <pattern id="dot-matrix-stats" width="6" height="6" patternUnits="userSpaceOnUse">
+            <circle cx="3" cy="3" r={isDark ? 0.85 : 1.1} fill={isDark ? '#00F2FE' : '#00C4DF'} />
           </pattern>
           {/* In LTR: top-left (cx=0%, cy=0%) and bottom-right (cx=100%, cy=100%). In RTL: inversed to top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%) */}
           <radialGradient
