@@ -379,7 +379,7 @@ const LeftSide = ({
             id="top-glow-stats"
             cx={isRTL ? "100%" : "0%"}
             cy="0%"
-            r="32.5%"
+            r="48%"
           >
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
             <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
@@ -390,7 +390,7 @@ const LeftSide = ({
             id="bottom-glow-stats"
             cx={isRTL ? "0%" : "100%"}
             cy="100%"
-            r="32.5%"
+            r="48%"
           >
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
             <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
