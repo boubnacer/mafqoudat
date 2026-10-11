@@ -52,6 +52,7 @@ const isConfigured = () => !!(
   process.env.CLOUDINARY_CLOUD_NAME
   && process.env.CLOUDINARY_API_KEY
   && process.env.CLOUDINARY_API_SECRET
+  && !process.env.CLOUDINARY_API_KEY.includes('your_cloudinary')
 );
 
 /** One id per listing, so a regenerated mark replaces its predecessor. */

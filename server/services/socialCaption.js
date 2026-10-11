@@ -165,6 +165,12 @@ const DYNAMIC_IMAGE_FOLDER = 'mafqoudat/social-categories';
 
 /** Uploads a JPEG buffer to Cloudinary and returns the secure_url. */
 function uploadDynamicImage(buffer, publicId) {
+  if (
+    !process.env.CLOUDINARY_API_KEY ||
+    process.env.CLOUDINARY_API_KEY.includes('your_cloudinary')
+  ) {
+    return Promise.reject(new Error('Cloudinary not configured with valid credentials'));
+  }
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
@@ -195,6 +201,14 @@ async function deleteDynamicCategoryImage(post) {
     console.warn(`Dynamic category image cleanup failed for ${postId}: ${error.message}`);
   }
 }
+
+const getPublicSiteUrl = () => {
+  const url = process.env.CLIENT_URL;
+  if (!url || url.includes('localhost') || url.includes('127.0.0.1')) {
+    return 'https://mafqoudat.com';
+  }
+  return url.replace(/\/+$/, '');
+};
 
 async function resolveListingImage(post) {
   const imageUrl = post.cloudinaryUrl || post.image;
@@ -243,8 +257,8 @@ async function resolveListingImage(post) {
     }
   }
 
-  // Fallback: use generic placeholder image
-  const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
+  // Fallback: use generic placeholder image (always use a publicly fetchable URL)
+  const siteUrl = getPublicSiteUrl();
   return {
     imageUrl: `${siteUrl}/no-image-placeholder.jpg`,
     isPlaceholder: true,
@@ -448,7 +462,7 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
   const cleanExactLocation = (post.exactLocation || '').replace(/[\r\n]+/g, ' ').trim();
 
   const statusCode = foundLost?.code;
-  const siteUrl = process.env.CLIENT_URL || 'https://mafqoudat.com';
+  const siteUrl = getPublicSiteUrl();
   const postUrl = `${siteUrl}/dash/posts/${post._id}`;
 
   // Caption is trilingual, so the per-post hashtags follow: one set per
