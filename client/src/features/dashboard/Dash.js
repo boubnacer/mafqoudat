@@ -675,57 +675,36 @@ const Dash = () => {
 
           {sectionDivider}
 
-          {/* Recent Founds / Recent Losts - paired panels inside a shared frosted shell with CyberDotMatrix */}
+          {/* Recent Founds / Recent Losts - paired panels, side by side on
+              desktop, stacked on mobile. Rendered together whenever the
+              country has any data at all; each panel independently falls
+              back to its own empty state + CTA when that type's count is 0,
+              rather than the whole panel disappearing. */}
           <Box
             mb={4}
             mx={{ xs: 1, sm: 2 }}
-            data-reveal="section"
             sx={{
-              position: 'relative',
-              overflow: 'hidden',
-              background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
-              boxShadow: 'none',
-              p: { xs: 1.5, sm: 2, md: 2.5 },
+              display: 'grid',
+              gap: { xs: 3, md: 4 },
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
             }}
           >
-            {/* Cyber dot matrix SVG background on parent container with semantic status tone (found: green, lost: red) */}
-            <CyberDotMatrix
-              idPrefix="dots-recents-parent"
-              colorTop={theme.custom.status.found.main}
-              colorBottom={theme.custom.status.lost.main}
-              glowRadius="60%"
-              zIndex={0}
+            <RecentSection
+              type="found"
+              items={data?.recentFounds}
+              totalItems={data?.totalFounds}
+              isLoading={isLoading}
+              onCreatePost={handleCreateNewPost}
+              foundOrlostId={foundsId}
             />
-
-            <Box
-              sx={{
-                position: 'relative',
-                zIndex: 1,
-                display: 'grid',
-                gap: { xs: 2.5, md: 3 },
-                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              }}
-            >
-              <RecentSection
-                type="found"
-                items={data?.recentFounds}
-                totalItems={data?.totalFounds}
-                isLoading={isLoading}
-                onCreatePost={handleCreateNewPost}
-                foundOrlostId={foundsId}
-              />
-              <RecentSection
-                type="lost"
-                items={data?.recentLosts}
-                totalItems={data?.totalLosts}
-                isLoading={isLoading}
-                onCreatePost={handleCreateNewPost}
-                foundOrlostId={lostsId}
-              />
-            </Box>
+            <RecentSection
+              type="lost"
+              items={data?.recentLosts}
+              totalItems={data?.totalLosts}
+              isLoading={isLoading}
+              onCreatePost={handleCreateNewPost}
+              foundOrlostId={lostsId}
+            />
           </Box>
 
           {sectionDivider}

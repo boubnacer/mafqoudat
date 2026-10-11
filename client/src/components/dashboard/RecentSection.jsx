@@ -4,6 +4,7 @@ import { useTranslation } from "../../utils/translations";
 import { DashboardEmptyStates, RecentItemsSkeleton } from "../LoadingStates";
 import Recent from "./Recent";
 import SeeAll from "./SeeAll";
+import CyberDotMatrix from "./CyberDotMatrix";
 
 // Paired panel for "Recent Founds" / "Recent Losts". Mirrors the same
 // blurred-gradient surfaceRaised shell used by LeftSide/TrendingItem above it
@@ -11,7 +12,6 @@ import SeeAll from "./SeeAll";
 // status-tone accent to distinguish the two halves of the pair.
 const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, foundOrlostId }) => {
   const theme = useTheme();
-  const isDark = theme.palette.mode === "dark";
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { t } = useTranslation();
 
@@ -26,19 +26,28 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
 
   return (
     <Box
+      data-reveal="section"
       sx={{
         position: 'relative',
         overflow: 'hidden',
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, isDark ? 0.28 : 0.35)} 0%, ${alpha(theme.custom.color.surfaceRaised, isDark ? 0.28 : 0.35)} 100%)`,
-        border: 'none',
+        background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
+        backdropFilter: "blur(10px)",
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
         padding: isMobile ? { xs: "1.125rem 0.875rem", sm: "1.25rem 1rem" } : "1.65rem 1.75rem",
         boxShadow: 'none',
       }}
     >
+      {/* Cyber dot matrix SVG background with semantic status tone (found: green, lost: red) */}
+      <CyberDotMatrix
+        idPrefix={`dots-recent-${type}`}
+        color={tone.main}
+        inverted={false}
+        zIndex={0}
+      />
+
       <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         <Box
           sx={{
