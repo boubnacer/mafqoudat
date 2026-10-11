@@ -56,6 +56,7 @@ import scrollToTop, { smoothScrollToTop } from "../../../utils/scrollToTop";
 import { redactFacesInImage } from "../../../utils/faceRedaction";
 import { canOfferWebPush, requestSubscription } from "../../../utils/webPush";
 import EnablePushDialog from "../../notifications/EnablePushDialog";
+import CyberDotMatrix from "../../../components/dashboard/CyberDotMatrix";
 
 // The icon shown in each step's desktop rail badge, keyed by the step itself.
 // It used to be keyed by the step's 1-based position (MUI auto-assigns
@@ -90,11 +91,12 @@ const RailStepIcon = ({ active, completed, stepKey, iconRef }) => {
         justifyContent: 'center',
         flexShrink: 0,
         backgroundColor: active || completed
-          ? alpha(accent, 0.14)
+          ? (theme.palette.mode === 'dark' ? 'rgba(0, 242, 254, 0.16)' : 'rgba(0, 242, 254, 0.12)')
           : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
-        color: active || completed ? accent : theme.palette.text.disabled,
-        border: `2px solid ${active ? accent : 'transparent'}`,
-        transition: 'all 0.2s ease-in-out',
+        color: active || completed ? (theme.palette.mode === 'dark' ? '#00f2fe' : accent) : theme.palette.text.disabled,
+        border: `2px solid ${active ? (theme.palette.mode === 'dark' ? '#00f2fe' : accent) : 'transparent'}`,
+        boxShadow: active ? (theme.palette.mode === 'dark' ? '0 0 14px rgba(0, 242, 254, 0.4)' : '0 0 10px rgba(0, 242, 254, 0.25)') : 'none',
+        transition: 'all 0.25s ease-in-out',
       }}
     >
       {completed ? <CheckIcon fontSize="small" /> : <IconComponent fontSize="small" />}
@@ -164,6 +166,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   
   const navigate = useNavigate();
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const isRTL = currentLanguage === 'ar';
 
   // Extract URL search parameters for pre-filling
   const urlParams = new URLSearchParams(window.location.search);
@@ -1548,27 +1552,105 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         />
       )}
       <Paper
-        elevation={4}
+        elevation={0}
         sx={{
-          p: { xs: 3, md: 5 },
+          p: { xs: 3, sm: 4, md: 5 },
           pb: { xs: 11, sm: 5 },
           maxWidth: 960,
           width: "100%",
-          borderRadius: 3,
-          backgroundColor: theme.custom.color.surfaceRaised,
-          boxShadow: theme.shadows[8]
+          borderRadius: { xs: '20px', sm: '24px' },
+          backgroundColor: isDark ? 'rgba(11, 18, 32, 0.94)' : 'rgba(255, 255, 255, 0.92)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          border: '1px solid rgba(0, 242, 254, 0.35)',
+          boxShadow: isDark
+            ? '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)'
+            : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 35px -5px rgba(0, 242, 254, 0.25)',
+          overflow: 'hidden',
+          position: 'relative',
+          color: isDark ? '#ffffff' : '#0f172a',
+          direction: isRTL ? 'rtl' : 'ltr',
         }}
       >
+        {/* Top glowing hairline gradient */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '2px',
+            background: 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        />
+
+        {/* Cyber dot matrix SVG background with Corner Clusters matching Dialog / Statistics style */}
+        <CyberDotMatrix idPrefix="newpost-dots" />
+
+        {/* Header Badge with Website logoIcon matching CountryWelcomeDialog */}
+        <Box sx={{ mb: 2.5, position: 'relative', display: 'flex', justifyContent: 'center', zIndex: 1 }}>
+          <Box
+            sx={{
+              position: 'relative',
+              p: '2px',
+              borderRadius: '20px',
+              overflow: 'hidden',
+              boxShadow: '0 8px 24px rgba(0, 242, 254, 0.25)',
+            }}
+          >
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '20px',
+                opacity: 0.85,
+                background: 'linear-gradient(135deg, #00F2FE, transparent 60%, #00F2FE)',
+              }}
+            />
+            <Box
+              sx={{
+                position: 'relative',
+                width: 52,
+                height: 52,
+                borderRadius: '18px',
+                backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(12px)',
+                boxShadow: isDark ? 'none' : '0 4px 14px rgba(0, 242, 254, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Box
+                component="img"
+                src="/maficonSVG.svg"
+                alt="Mafqoudat Logo"
+                sx={{
+                  width: 30,
+                  height: 34,
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 0 8px rgba(0, 242, 254, 0.45))',
+                }}
+              />
+            </Box>
+          </Box>
+        </Box>
+
         <Typography 
           variant="h3" 
-          gutterBottom 
+          component="h1"
           textAlign="center" 
           sx={{ 
-            color: theme.palette.text.primary,
-            mb: 4,
-            fontWeight: 700,
-            fontSize: { xs: '1.8rem', md: '2.2rem' },
-            textShadow: theme.palette.mode === 'dark' ? '0 2px 4px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+            position: 'relative',
+            zIndex: 1,
+            color: isDark ? '#ffffff' : '#0f172a',
+            mb: { xs: 3, md: 4 },
+            fontWeight: 800,
+            fontSize: { xs: '1.6rem', sm: '1.9rem', md: '2.2rem' },
+            letterSpacing: '-0.02em',
+            textShadow: isDark ? '0 2px 10px rgba(0, 242, 254, 0.2)' : 'none',
           }}
         >
           {t('createNewPost')}
@@ -1618,6 +1700,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               <FormDirtyWatcher onDirty={markDirtyAndGuard} />
               <Box
                 sx={{
+                  position: 'relative',
+                  zIndex: 1,
                   display: { xs: 'block', sm: 'flex' },
                   alignItems: 'flex-start',
                   gap: { sm: 4 },
@@ -1682,7 +1766,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           height: segment.height,
                           width: 2,
                           borderRadius: 1,
-                          background: `linear-gradient(180deg, ${accentColor}, ${lighten(accentColor, 0.2)})`,
+                          background: `linear-gradient(180deg, #00f2fe, ${accentColor})`,
+                          boxShadow: '0 0 8px rgba(0, 242, 254, 0.35)',
                           transformOrigin: 'top',
                           zIndex: 0,
                         }}
@@ -1701,7 +1786,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         fontWeight: 600,
                         color: theme.palette.text.secondary,
                       },
-                      '& .MuiStepLabel-label.Mui-active': { color: accentColor },
+                      '& .MuiStepLabel-label.Mui-active': { color: isDark ? '#00f2fe' : accentColor },
                       '& .MuiStepLabel-label.Mui-completed': { color: theme.palette.text.primary },
                     }}
                   >
@@ -1715,8 +1800,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                             py: 1,
                             mb: index < steps.length - 1 ? 1 : 0,
                             ...(index === activeStep && {
-                              backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.08 : 0.06),
+                              backgroundColor: isDark ? 'rgba(0, 242, 254, 0.12)' : 'rgba(0, 242, 254, 0.08)',
                             }),
+                            '&:hover': {
+                              backgroundColor: isDark ? 'rgba(0, 242, 254, 0.08)' : 'rgba(0, 242, 254, 0.05)',
+                            },
                           }}
                         >
                           <StepLabel
@@ -1739,7 +1827,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   </Stepper>
                 </Box>
 
-                <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+                <Divider
+                  orientation="vertical"
+                  flexItem
+                  sx={{
+                    display: { xs: 'none', sm: 'block' },
+                    borderColor: isDark ? 'rgba(0, 242, 254, 0.2)' : 'rgba(0, 242, 254, 0.25)',
+                  }}
+                />
 
                 {/* Content pane */}
                 <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
@@ -1902,9 +1997,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         sx={{ zIndex: 1300 }}
         PaperProps={{
           sx: {
-            borderRadius: 3,
-            background: theme.custom.color.surfaceRaised,
-            boxShadow: theme.shadows[12]
+            borderRadius: { xs: '20px', sm: '24px' },
+            backgroundColor: isDark ? 'rgba(11, 18, 32, 0.96)' : 'rgba(255, 255, 255, 0.96)',
+            backdropFilter: 'blur(28px)',
+            WebkitBackdropFilter: 'blur(28px)',
+            border: '1px solid rgba(0, 242, 254, 0.35)',
+            boxShadow: isDark
+              ? '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 35px -5px rgba(0, 242, 254, 0.25)'
+              : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 30px -5px rgba(0, 242, 254, 0.2)',
+            overflow: 'hidden',
           }
         }}
       >
@@ -2055,9 +2156,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 2,
-            backgroundColor: theme.custom.color.surfaceRaised,
-            boxShadow: theme.shadows[8],
+            borderRadius: { xs: '20px', sm: '24px' },
+            backgroundColor: isDark ? 'rgba(11, 18, 32, 0.96)' : 'rgba(255, 255, 255, 0.96)',
+            backdropFilter: 'blur(28px)',
+            WebkitBackdropFilter: 'blur(28px)',
+            border: '1px solid rgba(0, 242, 254, 0.35)',
+            boxShadow: isDark
+              ? '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 35px -5px rgba(0, 242, 254, 0.25)'
+              : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 30px -5px rgba(0, 242, 254, 0.2)',
+            overflow: 'hidden',
           }
         }}
       >
@@ -2151,15 +2258,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         onClose={handleContinueFilling}
         PaperProps={{
           sx: {
-            borderRadius: theme.custom?.borderRadius?.dialog || '20px',
+            borderRadius: { xs: '20px', sm: '24px' },
             p: 1,
             maxWidth: 440,
             width: '100%',
-            backgroundColor: theme.palette.background.paper,
-            backgroundImage: 'none',
-            boxShadow: theme.palette.mode === 'dark' 
-              ? '0 20px 40px rgba(0,0,0,0.6)' 
-              : '0 20px 40px rgba(0,0,0,0.15)',
+            backgroundColor: isDark ? 'rgba(11, 18, 32, 0.96)' : 'rgba(255, 255, 255, 0.96)',
+            backdropFilter: 'blur(28px)',
+            WebkitBackdropFilter: 'blur(28px)',
+            border: '1px solid rgba(0, 242, 254, 0.35)',
+            boxShadow: isDark
+              ? '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 35px -5px rgba(0, 242, 254, 0.25)'
+              : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 30px -5px rgba(0, 242, 254, 0.2)',
+            overflow: 'hidden',
           }
         }}
       >

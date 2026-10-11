@@ -10,6 +10,8 @@ const PostFormSkeleton = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
+  const isDark = theme.palette.mode === 'dark';
+
   return (
     <Box
       sx={{
@@ -24,14 +26,34 @@ const PostFormSkeleton = () => {
         sx={{
           maxWidth: 960,
           mx: 'auto',
-          borderRadius: `${theme.custom.radius.lg}px`,
-          backgroundColor: theme.custom.color.surfaceRaised,
-          boxShadow: theme.custom.elevation.e1,
-          p: { xs: 2.5, md: 4 },
+          borderRadius: { xs: '20px', sm: '24px' },
+          backgroundColor: isDark ? 'rgba(11, 18, 32, 0.94)' : 'rgba(255, 255, 255, 0.92)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          border: '1px solid rgba(0, 242, 254, 0.35)',
+          boxShadow: isDark
+            ? '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)'
+            : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 35px -5px rgba(0, 242, 254, 0.25)',
+          p: { xs: 3, sm: 4, md: 5 },
           display: 'flex',
           gap: 4,
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
+        {/* Top glowing hairline gradient */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '2px',
+            background: 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        />
         {!isMobile && (
           <Box sx={{ width: 200, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
             {[0, 1, 2, 3].map((i) => (
