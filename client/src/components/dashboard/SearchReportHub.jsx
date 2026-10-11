@@ -60,18 +60,6 @@ const SearchReportHub = () => {
     },
   });
 
-  // Ambient blurred glow blobs
-  const blob = (color, position) => ({
-    position: 'absolute',
-    width: 280,
-    height: 280,
-    borderRadius: '50%',
-    background: `radial-gradient(circle, ${alpha(color, isDark ? 0.3 : 0.22)} 0%, ${alpha(color, 0)} 70%)`,
-    filter: 'blur(20px)',
-    pointerEvents: 'none',
-    ...position,
-  });
-
   // Touch gesture handling
   const [touchStart, setTouchStart] = useState(null);
   const [touchMoved, setTouchMoved] = useState(false);
@@ -150,9 +138,6 @@ const SearchReportHub = () => {
           padding: isMobile ? '1.5rem' : '2rem',
         }}
       >
-        <Box sx={blob(brandPrimary, { top: -90, insetInlineStart: -70 })} />
-        <Box sx={blob(brandLogo, { bottom: -110, insetInlineEnd: -70 })} />
-
         {/* Cyber dot matrix SVG background with dual brand semantic tones */}
         <CyberDotMatrix
           idPrefix="dots-search-hub"

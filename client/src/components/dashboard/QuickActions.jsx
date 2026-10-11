@@ -66,21 +66,6 @@ const QuickActions = () => {
     },
   });
 
-  // Soft blurred color blobs behind the glass panels — the "colorful
-  // background" the frosted look needs, kept low-opacity and clipped to the
-  // section's own rounded corners so it reads as a subtle accent, not a
-  // loud block that clashes with the neutral panels around it.
-  const blob = (color, position) => ({
-    position: 'absolute',
-    width: 280,
-    height: 280,
-    borderRadius: '50%',
-    background: `radial-gradient(circle, ${alpha(color, isDark ? 0.3 : 0.22)} 0%, ${alpha(color, 0)} 70%)`,
-    filter: 'blur(20px)',
-    pointerEvents: 'none',
-    ...position,
-  });
-
   // Touch handling state — distinguishes a tap from a scroll gesture so
   // scrolling past this section on mobile doesn't accidentally fire a
   // navigation action.
@@ -173,9 +158,6 @@ const QuickActions = () => {
         padding: isMobile ? '1.5rem' : '2rem',
       }}
     >
-      <Box sx={blob(brandPrimary, { top: -90, insetInlineStart: -70 })} />
-      <Box sx={blob(brandLogo, { bottom: -110, insetInlineEnd: -70 })} />
-
       {/* Cyber dot matrix SVG background with dual brand semantic tones */}
       <CyberDotMatrix
         idPrefix="dots-quick-actions"

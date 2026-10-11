@@ -24,23 +24,6 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
 
   const hasItems = !isLoading && items && items.length > 0;
 
-  // Same glass-blob family as QuickActions/Categories, one corner only and
-  // dimmer (gentle) rather than the two-blob QuickActions treatment — this
-  // panel already carries its own accent via `tone`, so the blob reuses that
-  // same found/lost color instead of the generic brand pair, and stays quiet
-  // enough not to compete with the recent-items list underneath it.
-  const recentBlob = {
-    position: 'absolute',
-    width: 220,
-    height: 220,
-    borderRadius: '50%',
-    background: `radial-gradient(circle, ${alpha(tone.main, theme.palette.mode === 'dark' ? 0.22 : 0.16)} 0%, ${alpha(tone.main, 0)} 70%)`,
-    filter: 'blur(20px)',
-    pointerEvents: 'none',
-    top: -80,
-    insetInlineEnd: -60,
-  };
-
   return (
     <Box
       data-reveal="section"
@@ -57,8 +40,6 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
         boxShadow: 'none',
       }}
     >
-      <Box sx={recentBlob} />
-
       {/* Cyber dot matrix SVG background with semantic status tone (found: green, lost: red) */}
       <CyberDotMatrix
         idPrefix={`dots-recent-${type}`}

@@ -160,22 +160,6 @@ const HelpSupportSection = () => {
     boxShadow: 'none',
   };
 
-  // Same glass-blob family as QuickActions/Categories, cut down to a single,
-  // faint brandPrimary blob — this section deliberately stays calm/
-  // single-accent (see file header), so it gets the quietest version of the
-  // treatment rather than QuickActions' two-blob brand pair.
-  const helpBlob = {
-    position: 'absolute',
-    width: 240,
-    height: 240,
-    borderRadius: '50%',
-    background: `radial-gradient(circle, ${alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.16 : 0.1)} 0%, ${alpha(theme.custom.color.brandPrimary, 0)} 70%)`,
-    filter: 'blur(20px)',
-    pointerEvents: 'none',
-    top: -90,
-    insetInlineEnd: -70,
-  };
-
   return (
     <>
       <Box
@@ -191,8 +175,6 @@ const HelpSupportSection = () => {
           padding: { xs: '1.5rem', sm: '2.5rem', md: '3rem' },
         }}
       >
-        <Box sx={helpBlob} />
-
         {/* Cyber dot matrix SVG background with calm brandPrimary tone */}
         <CyberDotMatrix
           idPrefix="dots-help-support"

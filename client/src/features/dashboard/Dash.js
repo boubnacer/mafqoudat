@@ -166,17 +166,6 @@ const Dash = () => {
     ...position,
   });
 
-  const categoryBlob = (color, position) => ({
-    position: 'absolute',
-    width: 260,
-    height: 260,
-    borderRadius: '50%',
-    background: `radial-gradient(circle, ${alpha(color, isDark ? 0.28 : 0.2)} 0%, ${alpha(color, 0)} 70%)`,
-    filter: 'blur(20px)',
-    pointerEvents: 'none',
-    ...position,
-  });
-
   // Mirrors LeftSide's panel chrome (theme.custom elevation/radius/ink)
   // instead of the old hardcoded-hex panel. Shared between the empty-state
   // and normal render paths below so the two never drift.
@@ -212,9 +201,6 @@ const Dash = () => {
           mx: { xs: 1, sm: 2 },
         }}
       >
-        <Box sx={categoryBlob(theme.custom.color.brandLogo, { top: -90, insetInlineEnd: -70 })} />
-        <Box sx={categoryBlob(theme.custom.color.brandPrimary, { bottom: -110, insetInlineStart: -70 })} />
-
         {/* Cyber dot matrix SVG background matching category blobs */}
         <CyberDotMatrix
           idPrefix="dots-categories"
