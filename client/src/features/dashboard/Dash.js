@@ -144,7 +144,25 @@ const Dash = () => {
   // identical) — top-end/bottom-start here vs QuickActions' top-start/
   // bottom-end — so the two panels don't look like exact copies stacked
   // back to back.
-
+  // Same glass-blob family, applied only to the Box that wraps the map (not
+  // WorldActivityMap.jsx itself — that component's own edge-fade/vignette
+  // treatment was already re-tuned and reverted twice per its own notes, so
+  // a colored wash competing with it there is exactly the mistake to avoid).
+  // This blob sits behind the absolutely-positioned map layer and shows
+  // only where the map's own fill doesn't reach (the "ocean" gaps this
+  // Box's surfaceBase fallback already covers), so it reads as a touch of
+  // depth around the edges rather than a tint over the map.
+  const mapBlob = (position) => ({
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: '50%',
+    background: `radial-gradient(circle, ${alpha(theme.custom.color.brandLogo, isDark ? 0.16 : 0.1)} 0%, ${alpha(theme.custom.color.brandLogo, 0)} 70%)`,
+    filter: 'blur(24px)',
+    pointerEvents: 'none',
+    zIndex: 0,
+    ...position,
+  });
 
   const categoryBlob = (color, position) => ({
     position: 'absolute',
@@ -379,6 +397,7 @@ const Dash = () => {
             boxShadow: 'none',
           }}
         >
+          <Box sx={mapBlob({ top: -100, insetInlineEnd: -80 })} />
           {!hasNoData && (
             <Box data-reveal="map" sx={{ position: 'absolute', inset: 0 }}>
               <WorldActivityMap
@@ -390,7 +409,7 @@ const Dash = () => {
               />
             </Box>
           )}
-          <Box sx={{ position: 'relative', p: { xs: 1.5, sm: 2 }, display: 'grid', gridTemplateColumns: '1fr', gap: '36px' }}>
+          <Box sx={{ position: 'relative', p: 2, display: 'grid', gridTemplateColumns: '1fr', gap: '36px' }}>
             <LeftSide
               totalFounds={data?.totalFounds}
               totalLosts={data?.totalLosts}
@@ -430,6 +449,7 @@ const Dash = () => {
             boxShadow: 'none',
           }}
         >
+          <Box sx={mapBlob({ bottom: -110, insetInlineStart: -80 })} />
           {!hasNoData && (
             <Box data-reveal="map" sx={{ position: 'absolute', inset: 0 }}>
               <WorldActivityMap
@@ -443,7 +463,7 @@ const Dash = () => {
           )}
 
           <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'flex-start' }}>
-            <Box sx={{ width: { sm: '60%', md: '52%', lg: '50%' }, minWidth: 0, p: { sm: 2.5, md: 3.5, lg: 4.5, xl: 6 } }}>
+            <Box sx={{ width: '50%', minWidth: 0, p: { sm: 3, md: 4, lg: 5, xl: 6 } }}>
               <LeftSide
                 totalFounds={data?.totalFounds}
                 totalLosts={data?.totalLosts}

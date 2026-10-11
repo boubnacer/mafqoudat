@@ -336,39 +336,25 @@ const LeftSide = ({
     <Box
       data-reveal="hero"
       sx={{
+        // Genuinely translucent on both breakpoints now that this floats
+        // over Dash.js's full-bleed world-map backdrop instead of sitting
+        // next to/above its own boxed card — a much lower fill so the map
+        // actually shows through, with a heavier blur (10px -> 18px) so the
+        // busier map detail behind it doesn't fight with the stat numbers'
+        // legibility.
         position: 'relative',
         overflow: 'hidden',
-        backgroundColor: isDark ? 'rgba(11, 18, 32, 0.92)' : 'rgba(255, 255, 255, 0.92)',
-        backdropFilter: 'blur(28px)',
-        WebkitBackdropFilter: 'blur(28px)',
-        borderRadius: { xs: '20px', sm: '24px' },
-        border: '1px solid rgba(0, 242, 254, 0.35)',
-        boxShadow: isDark
-          ? '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)'
-          : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 35px -5px rgba(0, 242, 254, 0.25)',
-        padding: { xs: '1.25rem', sm: '1.75rem', md: '2rem' },
+        background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.14)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.14)} 100%)`,
+        backdropFilter: 'blur(18px)',
+        borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
+        padding: isMobile ? '1.5rem' : '2rem',
+        boxShadow: 'none',
         width: isMobile ? '100%' : 'auto', // Full width on mobile
-        mx: isMobile ? 0 : 'auto',
-        maxWidth: '100%',
-        minWidth: 0,
-        color: isDark ? '#ffffff' : '#0f172a',
-        direction: isRTL ? 'rtl' : 'ltr',
+        mx: isMobile ? 0 : 'auto', // Remove horizontal margin on mobile
+        maxWidth: '100%', // Prevent overflow
+        minWidth: 0, // Allow shrinking if needed
       }}
     >
-      {/* Top glowing hairline gradient matching CountryWelcomeDialog */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '2px',
-          background: 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)',
-          pointerEvents: 'none',
-          zIndex: 1,
-        }}
-      />
-
       {/* Cyber dot matrix SVG background with Corner Clusters matching CountryWelcomeDialog */}
       <Box
         component="svg"
@@ -413,23 +399,21 @@ const LeftSide = ({
       {/* Title Section */}
       <Box
         data-reveal-item=""
-        mb={isMobile ? 2 : 2.5}
+        mb={isMobile ? 2 : 3}
         sx={{
           position: 'relative',
           zIndex: 1,
           textAlign: 'center',
-          direction: isRTL ? 'rtl' : 'ltr',
+          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
         }}
       >
         <Typography
           variant="h5"
-          component="h2"
+          fontWeight="700"
           sx={{
-            fontWeight: 800,
-            fontSize: { xs: "1.35rem", sm: "1.65rem", md: "1.85rem" },
-            lineHeight: 1.25,
-            color: isDark ? '#ffffff' : '#0f172a',
-            letterSpacing: '-0.02em',
+            fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
+            color: theme.custom.color.ink,
+            mb: 1
           }}
         >
           {t('statistics')}
@@ -439,7 +423,7 @@ const LeftSide = ({
       {/* Stats Grid — hero Found/Lost strip spans both columns, Total and
           Returned sit below it as smaller supporting stats */}
       <Box
-        gap={isMobile ? "1rem" : "1.25rem"}
+        gap={isMobile ? "1rem" : "1.5rem"}
         sx={{
           position: 'relative',
           zIndex: 1,
@@ -468,28 +452,26 @@ const LeftSide = ({
           description={t('sinceLastMonth')}
           icon={<RenderIcon name="total" />}
           sx={{
-            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.85)',
-            border: isDark ? '1px solid rgba(0, 242, 254, 0.25)' : '1px solid rgba(0, 242, 254, 0.35)',
-            backdropFilter: 'blur(12px)',
-            padding: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
+            backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.14 : 0.08),
+            padding: isMobile ? '1.25rem' : '1.5rem',
           }}
           titleStyle={{
-            color: isDark ? '#e2e8f0' : '#1e293b',
-            fontSize: '1.05rem',
+            color: theme.custom.color.ink,
+            fontSize: '1.1rem',
             fontWeight: 600
           }}
           valueStyle={{
-            color: isDark ? '#38bdf8' : '#0284c7',
+            color: theme.custom.color.brandPrimary,
             fontSize: '2rem',
             fontWeight: 700
           }}
           descriptionStyle={{
-            color: isDark ? 'rgba(226, 232, 240, 0.65)' : 'rgba(30, 41, 59, 0.65)',
-            fontSize: isMobile ? '0.95rem' : '0.88rem'
+            color: alpha(theme.custom.color.ink, 0.65),
+            fontSize: isMobile ? '1rem' : '0.9rem'
           }}
           iconStyle={{
-            background: isDark ? 'rgba(0, 242, 254, 0.15)' : 'rgba(2, 132, 199, 0.12)',
-            color: isDark ? '#00F2FE' : '#0284c7'
+            background: alpha(theme.custom.color.brandPrimary, 0.15),
+            color: theme.custom.color.brandPrimary
           }}
         />
 
@@ -502,14 +484,12 @@ const LeftSide = ({
           icon={<RenderIcon name="returned" />}
           onClick={handleReturnedItemsClick}
           sx={{
-            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.85)',
-            border: isDark ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid rgba(16, 185, 129, 0.35)',
-            backdropFilter: 'blur(12px)',
-            padding: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
+            backgroundColor: theme.custom.color.surfaceRaised,
+            padding: isMobile ? '1.25rem' : '1.5rem',
           }}
           titleStyle={{
-            color: isDark ? '#e2e8f0' : '#1e293b',
-            fontSize: '1.05rem',
+            color: theme.custom.color.ink,
+            fontSize: '1.1rem',
             fontWeight: 600
           }}
           valueStyle={{
@@ -518,8 +498,8 @@ const LeftSide = ({
             fontWeight: 700
           }}
           descriptionStyle={{
-            color: isDark ? 'rgba(226, 232, 240, 0.65)' : 'rgba(30, 41, 59, 0.65)',
-            fontSize: isMobile ? '0.95rem' : '0.88rem'
+            color: alpha(theme.custom.color.ink, 0.65),
+            fontSize: isMobile ? '1rem' : '0.9rem'
           }}
           iconStyle={{
             background: alpha(theme.custom.status.found.main, 0.12),
