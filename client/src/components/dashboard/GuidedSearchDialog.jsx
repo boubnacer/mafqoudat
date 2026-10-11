@@ -171,6 +171,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
+  const isRTLDirection = currentLanguage === 'ar' || isRTLMode;
 
   const reduxCountry = useSelector(selectCurrentCountry);
 
@@ -472,7 +473,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
         }}
       />
 
-      {/* Cyber dot matrix SVG background with Corner Clusters */}
+      {/* Cyber dot matrix SVG background with Corner Clusters matching Statistics style */}
       <Box
         component="svg"
         sx={{
@@ -481,36 +482,47 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          opacity: isDark ? 0.3 : 0.85,
+          opacity: isDark ? 0.5 : 0.85,
           zIndex: 0,
         }}
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          <pattern id="dot-matrix-guided" width="12" height="12" patternUnits="userSpaceOnUse">
-            <circle cx="6" cy="6" r={isDark ? 1 : 1.35} fill={isDark ? '#00F2FE' : '#00C4DF'} />
+          <pattern id="dot-matrix-guided" width="4.5" height="4.5" patternUnits="userSpaceOnUse">
+            <circle cx="2.25" cy="2.25" r={isDark ? 0.72 : 0.9} fill={theme.custom.color.brandLogo} />
           </pattern>
-          <radialGradient id="tr-glow-guided" cx="100%" cy="0%" r="65%">
+          {/* In LTR: top-left (cx=0%, cy=0%) and bottom-right (cx=100%, cy=100%). In RTL: inversed to top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%) */}
+          <radialGradient
+            id="top-glow-guided"
+            cx={isRTLDirection ? "100%" : "0%"}
+            cy="0%"
+            r="48%"
+          >
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
             <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
             <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
-          <radialGradient id="bl-glow-guided" cx="0%" cy="100%" r="65%">
+          <radialGradient
+            id="bottom-glow-guided"
+            cx={isRTLDirection ? "0%" : "100%"}
+            cy="100%"
+            r="48%"
+          >
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
             <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
             <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
-          <mask id="tr-mask-guided">
-            <rect width="100%" height="100%" fill="url(#tr-glow-guided)" />
+          <mask id="top-mask-guided">
+            <rect width="100%" height="100%" fill="url(#top-glow-guided)" />
           </mask>
-          <mask id="bl-mask-guided">
-            <rect width="100%" height="100%" fill="url(#bl-glow-guided)" />
+          <mask id="bottom-mask-guided">
+            <rect width="100%" height="100%" fill="url(#bottom-glow-guided)" />
           </mask>
         </defs>
-        <rect width="100%" height="100%" fill="url(#dot-matrix-guided)" mask="url(#tr-mask-guided)" />
-        <rect width="100%" height="100%" fill="url(#dot-matrix-guided)" mask="url(#bl-mask-guided)" />
+        <rect width="100%" height="100%" fill="url(#dot-matrix-guided)" mask="url(#top-mask-guided)" />
+        <rect width="100%" height="100%" fill="url(#dot-matrix-guided)" mask="url(#bottom-mask-guided)" />
       </Box>
 
       {/* Close Button matching CountryWelcomeDialog style */}

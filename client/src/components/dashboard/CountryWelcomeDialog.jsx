@@ -158,9 +158,10 @@ const CountryWelcomeDialog = ({
   detectedCountryCode,
   currentCountryId,
 }) => {
+  const theme = useTheme();
   const dispatch = useDispatch();
   const mode = useSelector((state) => state.global.mode);
-  const isDark = mode === 'dark';
+  const isDark = theme.palette.mode === 'dark';
   const { t } = useTranslation();
   const { currentLanguage, setLanguage } = useLanguage();
   const isRTL = currentLanguage === 'ar';
@@ -325,7 +326,7 @@ const CountryWelcomeDialog = ({
         }}
       />
 
-      {/* Cyber dot matrix SVG background with Corner Clusters */}
+      {/* Cyber dot matrix SVG background with Corner Clusters matching Statistics style */}
       <Box
         component="svg"
         sx={{
@@ -334,36 +335,47 @@ const CountryWelcomeDialog = ({
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          opacity: isDark ? 0.32 : 0.85,
+          opacity: isDark ? 0.5 : 0.85,
           zIndex: 0,
         }}
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          <pattern id="dot-matrix-welcome" width="12" height="12" patternUnits="userSpaceOnUse">
-            <circle cx="6" cy="6" r={isDark ? 1 : 1.35} fill={isDark ? '#00F2FE' : '#00C4DF'} />
+          <pattern id="dot-matrix-welcome" width="4.5" height="4.5" patternUnits="userSpaceOnUse">
+            <circle cx="2.25" cy="2.25" r={isDark ? 0.72 : 0.9} fill={theme.custom.color.brandLogo} />
           </pattern>
-          <radialGradient id="tr-glow-welcome" cx="100%" cy="0%" r="65%">
+          {/* In LTR: top-left (cx=0%, cy=0%) and bottom-right (cx=100%, cy=100%). In RTL: inversed to top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%) */}
+          <radialGradient
+            id="top-glow-welcome"
+            cx={isRTL ? "100%" : "0%"}
+            cy="0%"
+            r="48%"
+          >
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
             <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
             <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
-          <radialGradient id="bl-glow-welcome" cx="0%" cy="100%" r="65%">
+          <radialGradient
+            id="bottom-glow-welcome"
+            cx={isRTL ? "0%" : "100%"}
+            cy="100%"
+            r="48%"
+          >
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
             <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
             <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
-          <mask id="tr-mask-welcome">
-            <rect width="100%" height="100%" fill="url(#tr-glow-welcome)" />
+          <mask id="top-mask-welcome">
+            <rect width="100%" height="100%" fill="url(#top-glow-welcome)" />
           </mask>
-          <mask id="bl-mask-welcome">
-            <rect width="100%" height="100%" fill="url(#bl-glow-welcome)" />
+          <mask id="bottom-mask-welcome">
+            <rect width="100%" height="100%" fill="url(#bottom-glow-welcome)" />
           </mask>
         </defs>
-        <rect width="100%" height="100%" fill="url(#dot-matrix-welcome)" mask="url(#tr-mask-welcome)" />
-        <rect width="100%" height="100%" fill="url(#dot-matrix-welcome)" mask="url(#bl-mask-welcome)" />
+        <rect width="100%" height="100%" fill="url(#dot-matrix-welcome)" mask="url(#top-mask-welcome)" />
+        <rect width="100%" height="100%" fill="url(#dot-matrix-welcome)" mask="url(#bottom-mask-welcome)" />
       </Box>
 
       {/* Theme Mode Toggle Button */}
