@@ -35,6 +35,7 @@ import {
 } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
 import { useSubmitContactFormMutation } from "../../features/contact/contactApiSlice";
+import CyberDotMatrix from "./CyberDotMatrix";
 
 // Calm, single-accent treatment (brandPrimary throughout, no stoplight
 // red/green/orange) — this section's job is being findable and trustworthy
@@ -191,6 +192,14 @@ const HelpSupportSection = () => {
         }}
       >
         <Box sx={helpBlob} />
+
+        {/* Cyber dot matrix SVG background with calm brandPrimary tone */}
+        <CyberDotMatrix
+          idPrefix="dots-help-support"
+          color={theme.custom.color.brandPrimary}
+          inverted={true}
+          zIndex={0}
+        />
 
         <Box sx={{ position: 'relative', zIndex: 1 }}>
         {/* Heading — calm and reassuring, not a CTA-driving banner */}

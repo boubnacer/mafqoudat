@@ -4,6 +4,7 @@ import { useTranslation } from "../../utils/translations";
 import { DashboardEmptyStates, RecentItemsSkeleton } from "../LoadingStates";
 import Recent from "./Recent";
 import SeeAll from "./SeeAll";
+import CyberDotMatrix from "./CyberDotMatrix";
 
 // Paired panel for "Recent Founds" / "Recent Losts". Mirrors the same
 // blurred-gradient surfaceRaised shell used by LeftSide/TrendingItem above it
@@ -57,6 +58,14 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
       }}
     >
       <Box sx={recentBlob} />
+
+      {/* Cyber dot matrix SVG background with semantic status tone (found: green, lost: red) */}
+      <CyberDotMatrix
+        idPrefix={`dots-recent-${type}`}
+        color={tone.main}
+        inverted={type === 'lost'}
+        zIndex={0}
+      />
 
       <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         <Box

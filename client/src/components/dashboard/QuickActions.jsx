@@ -13,6 +13,7 @@ import {
   ArrowForwardIosRounded,
   InfoOutlined,
 } from "@mui/icons-material";
+import CyberDotMatrix from './CyberDotMatrix';
 
 // Report Lost / Report Found render as two independent buttons (own
 // fill/border/elevation each, status-toned) rather than one merged panel —
@@ -174,6 +175,15 @@ const QuickActions = () => {
     >
       <Box sx={blob(brandPrimary, { top: -90, insetInlineStart: -70 })} />
       <Box sx={blob(brandLogo, { bottom: -110, insetInlineEnd: -70 })} />
+
+      {/* Cyber dot matrix SVG background with dual brand semantic tones */}
+      <CyberDotMatrix
+        idPrefix="dots-quick-actions"
+        colorTop={brandPrimary}
+        colorBottom={brandLogo}
+        inverted={false}
+        zIndex={0}
+      />
 
       <Box sx={{ position: 'relative', zIndex: 1 }}>
         {/* Section title */}

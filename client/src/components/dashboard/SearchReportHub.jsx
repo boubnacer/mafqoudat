@@ -10,6 +10,7 @@ import {
   ArrowForwardIosRounded,
 } from '@mui/icons-material';
 import GuidedSearchDialog from './GuidedSearchDialog';
+import CyberDotMatrix from './CyberDotMatrix';
 
 const SearchReportHub = () => {
   const navigate = useNavigate();
@@ -151,6 +152,15 @@ const SearchReportHub = () => {
       >
         <Box sx={blob(brandPrimary, { top: -90, insetInlineStart: -70 })} />
         <Box sx={blob(brandLogo, { bottom: -110, insetInlineEnd: -70 })} />
+
+        {/* Cyber dot matrix SVG background with dual brand semantic tones */}
+        <CyberDotMatrix
+          idPrefix="dots-search-hub"
+          colorTop={brandPrimary}
+          colorBottom={brandLogo}
+          inverted={false}
+          zIndex={0}
+        />
 
         <Box sx={{ position: 'relative', zIndex: 1 }}>
           {/* Section Header */}

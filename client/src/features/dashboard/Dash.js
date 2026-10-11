@@ -26,6 +26,7 @@ import HelpSupportSection from "../../components/dashboard/HelpSupportSection";
 import DashRecents from "../../components/dashboard/DashRecents";
 import DashboardSkeleton from "../../components/dashboard/DashboardSkeleton";
 import CountryWelcomeDialog from "../../components/dashboard/CountryWelcomeDialog";
+import CyberDotMatrix from "../../components/dashboard/CyberDotMatrix";
 
 
 const Dash = () => {
@@ -213,6 +214,15 @@ const Dash = () => {
       >
         <Box sx={categoryBlob(theme.custom.color.brandLogo, { top: -90, insetInlineEnd: -70 })} />
         <Box sx={categoryBlob(theme.custom.color.brandPrimary, { bottom: -110, insetInlineStart: -70 })} />
+
+        {/* Cyber dot matrix SVG background matching category blobs */}
+        <CyberDotMatrix
+          idPrefix="dots-categories"
+          colorTop={theme.custom.color.brandLogo}
+          colorBottom={theme.custom.color.brandPrimary}
+          inverted={true}
+          zIndex={0}
+        />
 
         <Box sx={{ position: 'relative', zIndex: 1 }}>
           <Typography

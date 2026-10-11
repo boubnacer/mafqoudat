@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Box, Typography, useTheme, useMediaQuery, Link, alpha, lighten, darken } from "@mui/material";
 import { ShareOutlined, CampaignOutlined, NotificationsNoneOutlined } from "@mui/icons-material";
 import RenderIcon from "../RenderIcon";
+import CyberDotMatrix from "./CyberDotMatrix";
 import { useTranslation } from "../../utils/translations";
 import { gsap, ScrollTrigger, useGSAP } from "../../utils/gsapSetup";
 import { resolveScroller } from "../../features/dashboard/useDashboardMotion";
@@ -913,6 +914,15 @@ const Process = () => {
         mx: "auto",
       }}
     >
+      {/* Cyber dot matrix SVG background with semantic process flow: brandLogo to status.found */}
+      <CyberDotMatrix
+        idPrefix="dots-process"
+        colorTop={brandLogo}
+        colorBottom={theme.custom?.status?.found?.main || '#1A8563'}
+        inverted={false}
+        zIndex={0}
+      />
+
       <Box sx={{ position: "relative", zIndex: 1 }}>
         <Box className="processHeader" sx={{ maxWidth: useWide ? 760 : 560, mx: "auto", mb: { xs: 2, md: 2 }, ...alignText("center") }}>
           <Typography
