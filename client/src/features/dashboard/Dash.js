@@ -696,6 +696,7 @@ const Dash = () => {
               idPrefix="dots-recents-parent"
               colorTop={theme.custom.status.found.main}
               colorBottom={theme.custom.status.lost.main}
+              glowRadius="60%"
               zIndex={0}
             />
 
