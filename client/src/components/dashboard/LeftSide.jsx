@@ -322,7 +322,7 @@ const LeftSide = ({
   };
 
   const isDark = theme.palette.mode === 'dark';
-  const isRTL = currentLanguage === 'ar';
+  const isRTL = currentLanguage === 'ar' || theme.direction === 'rtl';
 
   if (isError) {
     return (
@@ -355,7 +355,7 @@ const LeftSide = ({
         minWidth: 0, // Allow shrinking if needed
       }}
     >
-      {/* Cyber dot matrix SVG background with Corner Clusters matching CountryWelcomeDialog */}
+      {/* Cyber dot matrix SVG background with Corner Clusters matching RTL/LTR theme */}
       <Box
         component="svg"
         sx={{
@@ -373,27 +373,38 @@ const LeftSide = ({
           <pattern id="dot-matrix-stats" width="12" height="12" patternUnits="userSpaceOnUse">
             <circle cx="6" cy="6" r={isDark ? 1 : 1.35} fill={isDark ? '#00F2FE' : '#00C4DF'} />
           </pattern>
-          <radialGradient id="tr-glow-stats" cx="100%" cy="0%" r="65%">
+          {/* In LTR: top-left (cx=0%, cy=0%) and bottom-right (cx=100%, cy=100%). In RTL: inversed to top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%) */}
+          <radialGradient
+            id="top-glow-stats"
+            cx={isRTL ? "100%" : "0%"}
+            cy="0%"
+            r="65%"
+          >
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
             <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
             <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
-          <radialGradient id="bl-glow-stats" cx="0%" cy="100%" r="65%">
+          <radialGradient
+            id="bottom-glow-stats"
+            cx={isRTL ? "0%" : "100%"}
+            cy="100%"
+            r="65%"
+          >
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
             <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
             <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
-          <mask id="tr-mask-stats">
-            <rect width="100%" height="100%" fill="url(#tr-glow-stats)" />
+          <mask id="top-mask-stats">
+            <rect width="100%" height="100%" fill="url(#top-glow-stats)" />
           </mask>
-          <mask id="bl-mask-stats">
-            <rect width="100%" height="100%" fill="url(#bl-glow-stats)" />
+          <mask id="bottom-mask-stats">
+            <rect width="100%" height="100%" fill="url(#bottom-glow-stats)" />
           </mask>
         </defs>
-        <rect width="100%" height="100%" fill="url(#dot-matrix-stats)" mask="url(#tr-mask-stats)" />
-        <rect width="100%" height="100%" fill="url(#dot-matrix-stats)" mask="url(#bl-mask-stats)" />
+        <rect width="100%" height="100%" fill="url(#dot-matrix-stats)" mask="url(#top-mask-stats)" />
+        <rect width="100%" height="100%" fill="url(#dot-matrix-stats)" mask="url(#bottom-mask-stats)" />
       </Box>
 
       {/* Title Section */}
@@ -452,7 +463,9 @@ const LeftSide = ({
           description={t('sinceLastMonth')}
           icon={<RenderIcon name="total" />}
           sx={{
-            backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.14 : 0.08),
+            background: theme.custom.color.surfaceRaised,
+            backgroundColor: theme.custom.color.surfaceRaised,
+            backdropFilter: 'none',
             padding: isMobile ? '1.25rem' : '1.5rem',
           }}
           titleStyle={{
@@ -484,7 +497,9 @@ const LeftSide = ({
           icon={<RenderIcon name="returned" />}
           onClick={handleReturnedItemsClick}
           sx={{
+            background: theme.custom.color.surfaceRaised,
             backgroundColor: theme.custom.color.surfaceRaised,
+            backdropFilter: 'none',
             padding: isMobile ? '1.25rem' : '1.5rem',
           }}
           titleStyle={{
