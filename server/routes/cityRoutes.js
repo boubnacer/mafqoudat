@@ -32,20 +32,21 @@ router
 
 // Reverse-geocode: GPS coordinates → nearest city/place in all 3 languages.
 // Public – no auth required: the coordinates come from the user's own browser
+// Reverse-geocode: GPS coordinates → nearest city/place in all 3 languages.
+// Public – no auth required: the coordinates come from the user's own browser
 // GPS and no sensitive data is read or written here.
 router
   .route("/reverse-geocode")
   .get(cityController.reverseGeocode);
 
-// Protected routes - authentication required
-router.use(verifyJWT);
-
-// Called by any signed-in user while creating or editing a post: the city
-// picker creates/caches the chosen city when it is not already in the
-// database (NewPostForm.js / EditPostForm.js -> createCustomCity).
+// Called when selecting or creating a city: caches the chosen city when it is not
+// already in the database (GuidedSearchDialog / NewPostForm / EditPostForm).
 router
   .route("/dynamic")
   .post(cityController.createDynamicCity);
+
+// Protected routes - authentication required
+router.use(verifyJWT);
 
 router
   .route("/cache-api")
