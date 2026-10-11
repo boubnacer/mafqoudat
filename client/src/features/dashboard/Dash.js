@@ -410,7 +410,7 @@ const Dash = () => {
               />
             </Box>
           )}
-          <Box sx={{ position: 'relative', p: 2, display: 'grid', gridTemplateColumns: '1fr', gap: '36px' }}>
+          <Box sx={{ position: 'relative', p: 2, display: 'grid', gridTemplateColumns: '1fr', gap: 0 }}>
             <LeftSide
               totalFounds={data?.totalFounds}
               totalLosts={data?.totalLosts}
