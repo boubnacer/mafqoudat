@@ -12,6 +12,7 @@ import {
   Autocomplete,
   TextField,
   CircularProgress,
+  Popper,
   useTheme,
   useMediaQuery,
   alpha,
@@ -199,6 +200,57 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
   const citySearchDebounceRef = useRef(null);
   const citySearchRequestIdRef = useRef(0);
   const cityDropdownContainerRef = useRef(null);
+  const cityPopperRef = useRef(null);
+  const citySearchInputRef = useRef(null);
+
+  // Popper positioning modifiers to prevent clipping and ensure exact anchor width
+  const popperModifiers = useMemo(() => [
+    {
+      name: 'offset',
+      options: {
+        offset: [0, 6],
+      },
+    },
+    {
+      name: 'flip',
+      enabled: true,
+      options: {
+        fallbackPlacements: [isRTLMode ? 'top-end' : 'top-start'],
+      },
+    },
+    {
+      name: 'preventOverflow',
+      enabled: true,
+      options: {
+        boundary: 'viewport',
+        padding: 8,
+      },
+    },
+    {
+      name: 'sameWidth',
+      enabled: true,
+      phase: 'beforeWrite',
+      requires: ['computeStyles'],
+      fn: ({ state }) => {
+        state.styles.popper.width = `${state.rects.reference.width}px`;
+      },
+      effect: ({ state }) => {
+        if (state.elements.reference) {
+          state.elements.popper.style.width = `${state.elements.reference.offsetWidth}px`;
+        }
+      },
+    },
+  ], [isRTLMode]);
+
+  // Focus city search input automatically whenever dropdown opens
+  useEffect(() => {
+    if (showCityDropdown) {
+      const timer = setTimeout(() => {
+        citySearchInputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [showCityDropdown]);
 
   // Dependencies queries
   const { data: countriesData } = useGetCountriesQuery({ language: currentLanguage });
@@ -232,12 +284,23 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
     }
   }, [open, reduxCountry, countriesList]);
 
-  // Close city dropdown on outside click
+  // Close city dropdown on outside click (protects clicks inside both the trigger container and the portaled Popper)
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (showCityDropdown && cityDropdownContainerRef.current && !cityDropdownContainerRef.current.contains(event.target)) {
-        setShowCityDropdown(false);
+      if (!showCityDropdown) return;
+      if (
+        cityDropdownContainerRef.current &&
+        cityDropdownContainerRef.current.contains(event.target)
+      ) {
+        return;
       }
+      if (
+        cityPopperRef.current &&
+        cityPopperRef.current.contains(event.target)
+      ) {
+        return;
+      }
+      setShowCityDropdown(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
@@ -621,6 +684,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
   // Slide navigation
   const handleNext = () => {
     if (!selectedCountry) return;
+    setShowCityDropdown(false);
     setDirection(1);
     setStep(2);
   };
@@ -722,6 +786,8 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
       onClose={onClose}
       maxWidth="sm"
       fullWidth
+      disableEnforceFocus
+      disableRestoreFocus
       TransitionComponent={Fade}
       transitionDuration={300}
       PaperProps={{
@@ -1052,7 +1118,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   onClick={handleCityDropdownToggle}
                   InputProps={{
                     startAdornment: (
-                      <Box sx={{ display: 'flex', alignItems: 'center', ml: 0.5, mr: 1, flexShrink: 0 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', marginInlineStart: 0.5, marginInlineEnd: 1, flexShrink: 0 }}>
                         <LocationOn sx={{ fontSize: 20, color: '#00F2FE' }} />
                       </Box>
                     ),
@@ -1112,15 +1178,21 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                   }}
                 />
 
-                {/* Dropdown Box Anchored Under Input */}
-                {showCityDropdown && selectedCountryObj && (
-                  <Box
+                {/* Unified City Dropdown using Popper (escapes Dialog clipping so options are never hidden) */}
+                <Popper
+                  open={Boolean(showCityDropdown && selectedCountryObj)}
+                  anchorEl={cityDropdownContainerRef.current}
+                  placement={isRTLMode ? 'bottom-end' : 'bottom-start'}
+                  modifiers={popperModifiers}
+                  style={{
+                    zIndex: 1400,
+                    width: cityDropdownContainerRef.current ? `${cityDropdownContainerRef.current.offsetWidth}px` : 'auto',
+                  }}
+                >
+                  <Paper
+                    ref={cityPopperRef}
+                    elevation={0}
                     sx={{
-                      position: 'absolute',
-                      top: '100%',
-                      insetInlineStart: 0,
-                      insetInlineEnd: 0,
-                      zIndex: 9999,
                       backgroundColor: isDark ? 'rgba(11, 18, 32, 0.98)' : 'rgba(255, 255, 255, 0.98)',
                       backdropFilter: 'blur(24px)',
                       WebkitBackdropFilter: 'blur(24px)',
@@ -1129,11 +1201,11 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       boxShadow: isDark
                         ? '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15)'
                         : '0 20px 50px rgba(15, 23, 42, 0.12), 0 0 25px rgba(0, 242, 254, 0.15)',
-                      maxHeight: 380,
+                      maxHeight: { xs: 340, sm: 390 },
                       overflow: 'hidden',
-                      mt: 1,
                       display: 'flex',
                       flexDirection: 'column',
+                      direction: isRTLMode ? 'rtl' : 'ltr',
                     }}
                   >
                     {/* Search Input inside Dropdown */}
@@ -1144,10 +1216,17 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       <TextField
                         fullWidth
                         size="small"
+                        inputRef={citySearchInputRef}
                         autoFocus
                         placeholder={currentLanguage === 'ar' ? 'ابحث عن مدينة...' : currentLanguage === 'fr' ? 'Rechercher une ville...' : 'Search for a city...'}
                         value={citySearchQuery}
                         onChange={handleCitySearchChange}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            e.stopPropagation();
+                            setShowCityDropdown(false);
+                          }
+                        }}
                         InputProps={{
                           startAdornment: isSearching ? (
                             <CircularProgress size={16} sx={{ color: '#00F2FE', marginInlineEnd: 1 }} />
@@ -1248,7 +1327,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
 
                     {/* Cities Scrollable List */}
                     <Box sx={{
-                      maxHeight: 260,
+                      maxHeight: { xs: 200, sm: 260 },
                       overflowY: 'auto',
                       p: 0.5,
                       '&::-webkit-scrollbar': { width: 5 },
@@ -1416,8 +1495,8 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                         </>
                       )}
                     </Box>
-                  </Box>
-                )}
+                  </Paper>
+                </Popper>
               </Box>
 
               {/* Next Step Action Button matching CountryWelcomeDialog */}
