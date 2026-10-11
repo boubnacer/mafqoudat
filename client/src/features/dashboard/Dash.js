@@ -451,14 +451,14 @@ const Dash = () => {
                     width: '100%',
                     height: '100%',
                     pointerEvents: 'none',
-                    opacity: isDark ? 0.32 : 0.85,
+                    opacity: isDark ? 0.5 : 0.85,
                     zIndex: 1,
                   }}
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <defs>
                     <pattern id="dot-matrix-map-mobile" width="6" height="6" patternUnits="userSpaceOnUse">
-                      <circle cx="3" cy="3" r={isDark ? 0.85 : 1.1} fill={isDark ? '#00F2FE' : '#00C4DF'} />
+                      <circle cx="3" cy="3" r={isDark ? 0.85 : 1.1} fill={theme.custom.color.brandLogo} />
                     </pattern>
                     {/* For Map: inversed from Statistics.
                         In LTR: top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%).
@@ -576,14 +576,14 @@ const Dash = () => {
                       width: '100%',
                       height: '100%',
                       pointerEvents: 'none',
-                      opacity: isDark ? 0.32 : 0.85,
+                      opacity: isDark ? 0.5 : 0.85,
                       zIndex: 1,
                     }}
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <defs>
                       <pattern id="dot-matrix-map-desktop" width="6" height="6" patternUnits="userSpaceOnUse">
-                        <circle cx="3" cy="3" r={isDark ? 0.85 : 1.1} fill={isDark ? '#00F2FE' : '#00C4DF'} />
+                        <circle cx="3" cy="3" r={isDark ? 0.85 : 1.1} fill={theme.custom.color.brandLogo} />
                       </pattern>
                       {/* For Map: inversed from Statistics.
                           In LTR: top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%).
