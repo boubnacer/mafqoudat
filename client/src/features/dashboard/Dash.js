@@ -457,8 +457,8 @@ const Dash = () => {
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <defs>
-                    <pattern id="dot-matrix-map-mobile" width="6" height="6" patternUnits="userSpaceOnUse">
-                      <circle cx="3" cy="3" r={isDark ? 0.85 : 1.1} fill={theme.custom.color.brandLogo} />
+                    <pattern id="dot-matrix-map-mobile" width="4.5" height="4.5" patternUnits="userSpaceOnUse">
+                      <circle cx="2.25" cy="2.25" r={isDark ? 0.72 : 0.9} fill={theme.custom.color.brandLogo} />
                     </pattern>
                     {/* For Map: inversed from Statistics.
                         In LTR: top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%).
@@ -582,8 +582,8 @@ const Dash = () => {
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <defs>
-                      <pattern id="dot-matrix-map-desktop" width="6" height="6" patternUnits="userSpaceOnUse">
-                        <circle cx="3" cy="3" r={isDark ? 0.85 : 1.1} fill={theme.custom.color.brandLogo} />
+                      <pattern id="dot-matrix-map-desktop" width="4.5" height="4.5" patternUnits="userSpaceOnUse">
+                        <circle cx="2.25" cy="2.25" r={isDark ? 0.72 : 0.9} fill={theme.custom.color.brandLogo} />
                       </pattern>
                       {/* For Map: inversed from Statistics.
                           In LTR: top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%).

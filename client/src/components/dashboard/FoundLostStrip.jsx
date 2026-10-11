@@ -141,9 +141,11 @@ const FoundLostStrip = ({
   showLostNotification = false,
   onFoundClick,
   onLostClick,
+  sx,
   ...rest
 }) => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { t, currentLanguage } = useTranslation();
   const isRTL = currentLanguage === "ar";
 
@@ -153,9 +155,11 @@ const FoundLostStrip = ({
       sx={{
         gridColumn: "1 / -1",
         borderRadius: `${theme.custom.radius.lg}px`,
-        backgroundColor: theme.custom.color.surfaceRaised,
+        backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.72 : 0.8),
+        backdropFilter: 'blur(12px)',
         boxShadow: 'none',
         overflow: "hidden",
+        ...sx,
       }}
     >
       <Box

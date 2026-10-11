@@ -371,8 +371,8 @@ const LeftSide = ({
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          <pattern id="dot-matrix-stats" width="6" height="6" patternUnits="userSpaceOnUse">
-            <circle cx="3" cy="3" r={isDark ? 0.85 : 1.1} fill={theme.custom.color.brandLogo} />
+          <pattern id="dot-matrix-stats" width="4.5" height="4.5" patternUnits="userSpaceOnUse">
+            <circle cx="2.25" cy="2.25" r={isDark ? 0.72 : 0.9} fill={theme.custom.color.brandLogo} />
           </pattern>
           {/* In LTR: top-left (cx=0%, cy=0%) and bottom-right (cx=100%, cy=100%). In RTL: inversed to top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%) */}
           <radialGradient
@@ -454,6 +454,11 @@ const LeftSide = ({
           showLostNotification={showLostNotification}
           onFoundClick={handleFoundItemsClick}
           onLostClick={handleLostItemsClick}
+          sx={{
+            background: alpha(theme.custom.color.surfaceRaised, isDark ? 0.72 : 0.8),
+            backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.72 : 0.8),
+            backdropFilter: 'blur(12px)',
+          }}
         />
 
         <TotalBox
@@ -464,9 +469,9 @@ const LeftSide = ({
           description={t('sinceLastMonth')}
           icon={<RenderIcon name="total" />}
           sx={{
-            background: theme.custom.color.surfaceRaised,
-            backgroundColor: theme.custom.color.surfaceRaised,
-            backdropFilter: 'none',
+            background: alpha(theme.custom.color.surfaceRaised, isDark ? 0.72 : 0.8),
+            backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.72 : 0.8),
+            backdropFilter: 'blur(12px)',
             padding: isMobile ? '1.25rem' : '1.5rem',
           }}
           titleStyle={{
@@ -498,9 +503,9 @@ const LeftSide = ({
           icon={<RenderIcon name="returned" />}
           onClick={handleReturnedItemsClick}
           sx={{
-            background: theme.custom.color.surfaceRaised,
-            backgroundColor: theme.custom.color.surfaceRaised,
-            backdropFilter: 'none',
+            background: alpha(theme.custom.color.surfaceRaised, isDark ? 0.72 : 0.8),
+            backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.72 : 0.8),
+            backdropFilter: 'blur(12px)',
             padding: isMobile ? '1.25rem' : '1.5rem',
           }}
           titleStyle={{
