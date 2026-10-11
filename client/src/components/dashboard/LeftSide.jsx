@@ -321,22 +321,8 @@ const LeftSide = ({
     navigate('/dash/posts?status=returned');
   };
 
-  // Same glass-blob family as QuickActions/Categories, at a fraction of
-  // their strength — this panel is already only 14%-opaque so the map shows
-  // through it, so a single very faint brandPrimary blob is enough to tie it
-  // into the family without competing with the map's own colors underneath
-  // or the stat numbers' legibility on top.
-  const statsBlob = {
-    position: 'absolute',
-    width: 240,
-    height: 240,
-    borderRadius: '50%',
-    background: `radial-gradient(circle, ${alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.14 : 0.1)} 0%, ${alpha(theme.custom.color.brandPrimary, 0)} 70%)`,
-    filter: 'blur(20px)',
-    pointerEvents: 'none',
-    top: -90,
-    insetInlineStart: -70,
-  };
+  const isDark = theme.palette.mode === 'dark';
+  const isRTL = currentLanguage === 'ar';
 
   if (isError) {
     return (
@@ -350,45 +336,100 @@ const LeftSide = ({
     <Box
       data-reveal="hero"
       sx={{
-        // Genuinely translucent on both breakpoints now that this floats
-        // over Dash.js's full-bleed world-map backdrop instead of sitting
-        // next to/above its own boxed card — a much lower fill so the map
-        // actually shows through, with a heavier blur (10px -> 18px) so the
-        // busier map detail behind it doesn't fight with the stat numbers'
-        // legibility.
         position: 'relative',
         overflow: 'hidden',
-        background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.14)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.14)} 100%)`,
-        backdropFilter: 'blur(18px)',
-        borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
-        padding: isMobile ? '1.5rem' : '2rem',
-        boxShadow: 'none',
+        backgroundColor: isDark ? 'rgba(11, 18, 32, 0.92)' : 'rgba(255, 255, 255, 0.92)',
+        backdropFilter: 'blur(28px)',
+        WebkitBackdropFilter: 'blur(28px)',
+        borderRadius: { xs: '20px', sm: '24px' },
+        border: '1px solid rgba(0, 242, 254, 0.35)',
+        boxShadow: isDark
+          ? '0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px -10px rgba(0, 242, 254, 0.25)'
+          : '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 35px -5px rgba(0, 242, 254, 0.25)',
+        padding: { xs: '1.25rem', sm: '1.75rem', md: '2rem' },
         width: isMobile ? '100%' : 'auto', // Full width on mobile
-        mx: isMobile ? 0 : 'auto', // Remove horizontal margin on mobile
-        maxWidth: '100%', // Prevent overflow
-        minWidth: 0, // Allow shrinking if needed
+        mx: isMobile ? 0 : 'auto',
+        maxWidth: '100%',
+        minWidth: 0,
+        color: isDark ? '#ffffff' : '#0f172a',
+        direction: isRTL ? 'rtl' : 'ltr',
       }}
     >
-      <Box sx={statsBlob} />
+      {/* Top glowing hairline gradient matching CountryWelcomeDialog */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '2px',
+          background: 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }}
+      />
+
+      {/* Cyber dot matrix SVG background with Corner Clusters matching CountryWelcomeDialog */}
+      <Box
+        component="svg"
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          opacity: isDark ? 0.32 : 0.85,
+          zIndex: 0,
+        }}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <pattern id="dot-matrix-stats" width="12" height="12" patternUnits="userSpaceOnUse">
+            <circle cx="6" cy="6" r={isDark ? 1 : 1.35} fill={isDark ? '#00F2FE' : '#00C4DF'} />
+          </pattern>
+          <radialGradient id="tr-glow-stats" cx="100%" cy="0%" r="65%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+            <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
+            <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="bl-glow-stats" cx="0%" cy="100%" r="65%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+            <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
+            <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+          </radialGradient>
+          <mask id="tr-mask-stats">
+            <rect width="100%" height="100%" fill="url(#tr-glow-stats)" />
+          </mask>
+          <mask id="bl-mask-stats">
+            <rect width="100%" height="100%" fill="url(#bl-glow-stats)" />
+          </mask>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#dot-matrix-stats)" mask="url(#tr-mask-stats)" />
+        <rect width="100%" height="100%" fill="url(#dot-matrix-stats)" mask="url(#bl-mask-stats)" />
+      </Box>
 
       {/* Title Section */}
       <Box
         data-reveal-item=""
-        mb={isMobile ? 2 : 3}
+        mb={isMobile ? 2 : 2.5}
         sx={{
           position: 'relative',
           zIndex: 1,
           textAlign: 'center',
-          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+          direction: isRTL ? 'rtl' : 'ltr',
         }}
       >
         <Typography
           variant="h5"
-          fontWeight="700"
+          component="h2"
           sx={{
-            fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
-            color: theme.custom.color.ink,
-            mb: 1
+            fontWeight: 800,
+            fontSize: { xs: "1.35rem", sm: "1.65rem", md: "1.85rem" },
+            lineHeight: 1.25,
+            color: isDark ? '#ffffff' : '#0f172a',
+            letterSpacing: '-0.02em',
           }}
         >
           {t('statistics')}
@@ -398,7 +439,7 @@ const LeftSide = ({
       {/* Stats Grid — hero Found/Lost strip spans both columns, Total and
           Returned sit below it as smaller supporting stats */}
       <Box
-        gap={isMobile ? "1rem" : "1.5rem"}
+        gap={isMobile ? "1rem" : "1.25rem"}
         sx={{
           position: 'relative',
           zIndex: 1,
@@ -427,26 +468,28 @@ const LeftSide = ({
           description={t('sinceLastMonth')}
           icon={<RenderIcon name="total" />}
           sx={{
-            backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.14 : 0.08),
-            padding: isMobile ? '1.25rem' : '1.5rem',
+            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.85)',
+            border: isDark ? '1px solid rgba(0, 242, 254, 0.25)' : '1px solid rgba(0, 242, 254, 0.35)',
+            backdropFilter: 'blur(12px)',
+            padding: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
           }}
           titleStyle={{
-            color: theme.custom.color.ink,
-            fontSize: '1.1rem',
+            color: isDark ? '#e2e8f0' : '#1e293b',
+            fontSize: '1.05rem',
             fontWeight: 600
           }}
           valueStyle={{
-            color: theme.custom.color.brandPrimary,
+            color: isDark ? '#38bdf8' : '#0284c7',
             fontSize: '2rem',
             fontWeight: 700
           }}
           descriptionStyle={{
-            color: alpha(theme.custom.color.ink, 0.65),
-            fontSize: isMobile ? '1rem' : '0.9rem'
+            color: isDark ? 'rgba(226, 232, 240, 0.65)' : 'rgba(30, 41, 59, 0.65)',
+            fontSize: isMobile ? '0.95rem' : '0.88rem'
           }}
           iconStyle={{
-            background: alpha(theme.custom.color.brandPrimary, 0.15),
-            color: theme.custom.color.brandPrimary
+            background: isDark ? 'rgba(0, 242, 254, 0.15)' : 'rgba(2, 132, 199, 0.12)',
+            color: isDark ? '#00F2FE' : '#0284c7'
           }}
         />
 
@@ -459,12 +502,14 @@ const LeftSide = ({
           icon={<RenderIcon name="returned" />}
           onClick={handleReturnedItemsClick}
           sx={{
-            backgroundColor: theme.custom.color.surfaceRaised,
-            padding: isMobile ? '1.25rem' : '1.5rem',
+            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.85)',
+            border: isDark ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid rgba(16, 185, 129, 0.35)',
+            backdropFilter: 'blur(12px)',
+            padding: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
           }}
           titleStyle={{
-            color: theme.custom.color.ink,
-            fontSize: '1.1rem',
+            color: isDark ? '#e2e8f0' : '#1e293b',
+            fontSize: '1.05rem',
             fontWeight: 600
           }}
           valueStyle={{
@@ -473,8 +518,8 @@ const LeftSide = ({
             fontWeight: 700
           }}
           descriptionStyle={{
-            color: alpha(theme.custom.color.ink, 0.65),
-            fontSize: isMobile ? '1rem' : '0.9rem'
+            color: isDark ? 'rgba(226, 232, 240, 0.65)' : 'rgba(30, 41, 59, 0.65)',
+            fontSize: isMobile ? '0.95rem' : '0.88rem'
           }}
           iconStyle={{
             background: alpha(theme.custom.status.found.main, 0.12),

@@ -153,7 +153,9 @@ const FoundLostStrip = ({
       sx={{
         gridColumn: "1 / -1",
         borderRadius: `${theme.custom.radius.lg}px`,
-        backgroundColor: theme.custom.color.surfaceRaised,
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.85)',
+        backdropFilter: 'blur(12px)',
+        border: theme.palette.mode === 'dark' ? '1px solid rgba(0, 242, 254, 0.25)' : '1px solid rgba(0, 242, 254, 0.35)',
         boxShadow: 'none',
         overflow: "hidden",
       }}
