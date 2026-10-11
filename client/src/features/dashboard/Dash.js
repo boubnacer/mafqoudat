@@ -467,7 +467,7 @@ const Dash = () => {
                       id="top-glow-map-mobile"
                       cx={isRTL ? "0%" : "100%"}
                       cy="0%"
-                      r="65%"
+                      r="32.5%"
                     >
                       <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
                       <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
@@ -478,7 +478,7 @@ const Dash = () => {
                       id="bottom-glow-map-mobile"
                       cx={isRTL ? "100%" : "0%"}
                       cy="100%"
-                      r="65%"
+                      r="32.5%"
                     >
                       <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
                       <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
@@ -592,7 +592,7 @@ const Dash = () => {
                         id="top-glow-map-desktop"
                         cx={isRTL ? "0%" : "100%"}
                         cy="0%"
-                        r="65%"
+                        r="32.5%"
                       >
                         <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
                         <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
@@ -603,7 +603,7 @@ const Dash = () => {
                         id="bottom-glow-map-desktop"
                         cx={isRTL ? "100%" : "0%"}
                         cy="100%"
-                        r="65%"
+                        r="32.5%"
                       >
                         <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
                         <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
