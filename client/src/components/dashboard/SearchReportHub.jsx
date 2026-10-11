@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
 import { Box, Typography, useTheme, useMediaQuery, alpha } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../utils/translations';
 import { isRTL } from '../../utils/languageUtils';
 import {
   TaskAltOutlined,
   SearchOffOutlined,
-  Search,
   ArrowForwardIosRounded,
 } from '@mui/icons-material';
 import GuidedSearchDialog from './GuidedSearchDialog';
 import CyberDotMatrix from './CyberDotMatrix';
 
 const SearchReportHub = () => {
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -35,9 +32,6 @@ const SearchReportHub = () => {
     setDialogOpen(false);
   };
 
-  const goToAllListings = () => {
-    navigate('/dash/posts');
-  };
 
   // Glass panel styling
   const glassPanel = (radius) => ({
@@ -158,27 +152,10 @@ const SearchReportHub = () => {
                 fontFamily: theme.custom.font.display,
                 fontSize: { xs: '1.45rem', sm: '1.75rem', md: '2rem' },
                 color: ink,
-                mb: 1,
                 textAlign: 'center',
               }}
             >
-              {t('searchReportHubTitle') || 'Looking for an item, or found something?'}
-            </Typography>
-            <Typography
-              variant="body1"
-              align="center"
-              sx={{
-                fontFamily: theme.custom.font.body,
-                color: alpha(ink, 0.68),
-                fontSize: { xs: '0.9rem', sm: '1rem' },
-                maxWidth: 580,
-                mx: 'auto',
-                lineHeight: 1.5,
-                textAlign: 'center',
-              }}
-            >
-              {t('searchReportHubSubtitle') ||
-                'Search our community posts before creating a new report to avoid duplicates.'}
+              {t('searchReportHubTitle') || 'Start with these essential actions'}
             </Typography>
           </Box>
 
@@ -291,57 +268,7 @@ const SearchReportHub = () => {
             })}
           </Box>
 
-          {/* Centered link / pill to search all listings without filters */}
-          <Box sx={{ mt: { xs: 2.5, sm: 3 }, textAlign: 'center' }}>
-            <Box
-              data-reveal-item=""
-              role="button"
-              tabIndex={0}
-              onClick={goToAllListings}
-              onKeyDown={(e) => handleKeyActivate(e, goToAllListings)}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                handleTouchEnd(e, goToAllListings);
-              }}
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 1,
-                px: { xs: 2.5, sm: 3 },
-                py: { xs: 0.9, sm: 1.1 },
-                borderRadius: '999px',
-                backgroundColor: alpha(brandPrimary, isDark ? 0.16 : 0.09),
-                border: `1px solid ${alpha(brandPrimary, isDark ? 0.35 : 0.22)}`,
-                cursor: 'pointer',
-                outline: 'none',
-                boxShadow: theme.custom.elevation.e1,
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  backgroundColor: alpha(brandPrimary, isDark ? 0.26 : 0.16),
-                  transform: 'translateY(-2px)',
-                  boxShadow: theme.custom.elevation.e2,
-                },
-                '&:focus-visible': {
-                  boxShadow: `0 0 0 2px ${brandPrimary}`,
-                },
-              }}
-            >
-              <Search sx={{ fontSize: 18, color: brandPrimary }} />
-              <Typography
-                sx={{
-                  fontFamily: theme.custom.font.body,
-                  fontWeight: 600,
-                  fontSize: { xs: '0.85rem', sm: '0.92rem' },
-                  color: brandPrimary,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {t('searchAllListings') || 'Search all listings'}
-              </Typography>
-            </Box>
-          </Box>
+
         </Box>
       </Box>
 
