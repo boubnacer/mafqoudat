@@ -210,9 +210,10 @@ const Dash = () => {
           zIndex={0}
         />
 
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
+        <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
           <Typography
             fontWeight="700"
+            align="center"
             sx={{
               fontSize: { xs: "20px", sm: "24px", md: "26px" },
               color: theme.custom.color.ink,

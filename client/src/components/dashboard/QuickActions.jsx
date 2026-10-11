@@ -173,23 +173,27 @@ const QuickActions = () => {
           <Typography
             variant="h5"
             fontWeight={700}
+            align="center"
             sx={{
               fontFamily: theme.custom.font.display,
               fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
               color: ink,
               mb: 1,
+              textAlign: 'center',
             }}
           >
             {t('quickActions')}
           </Typography>
           <Typography
             variant="body1"
+            align="center"
             sx={{
               fontFamily: theme.custom.font.body,
               color: alpha(ink, 0.65),
               fontSize: { xs: '0.9rem', sm: '1rem' },
               maxWidth: 520,
               mx: 'auto',
+              textAlign: 'center',
             }}
           >
             {t('quickActionsDesc')}

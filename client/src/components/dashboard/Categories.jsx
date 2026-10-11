@@ -195,6 +195,7 @@ const Categories = () => {
                       </Box>
                       <Typography
                         variant="body1"
+                        align="center"
                         sx={{
                           fontWeight: 600,
                           color: theme.custom.color.ink,

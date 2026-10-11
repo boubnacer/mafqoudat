@@ -153,17 +153,20 @@ const SearchReportHub = () => {
             <Typography
               variant="h5"
               fontWeight={700}
+              align="center"
               sx={{
                 fontFamily: theme.custom.font.display,
                 fontSize: { xs: '1.45rem', sm: '1.75rem', md: '2rem' },
                 color: ink,
                 mb: 1,
+                textAlign: 'center',
               }}
             >
               {t('searchReportHubTitle') || 'Looking for an item, or found something?'}
             </Typography>
             <Typography
               variant="body1"
+              align="center"
               sx={{
                 fontFamily: theme.custom.font.body,
                 color: alpha(ink, 0.68),
@@ -171,6 +174,7 @@ const SearchReportHub = () => {
                 maxWidth: 580,
                 mx: 'auto',
                 lineHeight: 1.5,
+                textAlign: 'center',
               }}
             >
               {t('searchReportHubSubtitle') ||

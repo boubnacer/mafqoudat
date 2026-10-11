@@ -86,11 +86,6 @@ body[dir="rtl"] .MuiInputBase-root {
   direction: rtl;
 }
 
-/* Ensure proper text alignment for RTL */
-body[dir="rtl"] * {
-  text-align: inherit;
-}
-
 /* Phone number RTL protection */
 .phone-number {
   direction: ltr !important;

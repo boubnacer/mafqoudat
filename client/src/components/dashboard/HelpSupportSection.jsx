@@ -189,21 +189,25 @@ const HelpSupportSection = () => {
           <Typography
             variant="h5"
             fontWeight={700}
+            align="center"
             sx={{
               fontFamily: theme.custom.font.display,
               fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
               color: theme.custom.color.ink,
+              textAlign: 'center',
             }}
           >
             {t('helpAndSupport')}
           </Typography>
           <Typography
             variant="body1"
+            align="center"
             sx={{
               fontFamily: theme.custom.font.body,
               color: alpha(theme.custom.color.ink, 0.65),
               fontSize: { xs: '0.9rem', sm: '1rem' },
               mt: 0.5,
+              textAlign: 'center',
             }}
           >
             {t('getHelpDesc')}
