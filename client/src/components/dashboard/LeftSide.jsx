@@ -348,6 +348,7 @@ const LeftSide = ({
         backdropFilter: 'blur(18px)',
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
         padding: isMobile ? '1.5rem' : '2rem',
+        paddingBottom: isMobile ? 'calc(1.5rem + 0.5cm)' : 'calc(2rem + 0.5cm)',
         boxShadow: 'none',
         width: isMobile ? '100%' : 'auto', // Full width on mobile
         mx: isMobile ? 0 : 'auto', // Remove horizontal margin on mobile
