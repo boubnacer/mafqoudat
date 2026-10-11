@@ -1321,10 +1321,14 @@ const reverseGeocode = async (req, res) => {
         const results = googleResp.data?.results || [];
         const place = results[0];
         if (place) {
-          // Extract the most specific name
+          // Extract the most specific name and country code
           const localityComp = place.address_components?.find(c =>
             c.types.includes('locality') || c.types.includes('sublocality') || c.types.includes('administrative_area_level_3')
           );
+          const countryComp = place.address_components?.find(c =>
+            c.types.includes('country')
+          );
+          const countryCode = countryComp?.short_name ? countryComp.short_name.toUpperCase() : null;
           const name = localityComp?.long_name || place.formatted_address;
           const code = name.toUpperCase().replace(/\s+/g, '_');
 
@@ -1365,6 +1369,7 @@ const reverseGeocode = async (req, res) => {
               source: 'google',
               coordinates: { lat, lon: lng },
               placeId: place.place_id,
+              countryCode,
               country: null
             }
           });

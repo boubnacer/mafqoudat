@@ -508,15 +508,17 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
   }, [countryCities]);
 
   // Handle city selection (auto-saves external API cities to DB dynamically)
-  const handleCitySelect = async (city) => {
+  const handleCitySelect = useCallback(async (city, explicitCountryId = null) => {
     let resolvedCity = city;
     setSelectedCity(resolvedCity);
     setCitySearchQuery('');
     setShowCityDropdown(false);
 
+    const countryIdToUse = explicitCountryId || selectedCountry;
+
     // If an external API city was selected without a DB _id, persist it to the database
     // so it gets a permanent MongoDB _id and is stored in DB
-    if (!resolvedCity._id && selectedCountry) {
+    if (!resolvedCity._id && countryIdToUse) {
       try {
         const cityName = resolvedCity.label || resolvedCity.name || getCityDisplayName(resolvedCity, currentLanguage);
         const res = await fetch(`${BASE_URL}/cities/dynamic`, {
@@ -524,7 +526,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             cityName,
-            countryId: selectedCountry,
+            countryId: countryIdToUse,
             sourceLanguage: currentLanguage || 'en',
             cityData: resolvedCity,
           }),
@@ -540,7 +542,8 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
         console.error('Error auto-saving API city on select:', err);
       }
     }
-  };
+    return resolvedCity;
+  }, [selectedCountry, currentLanguage]);
 
   // "My Location" GPS button handler (reverse geocodes browser coords)
   const handleMyLocation = useCallback(async () => {
@@ -561,7 +564,27 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           );
           const data = await resp.json();
           if (data.success && data.data) {
-            await handleCitySelect(data.data);
+            let matchedCountryId = selectedCountry;
+
+            // Fix #1: Auto-match country from reverse-geocode result if detected
+            const cityCountryId = data.data.country?._id || data.data.country?.id;
+            const cityCountryCode = data.data.country?.code || data.data.countryCode;
+
+            if (cityCountryId && countriesList.some((c) => (c._id || c.id) === cityCountryId)) {
+              matchedCountryId = cityCountryId;
+              setSelectedCountry(cityCountryId);
+            } else if (cityCountryCode) {
+              const matched = countriesList.find(
+                (c) => c.code && c.code.toUpperCase() === String(cityCountryCode).toUpperCase()
+              );
+              if (matched) {
+                const newCountryId = matched._id || matched.id;
+                matchedCountryId = newCountryId;
+                setSelectedCountry(newCountryId);
+              }
+            }
+
+            await handleCitySelect(data.data, matchedCountryId);
           } else {
             setLocationError('error');
           }
@@ -581,7 +604,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
         maximumAge: 0,
       }
     );
-  }, [currentLanguage]);
+  }, [currentLanguage, countriesList, selectedCountry, handleCitySelect]);
 
   const handleCityDropdownToggle = () => {
     if (!selectedCountryObj) return;
