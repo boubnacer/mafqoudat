@@ -388,7 +388,36 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
     setSelectedCategories(allIds);
   };
 
-  const handleSearchSubmit = () => {
+  const handleSearchSubmit = async () => {
+    let finalCity = selectedCity;
+
+    // If an external city was selected without a DB _id, persist it to the database
+    // so it gets a permanent MongoDB _id and is saved for future New Post creations without calling external APIs again.
+    if (finalCity && !finalCity._id && selectedCountry) {
+      try {
+        const cityName = finalCity.label || finalCity.name || getCityDisplayName(finalCity, currentLanguage);
+        const res = await fetch(`${BASE_URL}/cities/dynamic`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cityName,
+            countryId: selectedCountry,
+            sourceLanguage: currentLanguage || 'en',
+            cityData: finalCity,
+          }),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            finalCity = json.data;
+            setSelectedCity(json.data);
+          }
+        }
+      } catch (err) {
+        console.error('Error auto-saving searched city:', err);
+      }
+    }
+
     // 1. Dispatch updated country to Redux store and confirm in localStorage
     if (selectedCountry) {
       dispatch(setCurrentCountry({ currentCountry: selectedCountry }));
@@ -404,8 +433,8 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
       params.set('category', selectedCategories.join(','));
     }
 
-    const cityParam = selectedCity
-      ? (selectedCity._id || selectedCity.id || selectedCity.code || '')
+    const cityParam = finalCity
+      ? (finalCity._id || finalCity.id || finalCity.code || '')
       : '';
     if (cityParam) params.set('city', cityParam);
 
@@ -414,7 +443,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
     // 3. Close dialog and navigate
     onClose();
     navigate(`/dash/posts?${params.toString()}`, {
-      state: { selectedCityObj: selectedCity }
+      state: { selectedCityObj: finalCity }
     });
   };
 

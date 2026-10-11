@@ -898,9 +898,10 @@ const deleteCity = async (req, res) => {
 // Create a new dynamic city
 const createDynamicCity = async (req, res) => {
   try {
-    const { cityName, countryId, sourceLanguage = 'en' } = req.body;
+    const { cityName: rawCityName, countryId, sourceLanguage = 'en', cityData } = req.body;
+    const cityName = (rawCityName || cityData?.label || cityData?.labels?.en || cityData?.name || '').trim();
 
-    if (!cityName || !countryId) {
+    if ((!cityName && !cityData) || !countryId) {
       return res.status(400).json({
         success: false,
         message: "City name and country ID are required"
@@ -916,15 +917,24 @@ const createDynamicCity = async (req, res) => {
       });
     }
 
-         // Check if city already exists for this country
-     const existingCity = await City.findOne({
-       country: countryId,
-       $or: [
-         { "labels.en": { $regex: buildSearchPattern(cityName), $options: 'i' } },
-         { "labels.ar": { $regex: buildSearchPattern(cityName), $options: 'i' } },
-         { "labels.fr": { $regex: buildSearchPattern(cityName), $options: 'i' } }
-       ]
-     });
+    // Check if city already exists for this country by placeId, code, or name labels
+    let existingCity = null;
+    if (cityData?.placeId) {
+      existingCity = await City.findOne({ country: countryId, placeId: cityData.placeId });
+    }
+    if (!existingCity && cityData?.code) {
+      existingCity = await City.findOne({ country: countryId, code: cityData.code });
+    }
+    if (!existingCity && cityName) {
+      existingCity = await City.findOne({
+        country: countryId,
+        $or: [
+          { "labels.en": { $regex: buildSearchPattern(cityName), $options: 'i' } },
+          { "labels.ar": { $regex: buildSearchPattern(cityName), $options: 'i' } },
+          { "labels.fr": { $regex: buildSearchPattern(cityName), $options: 'i' } }
+        ]
+      });
+    }
 
     if (existingCity) {
       return res.status(200).json({
@@ -934,29 +944,39 @@ const createDynamicCity = async (req, res) => {
       });
     }
 
-    // Translate the city name
-    const translations = await TranslationService.translateCityName(cityName, sourceLanguage);
-    
+    let normalizedLabels;
+    if (cityData?.labels && (cityData.labels.en || cityData.labels.fr || cityData.labels.ar)) {
+      normalizedLabels = normalizeCityLabels({
+        en: cityData.labels.en || cityName,
+        fr: cityData.labels.fr || cityName,
+        ar: cityData.labels.ar || cityName
+      });
+    } else {
+      // Translate the city name
+      const translations = await TranslationService.translateCityName(cityName, sourceLanguage);
+      normalizedLabels = normalizeCityLabels({
+        en: translations.en,
+        fr: translations.fr,
+        ar: translations.ar
+      });
+    }
+
     // Generate a unique code for the city
-    const cityCode = await TranslationService.generateCityCode(cityName, country.code, countryId);
+    const cityCode = cityData?.code || await TranslationService.generateCityCode(cityName, country.code, countryId);
 
-         // Normalize labels before creating city
-         const normalizedLabels = normalizeCityLabels({
-           en: translations.en,
-           fr: translations.fr,
-           ar: translations.ar
-         });
-
-         // Create the new city
-     const newCity = new City({
-       code: cityCode,
-       country: countryId,
-       labels: normalizedLabels,
-       isCapital: false,
-       isDynamic: true,
-       isActive: true,
-       searchTerms: [cityName, normalizedLabels.en, normalizedLabels.fr, normalizedLabels.ar]
-     });
+    // Create the new city
+    const newCity = new City({
+      code: cityCode,
+      country: countryId,
+      labels: normalizedLabels,
+      isCapital: cityData?.isCapital || false,
+      isDynamic: true,
+      isActive: true,
+      coordinates: cityData?.coordinates || undefined,
+      placeId: cityData?.placeId || undefined,
+      apiSource: cityData?.source === 'google' ? 'google' : (cityData?.source === 'geonames' ? 'geonames' : undefined),
+      searchTerms: [cityName, normalizedLabels.en, normalizedLabels.fr, normalizedLabels.ar].filter(Boolean)
+    });
 
     try {
       await newCity.save();
@@ -965,24 +985,28 @@ const createDynamicCity = async (req, res) => {
 
       // If it's a duplicate key error, try to find the existing city
       if (saveError.code === 11000) {
-        const existingCity = await City.findOne({
+        const duplicateCity = await City.findOne({
           country: countryId,
           $or: [
-            { "labels.en": { $regex: buildSearchPattern(cityName), $options: 'i' } },
-            { "labels.ar": { $regex: buildSearchPattern(cityName), $options: 'i' } },
-            { "labels.fr": { $regex: buildSearchPattern(cityName), $options: 'i' } }
+            ...(cityData?.placeId ? [{ placeId: cityData.placeId }] : []),
+            ...(cityData?.code ? [{ code: cityData.code }] : []),
+            ...(cityName ? [
+              { "labels.en": { $regex: buildSearchPattern(cityName), $options: 'i' } },
+              { "labels.ar": { $regex: buildSearchPattern(cityName), $options: 'i' } },
+              { "labels.fr": { $regex: buildSearchPattern(cityName), $options: 'i' } }
+            ] : [])
           ]
         });
 
-        if (existingCity) {
+        if (duplicateCity) {
           return res.status(200).json({
             success: true,
             message: "City already exists",
-            data: existingCity
+            data: duplicateCity
           });
         }
       }
-      
+
       throw saveError;
     }
 

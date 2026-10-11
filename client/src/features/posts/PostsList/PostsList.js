@@ -743,7 +743,8 @@ const PostsList = () => {
     } else if (localCategoryFilter && localCategoryFilter !== 'all') {
       newPostParams.set('category', localCategoryFilter);
     }
-    if (selectedCity?._id || selectedCity?.id) newPostParams.set('city', selectedCity._id || selectedCity.id);
+    const cityIdentifier = selectedCity?._id || selectedCity?.id || selectedCity?.code;
+    if (cityIdentifier) newPostParams.set('city', cityIdentifier);
     if (currentCountryId) newPostParams.set('country', currentCountryId);
     return `/dash/posts/new${newPostParams.toString() ? `?${newPostParams.toString()}` : ''}`;
   }, [selectedFl, foundsId, selectedCategories, localCategoryFilter, selectedCity, currentCountryId]);

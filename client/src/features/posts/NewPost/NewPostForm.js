@@ -225,6 +225,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // values.country is the single source of truth (Formik); this ref just guards
   // the one-time initial city preload so it doesn't re-fire on every render.
   const hasInitializedCitiesRef = useRef(false);
+  const hasResolvedUrlCityRef = useRef(null);
 
   // Browser-notification offer, made once per browser immediately before the
   // first listing is published (see EnablePushDialog for why that moment). The
@@ -378,14 +379,23 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     if (foundCity) {
       setSelectedCityFromSearch(foundCity);
       setCityDisplayValue(getCityDisplayName(foundCity, currentLanguage));
+      if (formikRef.current) {
+        formikRef.current.setFieldValue('city', foundCity._id || foundCity.id || (foundCity.code ? `api_${foundCity.code}` : urlCity));
+      }
       return;
     }
 
-    // If not found in current list, try resolving via search-name endpoint
+    // Only attempt search-name ONCE per unique urlCity to prevent any infinite loops to external APIs
+    if (hasResolvedUrlCityRef.current === urlCity) {
+      return;
+    }
+    hasResolvedUrlCityRef.current = urlCity;
+
     let isCancelled = false;
     const resolveCityAsync = async () => {
       try {
         const countryId = urlCountry || user.country;
+        if (!countryId) return;
         const baseUrl = BASE_URL;
         const res = await fetch(`${baseUrl}/cities/search-name?query=${encodeURIComponent(urlCity)}&countryId=${countryId}&limit=1`);
         if (res.ok) {
@@ -395,15 +405,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             if (!isCancelled) {
               setSelectedCityFromSearch(cityObj);
               setCityDisplayValue(getCityDisplayName(cityObj, currentLanguage));
+              if (formikRef.current) {
+                formikRef.current.setFieldValue('city', cityObj._id || cityObj.id || (cityObj.code ? `api_${cityObj.code}` : urlCity));
+              }
               return;
             }
           }
         }
-        if (!isCancelled && !cityDisplayValue) {
+        if (!isCancelled) {
           setCityDisplayValue(urlCity);
         }
       } catch (err) {
-        if (!isCancelled && !cityDisplayValue) {
+        if (!isCancelled) {
           setCityDisplayValue(urlCity);
         }
       }
@@ -411,7 +424,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
     resolveCityAsync();
     return () => { isCancelled = true; };
-  }, [urlCity, cities, currentLanguage, urlCountry, user.country, cityDisplayValue]);
+  }, [urlCity, cities, currentLanguage, urlCountry, user.country]);
 
   // Check if form has started being filled or modified
   const isFormDirty = useCallback(() => {
@@ -1191,22 +1204,53 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   }, [performCitySearch]);
 
   // Handle city selection from dropdown
-  const handleCitySelect = (city) => {
-    setSelectedCityFromSearch(city);
-    const cityDisplayName = getCityDisplayName(city, currentLanguage);
+  const handleCitySelect = async (city) => {
+    let resolvedCity = city;
+    setSelectedCityFromSearch(resolvedCity);
+    const cityDisplayName = getCityDisplayName(resolvedCity, currentLanguage);
     setCityDisplayValue(cityDisplayName); // Set display value
     setCitySearchQuery(""); // Clear search query
     setShowCityDropdown(false);
+
+    // If an external API city was selected without a DB _id, persist it to the database
+    // so it gets a permanent MongoDB _id and is stored in DB
+    if (!resolvedCity._id) {
+      const countryId = formikRef.current?.values?.country || urlCountry || user.country;
+      if (countryId) {
+        try {
+          const res = await fetch(`${BASE_URL}/cities/dynamic`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              cityName: resolvedCity.label || resolvedCity.name || cityDisplayName,
+              countryId,
+              sourceLanguage: currentLanguage || 'en',
+              cityData: resolvedCity,
+            }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.data) {
+              resolvedCity = data.data;
+              setSelectedCityFromSearch(data.data);
+              setCities((prev) => {
+                if (prev.some((c) => (c._id || c.id) === (data.data._id || data.data.id))) return prev;
+                return [data.data, ...prev];
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Error auto-saving API city on select:', err);
+        }
+      }
+    }
     
     // Set the city value in the form
-    if (setFieldValueCallback) {
-      if (city._id) {
-        // Database city
-        setFieldValueCallback('city', city._id);
-      } else {
-        // API city - we'll handle this in the submit
-        setFieldValueCallback('city', `api_${city.code}`);
-      }
+    const cityVal = resolvedCity._id || resolvedCity.id || (resolvedCity.code ? `api_${resolvedCity.code}` : '');
+    if (formikRef.current) {
+      formikRef.current.setFieldValue('city', cityVal);
+    } else if (setFieldValueCallback) {
+      setFieldValueCallback('city', cityVal);
     }
     
     // Clear city field error
