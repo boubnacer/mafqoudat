@@ -203,19 +203,60 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
   const cityPopperRef = useRef(null);
   const citySearchInputRef = useRef(null);
 
+  // Dynamic dropdown geometry: dynamically places above/below and caps height to visible viewport
+  const [availableDropdownHeight, setAvailableDropdownHeight] = useState(360);
+  const [preferredPlacement, setPreferredPlacement] = useState(isRTLMode ? 'bottom-end' : 'bottom-start');
+
+  const updateDropdownGeometry = useCallback(() => {
+    if (!cityDropdownContainerRef.current) return;
+    const rect = cityDropdownContainerRef.current.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const spaceBelow = vh - rect.bottom - 16;
+    const spaceAbove = rect.top - 16;
+
+    // On desktop / tablets, if space below is tighter than 320px and there's more room above, place above
+    const placeAbove = spaceBelow < 320 && spaceAbove > spaceBelow;
+    setPreferredPlacement(
+      placeAbove
+        ? (isRTLMode ? 'top-end' : 'top-start')
+        : (isRTLMode ? 'bottom-end' : 'bottom-start')
+    );
+
+    const availableSpace = placeAbove ? spaceAbove : spaceBelow;
+    // Cap height so the dropdown NEVER overflows the viewport
+    const maxH = Math.min(380, Math.max(200, Math.floor(availableSpace)));
+    setAvailableDropdownHeight(maxH);
+  }, [isRTLMode]);
+
+  // Recalculate geometry whenever city dropdown opens or window resizes
+  useEffect(() => {
+    if (showCityDropdown) {
+      updateDropdownGeometry();
+      window.addEventListener('resize', updateDropdownGeometry);
+      return () => {
+        window.removeEventListener('resize', updateDropdownGeometry);
+      };
+    }
+  }, [showCityDropdown, updateDropdownGeometry]);
+
   // Popper positioning modifiers to prevent clipping and ensure exact anchor width
   const popperModifiers = useMemo(() => [
     {
       name: 'offset',
       options: {
-        offset: [0, 6],
+        offset: [0, 8],
       },
     },
     {
       name: 'flip',
       enabled: true,
       options: {
-        fallbackPlacements: [isRTLMode ? 'top-end' : 'top-start'],
+        boundary: 'viewport',
+        padding: 12,
+        fallbackPlacements: [
+          isRTLMode ? 'top-end' : 'top-start',
+          isRTLMode ? 'bottom-end' : 'bottom-start',
+        ],
       },
     },
     {
@@ -223,7 +264,8 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
       enabled: true,
       options: {
         boundary: 'viewport',
-        padding: 8,
+        padding: 12,
+        altAxis: true,
       },
     },
     {
@@ -923,7 +965,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
           p: 0,
           position: 'relative',
           zIndex: 1,
-          overflowY: 'auto',
+          overflowY: showCityDropdown ? 'hidden' : 'auto',
           overflowX: 'hidden',
           display: 'flex',
           flexDirection: 'column',
@@ -1182,7 +1224,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                 <Popper
                   open={Boolean(showCityDropdown && selectedCountryObj)}
                   anchorEl={cityDropdownContainerRef.current}
-                  placement={isRTLMode ? 'bottom-end' : 'bottom-start'}
+                  placement={preferredPlacement}
                   modifiers={popperModifiers}
                   style={{
                     zIndex: 1400,
@@ -1201,8 +1243,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                       boxShadow: isDark
                         ? '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.15)'
                         : '0 20px 50px rgba(15, 23, 42, 0.12), 0 0 25px rgba(0, 242, 254, 0.15)',
-                      maxHeight: { xs: 340, sm: 390 },
+                      maxHeight: availableDropdownHeight,
                       overflow: 'hidden',
+                      overscrollBehavior: 'contain',
                       display: 'flex',
                       flexDirection: 'column',
                       direction: isRTLMode ? 'rtl' : 'ltr',
@@ -1327,8 +1370,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
 
                     {/* Cities Scrollable List */}
                     <Box sx={{
-                      maxHeight: { xs: 200, sm: 260 },
+                      maxHeight: Math.max(120, availableDropdownHeight - 125),
                       overflowY: 'auto',
+                      overscrollBehavior: 'contain',
                       p: 0.5,
                       '&::-webkit-scrollbar': { width: 5 },
                       '&::-webkit-scrollbar-track': { backgroundColor: 'transparent' },
