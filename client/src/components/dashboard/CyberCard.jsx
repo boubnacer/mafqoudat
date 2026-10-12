@@ -8,7 +8,7 @@ import CyberDotMatrix from './CyberDotMatrix';
  *
  * @param {React.ReactNode} children - Content rendered cleanly on top of the overlay.
  * @param {boolean} [isDark] - Optional explicit dark mode override.
- * @param {string} [shape="star"] - Dot shape ("circle" | "star").
+ * @param {string} [shape="star"] - Dot shape ("circle" | "star" | "square").
  * @param {string} [placement="diagonal-standard"] - Corner placement ("diagonal-standard" | "diagonal-inverted").
  * @param {string} [color] - Base dot color.
  * @param {string} [colorTop] - Top corner cluster dot color.

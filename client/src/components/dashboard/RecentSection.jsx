@@ -41,11 +41,11 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
         boxShadow: 'none',
       }}
     >
-      {/* Cyber dot matrix SVG background with semantic status tone (found: green, lost: red) and cyber star dots */}
+      {/* Cyber dot matrix SVG background with semantic status tone (found: green, lost: red) and square dots */}
       <CyberDotMatrix
         idPrefix={`dots-recent-${type}`}
         color={tone.main}
-        shape="star"
+        shape="square"
         placement="diagonal-standard"
         patternSpacing={5}
         dotRadius={0.85}

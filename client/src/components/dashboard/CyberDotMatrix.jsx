@@ -14,7 +14,7 @@ import { isRTL as checkIsRTL } from '../../utils/languageUtils';
  * @param {string} [colorBottom] - Semantic color for bottom cluster (overrides color).
  * @param {boolean} [inverted=false] - If false: Top-Start & Bottom-End. If true: Top-End & Bottom-Start.
  * @param {string} [placement="diagonal-standard"] - Placement alias ("diagonal-standard" | "diagonal-inverted").
- * @param {string} [shape="circle"] - Dot shape ("circle" | "star").
+ * @param {string} [shape="circle"] - Dot shape ("circle" | "star" | "square").
  * @param {string} [falloffCurve="default"] - Radial mask falloff curve ("default" | "soft").
  * @param {boolean} [hairlineGlow=false] - If true, renders a subtle top hairline glow.
  * @param {number} [opacity] - SVG opacity (defaults to 0.5 in dark mode, 0.85 in light mode).
@@ -88,6 +88,18 @@ const CyberDotMatrix = ({
       return (
         <path
           d={`M ${center} ${center - R} Q ${center} ${center} ${center + R} ${center} Q ${center} ${center} ${center} ${center + R} Q ${center} ${center} ${center - R} ${center} Q ${center} ${center} ${center} ${center - R} Z`}
+          fill={fillColor}
+        />
+      );
+    }
+    if (shape === 'square') {
+      const size = resolvedDotRadius * 2;
+      return (
+        <rect
+          x={center - resolvedDotRadius}
+          y={center - resolvedDotRadius}
+          width={size}
+          height={size}
           fill={fillColor}
         />
       );
