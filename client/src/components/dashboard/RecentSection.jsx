@@ -41,30 +41,20 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
         boxShadow: 'none',
       }}
     >
-      {/* Cyber dot matrix SVG background: classic circular dots for Recent Founds, new cyber star dots for Recent Losts */}
-      {type === "found" ? (
-        <CyberDotMatrix
-          idPrefix={`dots-recent-${type}`}
-          color={tone.main}
-          inverted={false}
-          hairlineGlow={false}
-          zIndex={0}
-        />
-      ) : (
-        <CyberDotMatrix
-          idPrefix={`dots-recent-${type}`}
-          color={tone.main}
-          shape="star"
-          placement="diagonal-standard"
-          patternSpacing={5}
-          dotRadius={0.85}
-          glowRadius="48%"
-          opacity={0.75}
-          falloffCurve="soft"
-          hairlineGlow={false}
-          zIndex={0}
-        />
-      )}
+      {/* Cyber dot matrix SVG background with semantic status tone (found: green, lost: red) and cyber star dots */}
+      <CyberDotMatrix
+        idPrefix={`dots-recent-${type}`}
+        color={tone.main}
+        shape="star"
+        placement="diagonal-standard"
+        patternSpacing={5}
+        dotRadius={0.85}
+        glowRadius="48%"
+        opacity={0.75}
+        falloffCurve="soft"
+        hairlineGlow={false}
+        zIndex={0}
+      />
 
       <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         <Box
