@@ -151,7 +151,7 @@ export const resolvePostImage = (post) => {
 };
 
 /** Canonical path for a post detail page. */
-export const buildPostPath = (postId) => `/dash/posts/${postId}`;
+export const buildPostPath = (postId) => `/posts/${postId}`;
 
 /**
  * Build everything SeoMeta needs for a single post.
@@ -289,18 +289,18 @@ export const buildPostSeo = ({ post, language = 'en', t }) => {
 
   const breadcrumbItems = [
     { name: defaultSeo.siteName, path: '/' },
-    { name: translate('posts'), path: '/dash/posts' },
+    { name: translate('posts'), path: '/posts' },
   ];
   if (primaryCategoryLabel && primaryCategoryParam) {
     breadcrumbItems.push({
       name: primaryCategoryLabel,
-      path: `/dash/posts?category=${encodeURIComponent(primaryCategoryParam)}`,
+      path: `/posts?category=${encodeURIComponent(primaryCategoryParam)}`,
     });
   }
   if (cityLabel && cityParam) {
     breadcrumbItems.push({
       name: cityLabel,
-      path: `/dash/posts?city=${encodeURIComponent(cityParam)}`,
+      path: `/posts?city=${encodeURIComponent(cityParam)}`,
     });
   }
   breadcrumbItems.push({ name: stripBrandSuffix(title), path });

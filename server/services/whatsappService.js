@@ -601,8 +601,8 @@ const sendNewPostAdminAlert = async ({ post, user }) => {
     }
 
     const siteBase = getSiteBaseUrl();
-    const reviewLink = `${siteBase}/dash/admin/social-review`;
-    const postLink = `${siteBase}/dash/posts/${post?._id || ''}`;
+    const reviewLink = `${siteBase}/admin/social-review`;
+    const postLink = `${siteBase}/posts/${post?._id || ''}`;
     
     const isLost = post?.foundLost?.code === 'LOST' || post?.type === 'lost';
     const typeLabel = isLost ? '🔍 مفقود (Lost)' : '🟢 تم العثور عليه (Found)';
@@ -659,7 +659,7 @@ const sendSocialPublishMessage = async ({
 
     const lang = resolveLanguage(post, language);
     const siteBase = getSiteBaseUrl();
-    const siteLink = `${siteBase}/dash/posts/${post._id}?section=social-reach`;
+    const siteLink = `${siteBase}/posts/${post._id}?section=social-reach`;
 
     let platformLabel;
     let pLabel;
@@ -703,8 +703,8 @@ const sendMatchAlertMessage = async ({ post, matchedPost, score, language }) => 
 
     const lang = resolveLanguage(post, language);
     const siteBase = getSiteBaseUrl();
-    const matchLink = `${siteBase}/dash/posts/${matchedPost._id}`;
-    const ownLink   = `${siteBase}/dash/posts/${post._id}`;
+    const matchLink = `${siteBase}/posts/${matchedPost._id}`;
+    const ownLink   = `${siteBase}/posts/${post._id}`;
 
     let scoreLabel;
     if (lang === 'fr') {

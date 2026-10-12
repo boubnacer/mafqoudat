@@ -1767,7 +1767,7 @@ if (typeof document !== 'undefined') {
       <Box sx={{ maxWidth: 700, width: "100%", mb: 3 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <IconButton
-            onClick={() => navigate(`/dash/posts/${post._id}`)}
+            onClick={() => navigate(`/posts/${post._id}`)}
             aria-label={t('cancel')}
             sx={{
               border: `1px solid ${theme.palette.divider}`,
@@ -3742,7 +3742,7 @@ if (typeof document !== 'undefined') {
               >
                 <Box sx={{ display: 'flex', gap: 1.5, width: { xs: '100%', sm: 'auto' } }}>
                   <Button
-                    onClick={() => navigate(`/dash/posts/${post._id}`)}
+                    onClick={() => navigate(`/posts/${post._id}`)}
                     variant="text"
                     disabled={isLoading}
                     sx={{

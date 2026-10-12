@@ -264,10 +264,10 @@ const LeftSide = ({
     const foundOption = flOptionsData?.find(option => option.code === 'FOUND');
     if (foundOption) {
       dispatch(setFoundOrLost({ foundOrlost: foundOption.code }));
-      navigate(`/dash/posts?fl=${foundOption._id}`);
+      navigate(`/posts?fl=${foundOption._id}`);
     } else {
       // Fallback if options not loaded yet
-      navigate('/dash/posts');
+      navigate('/posts');
     }
   };
 
@@ -308,17 +308,17 @@ const LeftSide = ({
     const lostOption = flOptionsData?.find(option => option.code === 'LOST');
     if (lostOption) {
       dispatch(setFoundOrLost({ foundOrlost: lostOption.code }));
-      navigate(`/dash/posts?fl=${lostOption._id}`);
+      navigate(`/posts?fl=${lostOption._id}`);
     } else {
       // Fallback if options not loaded yet
-      navigate('/dash/posts');
+      navigate('/posts');
     }
   };
 
   // Handler for Returned Items
   const handleReturnedItemsClick = () => {
     // Navigate to posts list - returned items can be filtered on the posts page
-    navigate('/dash/posts?status=returned');
+    navigate('/posts?status=returned');
   };
 
   const isDark = theme.palette.mode === 'dark';

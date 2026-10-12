@@ -135,7 +135,7 @@ const PostMatchesPanel = ({ postId, isOwner, postReturned = false }) => {
               }}
             >
               <Box
-                onClick={() => navigate(`/dash/posts/${other.id}`)}
+                onClick={() => navigate(`/posts/${other.id}`)}
                 sx={{
                   width: 84,
                   height: 84,
@@ -227,7 +227,7 @@ const PostMatchesPanel = ({ postId, isOwner, postReturned = false }) => {
                     variant="contained"
                     disableElevation
                     endIcon={<ArrowForwardOutlined data-directional="true" sx={{ fontSize: 16 }} />}
-                    onClick={() => navigate(`/dash/posts/${other.id}`)}
+                    onClick={() => navigate(`/posts/${other.id}`)}
                     sx={{
                       textTransform: "none",
                       fontWeight: 700,

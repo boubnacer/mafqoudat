@@ -121,7 +121,7 @@ const RecentPostRow = ({ post, t, currentLanguage }) => {
   return (
     <Box
       component={RouterLink}
-      to={`/dash/posts/${post._id}`}
+      to={`/posts/${post._id}`}
       sx={(t2) => ({
         display: 'flex',
         alignItems: 'center',
@@ -316,7 +316,7 @@ const OverviewPage = () => {
             </Typography>
           </Box>
           <Button
-            onClick={() => navigate('/dash/admin/system')}
+            onClick={() => navigate('/admin/system')}
             endIcon={<ForwardIcon />}
             sx={actionButtonSx('attention')}
           >
@@ -377,7 +377,7 @@ const OverviewPage = () => {
                   />
                 ) : null
               }
-              onClick={() => navigate('/dash/admin/posts')}
+              onClick={() => navigate('/admin/posts')}
             />
           </Grid>
           <Grid item xs={6} md={3}>
@@ -393,7 +393,7 @@ const OverviewPage = () => {
                   <Sparkline values={series.map((row) => row.users || 0)} color={palette.found} />
                 ) : null
               }
-              onClick={() => navigate('/dash/admin/users')}
+              onClick={() => navigate('/admin/users')}
             />
           </Grid>
           <Grid item xs={6} md={3}>
@@ -403,7 +403,7 @@ const OverviewPage = () => {
               icon={VisibilityOutlined}
               tone="brand"
               hint={t('sessionsAllTime', { count: formatNumber(totals.visitors) })}
-              onClick={() => navigate('/dash/admin/analytics')}
+              onClick={() => navigate('/admin/analytics')}
             />
           </Grid>
           <Grid item xs={6} md={3}>
@@ -545,7 +545,7 @@ const OverviewPage = () => {
         actions={
           <Button
             component={RouterLink}
-            to="/dash/admin/posts"
+            to="/admin/posts"
             endIcon={<ForwardIcon />}
             sx={actionButtonSx('brand')}
           >
@@ -717,7 +717,7 @@ const OverviewPage = () => {
                   value={totals.comments}
                   icon={ChatBubbleOutlineOutlined}
                   tone="brand"
-                  onClick={() => navigate('/dash/admin/moderation?view=comments')}
+                  onClick={() => navigate('/admin/moderation?view=comments')}
                 />
               </Grid>
               <Grid item xs={6}>

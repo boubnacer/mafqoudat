@@ -184,7 +184,17 @@ export default {
             {
               scheme: "https",
               host: "mafqoudat.com",
+              pathPattern: "/posts/.*"
+            },
+            {
+              scheme: "https",
+              host: "mafqoudat.com",
               pathPattern: "/dash/posts/.*"
+            },
+            {
+              scheme: "https",
+              host: "www.mafqoudat.com",
+              pathPattern: "/posts/.*"
             },
             {
               scheme: "https",

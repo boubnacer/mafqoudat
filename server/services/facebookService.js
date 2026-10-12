@@ -90,8 +90,12 @@ class FacebookService {
     const targetToken = options.pageAccessToken || this.pageAccessToken;
     if (!targetPageId || !targetToken || !post?._id) return null;
 
-    const marker = `/dash/posts/${post._id}`;
-    const carriesMarker = (text) => String(text || '').includes(marker);
+    const marker = `/posts/${post._id}`;
+    const legacyMarker = `/dash/posts/${post._id}`;
+    const carriesMarker = (text) => {
+      const s = String(text || '');
+      return s.includes(marker) || s.includes(legacyMarker);
+    };
 
     try {
       const feed = await this.get(`/${targetPageId}/feed`, {

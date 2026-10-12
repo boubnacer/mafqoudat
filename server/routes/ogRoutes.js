@@ -13,7 +13,7 @@
 // being an OG card. Googlebot was deliberately left out of the vercel.json
 // rewrite on the theory that it renders JavaScript well enough on its own. In
 // production that turned out to be wrong in the way that matters: every post
-// URL and the /dash/posts listing answered Googlebot with the same 7,752-byte
+// URL and the /posts listing answered Googlebot with the same 7,752-byte
 // shell, the same English <title>, and zero headings - 37 listings that looked
 // to a first-pass crawl like 37 copies of one English page, while competitors
 // serving plain server-rendered Arabic HTML outranked them. Bingbot and
@@ -307,7 +307,7 @@ const describePost = (post, cityOf) => {
     post.personSex === "male" ? "ذكر" : post.personSex === "female" ? "أنثى" : "";
 
   return {
-    url: `${BASE_URL}/dash/posts/${post._id}`,
+    url: `${BASE_URL}/posts/${post._id}`,
     item,
     city,
     country,
@@ -390,20 +390,20 @@ ${body}
         <div class="footer-section">
           <h3>${escapeHtml(AR.popularCategoriesLabel)}</h3>
           <ul class="footer-links">
-            ${POPULAR_CATEGORIES.map(c => `<li><a href="${BASE_URL}/dash/posts?category=${escapeHtml(c.code)}">${escapeHtml(c.label)}</a></li>`).join("\n            ")}
+            ${POPULAR_CATEGORIES.map(c => `<li><a href="${BASE_URL}/posts?category=${escapeHtml(c.code)}">${escapeHtml(c.label)}</a></li>`).join("\n            ")}
           </ul>
         </div>
         <div class="footer-section">
           <h3>${escapeHtml(AR.topCitiesLabel)}</h3>
           <ul class="footer-links">
-            ${TOP_CITIES.map(c => `<li><a href="${BASE_URL}/dash/posts?city=${escapeHtml(c.code)}">${escapeHtml(c.label)}</a></li>`).join("\n            ")}
+            ${TOP_CITIES.map(c => `<li><a href="${BASE_URL}/posts?city=${escapeHtml(c.code)}">${escapeHtml(c.label)}</a></li>`).join("\n            ")}
           </ul>
         </div>
         <div class="footer-section" style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid #E5E7EB;">
           <nav aria-label="روابط الموقع">
             <ul class="footer-links">
               <li><a href="${BASE_URL}/">${escapeHtml(AR.home)}</a></li>
-              <li><a href="${BASE_URL}/dash/posts">${escapeHtml(AR.posts)}</a></li>
+              <li><a href="${BASE_URL}/posts">${escapeHtml(AR.posts)}</a></li>
               <li><a href="${BASE_URL}/blog">${escapeHtml(AR.blogLink)}</a></li>
               <li><a href="${BASE_URL}/about">${escapeHtml(AR.aboutLink)}</a></li>
               <li><a href="${BASE_URL}/help">${escapeHtml(AR.helpLink)}</a></li>
@@ -460,7 +460,7 @@ const renderNotFound = (url) =>
     ].join("\n"),
     body: `      <h1>${escapeHtml(AR.notFoundTitle)}</h1>
       <p>${escapeHtml(AR.notFoundDescription)}</p>
-      <p><a class="cta" href="${BASE_URL}/dash/posts">${escapeHtml(AR.moreLink)}</a></p>`,
+      <p><a class="cta" href="${BASE_URL}/posts">${escapeHtml(AR.moreLink)}</a></p>`,
   });
 
 // @desc Crawler-facing page for a single post
@@ -468,7 +468,7 @@ const renderNotFound = (url) =>
 // @access Public
 router.get("/og/posts/:id", async (req, res) => {
   const { id } = req.params;
-  const url = `${BASE_URL}/dash/posts/${id}`;
+  const url = `${BASE_URL}/posts/${id}`;
 
   const sendNotFound = () => {
     res.set("Content-Type", "text/html; charset=utf-8");
@@ -608,18 +608,18 @@ router.get("/og/posts/:id", async (req, res) => {
     // Contextual breadcrumb trail: Home > Posts > [Category] > [City] > [Post Title]
     const breadcrumbs = [
       { name: AR.home, url: `${BASE_URL}/` },
-      { name: AR.posts, url: `${BASE_URL}/dash/posts` },
+      { name: AR.posts, url: `${BASE_URL}/posts` },
     ];
     if (primaryCategoryLabel && primaryCategoryParam) {
       breadcrumbs.push({
         name: primaryCategoryLabel,
-        url: `${BASE_URL}/dash/posts?category=${encodeURIComponent(primaryCategoryParam)}`,
+        url: `${BASE_URL}/posts?category=${encodeURIComponent(primaryCategoryParam)}`,
       });
     }
     if (info.city && info.city !== AR.unknownLocation && cityParam) {
       breadcrumbs.push({
         name: info.city,
-        url: `${BASE_URL}/dash/posts?city=${encodeURIComponent(cityParam)}`,
+        url: `${BASE_URL}/posts?city=${encodeURIComponent(cityParam)}`,
       });
     }
     breadcrumbs.push({ name: info.heading, url });
@@ -700,7 +700,7 @@ ${facts}
 ${info.description ? `      <h2>${escapeHtml(AR.descriptionLabel)}</h2>\n      <p>${escapeHtml(info.description)}</p>\n` : ""}      <p><a class="cta" href="${escapeHtml(url)}">${escapeHtml(AR.viewPost)}</a></p>
 ${
   relatedCards
-    ? `      <h2>${escapeHtml(AR.relatedLabel)}</h2>\n      <ul class="cards">\n${relatedCards}\n      </ul>\n      <p><a href="${BASE_URL}/dash/posts">${escapeHtml(AR.moreLink)}</a></p>`
+    ? `      <h2>${escapeHtml(AR.relatedLabel)}</h2>\n      <ul class="cards">\n${relatedCards}\n      </ul>\n      <p><a href="${BASE_URL}/posts">${escapeHtml(AR.moreLink)}</a></p>`
     : ""
 }`;
 
@@ -724,7 +724,7 @@ ${
   }
 });
 
-// @desc Crawler-facing version of the /dash/posts browse listing
+// @desc Crawler-facing version of the /posts browse listing
 // @route GET /og/posts
 // @access Public
 //
@@ -733,7 +733,7 @@ ${
 // to one. A sitemap tells a crawler a URL exists; a linked listing tells it the
 // URL matters.
 router.get("/og/posts", async (req, res) => {
-  const url = `${BASE_URL}/dash/posts`;
+  const url = `${BASE_URL}/posts`;
 
   try {
     const posts = await Post.find({ status: "active" })

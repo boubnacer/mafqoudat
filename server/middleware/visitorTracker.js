@@ -126,9 +126,9 @@ const visitorTracker = async (req, res, next) => {
       firstPage = req.path || '/';
     }
 
-    // Skip tracking for admins navigating the admin portal (/dash/admin)
-    // Regular users browsing /dash or /dash/posts must not be skipped
-    if (req.cookies?.jwt && (firstPage.startsWith('/dash/admin') || req.get('Referer')?.includes('/dash/admin'))) {
+    // Skip tracking for admins navigating the admin portal (/admin or legacy /dash/admin)
+    // Regular users browsing / or /posts must not be skipped
+    if (req.cookies?.jwt && (firstPage.startsWith('/admin') || firstPage.startsWith('/dash/admin') || req.get('Referer')?.includes('/admin'))) {
       return next();
     }
 

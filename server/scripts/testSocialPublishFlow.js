@@ -125,7 +125,7 @@ const axiosStub = {
 // touch the database - what goes *in* the caption is covered by
 // test-social-images; what matters here is only that it carries the listing
 // URL (which is what the duplicate check matches on) and that it is long.
-let captionFor = (post) => `Lost item\n\nhttps://mafqoudat.com/dash/posts/${post._id}\n\n#مفقودات`;
+let captionFor = (post) => `Lost item\n\nhttps://mafqoudat.com/posts/${post._id}\n\n#مفقودات`;
 let imageFor = () => ({ imageUrl: 'https://res.cloudinary.com/demo/social/post-p1.jpg', isPlaceholder: false });
 
 const captionStub = {
@@ -141,7 +141,8 @@ const captionStub = {
 const originalLoad = Module._load;
 Module._load = function load(request, parent) {
   const file = parent && parent.filename ? parent.filename : '';
-  const isPublisher = file.endsWith('services/instagramService.js') || file.endsWith('services/facebookService.js');
+  const normalizedFile = file.replace(/\\/g, '/');
+  const isPublisher = normalizedFile.endsWith('services/instagramService.js') || normalizedFile.endsWith('services/facebookService.js');
   if (isPublisher && request === 'axios') return axiosStub;
   if (isPublisher && request === './socialCaption') return captionStub;
   // eslint-disable-next-line prefer-rest-params
@@ -170,7 +171,7 @@ const reset = () => {
   calls.post = [];
   getHandlers = {};
   postHandlers = {};
-  captionFor = (post) => `Lost item\n\nhttps://mafqoudat.com/dash/posts/${post._id}\n\n#مفقودات`;
+  captionFor = (post) => `Lost item\n\nhttps://mafqoudat.com/posts/${post._id}\n\n#مفقودات`;
   imageFor = () => ({ imageUrl: 'https://res.cloudinary.com/demo/social/post-p1.jpg', isPlaceholder: false });
 };
 
@@ -202,7 +203,7 @@ const run = async () => {
 
   const containerCall = calls.post.find((call) => call.path === '/ig123/media');
   check('the container call sends no query parameters at all', containerCall.params, undefined);
-  check('the caption is in the body', containerCall.fields.caption.includes('/dash/posts/p1'), true);
+  check('the caption is in the body', containerCall.fields.caption.includes('/posts/p1'), true);
   check('so is the image URL', containerCall.fields.image_url, 'https://res.cloudinary.com/demo/social/post-p1.jpg');
   check('so is the token', containerCall.fields.access_token, 'token-abc');
   check('form-encoded, as Graph expects', containerCall.headers['Content-Type'], 'application/x-www-form-urlencoded');
@@ -214,7 +215,7 @@ const run = async () => {
   const fbPublished = await new FacebookService().postNewListing(post);
   check('Facebook answers with the story id, not the photo id', fbPublished.postId, 'page123_9');
   const photoCall = calls.post.find((call) => call.path === '/page123/photos');
-  check('and its caption travels in the body too', photoCall.fields.caption.includes('/dash/posts/p1'), true);
+  check('and its caption travels in the body too', photoCall.fields.caption.includes('/posts/p1'), true);
   check('with no query string', photoCall.params, undefined);
 
   console.log('\n--- a container that is not ready yet is waited for, not abandoned ---');
@@ -335,7 +336,7 @@ const run = async () => {
       graphResponse({ status_code: 'PUBLISHED' }),
     ],
     '/ig123/media': graphResponse({
-      data: [{ id: 'media-7', caption: 'Lost item https://mafqoudat.com/dash/posts/p1', permalink: 'https://instagram.com/p/7' }],
+      data: [{ id: 'media-7', caption: 'Lost item https://mafqoudat.com/posts/p1', permalink: 'https://instagram.com/p/7' }],
     }),
   };
 
@@ -376,8 +377,8 @@ const run = async () => {
   getHandlers = {
     '/ig123/media': graphResponse({
       data: [
-        { id: 'other', caption: 'https://mafqoudat.com/dash/posts/p9', permalink: 'https://instagram.com/p/other' },
-        { id: 'mine', caption: 'https://mafqoudat.com/dash/posts/p1', permalink: 'https://instagram.com/p/mine' },
+        { id: 'other', caption: 'https://mafqoudat.com/posts/p9', permalink: 'https://instagram.com/p/other' },
+        { id: 'mine', caption: 'https://mafqoudat.com/posts/p1', permalink: 'https://instagram.com/p/mine' },
       ],
     }),
   };
@@ -408,7 +409,7 @@ const run = async () => {
   reset();
   getHandlers = {
     '/page123/feed': graphResponse({
-      data: [{ id: 'page123_5', message: 'see https://mafqoudat.com/dash/posts/p1', permalink_url: 'https://facebook.com/5' }],
+      data: [{ id: 'page123_5', message: 'see https://mafqoudat.com/posts/p1', permalink_url: 'https://facebook.com/5' }],
     }),
   };
   check(
@@ -421,7 +422,7 @@ const run = async () => {
   getHandlers = {
     '/page123/feed': graphResponse({ data: [] }),
     '/page123/photos': graphResponse({
-      data: [{ id: 'photo-9', name: 'see https://mafqoudat.com/dash/posts/p1', page_story_id: 'page123_9' }],
+      data: [{ id: 'photo-9', name: 'see https://mafqoudat.com/posts/p1', page_story_id: 'page123_9' }],
     }),
     '/page123_9': graphResponse({ permalink_url: 'https://facebook.com/9' }),
   };

@@ -28,7 +28,7 @@ async function main() {
   const jid = `${digits}@s.whatsapp.net`;
   console.log(`Target WhatsApp JID: ${jid}`);
 
-  const siteLink = `https://www.mafqoudat.com/dash/posts/${post._id}?section=social-reach`;
+  const siteLink = `https://www.mafqoudat.com/posts/${post._id}?section=social-reach`;
   const text = [
     'مرحبًا! 👋',
     '',

@@ -505,7 +505,7 @@ const runWebPush = async () => {
   check(
     'a single match links straight to the counterpart listing',
     webPushSends[0].payload.data.url,
-    'https://mafqoudat.com/dash/posts/post-1'
+    'https://mafqoudat.com/posts/post-1'
   );
 
   reset();
@@ -518,7 +518,7 @@ const runWebPush = async () => {
   check(
     'a burst opens the inbox, which is the only screen that can show them all',
     webPushSends[0].payload.data.url,
-    'https://mafqoudat.com/dash/notifications'
+    'https://mafqoudat.com/notifications'
   );
 
   reset();
@@ -531,7 +531,7 @@ const runWebPush = async () => {
     text: 'Is this still available?',
     commenterName: 'Yasmine',
   });
-  check('a comment opens the post it is on', webPushSends[0].payload.data.url, 'https://mafqoudat.com/dash/posts/post-9');
+  check('a comment opens the post it is on', webPushSends[0].payload.data.url, 'https://mafqoudat.com/posts/post-9');
 
   reset();
   webPushSends.length = 0;
@@ -545,7 +545,7 @@ const runWebPush = async () => {
   check(
     'a social publish alert deep-links to the reach section',
     webPushSends[0].payload.data.url,
-    'https://mafqoudat.com/dash/posts/post-9?section=social-reach'
+    'https://mafqoudat.com/posts/post-9?section=social-reach'
   );
   check('and is held a week rather than two days', webPushSends[0].options.TTL, 7 * 24 * 60 * 60);
 

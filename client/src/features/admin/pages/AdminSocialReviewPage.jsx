@@ -344,7 +344,7 @@ const AdminSocialReviewPage = () => {
                 <IconButton
                   size="small"
                   component="a"
-                  href={`/dash/posts/${post._id}`}
+                  href={`/posts/${post._id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

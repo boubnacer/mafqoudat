@@ -1,6 +1,13 @@
 User-agent: *
 Allow: /
-# Disallow protected/authenticated routes
+# Disallow protected/authenticated routes (clean & legacy)
+Disallow: /posts/new
+Disallow: /posts/edit/
+Disallow: /profile
+Disallow: /myposts
+Disallow: /admin
+Disallow: /users
+Disallow: /dependencies
 Disallow: /dash/posts/new
 Disallow: /dash/posts/edit/
 Disallow: /dash/profile

@@ -14,7 +14,7 @@ const User = ({ userId }) => {
   const navigate = useNavigate();
 
   if (user) {
-    const handleEdit = () => navigate(`/dash/users/${userId}`);
+    const handleEdit = () => navigate(`/users/${userId}`);
 
     const cellStatus = user.active ? "" : "table__cell--inactive";
 

@@ -55,10 +55,10 @@ const NavLinks = ({ onLinkClick }) => {
     // Navigate with filter parameter using the correct URL structure
     if (link.flcode && link.flcode.trim() !== '') {
       // Use the fl parameter that PostsList expects
-      navigate(`/dash/posts?fl=${link.flcode}`);
+      navigate(`/posts?fl=${link.flcode}`);
     } else {
       // Navigate to all posts without filter
-      navigate("/dash/posts");
+      navigate("/posts");
     }
     
     // Close mobile menu if callback provided

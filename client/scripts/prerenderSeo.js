@@ -330,7 +330,7 @@ const renderArticleBody = (post, localized, t) => {
       <nav class="pre-mount-nav" aria-label="Navigation">
         <ul class="pre-mount-nav-list">
           <li class="pre-mount-nav-item"><a class="pre-mount-nav-link" href="${BASE_URL}/blog">${escapeHtml(t('blog') || 'Blog')}</a></li>
-          <li class="pre-mount-nav-item"><a class="pre-mount-nav-link" href="${BASE_URL}/dash/posts">${escapeHtml(t('posts') || 'Posts')}</a></li>
+          <li class="pre-mount-nav-item"><a class="pre-mount-nav-link" href="${BASE_URL}/posts">${escapeHtml(t('posts') || 'Posts')}</a></li>
         </ul>
       </nav>
     </main>

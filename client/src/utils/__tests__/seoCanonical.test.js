@@ -9,26 +9,26 @@ describe('Canonical URL Normalization & Trailing-Slash Consistency', () => {
     });
 
     test('strips trailing slashes from routes', () => {
-      expect(normalizePath('/dash/posts/')).toBe('/dash/posts');
+      expect(normalizePath('/posts/')).toBe('/posts');
       expect(normalizePath('/about/')).toBe('/about');
       expect(normalizePath('/blog/my-post/')).toBe('/blog/my-post');
     });
 
     test('preserves routes that already have no trailing slash', () => {
-      expect(normalizePath('/dash/posts')).toBe('/dash/posts');
+      expect(normalizePath('/posts')).toBe('/posts');
       expect(normalizePath('/about')).toBe('/about');
     });
 
     test('strips query strings and hash fragments', () => {
-      expect(normalizePath('/dash/posts?city=casablanca')).toBe('/dash/posts');
-      expect(normalizePath('/dash/posts/?city=rabat#section')).toBe('/dash/posts');
+      expect(normalizePath('/posts?city=casablanca')).toBe('/posts');
+      expect(normalizePath('/posts/?city=rabat#section')).toBe('/posts');
       expect(normalizePath('/about?lang=ar')).toBe('/about');
       expect(normalizePath('/#top')).toBe('/');
     });
 
     test('handles paths without leading slash and collapses multiple slashes', () => {
-      expect(normalizePath('dash/posts/')).toBe('/dash/posts');
-      expect(normalizePath('//dash///posts//')).toBe('/dash/posts');
+      expect(normalizePath('posts/')).toBe('/posts');
+      expect(normalizePath('//posts//')).toBe('/posts');
       expect(normalizePath('//')).toBe('/');
     });
   });
@@ -41,20 +41,20 @@ describe('Canonical URL Normalization & Trailing-Slash Consistency', () => {
     });
 
     test('enforces canonical origin and strips trailing slash for non-root routes', () => {
-      expect(buildAbsoluteUrl('/dash/posts/')).toBe('https://www.mafqoudat.com/dash/posts');
-      expect(buildAbsoluteUrl('/dash/posts')).toBe('https://www.mafqoudat.com/dash/posts');
+      expect(buildAbsoluteUrl('/posts/')).toBe('https://www.mafqoudat.com/posts');
+      expect(buildAbsoluteUrl('/posts')).toBe('https://www.mafqoudat.com/posts');
       expect(buildAbsoluteUrl('/about/')).toBe('https://www.mafqoudat.com/about');
     });
 
     test('strips query parameters and hash fragments', () => {
-      expect(buildAbsoluteUrl('/dash/posts?city=rabat')).toBe('https://www.mafqoudat.com/dash/posts');
-      expect(buildAbsoluteUrl('/dash/posts/?city=rabat#details')).toBe('https://www.mafqoudat.com/dash/posts');
+      expect(buildAbsoluteUrl('/posts?city=rabat')).toBe('https://www.mafqoudat.com/posts');
+      expect(buildAbsoluteUrl('/posts/?city=rabat#details')).toBe('https://www.mafqoudat.com/posts');
     });
 
     test('normalizes full URLs with localhost, non-www, http to https://www.mafqoudat.com', () => {
-      expect(buildAbsoluteUrl('https://www.mafqoudat.com/dash/posts/')).toBe('https://www.mafqoudat.com/dash/posts');
-      expect(buildAbsoluteUrl('http://mafqoudat.com/dash/posts/?city=rabat')).toBe('https://www.mafqoudat.com/dash/posts');
-      expect(buildAbsoluteUrl('http://localhost:3000/dash/posts/')).toBe('https://www.mafqoudat.com/dash/posts');
+      expect(buildAbsoluteUrl('https://www.mafqoudat.com/posts/')).toBe('https://www.mafqoudat.com/posts');
+      expect(buildAbsoluteUrl('http://mafqoudat.com/posts/?city=rabat')).toBe('https://www.mafqoudat.com/posts');
+      expect(buildAbsoluteUrl('http://localhost:3000/posts/')).toBe('https://www.mafqoudat.com/posts');
       expect(buildAbsoluteUrl('https://www.mafqoudat.com/')).toBe('https://www.mafqoudat.com/');
     });
 
@@ -78,11 +78,11 @@ describe('Canonical URL Normalization & Trailing-Slash Consistency', () => {
     }
 
     test('normalizes trailing slashes and query strings', () => {
-      expect(computeCanonical('/dash/posts/')).toBe('https://www.mafqoudat.com/dash/posts');
-      expect(computeCanonical('/dash/posts')).toBe('https://www.mafqoudat.com/dash/posts');
+      expect(computeCanonical('/posts/')).toBe('https://www.mafqoudat.com/posts');
+      expect(computeCanonical('/posts')).toBe('https://www.mafqoudat.com/posts');
       expect(computeCanonical('/')).toBe('https://www.mafqoudat.com/');
       expect(computeCanonical('/about/')).toBe('https://www.mafqoudat.com/about');
-      expect(computeCanonical('/dash/posts/?city=rabat')).toBe('https://www.mafqoudat.com/dash/posts');
+      expect(computeCanonical('/posts/?city=rabat')).toBe('https://www.mafqoudat.com/posts');
     });
   });
 });

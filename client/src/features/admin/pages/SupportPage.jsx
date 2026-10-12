@@ -474,7 +474,7 @@ const SupportPage = () => {
                 </Button>
                 <Button
                   component="a"
-                  href={`/dash/admin/users?q=${encodeURIComponent(request.contactInfo)}`}
+                  href={`/admin/users?q=${encodeURIComponent(request.contactInfo)}`}
                   size="small"
                   sx={actionButtonSx('brand')}
                 >

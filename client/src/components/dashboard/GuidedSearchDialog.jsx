@@ -817,7 +817,7 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
 
     // 3. Close dialog and navigate
     onClose();
-    navigate(`/dash/posts?${params.toString()}`, {
+    navigate(`/posts?${params.toString()}`, {
       state: { selectedCityObj: finalCity }
     });
   };

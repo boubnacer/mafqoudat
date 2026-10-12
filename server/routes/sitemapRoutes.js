@@ -54,7 +54,7 @@ router.get("/sitemap-posts.xml", async (req, res) => {
       .filter((post) => post && post._id && String(post._id).trim().length > 0)
       .map((post) => {
         const cleanId = String(post._id).trim().replace(/\/+$/, "");
-        const loc = `${BASE_URL}/dash/posts/${cleanId}`;
+        const loc = `${BASE_URL}/posts/${cleanId}`;
         const lastmod = toIsoDate(post.updatedAt || post.createdAt);
         return [
           "  <url>",

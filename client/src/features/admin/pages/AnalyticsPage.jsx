@@ -342,7 +342,7 @@ const AnalyticsPage = () => {
               <Box
                 key={post.id}
                 component={RouterLink}
-                to={`/dash/posts/${post.id}`}
+                to={`/posts/${post.id}`}
                 sx={(t2) => ({
                   display: 'flex',
                   alignItems: 'center',

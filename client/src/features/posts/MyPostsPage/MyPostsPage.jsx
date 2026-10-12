@@ -82,15 +82,15 @@ const MyPostsPage = () => {
   };
 
   const handleViewPost = (postId) => {
-    navigate(`/dash/posts/${postId}`);
+    navigate(`/posts/${postId}`);
   };
 
   const handleEditPost = (postId) => {
-    navigate(`/dash/posts/edit/${postId}`);
+    navigate(`/posts/edit/${postId}`);
   };
 
   const handleCreatePost = () => {
-    navigate('/dash/posts/new');
+    navigate('/posts/new');
   };
 
   const handleGoBack = () => {

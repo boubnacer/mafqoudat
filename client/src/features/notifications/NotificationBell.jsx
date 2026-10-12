@@ -131,7 +131,7 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
 
     const onlyMatch = group.matches?.length === 1 ? group.matches[0] : null;
     if (!onlyMatch) {
-      navigate('/dash/notifications');
+      navigate('/notifications');
       onNavigate?.();
       return;
     }
@@ -145,7 +145,7 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
         /* non-blocking */
       }
     }
-    navigate(`/dash/posts/${onlyMatch.matchedPost.id}`);
+    navigate(`/posts/${onlyMatch.matchedPost.id}`);
     onNavigate?.();
   }, [closePopover, markRead, navigate, onNavigate]);
 
@@ -158,7 +158,7 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
         /* non-blocking */
       }
     }
-    navigate(`/dash/posts/${item.post.id}`);
+    navigate(`/posts/${item.post.id}`);
     onNavigate?.();
   }, [closePopover, markRead, navigate, onNavigate]);
 
@@ -173,7 +173,7 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
         /* non-blocking */
       }
     }
-    navigate(`/dash/posts/${item.post.id}?${SECTION_QUERY_PARAM}=${SOCIAL_REACH_SECTION}`);
+    navigate(`/posts/${item.post.id}?${SECTION_QUERY_PARAM}=${SOCIAL_REACH_SECTION}`);
     onNavigate?.();
   }, [closePopover, markRead, navigate, onNavigate]);
 
@@ -311,7 +311,7 @@ const NotificationBell = ({ variant = "desktop", onNavigate }) => {
             fullWidth
             onClick={() => {
               closePopover();
-              navigate('/dash/notifications');
+              navigate('/notifications');
               onNavigate?.();
             }}
             sx={{

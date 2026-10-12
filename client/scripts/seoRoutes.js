@@ -21,16 +21,16 @@ const STATIC_ROUTES = [
 
 // Routes that belong in the sitemap but must NOT get a build-time HTML file.
 //
-// /dash/posts is the browse listing - the most important page on the site for
+// /posts is the browse listing - the most important page on the site for
 // search, and until now it was in no sitemap at all. It is served to crawlers
 // by the API's /og/posts renderer through a user-agent rewrite in vercel.json,
 // which only fires when the path misses the filesystem. Writing a static
-// build/dash/posts/index.html here would shadow that rewrite and hand crawlers
+// build/posts/index.html here would shadow that rewrite and hand crawlers
 // a page with no live listings on it, so this list is deliberately separate
 // from STATIC_ROUTES: generateSitemap.js reads both, prerenderSeo.js reads
 // only STATIC_ROUTES.
 const SITEMAP_ONLY_ROUTES = [
-  { path: '/dash/posts', changefreq: 'daily', priority: '0.9' },
+  { path: '/posts', changefreq: 'daily', priority: '0.9' },
 ];
 
 module.exports = { STATIC_ROUTES, SITEMAP_ONLY_ROUTES };

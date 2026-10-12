@@ -47,7 +47,7 @@ const EditUserForm = ({ user, countries }) => {
       setUsername("");
       setPassword("");
       setCountryId("");
-      navigate("/dash/users");
+      navigate("/users");
     }
   }, [isSuccess, isDelSuccess, navigate]);
 

@@ -24,7 +24,7 @@ const escapeXml = (value) =>
  * Normalizes a route path to a strictly canonical sitemap URL:
  * - Root path ('/' or empty) resolves to canonical 'https://www.mafqoudat.com/'
  * - Non-root paths always strip trailing slashes to prevent Vercel 308 redirects
- * - Legacy paths like '/posts' are automatically mapped to '/dash/posts'
+ * - Legacy paths like '/dash/posts' are automatically mapped to '/posts'
  * - Query strings and hash fragments are stripped
  */
 const normalizeSitemapUrl = (routePath) => {
@@ -43,9 +43,9 @@ const normalizeSitemapUrl = (routePath) => {
     return `${BASE_URL}/`;
   }
 
-  // Intercept legacy routes that redirect (e.g. /posts -> /dash/posts)
-  if (trimmed === 'posts') {
-    return `${BASE_URL}/dash/posts`;
+  // Intercept legacy routes that redirect (e.g. /dash/posts -> /posts)
+  if (trimmed === 'dash/posts') {
+    return `${BASE_URL}/posts`;
   }
 
   return `${BASE_URL}/${trimmed}`;
@@ -75,8 +75,8 @@ const generateSitemap = () => {
     if (loc.length > `${BASE_URL}/`.length && loc.endsWith('/')) {
       throw new Error(`Sitemap URL contains trailing slash: ${loc}`);
     }
-    // 3. No legacy routes (e.g. /posts)
-    if (loc === `${BASE_URL}/posts`) {
+    // 3. No legacy routes (e.g. /dash/posts)
+    if (loc === `${BASE_URL}/dash/posts`) {
       throw new Error(`Legacy redirecting route detected in sitemap: ${loc}`);
     }
 

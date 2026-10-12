@@ -89,7 +89,7 @@ const NotificationsPage = () => {
         /* opening the listing matters more than recording the read receipt */
       }
     }
-    navigate(`/dash/posts/${match.matchedPost.id}`);
+    navigate(`/posts/${match.matchedPost.id}`);
   }, [markRead, navigate]);
 
   const handleDismissMatch = useCallback(async (match) => {
@@ -108,7 +108,7 @@ const NotificationsPage = () => {
         /* opening the listing matters more than recording the read receipt */
       }
     }
-    navigate(`/dash/posts/${item.post.id}`);
+    navigate(`/posts/${item.post.id}`);
   }, [markRead, navigate]);
 
   /**
@@ -124,7 +124,7 @@ const NotificationsPage = () => {
         /* opening the listing matters more than recording the read receipt */
       }
     }
-    navigate(`/dash/posts/${item.post.id}?${SECTION_QUERY_PARAM}=${SOCIAL_REACH_SECTION}`);
+    navigate(`/posts/${item.post.id}?${SECTION_QUERY_PARAM}=${SOCIAL_REACH_SECTION}`);
   }, [markRead, navigate]);
 
   // Every flat row (comment alerts, social-publish alerts) dismisses by its own

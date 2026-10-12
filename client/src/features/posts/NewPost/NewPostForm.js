@@ -516,7 +516,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       isExitingRef.current = true;
       const createdPostId = newPostData?.postId || newPostData?._id || newPostData?.id;
       if (createdPostId) {
-        navigate(`/dash/posts/${createdPostId}`, { replace: true });
+        navigate(`/posts/${createdPostId}`, { replace: true });
       } else {
         navigate("/", { replace: true });
       }
@@ -1023,7 +1023,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       isExitingRef.current = true;
       const createdPostId = result?.postId || result?._id || result?.id;
       if (createdPostId) {
-        navigate(`/dash/posts/${createdPostId}`, { replace: true });
+        navigate(`/posts/${createdPostId}`, { replace: true });
       } else {
         navigate("/", { replace: true });
       }

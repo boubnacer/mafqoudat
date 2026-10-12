@@ -53,19 +53,19 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
   };
 
   const handleViewPost = (postId) => {
-    navigate(`/dash/posts/${postId}`);
+    navigate(`/posts/${postId}`);
   };
 
   const handleEditPost = (postId) => {
-    navigate(`/dash/posts/edit/${postId}`);
+    navigate(`/posts/edit/${postId}`);
   };
 
   const handleCreatePost = () => {
-    navigate('/dash/posts/new');
+    navigate('/posts/new');
   };
 
   const handleViewAllPosts = () => {
-    navigate('/dash/posts/my-posts');
+    navigate('/myposts');
   };
 
   if (isLoading) {

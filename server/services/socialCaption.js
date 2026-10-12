@@ -463,7 +463,7 @@ async function buildListingCaption(post, { maxLength = null } = {}) {
 
   const statusCode = foundLost?.code;
   const siteUrl = getPublicSiteUrl();
-  const postUrl = `${siteUrl}/dash/posts/${post._id}`;
+  const postUrl = `${siteUrl}/posts/${post._id}`;
 
   // Caption is trilingual, so the per-post hashtags follow: one set per
   // language (city + every category + country), not just Arabic - a French or English

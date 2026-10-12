@@ -203,7 +203,7 @@ const PromotionsPage = () => {
           <>
             <Button
               component="a"
-              href={`/dash/posts/${promotion._id}`}
+              href={`/posts/${promotion._id}`}
               target="_blank"
               rel="noreferrer"
               size="small"

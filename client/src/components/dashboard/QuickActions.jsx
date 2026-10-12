@@ -112,11 +112,11 @@ const QuickActions = () => {
 
   const handleCreatePost = (type) => {
     if (!token) {
-      const intendedDestination = `/dash/posts/new?type=${type}`;
+      const intendedDestination = `/posts/new?type=${type}`;
       authStorage.setRedirectAfterLoginWithMessage(intendedDestination, 'loginRequiredCreatePost');
       navigate('/login');
     } else {
-      navigate(`/dash/posts/new?type=${type}`);
+      navigate(`/posts/new?type=${type}`);
     }
   };
 
@@ -141,7 +141,7 @@ const QuickActions = () => {
     },
   ];
 
-  const goToSearch = () => navigate('/dash/posts');
+  const goToSearch = () => navigate('/posts');
 
   return (
     <Box

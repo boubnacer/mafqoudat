@@ -206,7 +206,7 @@ Support: ${this.supportEmail}`;
 
   formatReportMessage(postData, userData, reportReason) {
     const timestamp = new Date().toLocaleString();
-    const postUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/dash/posts/${postData._id}`;
+    const postUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/posts/${postData._id}`;
     
     return `🚨 POST REPORT 🚨
 
@@ -238,7 +238,7 @@ Support: ${this.supportEmail}`;
 
   formatReportHtmlMessage(postData, userData, reportReason) {
     const timestamp = new Date().toLocaleString();
-    const postUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/dash/posts/${postData._id}`;
+    const postUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/posts/${postData._id}`;
     
     return `
     <!DOCTYPE html>

@@ -17,24 +17,24 @@ describe('Sitemap URL Normalization & Non-Redirecting URLs Audit', () => {
 
     test('strips trailing slashes from non-root routes to avoid 308 redirects', () => {
       expect(normalizeSitemapUrl('/about/')).toBe('https://www.mafqoudat.com/about');
-      expect(normalizeSitemapUrl('/dash/posts/')).toBe('https://www.mafqoudat.com/dash/posts');
+      expect(normalizeSitemapUrl('/posts/')).toBe('https://www.mafqoudat.com/posts');
       expect(normalizeSitemapUrl('/blog/my-post/')).toBe('https://www.mafqoudat.com/blog/my-post');
     });
 
-    test('intercepts legacy /posts route and normalizes to /dash/posts', () => {
-      expect(normalizeSitemapUrl('/posts')).toBe('https://www.mafqoudat.com/dash/posts');
-      expect(normalizeSitemapUrl('/posts/')).toBe('https://www.mafqoudat.com/dash/posts');
-      expect(normalizeSitemapUrl('posts')).toBe('https://www.mafqoudat.com/dash/posts');
+    test('intercepts legacy /dash/posts route and normalizes to /posts', () => {
+      expect(normalizeSitemapUrl('/dash/posts')).toBe('https://www.mafqoudat.com/posts');
+      expect(normalizeSitemapUrl('/dash/posts/')).toBe('https://www.mafqoudat.com/posts');
+      expect(normalizeSitemapUrl('dash/posts')).toBe('https://www.mafqoudat.com/posts');
     });
 
     test('strips query parameters and hash fragments', () => {
-      expect(normalizeSitemapUrl('/dash/posts?city=rabat')).toBe('https://www.mafqoudat.com/dash/posts');
+      expect(normalizeSitemapUrl('/posts?city=rabat')).toBe('https://www.mafqoudat.com/posts');
       expect(normalizeSitemapUrl('/about?lang=ar#faq')).toBe('https://www.mafqoudat.com/about');
     });
 
     test('handles paths without leading slash and collapses multiple slashes', () => {
-      expect(normalizeSitemapUrl('dash/posts/')).toBe('https://www.mafqoudat.com/dash/posts');
-      expect(normalizeSitemapUrl('//dash///posts//')).toBe('https://www.mafqoudat.com/dash/posts');
+      expect(normalizeSitemapUrl('posts/')).toBe('https://www.mafqoudat.com/posts');
+      expect(normalizeSitemapUrl('//posts//')).toBe('https://www.mafqoudat.com/posts');
     });
   });
 
@@ -60,9 +60,9 @@ describe('Sitemap URL Normalization & Non-Redirecting URLs Audit', () => {
       });
     });
 
-    test('no legacy redirecting routes exist (e.g., bare /posts)', () => {
-      expect(locMatches).not.toContain('https://www.mafqoudat.com/posts');
-      expect(locMatches).toContain('https://www.mafqoudat.com/dash/posts');
+    test('no legacy redirecting routes exist (e.g., bare /dash/posts)', () => {
+      expect(locMatches).not.toContain('https://www.mafqoudat.com/dash/posts');
+      expect(locMatches).toContain('https://www.mafqoudat.com/posts');
     });
 
     test('contains no duplicate URLs', () => {
@@ -88,7 +88,8 @@ describe('Sitemap URL Normalization & Non-Redirecting URLs Audit', () => {
           expect(url.endsWith('/')).toBe(false);
         }
       });
-      expect(locMatches).not.toContain('https://www.mafqoudat.com/posts');
+      expect(locMatches).toContain('https://www.mafqoudat.com/posts');
+      expect(locMatches).not.toContain('https://www.mafqoudat.com/dash/posts');
     });
   });
 

@@ -8,11 +8,26 @@
       "source": "/dash",
       "destination": "/",
       "permanent": true
+    },
+    {
+      "source": "/dash/posts/:id",
+      "destination": "/posts/:id",
+      "permanent": true
+    },
+    {
+      "source": "/dash/posts",
+      "destination": "/posts",
+      "permanent": true
+    },
+    {
+      "source": "/dash/:path*",
+      "destination": "/:path*",
+      "permanent": true
     }
   ],
   "rewrites": [
     {
-      "source": "/dash/posts/:id",
+      "source": "/posts/:id",
       "has": [
         {
           "type": "header",
@@ -23,7 +38,7 @@
       "destination": "https://mafqoudat-production.up.railway.app/og/posts/:id"
     },
     {
-      "source": "/dash/posts",
+      "source": "/posts",
       "has": [
         {
           "type": "header",
@@ -72,10 +87,6 @@
     {
       "source": "/users/:path*",
       "destination": "https://mafqoudat-production.up.railway.app/users/:path*"
-    },
-    {
-      "source": "/posts/:path*",
-      "destination": "https://mafqoudat-production.up.railway.app/posts/:path*"
     },
     {
       "source": "/notifications/:path*",

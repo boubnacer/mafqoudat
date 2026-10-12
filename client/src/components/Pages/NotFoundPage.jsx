@@ -154,7 +154,7 @@ const NotFoundPage = () => {
 
                 <Button
                   component={Link}
-                  to="/dash/posts"
+                  to="/posts"
                   variant="outlined"
                   size="large"
                   startIcon={<SearchOutlined />}

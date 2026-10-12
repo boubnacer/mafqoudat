@@ -10,23 +10,23 @@ import { authStorage } from '../utils/authStorage';
 const getLoginRedirectMessageKey = (pathname = '') => {
   if (!pathname) return 'loginRequiredDefault';
 
-  if (pathname.startsWith('/dash/posts/new')) {
+  if (pathname.startsWith('/posts/new')) {
     return 'loginRequiredCreatePost';
   }
 
-  if (pathname.startsWith('/dash/posts/edit')) {
+  if (pathname.startsWith('/posts/edit')) {
     return 'loginRequiredEditPost';
   }
 
-  if (pathname.startsWith('/dash/profile')) {
+  if (pathname.startsWith('/profile')) {
     return 'loginRequiredProfile';
   }
 
-  if (pathname.startsWith('/dash/myposts')) {
+  if (pathname.startsWith('/myposts')) {
     return 'loginRequiredMyPosts';
   }
 
-  if (pathname.startsWith('/dash/admin') || pathname.startsWith('/dash/users') || pathname.startsWith('/dash/dependencies')) {
+  if (pathname.startsWith('/admin') || pathname.startsWith('/users') || pathname.startsWith('/dependencies')) {
     return 'loginRequiredAdmin';
   }
 

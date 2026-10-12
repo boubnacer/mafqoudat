@@ -548,7 +548,7 @@ const Post = ({ post, type }) => {
   // Memoized event handlers
 
   const handleViewDetails = useCallback(() => {
-    navigate(`/dash/posts/${post?._id}`);
+    navigate(`/posts/${post?._id}`);
   }, [navigate, post?._id]);
 
   // Ambient Aura Mesh background for no-image cards (Option 1)
@@ -623,7 +623,7 @@ const Post = ({ post, type }) => {
   return (
     <PostCardRoot
       component={Link}
-      to={`/dash/posts/${post?._id}`}
+      to={`/posts/${post?._id}`}
       sx={{
         textDecoration: 'none',
         color: 'inherit',

@@ -395,7 +395,7 @@ const sendToBrowsers = async (subscriptions, copyFor, data, options = {}) => {
 
 const clientOrigin = () => (process.env.CLIENT_URL || '').replace(/\/+$/, '');
 
-const postUrl = (postId, query = '') => `${clientOrigin()}/dash/posts/${postId}${query}`;
+const postUrl = (postId, query = '') => `${clientOrigin()}/posts/${postId}${query}`;
 
 // ---------------------------------------------------------------------------
 // Match alerts
@@ -483,7 +483,7 @@ const sendMatchAlert = async ({ user, ownPostCode, alerts }) => {
       };
     }, {
       ...data,
-      url: count === 1 ? postUrl(alerts[0].matchedPostId) : `${clientOrigin()}/dash/notifications`,
+      url: count === 1 ? postUrl(alerts[0].matchedPostId) : `${clientOrigin()}/notifications`,
     }),
   ]);
 
@@ -641,7 +641,7 @@ const sendSocialPublishAlert = async ({ user, postId, notificationId, platform, 
 
 /**
  * Browser push notification sent to all active Admins when a new post is created
- * and is waiting for review in the Admin Console (/dash/admin/social-review).
+ * and is waiting for review in the Admin Console (/admin/social-review).
  *
  * This completely replaces the WhatsApp alert with a direct, 1-click browser push
  * that takes the administrator straight to the review page.
@@ -674,7 +674,7 @@ const sendNewPostAdminReviewAlert = async ({ post, authorName = 'مستخدم ا
     const typeLabelFr = isLost ? '🔍 Objet perdu' : '🟢 Objet trouvé';
     const snippet = (post?.description || '').slice(0, 80).trim() || '—';
 
-    const targetUrl = `${clientOrigin()}/dash/admin/social-review`;
+    const targetUrl = `${clientOrigin()}/admin/social-review`;
     const data = {
       type: 'admin_social_review',
       postId: String(post?._id || ''),

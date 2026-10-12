@@ -1888,7 +1888,7 @@ const createNewPost = async (req, res) => {
       // Social Publishing Approval Gate:
       // Rather than immediately publishing to Facebook and Instagram, listings start
       // in 'pending' status. The site admin is notified via browser push notification
-      // and can review, edit mistakes/images in the Admin Console (/dash/admin/social-review), and approve.
+      // and can review, edit mistakes/images in the Admin Console (/admin/social-review), and approve.
       // Once approved, the post enters socialPublishQueue with paced intervals to avoid
       // Meta rate limits and restrictions.
       pushNotificationService

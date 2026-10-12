@@ -404,14 +404,14 @@ const RecentPosts = (props) => {
     return layers.join(", ");
   }, [categoryStyles, currentLanguage, theme]);
 
-  const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
+  const handleViewDetails = () => navigate(`/posts/${_id}`);
   const textColor = finalImageUrl ? "#FFFFFF" : theme.custom.color.ink;
   const dateColor = finalImageUrl ? alpha("#FFFFFF", 0.85) : alpha(theme.custom.color.ink, 0.75);
 
   return (
     <Box
       component={Link}
-      to={`/dash/posts/${_id}`}
+      to={`/posts/${_id}`}
       data-reveal-item=""
       sx={{
         textDecoration: "none",

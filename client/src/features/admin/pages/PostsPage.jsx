@@ -433,7 +433,7 @@ const PostsPage = () => {
         ))}
         <MenuItem
           component="a"
-          href={menu.row ? `/dash/posts/${menu.row._id}` : undefined}
+          href={menu.row ? `/posts/${menu.row._id}` : undefined}
           target="_blank"
           rel="noreferrer"
           onClick={() => setMenu({ anchor: null, row: null })}
@@ -469,7 +469,7 @@ const PostsPage = () => {
             <>
               <Button
                 component="a"
-                href={`/dash/posts/${selected._id}`}
+                href={`/posts/${selected._id}`}
                 target="_blank"
                 rel="noreferrer"
                 endIcon={<OpenInNewOutlined />}

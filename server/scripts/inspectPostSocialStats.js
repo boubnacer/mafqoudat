@@ -38,7 +38,7 @@ const postId = process.argv[2];
 
 if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
   console.error('Usage: node scripts/inspectPostSocialStats.js <postId>');
-  console.error('Find the id in the post detail page URL: /dash/posts/<postId>');
+  console.error('Find the id in the post detail page URL: /posts/<postId>');
   process.exit(1);
 }
 

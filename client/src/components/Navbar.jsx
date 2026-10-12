@@ -430,7 +430,7 @@ const Navbar = () => {
   useEffect(() => {
     if (isSuccess) {
       // Define routes that require authentication
-      const protectedRoutes = ["/dash/posts/new", "/dash/posts/edit", "/profile", "/admin"];
+      const protectedRoutes = ["/posts/new", "/posts/edit", "/profile", "/admin"];
 
       const currentPath = window.location.pathname;
 
@@ -484,7 +484,7 @@ const Navbar = () => {
   const handleCategorySelect = (categoryId) => {
     setCategoriesOpen(false);
     setMobileDrawerOpen(false);
-    navigate("/dash/posts", {
+    navigate("/posts", {
       state: {
         categoryFilter: categoryId,
         fromCategory: true,
@@ -582,7 +582,7 @@ const Navbar = () => {
       action: () => {
         // Reset found/lost state to show all posts
         dispatch(setFoundOrLost({ foundOrlost: "" }));
-        navigate("/dash/posts");
+        navigate("/posts");
       },
       description: t("viewAllPosts"),
       tone: "neutral",
@@ -612,7 +612,7 @@ const Navbar = () => {
           // Update Redux state with the found/lost status
           dispatch(setFoundOrLost({ foundOrlost: option.code }));
           // Navigate with the correct found/lost ID filter
-          navigate(`/dash/posts?fl=${option._id}`);
+          navigate(`/posts?fl=${option._id}`);
         },
         description: t(`view${option.code}Items`),
         tone: option.code === "FOUND" ? "found" : "lost",
@@ -623,7 +623,7 @@ const Navbar = () => {
           {
             title: t("myPosts"),
             icon: <PostAdd sx={{ fontSize: 20, color: theme.custom.color.brandPrimary }} />,
-            action: () => navigate("/dash/myposts"),
+            action: () => navigate("/myposts"),
             description: t("viewMyPosts"),
             tone: "neutral",
           },
@@ -669,7 +669,7 @@ const Navbar = () => {
     adminNavigationItems.push({
       title: t("adminPanel"),
       icon: <AdminPanelSettings sx={{ fontSize: 20, color: theme.custom.status.lost.main }} />,
-      action: () => navigate("/dash/admin"),
+      action: () => navigate("/admin"),
       description: t("adminPanelDescription"),
     });
   }
@@ -901,7 +901,7 @@ const Navbar = () => {
                               size="small"
                               onClick={() => {
                                 setCategoriesOpen(false);
-                                navigate("/dash/posts");
+                                navigate("/posts");
                               }}
                               sx={{
                                 fontSize: "0.82rem",
@@ -923,7 +923,7 @@ const Navbar = () => {
               <CreatePostButton
                 onClick={() => {
                   if (authLoggedIn) {
-                    navigate("/dash/posts/new");
+                    navigate("/posts/new");
                   } else {
                     navigate("/login");
                   }
@@ -1184,7 +1184,7 @@ const Navbar = () => {
           <MenuItem
             onClick={() => {
               handleProfileClose();
-              navigate("/dash/profile");
+              navigate("/profile");
             }}
           >
             <ListItemIcon>
@@ -1195,7 +1195,7 @@ const Navbar = () => {
           <MenuItem
             onClick={() => {
               handleProfileClose();
-              navigate("/dash/myposts");
+              navigate("/myposts");
             }}
           >
             <ListItemIcon>
@@ -1206,7 +1206,7 @@ const Navbar = () => {
           <MenuItem
             onClick={() => {
               handleProfileClose();
-              navigate("/dash/notifications");
+              navigate("/notifications");
             }}
           >
             <ListItemIcon>
@@ -1367,7 +1367,7 @@ const Navbar = () => {
               <DrawerRow
                 onClick={() => {
                   handleMobileDrawerClose();
-                  navigate("/dash/posts");
+                  navigate("/posts");
                 }}
               >
                 <ListItemText
@@ -1452,7 +1452,7 @@ const Navbar = () => {
               <DrawerRow
                 onClick={() => {
                   handleMobileDrawerClose();
-                  navigate("/dash/profile");
+                  navigate("/profile");
                 }}
               >
                 <ListItemIcon>
@@ -1463,7 +1463,7 @@ const Navbar = () => {
               <DrawerRow
                 onClick={() => {
                   handleMobileDrawerClose();
-                  navigate("/dash/myposts");
+                  navigate("/myposts");
                 }}
               >
                 <ListItemIcon>
@@ -1474,7 +1474,7 @@ const Navbar = () => {
               <DrawerRow
                 onClick={() => {
                   handleMobileDrawerClose();
-                  navigate("/dash/notifications");
+                  navigate("/notifications");
                 }}
               >
                 <ListItemIcon>

@@ -547,7 +547,7 @@ const PostDetailScreen = ({ navigation, route }) => {
   // app installed - so this button, that card, and the deep link config are
   // one feature split across three files.
   const handleSharePost = async () => {
-    const url = `${WEB_BASE_URL}/dash/posts/${post._id}`;
+    const url = `${WEB_BASE_URL}/posts/${post._id}`;
     const categoryLabel = categories
       .map((cat) => getLocalizedLabel(cat, currentLanguage))
       .filter(Boolean)

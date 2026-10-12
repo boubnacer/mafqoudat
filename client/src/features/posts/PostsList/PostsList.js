@@ -287,7 +287,7 @@ const PostsList = () => {
 
   // Clear city selection when country changes (unless city is provided via URL or state)
   useEffect(() => {
-    if (location.pathname !== '/dash/posts') return;
+    if (location.pathname !== '/posts') return;
     if (!urlCity && !location.state?.selectedCityObj) {
       setSelectedCity(null);
       setDraftSelectedCity(null);
@@ -301,14 +301,14 @@ const PostsList = () => {
   // found/lost links), the same way the mobile filter dialog stages its own
   // draft before applying.
   useEffect(() => {
-    if (location.pathname !== '/dash/posts') return;
+    if (location.pathname !== '/posts') return;
     setSelectedFl(urlFilter || '');
     setPage(1);
   }, [urlFilter, location.pathname]);
 
   // Sync category filter from URL query param (?category= or ?categories= or ?categoryId=)
   useEffect(() => {
-    if (location.pathname !== '/dash/posts') return;
+    if (location.pathname !== '/posts') return;
     if (!urlCategory) return;
     const rawIds = urlCategory.split(',').map((id) => id.trim()).filter(Boolean);
     if (rawIds.length === 0) return;
@@ -337,7 +337,7 @@ const PostsList = () => {
 
   // Sync city filter from navigation state (GuidedSearchDialog) or URL query param (?city= or ?cityId=)
   useEffect(() => {
-    if (location.pathname !== '/dash/posts') return;
+    if (location.pathname !== '/posts') return;
     if (location.state?.selectedCityObj) {
       const cityObj = location.state.selectedCityObj;
       setSelectedCity(cityObj);
@@ -458,7 +458,7 @@ const PostsList = () => {
 
   // Initialize category filter from navigation state - MOVED AFTER query hooks
   useEffect(() => {
-    if (location.pathname !== '/dash/posts') return;
+    if (location.pathname !== '/posts') return;
     if (location.state?.fromCategory && location.state?.categoryFilter) {
 
       setLocalCategoryFilter(location.state.categoryFilter);
@@ -647,7 +647,7 @@ const PostsList = () => {
     smoothScrollToTop();
   }, []);
 
-  const handleMore = useCallback(() => navigate("/dash/posts"), [navigate]);
+  const handleMore = useCallback(() => navigate("/posts"), [navigate]);
 
   const handlePageSizeChange = useCallback((e) => {
     setPageSize(e.target.value);
@@ -746,7 +746,7 @@ const PostsList = () => {
     const cityIdentifier = selectedCity?._id || selectedCity?.id || selectedCity?.code;
     if (cityIdentifier) newPostParams.set('city', cityIdentifier);
     if (currentCountryId) newPostParams.set('country', currentCountryId);
-    return `/dash/posts/new${newPostParams.toString() ? `?${newPostParams.toString()}` : ''}`;
+    return `/posts/new${newPostParams.toString() ? `?${newPostParams.toString()}` : ''}`;
   }, [selectedFl, foundsId, selectedCategories, localCategoryFilter, selectedCity, currentCountryId]);
 
   const handleAddNewPost = useCallback(() => {
@@ -774,7 +774,7 @@ const PostsList = () => {
     setSelectedFl("");
     setSortBy("newest");
     setPage(1);
-    navigate("/dash/posts", { replace: true });
+    navigate("/posts", { replace: true });
     smoothScrollToTop();
   }, [navigate]);
 

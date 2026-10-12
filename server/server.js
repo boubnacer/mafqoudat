@@ -261,7 +261,7 @@ app.use("/", require("./routes/root"));
 // the sitemap index and all its children share the site's own origin.
 app.use("/", require("./routes/sitemapRoutes"));
 // Open Graph cards for social scrapers. Reached in production as
-// https://www.mafqoudat.com/dash/posts/:id via a user-agent-conditional Vercel
+// https://www.mafqoudat.com/posts/:id via a user-agent-conditional Vercel
 // rewrite, so the shared URL and the rendered card share one origin.
 app.use("/", require("./routes/ogRoutes"));
 // Reached directly at the Render URL, not through the Vercel frontend at all

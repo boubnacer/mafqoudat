@@ -18,7 +18,7 @@ const Sponsored = ({ post }) => {
   const handleEdit = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    navigate(`/dash/posts/${post.id}`);
+    navigate(`/posts/${post.id}`);
   };
 
   const handleReport = (e) => {
@@ -46,7 +46,7 @@ const Sponsored = ({ post }) => {
 
   return (
     <>
-    <Link to={`/dash/posts/${post.id}`} className="sponsored__link">
+    <Link to={`/posts/${post.id}`} className="sponsored__link">
       <div className="sponsored__card">
         <div className="sponsored__info">
           <div className="sponsored__header">

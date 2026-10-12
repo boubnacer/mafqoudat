@@ -626,7 +626,7 @@ const SinglePostPage = ({
 
   // Memoized event handlers
   const handleEdit = useCallback(() => {
-    navigate(`/dash/posts/edit/${_id}`);
+    navigate(`/posts/edit/${_id}`);
   }, [navigate, _id]);
 
   const handleReport = useCallback(() => {
@@ -675,7 +675,7 @@ const SinglePostPage = ({
       await blockUser({ userId: user }).unwrap();
       // The listing this viewer came from still holds the blocked post, so send
       // them back to it refreshed rather than leaving them on hidden content.
-      navigate('/dash/posts');
+      navigate('/posts');
     } catch (error) {
       setSuccessMessage(error?.data?.message || t('blockUserError'));
       setShowSuccessMessage(true);
@@ -1233,7 +1233,7 @@ const SinglePostPage = ({
 
           <MuiLink
             component={RouterLink}
-            to="/dash/posts"
+            to="/posts"
             underline="hover"
             sx={{
               color: 'text.secondary',
@@ -1247,7 +1247,7 @@ const SinglePostPage = ({
           {primaryBreadcrumbCategory && (
             <MuiLink
               component={RouterLink}
-              to={`/dash/posts?category=${encodeURIComponent(primaryBreadcrumbCategory.param)}`}
+              to={`/posts?category=${encodeURIComponent(primaryBreadcrumbCategory.param)}`}
               underline="hover"
               sx={{
                 color: 'text.secondary',
@@ -1262,7 +1262,7 @@ const SinglePostPage = ({
           {displayCityName && (
             <MuiLink
               component={RouterLink}
-              to={`/dash/posts?city=${encodeURIComponent(breadcrumbCityParam || displayCityName)}`}
+              to={`/posts?city=${encodeURIComponent(breadcrumbCityParam || displayCityName)}`}
               underline="hover"
               sx={{
                 color: 'text.secondary',

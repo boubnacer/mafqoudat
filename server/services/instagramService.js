@@ -349,13 +349,17 @@ class InstagramService {
     const targetToken = options.accessToken || this.accessToken;
     if (!targetIgUserId || !targetToken || !post?._id) return null;
 
-    const marker = `/dash/posts/${post._id}`;
+    const marker = `/posts/${post._id}`;
+    const legacyMarker = `/dash/posts/${post._id}`;
     try {
       const response = await this.get(`/${targetIgUserId}/media`, {
         fields: 'id,caption,permalink',
         limit: RECENT_MEDIA_LIMIT,
       }, READ_TIMEOUT_MS, { accessToken: targetToken });
-      const match = (response.data?.data || []).find((media) => String(media.caption || '').includes(marker));
+      const match = (response.data?.data || []).find((media) => {
+        const caption = String(media.caption || '');
+        return caption.includes(marker) || caption.includes(legacyMarker);
+      });
       return match ? { mediaId: match.id, permalink: match.permalink || null } : null;
     } catch (error) {
       console.warn(`Instagram duplicate check failed for post ${post._id}: ${describeGraphError(error)}`);

@@ -349,7 +349,7 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
                 key={cat.code}
                 button
                 component={RouterLink}
-                to={`/dash/posts?category=${cat.code}`}
+                to={`/posts?category=${cat.code}`}
                 sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
               >
                 <ListItemText
@@ -375,7 +375,7 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
                 key={city.slug}
                 button
                 component={RouterLink}
-                to={`/dash/posts?city=${city.slug}`}
+                to={`/posts?city=${city.slug}`}
                 sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
               >
                 <ListItemText
@@ -399,7 +399,7 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
             <ListItem
               button
               component={RouterLink}
-              to="/dash/posts/new?type=lost"
+              to="/posts/new?type=lost"
               sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
             >
               <ListItemText
@@ -410,7 +410,7 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
             <ListItem
               button
               component={RouterLink}
-              to="/dash/posts/new?type=found"
+              to="/posts/new?type=found"
               sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
             >
               <ListItemText
@@ -421,7 +421,7 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
             <ListItem
               button
               component={RouterLink}
-              to="/dash/posts"
+              to="/posts"
               sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
             >
               <ListItemText

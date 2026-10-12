@@ -102,12 +102,12 @@ const Dash = () => {
     const isUserLoggedIn = Boolean(user.username || authStorage.isAuthenticated());
     if (!isUserLoggedIn) {
       // Store the intended destination for redirect after login
-      const intendedDestination = `/dash/posts/new?type=${type}`;
+      const intendedDestination = `/posts/new?type=${type}`;
       authStorage.setRedirectAfterLoginWithMessage(intendedDestination, 'loginRequiredCreatePost');
 
       window.location.href = '/login';
     } else {
-      window.location.href = `/dash/posts/new?type=${type}`;
+      window.location.href = `/posts/new?type=${type}`;
     }
   };
 

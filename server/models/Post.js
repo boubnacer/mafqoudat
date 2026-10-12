@@ -241,7 +241,7 @@ const postSchema = new mongoose.Schema(
     // listing gets on the Pages was invisible to the site.
     social: {
       // Admin approval gate for social publishing. A freshly created listing
-      // lands here as 'pending'; the admin reviews it via /dash/admin/social-review
+      // lands here as 'pending'; the admin reviews it via /admin/social-review
       // and either clicks "Approve & Publish" (→ 'approved', jobs are enqueued)
       // or "Skip" (→ 'skipped', never posted to social media). Only listings
       // that reach 'approved' ever enter the socialPublishQueue.

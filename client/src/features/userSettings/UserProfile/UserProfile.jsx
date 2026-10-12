@@ -362,7 +362,7 @@ const UserProfile = () => {
                 variant="outlined"
                 fullWidth
                 startIcon={<PostAdd />}
-                onClick={() => navigate('/dash/myposts')}
+                onClick={() => navigate('/myposts')}
                 sx={{
                   borderRadius: 2,
                   py: 1,

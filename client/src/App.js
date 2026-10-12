@@ -94,6 +94,17 @@ const AdminSocialReviewPage = lazy(() => import("./features/admin/pages/AdminSoc
 
 
 
+// Client-side catch-all for any /dash/* link that wasn't caught by a Vercel
+// 301 redirect (e.g. navigations generated inside the app itself before this
+// refactor was deployed, or direct calls to navigate('/dash/...')). Strips the
+// leading "/dash" segment and replaces the history entry so the back-button
+// takes the user to wherever they came from, not back to the /dash URL.
+function DashRedirect() {
+  const location = useLocation();
+  const newPath = location.pathname.replace(/^\/dash/, '') || '/';
+  return <Navigate to={newPath + location.search + location.hash} replace />;
+}
+
 // Inner App component that has access to language context
 const AppContent = () => {
   const dispatch = useDispatch();
@@ -272,31 +283,24 @@ const AppContent = () => {
             </PrefetchDependencies>
           } />
 
-          {/* Subroutes under /dash: bookmarks and legacy links redirect /dash to '/',
-              while keeping sub-routes (/dash/posts, /dash/posts/:id, etc.) intact
-              to protect API proxies and crawler OpenGraph rewrites. */}
-          <Route path="dash">
-            {/* Seamless redirect: /dash -> / */}
-            <Route index element={<Navigate to="/" replace />} />
+          {/* Post detail - public, and intentionally outside CountryGuard: a
+              post already carries its own country (countryname/countryLabels
+              come from the post itself), so no global country selection is
+              needed to render it. */}
+          <Route path="posts/:id" element={
+            <Suspense fallback={<SinglePostSkeleton />}>
+              <SinglePost />
+            </Suspense>
+          } />
 
-            {/* Post detail - public, and intentionally outside CountryGuard: a
-                post already carries its own country (countryname/countryLabels
-                come from the post itself), so no global country selection is
-                needed to render it. */}
-            <Route path="posts/:id" element={
-              <Suspense fallback={<SinglePostSkeleton />}>
-                <SinglePost />
+          {/* Posts listing */}
+          <Route path="posts" element={
+            <PrefetchDependencies>
+              <Suspense fallback={<PostsListSkeleton />}>
+                <PostsList />
               </Suspense>
-            } />
-
-            {/* Posts listing */}
-            <Route path="posts" element={
-              <PrefetchDependencies>
-                <Suspense fallback={<PostsListSkeleton />}>
-                  <PostsList />
-                </Suspense>
-              </PrefetchDependencies>
-            } />
+            </PrefetchDependencies>
+          } />
 
           {/* Everything below needs a country to filter its data by, and has
               no fallback UI of its own for a missing one. */}
@@ -312,7 +316,7 @@ const AppContent = () => {
               <Route path="posts/new" element={
                 <SectionErrorBoundary
                   title={currentLanguage === 'ar' ? 'حدث خطأ في نموذج نشر الإعلان' : 'Error in Post Creation Form'}
-                  backUrl="/dash/posts"
+                  backUrl="/posts"
                   backLabel={currentLanguage === 'ar' ? 'العودة إلى المنشورات' : 'Back to Posts'}
                 >
                   <Suspense fallback={<PostFormSkeleton />}>
@@ -323,7 +327,7 @@ const AppContent = () => {
               <Route path="posts/edit/:id" element={
                 <SectionErrorBoundary
                   title={currentLanguage === 'ar' ? 'حدث خطأ في نموذج تعديل الإعلان' : 'Error in Post Edit Form'}
-                  backUrl="/dash/posts"
+                  backUrl="/posts"
                   backLabel={currentLanguage === 'ar' ? 'العودة إلى المنشورات' : 'Back to Posts'}
                 >
                   <Suspense fallback={<PostFormSkeleton />}>
@@ -431,14 +435,21 @@ const AppContent = () => {
                     </Suspense>
                   } />
                   {/* A stale bookmark to a tab that no longer exists lands on
-                      the overview rather than on the dashboard's 404 box. */}
-                  <Route path="*" element={<Navigate to="/dash/admin" replace />} />
+                      the overview rather than on a 404. */}
+                  <Route path="*" element={<Navigate to="/admin" replace />} />
                 </Route>
               </Route>
             </Route>
           </Route>
         </Route>
-      </Route>
+
+        {/* Client-side /dash redirects – catches bookmarks and in-app navigations
+            that still reference old /dash URLs after the Vercel 301s are in place.
+            These must live OUTSIDE <Route path="/"> so they match at the top level
+            and are not affected by DashLayout rendering. The more-specific /dash
+            exact rule must come first so it does not fall through to /dash/*. */}
+        <Route path="/dash" element={<Navigate to="/" replace />} />
+        <Route path="/dash/*" element={<DashRedirect />} />
 
         {/* 404 fallback route */}
         <Route path="*" element={

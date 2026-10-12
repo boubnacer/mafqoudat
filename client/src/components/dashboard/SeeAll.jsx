@@ -16,7 +16,7 @@ const SeeAll = ({ foundOrlostId, totalItems, type = "found" }) => {
   const tone = type === "found" ? theme.custom.status.found : theme.custom.status.lost;
 
   const handleSeeAll = () => {
-    navigate(`/dash/posts?fl=${foundOrlostId}`);
+    navigate(`/posts?fl=${foundOrlostId}`);
     dispatch(setFoundOrLost({ foundOrlost: foundOrlostId }));
     dispatch(setActiveLink({ active: foundOrlostId }));
   };

@@ -88,8 +88,15 @@ const linking = {
   prefixes: ['mafqoudat://', 'https://mafqoudat.com', 'https://www.mafqoudat.com'],
   config: {
     screens: {
-      PostDetailScreen: 'dash/posts/:id',
+      PostDetailScreen: {
+        path: 'posts/:id',
+        exact: true,
+      },
     },
+  },
+  getStateFromPath: (path, options) => {
+    const normalizedPath = path.replace(/^\/?dash\/posts\//, 'posts/');
+    return getStateFromPath(normalizedPath, options);
   },
 };
 
@@ -99,10 +106,15 @@ const linking = {
 const resolvePendingPostId = (url) => {
   if (!url) return null;
   const prefix = linking.prefixes.find((p) => url.startsWith(p));
-  const path = prefix ? url.slice(prefix.length) : url;
+  const rawPath = prefix ? url.slice(prefix.length) : url;
+  const path = rawPath.replace(/^\/?dash\/posts\//, 'posts/');
   const state = getStateFromPath(path, linking.config);
   const route = state?.routes?.[0];
-  return route?.name === 'PostDetailScreen' ? route.params?.id ?? null : null;
+  if (route?.name === 'PostDetailScreen' && route.params?.id) {
+    return route.params.id;
+  }
+  const match = url.match(/(?:\/|^)(?:dash\/)?posts\/([^/?#]+)/);
+  return match ? match[1] : null;
 };
 
 // Retries navigationRef.navigate until the container reports ready, rather

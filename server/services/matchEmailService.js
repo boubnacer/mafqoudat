@@ -165,7 +165,7 @@ const sendMatchAlert = async ({ recipient, ownPostId, matchedPostId, score, reas
     if (!ownSummary || !matchedSummary) return { success: false, reason: 'post_missing' };
 
     const intro = ownSummary.foundLostCode === 'LOST' ? copy.introLost : copy.introFound;
-    const url = `${siteUrl()}/dash/posts/${matchedSummary.id}`;
+    const url = `${siteUrl()}/posts/${matchedSummary.id}`;
 
     const reasonList = reasons
       .map((reason) => copy.reasons[reason])

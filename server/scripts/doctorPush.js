@@ -77,7 +77,7 @@ const checkConfiguration = () => {
     healthy = false;
     bad(`CLIENT_URL is not an absolute URL (${clientUrl})`);
   } else {
-    ok(`notifications will open ${clientUrl}/dash/posts/...`);
+    ok(`notifications will open ${clientUrl}/posts/...`);
     if (clientUrl.startsWith('http://') && !clientUrl.includes('localhost')) {
       warn('CLIENT_URL is plain http - service workers only run on https (or localhost)');
     }

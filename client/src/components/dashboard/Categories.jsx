@@ -62,7 +62,7 @@ const Categories = () => {
   }
 
   const handleCategoryClick = (categoryId) => {
-    navigate(`/dash/posts?category=${categoryId}`);
+    navigate(`/posts?category=${categoryId}`);
   };
 
   const toggleShowAllCategories = () => {
@@ -129,7 +129,7 @@ const Categories = () => {
               ? t('categoryDocuments')
               : (labels[currentLanguage] || labels.en);
 
-            const categoryHref = `/dash/posts?category=${encodeURIComponent(code ? code.toLowerCase() : _id)}`;
+            const categoryHref = `/posts?category=${encodeURIComponent(code ? code.toLowerCase() : _id)}`;
 
             return (
               <Box key={_id}>

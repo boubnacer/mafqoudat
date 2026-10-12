@@ -276,14 +276,14 @@ export const pageSeoConfig = {
     structuredData: [],
   },
   dashPosts: {
-    path: '/dash/posts',
+    path: '/posts',
     title: 'Lost and Found Posts | Mafqoudat',
     description:
       'Explore all lost and found posts on Mafqoudat. Search and filter by category, location, and status to find or report lost items across Morocco and the Arab world.',
     structuredData: [
       createBreadcrumbSchema([
         { name: 'Home', path: '/' },
-        { name: 'Posts', path: '/dash/posts' },
+        { name: 'Posts', path: '/posts' },
       ]),
     ],
   },

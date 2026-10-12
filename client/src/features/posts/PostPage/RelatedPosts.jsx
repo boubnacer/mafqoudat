@@ -203,7 +203,7 @@ const RelatedPosts = ({ currentPost }) => {
 
         <Button
           component={Link}
-          to="/dash/posts"
+          to="/posts"
           variant="text"
           endIcon={<ArrowIcon />}
           sx={{
@@ -270,7 +270,7 @@ const RelatedPosts = ({ currentPost }) => {
             <Grid item xs={12} sm={6} md={4} lg={relatedPosts.length >= 4 ? 3 : 4} key={post._id}>
               <Paper
                 component={Link}
-                to={`/dash/posts/${post._id}`}
+                to={`/posts/${post._id}`}
                 elevation={0}
                 sx={{
                   display: 'flex',

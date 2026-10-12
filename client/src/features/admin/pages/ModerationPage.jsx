@@ -325,7 +325,7 @@ const ModerationPage = () => {
           row.post?._id ? (
             <Box
               component="a"
-              href={`/dash/posts/${row.post._id}`}
+              href={`/posts/${row.post._id}`}
               target="_blank"
               rel="noreferrer"
               sx={(theme) => ({
@@ -667,7 +667,7 @@ const ModerationPage = () => {
                 value={
                   <Button
                     component="a"
-                    href={`/dash/posts/${selected.postId._id}`}
+                    href={`/posts/${selected.postId._id}`}
                     target="_blank"
                     rel="noreferrer"
                     size="small"

@@ -84,7 +84,7 @@ const SearchSection = ({
                         '&:hover': { transform: 'scale(1.02)' },
                         transition: 'transform 0.2s'
                       }}
-                      onClick={() => navigate(`/dash/posts/${post._id}`)}
+                      onClick={() => navigate(`/posts/${post._id}`)}
                     >
                       <LazyCardMedia
                         sx={{ 

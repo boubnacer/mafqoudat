@@ -17,15 +17,15 @@ const Welcome = () => {
       <h1>Welcome !</h1>
 
       <p>
-        <Link to="/dash/posts">View posts</Link>
+        <Link to="/posts">View posts</Link>
       </p>
 
       <p>
-        <Link to="/dash/posts/new">Add New post</Link>
+        <Link to="/posts/new">Add New post</Link>
       </p>
 
       <p>
-        <Link to="/dash/users">View User Settings</Link>
+        <Link to="/users">View User Settings</Link>
       </p>
     </section>
   );

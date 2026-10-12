@@ -92,7 +92,7 @@ const SectionErrorFallback = ({
   onRetry,
   customTitle,
   customSubtitle,
-  backUrl = '/dash/posts',
+  backUrl = '/posts',
   backLabel
 }) => {
   const navigate = useNavigate();

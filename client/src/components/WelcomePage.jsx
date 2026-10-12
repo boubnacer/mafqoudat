@@ -603,7 +603,7 @@ const WelcomePage = () => {
         navigate(redirectUrl);
       } else {
         // Navigate to posts list page
-        navigate('/dash');
+        navigate('/posts');
       }
     }
   };
@@ -611,7 +611,7 @@ const WelcomePage = () => {
   const handleViewHeroPost = (post) => {
     if (!selectedCountry?._id) return;
     dispatch(setCurrentCountry({ currentCountry: selectedCountry._id }));
-    navigate(`/dash/posts/${post._id}`);
+    navigate(`/posts/${post._id}`);
   };
 
   const handleLanguageChange = (newLanguage) => {

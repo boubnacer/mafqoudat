@@ -151,7 +151,7 @@ export const ADMIN_NAV_GROUPS = [
 
 export const ADMIN_NAV_ITEMS = ADMIN_NAV_GROUPS.flatMap((group) => group.items);
 
-export const ADMIN_BASE_PATH = '/dash/admin';
+export const ADMIN_BASE_PATH = '/admin';
 
 export const adminItemPath = (item) =>
   item.path ? `${ADMIN_BASE_PATH}/${item.path}` : ADMIN_BASE_PATH;

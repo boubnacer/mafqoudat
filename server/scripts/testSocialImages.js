@@ -288,7 +288,7 @@ async function run() {
   const tightLimit = 1000;
   const tight = await buildListingCaption(longPost, { maxLength: tightLimit });
   checkThat('a tight limit is honored', tight.length <= tightLimit, `${tight.length} characters`);
-  checkThat('the link survives the trim', tight.includes(`/dash/posts/${longPost._id}`));
+  checkThat('the link survives the trim', tight.includes(`/posts/${longPost._id}`));
   checkThat('all three languages are still there', tight.includes('Objet perdu') && tight.includes('Lost item') && tight.includes('إعلان عن فقدان'));
 
   console.log(`\n${checks - failures}/${checks} checks passed`);
