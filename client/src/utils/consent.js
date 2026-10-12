@@ -195,16 +195,18 @@ export const startConsentListener = () => {
   started = true;
 
   if (!isConsentManagerConfigured()) {
-    // No publisher id in this build, so no message will ever be shown and no
-    // one has been asked anything. Analytics stays off rather than running
-    // unasked - see scripts/postbuild.js, which warns about this at build time.
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(
-        'No Funding Choices publisher ID configured (REACT_APP_FC_PUBLISHER_ID). ' +
-          'Consent stays denied and Google Analytics will not load.'
-      );
-    }
-    publish(DENIED, 'not-configured');
+    // When no CMP is configured (e.g. before AdSense is active), grant analytics
+    // measurement so Google Analytics can record pageviews and paths.
+    // Advertising/targeting cookies remain denied.
+    publish(
+      {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'granted',
+      },
+      'not-configured'
+    );
     return;
   }
 
