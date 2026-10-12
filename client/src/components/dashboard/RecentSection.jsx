@@ -22,10 +22,6 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
     ? DashboardEmptyStates.NoRecentFounds
     : DashboardEmptyStates.NoRecentLosts;
 
-  const isDark = theme.palette.mode === "dark";
-  const dotColorTop = theme.custom.color.brandPrimary;
-  const dotColorBottom = isDark ? "#38BDF8" : "#0284C7";
-
   const hasItems = !isLoading && items && items.length > 0;
 
   return (
@@ -45,17 +41,16 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
         boxShadow: 'none',
       }}
     >
-      {/* Cyber dot matrix SVG background with unified SaaS palette for dark and light modes */}
+      {/* Cyber dot matrix SVG background with semantic status tone (found: green, lost: red) and cyber star dots */}
       <CyberDotMatrix
         idPrefix={`dots-recent-${type}`}
-        colorTop={dotColorTop}
-        colorBottom={dotColorBottom}
-        shape="square"
+        color={tone.main}
+        shape="star"
         placement="diagonal-standard"
         patternSpacing={5}
         dotRadius={0.85}
         glowRadius="48%"
-        opacity={isDark ? 0.55 : 0.75}
+        opacity={0.75}
         falloffCurve="soft"
         hairlineGlow={false}
         zIndex={0}
