@@ -323,6 +323,7 @@ const LeftSide = ({
 
   const isDark = theme.palette.mode === 'dark';
   const isRTL = currentLanguage === 'ar' || theme.direction === 'rtl';
+  const dotColor = theme.custom?.color?.ink || (isDark ? '#EDEFF5' : '#0B1220');
 
   if (isError) {
     return (
@@ -365,14 +366,14 @@ const LeftSide = ({
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          opacity: isDark ? 0.5 : 0.85,
+          opacity: isDark ? 0.5 : 0.75,
           zIndex: 0,
         }}
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
           <pattern id="dot-matrix-stats" width="4.5" height="4.5" patternUnits="userSpaceOnUse">
-            <circle cx="2.25" cy="2.25" r={isDark ? 0.72 : 0.9} fill={theme.custom.color.brandLogo} />
+            <circle cx="2.25" cy="2.25" r={isDark ? 0.72 : 0.9} fill={dotColor} />
           </pattern>
           {/* In LTR: top-left (cx=0%, cy=0%) and bottom-right (cx=100%, cy=100%). In RTL: inversed to top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%) */}
           <radialGradient
