@@ -35,7 +35,7 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
         flexDirection: "column",
         background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
         backdropFilter: "blur(10px)",
-        borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
+        borderRadius: isMobile ? `${theme.custom.radius.lg}px` : '20px',
         padding: isMobile ? { xs: "1.125rem 0.875rem", sm: "1.25rem 1rem" } : "1.65rem 1.75rem",
         boxShadow: 'none',
       }}
@@ -44,7 +44,14 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
       <CyberDotMatrix
         idPrefix={`dots-recent-${type}`}
         color={tone.main}
-        inverted={false}
+        shape="star"
+        placement="diagonal-standard"
+        patternSpacing={5}
+        dotRadius={0.85}
+        glowRadius="48%"
+        opacity={0.75}
+        falloffCurve="soft"
+        hairlineGlow={true}
         zIndex={0}
       />
 
