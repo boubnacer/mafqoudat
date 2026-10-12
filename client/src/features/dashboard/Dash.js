@@ -36,7 +36,6 @@ const Dash = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
-  const isRTL = currentLanguage === 'ar' || theme.direction === 'rtl';
   const token = useSelector(selectCurrentToken);
   const user = useAuth();
 
@@ -407,7 +406,7 @@ const Dash = () => {
               />
             </Box>
           )}
-          <Box sx={{ position: 'relative', p: 2, display: 'grid', gridTemplateColumns: '1fr', gap: 0 }}>
+          <Box sx={{ position: 'relative', p: 2, display: 'grid', gridTemplateColumns: '1fr', gap: '36px' }}>
             <LeftSide
               totalFounds={data?.totalFounds}
               totalLosts={data?.totalLosts}
@@ -427,73 +426,7 @@ const Dash = () => {
                 full-bleed backdrop stretched to the whole header's height,
                 widening this gap grows that height and pushes the map's
                 fixed-% crop further down relative to LeftSide. */}
-            {!hasNoData && (
-              <Box
-                sx={{
-                  width: '100%',
-                  aspectRatio: '1 / 1',
-                  minHeight: 300,
-                  position: 'relative',
-                  overflow: 'hidden',
-                  borderRadius: `${theme.custom.radius.lg}px`,
-                  pointerEvents: 'none',
-                }}
-              >
-                {/* Cyber dot matrix SVG background for Mobile Map - inversed from Statistics */}
-                <Box
-                  component="svg"
-                  sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: '100%',
-                    height: '100%',
-                    pointerEvents: 'none',
-                    opacity: isDark ? 0.5 : 0.85,
-                    zIndex: 1,
-                  }}
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <defs>
-                    <pattern id="dot-matrix-map-mobile" width="4.5" height="4.5" patternUnits="userSpaceOnUse">
-                      <circle cx="2.25" cy="2.25" r={isDark ? 0.72 : 0.9} fill={theme.custom.color.brandLogo} />
-                    </pattern>
-                    {/* For Map: inversed from Statistics.
-                        In LTR: top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%).
-                        In RTL: top-left (cx=0%, cy=0%) and bottom-right (cx=100%, cy=100%). */}
-                    <radialGradient
-                      id="top-glow-map-mobile"
-                      cx={isRTL ? "0%" : "100%"}
-                      cy="0%"
-                      r="48%"
-                    >
-                      <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-                      <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
-                      <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-                    </radialGradient>
-                    <radialGradient
-                      id="bottom-glow-map-mobile"
-                      cx={isRTL ? "100%" : "0%"}
-                      cy="100%"
-                      r="48%"
-                    >
-                      <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-                      <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
-                      <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-                    </radialGradient>
-                    <mask id="top-mask-map-mobile">
-                      <rect width="100%" height="100%" fill="url(#top-glow-map-mobile)" />
-                    </mask>
-                    <mask id="bottom-mask-map-mobile">
-                      <rect width="100%" height="100%" fill="url(#bottom-glow-map-mobile)" />
-                    </mask>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#dot-matrix-map-mobile)" mask="url(#top-mask-map-mobile)" />
-                  <rect width="100%" height="100%" fill="url(#dot-matrix-map-mobile)" mask="url(#bottom-mask-map-mobile)" />
-                </Box>
-              </Box>
-            )}
+            {!hasNoData && <Box sx={{ width: '100%', aspectRatio: '1 / 1', minHeight: 300 }} />}
           </Box>
         </Box>
       ) : (
@@ -534,7 +467,7 @@ const Dash = () => {
               p: { sm: 3, md: 4, lg: 5, xl: 6 },
             }}
           >
-            <Box sx={{ width: '50%', minWidth: 0 }}>
+            <Box sx={{ width: { sm: '60%', md: '52%', lg: '50%' }, minWidth: 0 }}>
               <LeftSide
                 totalFounds={data?.totalFounds}
                 totalLosts={data?.totalLosts}
@@ -544,82 +477,6 @@ const Dash = () => {
                 lostsToday={data?.createdToday?.todaysLostPosts}
               />
             </Box>
-            {!hasNoData && (
-              <Box
-                sx={{
-                  width: '50%',
-                  minWidth: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  position: 'relative',
-                  pointerEvents: 'none',
-                }}
-              >
-                <Box
-                  sx={{
-                    position: 'relative',
-                    width: '100%',
-                    flex: 1,
-                    overflow: 'hidden',
-                    borderRadius: `${theme.custom.radius.xl}px`,
-                  }}
-                >
-                  {/* Cyber dot matrix SVG background for Desktop Map - inversed from Statistics */}
-                  <Box
-                    component="svg"
-                    sx={{
-                      position: 'absolute',
-                      inset: 0,
-                      width: '100%',
-                      height: '100%',
-                      pointerEvents: 'none',
-                      opacity: isDark ? 0.5 : 0.85,
-                      zIndex: 1,
-                    }}
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <defs>
-                      <pattern id="dot-matrix-map-desktop" width="4.5" height="4.5" patternUnits="userSpaceOnUse">
-                        <circle cx="2.25" cy="2.25" r={isDark ? 0.72 : 0.9} fill={theme.custom.color.brandLogo} />
-                      </pattern>
-                      {/* For Map: inversed from Statistics.
-                          In LTR: top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%).
-                          In RTL: top-left (cx=0%, cy=0%) and bottom-right (cx=100%, cy=100%). */}
-                      <radialGradient
-                        id="top-glow-map-desktop"
-                        cx={isRTL ? "0%" : "100%"}
-                        cy="0%"
-                        r="48%"
-                      >
-                        <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-                        <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
-                        <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
-                        <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-                      </radialGradient>
-                      <radialGradient
-                        id="bottom-glow-map-desktop"
-                        cx={isRTL ? "100%" : "0%"}
-                        cy="100%"
-                        r="48%"
-                      >
-                        <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-                        <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
-                        <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
-                        <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-                      </radialGradient>
-                      <mask id="top-mask-map-desktop">
-                        <rect width="100%" height="100%" fill="url(#top-glow-map-desktop)" />
-                      </mask>
-                      <mask id="bottom-mask-map-desktop">
-                        <rect width="100%" height="100%" fill="url(#bottom-glow-map-desktop)" />
-                      </mask>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#dot-matrix-map-desktop)" mask="url(#top-mask-map-desktop)" />
-                    <rect width="100%" height="100%" fill="url(#dot-matrix-map-desktop)" mask="url(#bottom-mask-map-desktop)" />
-                  </Box>
-                </Box>
-              </Box>
-            )}
           </Box>
         </Box>
       )}
