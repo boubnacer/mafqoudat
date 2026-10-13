@@ -914,10 +914,10 @@ const Process = () => {
         mx: "auto",
       }}
     >
-      {/* Cyber dot matrix SVG background */}
+      {/* Cyber dot matrix SVG background with inverted diagonal placement */}
       <CyberDotMatrix
         idPrefix="dots-process"
-        inverted={false}
+        inverted={true}
         zIndex={0}
       />
 

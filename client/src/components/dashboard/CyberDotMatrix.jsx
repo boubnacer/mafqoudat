@@ -64,6 +64,9 @@ const CyberDotMatrix = ({
     ? (placement === 'diagonal-inverted' || placement === 'inverted')
     : inverted;
 
+  const showTop = placement !== 'bottom-end' && placement !== 'bottom-start' && placement !== 'bottom';
+  const showBottom = placement !== 'top-start' && placement !== 'top-end' && placement !== 'top';
+
   const topCx = isInverted
     ? (isRtl ? '0%' : '100%')
     : (isRtl ? '100%' : '0%');
@@ -197,18 +200,22 @@ const CyberDotMatrix = ({
         )}
       </defs>
 
-      <rect
-        width="100%"
-        height="100%"
-        fill={`url(#${patternTopId})`}
-        mask={`url(#${topMaskId})`}
-      />
-      <rect
-        width="100%"
-        height="100%"
-        fill={`url(#${sameColor ? patternTopId : patternBottomId})`}
-        mask={`url(#${bottomMaskId})`}
-      />
+      {showTop && (
+        <rect
+          width="100%"
+          height="100%"
+          fill={`url(#${patternTopId})`}
+          mask={`url(#${topMaskId})`}
+        />
+      )}
+      {showBottom && (
+        <rect
+          width="100%"
+          height="100%"
+          fill={`url(#${sameColor ? patternTopId : patternBottomId})`}
+          mask={`url(#${bottomMaskId})`}
+        />
+      )}
 
       {/* Hairline glow edge */}
       {hairlineGlow && (

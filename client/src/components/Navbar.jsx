@@ -70,11 +70,14 @@ import { forceRefreshAllDependencies } from "../utils/cacheRefresh";
 import { selectIsLoggedIn, selectCurrentUser } from "../features/auth/authSlice";
 import { useGetSystemSettingsQuery } from "../features/admin/systemSettingsApiSlice";
 import NotificationBell from "../features/notifications/NotificationBell";
+import CyberDotMatrix from "./dashboard/CyberDotMatrix";
 
 // Phase 1 tokens only (theme.custom.*) — see designTokens.js / CLAUDE.md.
 // Three-column grid (not flex space-between) so the center cluster is
 // genuinely centered regardless of how wide the left/right clusters are.
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+  position: "relative",
+  overflow: "hidden",
   display: "grid",
   gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
   alignItems: "center",
@@ -706,8 +709,24 @@ const Navbar = () => {
       }}
     >
       <StyledToolbar>
+        {/* Decorative cyber dot matrix anchored to bottom-left in RTL and bottom-right in LTR */}
+        <CyberDotMatrix
+          idPrefix="dots-navbar"
+          placement="bottom-end"
+          glowRadius="100%"
+          sx={{
+            width: { xs: 200, sm: 260, md: 320 },
+            height: "100%",
+            top: 0,
+            bottom: 0,
+            left: isRTL ? 0 : "auto",
+            right: isRTL ? "auto" : 0,
+            zIndex: 0,
+          }}
+        />
+
         {/* Left: brand only */}
-        <Box sx={{ display: "flex", alignItems: "center", justifySelf: "start", minWidth: 0 }}>
+        <Box sx={{ display: "flex", alignItems: "center", justifySelf: "start", minWidth: 0, position: "relative", zIndex: 1 }}>
           <LogoButton component={Link} to="/" onClick={onGoHomeClicked}>
             <img
               src="/maflogoSVG.svg?v=2"
@@ -721,7 +740,7 @@ const Navbar = () => {
 
         {/* Center: Explore + primary CTA, genuinely centered via the grid
             column above rather than whatever space is left over. */}
-        <Box sx={{ display: "flex", alignItems: "center", justifySelf: "center", gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", justifySelf: "center", gap: 1, position: "relative", zIndex: 1 }}>
           {showDesktopNav && (
             <>
               <ExploreTrigger
@@ -937,7 +956,7 @@ const Navbar = () => {
         </Box>
 
         {/* Right: region/locale + remaining auth actions + utilities */}
-        <Box sx={{ display: "flex", alignItems: "center", justifySelf: "end", gap: "10px" }}>
+        <Box sx={{ display: "flex", alignItems: "center", justifySelf: "end", gap: "10px", position: "relative", zIndex: 1 }}>
           {showDesktopNav && (
             <RegionSelector onClick={handleRegionClick}>
               {isInitialized && currentCountryData ? (

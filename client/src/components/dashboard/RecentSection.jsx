@@ -41,10 +41,10 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
         boxShadow: 'none',
       }}
     >
-      {/* Cyber dot matrix SVG background matching dashboard dot styling */}
+      {/* Cyber dot matrix SVG background with inverted diagonal placement */}
       <CyberDotMatrix
         idPrefix={`dots-recent-${type}`}
-        placement="diagonal-standard"
+        inverted={true}
         zIndex={0}
       />
 
