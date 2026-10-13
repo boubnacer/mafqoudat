@@ -16,9 +16,13 @@ import silenceProductionLogs from './utils/silenceProductionLogs';
 silenceProductionLogs();
 
 // Transparently handle ChunkLoadError when a new version is deployed on Vercel
-window.addEventListener('error', (event) => {
-  const msg = event?.message || '';
-  if (/Loading chunk [\d]+ failed/i.test(msg) || /Failed to fetch dynamically imported module/i.test(msg)) {
+const handleChunkError = (msg) => {
+  if (
+    /Loading chunk [\d]+ failed/i.test(msg) ||
+    /Failed to fetch dynamically imported module/i.test(msg) ||
+    /error loading dynamically imported module/i.test(msg) ||
+    /Importing a module script failed/i.test(msg)
+  ) {
     const lastReload = sessionStorage.getItem('last_chunk_reload');
     const now = Date.now();
     if (!lastReload || now - parseInt(lastReload, 10) > 30000) {
@@ -26,6 +30,16 @@ window.addEventListener('error', (event) => {
       window.location.reload();
     }
   }
+};
+
+window.addEventListener('error', (event) => {
+  handleChunkError(event?.message || '');
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  const reason = event?.reason;
+  const msg = reason?.message || (typeof reason === 'string' ? reason : '');
+  handleChunkError(msg);
 });
 
 const rootElement = document.getElementById('root');

@@ -2,6 +2,16 @@ const rateLimit = require("express-rate-limit");
 const { logEvents } = require("./logger");
 const { getRequestUserId } = require('../utils/requestUser');
 
+// Helper to extract the true client IP even behind multi-tier proxies (Vercel -> Railway)
+const getClientIp = (req) => {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    const firstIp = forwarded.split(',')[0].trim();
+    if (firstIp) return firstIp;
+  }
+  return req.headers['x-real-ip'] || req.ip || 'unknown-ip';
+};
+
 // Create rate limiter with custom options
 const createRateLimiter = (options) => {
   const {
@@ -10,11 +20,12 @@ const createRateLimiter = (options) => {
     message = "Too many requests from this IP, please try again later",
     skipSuccessfulRequests = false,
     skipFailedRequests = false,
-    keyGenerator = (req) => req.ip,
+    keyGenerator = (req) => getClientIp(req),
     skip,
     handler = (req, res, next, options) => {
+      const clientIp = getClientIp(req);
       logEvents(
-        `Rate Limit Exceeded: ${options.message}\t${req.method}\t${req.url}\t${req.ip}\t${req.headers.origin}`,
+        `Rate Limit Exceeded: ${options.message}\t${req.method}\t${req.url}\t${clientIp}\t${req.headers.origin}`,
         "errLog.log"
       );
       res.status(options.statusCode).json({
@@ -46,7 +57,7 @@ const createRateLimiter = (options) => {
 // over-throttles: this platform's users are largely in North Africa where carrier
 // CGNAT and shared cybercafe/campus IPs are the norm, so one IP can legitimately
 // represent many distinct users.
-const userOrIpKeyGenerator = (req) => (req.user ? `user:${req.user}` : `ip:${req.ip}`);
+const userOrIpKeyGenerator = (req) => (req.user ? `user:${req.user}` : `ip:${getClientIp(req)}`);
 
 // Custom handler for the post-creation limiters: reports a precise retryAfter (seconds
 // until *this key's* window resets) instead of createRateLimiter's default, which just
@@ -253,7 +264,7 @@ const userActionRateLimiter = createRateLimiter({
   max: 20, // 20 actions per minute
   keyGenerator: (req) => {
     // Use user ID if authenticated, otherwise IP
-    return getRequestUserId(req) || req.ip;
+    return getRequestUserId(req) || getClientIp(req);
   },
   message: "Too many actions, please slow down"
 });

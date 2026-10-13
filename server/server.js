@@ -23,14 +23,11 @@ if (missingEnvVars.length) {
 require("express-async-errors");
 const express = require("express");
 const app = express();
-// Render (and any other reverse-proxy host) terminates TLS at the edge and
-// forwards plain HTTP internally, so without this, req.protocol/req.secure
-// always report 'http'/false regardless of the real public URL - e.g.
-// googleAuthRoutes.js's/facebookAuthRoutes.js's mobile-callback redirect
-// built its own server URL from req.protocol and was silently constructing
-// http:// links in production. Render sits directly in front of this app
-// (a single hop), so trusting exactly one proxy is correct here.
-app.set('trust proxy', 1);
+// Trust reverse proxies (Railway edge + Vercel reverse proxy).
+// With multi-hop proxying (Browser -> Vercel -> Railway -> Node), trusting all proxies
+// ensures req.ip and req.protocol accurately reflect the real end-user IP and HTTPS,
+// preventing all visitors routed through Vercel from sharing a single proxy IP in rate limiters.
+app.set('trust proxy', true);
 const path = require("path");
 const { logger, logEvents } = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
