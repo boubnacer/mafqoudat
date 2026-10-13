@@ -323,7 +323,7 @@ const LeftSide = ({
 
   const isDark = theme.palette.mode === 'dark';
   const isRTL = currentLanguage === 'ar' || theme.direction === 'rtl';
-  const dotColor = isDark ? '#C8E5F9' : '#104060';
+  const dotColor = isDark ? '#ECF7FD' : '#061D2D';
 
   if (isError) {
     return (
