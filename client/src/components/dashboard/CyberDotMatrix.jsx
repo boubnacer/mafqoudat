@@ -140,6 +140,18 @@ const CyberDotMatrix = ({
         </>
       );
     }
+    if (falloffCurve === 'rapid' || falloffCurve === 'steep') {
+      return (
+        <>
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+          <stop offset="15%" stopColor="#ffffff" stopOpacity="0.9" />
+          <stop offset="35%" stopColor="#ffffff" stopOpacity="0.6" />
+          <stop offset="60%" stopColor="#ffffff" stopOpacity="0.2" />
+          <stop offset="85%" stopColor="#ffffff" stopOpacity="0.04" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </>
+      );
+    }
     return (
       <>
         <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
