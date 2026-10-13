@@ -31,6 +31,23 @@ class AppErrorBoundary extends Component {
   componentDidCatch(error, errorInfo) {
     const errorId = `app-err-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
     
+    // Check if error is ChunkLoadError / dynamic import failure (happens when new Vercel builds deploy)
+    const isChunkError = 
+      error?.name === 'ChunkLoadError' ||
+      /Loading chunk [\d]+ failed/i.test(error?.message || '') ||
+      /Failed to fetch dynamically imported module/i.test(error?.message || '');
+
+    if (isChunkError) {
+      const lastReload = sessionStorage.getItem('last_chunk_reload');
+      const now = Date.now();
+      // Auto-reload once within 30s to transparently pull the newly deployed bundles
+      if (!lastReload || now - parseInt(lastReload, 10) > 30000) {
+        sessionStorage.setItem('last_chunk_reload', now.toString());
+        window.location.reload();
+        return;
+      }
+    }
+
     // Log for developers / error monitoring
     console.error('AppErrorBoundary caught an unhandled render error:', error, errorInfo);
 
