@@ -7,6 +7,7 @@ import TypePickerField from "../../../components/TypePickerField";
 import useTitle from "../../../hooks/useTitle";
 import { ErrorState } from "../../../components/LoadingStates";
 import PostsListSkeleton from "./PostsListSkeleton";
+import PostsListEmptyState from "./PostsListEmptyState";
 import SeoMeta from "../../../components/SeoMeta";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -1374,107 +1375,20 @@ const PostsList = () => {
         )}
       </>
     ) : (
-      // Locally tokenized rather than the shared (untokenized) EmptyState —
-      // mirrors the DashboardEmptyStates.NoRecentFounds/NoRecentLosts
-      // precedent in LoadingStates.jsx without touching that shared file.
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          py: 8,
-          px: 2,
-          textAlign: 'center',
-          backgroundColor: theme.custom.color.surfaceRaised,
-          borderRadius: `${theme.custom.radius.lg}px`,
-          border: `1px dashed ${alpha(theme.custom.color.ink, 0.15)}`,
-        }}
-      >
-        <Search sx={{ fontSize: 56, color: theme.custom.color.brandPrimary, mb: 2, opacity: 0.6 }} />
-        <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, mb: 1 }}>
-          {selectedCity && localCategoryFilter !== "all"
-            ? t('noPostsInCityWithCategory', { cityName: getCityDisplayName(selectedCity) })
-            : selectedCity
-              ? t('noPostsInCity', { cityName: getCityDisplayName(selectedCity) })
-              : hasActiveFilters
-                ? t('noPostsMatchFilters')
-                : t('noPostsFound')}
-        </Typography>
-        <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65), mb: 3, maxWidth: 420 }}>
-          {selectedCity && localCategoryFilter !== "all"
-            ? t('noPostsInCityWithCategoryDescription', { cityName: getCityDisplayName(selectedCity) })
-            : selectedCity
-              ? t('noPostsInCityDescription', { cityName: getCityDisplayName(selectedCity) })
-              : hasActiveFilters
-                ? t('adjustFilters')
-                : t('noPostsInArea')}
-        </Typography>
-        <Box display="flex" gap={2} flexWrap="wrap" justifyContent="center">
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleAddNewPost}
-            sx={{
-              borderRadius: `${theme.custom.radius.md}px`,
-              px: 3,
-              py: 1,
-              textTransform: 'none',
-              fontWeight: 600,
-              backgroundColor: theme.custom.color.brandPrimary,
-              '&:hover': {
-                backgroundColor: theme.custom.color.brandPrimary,
-                opacity: 0.9,
-              },
-            }}
-          >
-            {selectedCity
-              ? t('createPostInCity', { cityName: getCityDisplayName(selectedCity) })
-              : t('addNewPost')}
-          </Button>
-          {hasActiveFilters && (
-            <Button
-              variant="outlined"
-              onClick={handleClearAllFilters}
-              sx={{
-                borderRadius: `${theme.custom.radius.md}px`,
-                px: 3,
-                py: 1,
-                textTransform: 'none',
-                fontWeight: 600,
-                borderColor: theme.custom.color.brandPrimary,
-                color: theme.custom.color.brandPrimary,
-                '&:hover': {
-                  borderColor: theme.custom.color.brandPrimary,
-                  backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
-                },
-              }}
-            >
-              {t('clearFilters')}
-            </Button>
-          )}
-          <Button
-            variant="outlined"
-            startIcon={<Language />}
-            onClick={handleSelectCountry}
-            sx={{
-              borderRadius: `${theme.custom.radius.md}px`,
-              px: 3,
-              py: 1,
-              textTransform: 'none',
-              fontWeight: 600,
-              borderColor: alpha(theme.custom.color.ink, 0.25),
-              color: theme.custom.color.ink,
-              '&:hover': {
-                borderColor: theme.custom.color.brandPrimary,
-                backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
-              },
-            }}
-          >
-            {t('changeCountry')}
-          </Button>
-        </Box>
-      </Box>
+      <PostsListEmptyState
+        selectedCity={selectedCity}
+        selectedCategories={selectedCategories}
+        localCategoryFilter={localCategoryFilter}
+        categoriesData={categoriesData}
+        selectedFl={selectedFl}
+        foundsId={foundsId}
+        hasActiveFilters={hasActiveFilters}
+        searchTerm={searchTerm}
+        getCityDisplayName={getCityDisplayName}
+        onAddNewPost={handleAddNewPost}
+        onClearFilters={handleClearAllFilters}
+        onSelectCountry={handleSelectCountry}
+      />
     );
 
     // ---- Desktop (md+): filter panel beside the grid, rendered inside the
