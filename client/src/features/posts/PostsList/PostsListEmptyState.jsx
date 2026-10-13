@@ -13,14 +13,9 @@ import {
 import {
   PostAdd as PostAddIcon,
   SearchOffOutlined,
-  EditOutlined,
-  PlaceRounded,
-  CampaignRounded,
-  Add as AddIcon,
   Language as LanguageIcon,
   FilterAltOffRounded,
   AutoAwesomeRounded,
-  CheckCircleRounded,
 } from '@mui/icons-material';
 import { useTranslation } from '../../../utils/translations';
 import { isRTL } from '../../../utils/languageUtils';
@@ -42,7 +37,6 @@ const PostsListEmptyState = ({
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const isRTLMode = isRTL();
   const { t, currentLanguage } = useTranslation();
 
@@ -53,7 +47,7 @@ const PostsListEmptyState = ({
   const isLost = Boolean(selectedFl && selectedFl !== foundsId);
   const isFound = Boolean(selectedFl && selectedFl === foundsId);
 
-  // Extract active category names
+  // Extract active category names (handles multiple categories properly)
   const activeCategoryName = useMemo(() => {
     if (selectedCategories && selectedCategories.length > 0) {
       const names = selectedCategories
@@ -73,9 +67,25 @@ const PostsListEmptyState = ({
     return '';
   }, [selectedCategories, localCategoryFilter, categoriesData, currentLanguage]);
 
-  const cityName = selectedCity ? getCityDisplayName(selectedCity) : '';
+  // Resolve city display name strictly adhering to the site's current language
+  const cityName = useMemo(() => {
+    if (!selectedCity) return '';
+    // Prioritize current language from localized labels / names object
+    if (selectedCity.labels?.[currentLanguage]) return selectedCity.labels[currentLanguage];
+    if (selectedCity.names?.[currentLanguage]) return selectedCity.names[currentLanguage];
+    if (typeof getCityDisplayName === 'function') {
+      const resolved = getCityDisplayName(selectedCity);
+      if (resolved && resolved !== 'Unknown City' && !/^[0-9a-fA-F]{24}$/.test(resolved)) {
+        return resolved;
+      }
+    }
+    const fallback = selectedCity.label || selectedCity.name || '';
+    // Prevent displaying raw Mongo ObjectId strings
+    if (/^[0-9a-fA-F]{24}$/.test(fallback)) return '';
+    return fallback;
+  }, [selectedCity, currentLanguage, getCityDisplayName]);
 
-  // Formulate dynamic heading
+  // Formulate dynamic heading matching category and city combinations
   const emptyTitle = useMemo(() => {
     if (activeCategoryName && cityName) {
       return t('emptyStateTitleWithCategoryAndCity', {
@@ -89,17 +99,21 @@ const PostsListEmptyState = ({
     if (cityName) {
       return t('emptyStateTitleWithCity', { cityName });
     }
+    if (searchTerm) {
+      return currentLanguage === 'ar'
+        ? `لم يتم العثور على منشورات لـ "${searchTerm}"`
+        : currentLanguage === 'fr'
+        ? `Aucune annonce trouvée pour "${searchTerm}"`
+        : `No posts found for "${searchTerm}"`;
+    }
     if (hasActiveFilters) {
       return t('noPostsMatchFilters');
     }
     return t('emptyStateTitle');
-  }, [activeCategoryName, cityName, hasActiveFilters, t]);
+  }, [activeCategoryName, cityName, searchTerm, hasActiveFilters, currentLanguage, t]);
 
-  // Formulate dynamic button label
+  // Formulate clean button label (category title excluded as requested)
   const createButtonLabel = useMemo(() => {
-    if (activeCategoryName) {
-      return t('emptyStateCreateAdForCategory', { categoryName: activeCategoryName });
-    }
     if (isLost) {
       return t('emptyStateCreateLostAd');
     }
@@ -107,31 +121,7 @@ const PostsListEmptyState = ({
       return t('emptyStateCreateFoundAd');
     }
     return t('emptyStateCreateAdBtn');
-  }, [activeCategoryName, isLost, isFound, t]);
-
-  const steps = [
-    {
-      num: 1,
-      icon: <EditOutlined sx={{ fontSize: 28, color: brand }} />,
-      title: t('emptyStateStep1Title'),
-      desc: t('emptyStateStep1Desc'),
-      highlight: activeCategoryName || (currentLanguage === 'ar' ? 'الفئة والتفاصيل' : 'Category & Details'),
-    },
-    {
-      num: 2,
-      icon: <PlaceRounded sx={{ fontSize: 28, color: brandLogo }} />,
-      title: t('emptyStateStep2Title'),
-      desc: t('emptyStateStep2Desc'),
-      highlight: cityName || (currentLanguage === 'ar' ? 'المدينة والموقع' : 'City & Location'),
-    },
-    {
-      num: 3,
-      icon: <CampaignRounded sx={{ fontSize: 28, color: theme.custom?.status?.found || '#10b981' }} />,
-      title: t('emptyStateStep3Title'),
-      desc: t('emptyStateStep3Desc'),
-      highlight: currentLanguage === 'ar' ? 'مجانًا 100%' : '100% Free',
-    },
-  ];
+  }, [isLost, isFound, t]);
 
   return (
     <Paper
@@ -148,12 +138,13 @@ const PostsListEmptyState = ({
           ? '0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 242, 254, 0.08)'
           : '0 20px 50px rgba(15, 23, 42, 0.08), 0 0 25px rgba(0, 242, 254, 0.12)',
         overflow: 'hidden',
-        p: { xs: 3, sm: 4, md: 5 },
+        py: { xs: 4, sm: 5, md: 6 },
+        px: { xs: 2.5, sm: 4, md: 5 },
         textAlign: 'center',
         direction: isRTLMode ? 'rtl' : 'ltr',
       }}
     >
-      {/* Top glowing hairline */}
+      {/* Top glowing hairline gradient */}
       <Box
         sx={{
           position: 'absolute',
@@ -166,7 +157,7 @@ const PostsListEmptyState = ({
         }}
       />
 
-      {/* Header Badge */}
+      {/* Header Pill Badge */}
       <Box sx={{ display: 'inline-flex', alignItems: 'center', mb: 2.5 }}>
         <Chip
           icon={<AutoAwesomeRounded sx={{ fontSize: '1rem !important', color: `${brand} !important` }} />}
@@ -212,21 +203,23 @@ const PostsListEmptyState = ({
         component="h2"
         sx={{
           fontWeight: 800,
-          fontSize: { xs: '1.35rem', sm: '1.65rem', md: '1.85rem' },
+          fontSize: { xs: '1.35rem', sm: '1.65rem', md: '1.9rem' },
           color: theme.custom?.color?.ink || (isDark ? '#f8fafc' : '#0f172a'),
           mb: 1.5,
-          lineHeight: 1.3,
+          lineHeight: 1.35,
+          maxWidth: 720,
+          mx: 'auto',
         }}
       >
         {emptyTitle}
       </Typography>
 
-      {/* Instruction Subtitle */}
+      {/* Instruction Subtitle (cleaned up without "... so the community can help you") */}
       <Typography
         variant="body1"
         sx={{
           color: alpha(theme.custom?.color?.ink || (isDark ? '#f8fafc' : '#0f172a'), isDark ? 0.78 : 0.75),
-          maxWidth: 620,
+          maxWidth: 580,
           mx: 'auto',
           mb: 4,
           fontSize: { xs: '0.925rem', sm: '1.025rem' },
@@ -235,102 +228,6 @@ const PostsListEmptyState = ({
       >
         {t('emptyStateInstruction')}
       </Typography>
-
-      {/* 3 Simple Steps Visual Cards */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-          gap: { xs: 2, sm: 2.5 },
-          maxWidth: 820,
-          mx: 'auto',
-          mb: 4.5,
-        }}
-      >
-        {steps.map((s) => (
-          <Box
-            key={s.num}
-            sx={{
-              p: { xs: 2, sm: 2.5 },
-              borderRadius: '16px',
-              backgroundColor: isDark ? 'rgba(15, 23, 42, 0.65)' : 'rgba(248, 250, 252, 0.8)',
-              border: `1px solid ${alpha(brand, isDark ? 0.2 : 0.14)}`,
-              transition: 'all 0.25s ease',
-              textAlign: isMobile ? 'center' : 'start',
-              position: 'relative',
-              overflow: 'hidden',
-              '&:hover': {
-                transform: 'translateY(-3px)',
-                borderColor: alpha(brand, 0.45),
-                boxShadow: `0 10px 24px ${alpha(brand, 0.12)}`,
-              },
-            }}
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: isMobile ? 'center' : 'flex-start',
-                gap: 1.25,
-                mb: 1.25,
-              }}
-            >
-              <Box
-                sx={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: '12px',
-                  backgroundColor: alpha(brand, isDark ? 0.15 : 0.08),
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                {s.icon}
-              </Box>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.975rem',
-                  color: isDark ? '#f8fafc' : '#0f172a',
-                }}
-              >
-                {s.title}
-              </Typography>
-            </Box>
-
-            <Typography
-              variant="body2"
-              sx={{
-                color: isDark ? '#94a3b8' : '#64748b',
-                fontSize: '0.85rem',
-                lineHeight: 1.5,
-                mb: 1,
-              }}
-            >
-              {s.desc}
-            </Typography>
-
-            {s.highlight && (
-              <Box
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: brand,
-                }}
-              >
-                <CheckCircleRounded sx={{ fontSize: 13 }} />
-                <span>{s.highlight}</span>
-              </Box>
-            )}
-          </Box>
-        ))}
-      </Box>
 
       {/* Main Call-to-Action Section */}
       <Box
