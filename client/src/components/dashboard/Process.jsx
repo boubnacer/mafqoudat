@@ -914,11 +914,9 @@ const Process = () => {
         mx: "auto",
       }}
     >
-      {/* Cyber dot matrix SVG background with semantic process flow: brandLogo to status.found */}
+      {/* Cyber dot matrix SVG background */}
       <CyberDotMatrix
         idPrefix="dots-process"
-        colorTop={brandLogo}
-        colorBottom={theme.custom?.status?.found?.main || '#1A8563'}
         inverted={false}
         zIndex={0}
       />

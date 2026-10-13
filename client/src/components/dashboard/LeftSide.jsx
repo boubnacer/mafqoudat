@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import TotalBox from "../TotalBox";
 import FoundLostStrip from "./FoundLostStrip";
+import CyberDotMatrix from "./CyberDotMatrix";
 import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
@@ -322,11 +323,6 @@ const LeftSide = ({
   };
 
   const isDark = theme.palette.mode === 'dark';
-  const isRTL = currentLanguage === 'ar' || theme.direction === 'rtl';
-  const dotColor = isDark ? '#C8E5F9' : '#1C699C';
-  const dotRadius = isDark ? 0.72 : 0.9;
-  const dotSize = dotRadius * 2;
-  const dotOffset = 2.25 - dotRadius;
 
   if (isError) {
     return (
@@ -361,62 +357,7 @@ const LeftSide = ({
       }}
     >
       {/* Cyber dot matrix SVG background with Corner Clusters matching RTL/LTR theme */}
-      <Box
-        component="svg"
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-          opacity: isDark ? 0.5 : 0.75,
-          zIndex: 0,
-        }}
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <pattern id="dot-matrix-stats" width="4.5" height="4.5" patternUnits="userSpaceOnUse">
-            <rect
-              x={dotOffset}
-              y={dotOffset}
-              width={dotSize}
-              height={dotSize}
-              fill={dotColor}
-            />
-          </pattern>
-          {/* In LTR: top-left (cx=0%, cy=0%) and bottom-right (cx=100%, cy=100%). In RTL: inversed to top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%) */}
-          <radialGradient
-            id="top-glow-stats"
-            cx={isRTL ? "100%" : "0%"}
-            cy="0%"
-            r="48%"
-          >
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-            <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
-            <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient
-            id="bottom-glow-stats"
-            cx={isRTL ? "0%" : "100%"}
-            cy="100%"
-            r="48%"
-          >
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-            <stop offset="40%" stopColor="#ffffff" stopOpacity="0.85" />
-            <stop offset="75%" stopColor="#ffffff" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-          </radialGradient>
-          <mask id="top-mask-stats">
-            <rect width="100%" height="100%" fill="url(#top-glow-stats)" />
-          </mask>
-          <mask id="bottom-mask-stats">
-            <rect width="100%" height="100%" fill="url(#bottom-glow-stats)" />
-          </mask>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#dot-matrix-stats)" mask="url(#top-mask-stats)" />
-        <rect width="100%" height="100%" fill="url(#dot-matrix-stats)" mask="url(#bottom-mask-stats)" />
-      </Box>
+      <CyberDotMatrix idPrefix="dot-matrix-stats" zIndex={0} />
 
       {/* Title Section */}
       <Box

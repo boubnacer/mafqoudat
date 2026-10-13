@@ -21,6 +21,8 @@ export const colorTokens = {
   // as a control — see WorldActivityMap.jsx for why it takes this over
   // brandPrimary.
   brandLogo: { light: '#3498DB', dark: '#3498DB' },
+  // Decorative cyber dot matrix / grid accent color across dashboard cards
+  cyberDots: { light: '#1C699C', dark: '#C8E5F9' },
   ink: { light: '#0B1220', dark: '#EDEFF5' },
   surfaceBase: { light: '#F7F8FB', dark: '#0E1116' },
   surfaceRaised: { light: '#FFFFFF', dark: '#171B22' },
@@ -92,6 +94,7 @@ export const resolveDesignTokens = (mode) => {
     color: {
       brandPrimary: colorTokens.brandPrimary[m],
       brandLogo: colorTokens.brandLogo[m],
+      cyberDots: colorTokens.cyberDots[m],
       ink: colorTokens.ink[m],
       surfaceBase: colorTokens.surfaceBase[m],
       surfaceRaised: colorTokens.surfaceRaised[m],

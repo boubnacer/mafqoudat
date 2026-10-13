@@ -158,11 +158,9 @@ const QuickActions = () => {
         padding: isMobile ? '1.5rem' : '2rem',
       }}
     >
-      {/* Cyber dot matrix SVG background with dual brand semantic tones */}
+      {/* Cyber dot matrix SVG background */}
       <CyberDotMatrix
         idPrefix="dots-quick-actions"
-        colorTop={brandPrimary}
-        colorBottom={brandLogo}
         inverted={false}
         zIndex={0}
       />

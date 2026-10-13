@@ -200,11 +200,9 @@ const Dash = () => {
           mx: { xs: 1, sm: 2 },
         }}
       >
-        {/* Cyber dot matrix SVG background matching category blobs */}
+        {/* Cyber dot matrix SVG background */}
         <CyberDotMatrix
           idPrefix="dots-categories"
-          colorTop={theme.custom.color.brandLogo}
-          colorBottom={theme.custom.color.brandPrimary}
           inverted={true}
           zIndex={0}
         />

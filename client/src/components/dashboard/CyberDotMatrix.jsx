@@ -32,7 +32,7 @@ const CyberDotMatrix = ({
   colorBottom,
   inverted = false,
   placement = 'diagonal-standard',
-  shape = 'circle',
+  shape = 'square',
   falloffCurve = 'default',
   hairlineGlow = false,
   opacity,
@@ -51,11 +51,11 @@ const CyberDotMatrix = ({
     : theme.palette.mode === 'dark';
   const isRtl = checkIsRTL() || theme.direction === 'rtl';
 
-  const defaultColor = theme.custom?.color?.brandLogo || '#3498DB';
+  const defaultColor = theme.custom?.color?.cyberDots || (isDark ? '#C8E5F9' : '#1C699C');
   const topColor = colorTop || color || defaultColor;
   const bottomColor = colorBottom || color || defaultColor;
 
-  const resolvedOpacity = opacity ?? (isDark ? 0.5 : 0.85);
+  const resolvedOpacity = opacity ?? (isDark ? 0.5 : 0.75);
   const resolvedDotRadius = dotRadius ?? (isDark ? 0.72 : 0.9);
   const center = patternSpacing / 2;
 

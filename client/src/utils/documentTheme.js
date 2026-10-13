@@ -28,6 +28,7 @@ export const applyDocumentTheme = (mode) => {
   root.style.setProperty('--mafq-surface-base', tokens.color.surfaceBase);
   root.style.setProperty('--mafq-surface-raised', tokens.color.surfaceRaised);
   root.style.setProperty('--mafq-brand-primary', tokens.color.brandPrimary);
+  root.style.setProperty('--mafq-cyber-dots', tokens.color.cyberDots);
   root.style.setProperty('--mafq-radius-lg', `${tokens.radius.lg}px`);
   root.style.setProperty('--mafq-radius-md', `${tokens.radius.md}px`);
   root.style.setProperty('--mafq-elevation-e3', tokens.elevation.e3);

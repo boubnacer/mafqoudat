@@ -175,10 +175,9 @@ const HelpSupportSection = () => {
           padding: { xs: '1.5rem', sm: '2.5rem', md: '3rem' },
         }}
       >
-        {/* Cyber dot matrix SVG background with calm brandPrimary tone */}
+        {/* Cyber dot matrix SVG background */}
         <CyberDotMatrix
           idPrefix="dots-help-support"
-          color={theme.custom.color.brandPrimary}
           inverted={true}
           zIndex={0}
         />
