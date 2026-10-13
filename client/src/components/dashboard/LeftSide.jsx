@@ -324,6 +324,9 @@ const LeftSide = ({
   const isDark = theme.palette.mode === 'dark';
   const isRTL = currentLanguage === 'ar' || theme.direction === 'rtl';
   const dotColor = isDark ? '#C8E5F9' : '#1C699C';
+  const dotRadius = isDark ? 0.72 : 0.9;
+  const dotSize = dotRadius * 2;
+  const dotOffset = 2.25 - dotRadius;
 
   if (isError) {
     return (
@@ -373,7 +376,13 @@ const LeftSide = ({
       >
         <defs>
           <pattern id="dot-matrix-stats" width="4.5" height="4.5" patternUnits="userSpaceOnUse">
-            <circle cx="2.25" cy="2.25" r={isDark ? 0.72 : 0.9} fill={dotColor} />
+            <rect
+              x={dotOffset}
+              y={dotOffset}
+              width={dotSize}
+              height={dotSize}
+              fill={dotColor}
+            />
           </pattern>
           {/* In LTR: top-left (cx=0%, cy=0%) and bottom-right (cx=100%, cy=100%). In RTL: inversed to top-right (cx=100%, cy=0%) and bottom-left (cx=0%, cy=100%) */}
           <radialGradient
