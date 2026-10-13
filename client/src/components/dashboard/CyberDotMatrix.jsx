@@ -60,20 +60,32 @@ const CyberDotMatrix = ({
   const center = patternSpacing / 2;
 
   // Placement: support both placement string and inverted boolean
-  const isInverted = placement
-    ? (placement === 'diagonal-inverted' || placement === 'inverted')
-    : inverted;
+  const isInverted = Boolean(inverted) || placement === 'diagonal-inverted' || placement === 'inverted';
 
-  const showTop = placement !== 'bottom-end' && placement !== 'bottom-start' && placement !== 'bottom';
-  const showBottom = placement !== 'top-start' && placement !== 'top-end' && placement !== 'top';
+  const isBottomOnly = placement === 'bottom-end' || placement === 'bottom-start' || placement === 'bottom' || placement === 'bottom-right' || placement === 'bottom-left';
+  const isTopOnly = placement === 'top-start' || placement === 'top-end' || placement === 'top' || placement === 'top-right' || placement === 'top-left';
 
-  const topCx = isInverted
+  const showTop = !isBottomOnly;
+  const showBottom = !isTopOnly;
+
+  let topCx = isInverted
     ? (isRtl ? '0%' : '100%')
     : (isRtl ? '100%' : '0%');
 
-  const bottomCx = isInverted
+  let bottomCx = isInverted
     ? (isRtl ? '100%' : '0%')
     : (isRtl ? '0%' : '100%');
+
+  // Explicit corner overrides
+  if (placement === 'bottom-right') {
+    bottomCx = '100%';
+  } else if (placement === 'bottom-left') {
+    bottomCx = '0%';
+  } else if (placement === 'top-right') {
+    topCx = '100%';
+  } else if (placement === 'top-left') {
+    topCx = '0%';
+  }
 
   const patternTopId = `${uid}-pat-top`;
   const patternBottomId = `${uid}-pat-bottom`;

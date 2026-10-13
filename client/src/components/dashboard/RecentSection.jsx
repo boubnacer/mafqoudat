@@ -44,6 +44,7 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
       {/* Cyber dot matrix SVG background with inverted diagonal placement */}
       <CyberDotMatrix
         idPrefix={`dots-recent-${type}`}
+        placement="diagonal-inverted"
         inverted={true}
         zIndex={0}
       />

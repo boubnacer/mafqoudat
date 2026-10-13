@@ -917,6 +917,7 @@ const Process = () => {
       {/* Cyber dot matrix SVG background with inverted diagonal placement */}
       <CyberDotMatrix
         idPrefix="dots-process"
+        placement="diagonal-inverted"
         inverted={true}
         zIndex={0}
       />
