@@ -96,10 +96,10 @@ const LeftSide = ({
         const today = new Date().toISOString().split('T')[0];
         const todayKey = getTodayKey();
         const keysToRemove = [];
-        
+
         // First, read today's value BEFORE cleanup to preserve it
         const todayValue = localStorage.getItem(todayKey);
-        
+
         // Check all localStorage keys
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
@@ -111,23 +111,23 @@ const LeftSide = ({
             }
           }
         }
-        
+
         // Remove old keys (but never remove today's key)
         keysToRemove.forEach(key => {
           if (key !== todayKey) {
             localStorage.removeItem(key);
           }
         });
-        
+
         // Restore today's value if it existed (in case cleanup accidentally removed it)
         if (todayValue && !localStorage.getItem(todayKey)) {
           localStorage.setItem(todayKey, todayValue);
         }
-        
+
         // Always sync state with localStorage after cleanup (this ensures fresh read on mount/refresh)
         const currentViewed = getViewedNotifications();
         const storedValue = localStorage.getItem(todayKey);
-        
+
         // Verify localStorage is working
         if (storedValue === null && todayValue !== null) {
           console.warn('localStorage value was lost! Restoring...');
@@ -159,7 +159,7 @@ const LeftSide = ({
     };
 
     window.addEventListener('storage', handleStorageChange);
-    
+
     // Also sync when window regains focus (helps with refresh scenarios)
     const handleFocus = () => {
       syncNotifications();
@@ -178,7 +178,7 @@ const LeftSide = ({
     // Re-read from localStorage when counts change to ensure we have latest viewed counts
     // This is important when user adds a new post and comes back to dashboard
     const currentViewed = getViewedNotifications();
-    
+
     // Always update state with latest from localStorage when counts change
     // This ensures we detect when new posts are added
     setViewedNotifications(prev => {
@@ -186,7 +186,7 @@ const LeftSide = ({
         foundCount: currentViewed.foundCount ?? prev.foundCount ?? 0,
         lostCount: currentViewed.lostCount ?? prev.lostCount ?? 0,
       };
-      
+
       // Only update if there are actual changes
       if (prev.foundCount !== newState.foundCount || prev.lostCount !== newState.lostCount) {
         return newState;
@@ -199,31 +199,31 @@ const LeftSide = ({
   // Show notification if current count is higher than the viewed count
   const showFoundNotification = useMemo(() => {
     const currentCount = foundsToday || 0;
-    
+
     // Get viewed count from state (synced from localStorage)
     // Use count-based tracking, ignore old boolean values
-    const viewedCount = (viewedNotifications.foundCount !== undefined && viewedNotifications.foundCount !== null) 
-      ? viewedNotifications.foundCount 
+    const viewedCount = (viewedNotifications.foundCount !== undefined && viewedNotifications.foundCount !== null)
+      ? viewedNotifications.foundCount
       : 0;
-    
+
     // Show notification if: current count >= 1 AND current count > viewed count
     const shouldShow = currentCount >= 1 && currentCount > viewedCount;
-    
+
     return shouldShow;
   }, [foundsToday, viewedNotifications.foundCount]);
 
   const showLostNotification = useMemo(() => {
     const currentCount = lostsToday || 0;
-    
+
     // Get viewed count from state (synced from localStorage)
     // Use count-based tracking, ignore old boolean values
     const viewedCount = (viewedNotifications.lostCount !== undefined && viewedNotifications.lostCount !== null)
       ? viewedNotifications.lostCount
       : 0;
-    
+
     // Show notification if: current count >= 1 AND current count > viewed count
     const shouldShow = currentCount >= 1 && currentCount > viewedCount;
-    
+
     return shouldShow;
   }, [lostsToday, viewedNotifications.lostCount]);
 
@@ -233,15 +233,15 @@ const LeftSide = ({
     try {
       const key = getTodayKey();
       const currentCount = foundsToday || 0;
-      
+
       // Read current state from localStorage
       const stored = localStorage.getItem(key);
       const currentViewed = stored ? JSON.parse(stored) : {};
-      
+
       // Store the current count when viewed
       currentViewed.foundCount = currentCount;
       const valueToStore = JSON.stringify(currentViewed);
-      
+
       // Write to localStorage with error handling
       try {
         localStorage.setItem(key, valueToStore);
@@ -254,13 +254,13 @@ const LeftSide = ({
         }
         // Continue navigation even if storage fails
       }
-      
+
       // Update state immediately
       setViewedNotifications(prev => ({ ...prev, foundCount: currentCount }));
     } catch (error) {
       console.error('Error marking found notification as viewed:', error);
     }
-    
+
     const foundOption = flOptionsData?.find(option => option.code === 'FOUND');
     if (foundOption) {
       dispatch(setFoundOrLost({ foundOrlost: foundOption.code }));
@@ -277,15 +277,15 @@ const LeftSide = ({
     try {
       const key = getTodayKey();
       const currentCount = lostsToday || 0;
-      
+
       // Read current state from localStorage
       const stored = localStorage.getItem(key);
       const currentViewed = stored ? JSON.parse(stored) : {};
-      
+
       // Store the current count when viewed
       currentViewed.lostCount = currentCount;
       const valueToStore = JSON.stringify(currentViewed);
-      
+
       // Write to localStorage with error handling
       try {
         localStorage.setItem(key, valueToStore);
@@ -298,13 +298,13 @@ const LeftSide = ({
         }
         // Continue navigation even if storage fails
       }
-      
+
       // Update state immediately
       setViewedNotifications(prev => ({ ...prev, lostCount: currentCount }));
     } catch (error) {
       console.error('Error marking lost notification as viewed:', error);
     }
-    
+
     const lostOption = flOptionsData?.find(option => option.code === 'LOST');
     if (lostOption) {
       dispatch(setFoundOrLost({ foundOrlost: lostOption.code }));
@@ -323,7 +323,7 @@ const LeftSide = ({
 
   const isDark = theme.palette.mode === 'dark';
   const isRTL = currentLanguage === 'ar' || theme.direction === 'rtl';
-  const dotColor = isDark ? '#82C2ED' : '#1C699C';
+  const dotColor = isDark ? '#C8E5F9' : '#104060';
 
   if (isError) {
     return (
