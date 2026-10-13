@@ -1,6 +1,6 @@
 import React, { useId } from 'react';
 import { Box, useTheme } from '@mui/material';
-import { isRTL as checkIsRTL } from '../../utils/languageUtils';
+import { useTranslation } from '../../utils/translations';
 
 /**
  * CyberDotMatrix
@@ -9,6 +9,7 @@ import { isRTL as checkIsRTL } from '../../utils/languageUtils';
  *
  * @param {string} [idPrefix] - Optional unique prefix for SVG defs IDs.
  * @param {boolean} [isDark] - Optional explicit dark mode override.
+ * @param {boolean} [isRtl] - Optional explicit RTL override.
  * @param {string} [color] - Base dot color (defaults to theme.custom.color.brandLogo).
  * @param {string} [colorTop] - Semantic color for top cluster (overrides color).
  * @param {string} [colorBottom] - Semantic color for bottom cluster (overrides color).
@@ -27,6 +28,7 @@ import { isRTL as checkIsRTL } from '../../utils/languageUtils';
 const CyberDotMatrix = ({
   idPrefix,
   isDark: isDarkProp,
+  isRtl: isRtlProp,
   color,
   colorTop,
   colorBottom,
@@ -45,11 +47,14 @@ const CyberDotMatrix = ({
   const theme = useTheme();
   const rawId = useId();
   const uid = (idPrefix || `cyber-dots-${rawId}`).replace(/[^a-zA-Z0-9-_]/g, '');
+  const { currentLanguage } = useTranslation();
 
   const isDark = isDarkProp !== undefined
     ? isDarkProp
     : theme.palette.mode === 'dark';
-  const isRtl = checkIsRTL() || theme.direction === 'rtl';
+  const isRtl = isRtlProp !== undefined
+    ? isRtlProp
+    : (currentLanguage ? currentLanguage === 'ar' : theme.direction === 'rtl');
 
   const defaultColor = theme.custom?.color?.cyberDots || (isDark ? '#C8E5F9' : '#1C699C');
   const topColor = colorTop || color || defaultColor;

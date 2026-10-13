@@ -709,18 +709,18 @@ const Navbar = () => {
       }}
     >
       <StyledToolbar>
-        {/* Decorative cyber dot matrix in the bottom-right for both RTL and LTR */}
+        {/* Decorative cyber dot matrix: bottom-left in RTL, bottom-right in LTR, half navbar height */}
         <CyberDotMatrix
           idPrefix="dots-navbar"
-          placement="bottom-right"
+          placement={isRTL ? "bottom-left" : "bottom-right"}
           glowRadius="100%"
           sx={{
             width: { xs: 200, sm: 260, md: 320 },
-            height: "100%",
-            top: 0,
+            height: "50%",
+            top: "auto",
             bottom: 0,
-            right: 0,
-            left: "auto",
+            left: isRTL ? 0 : "auto",
+            right: isRTL ? "auto" : 0,
             zIndex: 0,
           }}
         />
