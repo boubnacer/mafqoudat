@@ -465,9 +465,9 @@ const LeftSide = ({
           onFoundClick={handleFoundItemsClick}
           onLostClick={handleLostItemsClick}
           sx={{
-            background: alpha(theme.custom.color.surfaceRaised, isDark ? 0.25 : 0.35),
-            backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.25 : 0.35),
-            backdropFilter: 'blur(4px)',
+            background: alpha(theme.custom.color.surfaceRaised, isDark ? 0.48 : 0.58),
+            backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.48 : 0.58),
+            backdropFilter: 'blur(8px)',
           }}
         />
 
@@ -479,9 +479,9 @@ const LeftSide = ({
           description={t('sinceLastMonth')}
           icon={<RenderIcon name="total" />}
           sx={{
-            background: alpha(theme.custom.color.surfaceRaised, isDark ? 0.25 : 0.35),
-            backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.25 : 0.35),
-            backdropFilter: 'blur(4px)',
+            background: alpha(theme.custom.color.surfaceRaised, isDark ? 0.48 : 0.58),
+            backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.48 : 0.58),
+            backdropFilter: 'blur(8px)',
             padding: isMobile ? '1.25rem' : '1.5rem',
           }}
           titleStyle={{
@@ -513,9 +513,9 @@ const LeftSide = ({
           icon={<RenderIcon name="returned" />}
           onClick={handleReturnedItemsClick}
           sx={{
-            background: alpha(theme.custom.color.surfaceRaised, isDark ? 0.25 : 0.35),
-            backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.25 : 0.35),
-            backdropFilter: 'blur(4px)',
+            background: alpha(theme.custom.color.surfaceRaised, isDark ? 0.48 : 0.58),
+            backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.48 : 0.58),
+            backdropFilter: 'blur(8px)',
             padding: isMobile ? '1.25rem' : '1.5rem',
           }}
           titleStyle={{
