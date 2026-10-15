@@ -234,7 +234,7 @@ const LeftSide = ({
 
   const totalBoxCardSx = {
     ...baseCardSx,
-    padding: isMobile ? '1.25rem' : '1.5rem',
+    padding: isMobile ? '1rem 1.25rem' : '1.5rem',
     cursor: 'default',
     '&:hover': {
       transform: 'none',
@@ -244,7 +244,7 @@ const LeftSide = ({
 
   const returnedBoxCardSx = {
     ...baseCardSx,
-    padding: isMobile ? '1.25rem' : '1.5rem',
+    padding: isMobile ? '1rem 1.25rem' : '1.5rem',
     cursor: 'default',
     '&:hover': {
       transform: 'none',
@@ -264,8 +264,8 @@ const LeftSide = ({
         border: 'none',
         boxShadow: 'none',
         color: isDark ? '#ffffff' : '#0f172a',
-        padding: isMobile ? '1.5rem' : '2rem',
-        paddingBottom: isMobile ? 'calc(1.5rem + 0.5cm)' : 'calc(2rem + 0.5cm)',
+        padding: isMobile ? '1.25rem 1rem' : '2rem',
+        paddingBottom: isMobile ? 'calc(1.25rem + 0.5cm)' : 'calc(2rem + 0.5cm)',
         width: '100%',
         mx: 0,
         maxWidth: '100%', // Prevent overflow
@@ -304,15 +304,15 @@ const LeftSide = ({
         </Typography>
       </Box>
 
-      {/* Stats Grid — hero Found/Lost strip spans both columns, Total and
-          Returned sit below it as smaller supporting stats */}
+      {/* Stats Grid — hero Found/Lost strip spans both columns on desktop, all
+          boxes expand to full width (1fr) on mobile so text fits on one line */}
       <Box
         gap={isMobile ? "1rem" : "1.5rem"}
         sx={{
           position: 'relative',
           zIndex: 1,
           display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
           alignItems: "stretch",
         }}
       >
@@ -338,9 +338,10 @@ const LeftSide = ({
           titleStyle={{
             fontFamily: theme.custom.font.display,
             color: isDark ? '#ffffff' : '#0f172a',
-            fontSize: '1.05rem',
+            fontSize: isMobile ? '0.95rem' : '1.05rem',
             fontWeight: 700,
             letterSpacing: '-0.01em',
+            whiteSpace: 'nowrap',
           }}
           valueStyle={{
             fontFamily: theme.custom.font.display,
@@ -356,6 +357,7 @@ const LeftSide = ({
             color: isDark ? '#94a3b8' : '#475569',
             fontSize: isMobile ? '0.85rem' : '0.875rem',
             fontWeight: 500,
+            whiteSpace: 'nowrap',
           }}
           iconStyle={{
             background: isDark ? 'rgba(0, 242, 254, 0.15)' : 'rgba(0, 114, 255, 0.10)',
@@ -377,9 +379,10 @@ const LeftSide = ({
           titleStyle={{
             fontFamily: theme.custom.font.display,
             color: isDark ? '#ffffff' : '#0f172a',
-            fontSize: '1.05rem',
+            fontSize: isMobile ? '0.95rem' : '1.05rem',
             fontWeight: 700,
             letterSpacing: '-0.01em',
+            whiteSpace: 'nowrap',
           }}
           valueStyle={{
             fontFamily: theme.custom.font.display,
@@ -395,6 +398,7 @@ const LeftSide = ({
             color: isDark ? '#94a3b8' : '#475569',
             fontSize: isMobile ? '0.85rem' : '0.875rem',
             fontWeight: 500,
+            whiteSpace: 'nowrap',
           }}
           iconStyle={{
             background: isDark ? alpha(theme.custom.status.found.main, 0.15) : alpha(theme.custom.status.found.main, 0.10),

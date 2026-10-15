@@ -51,7 +51,7 @@ const Segment = ({ tone, Icon, label, value, todayLabel, hasNotification, onClic
       sx={{
         flex: 1,
         minWidth: 0,
-        p: { xs: 2.5, sm: 3 },
+        p: { xs: 2, sm: 3 },
         cursor: onClick ? "pointer" : "default",
         display: "flex",
         flexDirection: "column",
@@ -92,9 +92,10 @@ const Segment = ({ tone, Icon, label, value, todayLabel, hasNotification, onClic
           sx={{
             fontFamily: theme.custom.font.display,
             fontWeight: 700,
-            fontSize: "1.05rem",
+            fontSize: { xs: "0.95rem", sm: "1.05rem" },
             color: isDark ? '#ffffff' : '#0f172a',
             letterSpacing: '-0.01em',
+            whiteSpace: 'nowrap',
           }}
         >
           {label}
@@ -137,6 +138,7 @@ const Segment = ({ tone, Icon, label, value, todayLabel, hasNotification, onClic
           fontSize: { xs: "0.85rem", sm: "0.875rem" },
           fontWeight: 500,
           color: isDark ? '#94a3b8' : '#475569',
+          whiteSpace: 'nowrap',
         }}
       >
         {todayLabel}

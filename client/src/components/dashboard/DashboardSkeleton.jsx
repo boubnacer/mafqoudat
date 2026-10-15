@@ -30,11 +30,11 @@ const DashboardSkeleton = () => {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
+            gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
             gap: isMobile ? "1rem" : "1.5rem",
           }}
         >
-          <SkeletonBlock radius={theme.custom.radius.lg} sx={{ height: 220, gridColumn: "1 / -1" }} />
+          <SkeletonBlock radius={theme.custom.radius.lg} sx={{ height: 220, gridColumn: { xs: "1", sm: "1 / -1" } }} />
           <SkeletonBlock radius={theme.custom.radius.lg} sx={{ height: 158 }} />
           <SkeletonBlock radius={theme.custom.radius.lg} sx={{ height: 158 }} />
         </Box>

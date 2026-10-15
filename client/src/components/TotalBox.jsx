@@ -85,8 +85,8 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
               : `0 12px 48px 0 ${defaultNotificationColor}35, 0 0 30px 0 ${defaultNotificationColor}25`
             : 'none',
         },
-        height: { xs: '240px', sm: 'auto' }, // Increased height for longer text in mobile
-        minHeight: { xs: '240px', sm: '180px' }, // Increased minimum height for desktop mode
+        height: 'auto',
+        minHeight: { xs: '140px', sm: '180px' },
         width: { xs: '100%', sm: 'auto' }, // Same width for all boxes on mobile
         display: 'flex',
         flexDirection: 'column',
@@ -99,6 +99,9 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
         fontSize="1rem"
         sx={{
           letterSpacing: '0.5px',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
           paddingRight: { xs: '50px', sm: 0 }, // Add right padding on mobile to avoid icon overlap (LTR)
           paddingLeft: { xs: 0, sm: 0 }, // No left padding needed (LTR)
           // RTL support for padding
@@ -205,7 +208,7 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            flexWrap: 'wrap',
+            flexWrap: 'nowrap',
             // RTL support
             '[dir="rtl"] &': {
               left: 'auto',
@@ -216,6 +219,7 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
           <Typography
             fontSize="0.875rem"
             sx={{
+              whiteSpace: 'nowrap',
               ...descriptionStyle,
               textAlign: 'left',
               // RTL support
