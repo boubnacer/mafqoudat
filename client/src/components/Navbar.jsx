@@ -75,23 +75,29 @@ import CyberDotMatrix from "./dashboard/CyberDotMatrix";
 // Phase 1 tokens only (theme.custom.*) — see designTokens.js / CLAUDE.md.
 // Three-column grid (not flex space-between) so the center cluster is
 // genuinely centered regardless of how wide the left/right clusters are.
-const StyledToolbar = styled(Toolbar)(({ theme }) => ({
-  position: "relative",
-  overflow: "hidden",
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
-  alignItems: "center",
-  columnGap: "16px",
-  backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.95),
-  backdropFilter: "blur(20px)",
-  padding: "0.75rem 2.5rem",
-  boxShadow: theme.custom.elevation.e1,
-  transition: "background-color 0.3s ease",
-  [theme.breakpoints.down("md")]: {
-    padding: "0.75rem 1rem",
-    minHeight: "72px",
-  },
-}));
+const StyledToolbar = styled(Toolbar)(({ theme }) => {
+  const isDark = theme.palette.mode === "dark";
+  return {
+    position: "relative",
+    overflow: "hidden",
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
+    alignItems: "center",
+    columnGap: "16px",
+    backgroundColor: isDark ? "rgba(11, 18, 32, 0.94)" : "rgba(255, 255, 255, 0.92)",
+    backdropFilter: "blur(28px)",
+    WebkitBackdropFilter: "blur(28px)",
+    padding: "0.75rem 2.5rem",
+    border: "none",
+    borderBottom: "none",
+    boxShadow: "none",
+    transition: "background-color 0.3s ease",
+    [theme.breakpoints.down("md")]: {
+      padding: "0.75rem 1rem",
+      minHeight: "72px",
+    },
+  };
+});
 
 const LogoButton = styled(Button)(({ theme }) => ({
   padding: "8px 12px 8px 8px",
@@ -706,6 +712,10 @@ const Navbar = () => {
         left: 0,
         right: 0,
         zIndex: (theme) => theme.zIndex.drawer + 1,
+        backgroundColor: "transparent",
+        backgroundImage: "none",
+        border: "none",
+        borderBottom: "none",
       }}
     >
       <StyledToolbar>
@@ -713,7 +723,6 @@ const Navbar = () => {
         <CyberDotMatrix
           idPrefix="dots-navbar"
           placement={isRTL ? "bottom-right" : "bottom-left"}
-          falloffCurve="rapid"
           glowRadius="80%"
           opacity={theme.palette.mode === "dark" ? 0.72 : 0.9}
           sx={{

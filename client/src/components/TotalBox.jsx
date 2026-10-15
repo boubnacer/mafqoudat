@@ -42,7 +42,7 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
     { dependencies: [numericValue, shouldCount], revertOnUpdate: true }
   );
   const defaultNotificationColor = notificationColor || (theme.palette.mode === 'dark' ? '#FF6B6B' : '#EF4444');
-  
+
   return (
     <Box
       {...rest}
@@ -94,10 +94,10 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
       }}
     >
       {/* Title */}
-      <Typography 
-        fontWeight="600" 
+      <Typography
+        fontWeight="600"
         fontSize="1rem"
-        sx={{ 
+        sx={{
           letterSpacing: '0.5px',
           paddingRight: { xs: '50px', sm: 0 }, // Add right padding on mobile to avoid icon overlap (LTR)
           paddingLeft: { xs: 0, sm: 0 }, // No left padding needed (LTR)
@@ -106,7 +106,7 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
             paddingRight: { xs: 0, sm: 0 }, // No right padding in RTL
             paddingLeft: { xs: '50px', sm: 0 }, // Add left padding on mobile in RTL to avoid icon overlap
           },
-          ...titleStyle 
+          ...titleStyle
         }}
       >
         {title}
@@ -114,26 +114,31 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
 
       {/* Icon positioned absolutely */}
       <Box
+        className="total-box-icon"
         sx={{
           position: 'absolute',
-          top: '12px',
-          right: '12px', // Top-right in LTR
+          top: '16px',
+          right: '16px', // Top-right in LTR
           background: iconStyle?.background || (theme.palette.mode === 'dark'
             ? 'rgba(255,255,255,0.1)'
             : 'rgba(0,0,0,0.1)'),
-          borderRadius: '12px',
+          border: iconStyle?.border || (theme.palette.mode === 'dark'
+            ? '1px solid rgba(255,255,255,0.08)'
+            : '1px solid rgba(0,0,0,0.06)'),
+          boxShadow: iconStyle?.boxShadow || 'none',
+          borderRadius: iconStyle?.borderRadius || '50%',
           padding: '8px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          transition: 'all 0.3s ease',
+          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           width: '40px', // Fixed width for uniform sizing
           height: '40px', // Fixed height for uniform sizing
           minWidth: '40px', // Ensure minimum width
           minHeight: '40px', // Ensure minimum height
           '& svg': {
             color: iconStyle?.color || (theme.palette.mode === 'dark' ? '#B0BEC5' : '#4A5568'),
-            transition: 'color 0.3s ease',
+            transition: 'color 0.25s ease',
             fontSize: '20px', // Fixed icon size for consistency
             width: '20px',
             height: '20px'
@@ -141,7 +146,7 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
           // RTL support
           '[dir="rtl"] &': {
             right: 'auto',
-            left: '12px', // Top-left in RTL
+            left: '16px', // Top-left in RTL
           }
         }}
       >
@@ -190,7 +195,7 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
         >
           {value}
         </Typography>
-        
+
         {/* Description positioned absolutely at bottom */}
         <Box
           sx={{

@@ -23,7 +23,6 @@ import Categories from "../../components/dashboard/Categories";
 import Process from "../../components/dashboard/Process";
 import RecentSection from "../../components/dashboard/RecentSection";
 import HelpSupportSection from "../../components/dashboard/HelpSupportSection";
-import DashRecents from "../../components/dashboard/DashRecents";
 import DashboardSkeleton from "../../components/dashboard/DashboardSkeleton";
 import CountryWelcomeDialog from "../../components/dashboard/CountryWelcomeDialog";
 import CyberDotMatrix from "../../components/dashboard/CyberDotMatrix";
@@ -168,9 +167,8 @@ const Dash = () => {
   // Mirrors LeftSide's panel chrome (theme.custom elevation/radius/ink)
   // instead of the old hardcoded-hex panel. Shared between the empty-state
   // and normal render paths below so the two never drift.
-  // Shared divider between homepage sections — same treatment for every
-  // gap on the page (header/RecentSection/QuickActions/Categories/Process/
-  // HelpSupport) rather than a one-off between just two of them.
+  // Shared divider between homepage sections — commented out for now
+  /*
   const sectionDivider = (
     <Box
       data-reveal="divider"
@@ -178,51 +176,22 @@ const Dash = () => {
       mb={4}
       sx={{
         height: 2,
-        background: theme.palette.mode === 'dark'
-          ? 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)'
-          : 'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
-        borderRadius: 1
+        background: isDark
+          ? 'linear-gradient(90deg, transparent 5%, rgba(0, 242, 254, 0.7) 50%, transparent 95%)'
+          : 'linear-gradient(90deg, transparent 5%, rgba(0, 180, 216, 0.7) 50%, transparent 95%)',
+        boxShadow: isDark
+          ? '0 0 10px rgba(0, 242, 254, 0.3)'
+          : '0 0 8px rgba(0, 180, 216, 0.2)',
+        borderRadius: 1,
       }}
     />
   );
+  */
+  const sectionDivider = null;
 
   const categoriesSection = (
-    <Box mb={4} data-reveal="section">
-      <DashRecents
-        cate="cate"
-        sx={{
-          position: 'relative',
-          overflow: 'hidden',
-          background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
-          backdropFilter: 'blur(10px)',
-          borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
-          boxShadow: 'none',
-          mx: { xs: 1, sm: 2 },
-        }}
-      >
-        {/* Cyber dot matrix SVG background */}
-        <CyberDotMatrix
-          idPrefix="dots-categories"
-          inverted={true}
-          zIndex={0}
-        />
-
-        <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-          <Typography
-            fontWeight="700"
-            align="center"
-            sx={{
-              fontSize: { xs: "20px", sm: "24px", md: "26px" },
-              color: theme.custom.color.ink,
-              textAlign: 'center',
-              mb: 2
-            }}
-          >
-            {t('browseByCategory')}
-          </Typography>
-          <Categories />
-        </Box>
-      </DashRecents>
+    <Box mb={4} mx={{ xs: 1, sm: 2 }} data-reveal="section">
+      <Categories />
     </Box>
   );
 
@@ -245,7 +214,7 @@ const Dash = () => {
             pt={{ xs: "5rem", sm: "4rem" }}
             width="100%"
             sx={{
-              background: `linear-gradient(180deg, ${theme.custom.color.surfaceBase} 0%, ${theme.custom.color.surfaceBase} 100%)`,
+              backgroundColor: theme.custom.color.homePageBackdrop,
               minHeight: '100vh',
               direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
               overflowX: 'hidden',
@@ -261,8 +230,8 @@ const Dash = () => {
     return (
       <>
         <SeoMeta pageKey="home" />
-        <Box 
-          pt={{ xs: "5.5rem", sm: "5.5rem" }} 
+        <Box
+          pt={{ xs: "5.5rem", sm: "5.5rem" }}
           width="100%"
           display="flex"
           justifyContent="center"
@@ -270,48 +239,48 @@ const Dash = () => {
           minHeight="50vh"
           px={2}
         >
-        <Paper
-          elevation={0}
-          sx={{
-            p: 4,
-            borderRadius: `${theme.custom.radius.xl}px`,
-            textAlign: 'center',
-            maxWidth: 400,
-            background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
-            backdropFilter: 'blur(10px)',
-            boxShadow: 'none',
-          }}
-        >
-          <Typography variant="h5" mb={2} fontWeight={600}>
-            {t('pleaseSelectCountry')}
-          </Typography>
-          <Typography variant="body1" mb={3} color="text.secondary">
-            {t('chooseCountryMessage')}
-          </Typography>
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={<Language />}
-            onClick={() => dispatch(setOpenModal())}
+          <Paper
+            elevation={0}
             sx={{
-              backgroundColor: theme.custom.color.brandPrimary,
-              color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
-              boxShadow: theme.custom.elevation.e1,
-              borderRadius: `${theme.custom.radius.md}px`,
-              px: 3,
-              py: 1.5,
-              '&:hover': {
-                backgroundColor: theme.custom.color.brandPrimary,
-                opacity: 0.9,
-                boxShadow: theme.custom.elevation.e2,
-              }
+              p: 4,
+              borderRadius: `${theme.custom.radius.xl}px`,
+              textAlign: 'center',
+              maxWidth: 400,
+              background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
+              backdropFilter: 'blur(10px)',
+              boxShadow: 'none',
             }}
           >
-            {t('selectCountry')}
-          </Button>
-        </Paper>
-      </Box>
-      {welcomeDialogElement}
+            <Typography variant="h5" mb={2} fontWeight={600}>
+              {t('pleaseSelectCountry')}
+            </Typography>
+            <Typography variant="body1" mb={3} color="text.secondary">
+              {t('chooseCountryMessage')}
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<Language />}
+              onClick={() => dispatch(setOpenModal())}
+              sx={{
+                backgroundColor: theme.custom.color.brandPrimary,
+                color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+                boxShadow: theme.custom.elevation.e1,
+                borderRadius: `${theme.custom.radius.md}px`,
+                px: 3,
+                py: 1.5,
+                '&:hover': {
+                  backgroundColor: theme.custom.color.brandPrimary,
+                  opacity: 0.9,
+                  boxShadow: theme.custom.elevation.e2,
+                }
+              }}
+            >
+              {t('selectCountry')}
+            </Button>
+          </Paper>
+        </Box>
+        {welcomeDialogElement}
       </>
     );
   }
@@ -327,7 +296,7 @@ const Dash = () => {
           pt={{ xs: "5rem", sm: "4rem" }}
           width="100%"
           sx={{
-            background: `linear-gradient(180deg, ${theme.custom.color.surfaceBase} 0%, ${theme.custom.color.surfaceBase} 100%)`,
+            backgroundColor: isDark ? '#0B1220' : '#FFFFFF',
             minHeight: '100vh',
             direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
             overflowX: 'hidden',
@@ -339,30 +308,30 @@ const Dash = () => {
       </>
     );
   }
-  
+
   // Check if all data is empty - show empty state but still show stats
-  const hasNoData = !data?.totalFounds && !data?.totalLosts && !data?.totalPosts && 
-                   (!data?.recentFounds || data?.recentFounds.length === 0) && 
-                   (!data?.recentLosts || data?.recentLosts.length === 0);
+  const hasNoData = !data?.totalFounds && !data?.totalLosts && !data?.totalPosts &&
+    (!data?.recentFounds || data?.recentFounds.length === 0) &&
+    (!data?.recentLosts || data?.recentLosts.length === 0);
 
   return (
     <>
       <SeoMeta pageKey="home" />
-      <Box 
+      <Box
         ref={pageRef}
-        pt={{ xs: "5rem", sm: "4rem" }} 
+        pt={{ xs: "5rem", sm: "4rem" }}
         width="100%"
         sx={{
           transition: 'padding 0.3s ease',
-        background: `linear-gradient(180deg, ${theme.custom.color.surfaceBase} 0%, ${theme.custom.color.surfaceBase} 100%)`,
-        minHeight: '100vh',
-        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-        overflowX: 'hidden', // Prevent horizontal overflow
-      }}
-    >
-      
-      {/* Search Section */}
-      {/* <Box mb={4}>
+          backgroundColor: theme.custom.color.homePageBackdrop,
+          minHeight: '100vh',
+          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+          overflowX: 'hidden', // Prevent horizontal overflow
+        }}
+      >
+
+        {/* Search Section */}
+        {/* <Box mb={4}>
         <SearchSection
           searchQuery={searchQuery}
           handleSearchChange={handleSearchChange}
@@ -373,47 +342,60 @@ const Dash = () => {
         />
       </Box> */}
 
-      {/* Header Section with Stats and World Activity Map. Two genuinely
+        {/* Header Section with Stats and World Activity Map. Two genuinely
           different layouts (branched in JS via the existing `isMobile`,
           not CSS display toggling) rather than mounting WorldActivityMap
           twice — both unify LeftSide and the map into one section where
           the map is a full-bleed backdrop behind a translucent LeftSide
           panel: side by side on desktop, stacked (LeftSide above a
           reserved spacer row) on mobile. */}
-      {isMobile ? (
-        <Box
-          mb={4}
-          sx={{
-            position: 'relative',
-            overflow: 'hidden',
-            width: '100%',
-            borderRadius: `${theme.custom.radius.lg}px`,
-            backgroundColor: theme.custom.color.surfaceBase,
-            boxShadow: 'none',
-          }}
-        >
-          <Box sx={mapBlob({ top: -100, insetInlineEnd: -80 })} />
-          {!hasNoData && (
-            <Box data-reveal="map" sx={{ position: 'absolute', inset: 0 }}>
-              <WorldActivityMap
-                worldActivity={data?.worldActivity}
-                cityActivity={data?.cityActivity}
-                currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
-                countriesByCode={countriesByCode}
-                isLoading={isLoading}
-              />
-            </Box>
-          )}
-          <Box sx={{ position: 'relative', p: 2, display: 'grid', gridTemplateColumns: '1fr', gap: '36px' }}>
-            <LeftSide
-              totalFounds={data?.totalFounds}
-              totalLosts={data?.totalLosts}
-              totalPosts={data?.totalPosts}
-              totalReturned={data?.totalReturned}
-              foundsToday={data?.createdToday?.todaysFoundPosts}
-              lostsToday={data?.createdToday?.todaysLostPosts}
+        {isMobile ? (
+          <Box
+            data-reveal="section"
+            mb={4}
+            sx={{
+              position: 'relative',
+              overflow: 'hidden',
+              width: '100%',
+              maxWidth: '100%',
+              mx: 0,
+              backgroundColor: theme.custom.color.homePageBackdrop,
+              borderRadius: 0,
+              border: 'none',
+              boxShadow: 'none',
+              color: isDark ? '#ffffff' : '#0f172a',
+            }}
+          >
+            {/* Cyber dot matrix SVG background matching QuickActions */}
+            <CyberDotMatrix
+              idPrefix="dots-header-mobile"
+              opacity={isDark ? 0.75 : 0.9}
+              glowRadius="32%"
+              inverted={false}
             />
-            {/* Reserves the vertical space the map's own visual area used
+            {!hasNoData && (
+              <Box data-reveal="map" sx={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+                <WorldActivityMap
+                  worldActivity={data?.worldActivity}
+                  cityActivity={data?.cityActivity}
+                  currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
+                  countriesByCode={countriesByCode}
+                  isLoading={isLoading}
+                  seaColor={theme.custom.color.homePageBackdrop}
+                  disableEdgeFade={true}
+                />
+              </Box>
+            )}
+            <Box sx={{ position: 'relative', zIndex: 1, p: 2, display: 'grid', gridTemplateColumns: '1fr', gap: '36px' }}>
+              <LeftSide
+                totalFounds={data?.totalFounds}
+                totalLosts={data?.totalLosts}
+                totalPosts={data?.totalPosts}
+                totalReturned={data?.totalReturned}
+                foundsToday={data?.createdToday?.todaysFoundPosts}
+                lostsToday={data?.createdToday?.todaysLostPosts}
+              />
+              {/* Reserves the vertical space the map's own visual area used
                 to occupy as its own square card — the actual map now
                 renders behind this (and behind LeftSide) via the
                 absolutely-positioned layer above, panned/cropped to land
@@ -424,171 +406,210 @@ const Dash = () => {
                 full-bleed backdrop stretched to the whole header's height,
                 widening this gap grows that height and pushes the map's
                 fixed-% crop further down relative to LeftSide. */}
-            {!hasNoData && <Box sx={{ width: '100%', aspectRatio: '1 / 1', minHeight: 300 }} />}
-          </Box>
-        </Box>
-      ) : (
-        <Box
-          mb={4}
-          sx={{
-            position: 'relative',
-            maxWidth: { sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
-            overflow: 'hidden',
-            width: '100%',
-            margin: '0 auto',
-            borderRadius: `${theme.custom.radius.xl}px`,
-            // Fallback tone for the map's "ocean" — the SVG has no fill of
-            // its own outside the country shapes, so without this the gaps
-            // would just show the plain page background.
-            backgroundColor: theme.custom.color.surfaceBase,
-            boxShadow: 'none',
-          }}
-        >
-          <Box sx={mapBlob({ bottom: -110, insetInlineStart: -80 })} />
-          {!hasNoData && (
-            <Box data-reveal="map" sx={{ position: 'absolute', inset: 0 }}>
-              <WorldActivityMap
-                worldActivity={data?.worldActivity}
-                cityActivity={data?.cityActivity}
-                currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
-                countriesByCode={countriesByCode}
-                isLoading={isLoading}
-              />
+              {!hasNoData && <Box sx={{ width: '100%', aspectRatio: '1 / 1', minHeight: 300 }} />}
             </Box>
-          )}
-
+          </Box>
+        ) : (
           <Box
+            data-reveal="section"
+            mb={4}
             sx={{
               position: 'relative',
-              display: 'flex',
-              justifyContent: 'flex-start',
-              p: { sm: 3, md: 4, lg: 5, xl: 6 },
+              maxWidth: { sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
+              overflow: 'hidden',
+              mx: { xs: 1, sm: 2, lg: 'auto' },
+              backgroundColor: theme.custom.color.homePageBackdrop,
+              borderRadius: 0,
+              border: 'none',
+              boxShadow: 'none',
+              color: isDark ? '#ffffff' : '#0f172a',
             }}
           >
-            <Box sx={{ width: { sm: '60%', md: '52%', lg: '50%' }, minWidth: 0 }}>
-              <LeftSide
-                totalFounds={data?.totalFounds}
-                totalLosts={data?.totalLosts}
-                totalPosts={data?.totalPosts}
-                totalReturned={data?.totalReturned}
-                foundsToday={data?.createdToday?.todaysFoundPosts}
-                lostsToday={data?.createdToday?.todaysLostPosts}
-              />
+            {/* Cyber dot matrix SVG background matching QuickActions */}
+            <CyberDotMatrix
+              idPrefix="dots-header-desktop"
+              opacity={isDark ? 0.75 : 0.9}
+              glowRadius="30%"
+              inverted={false}
+            />
+            {!hasNoData && (
+              <Box data-reveal="map" sx={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+                <WorldActivityMap
+                  worldActivity={data?.worldActivity}
+                  cityActivity={data?.cityActivity}
+                  currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
+                  countriesByCode={countriesByCode}
+                  isLoading={isLoading}
+                  seaColor={theme.custom.color.homePageBackdrop}
+                  disableEdgeFade={true}
+                />
+              </Box>
+            )}
+
+            <Box
+              sx={{
+                position: 'relative',
+                zIndex: 1,
+                display: 'flex',
+                justifyContent: 'flex-start',
+                p: { sm: 3, md: 4, lg: 5, xl: 6 },
+              }}
+            >
+              <Box sx={{ width: { sm: '60%', md: '52%', lg: '50%' }, minWidth: 0 }}>
+                <LeftSide
+                  totalFounds={data?.totalFounds}
+                  totalLosts={data?.totalLosts}
+                  totalPosts={data?.totalPosts}
+                  totalReturned={data?.totalReturned}
+                  foundsToday={data?.createdToday?.todaysFoundPosts}
+                  lostsToday={data?.createdToday?.todaysLostPosts}
+                />
+              </Box>
             </Box>
           </Box>
-        </Box>
-      )}
+        )}
 
-      {/* Show empty state if no posts, but still show stats above */}
-      {hasNoData && (
-        <>
-          {sectionDivider}
-          <SearchReportHub />
-          {sectionDivider}
-          <Box mb={4} data-reveal="section">
-            <DashboardEmptyStates.NoPosts
-              country={currentCountry}
-              countriesData={countriesData}
-              onCreatePost={handleCreateNewPost}
-            />
-          </Box>
-        </>
-      )}
+        {/* Show empty state if no posts, but still show stats above */}
+        {hasNoData && (
+          <>
+            {sectionDivider}
+            <SearchReportHub />
+            {sectionDivider}
+            <Box mb={4} data-reveal="section">
+              <DashboardEmptyStates.NoPosts
+                country={currentCountry}
+                countriesData={countriesData}
+                onCreatePost={handleCreateNewPost}
+              />
+            </Box>
+          </>
+        )}
 
-      {/* Show Categories and Process sections when there are no posts */}
-      {hasNoData && (
-        <>
-          {sectionDivider}
+        {/* Show Categories and Process sections when there are no posts */}
+        {hasNoData && (
+          <>
+            {sectionDivider}
 
-          {/* Categories Section - Show when no posts */}
-          {categoriesSection}
+            {/* Categories Section - Show when no posts */}
+            {categoriesSection}
 
-          {sectionDivider}
+            {sectionDivider}
 
-          {/* Process Section - Show when no posts */}
-          <Box mb={4} mx={{ xs: 1, sm: 2 }}>
-            <Process />
-          </Box>
+            {/* Process Section - Show when no posts */}
+            <Box mb={4} mx={{ xs: 1, sm: 2 }}>
+              <Process />
+            </Box>
 
-          {sectionDivider}
+            {sectionDivider}
 
-          {/* Help &Support Section - Show when no posts */}
-          <Box mb={4} data-reveal="section">
-            <HelpSupportSection />
-          </Box>
+            {/* Help &Support Section - Show when no posts */}
+            <Box mb={4} data-reveal="section">
+              <HelpSupportSection />
+            </Box>
 
-        </>
-      )}
+          </>
+        )}
 
-      {/* Only show content sections if there are posts */}
-      {!hasNoData && (
-        <>
-          {sectionDivider}
+        {/* Only show content sections if there are posts */}
+        {!hasNoData && (
+          <>
+            {sectionDivider}
 
-          {/* Search & Report Hub */}
-          <SearchReportHub />
+            {/* Search & Report Hub */}
+            <SearchReportHub />
 
-          {sectionDivider}
+            {sectionDivider}
 
-          {/* Recent Founds / Recent Losts - paired panels, side by side on
+            {/* Recent Founds / Recent Losts - paired panels, side by side on
               desktop, stacked on mobile. Rendered together whenever the
               country has any data at all; each panel independently falls
               back to its own empty state + CTA when that type's count is 0,
               rather than the whole panel disappearing. */}
-          <Box
-            mb={4}
-            mx={{ xs: 1, sm: 2 }}
-            sx={{
-              display: 'grid',
-              gap: { xs: 3, md: 4 },
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-            }}
-          >
-            <RecentSection
-              type="found"
-              items={data?.recentFounds}
-              totalItems={data?.totalFounds}
-              isLoading={isLoading}
-              onCreatePost={handleCreateNewPost}
-              foundOrlostId={foundsId}
-            />
-            <RecentSection
-              type="lost"
-              items={data?.recentLosts}
-              totalItems={data?.totalLosts}
-              isLoading={isLoading}
-              onCreatePost={handleCreateNewPost}
-              foundOrlostId={lostsId}
-            />
-          </Box>
+            <Box
+              data-reveal="section"
+              mb={4}
+              sx={{
+                position: 'relative',
+                overflow: 'hidden',
+                isolation: 'isolate',
+                width: '100%',
+                borderRadius: 0,
+                py: { xs: 4.5, sm: 5.5, md: 7, lg: 8.5 },
+                px: { xs: 1.5, sm: 2, md: 3 },
+                backgroundColor: 'transparent',
+                border: 'none',
+                borderTop: 'none',
+                borderBottom: 'none',
+                backdropFilter: 'none',
+                WebkitBackdropFilter: 'none',
+                boxShadow: 'none',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              {/* Cyber dot matrix SVG background centered at top and bottom */}
+              <CyberDotMatrix
+                idPrefix="dots-recent-parent"
+                placement="center-top-bottom"
+                falloffCurve="default"
+              />
 
-          {sectionDivider}
+              <Box
+                sx={{
+                  position: 'relative',
+                  zIndex: 1,
+                  maxWidth: { sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
+                  mx: 'auto',
+                  display: 'grid',
+                  gap: { xs: 3, md: 4 },
+                  gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                }}
+              >
+                <RecentSection
+                  type="found"
+                  items={data?.recentFounds}
+                  totalItems={data?.totalFounds}
+                  isLoading={isLoading}
+                  onCreatePost={handleCreateNewPost}
+                  foundOrlostId={foundsId}
+                />
+                <RecentSection
+                  type="lost"
+                  items={data?.recentLosts}
+                  totalItems={data?.totalLosts}
+                  isLoading={isLoading}
+                  onCreatePost={handleCreateNewPost}
+                  foundOrlostId={lostsId}
+                />
+              </Box>
+            </Box>
 
-          {/* Categories Section */}
-          {categoriesSection}
+            {sectionDivider}
 
-          {sectionDivider}
+            {/* Categories Section */}
+            {categoriesSection}
 
-          {/* Process Section — deliberately not marked: Process runs its
+            {sectionDivider}
+
+            {/* Process Section — deliberately not marked: Process runs its
               own local GSAP reveal, and a second one on the same nodes
               would fight it. */}
-          <Box mb={4} mx={{ xs: 1, sm: 2 }}>
-            <Process />
-          </Box>
+            <Box mb={4} mx={{ xs: 1, sm: 2 }}>
+              <Process />
+            </Box>
 
-          {sectionDivider}
+            {sectionDivider}
 
-          {/*  Help &Support Section */}
-          <Box mb={4} data-reveal="section">
-            <HelpSupportSection />
-          </Box>
+            {/*  Help &Support Section */}
+            <Box mb={4} data-reveal="section">
+              <HelpSupportSection />
+            </Box>
 
-        </>
-      )}
+          </>
+        )}
 
-      
-    </Box>
-    {welcomeDialogElement}
+
+      </Box>
+      {welcomeDialogElement}
     </>
   );
 };

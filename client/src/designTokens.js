@@ -21,8 +21,9 @@ export const colorTokens = {
   // as a control — see WorldActivityMap.jsx for why it takes this over
   // brandPrimary.
   brandLogo: { light: '#3498DB', dark: '#3498DB' },
-  // Decorative cyber dot matrix / grid accent color across dashboard cards
-  cyberDots: { light: '#1C699C', dark: '#C8E5F9' },
+  // Decorative cyber dot matrix / grid accent color across dashboard cards.
+  // Defaults to brandLogo (#3498DB), unifying the dots style across the homepage.
+  cyberDots: { light: '#3498DB', dark: '#3498DB' },
   ink: { light: '#0B1220', dark: '#EDEFF5' },
   surfaceBase: { light: '#F7F8FB', dark: '#0E1116' },
   surfaceRaised: { light: '#FFFFFF', dark: '#171B22' },
@@ -34,6 +35,17 @@ export const colorTokens = {
   // equals surfaceBase's dark value verbatim (no-op there) — surfaceRaised
   // already separates from surfaceBase enough in dark mode.
   postsListBackdrop: { light: '#EDEFF6', dark: '#0E1116' },
+  // Footer background — harmonizes with both the pure white (#FFFFFF) light
+  // homepage and the deep midnight navy (#0B1220) dark homepage, providing
+  // a grounded, tailored foundation across both modes.
+  footerBackground: { light: '#F8FAFC', dark: '#070B14' },
+  // Homepage main canvas backdrop
+  homePageBackdrop: { light: '#FFFFFF', dark: '#0B1220' },
+  // Frosted glass section container background for homepage panels
+  // (SearchReportHub, Categories, Process, Help & Support)
+  sectionCard: { light: 'rgba(255, 255, 255, 0.92)', dark: 'rgba(11, 18, 32, 0.94)' },
+  // Statistics container background (LeftSide)
+  statsCard: { light: 'rgba(255, 255, 255, 0.10)', dark: 'rgba(15, 23, 42, 0.10)' },
   status: {
     // light-mode `main` deepened slightly from the original #D6483B/#1E8F6B so
     // getContrastText's white-on-main pick clears 4.5:1 on solid-fill status
@@ -99,6 +111,10 @@ export const resolveDesignTokens = (mode) => {
       surfaceBase: colorTokens.surfaceBase[m],
       surfaceRaised: colorTokens.surfaceRaised[m],
       postsListBackdrop: colorTokens.postsListBackdrop[m],
+      footerBackground: colorTokens.footerBackground[m],
+      homePageBackdrop: colorTokens.homePageBackdrop[m],
+      sectionCard: colorTokens.sectionCard[m],
+      statsCard: colorTokens.statsCard[m],
     },
     status: {
       lost: colorTokens.status.lost[m],
@@ -108,5 +124,18 @@ export const resolveDesignTokens = (mode) => {
     radius: radiusTokens,
     elevation: elevationTokens[m],
     font: fontFamilies,
+    // Shared section card container styles for homepage panels
+    sectionCard: {
+      position: 'relative',
+      overflow: 'hidden',
+      backgroundColor: colorTokens.sectionCard[m],
+      backdropFilter: 'blur(28px)',
+      WebkitBackdropFilter: 'blur(28px)',
+      borderRadius: { xs: '20px', sm: '24px' },
+      border: 'none',
+      boxShadow: 'none',
+      maxWidth: { xs: '100%', md: 1250 },
+      mx: 'auto',
+    },
   };
 };

@@ -102,6 +102,8 @@ const WorldActivityMap = ({
   isLoading,
   hideTitle = false,
   titleOffsetTop = 0,
+  seaColor,
+  disableEdgeFade = false,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -120,9 +122,10 @@ const WorldActivityMap = ({
   // reads as a block of ink rather than as the brand, and the logo blue is the
   // brand at poster scale, which is what a backdrop is.
   const brand = theme.custom.color.brandLogo;
-  // What the containers behind this map paint for the sea (Dash.js and
-  // WelcomePage both use surfaceBase); lakes reuse it so inland water matches.
-  const sea = theme.custom.color.surfaceBase;
+  // What the containers behind this map paint for the sea (defaults to
+  // surfaceBase; callers with surfaceRaised backgrounds can pass seaColor);
+  // lakes reuse it so inland water matches.
+  const sea = seaColor || theme.custom.color.surfaceBase;
   const isDark = theme.palette.mode === "dark";
 
   // SVG filter id and the pulse class are referenced by url(#…) and by a
@@ -595,7 +598,7 @@ const WorldActivityMap = ({
   return (
     <Box ref={containerRef} sx={{ width: "100%", height: "100%", position: "relative", overflow: "hidden" }}>
       <Box sx={mapCropSx}>{mapNode}</Box>
-      <Box sx={edgeFadeSx} />
+      {!disableEdgeFade && <Box sx={edgeFadeSx} />}
       {!hideTitle && (
         <Box sx={titleOverlaySx}>
           {legendSwatch}

@@ -1,0 +1,4 @@
+## Known tokenization debt (not yet fixed — out of scope so far)
+
+- [RenderIcon.jsx](client/src/components/RenderIcon.jsx): `Found`/`Lost`/`total`/`returned` icons carry own hardcoded `sx={{ color: '#...' }}` (e.g. Lost's icon grey, not red) not following `theme.custom.status`. Newer components (`FoundLostStrip.jsx`, `TrendingItem.jsx`) sidestep by importing MUI icons directly instead of going through `RenderIcon` for Found/Lost. Worth real fix if future phase touches icon rendering broadly.
+- [LoadingStates.jsx](client/src/components/LoadingStates.jsx): shared `EmptyState` component (used by `NoPosts`, `NoRecentFounds`, `NoTrending`, etc.) still styles off `theme.palette.mode`/`theme.palette[variant]` rather than `theme.custom`. Left alone — shared across many non-redesigned sections; retheming good candidate for whichever phase does broader empty-state pass.

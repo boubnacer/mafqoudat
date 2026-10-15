@@ -11,10 +11,10 @@ import GuidedSearchDialog from './GuidedSearchDialog';
 import CyberDotMatrix from './CyberDotMatrix';
 
 const SearchReportHub = () => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isRTLMode = isRTL();
+  const isRTLMode = currentLanguage === 'ar' || isRTL();
   const isDark = theme.palette.mode === 'dark';
   const { surfaceRaised, ink, brandPrimary, brandLogo } = theme.custom.color;
   const white = theme.palette.common.white;
@@ -99,7 +99,7 @@ const SearchReportHub = () => {
   const primaryActions = [
     {
       key: 'lost',
-      title: t('iLostAnItem') || 'I Lost an Item',
+      title: t('iLostAnItem') || 'Did you lose something?',
       subtitle: t('tapHereToReport') || 'Search or report lost item',
       icon: SearchOffOutlined,
       tone: theme.custom.status.lost,
@@ -107,7 +107,7 @@ const SearchReportHub = () => {
     },
     {
       key: 'found',
-      title: t('iFoundAnItem') || 'I Found an Item',
+      title: t('iFoundAnItem') || 'Did you find something?',
       subtitle: t('tapHereToReport') || 'Search or report found item',
       icon: TaskAltOutlined,
       tone: theme.custom.status.found,
@@ -119,52 +119,61 @@ const SearchReportHub = () => {
     <>
       <Box
         data-reveal="section"
+        dir={isRTLMode ? 'rtl' : 'ltr'}
         sx={{
-          position: 'relative',
-          overflow: 'hidden',
+          ...theme.custom.sectionCard,
+          isolation: 'isolate',
+          direction: isRTLMode ? 'rtl' : 'ltr',
           mb: 4,
-          mx: { xs: 1, sm: 2 },
-          background: `linear-gradient(135deg, ${alpha(surfaceRaised, 0.95)} 0%, ${alpha(surfaceRaised, 0.95)} 100%)`,
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
-          boxShadow: 'none',
-          padding: isMobile ? '1.5rem' : '2rem',
+          padding: { xs: '2.4rem 1.25rem 2.8rem', sm: '2.5rem', md: '1.75rem 2rem 2rem' },
+          color: theme.custom.color.ink,
         }}
       >
-        {/* Cyber dot matrix SVG background */}
+        {/* Cyber dot matrix SVG background — matches Process.jsx */}
         <CyberDotMatrix
           idPrefix="dots-search-hub"
-          inverted={false}
-          zIndex={0}
+          inverted={true}
         />
 
         <Box sx={{ position: 'relative', zIndex: 1 }}>
           {/* Section Header */}
-          <Box sx={{ textAlign: 'center', mb: isMobile ? 2.5 : 3 }}>
+          <Box sx={{ textAlign: 'center', mb: { xs: 3.2, sm: 2.8, md: 3.2 } }}>
             <Typography
               variant="h5"
-              fontWeight={700}
+              component="h2"
               align="center"
               sx={{
                 fontFamily: theme.custom.font.display,
-                fontSize: { xs: '1.45rem', sm: '1.75rem', md: '2rem' },
-                color: ink,
+                fontWeight: 800,
+                fontSize: { xs: '1.5rem', sm: '1.65rem', md: '1.95rem' },
+                lineHeight: { xs: 1.25, sm: 1.2 },
+                color: isDark ? '#ffffff' : '#0f172a',
+                letterSpacing: '-0.025em',
                 textAlign: 'center',
               }}
             >
               {t('searchReportHubTitle') || 'Start with these essential actions'}
             </Typography>
+            <Box
+              sx={{
+                width: { xs: 52, sm: 56 },
+                height: 3.5,
+                borderRadius: 99,
+                mx: 'auto',
+                mt: 1.25,
+                background: `linear-gradient(90deg, ${brandPrimary}, ${brandLogo})`,
+                boxShadow: `0 2px 10px ${alpha(brandPrimary, 0.28)}`,
+              }}
+            />
           </Box>
 
-
-
-          {/* Two prominent action cards */}
+          {/* Two prominent action buttons: horizontal row on mobile, vertical cards on desktop */}
           <Box
             sx={{
               display: 'flex',
-              flexDirection: { xs: 'column', sm: isRTLMode ? 'row-reverse' : 'row' },
-              gap: { xs: 1.5, sm: 2 },
+              flexDirection: { xs: 'column', sm: 'row' },
+              direction: isRTLMode ? 'rtl' : 'ltr',
+              gap: { xs: 2.4, sm: 2.5 },
             }}
           >
             {primaryActions.map((item) => {
@@ -175,6 +184,7 @@ const SearchReportHub = () => {
                   data-reveal-item=""
                   role="button"
                   tabIndex={0}
+                  aria-label={`${item.title} - ${item.subtitle}`}
                   onClick={item.action}
                   onKeyDown={(e) => handleKeyActivate(e, item.action)}
                   onTouchStart={handleTouchStart}
@@ -186,87 +196,227 @@ const SearchReportHub = () => {
                   sx={{
                     flex: 1,
                     minWidth: 0,
+                    minHeight: { xs: 126, sm: 'auto' },
                     display: 'flex',
+                    flexDirection: { xs: 'row', sm: 'column' },
+                    direction: isRTLMode ? 'rtl' : 'ltr',
                     alignItems: 'center',
-                    gap: { xs: 1.5, sm: 2 },
-                    p: { xs: 2.25, sm: 2.75 },
+                    textAlign: { xs: isRTLMode ? 'right' : 'left', sm: 'center' },
+                    gap: { xs: 2.2, sm: 0 },
+                    p: { xs: '24px 20px', sm: 2.5, md: 3 },
+                    pt: { sm: 2.8, md: 3.2 },
                     cursor: 'pointer',
                     outline: 'none',
-                    borderRadius: `${theme.custom.radius.lg}px`,
-                    backgroundColor: alpha(item.tone.main, isDark ? 0.16 : 0.08),
-                    border: `1px solid ${alpha(item.tone.main, isDark ? 0.4 : 0.28)}`,
-                    boxShadow: theme.custom.elevation.e1,
-                    transition:
-                      'transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease',
+                    borderRadius: { xs: '20px', sm: '28px' },
+                    backgroundColor: isDark
+                      ? 'rgba(16, 25, 44, 0.88)'
+                      : '#F1F5F9',
+                    backdropFilter: 'blur(20px) saturate(1.15)',
+                    WebkitBackdropFilter: 'blur(20px) saturate(1.15)',
+                    border: `2px solid ${isDark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(226, 232, 240, 0.95)'}`,
+                    boxShadow: 'none',
+                    transition: 'transform 0.28s cubic-bezier(0.34, 1.26, 0.64, 1), box-shadow 0.28s ease, border-color 0.28s ease, background-color 0.28s ease',
+                    position: 'relative',
+                    overflow: 'hidden',
                     '&:hover': {
-                      backgroundColor: alpha(item.tone.main, isDark ? 0.24 : 0.14),
-                      borderColor: item.tone.main,
-                      boxShadow: theme.custom.elevation.e2,
-                      transform: 'translateY(-3px)',
+                      backgroundColor: isDark
+                        ? 'rgba(22, 34, 58, 0.95)'
+                        : '#ffffff',
+                      borderColor: isDark ? alpha(item.tone.main, 0.8) : item.tone.main,
+                      boxShadow: isDark
+                        ? '0 18px 42px rgba(0, 0, 0, 0.52), 0 6px 16px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.08)'
+                        : '0 18px 40px rgba(15, 23, 42, 0.10), 0 6px 16px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1)',
+                      transform: 'translateY(-4px)',
+                      '& .action-icon-circle': {
+                        transform: { sm: 'scale(1.06)' },
+                        boxShadow: isDark
+                          ? `0 10px 24px ${alpha(item.tone.main, 0.28)}`
+                          : `0 8px 20px ${alpha(item.tone.main, 0.18)}`,
+                      },
+                      '& .action-button-pill': {
+                        borderColor: item.tone.main,
+                        backgroundColor: item.tone.main,
+                        color: '#ffffff',
+                        boxShadow: `0 6px 18px ${alpha(item.tone.main, 0.36)}`,
+                        transform: 'translateY(-1px)',
+                      },
+                      '& .action-chevron': {
+                        transform: isRTLMode ? 'scaleX(-1) translateX(4px)' : 'translateX(4px)',
+                        borderColor: item.tone.main,
+                        backgroundColor: isDark ? alpha(item.tone.main, 0.22) : alpha(item.tone.main, 0.14),
+                      },
+                    },
+                    '&:active': {
+                      transform: 'translateY(-1px) scale(0.99)',
+                      boxShadow: isDark
+                        ? '0 6px 18px rgba(0, 0, 0, 0.40)'
+                        : '0 4px 14px rgba(15, 23, 42, 0.05)',
                     },
                     '&:focus-visible': {
-                      boxShadow: `${theme.custom.elevation.e2}, inset 0 0 0 2px ${item.tone.main}`,
+                      borderColor: item.tone.main,
+                      outline: 'none',
+                      boxShadow: `0 0 0 3px ${alpha(item.tone.main, 0.24)}, 0 12px 30px rgba(15, 23, 42, 0.10)`,
                     },
                   }}
                 >
+                  {/* Cyber dot matrix: top-bottom on mobile, left-right-edges on desktop */}
+                  <CyberDotMatrix
+                    idPrefix={`dots-hub-${item.key}`}
+                    placement={isMobile ? 'top-bottom' : 'left-right-edges'}
+                    colorTop={item.tone.main}
+                    colorBottom={item.tone.main}
+                    dotRadius={isDark ? 0.75 : 0.9}
+                    opacity={isDark ? (isMobile ? 0.75 : 0.68) : (isMobile ? 0.88 : 0.82)}
+                  />
+
+                  {/* Icon Bubble */}
                   <Box
+                    className="action-icon-circle"
                     sx={{
+                      position: 'relative',
+                      zIndex: 1,
                       flexShrink: 0,
-                      width: { xs: 52, sm: 60 },
-                      height: { xs: 52, sm: 60 },
+                      width: { xs: 66, sm: 64 },
+                      height: { xs: 66, sm: 64 },
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: item.tone.bg,
-                      border: `2px solid ${alpha(item.tone.main, 0.35)}`,
+                      backgroundColor: isDark ? 'rgba(30, 41, 59, 0.85)' : '#ffffff',
+                      border: isDark ? '1px solid rgba(51, 65, 85, 0.6)' : '1px solid rgba(226, 232, 240, 0.9)',
+                      boxShadow: isDark
+                        ? '0 6px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06)'
+                        : '0 4px 12px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1)',
+                      mb: { xs: 0, sm: 1.8 },
+                      transition: 'transform 0.30s cubic-bezier(0.34, 1.26, 0.64, 1), box-shadow 0.30s ease',
+                      overflow: 'hidden',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: '50%',
+                        background: `linear-gradient(180deg, ${alpha(white, isDark ? 0.08 : 0.85)} 0%, transparent 54%)`,
+                        pointerEvents: 'none',
+                      },
                     }}
                   >
-                    <Icon sx={{ fontSize: { xs: 26, sm: 30 }, color: item.tone.main }} />
+                    <Icon sx={{ position: 'relative', fontSize: { xs: 34, sm: 30 }, color: item.tone.main }} />
                   </Box>
 
-                  <Box sx={{ minWidth: 0, flex: 1, textAlign: isRTLMode ? 'right' : 'left' }}>
+                  {/* Text Block */}
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      zIndex: 1,
+                      minWidth: 0,
+                      flex: { xs: 1, sm: 'none' },
+                      textAlign: { xs: isRTLMode ? 'right' : 'left', sm: 'center' },
+                    }}
+                  >
                     <Typography
                       variant="h6"
-                      fontWeight={700}
+                      fontWeight={800}
                       sx={{
                         fontFamily: theme.custom.font.display,
-                        color: ink,
-                        fontSize: { xs: '1.05rem', sm: '1.18rem' },
-                        lineHeight: 1.3,
-                        mb: 0.35,
+                        color: isDark ? '#ffffff' : '#0f172a',
+                        fontSize: { xs: '1.24rem', sm: '1.18rem', md: '1.25rem' },
+                        lineHeight: { xs: 1.35, sm: 1.25 },
+                        letterSpacing: '-0.02em',
+                        mb: { xs: 0.55, sm: 0.45 },
                       }}
                     >
                       {item.title}
                     </Typography>
+
                     <Typography
                       variant="body2"
                       sx={{
                         fontFamily: theme.custom.font.body,
-                        color: alpha(ink, 0.72),
-                        fontSize: { xs: '0.85rem', sm: '0.9rem' },
-                        lineHeight: 1.3,
+                        color: isDark ? '#cbd5e1' : '#475569',
+                        fontSize: { xs: '0.92rem', sm: '0.86rem', md: '0.90rem' },
+                        lineHeight: { xs: 1.5, sm: 1.4 },
+                        maxWidth: { sm: 320 },
+                        mx: { sm: 'auto' },
                       }}
                     >
                       {item.subtitle}
                     </Typography>
                   </Box>
 
-                  <ArrowForwardIosRounded
+                  {/* Mobile Chevron Badge */}
+                  <Box
+                    className="action-chevron"
                     sx={{
+                      position: 'relative',
+                      zIndex: 1,
+                      display: { xs: 'flex', sm: 'none' },
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 38,
+                      height: 38,
+                      borderRadius: '50%',
+                      backgroundColor: isDark ? alpha(item.tone.main, 0.12) : alpha(item.tone.main, 0.08),
+                      border: `1px solid ${alpha(item.tone.main, isDark ? 0.28 : 0.18)}`,
                       flexShrink: 0,
-                      fontSize: 16,
-                      color: item.tone.main,
-                      opacity: 0.85,
                       transform: isRTLMode ? 'scaleX(-1)' : 'none',
+                      transition: 'transform 0.22s ease, background-color 0.22s ease, border-color 0.22s ease',
                     }}
-                  />
+                  >
+                    <ArrowForwardIosRounded
+                      sx={{
+                        fontSize: 15,
+                        color: item.tone.main,
+                      }}
+                    />
+                  </Box>
+
+                  {/* Desktop Action Pill Button */}
+                  <Box
+                    className="action-button-pill"
+                    sx={{
+                      position: 'relative',
+                      zIndex: 1,
+                      display: { xs: 'none', sm: 'inline-flex' },
+                      mt: { sm: 1.8, md: 2.2 },
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 0.65,
+                      px: { sm: 2.2, md: 2.6 },
+                      py: { sm: 0.65, md: 0.72 },
+                      borderRadius: '999px',
+                      backgroundColor: isDark ? 'rgba(30, 41, 59, 0.85)' : '#ffffff',
+                      border: isDark
+                        ? '1px solid rgba(51, 65, 85, 0.6)'
+                        : '1px solid rgba(226, 232, 240, 0.9)',
+                      color: isDark ? '#ffffff' : '#0f172a',
+                      boxShadow: isDark ? '0 2px 8px rgba(0, 0, 0, 0.25)' : '0 2px 6px rgba(0, 0, 0, 0.04)',
+                      transition: 'all 0.24s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: theme.custom.font.body,
+                        fontWeight: 800,
+                        fontSize: { sm: '0.80rem', md: '0.84rem' },
+                        letterSpacing: '0.01em',
+                        color: 'inherit',
+                        lineHeight: 1,
+                      }}
+                    >
+                      {item.title}
+                    </Typography>
+                    <ArrowForwardIosRounded
+                      sx={{
+                        fontSize: { sm: 10, md: 10.5 },
+                        color: item.tone.main,
+                        transform: isRTLMode ? 'scaleX(-1)' : 'none',
+                      }}
+                    />
+                  </Box>
                 </Box>
               );
             })}
           </Box>
-
-
         </Box>
       </Box>
 

@@ -20,6 +20,9 @@ const DashLayout = () => {
     scrollToTop();
   }, [location.pathname]);
 
+  const isHomePage = location.pathname === '/' || location.pathname === '';
+  const isDark = theme.palette.mode === 'dark';
+
   return (
     <>
       {/* here we set things that's gonna apear in every single page
@@ -43,7 +46,7 @@ const DashLayout = () => {
         <Sidebar />
         <Box
           sx={{
-            backgroundColor: theme.custom.color.surfaceBase,
+            backgroundColor: isHomePage ? (isDark ? '#0B1220' : '#FFFFFF') : theme.custom.color.surfaceBase,
             maxWidth: '100%',
           }}
         >

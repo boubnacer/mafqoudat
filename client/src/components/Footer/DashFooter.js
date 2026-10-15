@@ -22,10 +22,6 @@ import {
   Grid,
   IconButton,
   Link,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Divider,
   useMediaQuery,
 } from "@mui/material";
@@ -56,7 +52,9 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
   const { country } = useAuth();
   const token = useSelector(selectCurrentToken);
   const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   const { t, currentLanguage } = useTranslation();
+  const isRTL = currentLanguage === "ar";
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { changeLanguage } = useUnifiedLanguageChange({
     showLoadingState: false,
@@ -83,49 +81,31 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
 
     if (helpSection) {
       if (isMobile) {
-        // Mobile-specific scrolling with manual calculation
         const navbar = document.querySelector(".MuiAppBar-root");
         const navbarHeight = navbar ? navbar.offsetHeight : 0;
-
-        // Get the element's position relative to the document
         const elementRect = helpSection.getBoundingClientRect();
         const absoluteElementTop = elementRect.top + window.pageYOffset;
-
-        // Calculate scroll position accounting for navbar
         const scrollPosition = absoluteElementTop - navbarHeight - 20;
-
-        // Use multiple scrolling methods for mobile compatibility
         const finalScrollPosition = Math.max(0, scrollPosition);
 
-        // Real mobile device detection
         const isRealMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         if (isRealMobile) {
-          // Method 1: Try to focus the element first (sometimes helps with mobile scrolling)
           try {
             helpSection.focus();
           } catch (e) {
             // Ignore focus errors
           }
 
-          // Method 2: Simple instant scroll for real mobile devices
           const instantScrollToPosition = (targetPosition) => {
-            // Try multiple scroll methods for maximum compatibility
             try {
-              // Method 1: Direct window scroll
               window.scrollTo(0, targetPosition);
-
-              // Method 2: Direct DOM manipulation
               document.documentElement.scrollTop = targetPosition;
               document.body.scrollTop = targetPosition;
-
-              // Method 3: Force scroll on main container
               const mainContainer = document.querySelector("main");
               if (mainContainer) {
                 mainContainer.scrollTop = targetPosition;
               }
-
-              // Method 4: Use scrollIntoView with instant behavior
               helpSection.scrollIntoView({
                 behavior: "instant",
                 block: "start",
@@ -136,10 +116,8 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
             }
           };
 
-          // Use instant scrolling
           instantScrollToPosition(finalScrollPosition);
         } else {
-          // Desktop/emulator approach
           try {
             helpSection.scrollIntoView({
               behavior: "smooth",
@@ -147,27 +125,21 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
               inline: "nearest",
             });
 
-            // Check if it worked after a delay
             setTimeout(() => {
               const currentScroll = window.pageYOffset;
-
               if (Math.abs(currentScroll - finalScrollPosition) > 100) {
-                // Method 2: Manual scroll with animation
                 const startPosition = window.pageYOffset;
                 const distance = finalScrollPosition - startPosition;
-                const duration = 500; // 500ms animation
+                const duration = 500;
                 let startTime = null;
 
                 const animateScroll = (currentTime) => {
                   if (startTime === null) startTime = currentTime;
                   const timeElapsed = currentTime - startTime;
                   const progress = Math.min(timeElapsed / duration, 1);
-
-                  // Easing function (ease-out)
                   const easeOut = 1 - Math.pow(1 - progress, 3);
                   const currentPosition = startPosition + distance * easeOut;
 
-                  // Try multiple scroll methods
                   window.scrollTo(0, currentPosition);
                   document.documentElement.scrollTop = currentPosition;
                   document.body.scrollTop = currentPosition;
@@ -181,14 +153,12 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
               }
             }, 300);
           } catch (error) {
-            // Final fallback - force scroll
             window.scrollTo(0, finalScrollPosition);
             document.documentElement.scrollTop = finalScrollPosition;
             document.body.scrollTop = finalScrollPosition;
           }
         }
       } else {
-        // Desktop scrolling
         helpSection.scrollIntoView({
           behavior: "smooth",
           block: "start",
@@ -196,7 +166,6 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
         });
       }
     } else {
-      // Fallback: try to find the help section by text content
       const helpElements = document.querySelectorAll("*");
       let foundElement = null;
 
@@ -216,7 +185,6 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
           const scrollPosition = absoluteElementTop - navbarHeight - 20;
           const finalScrollPosition = Math.max(0, scrollPosition);
 
-          // Use the same multiple-method approach for fallback
           try {
             window.scrollTo({
               top: finalScrollPosition,
@@ -248,12 +216,9 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
     }
   };
 
-  // `name` is the screen-reader name for each icon-only link. Untranslated on
-  // purpose: these are proper nouns, and a reader announcing "Facebook" is
-  // right in every language the site ships.
   const socialLinks = [
     { icon: Facebook, name: "Facebook", href: "https://www.facebook.com/profile.php?id=100075968495897" },
-    { icon: Instagram, name: "Instagram", href: "https://www.instagram.com/mafkoudat?igsh=d29saTdtajZ5dWpu" },
+    { icon: Instagram, name: "Instagram", href: "https://www.instagram.com/mafqoudat?igsh=d29saTdtajZ5dWpu" },
     { icon: WhatsApp, name: "WhatsApp", href: "https://wa.me/212711621132" },
   ];
 
@@ -263,69 +228,204 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
     { code: "ar", label: "العربية" },
   ];
 
+  // Dynamic colors derived from design tokens and mode
+  const bgFooter = theme.custom?.color?.footerBackground || (isDark ? "#070B14" : "#F8FAFC");
+  const borderFooter = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(11, 18, 32, 0.08)";
+  const titleColor = isDark ? "#FFFFFF" : "#0B1220";
+  const bodyTextColor = isDark ? "rgba(237, 239, 245, 0.72)" : "rgba(11, 18, 32, 0.70)";
+  const mutedTextColor = isDark ? "rgba(237, 239, 245, 0.52)" : "rgba(11, 18, 32, 0.52)";
+
+  // Reusable Link Item component with RTL-aware hover translation and typography
+  const FooterLinkItem = ({ to, onClick, children }) => {
+    const linkContent = (
+      <Box
+        component="span"
+        sx={{
+          fontFamily: theme.custom?.font?.body,
+          fontSize: { xs: "0.875rem", sm: "0.8125rem", md: "0.875rem", "@media (min-width: 1920px)": "0.9375rem" },
+          fontWeight: 500,
+          lineHeight: 1.6,
+          color: bodyTextColor,
+          display: "inline-flex",
+          alignItems: "center",
+          py: 0.5,
+          cursor: "pointer",
+          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          "&:hover": {
+            color: theme.custom?.color?.brandPrimary,
+            transform: isRTL ? "translateX(-4px)" : "translateX(4px)",
+          },
+        }}
+      >
+        {children}
+      </Box>
+    );
+
+    if (to) {
+      return (
+        <Box component="li" sx={{ listStyle: "none", m: 0, p: 0 }}>
+          <RouterLink to={to} style={{ textDecoration: "none", color: "inherit", display: "inline-block" }}>
+            {linkContent}
+          </RouterLink>
+        </Box>
+      );
+    }
+
+    return (
+      <Box component="li" sx={{ listStyle: "none", m: 0, p: 0 }}>
+        <Box component="button" onClick={onClick} sx={{ background: "none", border: "none", p: 0, m: 0, textAlign: isRTL ? "right" : "left" }}>
+          {linkContent}
+        </Box>
+      </Box>
+    );
+  };
+
+  // Reusable Column Header component
+  const ColumnHeader = ({ title }) => (
+    <Box sx={{ mb: { xs: 1.5, sm: 2 } }}>
+      <Typography
+        component="h3"
+        sx={{
+          fontFamily: theme.custom?.font?.display,
+          fontWeight: 700,
+          fontSize: { xs: "0.95rem", sm: "0.9375rem", md: "1rem", "@media (min-width: 1920px)": "1.125rem" },
+          color: titleColor,
+          letterSpacing: isRTL ? "0" : "0.01em",
+          lineHeight: 1.3,
+          m: 0,
+        }}
+      >
+        {title}
+      </Typography>
+      <Box
+        sx={{
+          width: "22px",
+          height: "2.5px",
+          borderRadius: "1.5px",
+          backgroundColor: theme.custom?.color?.brandPrimary,
+          mt: 0.75,
+          opacity: 0.85,
+        }}
+      />
+    </Box>
+  );
+
   return (
     <Box
       component="footer"
       sx={{
         width: "100%",
-        backgroundColor: theme.custom.color.surfaceRaised,
-        padding: { xs: "4rem 2rem 1.5rem", "@media (min-width: 1920px)": "5rem 3rem 2rem" },
+        backgroundColor: bgFooter,
         position: "relative",
-        borderTop: `1px solid ${alpha(theme.custom.color.ink, 0.08)}`,
+        borderTop: `1px solid ${borderFooter}`,
+        direction: isRTL ? "rtl" : "ltr",
+        textAlign: isRTL ? "right" : "left",
+        padding: {
+          xs: "3.5rem 1.25rem 2rem",
+          sm: "4rem 2rem 2.25rem",
+          md: "4.5rem 2.5rem 2.5rem",
+          "@media (min-width: 1920px)": "5.5rem 4rem 3rem",
+        },
         ...sx,
       }}
       {...otherProps}
     >
+      {/* Top subtle ambient highlight line */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "1px",
+          background: isDark
+            ? "linear-gradient(90deg, transparent 0%, rgba(91, 127, 255, 0.35) 50%, transparent 100%)"
+            : "linear-gradient(90deg, transparent 0%, rgba(27, 77, 255, 0.22) 50%, transparent 100%)",
+          pointerEvents: "none",
+        }}
+      />
+
       <Grid
         container
-        spacing={{ xs: 4, "@media (min-width: 1920px)": 6 }}
+        spacing={{ xs: 4, sm: 3.5, md: 4, "@media (min-width: 1920px)": 6 }}
         sx={{
-          maxWidth: { xs: "100%", sm: "600px", md: "900px", lg: "1200px", xl: "1536px", xxl: "1800px" },
+          maxWidth: { xs: "100%", sm: "600px", md: "960px", lg: "1280px", xl: "1440px", xxl: "1720px" },
           margin: "0 auto",
-          px: { xs: 2, sm: 3, "@media (min-width: 1920px)": 4 },
+          px: { xs: 1, sm: 2, md: 3 },
         }}
       >
-        {/* Company Info */}
-        <Grid item xs={12} md={3}>
+        {/* Column 1: Brand Info */}
+        <Grid item xs={12} md={3.2} lg={3}>
+          <Box sx={{ mb: 2 }}>
+            <Link
+              component={RouterLink}
+              to="/"
+              underline="none"
+              sx={{
+                display: "inline-block",
+                fontFamily: theme.custom?.font?.display,
+                fontWeight: 800,
+                fontSize: { xs: "1.375rem", sm: "1.25rem", md: "1.375rem", "@media (min-width: 1920px)": "1.625rem" },
+                color: theme.custom?.color?.brandPrimary,
+                letterSpacing: isRTL ? "0" : "-0.02em",
+                lineHeight: 1.2,
+                transition: "opacity 0.2s ease",
+                "&:hover": { opacity: 0.9 },
+              }}
+            >
+              {t("brandName")}
+            </Link>
+          </Box>
+
           <Typography
-            variant="h6"
             sx={{
-              mb: 2,
-              fontWeight: "bold",
-              fontFamily: theme.custom.font.display,
-              fontSize: { xs: "20px", sm: "18px" },
-              "@media (min-width: 1920px)": { fontSize: "24px" },
-              color: theme.custom.color.brandPrimary,
+              fontFamily: theme.custom?.font?.body,
+              fontSize: { xs: "0.875rem", sm: "0.8125rem", md: "0.84rem", "@media (min-width: 1920px)": "0.9375rem" },
+              color: bodyTextColor,
+              lineHeight: 1.65,
+              mb: 3,
+              maxWidth: { xs: "100%", md: "290px" },
             }}
-          >
-            {t("brandName")}
-          </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mb: 2, fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
           >
             {t("footerDescription")}
           </Typography>
-          <Box sx={{ display: "flex", gap: 1 }}>
+
+          {/* Social Links */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1.25,
+              alignItems: "center",
+              justifyContent: isRTL ? "flex-start" : "flex-start",
+            }}
+          >
             {socialLinks.map(({ icon: SocialIcon, name, href }) => (
               <IconButton
                 key={href}
-                component={Link}
+                component="a"
                 href={href}
                 aria-label={name}
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={{
-                  color: theme.custom.color.ink,
-                  backgroundColor: alpha(theme.custom.color.ink, 0.04),
-                  borderRadius: `${theme.custom.radius.sm}px`,
+                  width: { xs: 38, sm: 36, "@media (min-width: 1920px)": 44 },
+                  height: { xs: 38, sm: 36, "@media (min-width: 1920px)": 44 },
+                  borderRadius: `${theme.custom?.radius?.sm || 8}px`,
+                  backgroundColor: isDark ? "rgba(255, 255, 255, 0.04)" : "rgba(11, 18, 32, 0.04)",
+                  border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(11, 18, 32, 0.08)"}`,
+                  color: isDark ? "rgba(237, 239, 245, 0.85)" : "rgba(11, 18, 32, 0.8)",
+                  transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                   "& .MuiSvgIcon-root": {
-                    fontSize: { xs: "22px", "@media (min-width: 1920px)": "28px" },
+                    fontSize: { xs: "20px", "@media (min-width: 1920px)": "24px" },
                   },
                   "&:hover": {
-                    backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
-                    color: theme.custom.color.brandPrimary,
+                    transform: "translateY(-2px)",
+                    backgroundColor: isDark ? "rgba(91, 127, 255, 0.18)" : "rgba(27, 77, 255, 0.1)",
+                    borderColor: isDark ? "rgba(91, 127, 255, 0.35)" : "rgba(27, 77, 255, 0.25)",
+                    color: theme.custom?.color?.brandPrimary,
+                    boxShadow: isDark
+                      ? "0 4px 12px rgba(0, 0, 0, 0.4)"
+                      : "0 4px 12px rgba(27, 77, 255, 0.15)",
                   },
                 }}
               >
@@ -335,308 +435,376 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
           </Box>
         </Grid>
 
-        {/* Popular Categories */}
-        <Grid item xs={6} sm={6} md={2}>
-          <Typography
-            variant="h6"
-            sx={{ mb: 2, fontWeight: "bold", fontSize: { xs: "18px", sm: "16px" }, "@media (min-width: 1920px)": { fontSize: "22px" } }}
-          >
-            {t("popularCategories")}
-          </Typography>
-          <List dense disablePadding>
+        {/* Column 2: Popular Categories */}
+        <Grid item xs={6} sm={4} md={2}>
+          <ColumnHeader title={t("popularCategories")} />
+          <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0 }}>
             {POPULAR_CATEGORIES.map((cat) => (
-              <ListItem
-                key={cat.code}
-                button
-                component={RouterLink}
-                to={`/posts?category=${cat.code}`}
-                sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
-              >
-                <ListItemText
-                  primary={cat.labels[currentLanguage] || cat.labels.en || cat.code}
-                  sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
-                />
-              </ListItem>
+              <FooterLinkItem key={cat.code} to={`/posts?category=${cat.code}`}>
+                {cat.labels[currentLanguage] || cat.labels.en || cat.code}
+              </FooterLinkItem>
             ))}
-          </List>
+          </Box>
         </Grid>
 
-        {/* Top Cities */}
-        <Grid item xs={6} sm={6} md={2}>
-          <Typography
-            variant="h6"
-            sx={{ mb: 2, fontWeight: "bold", fontSize: { xs: "18px", sm: "16px" }, "@media (min-width: 1920px)": { fontSize: "22px" } }}
-          >
-            {t("topCities")}
-          </Typography>
-          <List dense disablePadding>
+        {/* Column 3: Top Cities */}
+        <Grid item xs={6} sm={4} md={2}>
+          <ColumnHeader title={t("topCities")} />
+          <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0 }}>
             {TOP_CITIES.map((city) => (
-              <ListItem
-                key={city.slug}
-                button
-                component={RouterLink}
-                to={`/posts?city=${city.slug}`}
-                sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
-              >
-                <ListItemText
-                  primary={city.labels[currentLanguage] || city.labels.en || city.slug}
-                  sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
-                />
-              </ListItem>
+              <FooterLinkItem key={city.slug} to={`/posts?city=${city.slug}`}>
+                {city.labels[currentLanguage] || city.labels.en || city.slug}
+              </FooterLinkItem>
             ))}
-          </List>
+          </Box>
         </Grid>
 
-        {/* Quick Links */}
-        <Grid item xs={6} sm={6} md={2}>
-          <Typography
-            variant="h6"
-            sx={{ mb: 2, fontWeight: "bold", fontSize: { xs: "18px", sm: "16px" }, "@media (min-width: 1920px)": { fontSize: "22px" } }}
+        {/* Column 4: Quick Links (responsively 2-columns on xs mobile for balance) */}
+        <Grid item xs={12} sm={4} md={2}>
+          <ColumnHeader title={t("quickLinks")} />
+          <Box
+            component="ul"
+            sx={{
+              listStyle: "none",
+              m: 0,
+              p: 0,
+              display: "grid",
+              gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "1fr" },
+              columnGap: { xs: 2, sm: 0 },
+            }}
           >
-            {t("quickLinks")}
-          </Typography>
-          <List dense disablePadding>
-            <ListItem
-              button
-              component={RouterLink}
-              to="/posts/new?type=lost"
-              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
-            >
-              <ListItemText
-                primary={t("reportLostItem")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
-              />
-            </ListItem>
-            <ListItem
-              button
-              component={RouterLink}
-              to="/posts/new?type=found"
-              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
-            >
-              <ListItemText
-                primary={t("reportFoundItem")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
-              />
-            </ListItem>
-            <ListItem
-              button
-              component={RouterLink}
-              to="/posts"
-              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
-            >
-              <ListItemText
-                primary={t("searchItems")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
-              />
-            </ListItem>
-            <ListItem
-              button
-              onClick={scrollToHelpSection}
-              sx={{ px: 0, py: 0.35, color: "inherit" }}
-            >
-              <ListItemText
-                primary={t("getHelp")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
-              />
-            </ListItem>
-            <ListItem
-              button
-              component={RouterLink}
-              to="/about"
-              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
-            >
-              <ListItemText
-                primary={t("aboutUs")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
-              />
-            </ListItem>
-            <ListItem
-              button
-              component={RouterLink}
-              to="/blog"
-              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
-            >
-              <ListItemText
-                primary={t("blog")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
-              />
-            </ListItem>
-            <ListItem
-              button
-              component={RouterLink}
-              to="/help"
-              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
-            >
-              <ListItemText
-                primary={t("helpCenter")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
-              />
-            </ListItem>
-            <ListItem
-              button
-              component={RouterLink}
-              to="/contact"
-              sx={{ px: 0, py: 0.35, textDecoration: "none", color: "inherit" }}
-            >
-              <ListItemText
-                primary={t("contactUs")}
-                sx={{ "& .MuiListItemText-primary": { fontSize: { xs: "15px", sm: "13px" }, "@media (min-width: 1920px)": { fontSize: "16px" } } }}
-              />
-            </ListItem>
-          </List>
+            <FooterLinkItem to="/posts/new?type=lost">{t("reportLostItem")}</FooterLinkItem>
+            <FooterLinkItem to="/posts/new?type=found">{t("reportFoundItem")}</FooterLinkItem>
+            <FooterLinkItem to="/posts">{t("searchItems")}</FooterLinkItem>
+            <FooterLinkItem onClick={scrollToHelpSection}>{t("getHelp")}</FooterLinkItem>
+            <FooterLinkItem to="/about">{t("aboutUs")}</FooterLinkItem>
+            <FooterLinkItem to="/blog">{t("blog")}</FooterLinkItem>
+            <FooterLinkItem to="/help">{t("helpCenter")}</FooterLinkItem>
+            <FooterLinkItem to="/contact">{t("contactUs")}</FooterLinkItem>
+          </Box>
         </Grid>
 
-        {/* Contact Info */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Typography
-            variant="h6"
-            sx={{ mb: 2, fontWeight: "bold", fontSize: { xs: "18px", sm: "16px" }, "@media (min-width: 1920px)": { fontSize: "22px" } }}
-          >
-            {t("contactUs")}
-          </Typography>
-          <List dense>
-            <ListItem
-              button
-              component="a"
-              href="mailto:contact@mafqoudat.com"
-              sx={{ textDecoration: 'none', color: 'inherit', borderRadius: 1 }}
-            >
-              <ListItemIcon>
-                <Email sx={{ color: theme.custom.color.brandPrimary, fontSize: { xs: "22px", "@media (min-width: 1920px)": "28px" } }} />
-              </ListItemIcon>
-              <ListItemText
-                primary="contact@mafqoudat.com"
-                secondary={t("emailUsForSupport")}
+        {/* Column 5: Contact Info */}
+        <Grid item xs={12} sm={12} md={2.8} lg={3}>
+          <ColumnHeader title={t("contactUs")} />
+          <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0, display: "flex", flexDirection: "column", gap: 1.75 }}>
+            {/* Email link */}
+            <Box component="li" sx={{ listStyle: "none", m: 0, p: 0 }}>
+              <Box
+                component="a"
+                href="mailto:contact@mafqoudat.com"
                 sx={{
-                  "& .MuiListItemText-primary": { fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } },
-                  "& .MuiListItemText-secondary": { fontSize: { xs: "14px", sm: "12px" }, "@media (min-width: 1920px)": { fontSize: "16px" } },
+                  display: "flex",
+                  alignItems: "center",
+                  textDecoration: "none",
+                  color: "inherit",
+                  p: 0.5,
+                  borderRadius: `${theme.custom?.radius?.sm || 8}px`,
+                  transition: "background-color 0.2s ease",
+                  "&:hover": {
+                    backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : "rgba(11, 18, 32, 0.03)",
+                    "& .contact-icon-box": {
+                      borderColor: theme.custom?.color?.brandPrimary,
+                      backgroundColor: isDark ? "rgba(91, 127, 255, 0.2)" : "rgba(27, 77, 255, 0.12)",
+                    },
+                  },
                 }}
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <Phone sx={{ color: theme.custom.color.brandPrimary, fontSize: { xs: "22px", "@media (min-width: 1920px)": "28px" } }} />
-              </ListItemIcon>
-              <ListItemText
-                primary={<span className="phone-number">+212 711 621 132</span>}
-                secondary={t("callUsForAssistance")}
+              >
+                <Box
+                  className="contact-icon-box"
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    minWidth: 36,
+                    borderRadius: `${theme.custom?.radius?.sm || 8}px`,
+                    backgroundColor: isDark ? "rgba(91, 127, 255, 0.12)" : "rgba(27, 77, 255, 0.08)",
+                    border: `1px solid ${isDark ? "rgba(91, 127, 255, 0.22)" : "rgba(27, 77, 255, 0.14)"}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginInlineEnd: "12px",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <Email sx={{ color: theme.custom?.color?.brandPrimary, fontSize: "18px" }} />
+                </Box>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Box
+                    component="span"
+                    dir="ltr"
+                    sx={{
+                      display: "block",
+                      fontFamily: theme.custom?.font?.body,
+                      fontSize: { xs: "0.875rem", sm: "0.8125rem", md: "0.84rem" },
+                      fontWeight: 600,
+                      color: titleColor,
+                      lineHeight: 1.4,
+                      unicodeBidi: "embed",
+                      textAlign: isRTL ? "right" : "left",
+                    }}
+                  >
+                    contact@mafqoudat.com
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontFamily: theme.custom?.font?.body,
+                      fontSize: "0.75rem",
+                      color: mutedTextColor,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {t("emailUsForSupport")}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Phone link */}
+            <Box component="li" sx={{ listStyle: "none", m: 0, p: 0 }}>
+              <Box
+                component="a"
+                href="tel:+212711621132"
                 sx={{
-                  "& .MuiListItemText-primary": { fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } },
-                  "& .MuiListItemText-secondary": { fontSize: { xs: "14px", sm: "12px" }, "@media (min-width: 1920px)": { fontSize: "16px" } },
+                  display: "flex",
+                  alignItems: "center",
+                  textDecoration: "none",
+                  color: "inherit",
+                  p: 0.5,
+                  borderRadius: `${theme.custom?.radius?.sm || 8}px`,
+                  transition: "background-color 0.2s ease",
+                  "&:hover": {
+                    backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : "rgba(11, 18, 32, 0.03)",
+                    "& .contact-icon-box": {
+                      borderColor: theme.custom?.color?.brandPrimary,
+                      backgroundColor: isDark ? "rgba(91, 127, 255, 0.2)" : "rgba(27, 77, 255, 0.12)",
+                    },
+                  },
                 }}
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <LocationOn sx={{ color: theme.custom.color.brandPrimary, fontSize: { xs: "22px", "@media (min-width: 1920px)": "28px" } }} />
-              </ListItemIcon>
-              <ListItemText
-                primary={isCountryLoading ? t("loadingCountries") : countryName || t("yourLocation")}
-                secondary={t("currentRegion")}
+              >
+                <Box
+                  className="contact-icon-box"
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    minWidth: 36,
+                    borderRadius: `${theme.custom?.radius?.sm || 8}px`,
+                    backgroundColor: isDark ? "rgba(91, 127, 255, 0.12)" : "rgba(27, 77, 255, 0.08)",
+                    border: `1px solid ${isDark ? "rgba(91, 127, 255, 0.22)" : "rgba(27, 77, 255, 0.14)"}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginInlineEnd: "12px",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <Phone sx={{ color: theme.custom?.color?.brandPrimary, fontSize: "18px" }} />
+                </Box>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Box
+                    component="span"
+                    dir="ltr"
+                    sx={{
+                      display: "block",
+                      fontFamily: theme.custom?.font?.body,
+                      fontSize: { xs: "0.875rem", sm: "0.8125rem", md: "0.84rem" },
+                      fontWeight: 600,
+                      color: titleColor,
+                      lineHeight: 1.4,
+                      unicodeBidi: "embed",
+                      textAlign: isRTL ? "right" : "left",
+                    }}
+                  >
+                    +212 711 621 132
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontFamily: theme.custom?.font?.body,
+                      fontSize: "0.75rem",
+                      color: mutedTextColor,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {t("callUsForAssistance")}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Location display */}
+            <Box component="li" sx={{ listStyle: "none", m: 0, p: 0 }}>
+              <Box
                 sx={{
-                  "& .MuiListItemText-primary": { fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } },
-                  "& .MuiListItemText-secondary": { fontSize: { xs: "14px", sm: "12px" }, "@media (min-width: 1920px)": { fontSize: "16px" } },
+                  display: "flex",
+                  alignItems: "center",
+                  p: 0.5,
                 }}
-              />
-            </ListItem>
-          </List>
+              >
+                <Box
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    minWidth: 36,
+                    borderRadius: `${theme.custom?.radius?.sm || 8}px`,
+                    backgroundColor: isDark ? "rgba(91, 127, 255, 0.12)" : "rgba(27, 77, 255, 0.08)",
+                    border: `1px solid ${isDark ? "rgba(91, 127, 255, 0.22)" : "rgba(27, 77, 255, 0.14)"}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginInlineEnd: "12px",
+                  }}
+                >
+                  <LocationOn sx={{ color: theme.custom?.color?.brandPrimary, fontSize: "18px" }} />
+                </Box>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography
+                    sx={{
+                      fontFamily: theme.custom?.font?.body,
+                      fontSize: { xs: "0.875rem", sm: "0.8125rem", md: "0.84rem" },
+                      fontWeight: 600,
+                      color: titleColor,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {isCountryLoading ? t("loadingCountries") : countryName || t("yourLocation")}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: theme.custom?.font?.body,
+                      fontSize: "0.75rem",
+                      color: mutedTextColor,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {t("currentRegion")}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
         </Grid>
       </Grid>
 
-      <Divider sx={{ my: { xs: 3, "@media (min-width: 1920px)": 4 }, borderColor: alpha(theme.custom.color.ink, 0.08) }} />
+      {/* Elegant Bottom Section Separator */}
+      <Divider
+        sx={{
+          my: { xs: 3.5, sm: 4, "@media (min-width: 1920px)": 5 },
+          borderColor: borderFooter,
+          maxWidth: { xs: "100%", sm: "600px", md: "960px", lg: "1280px", xl: "1440px", xxl: "1720px" },
+          mx: "auto",
+        }}
+      />
 
-      {/* Bottom Section */}
+      {/* Bottom Bar: Copyright, Language Switcher, and Legal Navigation */}
       <Grid
         container
-        spacing={{ xs: 2, "@media (min-width: 1920px)": 3 }}
+        spacing={{ xs: 2.5, md: 3 }}
         sx={{
-          maxWidth: { xs: "100%", sm: "600px", md: "900px", lg: "1200px", xl: "1536px", xxl: "1800px" },
+          maxWidth: { xs: "100%", sm: "600px", md: "960px", lg: "1280px", xl: "1440px", xxl: "1720px" },
           margin: "0 auto",
-          px: { xs: 2, sm: 3, "@media (min-width: 1920px)": 4 },
+          px: { xs: 1, sm: 2, md: 3 },
           alignItems: "center",
         }}
       >
-        <Grid item xs={12} md={4}>
+        {/* Copyright */}
+        <Grid item xs={12} md={4} sx={{ textAlign: { xs: "center", md: isRTL ? "right" : "left" } }}>
           <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
+            sx={{
+              fontFamily: theme.custom?.font?.body,
+              fontSize: { xs: "0.8125rem", sm: "0.8125rem", "@media (min-width: 1920px)": "0.875rem" },
+              color: mutedTextColor,
+              lineHeight: 1.5,
+            }}
           >
             © {new Date().getFullYear()} {t("brandName")}. {t("allRightsReserved")}.
           </Typography>
         </Grid>
 
-        {/* Compact language row — a lighter-weight duplicate of the navbar's
-            region picker, reinforcing the multi-country/multilingual promise
-            at the point a visitor decides whether to trust the site. */}
+        {/* Compact Segmented Language Selector */}
         <Grid item xs={12} md={4}>
-          <Box sx={{ display: "flex", justifyContent: { xs: "flex-start", md: "center" }, gap: 1.5 }}>
-            {languageOptions.map((option) => (
-              <Link
-                key={option.code}
-                component="button"
-                onClick={() => changeLanguage(option.code)}
-                underline="hover"
-                sx={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: { xs: "15px", sm: "13px" },
-                  fontWeight: currentLanguage === option.code ? 700 : 500,
-                  color: currentLanguage === option.code ? theme.custom.color.brandPrimary : "text.secondary",
-                }}
-              >
-                {option.label}
-              </Link>
-            ))}
+          <Box sx={{ display: "flex", justifyContent: "center" }}>
+            <Box
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                p: "3px",
+                borderRadius: `${theme.custom?.radius?.sm || 8}px`,
+                backgroundColor: isDark ? "rgba(255, 255, 255, 0.04)" : "rgba(11, 18, 32, 0.04)",
+                border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.07)" : "rgba(11, 18, 32, 0.07)"}`,
+                gap: 0.5,
+              }}
+            >
+              {languageOptions.map((option) => {
+                const isActive = currentLanguage === option.code;
+                return (
+                  <Box
+                    key={option.code}
+                    component="button"
+                    onClick={() => changeLanguage(option.code)}
+                    sx={{
+                      background: isActive
+                        ? isDark
+                          ? "rgba(91, 127, 255, 0.22)"
+                          : "rgba(27, 77, 255, 0.12)"
+                        : "transparent",
+                      border: isActive
+                        ? `1px solid ${isDark ? "rgba(91, 127, 255, 0.35)" : "rgba(27, 77, 255, 0.22)"}`
+                        : "1px solid transparent",
+                      cursor: "pointer",
+                      px: 1.25,
+                      py: 0.35,
+                      borderRadius: "6px",
+                      fontSize: { xs: "0.8125rem", sm: "0.78rem" },
+                      fontFamily: theme.custom?.font?.body,
+                      fontWeight: isActive ? 700 : 500,
+                      color: isActive ? theme.custom?.color?.brandPrimary : mutedTextColor,
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        color: isActive ? theme.custom?.color?.brandPrimary : titleColor,
+                      },
+                    }}
+                  >
+                    {option.label}
+                  </Box>
+                );
+              })}
+            </Box>
           </Box>
         </Grid>
 
+        {/* Legal Policy Links */}
         <Grid item xs={12} md={4}>
           <Box
             sx={{
               display: "flex",
-              justifyContent: { xs: "flex-start", md: "flex-end" },
-              gap: 2,
+              justifyContent: { xs: "center", md: isRTL ? "flex-start" : "flex-end" },
+              gap: { xs: 2, sm: 2.25 },
               flexWrap: "wrap",
             }}
           >
-            <Link
-              component={RouterLink}
-              to="/privacy"
-              color="text.secondary"
-              underline="hover"
-              sx={{ fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
-            >
-              {t("privacyPolicy")}
-            </Link>
-            <Link
-              component={RouterLink}
-              to="/terms"
-              color="text.secondary"
-              underline="hover"
-              sx={{ fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
-            >
-              {t("termsOfUse")}
-            </Link>
-            <Link
-              component={RouterLink}
-              to="/cookies"
-              color="text.secondary"
-              underline="hover"
-              sx={{ fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
-            >
-              {t("cookieNotice")}
-            </Link>
-            <Link
-              component={RouterLink}
-              to="/disclaimer"
-              color="text.secondary"
-              underline="hover"
-              sx={{ fontSize: { xs: "16px", sm: "14px" }, "@media (min-width: 1920px)": { fontSize: "18px" } }}
-            >
-              {t("disclaimer")}
-            </Link>
+            {[
+              { to: "/privacy", label: t("privacyPolicy") },
+              { to: "/terms", label: t("termsOfUse") },
+              { to: "/cookies", label: t("cookieNotice") },
+              { to: "/disclaimer", label: t("disclaimer") },
+            ].map(({ to, label }) => (
+              <Link
+                key={to}
+                component={RouterLink}
+                to={to}
+                underline="none"
+                sx={{
+                  fontFamily: theme.custom?.font?.body,
+                  fontSize: { xs: "0.8125rem", sm: "0.8125rem", "@media (min-width: 1920px)": "0.875rem" },
+                  color: mutedTextColor,
+                  transition: "color 0.2s ease",
+                  "&:hover": {
+                    color: theme.custom?.color?.brandPrimary,
+                  },
+                }}
+              >
+                {label}
+              </Link>
+            ))}
           </Box>
         </Grid>
       </Grid>

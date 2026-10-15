@@ -34,14 +34,19 @@ const CyberDotMatrix = ({
   colorBottom,
   inverted = false,
   placement = 'diagonal-standard',
-  shape = 'square',
-  falloffCurve = 'default',
+  shape = 'circle',
+  falloffCurve = 'rapid',
   hairlineGlow = false,
   opacity,
   dotRadius,
   patternSpacing = 4.5,
   glowRadius = '48%',
+  background,
   zIndex = 0,
+  topCx: topCxProp,
+  topCy: topCyProp,
+  bottomCx: bottomCxProp,
+  bottomCy: bottomCyProp,
   sx = {},
 }) => {
   const theme = useTheme();
@@ -56,33 +61,56 @@ const CyberDotMatrix = ({
     ? isRtlProp
     : (currentLanguage ? currentLanguage === 'ar' : theme.direction === 'rtl');
 
-  const defaultColor = theme.custom?.color?.cyberDots || (isDark ? '#C8E5F9' : '#1C699C');
+  const defaultColor = theme.custom?.color?.cyberDots || theme.custom?.color?.brandLogo || '#3498DB';
   const topColor = colorTop || color || defaultColor;
   const bottomColor = colorBottom || color || defaultColor;
 
-  const resolvedOpacity = opacity ?? (isDark ? 0.5 : 0.75);
+  const resolvedOpacity = opacity ?? (isDark ? 0.5 : 0.85);
   const resolvedDotRadius = dotRadius ?? (isDark ? 0.72 : 0.9);
   const center = patternSpacing / 2;
 
   // Placement: support both placement string and inverted boolean
   const isInverted = Boolean(inverted) || placement === 'diagonal-inverted' || placement === 'inverted';
 
-  const isBottomOnly = placement === 'bottom-end' || placement === 'bottom-start' || placement === 'bottom' || placement === 'bottom-right' || placement === 'bottom-left';
+  const isLeftRightEdges = placement === 'left-right-edges' || placement === 'left-right' || placement === 'edges';
+  const isFourCorners =
+    placement === 'four-corners' ||
+    placement === 'all-corners' ||
+    placement === 'corners' ||
+    placement === 'left-right-corners' ||
+    placement === 'top-bottom-left-right';
+  const isBottomBoth = placement === 'bottom-both' || placement === 'bottom-left-right' || placement === 'bottom-corners';
+  const isBottomOnly = isBottomBoth || placement === 'bottom-end' || placement === 'bottom-start' || placement === 'bottom' || placement === 'bottom-right' || placement === 'bottom-left';
   const isTopOnly = placement === 'top-start' || placement === 'top-end' || placement === 'top' || placement === 'top-right' || placement === 'top-left';
 
-  const showTop = !isBottomOnly;
-  const showBottom = !isTopOnly;
+  const showTop = !isBottomOnly && !isLeftRightEdges && !isFourCorners;
+  const showBottom = !isTopOnly && !isBottomBoth && !isLeftRightEdges && !isFourCorners;
 
-  let topCx = isInverted
+  let topCx = topCxProp || (isInverted
     ? (isRtl ? '0%' : '100%')
-    : (isRtl ? '100%' : '0%');
+    : (isRtl ? '100%' : '0%'));
 
-  let bottomCx = isInverted
+  let bottomCx = bottomCxProp || (isInverted
     ? (isRtl ? '100%' : '0%')
-    : (isRtl ? '0%' : '100%');
+    : (isRtl ? '0%' : '100%'));
 
-  // Explicit corner overrides
-  if (placement === 'bottom-right') {
+  let topCy = topCyProp || '0%';
+  let bottomCy = bottomCyProp || '100%';
+
+  // Explicit corner & center placement overrides
+  if (
+    placement === 'top-bottom' ||
+    placement === 'top-bottom-edges' ||
+    placement === 'center-top-bottom' ||
+    placement === 'top-bottom-center' ||
+    placement === 'center-vertical' ||
+    placement === 'center'
+  ) {
+    topCx = topCxProp || '50%';
+    bottomCx = bottomCxProp || '50%';
+    topCy = topCyProp || '0%';
+    bottomCy = bottomCyProp || '100%';
+  } else if (placement === 'bottom-right') {
     bottomCx = '100%';
   } else if (placement === 'bottom-left') {
     bottomCx = '0%';
@@ -90,14 +118,30 @@ const CyberDotMatrix = ({
     topCx = '100%';
   } else if (placement === 'top-left') {
     topCx = '0%';
+  } else if (placement === 'top-center' || placement === 'center-top') {
+    topCx = '50%';
+  } else if (placement === 'bottom-center' || placement === 'center-bottom') {
+    bottomCx = '50%';
   }
 
   const patternTopId = `${uid}-pat-top`;
   const patternBottomId = `${uid}-pat-bottom`;
   const topGlowId = `${uid}-glow-top`;
   const bottomGlowId = `${uid}-glow-bottom`;
+  const bottomLeftGlowId = `${uid}-glow-bottom-left`;
+  const bottomRightGlowId = `${uid}-glow-bottom-right`;
+  const topLeftGlowId = `${uid}-glow-top-left`;
+  const topRightGlowId = `${uid}-glow-top-right`;
   const topMaskId = `${uid}-mask-top`;
   const bottomMaskId = `${uid}-mask-bottom`;
+  const bottomLeftMaskId = `${uid}-mask-bottom-left`;
+  const bottomRightMaskId = `${uid}-mask-bottom-right`;
+  const topLeftMaskId = `${uid}-mask-top-left`;
+  const topRightMaskId = `${uid}-mask-top-right`;
+  const leftGlowId = `${uid}-glow-left`;
+  const rightGlowId = `${uid}-glow-right`;
+  const leftMaskId = `${uid}-mask-left`;
+  const rightMaskId = `${uid}-mask-right`;
   const hairlineGradId = `${uid}-hairline-glow`;
 
   const sameColor = topColor === bottomColor;
@@ -171,7 +215,7 @@ const CyberDotMatrix = ({
         width: '100%',
         height: '100%',
         pointerEvents: 'none',
-        opacity: resolvedOpacity,
+        opacity: background ? 1 : resolvedOpacity,
         zIndex,
         ...sx,
       }}
@@ -201,14 +245,56 @@ const CyberDotMatrix = ({
         )}
 
         {/* Top radial mask gradient */}
-        <radialGradient id={topGlowId} cx={topCx} cy="0%" r={glowRadius}>
+        <radialGradient id={topGlowId} cx={topCx} cy={topCy} r={glowRadius}>
           {renderGlowStops()}
         </radialGradient>
 
         {/* Bottom radial mask gradient */}
-        <radialGradient id={bottomGlowId} cx={bottomCx} cy="100%" r={glowRadius}>
+        <radialGradient id={bottomGlowId} cx={bottomCx} cy={bottomCy} r={glowRadius}>
           {renderGlowStops()}
         </radialGradient>
+
+        {/* Bottom-both radial mask gradients */}
+        {isBottomBoth && (
+          <>
+            <radialGradient id={bottomLeftGlowId} cx="0%" cy="100%" r={glowRadius}>
+              {renderGlowStops()}
+            </radialGradient>
+            <radialGradient id={bottomRightGlowId} cx="100%" cy="100%" r={glowRadius}>
+              {renderGlowStops()}
+            </radialGradient>
+          </>
+        )}
+
+        {/* Left-right-edges radial mask gradients */}
+        {isLeftRightEdges && (
+          <>
+            <radialGradient id={leftGlowId} cx="0%" cy="50%" r={glowRadius}>
+              {renderGlowStops()}
+            </radialGradient>
+            <radialGradient id={rightGlowId} cx="100%" cy="50%" r={glowRadius}>
+              {renderGlowStops()}
+            </radialGradient>
+          </>
+        )}
+
+        {/* Four corners radial mask gradients (top-left, bottom-left, top-right, bottom-right) */}
+        {isFourCorners && (
+          <>
+            <radialGradient id={topLeftGlowId} cx="0%" cy="0%" r={glowRadius}>
+              {renderGlowStops()}
+            </radialGradient>
+            <radialGradient id={topRightGlowId} cx="100%" cy="0%" r={glowRadius}>
+              {renderGlowStops()}
+            </radialGradient>
+            <radialGradient id={bottomLeftGlowId} cx="0%" cy="100%" r={glowRadius}>
+              {renderGlowStops()}
+            </radialGradient>
+            <radialGradient id={bottomRightGlowId} cx="100%" cy="100%" r={glowRadius}>
+              {renderGlowStops()}
+            </radialGradient>
+          </>
+        )}
 
         <mask id={topMaskId}>
           <rect width="100%" height="100%" fill={`url(#${topGlowId})`} />
@@ -216,6 +302,42 @@ const CyberDotMatrix = ({
         <mask id={bottomMaskId}>
           <rect width="100%" height="100%" fill={`url(#${bottomGlowId})`} />
         </mask>
+        {isBottomBoth && (
+          <>
+            <mask id={bottomLeftMaskId}>
+              <rect width="100%" height="100%" fill={`url(#${bottomLeftGlowId})`} />
+            </mask>
+            <mask id={bottomRightMaskId}>
+              <rect width="100%" height="100%" fill={`url(#${bottomRightGlowId})`} />
+            </mask>
+          </>
+        )}
+        {isLeftRightEdges && (
+          <>
+            <mask id={leftMaskId}>
+              <rect width="100%" height="100%" fill={`url(#${leftGlowId})`} />
+            </mask>
+            <mask id={rightMaskId}>
+              <rect width="100%" height="100%" fill={`url(#${rightGlowId})`} />
+            </mask>
+          </>
+        )}
+        {isFourCorners && (
+          <>
+            <mask id={topLeftMaskId}>
+              <rect width="100%" height="100%" fill={`url(#${topLeftGlowId})`} />
+            </mask>
+            <mask id={topRightMaskId}>
+              <rect width="100%" height="100%" fill={`url(#${topRightGlowId})`} />
+            </mask>
+            <mask id={bottomLeftMaskId}>
+              <rect width="100%" height="100%" fill={`url(#${bottomLeftGlowId})`} />
+            </mask>
+            <mask id={bottomRightMaskId}>
+              <rect width="100%" height="100%" fill={`url(#${bottomRightGlowId})`} />
+            </mask>
+          </>
+        )}
 
         {/* Hairline glow gradient */}
         {hairlineGlow && (
@@ -229,22 +351,128 @@ const CyberDotMatrix = ({
         )}
       </defs>
 
-      {showTop && (
-        <rect
-          width="100%"
-          height="100%"
-          fill={`url(#${patternTopId})`}
-          mask={`url(#${topMaskId})`}
-        />
+      {/* Optional background wash matching container for left-right-edges or four-corners */}
+      {isLeftRightEdges && background && (
+        <g id={`${uid}-bg-layer`}>
+          <rect
+            width="100%"
+            height="100%"
+            fill={background}
+            mask={`url(#${leftMaskId})`}
+          />
+          <rect
+            width="100%"
+            height="100%"
+            fill={background}
+            mask={`url(#${rightMaskId})`}
+          />
+        </g>
       )}
-      {showBottom && (
-        <rect
-          width="100%"
-          height="100%"
-          fill={`url(#${sameColor ? patternTopId : patternBottomId})`}
-          mask={`url(#${bottomMaskId})`}
-        />
+
+      {isFourCorners && background && (
+        <g id={`${uid}-bg-layer`}>
+          <rect
+            width="100%"
+            height="100%"
+            fill={background}
+            mask={`url(#${topLeftMaskId})`}
+          />
+          <rect
+            width="100%"
+            height="100%"
+            fill={background}
+            mask={`url(#${topRightMaskId})`}
+          />
+          <rect
+            width="100%"
+            height="100%"
+            fill={background}
+            mask={`url(#${bottomLeftMaskId})`}
+          />
+          <rect
+            width="100%"
+            height="100%"
+            fill={background}
+            mask={`url(#${bottomRightMaskId})`}
+          />
+        </g>
       )}
+
+      <g id={`${uid}-dots-layer`} opacity={background ? resolvedOpacity : 1}>
+        {showTop && (
+          <rect
+            width="100%"
+            height="100%"
+            fill={`url(#${patternTopId})`}
+            mask={`url(#${topMaskId})`}
+          />
+        )}
+        {isFourCorners ? (
+          <>
+            <rect
+              width="100%"
+              height="100%"
+              fill={`url(#${patternTopId})`}
+              mask={`url(#${topLeftMaskId})`}
+            />
+            <rect
+              width="100%"
+              height="100%"
+              fill={`url(#${sameColor ? patternTopId : patternBottomId})`}
+              mask={`url(#${topRightMaskId})`}
+            />
+            <rect
+              width="100%"
+              height="100%"
+              fill={`url(#${sameColor ? patternTopId : patternBottomId})`}
+              mask={`url(#${bottomLeftMaskId})`}
+            />
+            <rect
+              width="100%"
+              height="100%"
+              fill={`url(#${sameColor ? patternTopId : patternBottomId})`}
+              mask={`url(#${bottomRightMaskId})`}
+            />
+          </>
+        ) : isLeftRightEdges ? (
+          <>
+            <rect
+              width="100%"
+              height="100%"
+              fill={`url(#${isRtl ? (sameColor ? patternTopId : patternBottomId) : patternTopId})`}
+              mask={`url(#${leftMaskId})`}
+            />
+            <rect
+              width="100%"
+              height="100%"
+              fill={`url(#${isRtl ? patternTopId : (sameColor ? patternTopId : patternBottomId)})`}
+              mask={`url(#${rightMaskId})`}
+            />
+          </>
+        ) : isBottomBoth ? (
+        <>
+          <rect
+            width="100%"
+            height="100%"
+            fill={`url(#${patternTopId})`}
+            mask={`url(#${bottomLeftMaskId})`}
+          />
+          <rect
+            width="100%"
+            height="100%"
+            fill={`url(#${sameColor ? patternTopId : patternBottomId})`}
+            mask={`url(#${bottomRightMaskId})`}
+          />
+        </>
+        ) : showBottom ? (
+          <rect
+            width="100%"
+            height="100%"
+            fill={`url(#${sameColor ? patternTopId : patternBottomId})`}
+            mask={`url(#${bottomMaskId})`}
+          />
+        ) : null}
+      </g>
 
       {/* Hairline glow edge */}
       {hairlineGlow && (

@@ -896,31 +896,14 @@ const Process = () => {
     <Box
       ref={rootRef}
       sx={{
-        position: "relative",
-        overflow: "hidden",
-        // Flat surfaceRaised with elevation and no border, per Phase 8 — and
-        // because the reference this section reproduces stands the whole
-        // composition on a clean ground; a brand wash behind pills that are
-        // themselves the brand ramp only muddies them.
-        backgroundColor: surfaceRaised,
-        borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
-        boxShadow: theme.custom.elevation.e2,
+        ...theme.custom.sectionCard,
         padding: { xs: "1.5rem", sm: "2.5rem", md: "1.75rem 2rem 2rem" },
-        // On a wide /dash column this panel used to stretch to the column's
-        // full width (up to ~1600px) with no ceiling of its own, which is
-        // most of why the section read oversized — not just the stage art
-        // inside it. Capped and centred instead of only shrinking the stage.
-        maxWidth: { xs: "100%", md: 1250 },
-        mx: "auto",
       }}
     >
-      {/* Cyber dot matrix SVG background: top-left/bottom-right in LTR, top-right/bottom-left in RTL */}
+      {/* Cyber dot matrix SVG background — matches Categories/GuidedSearchDialog style */}
       <CyberDotMatrix
         idPrefix="dots-process"
-        placement="diagonal-standard"
         inverted={false}
-        isRtl={isRtl}
-        zIndex={0}
       />
 
       <Box sx={{ position: "relative", zIndex: 1 }}>

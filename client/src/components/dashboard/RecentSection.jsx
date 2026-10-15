@@ -1,17 +1,17 @@
+import React from "react";
 import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
 import { TaskAltOutlined, SearchOffOutlined } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
 import { DashboardEmptyStates, RecentItemsSkeleton } from "../LoadingStates";
 import Recent from "./Recent";
 import SeeAll from "./SeeAll";
-import CyberDotMatrix from "./CyberDotMatrix";
 
-// Paired panel for "Recent Founds" / "Recent Losts". Mirrors the same
-// blurred-gradient surfaceRaised shell used by LeftSide/TrendingItem above it
-// in Dash.js, so the stats row and this row read as one system, with a
-// status-tone accent to distinguish the two halves of the pair.
+// Paired panel container for "Recent Founds" / "Recent Losts".
+// Matches the Cyber-Obsidian / Light Frosted Glass aesthetics of GuidedSearchDialog.jsx & QuickActions.jsx,
+// without an outer border.
 const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, foundOrlostId }) => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { t } = useTranslation();
 
@@ -26,47 +26,58 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
 
   return (
     <Box
-      data-reveal="section"
       sx={{
-        position: 'relative',
-        overflow: 'hidden',
+        position: "relative",
+        overflow: "hidden",
+        isolation: "isolate",
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
-        backdropFilter: "blur(10px)",
-        border: 'none',
-        borderRadius: isMobile ? `${theme.custom.radius.lg}px` : '20px',
-        padding: isMobile ? { xs: "1.125rem 0.875rem", sm: "1.25rem 1rem" } : "1.65rem 1.75rem",
-        boxShadow: 'none',
+        backgroundColor: isDark ? "rgba(16, 25, 44, 0.88)" : "#F1F5F9",
+        backdropFilter: "blur(20px) saturate(1.15)",
+        WebkitBackdropFilter: "blur(20px) saturate(1.15)",
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(226,232,240,0.9)"}`,
+        borderRadius: isMobile ? `${theme.custom.radius.sm}px` : `${theme.custom.radius.md}px`,
+        padding: isMobile ? { xs: "1.25rem 1rem", sm: "1.5rem 1.25rem" } : "1.75rem 2rem",
+        boxShadow: "none",
+        color: isDark ? "#ffffff" : "#0f172a",
       }}
     >
-      {/* Cyber dot matrix SVG background with inverted diagonal placement */}
-      <CyberDotMatrix
-        idPrefix={`dots-recent-${type}`}
-        placement="diagonal-inverted"
-        inverted={true}
-        zIndex={0}
-      />
-
-      <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+      <Box sx={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+        {/* Header with Icon Circle Bubble & Section Title */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 1,
-            mb: isMobile ? 2 : 2.25,
+            gap: 1.5,
+            mb: isMobile ? 2 : 2.5,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
-            <Icon sx={{ color: tone.main, fontSize: { xs: 24, sm: 28 }, flexShrink: 0 }} />
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, minWidth: 0 }}>
+            <Box
+              sx={{
+                width: { xs: 42, sm: 48 },
+                height: { xs: 42, sm: 48 },
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: isDark ? "rgba(30, 41, 59, 0.85)" : "#ffffff",
+                border: isDark ? "1px solid rgba(51, 65, 85, 0.6)" : "1px solid rgba(226, 232, 240, 0.9)",
+                flexShrink: 0,
+                boxShadow: isDark ? "0 4px 12px rgba(0, 0, 0, 0.25)" : "0 2px 8px rgba(0, 0, 0, 0.04)",
+              }}
+            >
+              <Icon sx={{ color: tone.main, fontSize: { xs: 22, sm: 26 } }} />
+            </Box>
             <Typography
               variant="h5"
               fontWeight="700"
               sx={{
-                fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.65rem" },
-                color: theme.custom.color.ink,
+                fontFamily: theme.custom.font.display,
+                fontSize: { xs: "1.25rem", sm: "1.45rem", md: "1.65rem" },
+                color: isDark ? "#ffffff" : "#0f172a",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",

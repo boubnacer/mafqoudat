@@ -5,10 +5,6 @@ import CyberDotMatrix from "./CyberDotMatrix";
 import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { setFoundOrLost } from "../../app/state";
-import { useGetflOptionsQuery } from "../../features/dependencies/dependenciesApiSlice";
 
 // Utility functions for managing viewed notifications
 const getTodayKey = () => {
@@ -57,21 +53,10 @@ const LeftSide = ({
   lostsToday,
 }) => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { t, currentLanguage } = useTranslation();
+  const isRTL = currentLanguage === 'ar';
   const isMobile = useMediaQuery("(max-width:600px)");
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  // Get found/lost options for navigation
-  const { data: flOptionsData, isError, isLoading } = useGetflOptionsQuery({
-    language: currentLanguage
-  }, {
-    selectFromResult: ({ data, isError, isLoading }) => ({
-      data: data?.ids?.map((id) => data?.entities[id]) || [],
-      isError,
-      isLoading
-    }),
-  });
 
   // State to track viewed notifications (synced with localStorage)
   // Initialize from localStorage immediately - this runs synchronously before first render
@@ -228,136 +213,70 @@ const LeftSide = ({
     return shouldShow;
   }, [lostsToday, viewedNotifications.lostCount]);
 
-  // Handler for Found Items
-  const handleFoundItemsClick = () => {
-    // Always update the viewed count when clicked (even if count is 0, to reset tracking)
-    try {
-      const key = getTodayKey();
-      const currentCount = foundsToday || 0;
 
-      // Read current state from localStorage
-      const stored = localStorage.getItem(key);
-      const currentViewed = stored ? JSON.parse(stored) : {};
+  const boxBg = isDark ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255, 255, 255, 0.82)';
+  const boxBorderColor = isDark ? 'rgba(51, 65, 85, 0.6)' : 'rgba(226, 232, 240, 0.9)';
 
-      // Store the current count when viewed
-      currentViewed.foundCount = currentCount;
-      const valueToStore = JSON.stringify(currentViewed);
-
-      // Write to localStorage with error handling
-      try {
-        localStorage.setItem(key, valueToStore);
-      } catch (storageError) {
-        // Handle quota exceeded or other storage errors
-        if (storageError.name === 'QuotaExceededError') {
-          console.error('localStorage quota exceeded');
-        } else {
-          console.error('localStorage write error:', storageError);
-        }
-        // Continue navigation even if storage fails
-      }
-
-      // Update state immediately
-      setViewedNotifications(prev => ({ ...prev, foundCount: currentCount }));
-    } catch (error) {
-      console.error('Error marking found notification as viewed:', error);
-    }
-
-    const foundOption = flOptionsData?.find(option => option.code === 'FOUND');
-    if (foundOption) {
-      dispatch(setFoundOrLost({ foundOrlost: foundOption.code }));
-      navigate(`/posts?fl=${foundOption._id}`);
-    } else {
-      // Fallback if options not loaded yet
-      navigate('/posts');
-    }
+  const baseCardSx = {
+    background: boxBg,
+    backgroundColor: boxBg,
+    backgroundImage: 'none',
+    backdropFilter: 'blur(14px)',
+    WebkitBackdropFilter: 'blur(14px)',
+    border: 'none',
+    boxShadow: isDark
+      ? '0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06)'
+      : '0 4px 18px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95)',
+    borderRadius: `${theme.custom.radius.lg}px`,
+    position: 'relative',
+    overflow: 'hidden',
   };
 
-  // Handler for Lost Items
-  const handleLostItemsClick = () => {
-    // Always update the viewed count when clicked (even if count is 0, to reset tracking)
-    try {
-      const key = getTodayKey();
-      const currentCount = lostsToday || 0;
-
-      // Read current state from localStorage
-      const stored = localStorage.getItem(key);
-      const currentViewed = stored ? JSON.parse(stored) : {};
-
-      // Store the current count when viewed
-      currentViewed.lostCount = currentCount;
-      const valueToStore = JSON.stringify(currentViewed);
-
-      // Write to localStorage with error handling
-      try {
-        localStorage.setItem(key, valueToStore);
-      } catch (storageError) {
-        // Handle quota exceeded or other storage errors
-        if (storageError.name === 'QuotaExceededError') {
-          console.error('localStorage quota exceeded');
-        } else {
-          console.error('localStorage write error:', storageError);
-        }
-        // Continue navigation even if storage fails
-      }
-
-      // Update state immediately
-      setViewedNotifications(prev => ({ ...prev, lostCount: currentCount }));
-    } catch (error) {
-      console.error('Error marking lost notification as viewed:', error);
-    }
-
-    const lostOption = flOptionsData?.find(option => option.code === 'LOST');
-    if (lostOption) {
-      dispatch(setFoundOrLost({ foundOrlost: lostOption.code }));
-      navigate(`/posts?fl=${lostOption._id}`);
-    } else {
-      // Fallback if options not loaded yet
-      navigate('/posts');
-    }
+  const totalBoxCardSx = {
+    ...baseCardSx,
+    padding: isMobile ? '1.25rem' : '1.5rem',
+    cursor: 'default',
+    '&:hover': {
+      transform: 'none',
+      boxShadow: baseCardSx.boxShadow,
+    },
   };
 
-  // Handler for Returned Items
-  const handleReturnedItemsClick = () => {
-    // Navigate to posts list - returned items can be filtered on the posts page
-    navigate('/posts?status=returned');
+  const returnedBoxCardSx = {
+    ...baseCardSx,
+    padding: isMobile ? '1.25rem' : '1.5rem',
+    cursor: 'default',
+    '&:hover': {
+      transform: 'none',
+      boxShadow: baseCardSx.boxShadow,
+    },
   };
-
-  const isDark = theme.palette.mode === 'dark';
-
-  if (isError) {
-    return (
-      <Box sx={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", p: 4, textAlign: 'center' }}>
-        <Typography color="error">{t("errorLoadingData") || "Error loading options"}</Typography>
-      </Box>
-    );
-  }
 
   return (
     <Box
       data-reveal="hero"
       sx={{
-        // Genuinely translucent on both breakpoints now that this floats
-        // over Dash.js's full-bleed world-map backdrop instead of sitting
-        // next to/above its own boxed card — a much lower fill so the map
-        // actually shows through, with a heavier blur (10px -> 18px) so the
-        // busier map detail behind it doesn't fight with the stat numbers'
-        // legibility.
         position: 'relative',
         overflow: 'hidden',
-        background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.14)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.14)} 100%)`,
-        backdropFilter: 'blur(18px)',
+        background: theme.custom.color.statsCard,
+        backgroundColor: theme.custom.color.statsCard,
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
+        border: 'none',
+        boxShadow: 'none',
+        color: isDark ? '#ffffff' : '#0f172a',
         padding: isMobile ? '1.5rem' : '2rem',
         paddingBottom: isMobile ? 'calc(1.5rem + 0.5cm)' : 'calc(2rem + 0.5cm)',
-        boxShadow: 'none',
         width: '100%',
         mx: 0,
         maxWidth: '100%', // Prevent overflow
         minWidth: 0, // Allow shrinking if needed
       }}
     >
-      {/* Cyber dot matrix SVG background with Corner Clusters matching RTL/LTR theme */}
-      <CyberDotMatrix idPrefix="dot-matrix-stats" zIndex={0} />
+      {/* Cyber dot matrix SVG background: bottom-right in LTR, bottom-left in RTL */}
+      <CyberDotMatrix
+        idPrefix="dot-matrix-stats"
+        placement={isRTL ? "bottom-left" : "bottom-right"}
+      />
 
       {/* Title Section */}
       <Box
@@ -374,8 +293,10 @@ const LeftSide = ({
           variant="h5"
           fontWeight="700"
           sx={{
+            fontFamily: theme.custom.font.display,
             fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
-            color: theme.custom.color.ink,
+            color: isDark ? '#ffffff' : '#0f172a',
+            letterSpacing: '-0.02em',
             mb: 1
           }}
         >
@@ -403,13 +324,7 @@ const LeftSide = ({
           lostsToday={lostsToday || 0}
           showFoundNotification={showFoundNotification}
           showLostNotification={showLostNotification}
-          onFoundClick={handleFoundItemsClick}
-          onLostClick={handleLostItemsClick}
-          sx={{
-            background: alpha(theme.custom.color.surfaceRaised, isDark ? 0.48 : 0.58),
-            backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.48 : 0.58),
-            backdropFilter: 'blur(8px)',
-          }}
+          sx={baseCardSx}
         />
 
         <TotalBox
@@ -419,29 +334,35 @@ const LeftSide = ({
           value={totalPosts || 0}
           description={t('sinceLastMonth')}
           icon={<RenderIcon name="total" />}
-          sx={{
-            background: alpha(theme.custom.color.surfaceRaised, isDark ? 0.48 : 0.58),
-            backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.48 : 0.58),
-            backdropFilter: 'blur(8px)',
-            padding: isMobile ? '1.25rem' : '1.5rem',
-          }}
+          sx={totalBoxCardSx}
           titleStyle={{
-            color: theme.custom.color.ink,
-            fontSize: '1.1rem',
-            fontWeight: 600
+            fontFamily: theme.custom.font.display,
+            color: isDark ? '#ffffff' : '#0f172a',
+            fontSize: '1.05rem',
+            fontWeight: 700,
+            letterSpacing: '-0.01em',
           }}
           valueStyle={{
-            color: theme.custom.color.brandPrimary,
-            fontSize: '2rem',
-            fontWeight: 700
+            fontFamily: theme.custom.font.display,
+            color: isDark ? '#00F2FE' : theme.custom.color.brandPrimary,
+            fontSize: { xs: '2rem', sm: '2.25rem' },
+            fontWeight: 700,
+            lineHeight: 1.1,
+            fontVariantNumeric: 'tabular-nums',
+            textShadow: isDark ? '0 0 20px rgba(0, 242, 254, 0.25)' : 'none',
           }}
           descriptionStyle={{
-            color: alpha(theme.custom.color.ink, 0.65),
-            fontSize: isMobile ? '1rem' : '0.9rem'
+            fontFamily: theme.custom.font.body,
+            color: isDark ? '#94a3b8' : '#475569',
+            fontSize: isMobile ? '0.85rem' : '0.875rem',
+            fontWeight: 500,
           }}
           iconStyle={{
-            background: alpha(theme.custom.color.brandPrimary, 0.15),
-            color: theme.custom.color.brandPrimary
+            background: isDark ? 'rgba(0, 242, 254, 0.15)' : 'rgba(0, 114, 255, 0.10)',
+            border: `1px solid ${isDark ? 'rgba(0, 242, 254, 0.35)' : 'rgba(0, 114, 255, 0.20)'}`,
+            boxShadow: isDark ? '0 0 12px rgba(0, 242, 254, 0.25)' : 'none',
+            color: isDark ? '#00F2FE' : theme.custom.color.brandPrimary,
+            borderRadius: '50%',
           }}
         />
 
@@ -452,30 +373,35 @@ const LeftSide = ({
           value={totalReturned?.toString() || "0"}
           description={t('sinceLastMonth')}
           icon={<RenderIcon name="returned" />}
-          onClick={handleReturnedItemsClick}
-          sx={{
-            background: alpha(theme.custom.color.surfaceRaised, isDark ? 0.48 : 0.58),
-            backgroundColor: alpha(theme.custom.color.surfaceRaised, isDark ? 0.48 : 0.58),
-            backdropFilter: 'blur(8px)',
-            padding: isMobile ? '1.25rem' : '1.5rem',
-          }}
+          sx={returnedBoxCardSx}
           titleStyle={{
-            color: theme.custom.color.ink,
-            fontSize: '1.1rem',
-            fontWeight: 600
+            fontFamily: theme.custom.font.display,
+            color: isDark ? '#ffffff' : '#0f172a',
+            fontSize: '1.05rem',
+            fontWeight: 700,
+            letterSpacing: '-0.01em',
           }}
           valueStyle={{
+            fontFamily: theme.custom.font.display,
             color: theme.custom.status.found.main,
-            fontSize: '2rem',
-            fontWeight: 700
+            fontSize: { xs: '2rem', sm: '2.25rem' },
+            fontWeight: 700,
+            lineHeight: 1.1,
+            fontVariantNumeric: 'tabular-nums',
+            textShadow: isDark ? `0 0 20px ${alpha(theme.custom.status.found.main, 0.25)}` : 'none',
           }}
           descriptionStyle={{
-            color: alpha(theme.custom.color.ink, 0.65),
-            fontSize: isMobile ? '1rem' : '0.9rem'
+            fontFamily: theme.custom.font.body,
+            color: isDark ? '#94a3b8' : '#475569',
+            fontSize: isMobile ? '0.85rem' : '0.875rem',
+            fontWeight: 500,
           }}
           iconStyle={{
-            background: alpha(theme.custom.status.found.main, 0.12),
-            color: theme.custom.status.found.main
+            background: isDark ? alpha(theme.custom.status.found.main, 0.15) : alpha(theme.custom.status.found.main, 0.10),
+            border: `1px solid ${isDark ? alpha(theme.custom.status.found.main, 0.35) : alpha(theme.custom.status.found.main, 0.22)}`,
+            boxShadow: isDark ? `0 0 12px ${alpha(theme.custom.status.found.main, 0.25)}` : 'none',
+            color: theme.custom.status.found.main,
+            borderRadius: '50%',
           }}
         />
       </Box>

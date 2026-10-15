@@ -1,4 +1,4 @@
-import { Box, Typography, useTheme, Card, CardContent, useMediaQuery, Button, alpha } from "@mui/material";
+import { Box, Typography, useTheme, Card, CardContent, useMediaQuery, Button, alpha, lighten } from "@mui/material";
 import { useGetCategoriesQuery } from "../../features/dependencies/dependenciesApiSlice";
 import SkeletonBlock from "../SkeletonBlock";
 import { getCategoryIcon, getCategoryColor, sortCategoriesForBrowse } from "../../config/categories";
@@ -8,6 +8,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { ExpandMore, ExpandLess } from "@mui/icons-material";
 import { useRef, useState } from "react";
 import { gsap, useGSAP } from "../../utils/gsapSetup";
+import CyberDotMatrix from "./CyberDotMatrix";
 
 const CATEGORY_COLLAPSED_SMALL_COUNT = 4;
 const CATEGORY_COLLAPSED_DESKTOP_COUNT = 5;
@@ -23,6 +24,9 @@ const Categories = () => {
   const [showAllCategories, setShowAllCategories] = useState(false);
   const gridRef = useRef(null);
   const collapsedCount = isDesktop ? CATEGORY_COLLAPSED_DESKTOP_COUNT : CATEGORY_COLLAPSED_SMALL_COUNT;
+
+  const brandPrimary = theme.custom.color.brandPrimary;
+  const brandLogo = theme.custom.color.brandLogo;
 
   // Dash.js's reveal choreography (useDashboardMotion) staggers the cards
   // that exist when this section first scrolls into view. The ones "show all"
@@ -41,7 +45,7 @@ const Categories = () => {
     },
     { scope: gridRef, dependencies: [showAllCategories, collapsedCount], revertOnUpdate: true }
   );
-  
+
   const { categories, isLoading, isFetching, isError } = useGetCategoriesQuery({
     language: currentLanguage
   }, {
@@ -53,17 +57,47 @@ const Categories = () => {
     }),
   });
 
+  const cardContainerSx = {
+    ...theme.custom.sectionCard,
+    padding: { xs: "1.5rem", sm: "2.5rem", md: "1.75rem 2rem 2rem" },
+  };
+
+  const headerTitle = (
+    <Box sx={{ maxWidth: 640, mx: "auto", mb: { xs: 2.5, md: 3 }, textAlign: "center" }}>
+      <Typography
+        variant="h4"
+        fontWeight="700"
+        sx={{
+          fontFamily: theme.custom.font.display,
+          fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
+          mt: 0.5,
+          display: "inline-block",
+          backgroundImage: `linear-gradient(135deg, ${brandPrimary} 0%, ${lighten(brandPrimary, 0.45)} 100%)`,
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          color: "transparent",
+          letterSpacing: "-0.01em",
+        }}
+      >
+        {t("browseByCategory")}
+      </Typography>
+    </Box>
+  );
+
   if (isError) {
     return (
-      <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography color="error">{t("errorLoadingData") || "Error loading categories"}</Typography>
+      <Box sx={cardContainerSx}>
+        <CyberDotMatrix
+          idPrefix="dots-categories-error"
+          inverted={true}
+        />
+        <Box sx={{ position: "relative", zIndex: 1, textAlign: 'center', p: 4 }}>
+          {headerTitle}
+          <Typography color="error">{t("errorLoadingData") || "Error loading categories"}</Typography>
+        </Box>
       </Box>
     );
   }
-
-  const handleCategoryClick = (categoryId) => {
-    navigate(`/posts?category=${categoryId}`);
-  };
 
   const toggleShowAllCategories = () => {
     setShowAllCategories(!showAllCategories);
@@ -71,21 +105,28 @@ const Categories = () => {
 
   if (!categories || isLoading || isFetching) {
     return (
-      <Box sx={{ py: 4 }}>
-        <Box
-          sx={{
-            display: 'grid',
-            gap: isMobile ? 2 : 3,
-            gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' },
-          }}
-        >
-          {Array.from({ length: collapsedCount }).map((_, i) => (
-            <SkeletonBlock
-              key={i}
-              radius={theme.custom.radius.lg}
-              sx={{ height: { xs: 120, sm: 135 } }}
-            />
-          ))}
+      <Box sx={cardContainerSx}>
+        <CyberDotMatrix
+          idPrefix="dots-categories-loading"
+          inverted={true}
+        />
+        <Box sx={{ position: "relative", zIndex: 1 }}>
+          {headerTitle}
+          <Box
+            sx={{
+              display: 'grid',
+              gap: { xs: 1.5, sm: 2 },
+              gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(5, 1fr)' },
+            }}
+          >
+            {Array.from({ length: collapsedCount }).map((_, i) => (
+              <SkeletonBlock
+                key={i}
+                radius={theme.custom.radius.lg}
+                sx={{ height: { xs: 116, sm: 130 } }}
+              />
+            ))}
+          </Box>
         </Box>
       </Box>
     );
@@ -98,156 +139,192 @@ const Categories = () => {
     : orderedCategories.slice(0, collapsedCount);
 
   return (
-    <Box sx={{ py: 4 }}>
-      <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
-        <Box
-          ref={gridRef}
-          sx={{
-            display: 'grid',
-            gap: 2,
-            gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' },
-          }}
-        >
-          {visibleCategories.map(({ _id, code, labels }) => {
-            const IconComponent = getCategoryIcon(code);
-            const iconColor = getCategoryColor(code);
-            const tint = alpha(iconColor, isDark ? 0.2 : 0.12);
-            const badgeBg = isDark ? 'rgba(0,0,0,0.28)' : 'rgba(255,255,255,0.55)';
-            const label = code === 'ELECTRONICS'
-              ? t('categoryElectronics')
-              : code === 'PHONES'
-              ? t('categoryPhones')
-              : code === 'LAPTOPS'
-              ? t('categoryLaptops')
-              : code === 'CHARGERS'
-              ? t('categoryChargers')
-              : code === 'POWERBANKS'
-              ? t('categoryPowerbanks')
-              : code === 'STORAGE'
-              ? t('categoryStorage')
-              : code === 'DOCUMENTS'
-              ? t('categoryDocuments')
-              : (labels[currentLanguage] || labels.en);
+    <Box sx={cardContainerSx}>
+      {/* Cyber dot matrix SVG background — matches Process.jsx / GuidedSearchDialog */}
+      <CyberDotMatrix
+        idPrefix="dots-categories"
+        inverted={true}
+      />
 
-            const categoryHref = `/posts?category=${encodeURIComponent(code ? code.toLowerCase() : _id)}`;
+      <Box sx={{ position: "relative", zIndex: 1 }}>
+        {headerTitle}
 
-            return (
-              <Box key={_id}>
-                <Box data-reveal-item="" sx={{ height: '100%' }}>
-                  <Card
-                    component={Link}
-                    to={categoryHref}
-                    elevation={0}
-                    sx={{
-                      height: '100%',
-                      minHeight: { xs: 120, sm: 135 },
-                      backgroundColor: tint,
-                      borderRadius: `${theme.custom.radius.lg}px`,
-                      cursor: 'pointer',
-                      textDecoration: 'none',
-                      color: 'inherit',
-                      border: 'none',
-                      boxShadow: 'none',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                      '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: theme.custom.elevation?.e1 || '0 2px 12px rgba(0,0,0,0.06)',
-                        '& .category-icon-badge': {
-                          transform: 'scale(1.08)',
-                        },
-                      },
-                      '&:focus-visible': {
-                        outline: `2px solid ${theme.custom.color.brandPrimary}`,
-                        outlineOffset: '2px',
-                      },
-                    }}
-                  >
-                    <CardContent
+        <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
+          <Box
+            ref={gridRef}
+            sx={{
+              display: 'grid',
+              gap: { xs: 1.5, sm: 2 },
+              gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(5, 1fr)' },
+            }}
+          >
+            {visibleCategories.map(({ _id, code, labels }) => {
+              const IconComponent = getCategoryIcon(code);
+              const iconColor = getCategoryColor(code);
+              const label = code === 'ELECTRONICS'
+                ? t('categoryElectronics')
+                : code === 'PHONES'
+                ? t('categoryPhones')
+                : code === 'LAPTOPS'
+                ? t('categoryLaptops')
+                : code === 'CHARGERS'
+                ? t('categoryChargers')
+                : code === 'POWERBANKS'
+                ? t('categoryPowerbanks')
+                : code === 'STORAGE'
+                ? t('categoryStorage')
+                : code === 'DOCUMENTS'
+                ? t('categoryDocuments')
+                : (labels[currentLanguage] || labels.en);
+
+              const categoryHref = `/posts?category=${encodeURIComponent(code ? code.toLowerCase() : _id)}`;
+
+              return (
+                <Box key={_id}>
+                  <Box data-reveal-item="" sx={{ height: '100%' }}>
+                    <Card
+                      component={Link}
+                      to={categoryHref}
+                      elevation={0}
                       sx={{
-                        p: { xs: 2.5, sm: 3 },
+                        height: '100%',
+                        minHeight: { xs: 116, sm: 130 },
+                        position: 'relative',
+                        overflow: 'hidden',
+                        textDecoration: 'none',
+                        color: 'inherit',
+                        borderRadius: { xs: '16px', sm: '18px' },
+                        background: isDark
+                          ? `linear-gradient(145deg, rgba(15, 23, 42, 0.75) 0%, ${alpha(iconColor, 0.16)} 100%)`
+                          : `linear-gradient(145deg, rgba(255, 255, 255, 0.88) 0%, ${alpha(iconColor, 0.10)} 100%)`,
+                        backdropFilter: 'blur(16px)',
+                        WebkitBackdropFilter: 'blur(16px)',
+                        border: `1px solid ${isDark ? alpha(iconColor, 0.24) : alpha(iconColor, 0.18)}`,
+                        boxShadow: isDark
+                          ? '0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06)'
+                          : '0 4px 18px rgba(15, 23, 42, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.95)',
                         display: 'flex',
                         flexDirection: 'column',
-                        alignItems: 'center',
                         justifyContent: 'center',
-                        textAlign: 'center',
-                        height: '100%',
+                        transition: 'all 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          borderColor: isDark ? alpha(iconColor, 0.65) : iconColor,
+                          boxShadow: isDark
+                            ? `0 12px 28px -6px ${alpha(iconColor, 0.38)}, 0 0 16px ${alpha(iconColor, 0.22)}`
+                            : `0 12px 24px -6px ${alpha(iconColor, 0.24)}, 0 2px 10px rgba(0,0,0,0.04)`,
+                          '& .category-icon-badge': {
+                            transform: 'scale(1.12)',
+                            backgroundColor: isDark ? alpha(iconColor, 0.32) : alpha(iconColor, 0.22),
+                            borderColor: isDark ? alpha(iconColor, 0.7) : iconColor,
+                            boxShadow: `0 0 18px ${alpha(iconColor, isDark ? 0.45 : 0.35)}`,
+                          },
+                          '& .category-label': {
+                            color: isDark ? '#ffffff' : (iconColor || theme.custom.color.ink),
+                          },
+                        },
+                        '&:focus-visible': {
+                          outline: `2px solid ${theme.custom.color.brandPrimary}`,
+                          outlineOffset: '2px',
+                        },
                       }}
                     >
-                      <Box
-                        className="category-icon-badge"
+                      <CardContent
                         sx={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: '50%',
-                          backgroundColor: badgeBg,
+                          p: { xs: 2, sm: 2.5 },
                           display: 'flex',
+                          flexDirection: 'column',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          mb: 1.5,
-                          transition: 'transform 0.3s ease',
-                          boxShadow: '0 1px 6px rgba(0,0,0,0.05)',
-                        }}
-                      >
-                        <IconComponent sx={{ color: iconColor, fontSize: '20px' }} />
-                      </Box>
-                      <Typography
-                        variant="body1"
-                        align="center"
-                        sx={{
-                          fontWeight: 600,
-                          color: theme.custom.color.ink,
-                          lineHeight: 1.3,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
                           textAlign: 'center',
-                          fontSize: { xs: '13px', sm: '14px' },
+                          height: '100%',
+                          '&:last-child': { pb: { xs: 2, sm: 2.5 } },
                         }}
                       >
-                        {label}
-                      </Typography>
-                    </CardContent>
-                  </Card>
+                        <Box
+                          className="category-icon-badge"
+                          sx={{
+                            width: { xs: 44, sm: 48 },
+                            height: { xs: 44, sm: 48 },
+                            borderRadius: '50%',
+                            backgroundColor: isDark ? alpha(iconColor, 0.20) : alpha(iconColor, 0.12),
+                            border: `1px solid ${isDark ? alpha(iconColor, 0.35) : alpha(iconColor, 0.25)}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            mb: 1.5,
+                            transition: 'all 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+                            boxShadow: isDark
+                              ? `0 2px 10px ${alpha(iconColor, 0.25)}`
+                              : `0 2px 8px ${alpha(iconColor, 0.12)}`,
+                          }}
+                        >
+                          <IconComponent sx={{ color: iconColor, fontSize: { xs: '22px', sm: '24px' } }} />
+                        </Box>
+                        <Typography
+                          className="category-label"
+                          variant="body1"
+                          align="center"
+                          sx={{
+                            fontFamily: theme.custom.font.display,
+                            fontWeight: 700,
+                            color: theme.custom.color.ink,
+                            lineHeight: 1.3,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textAlign: 'center',
+                            fontSize: { xs: '13px', sm: '14px' },
+                            transition: 'color 0.25s ease',
+                          }}
+                        >
+                          {label}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Box>
                 </Box>
-              </Box>
-            );
-          })}
+              );
+            })}
+          </Box>
         </Box>
-      </Box>
 
-      {hasMoreCategories && (
-        <Box display="flex" justifyContent="center" mt={3}>
-        <Button
-          onClick={toggleShowAllCategories}
-          variant="outlined"
-          endIcon={showAllCategories ? <ExpandLess /> : <ExpandMore />}
-          sx={{
-            color: theme.custom.color.ink,
-            borderColor: alpha(theme.custom.color.ink, 0.24),
-            backgroundColor: 'transparent',
-            borderRadius: `${theme.custom.radius.sm}px`,
-            px: 3,
-            py: 1,
-            textTransform: 'none',
-            fontWeight: 600,
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              backgroundColor: alpha(theme.custom.color.ink, 0.08),
-              borderColor: alpha(theme.custom.color.ink, 0.32),
-            },
-            '&:active': {
-              backgroundColor: alpha(theme.custom.color.ink, 0.12),
-            }
-          }}
-        >
-          {showAllCategories ? t('showLess') : t('showAllCategories')}
-        </Button>
-        </Box>
-      )}
+        {hasMoreCategories && (
+          <Box display="flex" justifyContent="center" mt={3.5}>
+            <Button
+              onClick={toggleShowAllCategories}
+              endIcon={showAllCategories ? <ExpandLess /> : <ExpandMore />}
+              sx={{
+                color: isDark ? '#ffffff' : '#0f172a',
+                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)',
+                border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0, 0, 0, 0.1)'}`,
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                borderRadius: '999px',
+                px: 3.5,
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  backgroundColor: isDark ? 'rgba(0, 242, 254, 0.12)' : 'rgba(0, 114, 255, 0.08)',
+                  borderColor: isDark ? 'rgba(0, 242, 254, 0.5)' : theme.custom.color.brandPrimary,
+                  color: isDark ? '#00F2FE' : theme.custom.color.brandPrimary,
+                  transform: 'translateY(-2px)',
+                  boxShadow: isDark
+                    ? '0 6px 20px rgba(0, 242, 254, 0.2)'
+                    : '0 6px 16px rgba(0, 114, 255, 0.15)',
+                },
+              }}
+            >
+              {showAllCategories ? t('showLess') : t('showAllCategories')}
+            </Button>
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 };

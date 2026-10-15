@@ -44,6 +44,7 @@ import CyberDotMatrix from "./CyberDotMatrix";
 // human channel matters more here than self-serve FAQ/guidelines.
 const HelpSupportSection = () => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [showHelpDialog, setShowHelpDialog] = useState(false);
@@ -165,21 +166,15 @@ const HelpSupportSection = () => {
       <Box
         data-section="help"
         sx={{
-          position: 'relative',
-          overflow: 'hidden',
-          mx: { xs: 1, sm: 2 },
-          background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
-          backdropFilter: 'blur(10px)',
-          borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
-          boxShadow: 'none',
+          ...theme.custom.sectionCard,
+          mx: { xs: 1, sm: 2, md: 'auto' },
           padding: { xs: '1.5rem', sm: '2.5rem', md: '3rem' },
         }}
       >
-        {/* Cyber dot matrix SVG background */}
+        {/* Cyber dot matrix SVG background — matches Categories/Process/GuidedSearchDialog style */}
         <CyberDotMatrix
           idPrefix="dots-help-support"
           inverted={true}
-          zIndex={0}
         />
 
         <Box sx={{ position: 'relative', zIndex: 1 }}>

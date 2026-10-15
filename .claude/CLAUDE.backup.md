@@ -1,0 +1,2597 @@
+# Mafqoudat
+
+Multi-country/multilingual (en/fr/ar, full RTL) lost-and-found classifieds platform. `client/` = CRA + MUI v5 + Emotion, `server/` = Express, `mobile/` = Expo/React Native. `mobile/` historically out of scope for design work, now brought in for specific passes (dashboard header port, category picker parity, border removal, card shadow removal) — check recent commits/CLAUDE.md before assuming mobile screen untouched.
+
+## Design tokens
+
+Source of truth: [client/src/designTokens.js](client/src/designTokens.js), resolved per light/dark mode, consumed by [client/src/theme.js](client/src/theme.js) (`themeSettings(mode, currentLanguage)`, exposed on MUI theme as `theme.custom`). New work reads from `theme.custom.*`, never hardcode. [mobile/src/theme/tokens.js](mobile/src/theme/tokens.js)'s `colorTokens`/`radiusTokens`/`fontFamilies` mirror these 1:1 for RN screens (separate `getElevation(isDark, level)` helper per screen file stands in for `elevationTokens`, since RN has no CSS boxShadow) — mobile also carries older, pre-existing `lightColors`/`darkColors`/`radii` palette most legacy screens read from instead; prefer `colorTokens` for new/touched work there too.
+
+**Palette** (`colorTokens`, light / dark):
+- `brandPrimary`: `#1B4DFF` / `#5B7FFF` — brand accent
+- `brandLogo`: `#3498DB` / `#3498DB` — the blue the logo itself is drawn in
+  (`public/maflogoSVG.svg`, `public/maficonSVG.svg`), and the same value as the
+  pre-Phase-1 `palette.secondary.main` still in `theme.js` and mobile's legacy
+  `primary`. Identical in both modes, unlike `brandPrimary`, which needs a
+  lightened dark-mode twin. Used by the world activity map only — see that
+  section for why that one surface takes it over `brandPrimary`.
+- `ink`: `#0B1220` / `#EDEFF5` — primary text
+- `surfaceBase`: `#F7F8FB` / `#0E1116` — page background
+- `surfaceRaised`: `#FFFFFF` / `#171B22` — card/paper background
+- `postsListBackdrop`: `#EDEFF6` / `#0E1116` — page-level backdrop (not a card color) for the posts list screens themselves, since plain `surfaceRaised` cards sat directly on flat `surfaceBase` w/ no panel/gradient between them and were only ~3% off it in light mode, nearly invisible. Cards on that page stay plain `surfaceRaised` (white); the page behind them gets this deeper tone instead so the cards read clearly. Dark mode value equals `surfaceBase`'s dark value verbatim (no-op) — `surfaceRaised` already separates from `surfaceBase` enough there. Used by the posts list page container only (web `PostsList.js`/`PostsListSkeleton.jsx` root Box, mobile `PostsListScreen.js`/`MyPostsScreen.js` `container`/`searchRow`) — other pages keep plain `surfaceBase`.
+- `status.lost`: main `#D6483B` / `#FF6B5E`, bg `#FBEAE8` / `rgba(255,107,94,0.16)`, border=main — semantic color, "Lost" posts
+- `status.found`: main `#1E8F6B` / `#3DDCA6`, bg `#E5F5EF` / `rgba(61,220,166,0.16)`, border=main — semantic color, "Found" posts
+- `status.pending`: main `#9A5B00` / `#F5B546`, bg `#FBF0DC` / `rgba(245,181,70,0.16)`, border=main — "waiting on a human". Added for the admin console, the first surface with a third state to show: lost/found are the two halves of the product's vocabulary and neither means "needs attention", so the panel was reaching for MUI's default `warning` palette and leaving the token system behind. Same contrast rule as the two above (white on `main` clears 4.5:1 light; `main` on its own `bg` clears 4.8:1). Mirrored into mobile's `tokens.js` to keep that file the 1:1 mirror it claims to be, though no RN screen renders it yet.
+
+Note: `theme.js` still carries large legacy `palette.floptions` / `palette.categories` block (pre-Phase-1, per-category colors) — leave as-is unless phase targets it; prefer `colorTokens.status` for new Lost/Found UI.
+
+**Typefaces** (`fontFamilies`): `display` = Cairo, `body` = IBM Plex Sans Arabic (both w/ Segoe UI/Roboto/Helvetica/Arial fallbacks). Chosen: both solid Arabic + Latin glyph coverage, no per-language font swap needed — same faces work across en/fr/ar.
+
+**Spacing**: 8px base unit (`theme.spacing(factor) = 8 * factor`px).
+
+**Radius** (`radiusTokens`, 8px-based scale): `sm` 8, `md` 12, `lg` 16, `xl` 24.
+
+**Elevation** (`elevationTokens`): `e1`/`e2`/`e3`, shadow values differ per light/dark mode.
+
+## Established component patterns
+
+Reuse these, don't invent new card/panel treatment — now house style:
+
+- **Post card DNA** (canonical in [Post.js](client/src/features/posts/PostsList/Post.js), reused in [TrendingItem.jsx](client/src/components/dashboard/TrendingItem.jsx)): `surfaceRaised` background, `radius.lg`, `elevation.e1` → `e2` on hover w/ `translateY(-4px)` lift, no border (elevation alone separates from page), `borderInlineStart: 6px solid <status.found|lost main>` accent bar. Status shown as solid-fill tag (`TaskAltOutlined`/`SearchOffOutlined` icon + label, `theme.palette.getContrastText()` for text) at `insetInlineStart`, paired w/ translucent `alpha(surfaceRaised, 0.85)` date badge at `insetInlineEnd`. Also reused as compact variant by `HeroPostCard` in [WelcomePage.jsx](client/src/components/WelcomePage.jsx) (hero's live-post snapshot row): same surface/radius/accent-bar, hover-lift eased to `translateY(-3px)` for smaller card, but status tag + date move inline into card body/meta row instead of absolute overlay badges on thumbnail — use condensed layout when card small (e.g. 3-up row) and overlay badge would crowd image.
+- **Paired dashboard panel** (`SectionPanel` + `SectionTitle` in [LeftSide.jsx](client/src/components/dashboard/LeftSide.jsx) / [TrendingItem.jsx](client/src/components/dashboard/TrendingItem.jsx)): blurred-gradient `surfaceRaised` container, `radius.lg` (16px) mobile / `radius.xl` (24px) desktop, no border, centered `ink`-colored title (`h5`, weight 700, `{xs:1.5rem, sm:1.75rem, md:2rem}`). Use shell for new dashboard section sitting alongside stats/trending row.
+- **Generic surface card** (`SurfaceCard` in [WelcomePage.jsx](client/src/components/WelcomePage.jsx)): plain `surfaceRaised` box, `radius.xl`, `elevation.e2`, no border — no title treatment, no status accent bar. For one-off content blocks (coverage-stats bar, safety/trust callout, error state) not needing panel title or card accent bar; use instead of bespoke box styling.
+- **Header control pill** (`ControlButton`, now living in [WelcomePage.jsx](client/src/components/WelcomePage.jsx)): `surfaceRaised` background, `radius.md`, no border, `elevation.e1` → `e2` on hover (no lift) — used for language selector, paired w/ matching elevated (borderless) `IconButton` for light/dark mode toggle. Use for any new top-bar/header control instead of bespoke button.
+- **No borders on containers**: cards/panels/pills (web `theme.custom`-based components + mobile `colorTokens`-based screens alike) separated from page background by `elevation`/`getElevation()` shadow alone, never `1px solid` border — removed platform-wide in later pass (see Design phases). Does *not* apply to buttons, form inputs, toggle/select controls, dropdown/menu/dialog chrome, or post card's status accent bar — all keep borders.
+- **Section eyebrow label** (`SectionEyebrow` in [WelcomePage.jsx](client/src/components/WelcomePage.jsx)): `variant="overline"`, weight 600, `letterSpacing: 1`, `text.secondary` color — small caps-style label introducing subsection inline (e.g. "Recent near you" above hero post snapshot). Lighter-weight than `SectionTitle`'s h5 panel heading; use for inline subsection labels not warranting full panel shell.
+- **Found/Lost duality as one connected shape, not two separate cards** ([FoundLostStrip.jsx](client/src/components/dashboard/FoundLostStrip.jsx)): when section shows both counts side by side, prefer single component w/ proportional fill (found:lost ratio) over two independent stat boxes — shape should carry relationship, not just two numbers.
+- **RTL**: newer components (`FoundLostStrip.jsx`, `TrendingItem.jsx`, `WelcomePage.jsx`) use CSS logical properties (`insetInlineStart/End`, `borderInlineStart/End`, `marginInlineStart/End`) which auto-flip w/ document direction — prefer over manual `currentLanguage === 'ar' ? ... : ...` checks or `'[dir="rtl"] &'` selector overrides (still present in older dashboard components) when writing new UI.
+- **Data integrity**: don't decorate real numbers w/ fabricated ones. Found + removed hardcoded fake `increase` percentage (`+14%` etc., never actually rendered) on stat boxes, reframed `TrendingItem` — query is `$limit: 1` sorted by `createdAt desc` (intentionally "latest post," not popularity/engagement metric) — so UI doesn't imply metric not backed by real data.
+
+## Known tokenization debt (not yet fixed — out of scope so far)
+
+- [RenderIcon.jsx](client/src/components/RenderIcon.jsx): `Found`/`Lost`/`total`/`returned` icons carry own hardcoded `sx={{ color: '#...' }}` (e.g. Lost's icon grey, not red) not following `theme.custom.status`. Newer components (`FoundLostStrip.jsx`, `TrendingItem.jsx`) sidestep by importing MUI icons directly instead of going through `RenderIcon` for Found/Lost. Worth real fix if future phase touches icon rendering broadly.
+- [LoadingStates.jsx](client/src/components/LoadingStates.jsx): shared `EmptyState` component (used by `NoPosts`, `NoRecentFounds`, `NoTrending`, etc.) still styles off `theme.palette.mode`/`theme.palette[variant]` rather than `theme.custom`. Left alone — shared across many non-redesigned sections; retheming good candidate for whichever phase does broader empty-state pass.
+
+## Design phases
+
+- Phase 1 — design system / [theme.js](client/src/theme.js) + [designTokens.js](client/src/designTokens.js): done
+- Phase 2 — [WelcomePage.jsx](client/src/components/WelcomePage.jsx): done
+- Phase 3 — post card + the public posts listing: done. (That listing, `PublicPostsPage.jsx`, was later deleted — it duplicated `/dash/posts`, and the `vercel.json` `/posts/:path*` API rewrite meant `/posts` could not reliably serve it. `/dash/posts` is the only listing; the card treatment lives on in `Post.js`.)
+- Phase 4 — [NewPostForm.js](client/src/features/posts/NewPost/NewPostForm.js): in progress
+- Phase 7 — dashboard header: stats ([LeftSide.jsx](client/src/components/dashboard/LeftSide.jsx) + new [FoundLostStrip.jsx](client/src/components/dashboard/FoundLostStrip.jsx)) and the trending/latest-post spotlight ([TrendingItem.jsx](client/src/components/dashboard/TrendingItem.jsx)), both in [Dash.js](client/src/features/dashboard/Dash.js): done. (Phases 5-6 aren't tracked in this file — fill in if they happened elsewhere.)
+- Phase 8 — remove borders from containers platform-wide (elevation-only surfaces), across both `client/` (WelcomePage, the since-removed PublicPostsPage, dashboard panels/cards in `LeftSide.jsx`/`TrendingItem.jsx`/`RecentPosts.jsx`/`Categories.jsx`/`QuickActions.jsx`/`RecentSection.jsx`/`Process.jsx`/`HelpSupportSection.jsx`/`SearchPartyHero.jsx`/`Dash.js`/`TotalBox.jsx`) and `mobile/` (`HomeScreen.js`, `WelcomeScreen.js`, `PostDetailScreen.js`, `PostsListScreen.js`, `MyPostsScreen.js`, `ProfileScreen.js`, `AppHeader.js`, `LoginScreen.js`, `SignUpScreen.js`): done. This is the first design pass to touch `mobile/`.
+- Phase 9 — `mobile/` parent card/panel containers lose their shadow entirely (border was already gone from Phase 8); their nested badge/icon/pill sub-elements (still borderless) pick up a small shadow (`getElevation(isDark, 1)`) instead, so depth reads from the sub-elements rather than the outer card. Touched `HomeScreen.js` (`panelContainer`/`foundLostStrip`/`bigStatCard`/`posterCard`/`recentEmpty`/`socialPanel` parents; `statSegmentIcon`/`bigStatCardIcon`/`posterStatusPill`/`posterReturnedPill`/`socialIconCircle` sub-elements), `PostsListScreen.js` + `MyPostsScreen.js` (`postCard`/`postCardSkeleton` parents; `statusTag`/`dateBadge`/`categoryPill`/`lifecycleBadge` sub-elements), `PostDetailScreen.js` (`body` parent; `statusTag`/`dateBadge`/`categoryChip` sub-elements), `ProfileScreen.js` (`infoCard`/`menuCard` parents; `infoRowIcon`/`menuRowIcon` sub-elements), `SettingsScreen.js` (`card`/`menuCard` parents, no sub-element badges), `WelcomeScreen.js` (`heroCard` parent; `heroStatusTag` sub-element — `createStyles` there now also takes `isDark`), `LoginScreen.js`/`SignUpScreen.js`/`EditProfileScreen.js` (`card` parent only — their inner elements are form inputs/buttons, exempt from this treatment same as the border rule). Buttons, form inputs, and dropdown/menu/dialog chrome (`filterButton`/`paginationBar`/`addPostButton`/`chip`/`countryDropdown`/toast/notice banners) were left with their existing elevation — same exemption list as Phase 8's border removal, not new "cards." Where a screen's `getElevation` helper ended up with no remaining callers (`LoginScreen.js`, `SignUpScreen.js`, `EditProfileScreen.js`, `SettingsScreen.js`), the now-dead helper was deleted rather than left unused: done.
+- Phase 10 — mobile `HomeScreen.js` statistics section brought to parity with web's `LeftSide.jsx` mobile/xs layout: done. Phase 9 had left the stats panel an opaque `surfaceRaised` card containing an equally opaque `surfaceRaised` Found/Lost strip and stat cards, so the inner boxes vanished into their own parent. Now the panel itself is a bare wrapper (`statsPanelGlass`: transparent, no padding — mirrors web's 14%-opacity wash, which reads as nothing on a flat background), the Found/Lost strip and the two stat cards keep their own fill and are the only shapes that read, and Total items takes web's `brandPrimary` tint (8% light / 14% dark) against Returned's plain `surfaceRaised`. The stats-section icon squares (`statSegmentIcon`/`bigStatCardIcon`) drop the Phase 9 sub-element shadow and go flat-tinted like web's, since the parents carry separation again — the Phase 9 treatment still stands everywhere else. Lost segment icon switched to `search-outline` (web's `SearchOffOutlined`, and what the same screen's recent-posts section already uses) instead of `help-circle-outline`.
+
+- Phase 11 — mobile `HomeScreen.js` world activity map brought to parity with web's `Dash.js` mobile header: done. Map loses its `Panel` wrapper (no `worldActivityCountries` title, no card, no radius, no loading tint) and becomes a chrome-less full-bleed backdrop — absolutely positioned, bottom-anchored in the header stack, pulled out past `scrollContent`'s 16px padding (`SCREEN_PADDING`) to the screen edges, with a square `mapSpacer` below the stats reserving its room (web's spacer row). Stats now float over it, same as web. Web's oversized/CSS-percentage-cropped map layer isn't reproduced (react-native-svg percentage sizing renders corrupted on a `flex: 1` parent); the placement comes from layout instead.
+
+- Phase 12 — neumorphic ("soft UI") treatment for mobile `HomeScreen.js`'s **Browse by category** and **Follow us** sections only: done. Both now paint their elements in the page's own `surfaceBase` tone and read purely from a top-left highlight + bottom-right shade, so the category circles lose their `config.backgroundColor` tint and the social panel/buttons lose their `surfaceRaised` fill and brand tint (category/brand color survives in the icon — a tinted fill would break the one rule the effect rests on). Palette lives in [mobile/src/theme/neumorphism.js](mobile/src/theme/neumorphism.js) (derived from `colorTokens[mode].surfaceBase`, deliberately outside `tokens.js` since that file mirrors web 1:1 and this has no web counterpart), rendered by [mobile/src/components/NeumorphicSurface.js](mobile/src/components/NeumorphicSurface.js): three layers (shade view / highlight view / two-stop gradient face), because RN takes one shadow per view and Android renders only `elevation` — the gradient is what carries the bevel there, and the highlight layer omits `elevation` so it no-ops instead of stacking a second dark drop. Sizing/padding go on the component's `contentStyle`, not `style`. Press state sinks the face (reversed gradient, both shadows dropped) instead of fading it, so these two sections use `Pressable` with a render-prop child rather than `TouchableOpacity`. Light source is fixed at the physical top-left in LTR and RTL alike. Rest of the Home screen (stats, map, recent posts, safety footer) is untouched and still Phase 9-11.
+
+- Phase 13 — neumorphic treatment extended to the mobile first-launch onboarding slides ([mobile/src/screens/onboarding/OnboardingScreen.js](mobile/src/screens/onboarding/OnboardingScreen.js)): done. Same `NeumorphicSurface` + `theme/neumorphism.js` machinery as Phase 12, now on every interactive field of the slides — language chips, light/dark options, filter pills, the country picker button and its list. All lose their `surfaceRaised` fill, borders and brand tints and become faces in the screen's own `surfaceBase` tone; brand blue survives in icons and text only. Selected state is the sunken face (`pressed`), which is also the press affordance, so those controls are `Pressable` with a render-prop child. Three structural consequences: the light/dark segmented control **dropped its track** and became two standalone pebbles beside each other (a raised face nested inside another face gets its shadow clipped by `NeumorphicSurface`'s `overflow: 'hidden'` highlight layer — fine where the parent's padding exceeds the shadow, as in Home's social panel, not at a segmented control's 4px), the country dropdown became a sunken well instead of a floating card, and the selected country row lost its tint in favour of a brand-colored label + checkmark. The footer CTA deliberately stays a filled brand-blue button — a soft UI still needs one shape that outranks the rest, and a face in the page tone cannot be it; only its *disabled* state drops to a sunken face (`ctaFace` is shared by both so the footer never changes height), while the submitting state keeps the filled button and its spinner. Illustrations, headlines, dots and Skip untouched.
+
+- Phase 14 — mobile `PostDetailScreen.js` reorganized: done. The screen had grown one loose row at a time (three full-width fact rows, a stray views row after the description, a metrics paragraph, then two full-width filled moderation buttons) and read as a list of unrelated lines rather than a page. What changed: (1) **one heading treatment** — icon + `fontFamilies.display` 16 for every block (description, contact, reach, matches, comments), replacing the screen's uppercase micro `sectionLabel`; `PostMatchesSection`'s 18 came down to 16 so the whole page uses one heading size. (2) **Info grid** — the date, country and site-views facts are `InfoTile`s (tinted `${ink}0A` tile, `brandPrimary` icon square, micro label + value) in a two-up wrapping grid instead of three rows and a trailing meta row; the tile label is the short `date`/`country`/`viewsLabel` string, with the long "date when the item was lost/found" phrasing kept on the tile's `accessibilityLabel`. (3) **Contact** — Call and WhatsApp are `flex: 1`, so the pair fills the row as one control strip instead of two left-hugging buttons. (4) **Moderation** — Report and Block share one quiet half-width row below a divider (Report on `status.lost.bg` with lost-tone label, Block on a neutral `${ink}0A` wash) instead of two full-width filled buttons that dominated a page whose job is returning property; Report still outranks Block. (5) **Reach** ([SocialReach.js](mobile/src/components/SocialReach.js)) — each platform is a tinted card with its counts as `surfaceRaised` chips, and the permalink is an icon-only brand-tinted square (the platform is named on the same row; the "View on Facebook/Instagram" wording moved to `accessibilityLabel`). Like Phase 10, the sub-elements go flat once a filled parent carries the separation, so the file's `getElevation` helper lost its last caller and was deleted. (6) **Comment composer** ([CommentsSection.js](mobile/src/components/CommentsSection.js)) — the field and its action are a stacked block inside a tinted panel: full-width multiline input on its own row, then a footer with the character counter and a labelled "Post comment" button, replacing the icon-only square that had squeezed the field too narrow for its own placeholder.
+
+- Phase 15 — mobile `HomeScreen.js`'s "Browse by category" section replaced neumorphic circle chips with a bento grid: done, deliberately breaking from Phase 12's neumorphic system for this one section (that system stays as-is everywhere else on Home — categories are the one place a per-category accent color is the point). First category (server priority order, same as web's `Categories.jsx` which just takes `categories.slice(0, 4)` unsorted) renders full-width and tall as `CategoryBentoCard`'s `featured` variant, with a large low-opacity ghost icon bleeding off the trailing corner; the rest render as small cells, 2 per row via `chunkPairs` (plain flexbox row-pairs, not RN percentage/wrap math, to sidestep `gap` + `flexWrap` sizing being unreliable across Yoga versions). Card fill is a translucent tint of the category's own `CATEGORY_CONFIG.color` (`${hex}NN` alpha suffix, same convention as the rest of the file, 0x1F light / 0x33 dark since there's no dark-mode `backgroundColor` variant in `config/categories.js` to read instead) — the same "solid accent, translucent tint of that accent as background" pairing `theme.custom.status` uses for found/lost, just keyed off category color. Icon badge is a frosted white/black circle (not another tint) so it reads against every category color without a per-category badge color to pick. Collapses to featured + `CATEGORY_COLLAPSED_SMALL_COUNT` (4) small cells with a "show all" / "show less" toggle text+chevron button below the grid, mirroring web's `Categories.jsx` `showAllCategories` state (`showAllCategories`/`showLess` translation keys added to mobile to match) — chosen over a horizontal scroll (the section's old layout) or a separate "browse all categories" screen (none exists) because the bento shape is a fixed, non-scrolling arrangement by design, and expand-in-place has direct precedent on web. No border/shadow on the cells (Phase 8/9 rule still applies) — separation comes from each cell's own color tint against the page background.
+
+- Phase 16 — motion pass on the dashboard home page (`/dash`): done. See **Motion (GSAP)** below.
+
+- Phase 17 — the web posts-list card (`/dash/posts`, grid view only): done. Mobile got the
+  same design in Phase 18. The card is one centred stack — status badge + open action, the
+  **city** as a display-type gradient headline, the photo inset inside the card (not bleeding
+  to its edges), then the exact location, the category chip and the date facts —
+  in [Post.js](client/src/features/posts/PostsList/Post.js). Decisions worth keeping:
+  - **One fixed density.** The card shipped with a control that cycled it through three
+    widths (spanning more grid columns, framer-motion `layout` animating the reflow), ported
+    from the reference component this design came from. That control was removed on request,
+    and the machinery went with it rather than being left unreachable: no `AutoLayoutCard.jsx`,
+    no `LayoutGroup` in `PostsList.js`, no framer-motion on this page at all, and the hover
+    lift is a plain CSS `transform` again. If steps ever come back, they come back whole.
+  - **The city is the headline, the category is a chip.** City is the field every listing has
+    and the one a searcher scans; it is the only gradient in the app, and that gradient is
+    built from `brandPrimary` + `lighten()` rather than a picked pair of hex values, so it
+    follows the token into dark mode.
+  - **The copy line is the exact location, not the description.** The city is already the
+    headline, so the line under the photo is the one that narrows it down to a street or a
+    landmark — a listing's free text is the least reliable part of it (same reasoning the
+    matching engine's signal weights carry), and on a card there is only room for one line.
+    The description does not appear on the card.
+  - **Clicking the card opens the listing**, and the blue circular arrow is the affordance
+    that says so; it mirrors with the document direction.
+  - **No Tailwind, no shadcn, no TypeScript.** `client/` is CRA + MUI v5 + Emotion in JS, so
+    the port is MUI + `theme.custom` throughout. Adding Tailwind would put a second styling
+    system beside the design tokens every other surface reads from.
+  - **Two local departures, both documented in the file.** `index.css`'s global
+    `body[dir="rtl"] * { text-align: inherit }` and `body[dir="rtl"] .MuiTypography-root
+    { direction: rtl }` outrank a single Emotion class, so a centred card in Arabic silently
+    rendered right-aligned; `centeredText()` in `Post.js` restates alignment at `&&&`
+    specificity, scoped to this card (fixing the globals is a pass of its own). And the
+    category chip reads its wash from `alpha(catStyle.main, …)` instead of
+    `config/categories.js`'s `backgroundColor`, which is light-mode-only and rendered as a
+    white pill on a dark card.
+
+- Phase 18 — the same card design on mobile's browse listing
+  ([PostsListScreen.js](mobile/src/screens/PostsListScreen.js)): done. Same stack as web —
+  status pill + circular open action on one header row, the city as a gradient headline, the
+  photo inset with `radius.lg` inside a `radius.xl` card, then the exact location, the
+  category pill and the date facts, all centred. Phases 8/9 still hold: the card is
+  borderless and shadowless and the pills/action circle inside it carry the depth. The
+  screen's skeleton was reshaped to match, so the load-in doesn't jump.
+  - **`MyPostsScreen.js` is deliberately not part of this**, exactly as on web, where
+    `MyPostsPage.jsx` kept its own pre-redesign card. That screen is an owner's management
+    view — lifecycle badge, edit/return/promote/delete actions — not a browse listing, and
+    forcing a centred one-column card on it would cost it the row it needs.
+  - **The gradient headline is masked text, not SVG text**
+    ([GradientHeading.js](mobile/src/components/GradientHeading.js)): a `LinearGradient`
+    clipped to real RN text by `@react-native-masked-view/masked-view` (new dependency,
+    bundled in Expo Go). Drawing it as `react-native-svg` text would have avoided the
+    dependency but given up platform text shaping — Arabic joining, `numberOfLines`,
+    the expo-font Cairo family. The native module is `require`d in a `try`/`catch` and the
+    heading falls back to solid `brandPrimary` when it is missing: a heading in the brand
+    color is a smaller loss than a screen that will not render. The two gradient stops are
+    derived from `brandPrimary` by a local `lighten()` mirroring MUI's, so mobile and web
+    read the same in both modes rather than carrying two hand-picked palettes.
+  - **The category pill washes the category's own color** for the same reason as web:
+    `config/categories.js`'s `backgroundColor` is light-mode-only and rendered as a
+    near-white pill on a dark card.
+
+- Phase 19 — [Process.jsx](client/src/components/dashboard/Process.jsx) ("What we do" on
+  the web dashboard homepage, `/dash` only — not mobile) redesigned: done. The three steps
+  were an icon-above-text column threaded by one continuous connector line; they're now
+  three elevated, centered `surfaceRaised` cards (Post card DNA's `elevation.e1 -> e2`
+  hover-lift, `radius.lg`), each headed by a solid-`brandPrimary` icon disc (contrast-text
+  icon, bypassing `RenderIcon` the same way `FoundLostStrip`/`TrendingItem` do — see
+  `RenderIcon`'s tokenization debt). A first pass added a `01`/`02`/`03` step number on each
+  card and a small arrow between them to spell out the sequence; both were cut on review as
+  filler rather than information — reading order alone (which auto-mirrors in RTL, since
+  flexbox's row axis already follows inline-start/end) already says "first, second, third"
+  without a number or a chevron restating it, and cutting them read as more professional, not
+  less finished. The section title takes Phase 17's brand gradient text (`brandPrimary ->
+  lighten(brandPrimary, 0.45)`) instead of flat `ink`, and the notify step's Lost/Found
+  clarifier lines moved from a bare colored dot into their status token's `bg`/`main`
+  pairing, the same tint-plus-solid-text treatment `theme.custom.status` uses everywhere
+  else. The reveal itself moved off framer-motion onto local GSAP — see **Motion (GSAP)**'s
+  "One system per element" entry.
+
+- Phase 20 — [Process.jsx](client/src/components/dashboard/Process.jsx)'s **desktop**
+  layout (lg and up) rebuilt as a strict reproduction of a supplied vector infographic:
+  done. Each step is a fully-rounded colored pill with a large light disc overlapping its
+  inner end, a triangular notch pointing out of that end at a ring marker, and an oversized
+  `STEP` / `01` block beside it; rows alternate sides and a single dotted S-curve threads
+  every ring, ending in a solid dot above the first row and below the last. Decisions worth
+  keeping:
+  - **The geometry is one measured set, not per-element taste.** Every number in the
+    `STAGE` constant is a measurement taken off the reference (2044px wide) divided by one
+    scale factor, k = 0.55 — pill 2.56:1, disc 0.80 x pill height, row pitch 1.55 x pill
+    height, numeral cap height 0.54 x pill height. They cannot be tuned individually: the
+    notch has to meet the ring, and the ring has to sit on the trail. The two trail
+    control-point ratios (`S_EASE` 0.74, `CAP_EASE` 0.55) were fitted to the reference's own
+    dot positions rather than eyeballed — 0.74 of the vertical gap is what flattens the
+    middle of each S until it runs almost horizontally between two rows.
+  - **Only the type scale departs from the reference**, because the reference is a poster set
+    in placeholder Latin and this carries real en/fr/ar copy: a proportional title would be
+    31px and wrap French headings to three lines inside a fixed-height pill. Title 23 / body
+    15 keep the reference's own title:body ratio (1.5) while fitting the longest string in
+    all three languages; `STEP` (48) and the numeral (104) are left at the reference's
+    proportions, since those are what the composition rests on.
+  - **Three steps, not the reference's four.** The step count is content, and `buildTrail`
+    plus the stage height are both derived from `processSteps.length`, so a fourth step
+    extends the curve instead of leaving it ending in mid-air.
+  - **The ramp is two tokens, and each stop answers to two surfaces.** `brandLogo` darkened,
+    `brandPrimary`, `brandPrimary` darkened again — descending in luminance the way the
+    reference's teal-to-navy does, each pinned dark enough that `getContrastText`'s white
+    clears 4.5:1 on the pill. In dark mode `brandPrimary` is darkened *first*, because its
+    dark-mode token value is lightened for use as an accent ON a dark surface, not as a field
+    UNDER white text. The same tone then has to read on the panel too — the ring, the numeral
+    and the disc icon all sit on `surfaceRaised`, where the deepest stop falls under 3:1 in
+    dark mode — so `onPanel()` lifts it there and is the identity in light mode.
+  - **The disc's shadow is the one value that cannot be logical.** It falls inward, onto the
+    pill it overlaps, which is what separates the two; `box-shadow` has no inline-aware form,
+    so the offset is mirrored by hand against `theme.direction`. It is tinted from the pill's
+    own color rather than a fixed slate, so it stays a shadow on that surface in dark mode
+    instead of a white smear. Everything else on the stage is `insetInlineStart` /
+    `borderInline*` and mirrors by itself; the trail SVG is flipped wholesale, since it
+    carries no text.
+  - **`index.css`'s RTL globals had to be answered here too**, exactly as in Phase 17:
+    `body[dir="rtl"] * { text-align: inherit }` outranks a single Emotion class, so the
+    centred pill title and the mirrored row's end-aligned numeral column would silently take
+    the document's right alignment in Arabic. `alignText()` restates alignment at `&&&`,
+    scoped to this section.
+  - **The two Lost/Found clarifier lines sit under the stage, not in step 3's pill.** The
+    reference has no counterpart for them and the pill is a fixed shape; widening or
+    heightening one pill to fit them would break the row rhythm the whole layout depends on.
+  - **The panel lost its border and its brand wash.** Borderless is Phase 8; the wash went
+    because the reference stands its composition on a clean ground, and a brand tint behind
+    pills that are themselves the brand ramp only muddies them.
+  - **The narrow layout carries the same vocabulary, re-proportioned.** Below the width the
+    stage can be scaled into, the section stacks: the dotted trail runs straight down the
+    inline-start edge with a cap dot at each end, every pill sits on the same side of it with
+    its notch pointing back at its ring, and the disc still overlaps the pill's inline-start
+    end. Two things change, and both are forced. The `STEP` label and numeral move *inside*
+    the pill (a 104px numeral has nowhere to stand beside a 250px pill), and the corner radius
+    is **capped** rather than left at half the height — the pill grows with its copy here, and
+    a true stadium on a 250x300 box is an ellipse whose caps eat the text column from both
+    ends. The trail is a repeating background rather than a path through the rings, because
+    row heights depend on how the copy wraps and a path would have to be measured for nothing
+    a straight line does not already say.
+  - **In between, the stage is scaled, not re-flowed.** It is one fixed composition whose
+    parts have to stay in register, so `useHostWidth` measures the container and the whole
+    820px stage takes a `transform: scale()`, down to `STAGE_MIN_SCALE` (0.76, where body copy
+    would drop under ~11.5px). The measuring host wraps *both* layouts — parked inside the
+    stage only, it would stop reporting the moment a narrow container sent the section to the
+    stacked layout, and the stage could never come back. A media query is the pre-measurement
+    guess so the first paint does not pick the wrong layout, and the container's own width
+    overrules it once measured: a sidebar or a narrower page shell leaves less room than the
+    viewport implies. This also fixes what shipped first — the stage was gated at `lg`
+    (1200px), so a phone in desktop-site mode (~980px) never saw it.
+
+- Phase 21 — [Process.jsx](client/src/components/dashboard/Process.jsx) desktop sizing:
+  done. A wide `/dash` panel gave `useHostWidth` more than the stage's own 820px, so
+  `scale` clamped to 1 and the section rendered its full 820x916 artwork — oversized next
+  to the three-sentence copy inside it and next to the rest of the page. An earlier attempt
+  at this replaced the zig-zag with a horizontal-rail layout for wide containers; that was
+  reverted on request in favor of keeping Phase 20's design exactly and just sizing it down.
+  The fix is a `maxWidth: 640` (md+) on the host `Box` `useHostWidth` measures — capping the
+  *measured* width, not adding a second scale knob, so every existing ratio in `STAGE` still
+  holds and the composition is identical, just smaller. `xs`/`sm` are already narrower than
+  640 in practice, so mobile is unaffected.
+
+- Phase 23 — the admin console at `/dash/admin`: done. Its own section below
+  (**Admin console (web)**) rather than a phase note, because it is a
+  nine-route section with its own primitives and its own server half, not a
+  redesign of one screen. It is also the pass that added `status.pending` to
+  the design tokens.
+
+- Phase 22 — [Process.jsx](client/src/components/dashboard/Process.jsx) **desktop only**:
+  the wide view is a second composition, reproducing a supplied horizontal reference,
+  while the narrow view stays Phase 20/21's zig-zag stage exactly as it was. Three pills
+  side by side on one horizontal wave: steps 1 and 3 hang above the trail with their notch
+  pointing down at a ring below them, step 2 sits below it with its notch pointing up, and
+  each `STEP` / numeral block is centred on the far side of its own ring. Every pill keeps
+  its disc at the inline-end, so the three read as one repeated shape rather than mirrored
+  pairs. Decisions worth keeping:
+  - **`HSTAGE` is the same kind of measured set as `STAGE`**, taken off the new reference
+    (pills 530x185, disc 162, gap 80 in its own pixels) and carried across as ratios: pill
+    2.85:1, disc 0.875 x pill height at 0.818 x pill width, text column half the pill,
+    gap 0.151 x pill width, ring lines 1.54 x pill height apart. **The two ring gaps are
+    deliberately not equal** — 0.514 x pill height below a pill, 0.378 above — which is what
+    staggers the middle pill only a third of a pill height below its neighbours; averaging
+    them into one number reads as a half-height step and stops matching the reference.
+  - **The trail is the vertical stage's curve transposed**, same `S_EASE`/`CAP_EASE`, with
+    one deliberate exception: the two end tails (`CAP_DX`/`CAP_DY`) leave their ring
+    horizontally and rise only slightly, instead of climbing to the mid-line between the ring
+    lines the way a straight transpose would. A tail that climbs ends up *behind* an outer
+    pill, so the wave appears to stop at the ring; the reference's tails terminate in the
+    open below the outer pills, and so do these.
+  - **The body type is the one departure from the reference**, exactly as in Phase 20 and
+    for the same reason: proportionally it would be 11px, and the longest French description
+    would then spill out of a fixed-height pill. Held at 13 (title keeps its ratio at 17),
+    which fits en/fr/ar in all three pills.
+  - **Which composition renders is a measured decision, not a breakpoint.** The host `Box`
+    wraps *both* and measures the container; the wide stage is used whenever it can be scaled
+    at `HSTAGE_MIN_SCALE` (0.84) or better, and below that the section falls back to the
+    zig-zag stage — with the `maxWidth: 640` md+ cap Phase 21 gave it, so the narrow and
+    mobile views are unchanged down to the pixel. `WIDE_VIEWPORT_GUESS` is only the
+    pre-measurement guess for the first paint and the prerendered shell.
+  - **Both stages are step-count driven.** `hStageWidth(rows)` and `buildTrailWide(rows)`
+    take the count the way `stageHeight`/`buildTrail` already did, so a fourth step lengthens
+    the wave rather than running off the end of it.
+  - **The notch grows out of the gradient stop it touches.** `notchBlock` points along the
+    block axis (so it needs no mirroring, unlike the zig-zag's `notch`) and takes the pill's
+    darkened bottom going down, its lightened top going up.
+  - **Two header changes came with it.** The heading gets a wider `maxWidth` under the wide
+    stage (the reference sets it on one line, which 560 cannot hold), and the `whatWeDo`
+    overline is now `display: block` like the `followUs` one beside it — it only *looked*
+    like its own line in en/fr, where the heading under it wraps; in Arabic, where the
+    heading is short, the two shared a line. That is the one narrow-view pixel that moved:
+    LTR is byte-identical to Phase 21 at every width below the wide stage's floor.
+
+- Phase 24 — mobile `PostsListScreen.js`'s filter brought to parity with web's
+  mobile/tablet posts-list filter panel (Phase 17's `PostsList.js`): done. The
+  screen's filter trigger moved out of `AppHeader`'s top bar (a plain pill
+  inline among the bell/theme/menu buttons) to a floating launcher pill docked
+  to the inline-start edge, flush there and rounded only on the protruding
+  side — the same "tab sliding in from off-screen" shape as web's fixed
+  pop-up launcher, minus `position: fixed` (RN has no scroll-fixed overlay
+  the way the page does, and this screen has no separate fixed navbar to
+  clear), so it sits in-flow at the top of the list instead.
+  [PostFilterDialog.js](mobile/src/components/PostFilterDialog.js) replaces
+  `PostFilterSheet.js`'s sliding bottom sheet with a centered "SaaS panel"
+  card (`surfaceRaised` + brand-tinted border + elevation, gradient header
+  icon and Apply button via `expo-linear-gradient` — RN has no CSS
+  radial-gradient glow, so the border+shadow alone carry the brand accent
+  web's Dialog glow gives), and adopts the same staged-draft logic as web's
+  Dialog: opening it seeds a local draft from whatever is currently applied,
+  every field edits that draft, and nothing reaches the posts query until
+  Apply is pressed — Reset only clears the draft, and Cancel/backdrop/close
+  discard it untouched. The old sheet applied every pick immediately (no
+  Apply step) and additionally carried a Country field with its own search;
+  Country is dropped from the panel entirely, matching web (country isn't
+  part of the posts-list filter there — it's `AppHeader`'s own picker, which
+  this screen already wires through `countryId`/`onSelectCountry`). Category
+  and City keep their existing accordion-with-checklist / accordion-with-
+  search shape (already the functional equivalent of web's `CategoryPickerField`
+  tappable-checklist and `Autocomplete`), staged the same way. The active-filter
+  chip strip above the list (unchanged in structure) picked up a border to
+  match web's tinted-chip look. `applyFilters` was added to
+  [translations.js](mobile/src/utils/translations.js) in all three languages;
+  `postType`'s existing "Type" wording already matched web's `filterType`
+  caption, so no new key was needed there.
+
+  A first pass at this phase also ported the *card* to what Phase 17/18's own
+  notes above describe (a centred stack with a gradient city headline and a
+  circular open action) and left a search bar on the screen - both wrong: the
+  actual `Post.js`/`PostsList.js` on `main` had moved on from that design
+  without this file's phase notes catching up, and `PostsList.js` has never
+  rendered a search box at all (`?search=` is only ever seeded from a URL
+  param, for Google's sitelinks searchbox). Corrected in the same phase:
+  `PostsListScreen.js`'s card is now the photo-top block the real `Post.js`
+  renders - status pill and category pill(s) overlaid at the photo's top
+  corners, a resolved badge and a "posted X ago" scrim pill at its bottom
+  corners, the no-image state's centred `CategoryIconLabel`(s) on a
+  per-category tint - then a plain city row (location pin + bold text, no
+  gradient), then a 3-column stats bar (site views / reactions / comments,
+  read via the existing `summarizeSocialStats`/`readSiteViews` mirror in
+  [socialStats.js](mobile/src/utils/socialStats.js), the same numbers
+  `Post.js` computes rather than the more elaborate `PostReachRow`). The
+  search bar (state, debounce, the visible `TextInput` row, its active-filter
+  chip) was removed outright rather than left wired to nothing. `GradientHeading`
+  is no longer used by this screen (still used elsewhere - Phase 18's note
+  above about it stands for wherever it's still rendered).
+
+- Phase 25 — mobile `HomeScreen.js`'s "Browse by category" section reverted from
+  Phase 15's neumorphic bento grid to an exact port of web's `Categories.jsx`
+  card, on explicit request for strict parity with the `/dash` mobile-responsive
+  view: done. `CategoryBentoCard`/`CategoryBentoGrid` (a featured full-width tile
+  plus small half-width cells with a bleeding ghost icon) are replaced by
+  `CategoryGridCard`/`CategoryGrid` — every cell the same size, a plain tint of
+  the category's own accent color (`${hex}1F`/`${hex}33`, i.e. web's
+  `alpha(color, 0.12/0.2)`), a centered frosted circular icon badge and a
+  centered label, in a uniform 2-up grid with no featured cell. Collapsed count
+  stays 4 (`CATEGORY_COLLAPSED_SMALL_COUNT`, unchanged — already web's own
+  count at its `xs`/`sm` breakpoint), and the "show all"/"show less" toggle is
+  now web's outlined-pill shape (`radius.sm`, `ink` border at ~24% alpha, `ink`
+  text/chevron) instead of the bento grid's borderless brand-colored text link.
+  This is a deliberate reversal of Phase 15's own reasoning ("categories are the
+  one place a per-category accent color is the point" for staying off the token
+  system) — the accent-tint-as-background idea survives (it's what web's own
+  card already does), but the featured/bento layout and neumorphic-adjacent
+  bespoke shape are gone in favor of matching web exactly, cell for cell. Rest
+  of Phase 15's grid mechanics (`sortCategoriesForBrowse` for priority order,
+  `chunkPairs` for 2-up rows, an odd trailing row's spacer) carry over unchanged
+  since web does the same thing structurally.
+
+- Phase 26 — mobile `PostDetailScreen.js` gained the claim-item card web's
+  `SinglePostPage.js` has always had (`ClaimItemDialog.jsx`'s inline sidebar
+  card, not the dialog itself — mobile has no equivalent modal flow yet): done.
+  The card (brand-tinted icon circle, title, subtitle, full-width CTA, a
+  shield-icon safety note) renders in place for anyone but the post's owner on
+  an unresolved listing (`showClaimCard = !isOwner && !isResolved`, mirroring
+  web's `!isAuthor && !returned`), reading the same six title/subtitle/button
+  strings and the two directional safety-note variants
+  (`contactSafetyNote`/`contactSafetyNoteFinder`) added to web's own
+  translations just before this phase — copied into `mobile/src/utils/
+  translations.js` verbatim in all three languages rather than re-translated,
+  so the two platforms read identically. Logic differs from web by necessity:
+  web opens `ClaimItemDialog` as a modal with its own congrats copy and a
+  "mark as returned" mutation; mobile has neither, so pressing the card's
+  button (`handleClaimItemPress`) just gates the screen's existing "Contact
+  seller" section behind it inline (`contactRevealed` state) instead of
+  opening a new dialog — the section itself, its Call/WhatsApp/email buttons
+  and `getContactAction` are all untouched, only newly wrapped in
+  `showContactSection = isOwner || (contactRevealed && !isResolved)`. An
+  unauthenticated tap follows the same `requireLogin` + `navigate('Login')`
+  pattern this screen already uses for Report/Block, with a new
+  `loginRequiredClaimItem` key rather than web's redirect-after-login
+  localStorage flow. The card is a deliberate exception to Phase 8/9's
+  borderless/shadowless rule — same carve-out web's own bordered sidebar CTA
+  cards (this one and the Promotion panel beside it) already take, since it's
+  a new component being ported for parity rather than one of the audited
+  Phase 8/9 containers.
+
+## The category taxonomy (web + mobile + server)
+
+Twenty-five categories, held in four places that can each drift from the others.
+[client/src/config/categories.js](client/src/config/categories.js) is the one to
+change first: it holds every code, its icon and its accent colour.
+[mobile/src/config/categories.js](mobile/src/config/categories.js) mirrors it 1:1
+with Ionicons names, [server/config/categorySocialImages.js](server/config/categorySocialImages.js)
+lists the codes a social card was generated for, and the **DB is what the app
+actually lists** — the `Category` collection, which the clients only decorate.
+
+- **The two halves fail silently in opposite directions, which is why they drifted.**
+  `getCategoryConfig` answers OTHER's grey ellipsis for a code it does not know, so
+  a category seeded on the server alone renders as an unnamed grey tile with no
+  error anywhere; and a category in the client config that the DB never got simply
+  does not exist to a visitor. Both had happened: a full-replace seed
+  (`setup-lost-found-categories.js`) dropped **TOYS** while its icon stayed in the
+  client config, and a separate 25-category seed added GAMING/MEDICAL/LUGGAGE/
+  SHOPPING/WORK/MUSIC/BEAUTY/CAMERA/TOOLS/GARDEN/HOME/FOOD that no client could
+  draw. Those were deleted by hand; TOYS is back, along with CHARGERS, UMBRELLAS,
+  BICYCLES, MEDICAL, BABY and MUSIC.
+- **`npm run test-social-images` is the drift check**, and it runs in three
+  directions now: every code the server offers has a file on disk, every file is a
+  code the server knows, and every category the client draws has a card of its own
+  (the third one added with this pass — a category with no card still publishes,
+  with the generic "no image available" placeholder, on a listing whose category we
+  knew all along). Nothing can check the *DB* offline, which is what
+  `scripts/sync-categories.js` is for.
+- **`npm run sync-categories` in `server/`** creates the categories the client draws
+  and the DB lacks, and syncs every colour and priority. Dry-run by default,
+  `--apply` writes, `MONGO_TARGET=dev` switches off `MONGODB_URI_PROD` — same shape
+  as `rename-categories-plural.js`. It never deletes or deactivates anything: a
+  code the client config does not list is reported and left alone. It also leaves
+  **labels** alone on categories that already exist, since those are live curated
+  copy (plural, per `rename-categories-plural.js`) and a colour sync has no business
+  rewriting them.
+- **Every accent is at least ~10.4 CIEDE2000 from every other**, which is what stops
+  two categories reading as the same colour at a 20px icon. They had collapsed into
+  duplicates — jewelry and headphones on one purple, clothing/sports/money on one
+  green, keys and toys on one orange, documents and bags a step apart on one brown
+  ramp. So the palette is a measured set, not twenty-five independent picks:
+  changing one colour means re-checking it against the other twenty-four. The
+  semantically locked ones were held (person red, money green, documents brown,
+  electronics cyan, other grey) and the rest moved around them.
+- **Light mode decides a tie.** The icon sits at full strength on a 12% wash of
+  itself, so a pale accent is a pale icon on near-white; dark mode washes at 20% on
+  a dark card, where the same accent is easy. Where a colour could only be strong in
+  one mode, light won — `CHARGERS` is graphite rather than the more obvious
+  charging-yellow for exactly this reason (yellow measured 1.53:1 on its own light
+  card).
+- **`backgroundColor` is that accent at 12% over white**, kept as a literal for the
+  older surfaces that read it directly (`CategoryPickerField`, `RecentPosts`,
+  `SinglePostPage`, `Post.js`, mobile's `PostForm`). It is light-mode only, which is
+  why newer work derives its own tint from `color` instead — see Phase 17's note on
+  the posts-list card.
+- **The browse grids order by priority; everything else stays alphabetical.**
+  `GET /categories` sorts by `labels.en`, which is right for a picker someone scans
+  by name and wrong for a grid showing four tiles before a "show all" — alphabetically
+  those four became Baby, Bag, Bicycle and Book, i.e. the rarest things on the site.
+  `sortCategoriesForBrowse` (exported from both config files, used by web's
+  `Categories.jsx` and mobile's `CategoryBentoGrid`) reorders them by the config's own
+  `priority` at render time. Deliberately **not** a change to the API's sort: that one
+  response also feeds the New Post picker and the filters, where alphabetical is what
+  a reader is scanning. An unknown code sorts last with OTHER, and ties keep the
+  API's alphabetical order.
+- **Two icons have no Ionicons equivalent**, and the mobile mirror says so where it
+  departs: BABY is MUI's `ChildFriendly` stroller on web and a balloon on mobile.
+  Ionicons has no baby, stroller or pram glyph at all, and every mobile surface
+  renders `<Ionicons name={config.icon}>` directly (eleven call sites), so carrying a
+  second icon family for one category would cost more than the mismatch does.
+- **Adding a category is four steps**: the client config (code, icon, colour,
+  `backgroundColor` at 12% over white, priority), the mobile mirror, `npm run
+  build-category-images` in `client/` plus the code in `categorySocialImages.js`, and
+  `npm run sync-categories -- --apply` in `server/` to create the row. The offline
+  check covers three of the four.
+
+## City search (server, one endpoint behind both clients)
+
+`GET /cities/search` ([cityController.js](server/controllers/cityController.js)'s
+`searchCities`) is the only city lookup either front end uses while writing a
+listing — web's `NewPostForm.js`/`EditPostForm.js` and mobile's
+`CityPickerModal.js` all send the same `q`/`countryCode`/`language`/`limit=10`.
+It merges three sources: the `City` collection, GeoNames, then Google Places.
+Nothing here is a front-end concern; a fix belongs on the server.
+
+- **Which sources get asked, and when, is a billing decision — leave it
+  alone.** Google Places is charged per request and each kept result costs
+  2-3 further Place Details calls for its translations, so the gate stays
+  what it has always been: ask GeoNames only when the database came up short
+  of the requested limit, and Google only when the two of them together
+  still have not filled it, plus the Arabic-supplement case. A quality-based gate (ask Google whenever
+  nothing found so far actually matches what was typed) was written and then
+  **reverted on request** — it finds more small places and it also puts a
+  billed request behind most searches. Do not re-land it without deciding the
+  cost deliberately.
+- **Everything is ranked before it is cut.** Sources are merged in the order
+  they were asked and then sliced to ten, so a later source's exact match
+  landed eleventh and was thrown away. `rankCityMatches` in
+  [cityMatching.js](server/utils/cityMatching.js) sorts by how well each
+  result matches what was typed (exact / prefix / contains), stably, so ties
+  keep source order and an equally good database row still outranks an API
+  one. The database query over-fetches (`CANDIDATE_OVERFETCH`, 3x) for the
+  same reason: MongoDB's `$text` answers in no particular order, so cutting
+  at the display limit there can drop the exact match and keep nine
+  near-misses. This costs no external call — it only changes what is done
+  with results already fetched.
+- **Folding is not only an Arabic problem.** The lookup is a literal
+  `$regex`, and nobody types "Aït-Melloul" with the trema and the hyphen.
+  `normalizeCityText` folds Latin accents, Arabic harakat, hamza, ta marbuta
+  and alif maksura, and `buildCitySearchPattern` expands the folded query
+  back into a pattern that matches the unfolded rows — with separators
+  optional between every letter, so "ait melloul", "Ait-Melloul" and
+  "aitmelloul" are one search. Only separators may be skipped, never a
+  letter: this stays a search, not a wildcard. The same folding is what
+  de-duplicates one place arriving from two sources under two spellings
+  (`cityDedupeKey`), and it is what the database was missing — a row that is
+  already stored is found without asking anyone.
+- **Offline check**: `npm run test-city-search` in `server/` — no DB, no
+  network. Covers the folding in both scripts, that the pattern stays a
+  search (a different place still doesn't match, a typed dot is a dot), the
+  ranking rescuing an eleventh-placed exact match, and cross-source
+  de-duplication.
+
+## Where a city sits on the activity map (server)
+
+The dashboard map's city dots are drawn from `cityActivity`, built in
+[dependenciesController.js](server/controllers/dependenciesController.js)'s
+`getDashboard` — one aggregation over the country's posts, grouped by the city
+each one points at. **It asks nothing outside the database, and never will**:
+every consumer (web `Dash.js`, `WelcomePage.jsx`'s hero, mobile
+`HomeScreen.js`) renders whatever that one payload carries, and the geometry
+itself is generated and committed (see **World activity map**).
+
+- **A city's position is stored on its own row** (`City.coordinates`, `{ lat,
+  lon }`, absent — not zero — when unknown), saved from the search result the
+  author picked. GeoNames and Google Places both answer with coordinates, so a
+  village that was found by search is placeable *because* it was found, and the
+  read path does no lookup at all. Everything funnels through
+  `normalizeCoordinates` in [cityCoordinates.js](server/utils/cityCoordinates.js),
+  because each source spells them differently (`{ latitude, longitude }` from
+  city search, `{ lat, lng }` from Google's raw geometry, `{ lon, lat }` from
+  the offline dataset), and (0, 0) is refused — a missing dot is better than a
+  dot in the Gulf of Guinea.
+- **Guessing from the name is the fallback, and it was placing towns in the
+  wrong province.** [cityGeocode.js](server/utils/cityGeocode.js) fuzzy-matches
+  a name against a static 135k-row dataset, and at its old 0.72 threshold "Aït
+  Melloul" (outside Agadir) scored 0.727 against "Tit Mellil" (outside
+  Casablanca) and took its coordinates — a dot 450km from the city it claimed
+  to be. The threshold is 0.85 now *and* the two names have to start with the
+  same letter, both measured against the labels this database actually holds:
+  every match that is genuinely one place clears both ("Marrakech"/"Marrakesh"
+  0.889, "Tanger"/"Tangier" 0.857, "El Jadida"/"El Jadid" 0.889,
+  "Ouarzazate"/"Ouarzazat" 0.900, "Sidi Kacem"/"Sidi Qacem" 0.900). A name
+  nothing close is found for is left off the map, which is the honest outcome:
+  the dot it would otherwise draw is somewhere else.
+- **The dataset cannot do villages at all**, which is the whole reason the
+  coordinates are stored rather than derived. Irherm, Biougra, Dcheira El
+  Jihadia — real towns with listings — are simply not in it, and no threshold
+  brings them back.
+- **`exactOnly` separates reading from writing.** The dashboard keeps the fuzzy
+  pass (a marker recomputed on every request, never stored). Anything that
+  *saves* a position — `resolveCityCoordinates`, the backfill script — takes
+  the exact match only. A guess that gets written is a guess that gets reused.
+- **Rows created before this gain coordinates through ordinary use, with no
+  extra API call.** Two paths, both free, both guarded on the field still being
+  absent so concurrent writers cannot fight over it and nothing is ever
+  overwritten:
+  1. `searchCities`'s `adoptApiCoordinates` — a GeoNames/Google result that is
+     about to be dropped as a duplicate of a stored row is exactly what can
+     place that row, and it has already been paid for. Fire-and-forget: a
+     search must never fail or wait for it.
+  2. `postsController`'s `fillMissingCityCoordinates` — the author picked a
+     search result, we matched it to an existing row, so the coordinates that
+     came with the result complete it. It fires **only on an exact label
+     match**, even when the row was found by substring, because stamping one
+     town's position onto another is worse than leaving the row unplaced.
+- **Which row a picked city resolves to is now exact-first** (`findCityByLabels`).
+  The lookup has always been an unanchored regex, which is what tolerates a
+  stored spelling nobody types twice the same way — and also what answered
+  "Agadir Melloul" to somebody who picked Agadir, filing the listing against
+  the wrong town and putting its dot in the wrong place. Exact match first, the
+  old substring match only if nothing matched exactly.
+- **An edit that changes the city shows up immediately.** The dashboard response
+  is cached for 5 minutes, and both `createNewPost` and `updatePost` already
+  invalidate `dashboard:*`. What was missing is that an update sending a bare
+  name or code with no `cityData` behind it stored that string in `post.city`
+  (Mixed), leaving every read to guess from text forever; it is now linked to
+  the City row it names when one exists — exact label or `code` only, so an edit
+  cannot silently move a listing to a namesake town.
+- **`npm run backfill-city-coordinates` in `server/`** completes the rows that
+  predate all of this. `--report` first: it looks nothing up and writes nothing,
+  and says how many rows are missing coordinates, how many of those a post
+  actually points at (the only ones the map can ask for), how many carry a
+  Google `placeId`, and how many the offline dataset would place for free — so
+  the size of the billed part of the job is known before any of it runs. Then
+  `--offline-only --apply` for the free pass, and only then the networked one.
+  Per city, cheapest and safest first: a Google Place Details call for
+  `geometry` when the row has a `placeId` (the only billed request, and the only
+  exact one — an id names the place, a name search can land on a namesake), then
+  the offline dataset's exact match, then a GeoNames `name_equals` search **per
+  label, not just the English one** — GeoNames indexes a place's alternate names
+  in every script, so the Arabic label is what finds a city whose Latin label is
+  a transliteration nobody else writes that way ("Almhmdya" matches nothing
+  anywhere; "المحمدية" is Mohammedia). It stops at the first answer, so a city
+  named the same in all three costs one request. A source that cannot answer
+  hands the city to the next one rather than giving up on it, and a city nothing
+  could place is printed with all three of its labels, because a stored
+  transliteration is the usual reason. It cannot run away: the rows are fetched once, each is attempted
+  exactly once, Google stops at `--max-google` (25), and a quota or permission
+  refusal switches that source off for the rest of the run instead of asking the
+  next city. Dry-run by default, `MONGO_TARGET=dev` for the dev database, and it
+  never deletes or overwrites anything.
+- **Offline check**: `npm run test-city-coordinates` in `server/` — no DB, no
+  network. Covers every source's coordinate spelling folding onto one stored
+  shape, the pairs that are refused, which source a city about to be written
+  takes its position from, that a near-miss is left unplaced rather than
+  guessed, and both halves of the tightened fuzzy pass: Aït Melloul no longer
+  answers with Tit Mellil, and the five spellings that really are one place
+  still resolve.
+
+
+
+## Motion (GSAP)
+
+Web animation is GSAP (`gsap` + `@gsap/react`). Plugins are registered once in
+[gsapSetup.js](client/src/utils/gsapSetup.js) — import `gsap`/`ScrollTrigger`/`useGSAP`
+from there rather than calling `registerPlugin` per component; `gsap.defaults()` there
+carries the house feel (0.7s, `power3.out`). Reference material for writing GSAP lives in
+`.claude/skills/gsap-*` (GreenSock's official agent skills, vendored).
+
+- **The dashboard home page is marked up, not wired up.**
+  [useDashboardMotion.js](client/src/features/dashboard/useDashboardMotion.js) owns the
+  whole choreography and finds its targets through data attributes:
+  `data-reveal="map|hero|section|divider"`, plus `data-reveal-item` on children that should
+  stagger in behind their own section. `Dash.js` keeps reading as layout, and
+  `LeftSide`/`RecentSection`/`RecentPosts`/`QuickActions`/`Categories`/`HelpSupportSection`
+  only carry attributes — none of them imports GSAP. A section that stops being animated
+  loses an attribute, not a hook.
+- **Only `y`, `scale` and opacity are ever animated.** GSAP has no logical-property
+  equivalent of `insetInlineStart`, so RTL-safety here comes from the choice of properties
+  rather than a mirrored variant. Nothing moves along `x`.
+- **Reduced motion is a `gsap.matchMedia("(prefers-reduced-motion: no-preference)")`
+  wrapper around every setup block**, not an early return: those visitors get the page in
+  its final state with no tween created at all, and changing the OS setting mid-session
+  reverts whatever was made.
+- **`/dash/*` does not scroll the window.** DashLayout's `#dash-scroll-container` is the
+  real scroller (it has an explicit height and a non-visible overflow), so every
+  ScrollTrigger here passes `scroller`. Against the default scroller `window.scrollY` never
+  moves, which leaves every below-the-fold section stuck at `autoAlpha: 0` forever —
+  the first version of this shipped exactly that bug. `resolveScroller()` prefers the id,
+  falls back to the nearest scrollable ancestor, then the viewport.
+- **Reveal hooks are keyed on the loading flag, never on mount.** `Dash.js` returns
+  `<DashboardSkeleton />` while its query is in flight, so a `useGSAP` with the default
+  empty dependency array runs against a page whose animated elements do not exist yet and
+  never runs again — the same trap the WelcomePage hero animation fell into.
+- **Failure mode is guarded.** Because the scroll reveal hides elements before revealing
+  them, a setup that throws would leave real content invisible; the hook catches, logs, and
+  `clearProps`-es everything it touched. Losing the animation is acceptable, losing the
+  dashboard is not.
+- **Count-ups**: `FoundLostStrip` keeps its own rAF counter for Found/Lost;
+  [TotalBox.jsx](client/src/components/TotalBox.jsx) takes an opt-in `countUp` prop (GSAP,
+  writing `textContent` so a 1.2s tween doesn't re-render React ~60x/s, with React still
+  owning the final value). Both are enabled from `LeftSide`, so all four stats count
+  rather than two counting and two appearing.
+- **One system per element.** `Process.jsx` moved off framer-motion onto its own local
+  GSAP `useGSAP`/`ScrollTrigger` reveal (own step-card redesign, own sequencing — the three
+  cards stagger in together in DOM order, then each icon disc pops with `back.out` on top of
+  its card, then the social row) and its section stays deliberately unmarked so
+  `useDashboardMotion`'s shared reveal never runs a second animation on the same nodes. It
+  reuses `useDashboardMotion`'s exported `resolveScroller` rather than re-deriving the
+  `#dash-scroll-container` lookup. `Categories.jsx` moved the same
+  direction earlier, off framer-motion: its entrance was mount-based, and the section sits
+  far below the fold, so it always finished playing before anyone scrolled to it. The cards
+  "show all" adds after the reveal has run get a matching local entrance inside
+  `Categories.jsx`.
+
+## World activity map (web + mobile)
+
+The dashboard header and the welcome hero render the same map — a chrome-less,
+full-bleed backdrop zoomed to the visitor's country, countries tinted by
+`worldActivity`, city dots from `cityActivity`. Web:
+[WorldActivityMap.jsx](client/src/components/dashboard/WorldActivityMap.jsx)
+(`react-simple-maps` + `d3-geo`), mobile:
+[WorldActivityMap.js](mobile/src/components/dashboard/WorldActivityMap.js)
+(`react-native-svg` + `d3-geo`, projecting by hand).
+
+- **The geometry is generated, not a package file.**
+  [buildMapData.js](client/scripts/buildMapData.js) (`npm run build-map-data`
+  in `client/`) writes `client/src/data/worldMap.topo.json` and copies it to
+  `mobile/src/data/`. It replaced a direct `world-atlas/countries-50m.json`
+  import on both platforms. The output is committed; an install or a deploy
+  never needs the network, and neither does the app at runtime.
+- **Resolution is budgeted, because the map is always zoomed to one country.**
+  A world file spends its whole size on countries nobody is looking at while
+  leaving the one filling the canvas coarse — countries-50m gave the whole of
+  Morocco 369 points. So: the 25 supported countries and their neighbours come
+  from Natural Earth 10m, the rest of the world from 110m (off-canvas at every
+  zoom this map uses), and each layer is simplified with its own tolerance —
+  one global tolerance spends the budget on the backdrop. Net result is
+  **700 KB (211 KB gzipped) against countries-50m's 756 KB (230 KB)** — for five
+  layers rather than one, with the focus countries' outlines alone carrying
+  ~2.8x its detail (11,884 points across the 25 against 4,211).
+  `countries-10m.json` wholesale would have been 3.6 MB / 921 KB, and on mobile
+  it is a static import parsed at startup.
+- **Five layers.** `countries` (unchanged contract: `feature.id` is still the
+  numeric Natural Earth id the components' `ISO2_TO_NUMERIC` maps to),
+  `subdivisions` (the provinces / wilayas / governorates of the 25), `lakes`,
+  `rivers` and `urbanAreas`. Both front ends draw the subdivisions as a **mesh
+  filtered to internal borders** (`mesh(topo, subdivisions, (a, b) => a !== b)`),
+  never as per-province shapes: the country underneath stays the interactive
+  unit, and a mesh is one node with no fill to double up on the fills below it.
+  Rivers are a mesh too, unfiltered — one node, each shared arc once. Lakes and
+  urban areas stay whole `FeatureCollection`s, which `geoPath` renders into a
+  single `d` apiece. So all four of these layers cost one node each, and the
+  countries layer is the only per-feature one (it has to be — each country is
+  filled by its own activity count).
+- **Scalerank is a world-map question, and this is not a world map.** Natural
+  Earth's rank says at what scale a lake or river belongs on a globe; here the
+  map is always zoomed to one country, so a strict cutoff drops exactly the
+  features a visitor expects. Lakes and rivers both cut at rank 6 — that keeps
+  Lake Nasser (5), Lake Volta (5), Lake Habbaniyah (6), and the Nile, Tigris,
+  Euphrates, Niger, Senegal and Jordan, while leaving out the seasonal wadi
+  network that would read as cracks in the fill. Urban areas ignore scalerank
+  altogether and filter on their own `area_sqkm` (≥ 100), which is what stops
+  it under-selecting in these countries: 14 footprints in Morocco, 13 in Egypt,
+  32 in Iraq.
+- **City markers have NO dots; quiet cities are clean text, and active cities are Unified Map Chips.**
+  Dots have been removed completely. [cityLabelLayout.js](client/src/utils/cityLabelLayout.js),
+  mirrored 1:1 at [mobile/src/utils/cityLabelLayout.js](mobile/src/utils/cityLabelLayout.js),
+  centers isolated cities directly on their coordinate. In crowded clusters, it walks candidate
+  positions in 16 directions across rings until finding an overlap-free placement.
+  When a city has new posts in the last 24h (`todayCount > 0`):
+  - The city is rendered as a **Unified Map Chip**: a sleek, high-contrast pill enclosing a live
+    pulsing beacon dot, the city name, and the new posts count (`+N` in bold brand accent, without a bulky inner container box).
+  - In **LTR mode**: `[ • CityName +N ]` (beacon on left, city name in middle, count on right).
+  - In **RTL mode**: `[ +N CityName • ]` (count on left, city name in middle, beacon on right).
+  - A subtle pulse ring animates out from the live beacon dot to signal live today activity.
+  - Sizing is tuned to be ultra-compact (8px font, 14px chip height, 7.5px badge font, 4px beacon, 2.5px gap)
+    so active chips don't crowd or eclipse neighbouring cities.
+  - Sequential fixed-gap positioning (`CHIP_GAP = 2.5px`) locks elements side by side without floating empty space.
+  - The city name uses `textAnchor="middle"` anchored at the exact midpoint, guaranteeing that RTL Arabic text
+    stays centered inside the chip container without bidi overflow.
+  - This completely eliminates ambiguity with nearby neighbouring cities and eliminates RTL bidi overlap bugs.
+  Cities are placed in descending activity order, ensuring high-activity cities stay centered
+  at their true location.
+  - **A placement is refused unless the city's own coordinate is the closest** (`ownsLabel`),
+    preventing any misplaced label from drifting near another city's location.
+  - **A label that fits nowhere is dropped, not stacked**, avoiding clutter in pathological clusters.
+  - Both platforms estimate text width with balanced glyph ratios (0.48em for Arabic, 0.44em for Latin),
+    keeping boxes compact and leaving ample map canvas for nearby cities.
+- **The map's accent is `brandLogo`, not `brandPrimary` (web + mobile).** Every
+  other surface renders the brand as a control — a button, a chip, a 6px accent
+  bar — where a deep, high-contrast blue is right. This one renders it as a large
+  field of color: whole countries filled at up to 90% opacity, with city names
+  and a badge on top of them. `brandPrimary` at that size reads as a block of
+  ink rather than as the brand. One consequence: the "+N today" badge can no
+  longer take `getContrastText`, which answers white — MUI's default
+  `contrastThreshold` is 3 and white on the logo blue is 3.15:1, enough to win
+  that check and not enough for an 11px number. It picks between the two surface
+  tokens by measured ratio instead (ink at 5.9:1 light, the panel tone at 5.5:1
+  dark). Deepening the color the way `status.lost`/`status.found` did is not
+  available here: being the logo's exact blue is the point.
+- **Edge fade, not a drop shadow (web only).** An earlier version of this pass
+  gave the city dots and "+N today" badges a shared `feDropShadow` group each
+  for depth; that was removed on request — city markers and badges are flat
+  fills again (panel fill + brand stroke, brand fill respectively), map color
+  alone carries the surface. What stayed: the four edges still dissolve into
+  the container's `surfaceBase` via a two-axis linear-gradient overlay, since
+  that layer is oversized and offset (165% wide / 271% tall) and needs a fade
+  in the visible window rather than a CSS mask on the map layer itself (which
+  would land mostly off-screen); it's two per-axis gradients rather than one
+  radial because the desktop crop lands the country ~75% across, where a
+  centred vignette would dim the subject. Not mirrored to mobile:
+  `react-native-svg` has no filter support anyway. A still-earlier version of
+  this pass also gave the focus country a blurred brand halo, masked out of
+  its own shape; it read as an extra wash of the already-bold logo blue on top
+  of the country's own fill and was dropped rather than tuned down.
+- **Cities with a post today pulse a ring**, and only those — the same condition
+  the "+N today" badge uses, so the motion carries data the map already shows
+  instead of giving every dot a heartbeat it has not earned. Stroked in `ink`
+  rather than `brandLogo` — the ring crosses whatever the activity fill happens
+  to be at that point, from a pale wash to the deep end of the ramp, and `ink`
+  is the one tone the map already relies on to stay legible over the whole
+  range (near-black in light mode, near-white in dark) rather than one more
+  blue that can disappear into a same-toned country. Local GSAP in the
+  component rather than a `data-reveal` attribute for `useDashboardMotion` to
+  find, because `WelcomePage` mounts this map too and never runs that hook.
+  Reduced motion is the usual `gsap.matchMedia("(prefers-reduced-motion:
+  no-preference)")` wrapper, and the ring's resting state is `opacity="0"` as a
+  presentation attribute, so a visitor for whom no tween is ever created sees
+  nothing rather than a ring frozen around a dot.
+- **Urban areas are a wash, and never a data layer.** They are drawn under the
+  borders in flat `alpha(ink, …)` and say "people live here"; the city dots,
+  which are the only thing on this map carrying real numbers, must always
+  outrank them.
+- **Focus countries are built as the union of their own provinces**
+  (`topojson-client`'s `merge`), and the simplification happens *before* the
+  merge. That is what lets the mesh work: the country outline is literally made
+  of the same arcs as the province boundaries, so the internal-border filter
+  drops the coast exactly, with no fringe of one line beside another.
+- **The map is decorative, so lakes are filled in the container's sea tone**
+  (`surfaceBase`, what `Dash.js`/`WelcomePage.jsx` paint behind the map) rather
+  than a blue of their own — inland water reads as water, not as a hole in the
+  country.
+- **The two "Unrecognized" provinces are kept.** Natural Earth flags
+  Laâyoune-Boujdour-Sakia El Hamra and Oued el Dahab `FCLASS_ISO:
+  "Unrecognized"`; they are the only such features in this set. They stay in,
+  because Natural Earth's admin-0 layer (which world-atlas is a build of, and
+  so what this map drew before) already includes them in Morocco and leaves the
+  remaining Western Sahara as its own shape — still drawn, from the neighbours
+  layer. Filtering them would redraw a disputed border, which is a decision to
+  take deliberately, not a side effect of a resolution change. Every other
+  supported country's outline matches the previous file to within 2% of area;
+  Bahrain differs by 17% because Natural Earth's admin-1 archipelago is a
+  different (and closer to correct) geometry than its admin-0 one.
+- **Not tiles.** MapLibre/OSM/MapTiler would bring streets and labels, and with
+  them a runtime network dependency, an API key or a usage policy, a mandatory
+  attribution this design has no chrome for, per-theme restyling, and a native
+  module that breaks Expo Go. This map is an activity backdrop, not something
+  anyone navigates.
+- **The four Natural Earth sources** (`ne_10m_admin_1_states_provinces`,
+  `ne_10m_lakes`, `ne_10m_rivers_lake_centerlines`, `ne_10m_urban_areas`,
+  ~81 MB together) are downloaded on first run into
+  `client/.cache/naturalearth/`, which is gitignored. Public domain, no key,
+  no attribution requirement.
+
+## Document listings: a title instead of a photo (web + mobile + server)
+
+A listing filed under the **DOCUMENTS** category takes no photo at all, and
+names the document instead, from a shared vocabulary. Both halves of that are
+the point: a photograph of an identity document publishes its holder's full
+name, its number, usually their address and often their face to everyone who
+opens the listing — on a site whose job is handing property back, that is the
+one attachment that does more harm than good. The eye-redaction pass above
+covers faces in a photo; it cannot cover the text on an ID card, and the text
+is the leak.
+
+- **The photo goes away only when documents are *all* it is about.** A wallet
+  found with papers inside it is still a wallet, and the photo of the wallet is
+  what its owner recognises - so a listing that also carries another category
+  keeps its Photo step, and both forms show a notice naming those other
+  categories: photograph the bag, keep the papers out of the frame or cover
+  them. `isDocumentsOnlyListing` is what decides the step; `isDocumentsListing`
+  still decides the title and the name, which are asked for either way.
+- **The Photo step is removed, not emptied.** The New Post wizard's steps are a
+  list built per listing, not a fixed four
+  ([documentCategory.js](client/src/features/posts/NewPost/documentCategory.js)
+  decides, mirrored at
+  [mobile/src/config/documentCategory.js](mobile/src/config/documentCategory.js)),
+  and every step is addressed by its key — an index is no longer a step's
+  identity. That is what the rail icons, the per-step validators, the
+  back/next buttons and the Review section's Edit links all read now. A step
+  that existed only to say "nothing to do here" would be worse than no step.
+  Choosing the category also clears a photo already picked, and both submit
+  paths refuse to attach one regardless — the backstop, not the mechanism.
+- **The category is read by `code`, never by id.** Category ids are
+  per-deployment; `DOCUMENTS` is the contract the client config, the mobile
+  mirror and the seed scripts already share.
+- **The vocabulary is a collection, not a config file.**
+  [DocumentType](server/models/DocumentType.js) seeded from
+  [server/config/documentTypes.js](server/config/documentTypes.js) (twenty
+  titles: the Moroccan civil-status set, written in Arabic first because that
+  is the name on the paper, plus the titles most often lost beside it), listed
+  by `GET /document-types` and grown by `POST /document-types`. It has to be a
+  collection because the list is meant to grow from use: a reader who cannot
+  find their title adds it and it is there for the next person, which a file
+  shipped with the build cannot do.
+- **The seed rows are created on boot, not by an ops step.** The picker is the
+  only way to file a DOCUMENTS listing and it lists what the collection holds,
+  so an empty collection is not a degraded feature - it is a form nobody can
+  complete, and the symptom (no rows, a search that finds nothing) says nothing
+  about the cause. `services/documentTypeSeeder.js` runs on the
+  `mongoose.connection` open event, creates only the codes that are missing,
+  and never touches an existing row: a title an admin retired stays retired and
+  a contributed one survives every deploy. `npm run sync-document-types` is
+  still the deliberate tool for inspecting that vocabulary; this is the floor
+  under it.
+- **"Add new document" is the last thing inside the list's own scroller**, under
+  a "Can't find the document in the list?" line - not a footer beneath it. A
+  reader reaches for it only after scanning the list, which is exactly where
+  scrolling leaves them. Its two fields say which script each one wants by
+  example (بطاقة / Card), because "Latin letters" alone is not a reliable
+  instruction to give someone typing in Arabic.
+- **Every documents listing also carries the name written on the document**
+  (`Post.documentOwnerName`, `{ ar, latin }`, required on both forms). With no
+  photo published, a page of "national identity card" listings is otherwise
+  indistinguishable row by row: the name is what an owner recognises their own
+  document by, and the field a searcher types their own name into - so both
+  listing queries search it alongside description, location and contact. Both
+  scripts are asked for, and each is script-checked, for the same reason the
+  titles are: a Moroccan document carries both spellings and a reader may know
+  only one of them. It is cleared whenever a listing stops being about
+  documents.
+- **"Other document" asks for both scripts, and refuses one written in the
+  wrong one.** What is contributed is shown to everyone, so a title saved only
+  in French is unreadable to half the site — and a French title typed into the
+  Arabic field is how the Arabic list fills up with French. Checked by script
+  (`\p{Script=Arabic}` / `\p{Script=Latin}`), not by alphabet, so accents and
+  diacritics are fine. Only the Arabic and one Latin name are asked for; `en`
+  and `fr` both take the Latin one rather than the form asking a reader for
+  two spellings of the same word.
+- **Duplicates are refused twice, and the second time is the one that
+  matters.** `normalizedLabels` holds every label's script-folded form (the
+  same `normalizeText` the matching engine uses, so hamza and taa-marbuta
+  variants fold together) and carries a **unique multikey index**. The
+  controller's lookup catches the ordinary case; the index catches two people
+  submitting the same title in the same instant, which the lookup lets both
+  through. Either way the reader is answered with the row that won and it is
+  ticked for them — never an error telling them to think of a different name
+  for the paper in their hand. `server.js` runs `DocumentType.syncIndexes()`
+  on connect so an existing deployment builds that index.
+- **A deactivated title is the one duplicate that is refused outright** (409).
+  Answering with it would silently undo an admin's decision to retire it.
+- **Only the detail read joins the titles.** `Post.documentTypes` is looked up
+  in `getPost`'s pipeline only — the listing pipelines are already the
+  expensive queries on that collection, and this is what a reader judges the
+  listing by once they have opened it. The projection re-walks the stored ids
+  so the titles render in the order the author ticked them, and drops any whose
+  row is gone rather than rendering an empty chip.
+- **A title that no longer exists never fails a write.** `resolveDocumentTypeIds`
+  drops unknown, inactive or malformed ids and caps the list at six (the few
+  papers lost together, not an inventory); the listing is the thing being
+  saved. `usageCount` is incremented fire-and-forget.
+- **The edit screens follow the same rule.** Both `EditPostForm.js` and
+  mobile's shared `PostForm` hide the upload on a documents-only listing — an
+  edit screen that offered the photo field back is exactly how a picture of an
+  ID card would reach the site anyway — and show the same "photograph the other
+  thing" notice on a mixed one.
+- **The auto-posted copy names the documents in its header.**
+  [socialCaption.js](server/services/socialCaption.js) puts the titles in
+  parentheses right after the category in each of the three language blocks
+  ("🔴 Lost Document (Passport, National identity card) in the country of…")
+  and adds one line with the name on them, each block in its own script,
+  falling back to the other when only one was written. Nothing else about the
+  caption moves: same emoji, verb, country/city clause, link and hashtags, and
+  a listing with no document types gains neither line. Without it a documents
+  listing in a feed is indistinguishable from any of the other nineteen titles
+  — and it publishes no photo, so the header is all a scroller gets. The ids
+  are re-walked in the author's order, since a `$in` query is free to answer in
+  any. Covered by `npm run test-social-images`.
+- **Offline check**: `npm run test-document-types` in `server/` — no DB, no
+  network. Covers the seed config's own consistency, the three-language
+  listing in priority order, script-folded search, contributing a title,
+  both duplicate paths (the lookup and a lost index race), the two
+  wrong-script refusals, a deactivated title staying retired, and the
+  boot-time seeding (an empty collection filled once, a second boot creating
+  nothing, a retired title not reactivated, a contributed title untouched).
+  `npm run sync-document-types [-- --apply]` creates the seeded rows on a
+  deployment and never deletes or relabels anything — every contributed title
+  lives in that same collection.
+
+## Eye redaction on uploaded photos (web)
+
+Every photo picked on the New Post wizard's Photo step is scanned for faces in
+the visitor's own browser, and each detected pair of eyes is covered with a
+mosaic bar. [faceRedaction.js](client/src/utils/faceRedaction.js) does the work,
+[NewPostForm.js](client/src/features/posts/NewPost/NewPostForm.js) holds the
+state and [StepPhoto.jsx](client/src/features/posts/NewPost/steps/StepPhoto.jsx)
+renders the panel. Nothing about it reaches the server: the model, its weights
+and the redaction all run client-side, and the covered copy is what
+`handleSubmit` uploads.
+
+- **Every photo is scanned, not just the ones in a "person" category.** Faces
+  leak into listings that have nothing to do with people: a found wallet
+  photographed with the ID card still in it, a phone showing a lock-screen
+  photo, a bystander in the frame of a lost-bag shot. Gating on category would
+  miss exactly those, and scanning costs nothing when there is no face.
+- **Face scanning runs inside the photo component (dropzone) alongside compression.**
+  When a user picks a photo, the dropzone first indicates "Compressing...", followed
+  by "Searching for faces...". The image preview is only shown once processing and
+  detection are complete.
+- **Detected faces are automatically redacted without a user toggle.**
+  If faces are detected, eyes are automatically covered by the mosaic bar before the
+  preview is shown, and the redacted file is uploaded. An informative badge is displayed
+  below the image preview explaining that eyes are covered to protect privacy, with no
+  toggle allowing the user to unhide them.
+- **The redaction is a mosaic, not a blur.** The only way to blur on a canvas
+  is `CanvasRenderingContext2D.filter`, which Safari did not support before 17
+  and *ignores silently* where it is missing - for a privacy feature that means
+  publishing an un-redacted photo while telling the author it was covered.
+  Downscaling a region and drawing it back up with smoothing off is plain
+  `drawImage`, works everywhere, and cannot be undone.
+- **The bar is placed from the eye landmarks, not the face box**, so it follows
+  head tilt (its angle comes from the line between the two eye centres and all
+  of its dimensions scale with the distance between them). A face detected
+  without usable landmarks falls back to a horizontal bar across the detection
+  box.
+- **`@vladmandic/face-api`, not `face-api.js`.** Same API, but the original was
+  last published in 2020 and bundles tfjs-core 1.7, which reaches for node's
+  `fs`/`path` - webpack 5 dropped the automatic polyfills, so it does not build
+  under react-scripts 5 at all.
+- **The library is a static asset loaded by native `import()`, not a bundled
+  dependency.** It carries tfjs, and tfjs carries node-only branches
+  (`require("fs")`, `require("worker_threads")`, esbuild's dynamic-require
+  shim) that webpack cannot statically resolve. Those produce "Critical
+  dependency" *warnings*, and react-scripts turns any warning into a failed
+  build when `CI` is set - which Vercel sets. The first version of this shipped
+  exactly that and could not have deployed. So the bundle and the two model
+  files live in `client/public/vendor/face-api` (committed, same policy as
+  `worldMap.topo.json`; refresh with `npm run sync-face-api`), and
+  `faceRedaction.js` pulls the bundle in with `/* webpackIgnore: true */`. The
+  side benefit is that 1.3MB never enters the build graph.
+- **tfjs is pinned to `webgl` then `cpu`, and never `wasm`.** Left to itself it
+  ranks wasm above cpu and picks it the moment WebGL is missing - and the wasm
+  backend fetches its binary **from a jsdelivr CDN at runtime**, which would put
+  a third-party request in the middle of a feature whose whole point is that the
+  photo never leaves the device, and simply fails wherever that CDN is blocked.
+  The backend must also be selected *before* any weights load, since reading a
+  model file builds tensors.
+- **Only the tiny nets are shipped** (`tinyFaceDetector` 189KB +
+  `faceLandmark68Tiny` 75KB). `inputSize` is 512 rather than the 416 default,
+  on the CPU fallback too: dropping to 320 there measurably missed faces the
+  512 pass caught (three of five in one test photo), and the CPU path is the
+  one running on a device with no WebGL. `scoreThreshold` is 0.4 rather than
+  0.5 for the same reason - a missed face is published, a false positive is one
+  toggle away.
+- **Nothing in `faceRedaction.js` may throw at its caller.** Every failure
+  resolves to "no faces found" and the photo step behaves exactly as it did
+  before. The Photo step's Next button is disabled while a scan is running, so
+  a fast click cannot carry the un-redacted photo through to Review.
+- **Not on `EditPostForm.js` or mobile.** Only the web New Post wizard was in
+  scope for this pass.
+
+## Auth sessions (web + mobile)
+
+Short-lived JWT access token (default 30 min, `JWT_ACCESS_EXPIRES_IN` - do NOT
+set this to `30d` anymore; that was the pre-refresh-token era) + long-lived
+opaque refresh token (30 days, `REFRESH_TOKEN_EXPIRES_IN`), rotated on every
+use. One issuance path for all six entry points (password login, register, the
+three OAuth routes, `/auth/refresh`): `issueSession` in
+[authSession.js](server/utils/authSession.js).
+
+- **Storage/revocation**: [tokenStore.js](server/services/tokenStore.js) -
+  Redis (shared client via `getRedisClient()` from `unifiedCache.js`, so logout
+  survives restarts and works across instances) with an in-memory fallback when
+  `REDIS_URL` is absent. Refresh tokens stored as SHA-256 hashes only; consumed
+  via `GETDEL` so a replayed (stolen-and-rotated-away) token fails atomically.
+  Logout denylists the access token's `jti` AND revokes the refresh session,
+  and deliberately does **not** require a valid access token - an expired
+  session must still be able to revoke its refresh token
+  ([authcontroller.js](server/controllers/authcontroller.js) `logoutHandler`).
+- **`/auth/refresh` reloads the user from the DB** before minting, so role
+  demotion/deactivation takes effect within one access-token lifetime.
+  Refresh-token transport is the platform split: web = httpOnly cookie scoped
+  to `/auth` (`SameSite=None; Secure` in prod - Vercel→Render is cross-site;
+  `Lax` in dev), mobile = JSON body stored in SecureStore. JSON auth responses
+  carry `refreshToken` in the body for mobile; web ignores it.
+- **Legacy bootstrap**: a pre-deploy 30-day token with no refresh session can
+  call `/auth/refresh` with only its Bearer and get upgraded to a real session
+  - gated on the token's own issued lifetime (`exp - iat` ≥ 4× the access
+  lifetime), so a stolen short-lived token gains nothing. This plus the removal
+  of verifyJWT's wall-clock "token too old" check (each token is judged on its
+  own `exp`) is what makes the deploy not force anyone to re-login. Web calls
+  it once at boot ([useSessionBootstrap.js](client/src/hooks/useSessionBootstrap.js)),
+  mobile in `AuthContext.loadStoredAuth` when a token exists without a stored
+  refresh token.
+- **Silent refresh, both clients**: single-flight refresh + one retry on a 401
+  session failure - web in [apiSlice.js](client/src/app/api/apiSlice.js)
+  (plain-fetch twin: [refreshClient.js](client/src/utils/refreshClient.js)),
+  mobile in [apiService.js](mobile/src/api/apiService.js)
+  (`refreshSessionTokens`, `_retriedAfterRefresh` guard). Only when refresh
+  fails too does the existing logout-with-sessionExpired path run. The 401
+  `code` values in jwtSecurity.js remain a contract with both clients; refresh
+  adds `NO_REFRESH_TOKEN`/`REFRESH_INVALID`. `/auth/refresh` has its own rate
+  limiter (`refresh` in rateLimiting.js, counts failures only) - never put it
+  behind the strict `auth` one.
+- **Mobile OAuth browser flows never put tokens in a URL.** They used to
+  (`?token=...&refreshToken=...` on `/auth/mobile-callback` and on the deep
+  link), and `middleware/logger.js` writes every request's full query string
+  to `reqLog.log` unredacted - so each mobile OAuth sign-in wrote a live
+  30-day refresh credential to disk in plaintext, and left it in the auth
+  browser's history. Now the callback parks the pair under a one-time opaque
+  code ([oauthExchange.js](server/utils/oauthExchange.js) - 5-minute expiry,
+  deleted on read, same shape as the `pendingRegistrations` handoff beside it)
+  and only `?code=` travels; the app trades it at `POST /auth/mobile-exchange`
+  ([mobile/src/utils/oauthExchange.js](mobile/src/utils/oauthExchange.js),
+  shared by Google and Facebook). A cookie still cannot be used here - the
+  auth-session browser's jar is not the app's. Native mobile endpoints
+  (`mobileAuthRoutes.js`) were never affected: they answer a POST with a JSON
+  body. Facebook's *web* callback still returns
+  `{ redirectUrl, webRefreshToken }` from `processFacebookCallback` so the
+  in-flight-dedupe duplicate request also sets the web cookie on its own
+  response.
+- **`/auth/refresh` and `/auth/logout` require an `X-Requested-With` header**
+  ([csrfGuard.js](server/middleware/csrfGuard.js), 403 `CSRF_HEADER_REQUIRED`
+  without it). They are the only two routes that authenticate from the refresh
+  cookie alone, and that cookie is `SameSite=None` in production by necessity,
+  so a third-party page could otherwise drive them with a plain
+  `<form method="POST">` - a simple request, no preflight, the browser
+  attaching the cookie by itself. A header cannot ride on a form post, and
+  setting it from script forces a preflight that `corsOptions.js`'s allowlist
+  answers. Deliberately not a double-submit token: same protection here for a
+  token to mint, store, rotate and verify. Every client sends it -
+  `apiSlice.js`'s `prepareHeaders` (all endpoints), `refreshClient.js`,
+  `logoutUtils.js`, mobile's `apiClient` default headers plus the plain-axios
+  `refreshSessionTokens` and `googleAuth.signOut`.
+- **A failed refresh only clears the cookie when the session is really gone.**
+  `refreshUnauthorized`'s `clearCookie` is opt-in: `NO_REFRESH_TOKEN` and
+  `ACCOUNT_INACTIVE` clear, `REFRESH_INVALID` does not. Cookies are shared
+  across a browser's tabs, so two tabs booting together both refresh with the
+  same one; rotation is atomic, exactly one wins, and clearing on the loser's
+  401 wiped the winner's fresh cookie whenever that response landed second -
+  a forced re-login with a live session on the server. The client half:
+  `refreshClient.js` treats `REFRESH_INVALID` as "another tab may have won"
+  and looks for a newer, unexpired token in the shared `localStorage` (once,
+  then again after `CROSS_TAB_RECHECK_MS`) before reporting failure.
+- **Legacy bootstrap tokens are single-use**, like refresh tokens.
+  `readLegacyBootstrapUser` returns the decoded `jti`/`exp` and `refresh`
+  denylists them (`blacklistToken`) the moment the new session is issued -
+  otherwise one leaked pre-migration 30-day token could mint unlimited
+  independent sessions for the rest of its lifetime, with nothing to revoke
+  and no way to notice.
+- **`PATCH /users`** issues a whole session (`issueSession` +
+  `setRefreshCookie`) on username/country change, like every other
+  credential-minting call site; it used to call `generateTokens` directly and
+  hand back an access token with no session behind it. Web reads only
+  `accessToken` off the response and takes the refresh token from the cookie;
+  mobile stores the body copy (`AuthContext.refreshSession` takes an optional
+  second argument) so it does not leave an orphaned session behind.
+- **One verification call, not five.** `verifyAccessToken(token)` in
+  [jwtSecurity.js](server/middleware/jwtSecurity.js) is the only place
+  `jwt.verify` is called on an access token; `JWT_VERIFY_OPTIONS` beside it is
+  the only place the issuer/audience/algorithm options are written. It resolves
+  with the decoded payload and rejects with jsonwebtoken's own error, so each
+  caller keeps its own idea of what a failure means - `verifyJWT` still answers
+  its 401 `code` values, both `optionalAuth`s still continue as a guest,
+  `maintenanceMode`'s admin bypass still falls through to the excluded-route
+  check, `authcontroller`'s legacy bootstrap and logout still return null /
+  denylist nothing. What it removed was five hand-maintained copies of the same
+  options object, two of which had already drifted to passing **no options at
+  all** (`middleware/optionalAuth.js`, and `maintenanceMode.js`'s admin bypass -
+  the one that decides who gets through a maintenance window): those two accepted
+  a token signed by another issuer, or with `alg: none`. Making
+  `readBearerUserInfo` async is the one knock-on - its single caller,
+  `postViewTracker`, was already async, and `optionalAuth` is a promise chain
+  now, so it ends `.then(() => next()).catch(next)` to hand a downstream
+  synchronous throw to Express rather than leaving it an unhandled rejection
+  (`server.js` exits the process on those).
+- **`server.js` refuses to boot without `JWT_SECRET`, `MONGODB_URI` or
+  `FRONTEND_URL`** - checked right after `dotenv.config()`, before anything
+  reads them, `process.exit(1)` naming every missing one. Each was survivable at
+  boot and only broke later, somewhere that did not point back at the config:
+  no `JWT_SECRET` means jsonwebtoken signs and verifies with `undefined` as the
+  key, no `MONGODB_URI` surfaces as a connection error rather than a config one,
+  and no `FRONTEND_URL` just drops the entry from
+  [allowedOrigins.js](server/config/allowedOrigins.js), leaving the deployed
+  site CORS-blocked from its own API.
+- **Offline check**: `npm run test-auth-session` in `server/` - boots the real
+  auth routes/controllers/middleware on an ephemeral port with only
+  `models/User` stubbed, and drives real HTTP at each of the five failure
+  modes above (legacy replay, tokens in a URL, a cross-site form post, a
+  two-tab rotation race, `PATCH /users`).
+
+## Match notifications (web + mobile)
+
+Lost↔found matching engine + in-app notifications. The engine and API are shared —
+`client/` and `mobile/` are two front ends over the same `/notifications/*` routes,
+so a scoring or wording change belongs on the server or in both translation files,
+never in one platform's UI.
+
+- **Engine**: [matchingService.js](server/services/matchingService.js). On post create/edit
+  (fire-and-forget `scheduleMatchScan`, deferred via `setImmediate` — never blocks or fails
+  a post write) it scans the *opposite* `foundLost` side of the same country, sharing ≥1
+  category, within `MATCH_LOOKBACK_DAYS`. Scores each pair 0-100 on five weighted signals:
+  category 30 / city 20 / location-text 10 / date 15 / keywords 25 (+8 bonus for a shared
+  reference number). Category alone never qualifies — a pair needs at least one
+  corroborating signal. **Shared category + same city is floored onto the strong-match
+  boundary (75)** by `applyCoreMatchFloor`, whatever the other signals say: that pair is the
+  product's core promise, and free text is the least reliable part of a listing. Consequence:
+  `PostMatch.breakdown` can sum to less than `score` — it's a per-signal record, not the
+  arithmetic behind the total. `GOOD_MATCH_SCORE`/`STRONG_MATCH_SCORE` are exported and the
+  API's tier bands read them rather than restating the numbers.
+  Pure helpers live in [textMatching.js](server/utils/textMatching.js)
+  (en/fr/ar script-normalized tokenizer + Dice similarity) and
+  [postDates.js](server/utils/postDates.js) (parses the free-text `mainDate` written by
+  `DateEntryDialog`, month names in all three languages).
+- **Tunables** (all env, all optional): `MATCH_MIN_SCORE` (store floor, 40),
+  `MATCH_NOTIFY_MIN_SCORE` (notify floor, 50), `MATCH_EMAIL_MIN_SCORE` (70),
+  `MATCH_LOOKBACK_DAYS` (180), `MATCH_CANDIDATE_LIMIT` (300), `MATCH_MAX_PER_RUN` (10).
+  `MATCH_LOOKBACK_DAYS` and `MATCH_MAX_PER_RUN` are the two levers on alert volume — with
+  the category+city floor in place, every same-category counterpart in the same city within
+  the lookback window is a strong match, so a dense city/category combination produces a lot
+  of them. The per-user confidence slider caps at 75 (client and API both) so a strong match
+  can never be filtered out by a preference; turning match alerts off entirely still works.
+- **Models**: [PostMatch.js](server/models/PostMatch.js) (the scored pair — canonical
+  `postA`/`postB` ordering for its unique index, per-user `dismissedBy`) and
+  [Notification.js](server/models/Notification.js) (one row per recipient, unique on
+  user+type+post+matchedPost so re-scoring updates in place). `User.notificationPreferences`
+  and `Post.lastMatchScanAt` were added for this.
+- **API**: `/notifications/*` ([notificationRoutes.js](server/routes/notificationRoutes.js) /
+  [notificationsController.js](server/controllers/notificationsController.js)), all behind
+  `verifyJWT` and scoped to `req.user`. The inbox and the unread badge share one pipeline so
+  the badge can never claim a count the list won't render; both drop notifications whose
+  posts are no longer active/unreturned. Localization happens server-side from a `language`
+  query param — reason/tier codes stay stable, wording lives in `translations.js`.
+- **The inbox returns groups, not rows.** `GET /notifications` `$group`s by the *recipient's
+  own post* and pages over groups: `{ id (own post id), post, matches[], matchCount,
+  unreadCount, topScore, topTier, latestAt }`. One new listing in a dense city/category
+  produces a notification per pair all at once, and flat that is a wall of near-identical
+  rows. Grouping is a **read-time** concern only — the per-pair rows stay the unit of
+  read/dismiss state (each counterpart is judged on its own), nothing was migrated, and
+  older notifications group retroactively. `unreadCount` everywhere still counts individual
+  alerts, so it matches the bell badge exactly; `total`/`totalPages` count groups. Matches
+  inside a group are sorted by score in JS (not `$sortArray`, to stay off a server-version
+  floor) and capped at 20, with `matchCount` reporting the true total.
+- **Client**: [features/notifications/](client/src/features/notifications/) — navbar
+  `NotificationBell` (60s unread poll, popover of `NotificationGroupPreview` rows),
+  `/dash/notifications` page (tabs + inline `NotificationPreferences`) rendering
+  `NotificationGroup` (header + up to 3 `NotificationItem` rows, expandable), and
+  `PostMatchesPanel` on post detail for the owner
+  (which is also the retroactive path: it triggers an on-demand, 6h-throttled scan, so posts
+  predating the engine still get leads). Reuses the paired-panel and status-tag patterns
+  above; no new card language.
+- **Mobile**: [components/notifications/](mobile/src/components/notifications/) +
+  [NotificationsScreen.js](mobile/src/screens/NotificationsScreen.js), over
+  [notificationsApi.js](mobile/src/api/notificationsApi.js) (plain axios wrappers, no
+  RTK Query on this side). Same three surfaces as web: a badged bell in
+  [AppHeader.js](mobile/src/components/AppHeader.js) (plus a counted row in `HeaderMenu`),
+  the inbox screen with tabs + inline preferences, and `PostMatchesSection` on
+  `PostDetailScreen` for the owner. Unread count lives in
+  [NotificationsContext.js](mobile/src/context/NotificationsContext.js) rather than in each
+  header — AppHeader remounts on every navigation, so a per-component poll would restart
+  its timer constantly; it polls only while signed in *and* foregrounded (`AppState`).
+  `NotificationGroupCard` is the mobile twin of web's `NotificationGroup`, with
+  `NotificationCard` as the per-counterpart row inside it.
+  Follows Phase 9 for parent cards (borderless and shadowless) and routes every
+  direction-dependent style through `utils/rtl.js`. The sub-elements are the one
+  documented departure from Phase 9: `MatchThumbnail`'s square and `MatchMeta`'s
+  confidence badge + reason chips carry a `StyleSheet.hairlineWidth` ink outline
+  (`${ink}33` dark / `${ink}1F` light) instead of the sub-element shadow — several
+  pills to a row made those shadows read as smudges on the post-detail section.
+  Differences from web, both deliberate: the confidence floor is a row of discrete
+  options instead of a slider (no slider dependency in this app, and a tap beats a drag
+  on a phone), and `formatDaysApart` carries Arabic dual/small-plural forms the way
+  `utils/relativeTime.js` does — the web copy was given the same forms so both platforms
+  word it identically.
+- **Device push (Android only, mobile)**: the third delivery channel, after the in-app
+  inbox and the opt-in email, and the only one that reaches a user who is not looking at
+  the app. Sent through Expo's push service (one HTTPS POST, no vendor SDK) by
+  [pushNotificationService.js](server/services/pushNotificationService.js); tokens live on
+  `User.pushTokens` (per device, each carrying the language its messages are written in,
+  since a push is composed server-side with no request to read a language from) and are
+  registered/revoked via `POST`/`DELETE /notifications/push-token`. Gated by
+  `notificationPreferences.pushAlerts` *and* the master `matchAlerts` switch *and* the OS
+  permission. **One push per recipient per scan run, never one per pair** — `matchingService`
+  collects them (`pushQueue` → `dispatchQueuedPushes`) precisely because the category+city
+  floor makes bursts normal; the inbox can group after the fact, a notification tray cannot.
+  Only a genuinely new notification row queues one, so a rescan never re-buzzes a seen pair.
+  App side: [pushNotifications.js](mobile/src/utils/pushNotifications.js) (permission, token,
+  the `match-alerts` Android channel whose id is a contract with the server, tap targets),
+  registration in `NotificationsContext`, tap routing in `App.js` (reuses the deferred
+  deep-link machinery — a tap can land before either navigator is mounted), revocation on
+  sign-out in `AuthContext`. iOS is switched off in exactly one place
+  (`SUPPORTED_PLATFORMS`) pending an APNs key; nothing else is platform-specific. Setup,
+  FCM credentials and the Expo Go caveat: [PUSH_NOTIFICATIONS.md](mobile/PUSH_NOTIFICATIONS.md).
+- **Offline checks**: `npm run test-matching` in `server/` — no DB needed, covers
+  normalization, date parsing and scoring. `npm run test-push` — no DB or network, stubs
+  the Expo transport and covers what a recipient actually receives (direction wording,
+  per-device language, burst collapsing, dead-token pruning).
+
+## Auto-posting to Facebook/Instagram (server)
+
+Every new listing is mirrored to the Facebook Page and the Instagram account.
+That publish is **queued and paced**, never inline — the single design decision
+this whole section exists to protect.
+
+- **What it replaced.** `createNewPost` used to call
+  `facebookService.postNewListing` and `instagramService.postNewListing`
+  directly, fire-and-forget, concurrently, and `.catch(console.error)` whatever
+  failed. Correct for one listing at a time; wrong for a burst, in three
+  separate ways. Instagram's Content Publishing API refuses everything past 25
+  published posts per rolling 24h per account, so listing 26 onwards silently
+  never reached Instagram. Facebook has no such count — its limit is a rolling
+  per-app/per-Page call budget (BUC) that **concurrency spends fastest**, so ten
+  calls in one second is far likelier to be throttled than the same ten over ten
+  minutes. And simultaneous near-identical automated posting is the shape Meta's
+  spam systems look for regardless of any numeric limit. In all three cases the
+  refusal was caught, logged and dropped: the listing existed on the site with
+  no Page copy, no retry, and nothing anywhere recording that it had happened.
+- **Pacing is unconditional, every limit is a separate gate on top.** The
+  worker leaves at least a per-platform floor between two publishes on the
+  same platform whether or not any limit is close — "burst until something
+  breaks, then slow down" is the behaviour being removed, so the fix cannot be
+  a limit check alone. Every gate above it **defers rather than drops**: the
+  jobs are dated to when a slot frees up (+ a minute's buffer) and go up by
+  themselves. In order of how much each one knows:
+  1. the interval, plus jitter redrawn after every publish — see below;
+  2. an **hourly** ceiling, `SOCIAL_QUEUE_IG_HOURLY_LIMIT` (5) and
+     `SOCIAL_QUEUE_FB_HOURLY_LIMIT` (10);
+  3. Instagram's rolling 24h cap, `SOCIAL_QUEUE_IG_DAILY_LIMIT` (25) —
+     Facebook has no published-post cap at all, only a call budget;
+  4. the account's own figure from Meta (`content_publishing_limit`, below);
+  5. the call budget Meta reports on every response (below).
+- **The interval is per-platform, not one shared number.** Each publisher
+  entry in `socialPublishQueue.js`'s `DEFAULT_PUBLISHERS` carries its own
+  `minIntervalMs`/`jitterMs`, and `runPlatform` paces off *that* platform's
+  pair — so tuning one platform's cadence can never move the other's. Facebook
+  stays at `SOCIAL_QUEUE_MIN_INTERVAL_SECONDS` (60) +
+  `SOCIAL_QUEUE_JITTER_SECONDS` (0–45), i.e. 60–105s. Instagram is deliberately
+  more conservative — `SOCIAL_QUEUE_IG_MIN_INTERVAL_SECONDS` (180) +
+  `SOCIAL_QUEUE_IG_JITTER_SECONDS` (0–120), i.e. 180–300s (3–5 minutes) —
+  because the one observed spam block (`error_subcode` 2207051) happened on
+  Instagram, at a cadence well inside its documented daily cap, and a fresh
+  Page/account has no posting history to fall back on. Bumped from a single
+  shared 60s floor after launch review specifically for this reason; kept as
+  two independent settings rather than one raised number so Facebook — which
+  never showed the problem and has no daily cap to begin with — is not slowed
+  down for an issue that was never its own.
+- **The hourly ceiling exists because the documented daily cap is not the
+  limit that actually bites.** 25 posts per 24h is what Meta publishes, but a
+  short interval alone can spend all 25 well inside an hour, and accounts are
+  reported blocked for suspected spam at around a dozen posts in one hour —
+  well under the documented cap, which is precisely why a daily gate alone
+  does not protect anything. At 5/hour Instagram takes five hours to reach its
+  daily allowance, which is the point. The ceilings and the interval are the
+  levers to reach for if a spam block ever happens; the log line for one says
+  so.
+- **And the pacing is jittered, because a perfect metronome is itself a
+  signal.** A fresh `Math.random()` draw after each publish, so two
+  consecutive posts are never exactly as far apart as the two before them. It
+  can only ever make the queue slower, never faster, and `random` is a
+  constructor seam so every pacing assertion in the offline check stays exact.
+- **Instagram's quota is asked for, not only counted.**
+  `GET /{ig-user-id}/content_publishing_limit` answers `quota_usage` and
+  `config.quota_total` for the *account*. The queue's own window count only
+  knows about posts this app published, so anything posted to the account by
+  hand — or by another tool — spends slots it never saw, and the first sign of
+  that was a listing refused with error code 9, costing an attempt and a full
+  cooldown. `quota_total` is also not always the 25 that gets quoted, so it is
+  better read than hardcoded. Cached five minutes in `instagramService` and
+  invalidated on every publish; unreachable or unanswerable means "carry on",
+  since the local count and Meta's own refusal both still stand behind it.
+- **Meta says how much budget is left on every response, and that is acted
+  on.** `x-app-usage` and `x-business-use-case-usage` carry `call_count`,
+  `total_cputime` and `total_time` as percentages of three separate ceilings,
+  any one of which throttles at 100, plus `estimated_time_to_regain_access` in
+  minutes once already blocked. `readRateLimitUsage` takes the highest figure
+  across every object in both headers; the platform stands down at
+  `SOCIAL_QUEUE_USAGE_PAUSE_PERCENT` (85). This is the only way to slow down
+  *before* being refused rather than after — and when a throttle does arrive
+  with `estimated_time_to_regain_access` set, that beats the configured
+  cooldown in both directions.
+- **Every write goes in a form-encoded body, never the query string.** This is
+  the likeliest cause of the "sometimes it doesn't reach Instagram" that this
+  pass started from. A caption here is trilingual and up to 2,200 characters,
+  most of them Arabic — six bytes each once percent-encoded — so the same
+  caption as a query parameter is a URL of well over ten kilobytes, past the
+  point where gateways and Graph itself refuse a request outright. And it
+  fails *by listing*, not always: a short one goes through and a long one does
+  not, depending on how long that listing's city and category names happen to
+  be, which is exactly the shape of "it usually works". Both publishers send
+  `application/x-www-form-urlencoded` bodies now, token included; bodies have
+  no such ceiling.
+- **Instagram does not accept an image, it accepts a URL and goes to fetch
+  it** — so a container is not publishable until Meta has finished downloading
+  and processing the photo, and publishing one that is still `IN_PROGRESS`
+  fails. The readiness poll used to be ten attempts two seconds apart: a
+  twenty-second budget, against Meta's own guidance to poll for up to five
+  minutes, and nowhere near enough for a multi-megabyte JPEG on a slow fetch.
+  It is `INSTAGRAM_CONTAINER_TIMEOUT_SECONDS` (300) now, on a ramped interval
+  (2s, backing off to `INSTAGRAM_CONTAINER_POLL_MAX_SECONDS`, 30) rather than
+  Meta's flat once-a-minute — almost every container is ready in seconds, and
+  waiting a full minute to notice would make every publish a minute long.
+- **The container's `status` is read alongside its `status_code`**, and all
+  five states are handled. `status_code` alone says only "ERROR"; the reason,
+  and the subcode the queue classifies on, are in the free-text `status`
+  string (`"...could not be created. (2207032)"`), which is what separates a
+  temporary download failure from a file Instagram will never accept — the
+  difference between resubmitting the same image and regenerating it. A
+  container error with no parseable subcode defaults to the *media* class, not
+  the credentials one: the synthetic error has to carry a subcode inside
+  Instagram's `2207xxx` range or the queue's classifier falls through to its
+  `OAuthException` catch-all and pauses a platform that is working.
+  `EXPIRED` (a container lives 24h) is terminal for that container; `PUBLISHED`
+  is the duplicate case below.
+- **Nothing is published twice, part two: a lost answer is not a refusal.**
+  Graph has no idempotency key, so a publish whose answer never came back — a
+  timeout, a reset, a process killed between the call and the write — is
+  indistinguishable from one that was refused, and the retry is how a listing
+  reaches the account twice. Three guards, in order of cost: `media_publish`
+  re-reads the container's own `status_code` before every retry and stops if
+  it says `PUBLISHED`; every attempt after the first asks the platform whether
+  the listing is already there (`findPublishedListing`, matching the listing's
+  own `/dash/posts/<id>` URL in a caption, which nothing else on the account
+  carries — Facebook looks in `/feed` and then in `/photos`, since a photo
+  story is not guaranteed to surface in the feed and `page_story_id` is the id
+  engagement lives on); and a failed lookup answers null rather than blocking
+  the publish, leaving exactly the behaviour that was there before it existed.
+  The lookup is skipped on a job that has never run, so the common case pays
+  nothing — and `--retry-failed` writes the `REQUEUED_BY_HAND` marker
+  precisely because it resets `attempts`, which would otherwise hide the fact
+  that the job has already been to the platform once.
+- **The failure taxonomy, and what each branch costs the job.** The split that
+  matters is *whose problem it is*. A limit, a throttle, a spam block or a
+  dead token belongs to the **platform**: the job is put back untouched, the
+  whole platform stands down, and no attempt is spent. Only a failure that is
+  the job's own costs an attempt. In order:
+  1. **spam block** (IG `2207051`, FB code 368) → stand down
+     `SOCIAL_QUEUE_SPAM_BLOCK_COOLDOWN_MINUTES` (360). Neither a rate limit
+     nor a bad file: nothing about the listing is wrong, and returning at the
+     same cadence is what turns a temporary block into a longer one;
+  2. **publishing cap** (code 9 / `2207042`) → the existing quota cooldown;
+  3. **throttle** (4/17/32/341/613, HTTP 429) → the rate-limit cooldown, or
+     `estimated_time_to_regain_access` when Meta states one;
+  4. **dead token** (code 190/102, session subcodes 458–492) → stand down
+     `SOCIAL_QUEUE_AUTH_COOLDOWN_MINUTES` (60);
+  5. **refused media** (a `2207xxx` subcode that is not one of the above and
+     not transient) → clear the cached derivative, retry on the backoff ladder;
+  6. **transient** (5xx, code 1/2, IG's `please try again` family —
+     `2207003` "timeout downloading media", `2207032`, `2207053` — and a
+     connection that never answered) → retry on the ladder, **keeping** the
+     derivative, since "please try again" says nothing is wrong with the file;
+  7. **missing scope** (code 10, 200–299) → stand down like a dead token;
+  8. anything else → retry on the ladder, then fail.
+- **A refused credential no longer fails the listing.** Both authorisation
+  branches above used to mark the job `failed` on the spot, on the reasoning
+  that retrying into a wall spends the rate-limit budget the rest of the queue
+  needs. That reasoning is right and the platform stand-down is what actually
+  implements it — but the *job* being terminal meant a token that went stale
+  overnight converted every listing posted overnight into a dead job needing a
+  manual `--retry-failed`, one at a time, at the pacing interval. The queue is
+  durable and `--status` shows it, so the listings now wait for the
+  credentials to be fixed and publish themselves.
+- **The media/permission split is a subcode *range*, not a list.** Every
+  Instagram content-publishing error is a `2207xxx` subcode and nothing else
+  is, so that range is what `isMediaContentError` tests — the alternative is a
+  hand-maintained registry Meta extends without announcing, and anything
+  missing from it falls through to the `OAuthException` catch-all and gets
+  reported as a token problem. For the same reason the queue uses
+  `isScopeError` (code 10, 200–299) rather than graphApi's broader
+  `isPermissionError` for its stand-down decision: a code 100 "Invalid
+  parameter" on one listing must not stop every listing behind it.
+- **The queue is a collection, not a library.**
+  [SocialPostJob.js](server/models/SocialPostJob.js), one row per (post,
+  platform), drained by [socialPublishQueue.js](server/services/socialPublishQueue.js).
+  MongoDB rather than Bull/BullMQ + Redis: `MONGODB_URI` is already required at
+  boot while `REDIS_URL` is explicitly optional (see the auth-session notes), so
+  a Redis-backed queue would be a new hard dependency for the one part of the
+  system that must not lose work. It also makes the queue *readable* — `npm run
+  social-queue -- --status` answers "did my listing reach the Page?", which
+  previously could only be answered by grepping logs.
+- **`nextAttemptAt` carries every kind of waiting** — retry backoff,
+  rate-limit cooldown, daily-quota deferral. One field, one claim query
+  (`{platform, status:'pending', nextAttemptAt:{$lte:now}}` sorted
+  `nextAttemptAt, createdAt`), so there is no separate scheduler to keep in step
+  with the queue.
+- **A limit pauses the whole platform, not just the job that hit it.**
+  Deferring one job hands the next job the same refusal a second later, and
+  continuing to call a throttled endpoint is what extends a block rather than
+  clearing it. `deferPlatform` levels every pending job of that platform onto
+  one resume time; the claim's secondary sort on `createdAt` is what keeps the
+  queue FIFO through that levelling. An in-memory `pausedUntil` is a fast path
+  only — the durable copy is on the jobs, which is what a restart or a second
+  instance reads.
+- **Being rate-limited is not a failed attempt.** `attempts` counts only real
+  failures, so a throttle can never burn through `SOCIAL_QUEUE_MAX_ATTEMPTS` and
+  mark a perfectly good listing failed. A missing permission, by contrast, fails
+  *immediately* — an OAuth scope error answers the same way however many times
+  it is asked, and retrying it just spends the rate-limit budget the rest of the
+  queue needs.
+- **Classification order is load-bearing.** Meta returns its throttling codes
+  (4/17/32/341/613) under `type: "OAuthException"`, so `graphApi.js`'s
+  long-standing `isPermissionError` answers true for them too. So every check
+  in `handleFailure` is on a specific code or subcode, the ones describing a
+  temporary condition come first, and the authorisation checks come last —
+  reversed, every throttle would read as a permanent authorisation problem.
+  See **The failure taxonomy** below for the full order and what each branch
+  costs the job.
+- **`isPublishLimitError` exists even though the queue counts publishes
+  itself.** The local count only knows about posts *this app* published;
+  anything posted to the account by hand spends quota it never saw. The
+  platform's own refusal (code 9) is the backstop, and it is always right.
+- **Nothing is published twice, and the ordering of the two writes is the
+  reason.** After a successful publish the *job* is marked done (with its own
+  copy of the returned id and permalink) **before** `Post.social` is updated. The
+  other order would leave a published copy nobody can ask Graph about and a
+  retry that posts it a second time; this order means a failed second write is
+  recoverable — `--repair` reattaches the ids from the jobs. On top of that:
+  claiming is an atomic `findOneAndUpdate` (two instances cannot take the same
+  job), the `{post, platform}` unique index makes enqueueing idempotent, and the
+  publish path re-reads the post and skips it if it already carries that
+  platform's id.
+- **A job whose worker died is returned to the queue, with `attempts`
+  incremented** so an interruption that repeats cannot loop forever. The lock
+  timeout is 10 minutes, not seconds, precisely because an Instagram publish
+  legitimately takes tens of seconds (container creation, readiness polling,
+  publish retries) and reclaiming one that is still running is the one place a
+  duplicate Page post is conceivable.
+- **A listing that should no longer be published is cancelled, not published.**
+  Deleted before its turn, or no longer `active` (resolved/expired/suspended) —
+  putting it on the Page then would advertise something the site itself no
+  longer shows.
+- **Post creation is untouched.** It never waited on social publishing and still
+  does not; `enqueuePost` is awaited only because it is two small upserts and the
+  work should be durably recorded before the author is told the post exists, and
+  it is wrapped so a queue failure can never fail the request.
+- **`resolvePermalink` was deliberately left as a second call per publish.**
+  Folding it into `socialStatsService`'s existing batch would save one Graph call
+  per post, but pacing already removed the burst that made call count matter, and
+  it would churn a working path in `facebookService`/`instagramService` for a
+  marginal gain. Revisit only if the call budget ever becomes the binding
+  constraint.
+- **A listing with no photo goes up with its own category's graphic**, not one
+  generic card. `resolveListingImage` in
+  [socialCaption.js](server/services/socialCaption.js) reads the listing's first
+  category code and answers
+  `${CLIENT_URL}/category-social/<code>.jpg`; it became async for that one
+  indexed point read, which is nothing next to the Graph calls it precedes.
+  The nineteen 1080×1080 files are generated by
+  [buildCategorySocialImages.js](client/scripts/buildCategorySocialImages.js)
+  (`npm run build-category-images` in `client/`) and committed, the way
+  `worldMap.topo.json` is — a deploy never runs it, and Vercel serves them as
+  static assets. Worth keeping:
+  - **The generator parses `src/config/categories.js` rather than restating
+    it.** Icon *and* accent colour come from the same `CATEGORY_CONFIG` the app
+    draws with, so a card cannot quietly stop matching its category: the Material
+    icons it names are rendered out of `@mui/icons-material` through
+    `react-dom/server`, and the four bespoke ones are read back out of their own
+    JSX. A category whose icon resolves to neither fails the run loudly instead
+    of shipping a wrong picture.
+  - **An accent picked for white cards is not always legible on the card's
+    backdrop** (#795548, #3F51B5, #5E35B1…), so those are lifted in HSL until
+    they clear WCAG AA — lightness only, hue kept, with a saturation floor for
+    the muted ones. Mixing toward white was the first attempt and turned the
+    documents brown into beige, which stops reading as "the brown one".
+  - **They are JPEGs, and that is not cosmetic.** They shipped as PNGs, which
+    Instagram's publishing API does not accept — so every photo-less listing
+    was refused by the media container and reached Facebook only. The
+    generator writes sRGB JPEG now, `test-social-images` measures every file
+    against Instagram's rules (format, colour space, 4:5–1.91:1, 320–1440px,
+    8 MB) alongside its existing code↔file check, and `no-image-placeholder.png`
+    stays on disk beside its `.jpg` twin as the original artwork the palette
+    was sampled from — it is a public asset of a live site, and never published.
+  - **The palette is the existing `no-image-placeholder.png`'s**, not the app's
+    light/dark tokens: a social post is one image on someone else's feed, with
+    no mode to resolve. The two graphics stay one family — same backdrop, dot
+    grid, brand lockup and domain line.
+  - **"mafqoudat.com" is an outlined path**
+    ([domainWordmark.svg](client/scripts/assets/domainWordmark.svg)), set once in
+    Cairo 700 (designTokens' `display` face). Rasterising through librsvg would
+    otherwise depend on whatever fonts the machine running the generator happens
+    to have installed.
+  - **The server keeps its own list of which codes have a file**
+    ([categorySocialImages.js](server/config/categorySocialImages.js)) and falls
+    back to the generic placeholder for anything else, because Meta fetches the
+    URL itself and fails the whole publish on a 404. The server cannot see
+    `client/public`, so the two halves are held together by the offline check
+    below instead.
+  - **`isPlaceholder` stays true** when a category graphic is used, so the
+    caption still carries its `🖼️ الصورة: غير متاحة` line. The listing has no
+    photo of the item, and without that line a reader takes the icon for the
+    thing that was lost.
+- **Worker lifecycle**: started from `server.js` on the `mongoose.connection`
+  open event (it needs the database), stopped in `gracefulShutdown`, interval
+  `unref()`ed so it never holds the process open — anything queued is durable and
+  resumes on the next boot. `SOCIAL_QUEUE_ENABLED=false` turns social publishing
+  off without touching post creation.
+- **Ops**: `npm run social-queue -- --status | --doctor | --drain [--max=N] |
+  --retry-failed | --repair` ([socialQueue.js](server/scripts/socialQueue.js)).
+  `--doctor` is the pre-launch one: it checks everything a publish needs from
+  the outside world without publishing anything — is the token valid, **when
+  does it expire** (`debug_token`; a Page token derived from a user token
+  does, a System User token does not, and the difference is invisible until
+  auto-posting stops dead), does it carry `pages_manage_posts` /
+  `pages_read_engagement` / `instagram_basic` / `instagram_content_publish`,
+  do the Page and the Instagram account answer, how much publishing quota is
+  left, and can the category graphics actually be fetched as JPEG from
+  `CLIENT_URL`. Every one of those fails silently otherwise.
+  `--drain` runs the same worker from the command line, for a scheduler-only
+  deployment or to push a backlog through after fixing what was refusing it.
+  `--retry-failed` also clears the cached watermarked derivative
+  (`Post.socialImage`, see **the watermark** below) for every listing it
+  requeues, not only ones this build's own classifier would recognise —
+  `ensureSocialImage` only ever reuses a cache entry, it never re-validates
+  one, so a job that failed on a bad image would otherwise be requeued
+  straight back onto the exact file that was just refused.
+- **A platform refusing the media itself is not a permission error, even
+  though Meta nests both under the same `type: "OAuthException"`.** Instagram
+  answers a wrong format, an unfetchable URL or a rejected caption with an
+  error indistinguishable in shape from a missing scope, and the first version
+  of this queue's classifier treated every such error as one — logging "check
+  FACEBOOK_PAGE_ACCESS_TOKEN's scopes" for a problem no token change could
+  fix, and worse, giving up on the job for good with the bad derivative still
+  cached, so even a corrected image was never tried. It is classified and
+  handled before the authorisation checks, and `handleFailure` clears the
+  post's cached social image and retries through the normal backoff ladder
+  instead of failing outright.
+- **Offline check**: `npm run test-social-queue` in `server/` — no DB, no
+  network, no waiting: both collections are an in-memory fake, the publishers are
+  stubs, and the clock is injected, so the 24h quota window is exercised in
+  microseconds. Covers pacing, FIFO order, the quota deferral rolling over to the
+  next day, the platform-wide throttle stand-down, permission-vs-transient-vs-
+  media-content classification (and that the last one clears the cached
+  derivative on every attempt, not just the first), cancellation, stall
+  recovery, the two double-post guards, and that Instagram's longer pacing
+  floor holds independently of Facebook's shorter one on the same clock.
+  `npm run test-social-images` covers which graphic a photo-less listing
+  publishes with, and — the part that matters — checks both directions between
+  the server's code list and the generated files, since a code with no file
+  behind it 404s and takes the listing off the Page entirely.
+  `npm run test-social-publish` covers the two Graph publish paths themselves
+  ([testSocialPublishFlow.js](server/scripts/testSocialPublishFlow.js)): axios
+  and the caption builder are stubbed and Instagram's polling intervals are
+  constructor options, so a five-minute readiness budget runs in
+  milliseconds. It covers the request-body rule, the container state machine
+  (IN_PROGRESS → FINISHED, ERROR with and without a parseable subcode,
+  EXPIRED, a budget that runs out), both duplicate paths, the usage headers
+  and the quota endpoint.
+- **A listing with a photo is published with a watermarked copy of it, and the
+  site keeps the clean one.** Off the site a photo travels without the page
+  around it — reshared, screenshotted, saved — so it carries the domain it came
+  from; on the site a mark across the picture would sit between a reader and the
+  object they are trying to recognise, which is the one thing a listing exists
+  to help them do. So the mark is on a second asset, never on `cloudinaryUrl`.
+  - **It is drawn from the outlined Cairo wordmark, not from a supplied PNG.**
+    [imageWatermark.js](server/services/imageWatermark.js) tiles
+    `server/assets/domainWordmark.svg` — the same outlined "mafqoudat.com"
+    `buildCategorySocialImages.js` sets on the category graphics, copied in
+    because the server cannot see `client/` — as an SVG `<pattern>` the size of
+    the photo. Vector, so the mark is rasterised at whatever size *this* photo
+    needs rather than a fixed bitmap being scaled up into a blur; outlined, so
+    it needs no font installed; one `<pattern>`, so the whole overlay is a
+    single rasterisation at the final resolution instead of one tile resampled
+    N times, each landing on a different subpixel phase. A domain nobody can
+    read is the only way this feature fails completely, so resolution is what
+    it spends on.
+  - **Two faces, not one flat 15% grey.** A single tone disappears into a photo
+    of the same tone — a pale mark on a white wall, a dark one on a night
+    shot — so each mark is a white face with a darker copy offset behind it.
+    Measured rather than eyeballed: `test-social-watermark` composites onto a
+    white ground and a black one and asserts a peak departure on both, plus a
+    mean shift low enough that the photo is still the subject.
+  - **Generated at publish time, not at upload.** Post creation has never
+    waited on social publishing and still does not; the publish path is already
+    queued, paced and retried, so a download, a composite and a second
+    Cloudinary upload cost nobody a slower request there. It also means every
+    listing created before this gets its mark the first time it is published,
+    rather than only new ones.
+  - **`socialImage.sourceUrl` is what it was stamped from.** A photo replaced
+    while the job is still queued would otherwise publish the mark of the old
+    picture; the comparison is what forces a restamp. The derivative lives at a
+    deterministic `mafqoudat/social/post-<id>` public id, so a regeneration
+    replaces its predecessor instead of accumulating, two jobs for one listing
+    cannot duplicate it, and the ordinary cleanup paths (delete a listing,
+    replace or remove its photo, purge an account) delete it alongside the
+    site's own asset.
+  - **Uploaded with no Cloudinary transformation, and always baseline JPEG,
+    never progressive.** The mark is thin, light-toned strokes over a
+    photograph, which is exactly what a re-encode smears first, so the bytes
+    go up at the size and quality they were written at (`quality: auto`
+    explicitly not applied). Progressive is turned off explicitly
+    (`JPEG_PROGRESSIVE = false`) rather than left at sharp's default: Meta's
+    own spec singles out "extended JPEG formats" as unsupported, and
+    progressive-scan JPEGs are a documented soft spot for exactly this class
+    of automated fetcher elsewhere in the Meta ecosystem. A crawler reading a
+    file once has nothing to gain from progressive rendering anyway — that
+    encoding exists for a person watching a slow download paint in, which
+    never happens here.
+  - **Instagram's publishing rules are the shape of the file, because it
+    refuses rather than corrects.** Its Content Publishing API does not crop,
+    convert or shrink what it is handed: a container built from anything
+    outside the specification fails and the listing never reaches the account
+    at all. So `buildSocialImage` enforces all of it — sRGB JPEG (the site's
+    own asset is usually **WebP**, since `imageOptimizer` converts on upload,
+    and WebP is refused), 320–1440px wide, under 8 MB via a quality ladder, and
+    an aspect ratio inside **4:5 – 1.91:1**. That last one is the common case,
+    not an edge: a 3:4 phone photo is 0.75 and out of range.
+  - **Out-of-range photos are padded, never cropped.** A crop tight enough to
+    bring a 3:4 photo into 4:5 can take the keys out of the corner of the
+    frame, which is an expensive way to satisfy a specification — on a listing
+    whose whole job is helping someone recognise their property, the picture is
+    not ours to trim. The bars are the listing's own photo, blurred and dimmed,
+    and the watermark tiles across the whole frame so it never announces where
+    the padding starts. `resolveFrame` is the pure geometry, checked directly:
+    every shape a phone or a camera produces has to come out inside the range
+    with its own aspect ratio intact.
+  - **Two composites in one call.** sharp's `composite()` *replaces* whatever
+    was set before it, so building the padding in one call and the watermark in
+    a second silently publishes the blurred backdrop on its own — with the
+    right dimensions, the right format and the right colours, which is why the
+    test drops a marker at the centre of the photo and reads it back rather
+    than measuring the frame.
+  - **The Instagram caption is capped at its 2,200 characters, by trimming the
+    description.** The caption is trilingual and repeats the author's free text
+    verbatim in each block, so a listing with a long description was over the
+    limit three times over — error 2207010, container refused, nothing
+    published. `buildListingCaption` takes an optional `maxLength` (only
+    Instagram passes one; Facebook's limit is 63k) and binary-searches the
+    longest description that fits, because the room available depends on the
+    city, country, category list and hashtags. Cutting the caption at its end
+    instead would drop the link and the hashtags — the one line that lets
+    anyone act on the listing, and the way it is found — and keep the part a
+    reader can already see on the site. Hashtags are capped at 30, Instagram's
+    own limit, for the same reason.
+  - **A mark that cannot be made never costs the listing its publish — but a
+    plain photo is never allowed to mean "whatever the site happened to
+    store."** No Sharp, no Cloudinary credentials, a download or upload that
+    failed — every one of those answers null and the plain (usually WebP)
+    photo is published, because an unmarked listing on the Page is a smaller
+    loss than a listing that never reaches it. But the wordmark overlay itself
+    failing (a corrupt or unreadable `assets/domainWordmark.svg`) is a
+    narrower problem than that, and `buildSocialImage(buffer, { watermark:
+    false })` is the answer to it: `socialImageService.generate` tries the
+    full pipeline first and, only if that specific step throws, retries with
+    the overlay skipped — every format/geometry/size rule above is still
+    enforced, `Post.socialImage.watermarked` records which happened, and the
+    listing still gets a compliant JPEG rather than falling all the way back
+    to whatever format the original upload is in.
+  - **The uploaded copy is read back and checked before it is ever trusted.**
+    Cloudinary accepting an upload is not proof Instagram can use it — a wrong
+    `format` option, a stale cache entry under a reused public id, an account
+    delivery setting — and the first version of this shipped without checking,
+    which is exactly how one production listing reached Instagram as
+    something other than the JPEG that was built for it and came back
+    "(#9004/2207052) Only photo or video can be accepted as media type" with
+    no way to tell why from the error alone. `verifyPublishable` in
+    `imageWatermark.js` re-decodes the bytes actually served from the new URL
+    and asserts every rule above holds; a mismatch is logged with specifics
+    (format, dimensions, size) and the URL is never cached on the post — the
+    caller falls back exactly as it does for a failed download or upload, and
+    the plain photo publishes instead of an unverified derivative.
+  - **Offline check**: `npm run test-social-watermark` in `server/` — no DB, no
+    network; the images are generated in the test and axios, the uploader and
+    `models/Post` are stubbed (`imageWatermark.js` is fronted by a passthrough
+    stub too, so the watermark-optional fallback tier and the verification
+    step can each be driven independently of what the real implementations
+    do). Covers legibility on both grounds, the size cap, baseline-not-
+    progressive encoding, EXIF orientation, a transparent PNG flattening onto
+    white rather than black, restamping after a photo change, the two
+    platform jobs sharing one generation, a failed verification never caching
+    its URL, the watermark-only fallback still publishing a compliant image
+    and recording that it went out unmarked, and each failure answering null —
+    plus every shape a camera produces coming out inside Instagram's rules.
+    The caption cap and the category graphics' own compliance are covered in
+    `test-social-images`.
+
+## Browser notifications (web)
+
+The Web Push half of the channel the mobile app has had since match alerts
+shipped: an alert that reaches someone who is not currently looking at
+Mafqoudat. Setup, env vars and debugging: [web-push.md](docs/web-push.md).
+
+- **A second transport, not a second feature.** All three alert kinds (match,
+  comment, social publish) already existed and already decided who gets one and
+  in what language; `pushNotificationService` now hands each composed message
+  to two transports — Expo for the app's devices,
+  [webPushService.js](server/services/webPushService.js) for the browsers —
+  rather than each channel owning its own copy of the wording and the
+  preference gate. They cannot share a transport (an Expo token and an endpoint
+  URL plus two encryption keys are different protocols), but the decision
+  behind the message is one.
+- **Subscriptions are their own array on `User`**, beside `pushTokens` and for
+  the same per-device reasons, including the stored `language` (a push is
+  composed server-side, with no request to read one from) and the same
+  cross-account migration guard — a shared computer can carry one browser
+  subscription across two accounts, so registering clears the endpoint from
+  every other user first. Dead endpoints are pruned on a `404`/`410`, and only
+  those: a `429` or a `500` is that delivery's problem, not the subscription's.
+- **The VAPID public key is served, not built in.** `GET
+  /notifications/web-push-key` answers it, and an empty string when the
+  deployment has no keys — which the client reads as "browser alerts are not
+  available here", not an error. Building it into the bundle as a second
+  environment variable is how the two halves drift: a client built against last
+  month's key subscribes to a service that then refuses every send.
+- **The service worker is not a PWA worker.**
+  [push-sw.js](client/public/push-sw.js) handles `push` and `notificationclick`
+  and nothing else — no `fetch` handler, no caching, no Workbox, and it is
+  copied verbatim out of `public/` rather than generated. A worker that started
+  intercepting requests would quietly become the thing that decides which
+  version of the site a visitor sees, which is a much larger commitment than
+  receiving a notification. A click reuses a tab already on the site and
+  navigates it rather than opening a second window.
+- **A browser notification carries a URL, not a screen name** — the one thing
+  with no counterpart on the Expo side, and the one that fails silently
+  (a notification that looks right and does nothing when clicked). So each
+  sender states it: a single match opens the counterpart listing, a burst opens
+  the inbox, a comment opens its post, and a social publish alert opens the
+  listing's reach section via the same `?section=` deep link the in-app row
+  uses. `npm run test-push` pins all four.
+- **The offer is made once, immediately before a first listing is published**
+  ([EnablePushDialog.jsx](client/src/features/notifications/EnablePushDialog.jsx),
+  awaited from `NewPostForm`'s `handleSubmit`). The moment is the argument:
+  someone who has just written down what they lost is, right then, a person who
+  wants to be told when it turns up. It is an explainer, and the browser's own
+  prompt is fired by its Enable button — a denial is permanent, so spending one
+  on a visitor who has not been told what it is for spends it badly.
+- **Publishing never depends on the answer.** The dialog resolves a promise
+  `handleSubmit` awaits, both buttons resolve it, and the listing is created
+  either way. A hard gate was considered and rejected: a browser that has
+  already denied notifications can never be prompted again, and iOS Safari has
+  no Push API at all until the site is installed to the Home Screen — so
+  "cannot accept" and "will not accept" are indistinguishable from the page,
+  and gating on it would lock those people out of posting entirely. Chrome also
+  penalizes sites that gate content behind permission prompts. `canOfferWebPush`
+  narrows the offer to a first-time, undecided, capable browser **on a
+  deployment that has VAPID keys** — without that last check a site whose keys
+  are not configured yet still fires the browser's prompt and registers
+  nothing, spending a decision that can never be re-asked. The settings row
+  answers to `isWebPushAvailable` instead: someone who dismissed the one-time
+  offer must still be able to turn alerts on there, so only "can this work"
+  applies.
+- **The settings row is not a switch over an account preference.** The browser
+  owns this permission, per origin and per profile, so the row in
+  `NotificationPreferences` reads the permission *and* the subscription
+  together ('on' / 'off' / 'blocked' / 'unsupported') and offers only the
+  action that state allows — a browser that granted permission and then turned
+  alerts off here is still `granted` and receiving nothing, which the
+  permission alone cannot express.
+- **Re-registered once per page load** (`NotificationBell`), because push
+  services rotate endpoints and the server prunes one the moment a delivery
+  comes back "gone" — without it a browser can stop receiving alerts with
+  nothing on either side saying so. Signing out unsubscribes, server first
+  while the session still has a token.
+- **That sync subscribes, it does not only re-register.** Three states look
+  identical from the page — permission granted and nothing ever arriving — and
+  only one of them was repairable: an endpoint that rotated, a browser with
+  permission but *no* subscription at all (site data cleared, a first save that
+  failed, a sign-in on a browser that granted for another account), and a
+  subscription bound to a superseded VAPID key, which the push service will
+  accept from nobody. `ensureSubscription` is now the one path both
+  `requestSubscription` and `syncSubscription` take, and it creates or replaces
+  as needed; `subscribe()` needs no user gesture, only the prompt does. The New
+  Post offer cannot cover any of this — it only fires while the permission is
+  still `default`. The page-load flag also no longer latches on failure: it was
+  set *before* the call, so one attempt landing on an expired access token left
+  the browser unregistered for the whole session.
+- **The key route is public, and a failed key fetch is retried rather than
+  remembered.** The VAPID public key authorises nothing — every subscribing
+  browser receives it — but it sat behind `verifyJWT`, and the client asks once
+  per page load and caches the answer. So a request landing while the access
+  token was expired (the boot-time silent refresh, a rate-limited burst)
+  answered 401, and `''` became "this deployment cannot send" until the next
+  reload: no offer on the New Post form, and a settings row reporting the
+  channel unavailable. It is the one route in `notificationRoutes.js` declared
+  above `router.use(verifyJWT)`. The subscription save is a plain `fetch`, so
+  it does not inherit `apiSlice`'s refresh-and-retry either — it now refreshes
+  once itself on a 401, which is what the long-lived tab the sync exists to
+  repair actually hits.
+- **`pushAlerts` gates both transports, and only the app could see it.** It is
+  the account-level master over Expo *and* Web Push (all three senders check
+  it), but its only control lived in the mobile preferences panel — so a
+  subscribed, permitted browser could be silenced by a switch the web UI never
+  showed, which is the one failure that looks completely healthy from the
+  client. The web panel now carries the same switch above the browser row, the
+  browser row says so when it is subscribed under a muted master, and turning
+  browser alerts on from settings turns it back on.
+- **Nothing said whether the channel was configured at all.** Every failure
+  here is swallowed on purpose — a push must never cost a match, a comment or a
+  publish — which makes a deployment with no VAPID keys behave exactly like a
+  working one with no subscribers. `webPushService.describeConfiguration()` is
+  the one thing that separates them: `server.js` states it in one line at boot
+  (naming the missing variable and the command that generates a pair), and
+  `npm run doctor-push` answers it on demand — configuration, subscriber
+  counts, one account's browsers/devices/preference gates, and `--send` for a
+  real end-to-end delivery that writes nothing to the inbox. It validates the
+  pair through `web-push` itself rather than by eye, and a `CLIENT_URL` that is
+  neither `mailto:` nor `https:` (every developer's `http://localhost:3000`)
+  falls back to a `mailto:` subject instead of taking the whole channel down —
+  `setVapidDetails` rejects it outright. `render.yaml` declares the keys, which
+  it never did; they are `sync: false`, so an unset deployment is now a visible
+  gap rather than an invisible one.
+- **`/push-sw.js` is served `no-cache`.** Vercel's generic `/(.*)\.js` header
+  rule gave it `max-age=3600, s-maxage=86400`, so a changed service worker
+  could be a day stale on the CDN and a browser is allowed to satisfy its own
+  update check from the HTTP cache while `max-age` holds. Its rule is declared
+  *after* the generic one, because every matching header rule is applied in
+  order and the last value set for a key wins.
+- **`webPushSubscriptions.endpoint` is indexed**, like `pushTokens.token`
+  beside it and for the same two lookups: registration asks which account
+  already holds an endpoint, and pruning a dead one asks the same — the second
+  inside the send loop.
+
+## "Your listing is on our Facebook page" notifications (web + mobile)
+
+Tells a listing's author what became of its auto-posted copy. The publish is
+queued and paced (see **Auto-posting to Facebook/Instagram** above), so it lands
+anywhere from a minute to — after a quota deferral or a spam-block cooldown —
+many hours later, and until now that happened entirely out of sight.
+
+- **One alert per platform, sent the moment that platform's job reaches a
+  terminal state.** Never one combined "shared to both": the two jobs are
+  independent (Facebook paces at 60-105s, Instagram at 180-300s, either can be
+  deferred alone, either can fail while the other succeeds), so holding the
+  first until the second resolves would delay an alert whose whole value is
+  immediacy, and would need cross-job state the queue does not otherwise keep.
+  Two rows is what actually happened.
+- **Only a terminal outcome writes anything.** `recordPublished` announces a
+  success (including the `recovered` path, where the platform turned out to
+  already carry the listing); `retryOrFail` announces a failure *only* when it
+  gives up after `MAX_ATTEMPTS`. A retry, a rate-limit cooldown, a quota
+  deferral and a credentials stand-down all still end with the listing going up
+  by itself — saying "failed" while the queue is still working on it would be
+  wrong twice over. A cancelled job (listing deleted or no longer active) says
+  nothing at all.
+- **The write is fire-and-forget and doubly guarded.**
+  [socialPublishNotificationService.js](server/services/socialPublishNotificationService.js)
+  never throws, and `SocialPublishQueue.announce` catches on top of that: a
+  notification must never be able to turn a successful publish into a retried
+  one. It is a constructor seam (`notifyAuthor`) for the same reason
+  `invalidateSocialImage` is — the offline harness has no `Notification`/`User`.
+- **`Notification.type` gained `social_published`**, with `platform`
+  (facebook|instagram) and `socialStatus` (published|failed) required only for
+  it, and its own `partialFilterExpression` unique index on
+  `{user, type, post, platform}` — the queue retries, reclaims stalled jobs and
+  can be re-run by hand, and that index is what stops one listing reaching one
+  page from buzzing its author twice. `server.js`'s `Notification.syncIndexes()`
+  picks it up on deploy.
+- **The inbox gains a third source.** `notificationsController.listNotifications`
+  already merged grouped match leads with flat comment rows in JS; social rows
+  are flat too (`kind: 'social'`) and join the same time-sorted merge, with
+  `getUnreadCount` summing all three so the bell badge and the list agree.
+  Unlike matches, a *returned* or resolved listing is not filtered out — the
+  copy really is on that page whatever the listing did since, and this is the
+  reader's own post, not a lead to chase. No permalink travels with the row:
+  both clients open the listing's reach section, which reads the links live off
+  the post, so a copy deleted from the Page afterwards cannot leave a dead link
+  in an inbox.
+- **Preference**: `notificationPreferences.socialAlerts` (default on),
+  independent of `matchAlerts`/`commentAlerts` — this one reports what the
+  platform did with the reader's own listing, not someone else's activity. Push
+  still rides the shared `pushAlerts` switch and the existing `match-alerts`
+  Android channel (a second channel would need its own app-side registration
+  for a toggle this preference already covers), but at `priority: 'normal'` and
+  a 7-day TTL rather than the match/comment alerts' `high`/2 days: the listing
+  is already live, nothing here is time-critical, and a status report on your
+  own post does not go stale the way an unread lead does.
+- **Tapping the alert opens the listing scrolled to its reach section**, which
+  is where both platforms' numbers and permalinks live and the obvious next
+  question ("how is it doing?"). This is the app's first deep link *into* a
+  section, so it was built as a mechanism rather than a one-off:
+  `?section=social-reach` on web
+  ([useSectionDeepLink.js](client/src/hooks/useSectionDeepLink.js)), a `section`
+  route param on mobile (`PostDetailScreen`), and the same `'social-reach'`
+  string in the push payload's `section` field so both platforms land in the
+  same place. Web's hook handles the four things that break a naive
+  `scrollIntoView`: the section may not exist yet (it retries for up to 15s
+  rather than looking once — sized for the cold-start case below, not just a
+  slow API call), **a tap on a real push notification is a fresh document
+  load, not a client-side route change** (`push-sw.js`'s `notificationclick`
+  navigates via `Client.navigate`/`clients.openWindow`, so the bundle has to
+  download and boot and the post has to fetch before the section exists at
+  all — this is why the deep link worked instantly from an already-open tab
+  but did nothing on a phone tapping the actual notification until the retry
+  window was widened past the original 4s), the lazy-loaded hero photo above
+  the section keeps shifting the page on that same slow connection (a few
+  correction passes at 700ms/2s/4s, each a no-op unless the section actually
+  drifted — never an unconditional jump at a reader who has since scrolled),
+  and `prefers-reduced-motion` gets placement instead of travel. It arrives
+  with a brief brand-colored ring, because landing mid-page with no
+  explanation reads as a mis-scroll. Mobile measures with two `onLayout`s (the
+  body block's offset plus the section's offset inside it) rather than
+  `measureLayout` node handles or a scroll listener.
+- **The reach section now renders as soon as a copy exists**, numbers or not
+  (web `SocialReach.jsx` and mobile `SocialReach.js`, both gated on
+  `permalink || any count`). It used to render nothing until engagement had been
+  read back — which is exactly the state an author arrives in from this alert,
+  moments after publishing, and an empty screen there reads as if the listing
+  was never shared. What is still never rendered is a count nobody measured:
+  every metric chip drops itself when its value is null, and a "numbers show up
+  here once the page reports them" line explains the gap.
+- **Offline checks**: `npm run test-social-queue` covers when the author is and
+  is not told (both platforms announce their own publish; a retry says nothing;
+  giving up is the one failure that speaks; a platform-wide throttle and a
+  cancelled listing stay silent), and `npm run test-push` covers the tray copy
+  per platform, per language, the failure wording, the `section` payload, and a
+  platform this build has no wording for sending nothing at all.
+
+## Reach: post views + social engagement (web + mobile)
+
+How much attention a listing has had, from two independent sources. Both front
+ends read the same fields off the posts API; the numbers are produced entirely
+server-side.
+
+- **Site views**: `Post.views`/`lastViewedAt` were on the schema and rendered on
+  both platforms long before anything incremented them — every listing reported
+  zero forever. [postViewTracker.js](server/middleware/postViewTracker.js) now
+  counts them, mounted on `GET /posts/:id` **ahead of** `postsCache` — on a cache
+  hit the controller never runs, so a counter incremented inside `getPost` would
+  miss most views. One viewer counts once per `POST_VIEW_DEDUPE_MINUTES` (30),
+  keyed on account id when a token is present and on IP otherwise, and an author
+  viewing their own post is not counted. It reads the token through
+  `readBearerUserInfo` (exported from
+  [optionalAuth.js](server/middleware/optionalAuth.js)) *without* touching
+  `req.user`: the detail cache key includes `req.user`, so populating the request
+  there would hand every signed-in viewer their own copy of an identical
+  response. Consequence: the stored count is always current, the *displayed* one
+  can lag by the detail cache TTL (30 min).
+- **Social engagement**: every post is auto-posted to the Facebook Page and the
+  Instagram account on creation (queued and paced — see **Auto-posting to
+  Facebook/Instagram** above). Those publish responses used to be logged and
+  discarded; `Post.social.{facebook.postId,instagram.mediaId}` + permalinks are
+  now persisted as each publish lands, which is what makes it possible to ask
+  Graph anything afterwards. **Posts created before this
+  have no ids and can never get stats** — there is no reliable way to map an old
+  listing back to its Page copy.
+- **Reader**: [socialStatsService.js](server/services/socialStatsService.js) fills
+  `Post.socialStats` (fb: views/reactions/comments/shares/engagedUsers/clicks,
+  ig: views/likes/comments/saved, plus `fetchedAt` and a per-platform
+  `unavailable`). Never on a request's critical path — called fire-and-forget
+  via `scheduleRefresh(posts)` and serves whatever is stored. Reads go through
+  **Graph's Batch API** (`POST` with a `batch=[...]` form body, 50 objects
+  max) — *not* `?ids=`, which **Meta deprecated in v26.0**: it answers every
+  such call with `(#100) The ids query parameter is deprecated in v26.0+`, so
+  the whole feature silently fetched nothing until this was changed. A
+  regression check in `test-social-stats` pins that the parameter never comes
+  back. Batch sub-requests each carry their own status code, so one deleted
+  Page post costs exactly its own entry and no retry pass is needed; that post
+  is marked `unavailable` and never asked about again. Counts and insight
+  metrics are fetched as separate
+  concerns on purpose: counts (reactions/comments/shares/likes) come off
+  ordinary edges the page token already has, while **views, engaged users and
+  clicks (FB) / views and saved (IG) all need `read_insights` (FB) /
+  `instagram_manage_insights` (IG)** and are simply absent without them.
+  Insight metric names are **probed, not assumed — independently per metric,
+  not per platform** (Meta replaced `impressions` with `views` on IG in v22
+  and retired the Page reach/impressions family in June 2026; `engagedUsers`/
+  `clicks`/`saved` are unrelated concepts from views, not alternate names for
+  it) — first candidate that answers wins and is memoized per metric for the
+  process; a failed probe is remembered for 6h so a missing permission costs
+  one probe per metric, not one per refresh, and a rename or missing
+  permission on one metric never costs the others. `engagedUsers` (a rollup
+  that already overlaps reactions/comments/shares) and `clicks`/`saved` (real
+  but separate actions) are deliberately **not** folded into the card-level
+  `interactions` total — each stays its own row on the detail-page breakdown
+  instead of silently redefining a number that already shipped. Every knob is
+  env: `SOCIAL_STATS_TTL_MINUTES` (180), `_BATCH_SIZE` (50), `_MAX_PER_RUN`
+  (50), `_FB_VIEW_METRICS`, `_FB_ENGAGED_METRICS`, `_FB_CLICKS_METRICS`,
+  `_IG_VIEW_METRICS`, `_IG_SAVED_METRICS`, plus shared `GRAPH_API_VERSION`.
+  Graph plumbing common to all three Meta services (version, error predicates)
+  lives in [graphApi.js](server/services/graphApi.js). **Freshness is
+  two-tier** (`SocialStatsService.ttlFor`): a post younger than
+  `SOCIAL_STATS_YOUNG_POST_HOURS` (24) uses `SOCIAL_STATS_YOUNG_TTL_MINUTES`
+  (10) instead of the settled-post TTL above. Without this, the very first
+  read — moments after creation, before anyone off-site could have reacted —
+  stamps `fetchedAt` and blocks every re-check for the next three hours
+  regardless of what happens on the Page in between, which is exactly the
+  window an owner is most likely checking (post, go react to it yourself,
+  come back to look). Requires `createdAt` selected on whatever's passed to
+  `isStale`/`refreshStale` — `postStatsOverlay.js` and
+  `scripts/refreshSocialStats.js` both select it purely for this, never
+  expose it. Missing `createdAt` falls back to the long TTL, never "always
+  young". No push/webhook alternative: Instagram doesn't expose a likes
+  webhook at all (comments/mentions only), so even a webhook build wouldn't
+  make IG likes instant, and it would still need its own public endpoint +
+  signature verification + App Review — the two-tier TTL gets most of the
+  practical benefit (minutes, not hours) without that project.
+  **Deletion is not recoverable**: this is a poll-based reader, not a webhook
+  subscriber, so engagement that happened between the last successful read
+  and a Page-side deletion is gone the moment the object disappears — the
+  post is marked `unavailable` with whatever numbers it last had, not
+  whatever activity actually occurred.
+- **These three fields never enter the response cache.** `views`,
+  `social` and `socialStats` are the fastest-changing fields on a post, while
+  `postsCache`/`optimizedPaginatedCache`/`searchResultsCache` (and
+  `getUserPosts`' own inline cache) hold the rest of a post response for
+  10-30 minutes on purpose — the wrong tradeoff for numbers that change on
+  every page view. They first shipped projected straight into the same
+  cached aggregate, which froze a fresh view, a just-stored Facebook/
+  Instagram id, or a newly-fetched engagement count for up to the cache TTL —
+  and because a cache hit skips the controller entirely, the refresh that was
+  supposed to keep them current never even fired during that window.
+  [postStatsOverlay.js](server/middleware/postStatsOverlay.js) fixes this: none
+  of the four read controllers project these fields anymore, and the
+  middleware wraps `res.json` **ahead of every cache layer** on all four
+  routes, so it runs whether the rest of the response came from a cache hit or
+  a fresh aggregate. It reads the three fields fresh (one `findById`/batched
+  `find` by `_id`, cheap since it's an indexed point read with no `$lookup`s),
+  merges them into the outgoing payload, and is now the *only* place that
+  calls `scheduleRefresh` — a listing page's cache hit still triggers a stats
+  refresh, which it could never do before. `npm run test-post-stats-overlay`
+  covers it offline (both response shapes, a deleted post, an empty page, and
+  a DB failure that must not break the response).
+- **Refresh paths**: opportunistic on every listing/detail read regardless of
+  cache state (see above — covers anything anyone is looking at), plus
+  `npm run refresh-social-stats` in `server/` for a scheduler to catch
+  listings nobody has opened. A third, optional path:
+  [facebookWebhookRoutes.js](server/routes/facebookWebhookRoutes.js) receives
+  Meta's Page `feed` webhook (reaction/comment/share on a specific post) and
+  calls `scheduleRefreshByFacebookPostIds` — an accelerant on top of the poll,
+  never a replacement (webhook delivery is best-effort per Meta's own docs;
+  the poll is what guarantees eventual correctness). Signature-verified via
+  [facebookWebhookSecurity.js](server/middleware/facebookWebhookSecurity.js)
+  against `req.rawBody`, which `server.js`'s global `express.json({ verify })`
+  stashes before parsing — HMAC has to run over the exact bytes Meta signed.
+  Instagram has no likes webhook at all (comments/mentions only), so IG stays
+  entirely poll-based regardless. Fully optional — nothing here does anything
+  until `FACEBOOK_WEBHOOK_VERIFY_TOKEN` is set and the Page is subscribed via
+  the Meta App Dashboard; setup walkthrough and troubleshooting:
+  [facebook-webhooks.md](docs/facebook-webhooks.md). `npm run
+  test-facebook-webhook` covers the signature check, the verification
+  handshake, and payload parsing offline; the TTL-bypassing refresh path
+  itself is covered in `test-social-stats`.
+- **Two numbers, never one.** A page visit here, a Facebook reaction and an
+  impression in someone's feed are different units — site views and social views
+  are never summed, and platforms are never pooled into one total. Same rule as
+  the dashboard stat boxes: don't state a measurement nobody took. Counters are
+  `null` until actually fetched, so "not fetched", "no insights permission" and
+  "genuinely zero" stay distinct; only the last renders.
+- **UI**: shared normalizer in [socialStats.js](client/src/utils/socialStats.js)
+  mirrored 1:1 at [mobile/src/utils/socialStats.js](mobile/src/utils/socialStats.js).
+  Web — [ReachRow.jsx](client/src/components/ReachRow.jsx) on cards (`Post.js`
+  grid *and* list layouts, plus `MyPostsPage.jsx`, which still carries its own
+  pre-redesign card) and [SocialReach.jsx](client/src/features/posts/PostPage/SocialReach.jsx)
+  on the detail page, using the existing eyebrow + icon-and-text vocabulary, no
+  new card treatment. Mobile — `PostReachRow` and `SocialReachSection` in
+  [SocialReach.js](mobile/src/components/SocialReach.js), used by
+  `PostsListScreen`/`MyPostsScreen` cards and `PostDetailScreen`; Phase 9 rules
+  apply and direction goes through `utils/rtl.js`. Facebook/Instagram brand
+  colors are the one documented exception to the token rule — those rows point at
+  Meta, so the palette is not ours to pick.
+- **Offline check**: `npm run test-social-stats` in `server/` — no DB, no network,
+  stubs Graph with a fake that answers in Meta's error envelope; covers batching,
+  the deleted-post fallback, metric probing, permission-less degradation and
+  outage handling.
+
+## Comment threads (web + mobile)
+
+One thread per post, merging two sources that are never allowed to look
+equivalent: comments written on the site, and comments left on the
+auto-posted Facebook/Instagram copies.
+
+- **Model**: [Comment.js](server/models/Comment.js) — site comments only.
+  Social comments are *not* stored here; they're cached on
+  `Post.socialComments.{facebook,instagram}` by `socialStatsService` and
+  merged at read time. Deletion is **soft** (`status: 'removed'`) so a report
+  filed against a comment stays judgeable after the author deletes it.
+- **Reading is public, writing needs an account.** `GET /posts/:id/comments`
+  runs under `optionalAuth` — guests get the thread, a signed-in reader
+  additionally gets per-comment `canDelete`/`canReport` flags and has blocked
+  authors filtered out. `POST`/`DELETE`/report are all behind `verifyJWT`.
+- **Who can delete**: the comment's author, the post's owner (it's their
+  listing), or an admin. Reporting reuses the existing `Report` collection
+  with a new optional `commentId`, so admins keep **one** moderation queue
+  rather than two.
+- **Social comments are read-only, for everyone.** No delete, no report-to-us,
+  no reply — we have no authority over that platform. `canDelete`/`canReport`
+  are hardcoded false and their ids are namespaced (`facebook:<id>`) so they
+  can never collide with a site comment id.
+- **One-way by deliberate decision — never post to Facebook on a user's
+  behalf.** The only mechanism available is the Page token, which would
+  publish the user's words as the *Mafqoudat Page itself*, not as them:
+  misattribution, a moderation liability on your own Page, confusing for
+  Facebook readers, and the kind of bulk automated posting Meta's spam systems
+  flag. Don't add this without re-deciding it explicitly.
+- **The merge is by time, across sources** (`mergeCommentSources`) — someone
+  reading a lost-property thread wants it in the order it happened, not the
+  site's half followed by Facebook's. A social comment with no usable
+  timestamp sorts last, never first. Every entry keeps its `source`, and both
+  UIs keep that badge visible: "a stranger on Facebook said this" and "a
+  registered user here said this" are different claims to a reader judging a
+  lead about their property.
+- **Bounded, not paginated by page number.** The merged list is re-sorted on
+  every request, so a later page isn't stable enough to append to (a new
+  comment shifts everything down by one). Both clients "load more" by growing
+  the first page instead. Site comments cap at `MAX_SITE_COMMENTS` (200),
+  social at `SOCIAL_COMMENTS_LIMIT` (25/platform, env) — this is context
+  beside the site's own thread, not a mirror of the Page.
+- **Comment text rides along with the counts**, in the same batched Graph call
+  that already fetched reactions/comments/shares — no extra request. A `null`
+  comment list means the edge wasn't readable and keeps whatever was cached;
+  `[]` is a real answer and overwrites.
+- **Comment text is a separate, stronger permission** — `pages_read_user_content`
+  (FB) / `instagram_manage_comments` (IG), distinct from the grant that reads
+  the *count*. And Graph does not politely omit a field it won't serve: it
+  **rejects the whole object**, so asking for comment text without the
+  permission took reactions, shares and insights down with it and left
+  listings blank. `readWithFallback` catches that refusal, drops the
+  comment-text field and re-reads, then remembers the refusal for 6h (same
+  memo shape as `resolvedMetrics`) so it costs one wasted request twice a day,
+  not one per refresh — and picks comments up by itself if granted later.
+  Covered in `test-social-stats`; the general rule is that an optional field
+  must never be able to cost a required one.
+- **UI**: [CommentsSection.jsx](client/src/features/posts/PostPage/CommentsSection.jsx)
+  and [CommentsSection.js](mobile/src/components/CommentsSection.js). Meta
+  brand colors on the source badges are the same documented exception as
+  `SocialReach`. Mobile follows Phase 9 (parent borderless/shadowless, badges
+  carry the sub-element shadow) and routes direction through `utils/rtl.js`.
+- **Comment notifications**: the post's owner gets an in-app alert and,
+  preference permitting, a push, when someone comments on a *site* comment
+  (social comments read back from Facebook/Instagram never notify — the
+  platform's own notifications already cover that, and this app has no
+  authority over that side anyway). Never fires on your own comment.
+  `Notification.type` gained `new_comment` alongside `match_found`
+  ([Notification.js](server/models/Notification.js)); `matchedPost`/`match`/
+  `score` are required only for `match_found`, a new `comment` ref only for
+  `new_comment`, and the old single unique index was split into two
+  `partialFilterExpression`-scoped ones (an unscoped compound unique index
+  would treat every comment row's missing `matchedPost` as an equal `null`
+  and reject the second comment on any post as a duplicate key) — `server.js`
+  runs `Notification.syncIndexes()` on connect so an existing deployment picks
+  up the corrected index rather than keeping the stale one.
+  [commentNotificationService.js](server/services/commentNotificationService.js)
+  writes the row and queues the push, called fire-and-forget from
+  `commentsController.createComment` so a failed alert can never fail the
+  comment write. Push copy/channel:
+  [pushNotificationService.js](server/services/pushNotificationService.js)'s
+  `sendCommentAlert` — same Android channel as match alerts (`match-alerts`),
+  not a second one; the in-app `commentAlerts` preference is what gates the
+  feature, independent of `matchAlerts`/`pushAlerts` which stay match-only.
+  **The inbox merges two differently-shaped sources**: match alerts group by
+  the reader's own post (see above); comment alerts are flat, one row per
+  comment, fetched and paginated separately (bounded at
+  `MAX_ITEMS_PER_SOURCE`, 300, per source) then merged and re-sorted by
+  time in JS in `notificationsController.listNotifications` — not a DB-level
+  `$unionWith`, to stay off the same server-version floor `$sortArray` is
+  avoided for elsewhere in this doc. `getUnreadCount` sums both sources' exact
+  unread counts, so the bell badge and the two list kinds never disagree.
+  Client: web's `CommentNotificationItem.jsx` (a `kind: 'comment'` entry
+  alongside `NotificationGroup`'s `kind: 'match'` in `NotificationsPage.jsx`
+  and the bell popover) and mobile's `CommentNotificationCard.js` (same split
+  in `NotificationsScreen.js`), styled from the existing row/badge vocabulary
+  rather than inventing new card language — no found/lost tag or confidence
+  score, since a comment isn't a counterpart listing to judge.
+- **Offline check**: `npm run test-comments` — no DB, no network; covers the
+  permission flags per viewer and the cross-source time merge.
+  `npm run test-push` also covers `sendCommentAlert` (commenter-name wording,
+  the anonymous fallback, truncation).
+
+## Input length + output encoding (server)
+
+Where a user's free text is bounded, and where it is escaped. Two separate
+questions that were previously answered by one global middleware doing neither
+well.
+
+- **What was there**: `sanitizeInput` in
+  [validation.js](server/middleware/validation.js), mounted globally, cut every
+  string at 1000 characters and stripped `<`, `>`, `javascript:` and `on\w+=`
+  out of it. It has been reduced to trimming whitespace. Both of the things it
+  removed were the wrong layer: length is a schema rule, and escaping depends
+  entirely on where a value is being written to.
+- **Two things it was quietly not doing.** Mounted at `server.js` line 149 it
+  runs *ahead of* `express.json()`, so `req.body` was not parsed yet and only
+  the query string was ever touched — the truncation everyone assumed was
+  protecting the database never ran on a post body at all. The one place it did
+  see a body was its per-route mount on `PATCH /contact/:id`. So the JSON-LD
+  hole below was live, not hypothetical.
+- **Limits live in [fieldLimits.js](server/config/fieldLimits.js)**, read by
+  both halves of the enforcement so they cannot drift: the `maxlength`
+  validators on [Post.js](server/models/Post.js),
+  [Comment.js](server/models/Comment.js) and [Report.js](server/models/Report.js)
+  are the backstop (both post write paths are `Post.create` / `doc.save()`, so
+  document validation actually runs on them), and the express-validator rules
+  in `validation.js` turn the same numbers into a 400 naming the field instead
+  of a mongoose `ValidationError` surfacing as a 500. Post: contact 100,
+  exactLocation 200, description 2000, mainDate 100. Comment text 1000.
+  `Post.socialComments[].text` is deliberately uncapped — those are a mirror of
+  what Facebook already published, not a submission, and a limit there would
+  only turn someone else's long comment into a failed stats refresh.
+- **`PATCH /posts` validated nothing but the id.** Create and update now share
+  `assertPostTextLengths`, and both read their payload through
+  `readPostPayload` — the clients send the whole listing as a JSON string in a
+  multipart `postData` field, so an ordinary `body('description')` rule sees
+  nothing on either route.
+- **The 400 now carries `error.fields`** (`{ field, message }` per failure)
+  alongside the existing generic `message`. Additive, and the point of the
+  exercise: an author whose 3000-character description is refused has to be
+  told which field and why, or the fix is only a louder version of the silent
+  truncation.
+- **The JSON-LD in [ogRoutes.js](server/routes/ogRoutes.js) escapes its own
+  output.** `<script type="application/ld+json">` content is raw text; the only
+  thing that can end it early is a literal `<`, so `escapeJsonLd` rewrites it
+  as `\u003C`, which a JSON parser reads straight back as `<`. Escaping, not
+  stripping: the crawler still gets the description exactly as written. Every
+  other interpolation in that file already went through `escapeHtml`.
+- **`textContent` dropped its `<>` rejection.** It only guards comment text,
+  and with the stripping gone the rule would have started refusing ordinary
+  writing ("a > b") with a generic "cannot contain HTML tags". React and React
+  Native escape their own output; the markup question is answered there.
+- **`?search=` is bounded at 200** on the three listing routes. It reaches the
+  query as a `$regex` (`postsController.js`), so an unbounded term is an
+  expensive scan handed to a stranger — the old truncation capped it at 1000 as
+  a side effect, this replaces that with something deliberate and refused
+  rather than silently rewritten. Note the term is still interpolated into
+  `$regex` **unescaped**, unlike the `escapeRegex(value)` calls further down the
+  same file; that is pre-existing and untouched.
+- **Offline check**: `npm run test-input-validation` in `server/` — no DB, no
+  network (models/Post and models/City stubbed for the ogRoutes block). Renders
+  the real crawler page for a post whose description is
+  `</script><script>alert(1)</script>` and asserts both JSON-LD blocks still
+  parse as JSON, the document still contains exactly two `<script` tags, and
+  the description survives the round-trip unchanged; then covers the schema
+  backstop, the create/update/comment 400s, and that `sanitizeInput` trims but
+  no longer truncates or rewrites.
+
+## Consent + analytics (web)
+
+Google's Funding Choices ("Privacy & messaging" in AdSense) is the site's
+consent management platform, and the only consent UI on it. Required before
+AdSense will serve ads to EEA/UK visitors, which the Moroccan/Arab-world
+diaspora traffic makes a real share of.
+
+- **Nothing Google-owned loads before an answer.** `public/index.html` used to
+  carry the gtag.js snippet, unconditionally, so the GA cookie was written on
+  first byte for every visitor. The document now carries only Consent Mode v2
+  defaults (`ad_storage`/`ad_user_data`/`ad_personalization`/`analytics_storage`
+  all `denied`, `wait_for_update: 2000`, `ads_data_redaction` on) and the
+  Funding Choices loader. gtag.js is requested from
+  [analytics.js](client/src/utils/analytics.js), after
+  [consent.js](client/src/utils/consent.js) reports analytics consent, and never
+  otherwise. The defaults stay inline in the head rather than moving into the
+  bundle: any Google tag reads the dataLayer as it loads, so the standing answer
+  has to already be in it.
+- **No signal is not consent.** A build with no publisher ID, a CMP request an
+  extension blocked, a `__tcfapi` that never appears within 8s — all resolve to
+  denied, and GA stays off. The consequence is worth stating plainly: deploying
+  without `REACT_APP_FC_PUBLISHER_ID` set turns analytics off, rather than
+  leaving it running unasked. `scripts/postbuild.js` says so at build time.
+- **Publisher ID is injected, like the GA one.** `REACT_APP_FC_PUBLISHER_ID`
+  (the AdSense publisher ID, `ca-` prefix optional) replaces
+  `FC_PUBLISHER_ID_PLACEHOLDER` in `injectFundingChoices`, beside the existing
+  `injectGoogleAnalytics`. Both run before `prerenderSeo`, which copies
+  `build/index.html` as the shell for every route it writes — an injection that
+  ran after it would reach the home page only. The loader in the HTML checks its
+  own placeholder and requests nothing while it is unreplaced.
+- **Consent is read from TCF, and republished as Consent Mode v2 signals.**
+  `consent.js` attaches a `__tcfapi('addEventListener', 2, …)` and maps the TC
+  string: `analytics_storage` from purpose 1 alone (a first-party measurement
+  cookie is what it needs permission for), the three ad signals additionally
+  requiring Google's GVL vendor id 755, and purposes 7 / 3+4 for
+  `ad_user_data` / `ad_personalization`. Where the mapping is ambiguous it
+  requires more rather than less. `gdprApplies: false` — the CMP saying it will
+  never show this visitor a message — grants; `cmpuishown` (asked, unanswered)
+  leaves the denied default standing. A later `useractioncomplete` moves signals
+  in both directions, so a withdrawal is honoured without a reload.
+- **`CookieNotice.jsx` explains cookies and does not ask about them.** It never
+  did — it is a policy page, not a banner — so the CMP replaces nothing there.
+  What it gained is the way back in: a "Manage cookie preferences" panel calling
+  `openConsentManager()` (`googlefc.showRevocationMessage()` via the callback
+  queue), rendered only when a publisher ID is configured. Withdrawing has to
+  stay as easy as consenting, and the CMP is unreachable once answered.
+- **Dark mode is corrected, not restyled.** The message is Google's markup in
+  our document, its palette configured in AdSense, and one palette has to sit on
+  both themes.
+  [consentMessage.css](client/src/styles/consentMessage.css) overrides surface,
+  text and border color only, under `:root[data-color-scheme="dark"]`, from CSS
+  custom properties [documentTheme.js](client/src/utils/documentTheme.js)
+  publishes off `resolveDesignTokens` — nothing moves, hides, resizes or
+  reorders any part of it, which TCF policy does not allow. Light mode is left
+  entirely alone. `data-color-scheme` is set inline in `index.html` from the same
+  `globalState.mode` localStorage key the Redux slice persists, because the
+  message can be drawn before React mounts; `App.js` keeps it in sync after. No
+  directional properties are touched, so RTL stays Google's business.
+- **The Facebook Pixel in `index.html` is still ungated.** It fires on page load
+  the way GA used to. Out of scope for the pass that added the CMP, but it is
+  the remaining hole in "no tracking before consent" — the mechanism to close it
+  is the same `onConsentChange` subscription.
+
+## Dependency advisories (Dependabot)
+
+Full record: [dependency-advisories.md](docs/dependency-advisories.md). The
+short version, because the wrong reflex here is expensive:
+
+- **Every advisory GitHub reports on this repo is in build/dev tooling.**
+  `server/` — the only deployed thing with a request surface — audits clean.
+  `client/`'s come from `react-scripts@5.0.1` and the `react-snap`
+  devDependency, `mobile/`'s from the Expo/Metro CLI. Neither CRA nor
+  react-snap will publish an update, so fixes are pinned as `overrides` in
+  each `package.json`.
+- **`npm audit fix` is not the tool.** It answers nearly all of these with a
+  `react-scripts@0.0.0` / `react-snap@1.13.1` *downgrade*.
+- **Check the fix exists before pinning one.** `extract-zip`, `image-size` and
+  half the `webpack-dev-server` advisories have no patched release at all —
+  the newest published version is still in the vulnerable range.
+- **Three pins are deliberately not the newest version, and one advisory is
+  deliberately left open.** A root `cookie` override would downgrade
+  `react-router@7`'s shipped copy; `webpack-dev-server@5+` removes the v4 API
+  CRA's dev-server config is written against; `mobile`'s `uuid` stops at `^11`
+  because `xcode` `require`s it and `uuid@14` is ESM-only; and
+  `decode-uri-component@0.5.0` is ESM-only too, which breaks the CommonJS
+  `query-string` under React Navigation — i.e. deep links, i.e. OAuth
+  callbacks and push taps. Each of those is verified in the doc, not assumed.
+
+## Admin console (web)
+
+`/dash/admin` — nine routes behind `AdminRoute`, in
+[client/src/features/admin/](client/src/features/admin/). Replaced a single
+2577-line `AdminDashboard.jsx` holding eight `useState` tabs. The old panel's
+own components (`UsersTable`, `PostsTable`, `PostsFilterBar`, `UsersSearchBar`,
+`PostDetailsDialog`, `UserPostsDialog`, `VisitorStats`, and its
+`ResetPasswordDialog`) are gone; everything is built from the primitives below.
+
+**What was actually broken**, since these are the reasons for most of the shape:
+
+- **Every admin cache invalidation was dead.** `adminApiSlice` tagged with
+  `Reports`, `AdminUsers`, `Promotions`… and none of those were declared in
+  `apiSlice.tagTypes`. RTK Query discards an undeclared tag, so approving a
+  report, deleting a user or processing a promotion succeeded on the server and
+  left the table showing the old row until a hard reload. The tags are now
+  declared and all prefixed `Admin`.
+- **The reports and promotions queues rendered `post.title`.** `Post` has never
+  had a `title`; both columns showed "No title" on every row, always. A listing
+  is named by its description — `postLabel` on the server, `postTitle()` on the
+  client.
+- **Comment reports were invisible.** `Report.commentId` has existed since
+  comment threads shipped and those reports land in the same queue, but the
+  table only knew about listings — so "inappropriate content" appeared attached
+  to an ordinary lost-wallet post with the objectionable words nowhere on
+  screen.
+- **Fourteen queries fired on mount**, none of them skipped, while seven eighths
+  of them were behind a hidden tab. Opening the panel now costs one request (the
+  overview); every list is fetched by the page that shows it.
+- **The maintenance-mode card and the visitor statistics rendered above and
+  below *every* tab** — ~600px of the most disruptive switch on the site,
+  permanently parked on screens about reports and cities.
+- **Tab state was a `useState` index**, so nothing could be linked to, the back
+  button did nothing, and a reload always landed on reports.
+- `window.confirm` guarded deleting an account (which purges every listing,
+  photo, match row and notification it owns) and `alert()` reported the result.
+- The panel predated Phase 8 and Phase 1: `1px solid` borders on every card,
+  `#1e1e1e`/`#ffffff` hardcoded into the dialogs, `rgba(211,47,47,.12)` in the
+  database tab, and hardcoded English in every table header, the maintenance
+  controls and the password-strength meter — an Arabic admin read an Arabic
+  navbar above an English table.
+- Seven-column tables with no narrow-screen fallback at all.
+
+### Structure
+
+`AdminLayout.jsx` is the shell — brand line, navigation, `<Outlet />` — and owns
+the *one* query the panel makes on arrival, `GET /admin/overview`, because the
+queue counts belong to the navigation. It hands the payload to every page
+through the outlet context (`useAdminOverview`), so no page re-fetches it.
+
+Navigation is nine destinations in five groups ([adminNav.js](client/src/features/admin/adminNav.js)),
+grouped by what an admin is *doing* rather than by which collection the data
+lives in: **Overview**; **Operations** (Moderation, Promotions, Support);
+**Catalog** (Listings, Members, Places); **Insights** (Analytics); **System**.
+Password-reset requests are folded into Support rather than standing alone —
+both are a person asking a human for something, and neither queue is busy
+enough to earn a destination. Two shapes, chosen by measured width: a sticky
+rail from `lg` up, and the same items as a horizontally scrolling pill row
+below it, with the active pill scrolled into view on arrival. A drawer was the
+other option for narrow screens and was not taken — nine destinations an admin
+switches between constantly should cost one tap, and a scroller shows the
+counts without being opened.
+
+**`/dash`'s navbar is `position: fixed` and DashLayout adds no spacer**, so the
+shell clears it itself with `pt: 5.5rem` (what `Dash.js` uses) and the sticky
+rail sits at `top: 88`. Without it the panel's first 88px sat behind the navbar.
+
+### The primitives
+
+[ui/](client/src/features/admin/ui/) — everything is `theme.custom`, borderless
+per Phase 8, `elevation.e1` → `e2` on anything interactive:
+
+- **`AdminCard`** is the panel's one container: `surfaceRaised`, `radius.lg`
+  mobile / `radius.xl` from `sm`, no border, optional 6px accent bar (the post
+  card's).
+- **`DataTable`** is one list component in two shapes: a real table from `md`
+  up, and the same columns re-laid as a stack of cards below it, taking the
+  card's heading from the column marked `primary` and its subtitle from
+  `secondary`. A column is described once and both shapes follow. Columns take
+  `align: 'end'`, **not** `'right'` — MUI's `align` prop writes a physical
+  `text-align`, which puts a numeric column on the wrong side of an Arabic
+  table. Its pager is bespoke rather than `TablePagination` (which is unusable
+  at 390px) and its chevrons mirror against `theme.direction`.
+- **`adminTones.js`** is the whole colour vocabulary: five tones
+  (`brand`/`positive`/`attention`/`critical`/`neutral`) and one `TONE_BY_STATE`
+  map from every status word the panel renders — report, listing, promotion,
+  support, priority, role — onto them. The old panel had two disagreeing
+  `getStatusColor` functions.
+- **`adminSx.js`** exists because of one trap worth knowing about anywhere in
+  this app: **`theme.palette.primary.main` is `#FFFFFF` in light mode** (and
+  `#3C3C3C` in dark) — a legacy palette from before the design tokens. An MUI
+  `<Button>` with no explicit colour is therefore *white text on a white card*,
+  a `variant="contained"` one is a white block, a focused `TextField` draws a
+  white outline and a checked `Switch` a white thumb. Every control in the panel
+  states its colour from `theme.custom` through these helpers. This was found by
+  screenshotting the built app, not by reading the code — the action column on
+  every table was silently blank.
+- `ConfirmDialog` replaces `window.confirm`, and for the two irreversible
+  actions (deleting an account, deleting a listing) takes a typed confirmation
+  of the target's name. `AdminToast` replaces `alert()`, anchored bottom-centre
+  so its position needs no mirroring. `AdminDialog` is full-screen below `sm`.
+  `StatusPill`, `StatTile`, `SegmentedControl`, `FilterBar`, `EmptyState`,
+  `FieldRow`, `PageHeader`, `Section`, `ResetPasswordDialog` round it out.
+
+### Charts
+
+[charts/](client/src/features/admin/charts/) — inline SVG measured with a
+`ResizeObserver` and drawn at real pixel coordinates. No charting dependency:
+a `viewBox` with `preserveAspectRatio="none"` stretches the axis labels along
+with the marks, and the app already hand-draws SVG for the world activity map.
+
+- **The palette is three tokens plus a de-emphasis grey**: `brandPrimary` for
+  any single series, `status.lost.main` / `status.found.main` for the two halves
+  of the product, `alpha(ink, …)` for context. Lost and found take the app's own
+  status tokens rather than a palette picked for charts, which is a deliberate
+  departure from the rule that status colours stay out of series work: here they
+  are not a severity scale, they are the product's vocabulary, and every other
+  surface — the post card's accent bar, the status tag, `FoundLostStrip`, the
+  mobile listing pill — already codes them this way.
+- **Validated with the colour validator, not by eye.** Light mode passes all six
+  checks (adjacent CVD ΔE 8.3 deutan, normal-vision 25.8, contrast ≥ 3:1). Dark
+  mode passes everything *except* the lightness band, which the two dark status
+  tokens sit above by design — they are lightened precisely because they are used
+  ON dark surfaces, which is the surface these charts are drawn on. The
+  secondary encoding that relief calls for is present regardless: two series
+  always carry a legend, stacked segments are separated by a 2px gap in the card
+  colour rather than by hue, and every series is tooltip-labelled.
+- **Never a second y axis.** Visitors and listings are different units on wildly
+  different scales; they get two charts.
+- **The day series is filled in with explicit zeroes** (`buildDaySkeleton` on the
+  server). An aggregation only answers for days that have documents, and a chart
+  drawn straight off that closes the gap — turning "nothing happened" into a
+  straight line between the days either side of it.
+- `compactNumber` keeps one decimal on a fractional axis tick (a middle tick is
+  half the maximum, and half of an odd maximum is not a whole number — labelling
+  a 2.5 gridline "3" prints a number the line is not at) and only compacts past
+  a million. `StatTile` does the same: "92K" for 92,411 saves four characters and
+  costs the reader the figure, in a panel whose job is to give the figure.
+
+### Server
+
+- **`GET /admin/overview`** replaced `GET /admin/dashboard`, which sent
+  `recentReports`, `recentPromotions` and `recentResetRequests` that the client
+  destructured two of and rendered none of. It now answers queues, totals,
+  period-over-period growth, a 30-day series, the newest listings and members,
+  and the top categories/cities/countries.
+  [adminInsightsController.js](server/controllers/adminInsightsController.js)
+  asks each collection **once**, with a `$facet` producing every number from one
+  pass — the deployment target is the free-tier cluster the panel's own System
+  page monitors, and `Post` carries no standalone index on `status` or
+  `createdAt` (its indexes are all compound and country-led), so those counts
+  scan regardless; one scan for fourteen numbers is the cheap version. Everything
+  buckets in **UTC**, so the chart and the "today" figure above it agree wherever
+  the admin is sitting. A period-over-period delta is `null` rather than `0` or
+  `Infinity` when the previous period was empty — "up 100%" from nothing is
+  arithmetic, not information — and the client renders null as "no comparison".
+- **`GET /admin/analytics?days=7|30|90`** is new and replaces the old visitor
+  panel, whose "this month" figure ran from the *first visit ever recorded* to
+  the end of the selected month: a running total labelled as a month, which
+  could only ever go up. It also finally renders what the `Visitor` collection
+  has always stored and nothing ever read — country, city and landing page.
+- **Three actions that did not exist**, because deleting was the only lever the
+  panel had on anything: `PATCH /admin/posts/:id/status` (suspending is already
+  in the schema's enum and already hidden from every public read — nothing
+  surfaced it), `PATCH /admin/users/:userId` (deactivate/reactivate, and
+  user↔moderator; it takes hold within one access-token lifetime because
+  `/auth/refresh` reloads the user from the database before minting), and
+  `GET`/`PATCH /admin/comments` for comment moderation. Promotion to admin is
+  deliberately **not** available — it is the one change this route could not undo
+  afterwards — and neither is changing your own account or another admin's,
+  since this is the route that decides who can reach this route.
+- **The audit trail.** [AdminAction.js](server/models/AdminAction.js) +
+  [adminAudit.js](server/services/adminAudit.js), written fire-and-forget by
+  every admin mutation and read by `GET /admin/audit`. The panel could already
+  delete a user, wipe their posts and reset anyone's password, and the only
+  record was a line appended to `adminActions.log` — a file on a filesystem
+  Render throws away on every deploy, that two of the eight mutations wrote and
+  the rest did not. `logEvents` still runs beside it (the file survives a
+  database problem; the row is the copy an admin can look at). Capped by a TTL
+  index at 90 days rather than a cleanup script.
+- **Deleting a listing now deletes its comment thread too.** It already deleted
+  the reports; the comments were left orphaned, pointing at a post that no
+  longer existed, and counted forever.
+- **Offline check**: `npm run test-admin-panel` in `server/` — no DB, no
+  network. Covers the day skeleton (a missing quiet Tuesday must draw a gap, not
+  a straight line), the delta rule, and the listing label.
+
+### Rules that carried over
+
+Everything reads `theme.custom`, every string comes from
+[translations.js](client/src/utils/translations.js) in all three languages, and
+direction comes from logical properties (`marginInlineStart`, `textAlign: 'end'`,
+flex row order) rather than `currentLanguage === 'ar'` checks — with two places
+that genuinely cannot be logical and say so: the pager's chevrons, which point at
+a page rather than at a screen, and the charts' x axis, which is one `isRtl` flag
+feeding `xFor()` so time reads in the direction the language does.
+
+## Rules for this work
+
+- Use existing design tokens (`theme.custom.*` from designTokens.js); never hardcode colors or font-families in component styles.
+- Pull user-facing text from [translations.js](client/src/utils/translations.js) via `useTranslation()`; never hardcode English strings.
+- Verify light/dark mode + LTR/RTL before considering page done.
+- For `NewPostForm.js`: styling/layout changes only. Never touch Formik state, validation logic, city search `fetch()` calls, or submission logic without explicit user confirmation first.
+- Don't invent new card/panel visual language where established pattern (above) fits — extend/adapt instead.
+
+
+SaaS design
+
+<!-- caveman-begin -->
+## Response style (caveman mode)
+
+Applies to Claude's response *style* only, not scope of work. The existing
+rules above (design tokens, translations, NewPostForm constraints, phase
+scope, etc.) govern what Claude does and always win on conflict.
+
+- Terse. Technical substance stays intact — only fluff drops.
+- Drop articles (a/an/the), filler (just/really/basically/actually/simply),
+  pleasantries (sure/certainly/happy to), hedging. Fragments OK. Short
+  synonyms over long phrasing ("fix" not "implement a solution for").
+- No tool-call narration, no decorative tables/emoji, no dumping raw error
+  logs — quote only the shortest decisive line.
+- Standard tech acronyms OK (DB/API/HTTP). Never invent new abbreviations
+  (cfg/impl/req/res) — saves no tokens, adds friction. No causal arrows (→).
+- Code blocks, technical terms, API names, CLI commands, commit-type
+  keywords (feat/fix/...), and error strings: always exact, verbatim.
+- Reply in the user's language; compress style, not language.
+- Never name or announce the style ("caveman mode on", etc.) — just answer.
+- Default shape: state the thing, then the action or fix, then why. Skip
+  the shape when it doesn't fit.
+- Drop compression for: security warnings, irreversible-action
+  confirmations, multi-step sequences where compression risks misreading,
+  or when the user asks to clarify — write normal prose there, then resume.
+- Code, commit messages, and PR descriptions: always written normal, never
+  compressed.
+- To get a normal-prose reply for one message, ask: "explain this in full
+  prose" or "normal mode for this reply."
+<!-- caveman-end -->
