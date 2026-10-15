@@ -69,7 +69,7 @@ const Segment = ({ tone, Icon, label, value, todayLabel, hasNotification, onClic
         "&:focus-visible": { outline: 'none' },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, minWidth: 0, width: '100%' }}>
         <Box
           className="segment-icon-circle"
           sx={{
@@ -95,7 +95,11 @@ const Segment = ({ tone, Icon, label, value, todayLabel, hasNotification, onClic
             fontSize: { xs: "0.95rem", sm: "1.05rem" },
             color: isDark ? '#ffffff' : '#0f172a',
             letterSpacing: '-0.01em',
-            whiteSpace: 'nowrap',
+            minWidth: 0,
+            flex: 1,
+            lineHeight: 1.25,
+            wordBreak: 'break-word',
+            whiteSpace: 'normal',
           }}
         >
           {label}
@@ -105,6 +109,7 @@ const Segment = ({ tone, Icon, label, value, todayLabel, hasNotification, onClic
             sx={{
               width: 8,
               height: 8,
+              flexShrink: 0,
               borderRadius: "50%",
               backgroundColor: tone.main,
               boxShadow: `0 0 8px ${tone.main}`,

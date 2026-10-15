@@ -44,8 +44,8 @@ export const colorTokens = {
   // Frosted glass section container background for homepage panels
   // (SearchReportHub, Categories, Process, Help & Support)
   sectionCard: { light: 'rgba(255, 255, 255, 0.92)', dark: 'rgba(11, 18, 32, 0.94)' },
-  // Statistics container background (LeftSide)
-  statsCard: { light: 'rgba(255, 255, 255, 0.10)', dark: 'rgba(15, 23, 42, 0.10)' },
+  // Statistics container background (LeftSide) - 50% transparency
+  statsCard: { light: 'rgba(255, 255, 255, 0.50)', dark: 'rgba(15, 23, 42, 0.50)' },
   status: {
     // light-mode `main` deepened slightly from the original #D6483B/#1E8F6B so
     // getContrastText's white-on-main pick clears 4.5:1 on solid-fill status

@@ -161,6 +161,7 @@ const PostsList = () => {
   const urlCategory = searchParams.get('category') || searchParams.get('categories') || searchParams.get('categoryId');
   const urlCity = searchParams.get('city') || searchParams.get('cityId');
   const urlCountry = searchParams.get('country') || searchParams.get('countryId');
+  const urlIntent = searchParams.get('intent') || location.state?.searchIntent || '';
 
   // Get current language
   const { t, currentLanguage } = useTranslation();
@@ -233,6 +234,11 @@ const PostsList = () => {
   const foundsId = useMemo(() => {
     const foundOption = (flOptionsData || []).find((opt) => opt?.code === 'FOUND');
     return foundOption?.id || foundOption?._id;
+  }, [flOptionsData]);
+
+  const lostsId = useMemo(() => {
+    const lostOption = (flOptionsData || []).find((opt) => opt?.code === 'LOST');
+    return lostOption?.id || lostOption?._id;
   }, [flOptionsData]);
 
   // Get current country ID
@@ -738,7 +744,11 @@ const PostsList = () => {
   // Build dynamic new post URL preserving current filters
   const newPostUrl = useMemo(() => {
     const newPostParams = new URLSearchParams();
-    if (selectedFl) newPostParams.set('type', selectedFl === foundsId ? 'found' : 'lost');
+    if (urlIntent) {
+      newPostParams.set('type', urlIntent);
+    } else if (selectedFl) {
+      newPostParams.set('type', selectedFl === foundsId ? 'found' : 'lost');
+    }
     if (selectedCategories.length > 0) {
       newPostParams.set('category', selectedCategories.join(','));
     } else if (localCategoryFilter && localCategoryFilter !== 'all') {
@@ -748,7 +758,7 @@ const PostsList = () => {
     if (cityIdentifier) newPostParams.set('city', cityIdentifier);
     if (currentCountryId) newPostParams.set('country', currentCountryId);
     return `/posts/new${newPostParams.toString() ? `?${newPostParams.toString()}` : ''}`;
-  }, [selectedFl, foundsId, selectedCategories, localCategoryFilter, selectedCity, currentCountryId]);
+  }, [urlIntent, selectedFl, foundsId, selectedCategories, localCategoryFilter, selectedCity, currentCountryId]);
 
   const handleAddNewPost = useCallback(() => {
     const isUserLoggedIn = Boolean(user.username || authStorage.isAuthenticated());
@@ -775,7 +785,7 @@ const PostsList = () => {
     setSelectedFl("");
     setSortBy("newest");
     setPage(1);
-    navigate("/posts", { replace: true });
+    navigate("/posts", { replace: true, state: {} });
     smoothScrollToTop();
   }, [navigate]);
 
@@ -824,9 +834,14 @@ const PostsList = () => {
 
     if (selectedCategories.length > 0) {
       selectedCategories.forEach(categoryId => {
-        const category = categoriesData?.find(cat => cat._id === categoryId);
+        const category = categoriesData?.find(cat =>
+          (cat._id || cat.id) === categoryId ||
+          String(cat._id) === String(categoryId) ||
+          String(cat.id) === String(categoryId) ||
+          String(cat.code).toLowerCase() === String(categoryId).toLowerCase()
+        );
         chips.push({
-          label: `${t('category')}: ${category?.labels?.[currentLanguage] || category?.code || categoryId}`,
+          label: `${t('category')}: ${category?.labels?.[currentLanguage] || category?.label || category?.name || category?.code || categoryId}`,
           onDelete: () => {
             setSelectedCategories(prev => prev.filter(id => id !== categoryId));
             setPage(1);
@@ -835,9 +850,14 @@ const PostsList = () => {
         });
       });
     } else if (localCategoryFilter !== "all") {
-      const category = categoriesData?.find(cat => cat._id === localCategoryFilter);
+      const category = categoriesData?.find(cat =>
+        (cat._id || cat.id) === localCategoryFilter ||
+        String(cat._id) === String(localCategoryFilter) ||
+        String(cat.id) === String(localCategoryFilter) ||
+        String(cat.code).toLowerCase() === String(localCategoryFilter).toLowerCase()
+      );
       chips.push({
-        label: `${t('category')}: ${category?.labels?.[currentLanguage] || category?.code || localCategoryFilter}`,
+        label: `${t('category')}: ${category?.labels?.[currentLanguage] || category?.label || category?.name || category?.code || localCategoryFilter}`,
         onDelete: handleClearCategoryFilter,
       });
     }
@@ -1382,6 +1402,8 @@ const PostsList = () => {
         categoriesData={categoriesData}
         selectedFl={selectedFl}
         foundsId={foundsId}
+        lostsId={lostsId}
+        searchIntent={urlIntent}
         hasActiveFilters={hasActiveFilters}
         searchTerm={searchTerm}
         getCityDisplayName={getCityDisplayName}

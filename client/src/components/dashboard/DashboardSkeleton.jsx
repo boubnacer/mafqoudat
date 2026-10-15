@@ -31,12 +31,16 @@ const DashboardSkeleton = () => {
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
-            gap: isMobile ? "1rem" : "1.5rem",
+            gap: { xs: 0, sm: "1.5rem" },
+            borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: 0 },
+            overflow: { xs: "hidden", sm: "visible" },
           }}
         >
-          <SkeletonBlock radius={theme.custom.radius.lg} sx={{ height: 220, gridColumn: { xs: "1", sm: "1 / -1" } }} />
-          <SkeletonBlock radius={theme.custom.radius.lg} sx={{ height: 158 }} />
-          <SkeletonBlock radius={theme.custom.radius.lg} sx={{ height: 158 }} />
+          <SkeletonBlock radius={isMobile ? 0 : theme.custom.radius.lg} sx={{ height: 220, gridColumn: { xs: "1", sm: "1 / -1" } }} />
+          {isMobile && <Box sx={{ width: '100%', height: '1px', backgroundColor: theme.palette.mode === 'dark' ? 'rgba(51, 65, 85, 0.6)' : 'rgba(226, 232, 240, 0.9)' }} />}
+          <SkeletonBlock radius={isMobile ? 0 : theme.custom.radius.lg} sx={{ height: 140 }} />
+          {isMobile && <Box sx={{ width: '100%', height: '1px', backgroundColor: theme.palette.mode === 'dark' ? 'rgba(51, 65, 85, 0.6)' : 'rgba(226, 232, 240, 0.9)' }} />}
+          <SkeletonBlock radius={isMobile ? 0 : theme.custom.radius.lg} sx={{ height: 140 }} />
         </Box>
       </Box>
 

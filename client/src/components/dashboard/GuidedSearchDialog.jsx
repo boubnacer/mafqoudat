@@ -382,16 +382,18 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
 
   const foundsId = useMemo(() => {
     if (!flOptionsData?.ids) return null;
-    return flOptionsData.ids
+    const foundOption = flOptionsData.ids
       .map((id) => flOptionsData.entities[id])
-      .find((opt) => opt?.code === 'FOUND')?.id;
+      .find((opt) => opt?.code === 'FOUND');
+    return foundOption?.id || foundOption?._id || null;
   }, [flOptionsData]);
 
   const lostsId = useMemo(() => {
     if (!flOptionsData?.ids) return null;
-    return flOptionsData.ids
+    const lostOption = flOptionsData.ids
       .map((id) => flOptionsData.entities[id])
-      .find((opt) => opt?.code === 'LOST')?.id;
+      .find((opt) => opt?.code === 'LOST');
+    return lostOption?.id || lostOption?._id || null;
   }, [flOptionsData]);
 
   const allCategories = useMemo(() => {
@@ -801,8 +803,13 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
 
     // 2. Build URL query params
     const params = new URLSearchParams();
-    const flParam = selectedType === 'found' ? (foundsId || '') : (lostsId || '');
+
+    // Core logic:
+    // If a user FOUND an item ('found'), they want to find if the owner declared it LOST -> search LOST items (lostsId).
+    // If a user LOST an item ('lost'), they want to find if someone reported it FOUND -> search FOUND items (foundsId).
+    const flParam = selectedType === 'found' ? (lostsId || '') : (foundsId || '');
     if (flParam) params.set('fl', flParam);
+    params.set('intent', selectedType);
 
     if (selectedCategories.length > 0) {
       params.set('category', selectedCategories.join(','));
@@ -818,7 +825,10 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
     // 3. Close dialog and navigate
     onClose();
     navigate(`/posts?${params.toString()}`, {
-      state: { selectedCityObj: finalCity }
+      state: {
+        selectedCityObj: finalCity,
+        searchIntent: selectedType,
+      }
     });
   };
 
@@ -1615,8 +1625,11 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     mx: 'auto',
                   }}
                 >
-                  {t('selectCategoriesSubtitle') ||
-                    'Choose one or multiple categories to find matching reports.'}
+                  {selectedType === 'found'
+                    ? (t('selectCategoriesSubtitleFound') ||
+                      'Choose one or multiple categories to search owner reports of lost items.')
+                    : (t('selectCategoriesSubtitleLost') ||
+                      'Choose one or multiple categories to search reported found items.')}
                 </Typography>
               </Box>
 
@@ -1893,7 +1906,9 @@ const GuidedSearchDialog = ({ open, onClose, initialType = 'lost' }) => {
                     },
                   }}
                 >
-                  {t('searchPostsAction') || 'Search Listings'}
+                  {selectedType === 'found'
+                    ? (t('searchLostReportsAction') || 'Search Lost Reports')
+                    : (t('searchFoundReportsAction') || 'Search Found Reports')}
                 </Button>
               </Box>
             </motion.div>

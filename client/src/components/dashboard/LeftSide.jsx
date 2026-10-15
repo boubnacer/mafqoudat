@@ -232,23 +232,36 @@ const LeftSide = ({
     overflow: 'hidden',
   };
 
+  const foundLostCardSx = {
+    ...baseCardSx,
+    borderRadius: { xs: 0, sm: `${theme.custom.radius.lg}px` },
+    border: 'none',
+    boxShadow: { xs: 'none', sm: baseCardSx.boxShadow },
+  };
+
   const totalBoxCardSx = {
     ...baseCardSx,
     padding: isMobile ? '1rem 1.25rem' : '1.5rem',
+    borderRadius: { xs: 0, sm: `${theme.custom.radius.lg}px` },
+    border: 'none',
+    boxShadow: { xs: 'none', sm: baseCardSx.boxShadow },
     cursor: 'default',
     '&:hover': {
       transform: 'none',
-      boxShadow: baseCardSx.boxShadow,
+      boxShadow: { xs: 'none', sm: baseCardSx.boxShadow },
     },
   };
 
   const returnedBoxCardSx = {
     ...baseCardSx,
     padding: isMobile ? '1rem 1.25rem' : '1.5rem',
+    borderRadius: { xs: 0, sm: `${theme.custom.radius.lg}px` },
+    border: 'none',
+    boxShadow: { xs: 'none', sm: baseCardSx.boxShadow },
     cursor: 'default',
     '&:hover': {
       transform: 'none',
-      boxShadow: baseCardSx.boxShadow,
+      boxShadow: { xs: 'none', sm: baseCardSx.boxShadow },
     },
   };
 
@@ -260,6 +273,8 @@ const LeftSide = ({
         overflow: 'hidden',
         background: theme.custom.color.statsCard,
         backgroundColor: theme.custom.color.statsCard,
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
         border: 'none',
         boxShadow: 'none',
@@ -304,15 +319,17 @@ const LeftSide = ({
         </Typography>
       </Box>
 
-      {/* Stats Grid — hero Found/Lost strip spans both columns on desktop, all
-          boxes expand to full width (1fr) on mobile so text fits on one line */}
+      {/* Stats Grid — on mobile, all 4 boxes are seamlessly attached into one unified card with 1px dividers; on desktop, hero Found/Lost strip sits above 2 separate stat boxes */}
       <Box
-        gap={isMobile ? "1rem" : "1.5rem"}
         sx={{
           position: 'relative',
           zIndex: 1,
           display: "grid",
           gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+          gap: { xs: 0, sm: "1.5rem" },
+          borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: 0 },
+          overflow: { xs: 'hidden', sm: 'visible' },
+          boxShadow: { xs: baseCardSx.boxShadow, sm: 'none' },
           alignItems: "stretch",
         }}
       >
@@ -324,7 +341,18 @@ const LeftSide = ({
           lostsToday={lostsToday || 0}
           showFoundNotification={showFoundNotification}
           showLostNotification={showLostNotification}
-          sx={baseCardSx}
+          sx={foundLostCardSx}
+        />
+
+        {/* Split line between Found/Lost boxes and bottom boxes in mobile view */}
+        <Box
+          sx={{
+            display: { xs: 'block', sm: 'none' },
+            width: '100%',
+            height: '1px',
+            backgroundColor: boxBorderColor,
+            flexShrink: 0,
+          }}
         />
 
         <TotalBox
@@ -365,6 +393,17 @@ const LeftSide = ({
             boxShadow: isDark ? '0 0 12px rgba(0, 242, 254, 0.25)' : 'none',
             color: isDark ? '#00F2FE' : theme.custom.color.brandPrimary,
             borderRadius: '50%',
+          }}
+        />
+
+        {/* Split line between Total and Returned boxes in mobile view */}
+        <Box
+          sx={{
+            display: { xs: 'block', sm: 'none' },
+            width: '100%',
+            height: '1px',
+            backgroundColor: boxBorderColor,
+            flexShrink: 0,
           }}
         />
 
