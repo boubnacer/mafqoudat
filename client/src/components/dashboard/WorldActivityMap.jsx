@@ -56,7 +56,8 @@ import SkeletonBlock from "../SkeletonBlock";
 // MOBILE_ZOOM pushes past the fit instead of shrinking the padding, so the
 // padding keeps doing its other job — reserving room for city labels and
 // "+N today" badges, which are placed outside the country's own bounds.
-const MOBILE_ZOOM = 1.25;
+const MOBILE_ZOOM = 1.05;
+const DESKTOP_ZOOM = 1.06;
 
 // Zoom math note: react-simple-maps' projectionConfig only forwards
 // center/scale/rotate/parallels to the underlying d3 projection — it always
@@ -104,6 +105,8 @@ const WorldActivityMap = ({
   titleOffsetTop = 0,
   seaColor,
   disableEdgeFade = false,
+  desktopZoom = DESKTOP_ZOOM,
+  mobileZoom = MOBILE_ZOOM,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -209,14 +212,22 @@ const WorldActivityMap = ({
 
   const mapView = useMemo(() => {
     if (!currentFeature) return { center: [15, 20], scale: 220 };
-    const padding = isMobile ? 60 : 70;
+    const padding = 58;
     const [[minLon, minLat], [maxLon, maxLat]] = geoBounds(currentFeature);
-    const center = [(minLon + maxLon) / 2, (minLat + maxLat) / 2];
-    const reference = geoMercator().center(center).translate([MAP_WIDTH / 2, mapHeight / 2]).scale(1);
+    const initialCenter = [(minLon + maxLon) / 2, (minLat + maxLat) / 2];
+    const reference = geoMercator().center(initialCenter).translate([MAP_WIDTH / 2, mapHeight / 2]).scale(1);
     const [[x0, y0], [x1, y1]] = geoPath(reference).bounds(currentFeature);
+
+    // True visual center in Mercator projected coordinate space:
+    // Mercator stretches northern latitudes non-linearly, so the degree midpoint (initialCenter)
+    // sits physically lower in projected space than the visual midpoint. Inverting the projected
+    // midpoint ensures the country's top and bottom margins are equidistant and balanced.
+    const visualCenter = reference.invert([(x0 + x1) / 2, (y0 + y1) / 2]) || initialCenter;
+
     const fitScale = Math.min((MAP_WIDTH - padding * 2) / Math.max(x1 - x0, 0.001), (mapHeight - padding * 2) / Math.max(y1 - y0, 0.001));
-    return { center, scale: isMobile ? fitScale * MOBILE_ZOOM : fitScale };
-  }, [currentFeature, MAP_WIDTH, mapHeight, isMobile]);
+    const zoomMultiplier = isMobile ? mobileZoom : desktopZoom;
+    return { center: visualCenter, scale: fitScale * zoomMultiplier };
+  }, [currentFeature, MAP_WIDTH, mapHeight, isMobile, desktopZoom, mobileZoom]);
 
   // The projection react-simple-maps builds internally, rebuilt here so the
   // subdivision mesh and the lakes can be drawn as plain <path> nodes in the
@@ -558,7 +569,7 @@ const WorldActivityMap = ({
   // container's), so the zoom/padding math above is untouched by this — it
   // still targets the same on-canvas fit as before.
   const mapCropSx = isMobile
-    ? { position: "absolute", insetInlineStart: 0, width: "100%", top: "-54%", height: "271%" }
+    ? { position: "absolute", insetInlineStart: 0, width: "100%", top: "-35%", height: "228%" }
     : { position: "absolute", top: 0, bottom: 0, insetInlineStart: "-7.5%", width: "165%" };
 
   // titleOffsetTop: lets a caller with extra chrome above this component
@@ -567,7 +578,7 @@ const WorldActivityMap = ({
   // without affecting Dash.js's own header, which has no such chrome and
   // never passes this prop (defaults to 0 — pixel-identical to before).
   const titleOverlaySx = isMobile
-    ? { position: "absolute", top: "63%", insetInlineStart: 0, insetInlineEnd: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }
+    ? { position: "absolute", top: "48%", insetInlineStart: 0, insetInlineEnd: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }
     : { position: "absolute", top: 24 + titleOffsetTop, insetInlineEnd: 32, insetInlineStart: "52%", display: "flex", flexDirection: "column", alignItems: "center", gap: 1 };
 
   // The map's four edges dissolving into the tone the container paints behind

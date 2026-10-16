@@ -1,5 +1,5 @@
-import { Box, useMediaQuery } from "@mui/material";
 import React from "react";
+import { Box, useMediaQuery } from "@mui/material";
 import RecentPosts from "./RecentPosts";
 
 const Recent = ({ recent, type, maxItems }) => {
@@ -26,11 +26,12 @@ const Recent = ({ recent, type, maxItems }) => {
 
   return (
     <Box
-      width="100%"
-      display="grid"
-      gap={isMobile ? 1.25 : 2}
       sx={{
-        gridTemplateColumns: "repeat(2, 1fr)",
+        width: "100%",
+        display: "grid",
+        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+        gap: { xs: 1.5, sm: 2 },
+        alignItems: "stretch",
       }}
     >
       {displayItems.map((post) => (

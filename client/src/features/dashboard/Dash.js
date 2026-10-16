@@ -189,7 +189,16 @@ const Dash = () => {
   const sectionDivider = null;
 
   const categoriesSection = (
-    <Box mb={4} mx={{ xs: 1, sm: 2 }} data-reveal="section">
+    <Box
+      data-reveal="section"
+      mb={4}
+      sx={{
+        width: '100%',
+        maxWidth: { sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
+        mx: 'auto',
+        px: { xs: 1.5, sm: 2, md: 3 },
+      }}
+    >
       <Categories />
     </Box>
   );
@@ -398,7 +407,7 @@ const Dash = () => {
                 full-bleed backdrop stretched to the whole header's height,
                 widening this gap grows that height and pushes the map's
                 fixed-% crop further down relative to LeftSide. */}
-              {!hasNoData && <Box sx={{ width: '100%', aspectRatio: '1 / 1', minHeight: 300 }} />}
+              {!hasNoData && <Box sx={{ width: '100%', aspectRatio: '1 / 1', minHeight: 320 }} />}
             </Box>
           </Box>
         ) : (
@@ -408,6 +417,7 @@ const Dash = () => {
             sx={{
               position: 'relative',
               maxWidth: { sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
+              minHeight: { sm: 460, md: 500, lg: 520, xl: 540 },
               overflow: 'hidden',
               mx: { xs: 1, sm: 2, lg: 'auto' },
               backgroundColor: theme.custom.color.surfaceRaised,
@@ -436,8 +446,10 @@ const Dash = () => {
                 position: 'relative',
                 zIndex: 1,
                 display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'flex-start',
-                p: { sm: 3, md: 4, lg: 5, xl: 6 },
+                minHeight: { sm: 460, md: 500, lg: 520, xl: 540 },
+                p: { sm: 3, md: 4, lg: 4.5, xl: 5 },
               }}
             >
               <Box sx={{ width: { sm: '60%', md: '52%', lg: '50%' }, minWidth: 0 }}>

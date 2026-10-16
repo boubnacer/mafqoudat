@@ -1,23 +1,22 @@
 import React, { useState } from 'react';
-import { Box, Typography, useTheme, useMediaQuery, alpha } from '@mui/material';
+import { Box, Typography, useTheme, alpha } from '@mui/material';
 import { useTranslation } from '../../utils/translations';
 import { isRTL } from '../../utils/languageUtils';
 import {
   TaskAltOutlined,
   SearchOffOutlined,
-  ArrowForwardIosRounded,
+  ArrowForwardRounded,
 } from '@mui/icons-material';
 import GuidedSearchDialog from './GuidedSearchDialog';
 
 const SearchReportHub = () => {
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isRTLMode = currentLanguage === 'ar' || isRTL();
   const isDark = theme.palette.mode === 'dark';
-  const { ink } = theme.custom.color;
-  const hairline = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
-  const muted = isDark ? "#94A3B8" : "#64748B";
+  const ink = theme.custom.color.ink;
+  const muted = isDark ? '#94A3B8' : '#64748B';
+  const hairline = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)';
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState('lost');
@@ -97,29 +96,39 @@ const SearchReportHub = () => {
         data-reveal="section"
         dir={isRTLMode ? 'rtl' : 'ltr'}
         sx={{
-          position: 'relative',
-          backgroundColor: theme.custom.color.surfaceRaised,
-          border: `1px solid ${hairline}`,
-          borderRadius: "16px",
-          boxShadow: theme.custom.elevation.e1,
-          overflow: 'hidden',
-          direction: isRTLMode ? 'rtl' : 'ltr',
+          width: '100%',
+          maxWidth: { sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
+          mx: 'auto',
+          px: { xs: 1.5, sm: 2, md: 3 },
           mb: 4,
-          px: { xs: 1.75, sm: 2.5, md: 2.5 },
-          py: { xs: 2, sm: 2.25, md: 2.25 },
-          color: theme.custom.color.ink,
+          direction: isRTLMode ? 'rtl' : 'ltr',
         }}
       >
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-          <Box sx={{ textAlign: 'center', mb: { xs: 1.75, sm: 2 } }}>
+        <Box
+          sx={{
+            position: 'relative',
+            backgroundColor: theme.custom.color.surfaceRaised,
+            border: `1px solid ${hairline}`,
+            borderRadius: { xs: '18px', sm: '22px' },
+            boxShadow: isDark
+              ? '0 4px 24px rgba(0, 0, 0, 0.25)'
+              : '0 1px 3px rgba(15, 23, 42, 0.03), 0 8px 24px rgba(15, 23, 42, 0.04)',
+            overflow: 'hidden',
+            px: { xs: 2, sm: 2.75, md: 3 },
+            py: { xs: 2.25, sm: 2.75, md: 3 },
+            color: ink,
+          }}
+        >
+          {/* Header Title */}
+          <Box sx={{ textAlign: 'center', mb: { xs: 2, sm: 2.5 } }}>
             <Typography
               component="h2"
               sx={{
-                fontFamily: theme.custom.font.display,
-                fontWeight: 650,
-                fontSize: { xs: '15px', sm: '16px' },
+                fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
+                fontWeight: 600,
+                fontSize: { xs: '15px', sm: '17px' },
                 lineHeight: 1.3,
-                letterSpacing: "-0.01em",
+                letterSpacing: '-0.015em',
                 color: ink,
                 textAlign: 'center',
               }}
@@ -128,16 +137,24 @@ const SearchReportHub = () => {
             </Typography>
           </Box>
 
+          {/* Action Cards Grid */}
           <Box
             sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+              gap: { xs: 1.5, sm: 2 },
               direction: isRTLMode ? 'rtl' : 'ltr',
-              gap: { xs: 1.25, sm: 1.5 },
             }}
           >
             {primaryActions.map((item) => {
               const Icon = item.icon;
+              const cardBg = isDark
+                ? alpha(item.tone.main, 0.06)
+                : alpha(item.tone.main, 0.035);
+              const cardBorder = isDark
+                ? alpha(item.tone.main, 0.18)
+                : alpha(item.tone.main, 0.14);
+
               return (
                 <Box
                   key={item.key}
@@ -154,61 +171,74 @@ const SearchReportHub = () => {
                     handleTouchEnd(e, item.action);
                   }}
                   sx={{
-                    flex: 1,
                     minWidth: 0,
-                    minHeight: { xs: 86, sm: 112 },
+                    minHeight: { xs: 80, sm: 94 },
                     display: 'flex',
                     flexDirection: 'row',
-                    direction: isRTLMode ? 'rtl' : 'ltr',
                     alignItems: 'center',
                     textAlign: isRTLMode ? 'right' : 'left',
-                    gap: 1.5,
-                    p: { xs: '14px 14px', sm: '18px 18px' },
+                    gap: { xs: 1.5, sm: 1.75 },
+                    p: { xs: '14px 16px', sm: '16px 18px' },
                     cursor: 'pointer',
                     outline: 'none',
-                    borderRadius: "12px",
-                    backgroundColor: theme.custom.color.surfaceRaised,
-                    border: `1px solid ${hairline}`,
-                    boxShadow: theme.custom.elevation.e1,
-                    transition: 'border-color 160ms ease, box-shadow 160ms ease',
+                    borderRadius: '16px',
+                    backgroundColor: cardBg,
+                    border: `1px solid ${cardBorder}`,
+                    boxShadow: isDark
+                      ? '0 2px 10px rgba(0, 0, 0, 0.18)'
+                      : '0 1px 2px rgba(15, 23, 42, 0.02)',
+                    transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
                     position: 'relative',
                     overflow: 'hidden',
                     '&:hover': {
-                      borderColor: alpha(item.tone.main, 0.18),
-                      boxShadow: theme.custom.elevation.e2,
+                      transform: 'translateY(-2px)',
+                      backgroundColor: alpha(item.tone.main, isDark ? 0.1 : 0.06),
+                      borderColor: alpha(item.tone.main, isDark ? 0.35 : 0.28),
+                      boxShadow: isDark
+                        ? `0 6px 20px ${alpha(item.tone.main, 0.2)}`
+                        : `0 6px 20px ${alpha(item.tone.main, 0.08)}`,
                       '& .action-chevron': {
-                        borderColor: alpha(item.tone.main, 0.22),
-                        backgroundColor: alpha(item.tone.main, 0.08),
+                        backgroundColor: alpha(item.tone.main, isDark ? 0.22 : 0.14),
+                        borderColor: alpha(item.tone.main, isDark ? 0.35 : 0.25),
+                        color: item.tone.main,
+                        transform: isRTLMode ? 'scaleX(-1) translateX(3px)' : 'translateX(3px)',
+                      },
+                      '& .action-icon-circle': {
+                        transform: 'scale(1.05)',
+                        borderColor: alpha(item.tone.main, isDark ? 0.35 : 0.25),
                       },
                     },
                     '&:active': {
-                      transform: 'scale(0.99)',
-                      boxShadow: theme.custom.elevation.e1,
+                      transform: 'scale(0.985)',
+                      boxShadow: 'none',
                     },
                     '&:focus-visible': {
-                      borderColor: alpha(theme.custom.color.brandPrimary, 0.35),
-                      boxShadow: `0 0 0 2px ${theme.custom.color.surfaceRaised}, 0 0 0 4px ${alpha(theme.custom.color.brandPrimary, 0.28)}`,
+                      borderColor: '#0B57D0',
+                      boxShadow: `0 0 0 2px ${theme.custom.color.surfaceRaised}, 0 0 0 4px #0B57D0`,
                     },
                   }}
                 >
+                  {/* Icon Squircle */}
                   <Box
                     className="action-icon-circle"
                     sx={{
                       flexShrink: 0,
-                      width: 36,
-                      height: 36,
-                      borderRadius: "9px",
+                      width: { xs: 42, sm: 46 },
+                      height: { xs: 42, sm: 46 },
+                      borderRadius: '12px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: alpha(item.tone.main, isDark ? 0.14 : 0.08),
-                      border: `1px solid ${alpha(item.tone.main, isDark ? 0.18 : 0.12)}`,
+                      backgroundColor: alpha(item.tone.main, isDark ? 0.18 : 0.1),
+                      border: `1px solid ${alpha(item.tone.main, isDark ? 0.26 : 0.16)}`,
                       color: item.tone.main,
+                      transition: 'all 200ms ease',
                     }}
                   >
-                    <Icon sx={{ fontSize: 18 }} />
+                    <Icon sx={{ fontSize: { xs: 21, sm: 23 } }} />
                   </Box>
 
+                  {/* Text Content */}
                   <Box
                     sx={{
                       minWidth: 0,
@@ -218,11 +248,11 @@ const SearchReportHub = () => {
                   >
                     <Typography
                       sx={{
-                        fontFamily: theme.custom.font.body,
-                        fontWeight: 650,
-                        fontSize: "13.5px",
-                        lineHeight: 1.25,
-                        letterSpacing: "-0.01em",
+                        fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
+                        fontWeight: 600,
+                        fontSize: { xs: '14.5px', sm: '15.5px' },
+                        lineHeight: 1.3,
+                        letterSpacing: '-0.01em',
                         color: ink,
                       }}
                     >
@@ -230,12 +260,12 @@ const SearchReportHub = () => {
                     </Typography>
                     <Typography
                       sx={{
-                        fontFamily: theme.custom.font.body,
-                        fontWeight: 450,
-                        fontSize: "12px",
+                        fontFamily: `'Inter', ${theme.custom.font.body}, sans-serif`,
+                        fontWeight: 400,
+                        fontSize: { xs: '12.5px', sm: '13px' },
                         lineHeight: 1.4,
                         color: muted,
-                        mt: 0.25,
+                        mt: 0.3,
                         display: '-webkit-box',
                         WebkitLineClamp: 1,
                         WebkitBoxOrient: 'vertical',
@@ -246,23 +276,25 @@ const SearchReportHub = () => {
                     </Typography>
                   </Box>
 
+                  {/* Action Arrow Pill */}
                   <Box
                     className="action-chevron"
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      width: 28,
-                      height: 28,
-                      borderRadius: "8px",
+                      width: 34,
+                      height: 34,
+                      borderRadius: '50%',
+                      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.04)',
                       border: `1px solid ${hairline}`,
-                      backgroundColor: "transparent",
+                      color: muted,
                       flexShrink: 0,
                       transform: isRTLMode ? 'scaleX(-1)' : 'none',
-                      transition: 'border-color 160ms ease, background-color 160ms ease',
+                      transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
                     }}
                   >
-                    <ArrowForwardIosRounded sx={{ fontSize: 13, color: muted }} />
+                    <ArrowForwardRounded sx={{ fontSize: 17, color: 'inherit' }} />
                   </Box>
                 </Box>
               );

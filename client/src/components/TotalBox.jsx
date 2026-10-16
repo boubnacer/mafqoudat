@@ -102,12 +102,12 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          paddingRight: { xs: '50px', sm: 0 }, // Add right padding on mobile to avoid icon overlap (LTR)
-          paddingLeft: { xs: 0, sm: 0 }, // No left padding needed (LTR)
+          paddingRight: { xs: '48px', sm: '48px' },
+          paddingLeft: { xs: 0, sm: 0 },
           // RTL support for padding
           '[dir="rtl"] &': {
-            paddingRight: { xs: 0, sm: 0 }, // No right padding in RTL
-            paddingLeft: { xs: '50px', sm: 0 }, // Add left padding on mobile in RTL to avoid icon overlap
+            paddingRight: { xs: 0, sm: 0 },
+            paddingLeft: { xs: '48px', sm: '48px' },
           },
           ...titleStyle
         }}

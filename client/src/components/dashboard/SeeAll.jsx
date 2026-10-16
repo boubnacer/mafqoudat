@@ -5,13 +5,15 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setActiveLink, setFoundOrLost } from "../../app/state";
 import { useTranslation } from "../../utils/translations";
+import { isRTL } from "../../utils/languageUtils";
 
 const SeeAll = ({ foundOrlostId, totalItems, type = "found" }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  const isRTLMode = currentLanguage === "ar" || isRTL(currentLanguage);
 
   if (!totalItems) return null;
 
@@ -24,31 +26,56 @@ const SeeAll = ({ foundOrlostId, totalItems, type = "found" }) => {
   return (
     <Button
       onClick={handleSeeAll}
-      endIcon={<ArrowOutwardRounded sx={{ fontSize: 13 }} />}
+      endIcon={
+        <ArrowOutwardRounded
+          sx={{
+            fontSize: 13,
+            transform: isRTLMode ? "scaleX(-1)" : "none",
+          }}
+        />
+      }
       sx={{
         textTransform: "none",
-        fontFamily: theme.custom.font.body,
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
         fontWeight: 600,
-        fontSize: "12px",
-        letterSpacing: 0.15,
+        fontSize: "13px",
+        letterSpacing: "0.01em",
         lineHeight: 1,
-        color: isDark ? "#94A3B8" : "#64748B",
-        px: 1,
-        py: 0.5,
+        color: isDark ? "#CBD5E1" : "#475569",
+        px: 1.4,
+        py: 0.6,
         minWidth: 0,
-        borderRadius: "8px",
-        backgroundColor: "transparent",
-        border: "1px solid transparent",
-        "& .MuiButton-endIcon": { ml: 0.5, mr: 0 },
-        "&:hover": {
-          backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.05)",
-          color: theme.custom.color.ink,
-          borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)",
+        height: 28,
+        borderRadius: "999px",
+        backgroundColor: isDark
+          ? "rgba(255, 255, 255, 0.05)"
+          : (theme.custom.color.surfaceNested || "#F1F5F9"),
+        border: `1px solid ${theme.custom.color.hairlineBorder || (isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(15, 23, 42, 0.06)")}`,
+        transition:
+          "background-color 160ms ease, color 160ms ease, border-color 160ms ease",
+        "& .MuiButton-endIcon": {
+          marginInlineStart: "6px",
+          marginInlineEnd: 0,
         },
-        "&:hover .MuiSvgIcon-root": { transform: "translate(1px, -1px)" },
-        "& .MuiSvgIcon-root": { transition: "transform 160ms ease" },
+        "&:hover": {
+          backgroundColor: isDark
+            ? "rgba(11, 87, 208, 0.18)"
+            : "#E8F0FE",
+          color: isDark ? "#8AB4F8" : "#0B57D0",
+          borderColor: isDark
+            ? "rgba(138, 180, 248, 0.3)"
+            : "rgba(11, 87, 208, 0.2)",
+        },
+        "&:hover .MuiSvgIcon-root": {
+          transform: isRTLMode
+            ? "scaleX(-1) translate(-1.5px, -1.5px)"
+            : "translate(1.5px, -1.5px)",
+        },
+        "& .MuiSvgIcon-root": {
+          transition: "transform 160ms ease",
+        },
         "&:focus-visible": {
-          outline: `2px solid ${theme.custom.color.brandPrimary}`,
+          outline: `2px solid ${theme.custom.color.brandPrimary || "#0B57D0"}`,
           outlineOffset: 1,
         },
       }}

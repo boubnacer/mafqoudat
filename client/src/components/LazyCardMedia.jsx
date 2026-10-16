@@ -110,6 +110,10 @@ const LazyCardMedia = ({
     if (onError) onError();
   };
 
+  const surfaceNested =
+    theme.custom?.color?.surfaceNested ||
+    (theme.palette.mode === 'dark' ? '#27272A' : '#F1F5F9');
+
   // Show placeholder while loading
   if (!isInView && !supportsNativeLazy) {
     return (
@@ -117,9 +121,7 @@ const LazyCardMedia = ({
         ref={mediaRef}
         component="div"
         sx={{
-          backgroundColor: theme.palette.mode === 'dark' 
-            ? 'rgba(255, 255, 255, 0.08)' 
-            : 'rgba(0, 0, 0, 0.08)',
+          backgroundColor: surfaceNested,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -132,6 +134,10 @@ const LazyCardMedia = ({
             width="100%"
             height="100%"
             animation="wave"
+            sx={{
+              backgroundColor: surfaceNested,
+              transform: 'none',
+            }}
           />
         )}
       </CardMedia>
@@ -179,7 +185,9 @@ const LazyCardMedia = ({
               position: 'absolute',
               top: 0,
               left: 0,
-              zIndex: 1
+              zIndex: 1,
+              backgroundColor: surfaceNested,
+              transform: 'none',
             }}
           />
         )}
@@ -198,9 +206,9 @@ const LazyCardMedia = ({
               height: '100%',
               objectFit: 'cover',
               opacity: isLoaded ? 1 : 0,
-              transition: 'opacity 0.3s ease-in-out',
+              transition: 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)',
               position: 'relative',
-              zIndex: 2
+              zIndex: 2,
             }}
             {...validProps}
           />
@@ -222,7 +230,7 @@ const LazyCardMedia = ({
       sx={{
         position: 'relative',
         opacity: isLoaded ? 1 : 0,
-        transition: 'opacity 0.3s ease-in-out',
+        transition: 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)',
         ...sx
       }}
       {...validProps}
@@ -238,7 +246,9 @@ const LazyCardMedia = ({
             position: 'absolute',
             top: 0,
             left: 0,
-            zIndex: 1
+            zIndex: 1,
+            backgroundColor: surfaceNested,
+            transform: 'none',
           }}
         />
       )}

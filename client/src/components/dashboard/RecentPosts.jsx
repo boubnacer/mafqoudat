@@ -1,15 +1,16 @@
+import React, { useMemo, Fragment } from "react";
 import { Box, Typography, useTheme, alpha } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   CheckCircle as CheckCircleIcon,
   ArrowOutwardRounded,
 } from "@mui/icons-material";
-import { useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ar, fr, enUS } from "date-fns/locale";
 import noImageSvg from "../../img/noimage.svg";
 import LazyCardMedia from "../LazyCardMedia";
 import { useTranslation } from "../../utils/translations";
+import { isRTL } from "../../utils/languageUtils";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
 import {
   getCategoryConfig,
@@ -17,6 +18,154 @@ import {
   getCategoryBadgeStyle,
 } from "../../config/categories";
 import { API_BASE_URL } from "../../config/api";
+
+// Unified Frosted Pod for no-image states: identical to PostsList.jsx style
+const CategoryBentoPod = ({ items }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  const dividerColor = isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)";
+  const count = items?.length || 0;
+
+  if (count === 0) return null;
+
+  return (
+    <Box
+      sx={{
+        backgroundColor: isDark
+          ? alpha(theme.custom.color.surfaceRaised || "#1e293b", 0.12)
+          : "rgba(255, 255, 255, 0.18)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+        border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.40)"}`,
+        boxShadow: isDark
+          ? "0 8px 32px rgba(0, 0, 0, 0.20), 0 2px 6px rgba(0, 0, 0, 0.10)"
+          : "0 10px 28px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02)",
+        borderRadius: { xs: "16px", sm: "20px" },
+        width: count === 1 ? "fit-content" : "100%",
+        maxWidth: count === 1 ? { xs: "88%", sm: "84%" } : { xs: "92%", sm: "88%" },
+        boxSizing: "border-box",
+        overflow: "hidden",
+        p: count === 1
+          ? { xs: "10px 16px", sm: "14px 22px" }
+          : { xs: "8px 10px", sm: "12px 16px" },
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {/* 1 Category: centered icon + label */}
+      {count === 1 && (() => {
+        const item = items[0];
+        const Icon = item.IconComponent;
+        return (
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: { xs: 0.6, sm: 0.85 }, width: "100%", minWidth: 0 }}>
+            <Box
+              sx={{
+                color: item.style?.main || theme.palette.text.primary,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "& svg": { fontSize: { xs: 32, sm: 44 } },
+              }}
+            >
+              <Icon />
+            </Box>
+            <Typography
+              noWrap
+              sx={{
+                fontWeight: 750,
+                fontSize: { xs: "11.5px", sm: "13px" },
+                color: item.style?.main || theme.custom.color.ink,
+                lineHeight: 1.2,
+                textAlign: "center",
+                maxWidth: { xs: 120, sm: 150 },
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {item.label}
+            </Typography>
+          </Box>
+        );
+      })()}
+
+      {/* 2 or more Categories: Vertical Line-by-Line list with hairline dividers */}
+      {count >= 2 && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            minWidth: 0,
+            boxSizing: "border-box",
+          }}
+        >
+          {items.slice(0, 5).map((item, idx) => {
+            const Icon = item.IconComponent;
+            return (
+              <Fragment key={item.code || idx}>
+                {idx > 0 && (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      height: "1px",
+                      bgcolor: dividerColor,
+                      my: count >= 5 ? 0.25 : 0.35,
+                      flexShrink: 0,
+                      boxSizing: "border-box",
+                    }}
+                  />
+                )}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: { xs: 0.75, sm: 1 },
+                    width: "100%",
+                    minWidth: 0,
+                    boxSizing: "border-box",
+                    py: count >= 5 ? 0.15 : 0.25,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      color: item.style?.main || theme.palette.text.primary,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      "& svg": {
+                        fontSize: count >= 5 ? { xs: 14, sm: 17 } : { xs: 16, sm: 19 },
+                      },
+                    }}
+                  >
+                    <Icon />
+                  </Box>
+                  <Typography
+                    noWrap
+                    sx={{
+                      flex: 1,
+                      minWidth: 0,
+                      fontWeight: 750,
+                      fontSize: count >= 5 ? { xs: "10px", sm: "11px" } : { xs: "10.5px", sm: "11.5px" },
+                      color: theme.custom.color.ink,
+                      lineHeight: 1.2,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {item.label}
+                  </Typography>
+                </Box>
+              </Fragment>
+            );
+          })}
+        </Box>
+      )}
+    </Box>
+  );
+};
 
 const RecentPosts = (props) => {
   const {
@@ -40,8 +189,8 @@ const RecentPosts = (props) => {
 
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
-  const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
+  const isRTLMode = currentLanguage === "ar" || isRTL(currentLanguage);
 
   const getLocale = () => {
     switch (currentLanguage) {
@@ -217,20 +366,63 @@ const RecentPosts = (props) => {
 
   const tone = { main: foundLostStatus.statusColor };
 
-  const fallbackIconData = useMemo(() => {
-    if (hasImage) return null;
-    if (!categories || categories.length === 0) return null;
-    const IconComponent = getCategoryIcon(categories[0].code);
-    if (!IconComponent) return null;
-    return {
-      IconComponent,
-      style: categoryStyles[0],
-      label: categoryNames[0],
-    };
+  const categoryIconsData = useMemo(() => {
+    if (hasImage) return [];
+    if (!categories || categories.length === 0) return [];
+    return categories
+      .map((cat, index) => {
+        const IconComponent = getCategoryIcon(cat.code);
+        const catStyle = categoryStyles[index];
+        if (!IconComponent) return null;
+        return {
+          IconComponent,
+          style: catStyle,
+          code: cat.code,
+          label: categoryNames[index],
+        };
+      })
+      .filter(Boolean);
   }, [hasImage, categories, categoryStyles, categoryNames]);
 
-  const hairline = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
-  const hairlineStrong = isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,42,0.10)";
+  const noImageBackground = useMemo(() => {
+    const baseBg = isDark
+      ? (theme.custom?.color?.surfaceBase || "#0F172A")
+      : (theme.custom?.color?.surfaceBase || "#F8FAFC");
+
+    if (!categoryStyles || categoryStyles.length === 0) {
+      return baseBg;
+    }
+
+    const c1 = categoryStyles[0]?.main || theme.custom?.color?.brandPrimary || "#00BCD4";
+    const c2 = categoryStyles[1]?.main || c1;
+    const c3 = categoryStyles[2]?.main;
+
+    // 1 Category: Centered ambient aura framing the category pod
+    if (categoryStyles.length === 1) {
+      return `radial-gradient(circle at 50% 45%, ${alpha(c1, isDark ? 0.36 : 0.26)} 0%, ${alpha(c1, isDark ? 0.08 : 0.05)} 65%, transparent 100%), ${baseBg}`;
+    }
+
+    // 2 or more Categories: Ambient multi-radial glow orbs
+    const pos1 = isRTLMode ? "80% 25%" : "20% 25%";
+    const pos2 = isRTLMode ? "15% 75%" : "85% 75%";
+    const pos3 = isRTLMode ? "30% 20%" : "70% 20%";
+
+    const layers = [
+      `radial-gradient(circle at ${pos1}, ${alpha(c1, isDark ? 0.34 : 0.26)} 0%, ${alpha(c1, isDark ? 0.08 : 0.05)} 65%, transparent 100%)`,
+      `radial-gradient(circle at ${pos2}, ${alpha(c2, isDark ? 0.30 : 0.22)} 0%, ${alpha(c2, isDark ? 0.06 : 0.04)} 65%, transparent 100%)`,
+    ];
+
+    if (c3 && categoryStyles.length >= 3) {
+      layers.push(
+        `radial-gradient(circle at ${pos3}, ${alpha(c3, isDark ? 0.22 : 0.15)} 0%, transparent 100%)`
+      );
+    }
+
+    layers.push(baseBg);
+    return layers.join(", ");
+  }, [categoryStyles, isDark, isRTLMode, theme]);
+
+  const hairline = theme.custom.color.hairlineBorder || (isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.06)");
   const muted = isDark ? "#94A3B8" : "#64748B";
   const ink = theme.custom.color.ink;
 
@@ -247,26 +439,39 @@ const RecentPosts = (props) => {
         flexDirection: "column",
         position: "relative",
         width: "100%",
+        minWidth: 0,
         height: fillHeight ? "100%" : undefined,
-        minHeight: fillHeight ? undefined : { xs: 246, sm: 268 },
-        borderRadius: "12px",
+        borderRadius: { xs: "16px", sm: "18px" },
         overflow: "hidden",
         isolation: "isolate",
         cursor: "pointer",
-        backgroundColor: theme.custom.color.surfaceRaised,
+        background: hasImage ? theme.custom.color.surfaceRaised : noImageBackground,
         border: `1px solid ${hairline}`,
-        boxShadow: theme.custom.elevation.e1,
+        boxShadow: isDark
+          ? "0 2px 8px rgba(0, 0, 0, 0.25)"
+          : "0 1px 3px rgba(15, 23, 42, 0.03), 0 4px 12px rgba(15, 23, 42, 0.03)",
         transition:
-          "border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease",
+          "border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease",
         "&:hover": {
-          borderColor: alpha(tone.main, 0.18),
-          boxShadow: theme.custom.elevation.e2,
+          borderColor: alpha(tone.main, 0.28),
+          transform: "translateY(-2px)",
+          boxShadow: isDark
+            ? "0 8px 24px rgba(0, 0, 0, 0.35)"
+            : "0 6px 20px rgba(15, 23, 42, 0.08)",
         },
-        "&:hover .rp-img": { transform: "scale(1.025)" },
-        "&:hover .rp-arrow": { opacity: 1, transform: "translateX(0)" },
+        "&:hover .rp-img": { transform: "scale(1.03)" },
+        "&:hover .rp-arrow": {
+          opacity: 1,
+          transform: isRTLMode ? "translate(-1px, -1px)" : "translate(1px, -1px)",
+          backgroundColor: isDark ? "rgba(11, 87, 208, 0.2)" : "#E8F0FE",
+          color: isDark ? "#8AB4F8" : "#0B57D0",
+          borderColor: isDark ? "rgba(138, 180, 248, 0.3)" : "rgba(11, 87, 208, 0.25)",
+        },
         "&:active": {
           transform: "scale(0.99)",
-          boxShadow: theme.custom.elevation.e1,
+          boxShadow: isDark
+            ? "0 2px 6px rgba(0, 0, 0, 0.2)"
+            : "0 1px 2px rgba(15, 23, 42, 0.04)",
         },
         "&:focus-visible": {
           outline: `2px solid ${theme.custom.color.brandPrimary}`,
@@ -275,17 +480,17 @@ const RecentPosts = (props) => {
         },
       }}
     >
-      {/* Media */}
+      {/* Media Canvas */}
       <Box
         sx={{
           position: "relative",
           width: "100%",
-          aspectRatio: fillHeight ? undefined : "4 / 3.05",
+          aspectRatio: fillHeight ? undefined : { xs: "1 / 1", sm: "4 / 3" },
           flex: fillHeight ? "1 1 auto" : "0 0 auto",
           minHeight: fillHeight ? 0 : undefined,
           overflow: "hidden",
-          backgroundColor: isDark ? "#1E293B" : "#F8FAFC",
-          borderBottom: `1px solid ${hairline}`,
+          backgroundColor: hasImage ? theme.custom.color.surfaceNested : "transparent",
+          borderBottom: `1px solid ${isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.40)"}`,
         }}
       >
         {hasImage ? (
@@ -301,70 +506,29 @@ const RecentPosts = (props) => {
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              transition: "transform 220ms ease",
-              transform: "scale(1.01)",
+              transition: "transform 260ms cubic-bezier(0.2, 0, 0, 1)",
             }}
           />
-        ) : (
+        ) : categoryIconsData.length > 0 ? (
           <Box
             sx={{
               position: "absolute",
               inset: 0,
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: 1.25,
-              p: 2,
+              p: { xs: 1.25, sm: 2 },
+              width: "100%",
+              height: "100%",
+              zIndex: 1,
+              boxSizing: "border-box",
             }}
           >
-            {fallbackIconData && (
-              <>
-                <Box
-                  sx={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: alpha(
-                      fallbackIconData.style?.main ||
-                        theme.custom.color.brandPrimary,
-                      isDark ? 0.14 : 0.09
-                    ),
-                    border: `1px solid ${alpha(
-                      fallbackIconData.style?.main ||
-                        theme.custom.color.brandPrimary,
-                      isDark ? 0.18 : 0.12
-                    )}`,
-                    color:
-                      fallbackIconData.style?.main ||
-                      theme.custom.color.brandPrimary,
-                    "& svg": { fontSize: 26 },
-                  }}
-                >
-                  <fallbackIconData.IconComponent />
-                </Box>
-                <Typography
-                  sx={{
-                    fontFamily: theme.custom.font.body,
-                    fontWeight: 600,
-                    fontSize: "12px",
-                    color: muted,
-                    letterSpacing: 0.15,
-                    textAlign: "center",
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {fallbackIconData.label}
-                </Typography>
-              </>
-            )}
+            <CategoryBentoPod items={categoryIconsData} />
           </Box>
-        )}
+        ) : null}
 
-        {/* Top bar */}
+        {/* Top Badges Bar */}
         <Box
           sx={{
             position: "absolute",
@@ -380,41 +544,42 @@ const RecentPosts = (props) => {
             pointerEvents: "none",
           }}
         >
+          {/* Status Pill */}
           <Box
             sx={{
               display: "inline-flex",
               alignItems: "center",
               gap: 0.75,
               height: 26,
-              px: 1.1,
+              px: 1.15,
               borderRadius: "999px",
               backgroundColor: isDark
-                ? "rgba(15,23,42,0.82)"
-                : "rgba(255,255,255,0.94)",
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,42,0.08)"}`,
+                ? "rgba(15,23,42,0.85)"
+                : "rgba(255,255,255,0.92)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.08)"}`,
               boxShadow: isDark
-                ? "0 1px 2px rgba(0,0,0,0.28)"
-                : "0 1px 3px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.06)",
+                ? "0 2px 6px rgba(0,0,0,0.3)"
+                : "0 1px 3px rgba(15,23,42,0.06)",
             }}
           >
             <Box
               sx={{
-                width: 7,
-                height: 7,
+                width: 6.5,
+                height: 6.5,
                 borderRadius: "50%",
                 backgroundColor: tone.main,
-                boxShadow: `0 0 0 3px ${alpha(tone.main, 0.16)}`,
+                boxShadow: `0 0 0 3px ${alpha(tone.main, 0.2)}`,
                 flexShrink: 0,
               }}
             />
             <Typography
               sx={{
-                fontFamily: theme.custom.font.body,
-                fontWeight: 650,
-                fontSize: "11px",
-                letterSpacing: 0.35,
+                fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+                fontWeight: 600,
+                fontSize: "11.5px",
+                letterSpacing: "0.02em",
                 lineHeight: 1,
                 color: ink,
                 whiteSpace: "nowrap",
@@ -431,17 +596,17 @@ const RecentPosts = (props) => {
                 alignItems: "center",
                 gap: 0.6,
                 height: 26,
-                px: 1,
+                px: 1.1,
                 borderRadius: "999px",
                 backgroundColor: isDark
-                  ? "rgba(15,23,42,0.82)"
-                  : "rgba(255,255,255,0.94)",
-                backdropFilter: "blur(8px)",
-                WebkitBackdropFilter: "blur(8px)",
-                border: `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,42,0.08)"}`,
+                  ? "rgba(15,23,42,0.85)"
+                  : "rgba(255,255,255,0.92)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.08)"}`,
                 boxShadow: isDark
-                  ? "0 1px 2px rgba(0,0,0,0.28)"
-                  : "0 1px 3px rgba(15,23,42,0.08)",
+                  ? "0 2px 6px rgba(0,0,0,0.3)"
+                  : "0 1px 3px rgba(15,23,42,0.06)",
               }}
             >
               <CheckCircleIcon
@@ -449,10 +614,10 @@ const RecentPosts = (props) => {
               />
               <Typography
                 sx={{
-                  fontFamily: theme.custom.font.body,
-                  fontWeight: 650,
-                  fontSize: "11px",
-                  letterSpacing: 0.3,
+                  fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "11.5px",
+                  letterSpacing: "0.02em",
                   lineHeight: 1,
                   color: ink,
                   whiteSpace: "nowrap",
@@ -465,16 +630,19 @@ const RecentPosts = (props) => {
         </Box>
       </Box>
 
-      {/* Content */}
+      {/* Content Details */}
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 0.5,
-          px: 1.65,
-          pt: 1.35,
-          pb: 1.4,
-          backgroundColor: theme.custom.color.surfaceRaised,
+          gap: { xs: 0.35, sm: 0.5 },
+          px: { xs: 1.25, sm: 1.65 },
+          pt: { xs: 1, sm: 1.25 },
+          pb: { xs: 1, sm: 1.25 },
+          flexShrink: 0,
+          backgroundColor: isDark
+            ? "rgba(255, 255, 255, 0.05)"
+            : (theme.custom.color.surfaceNested || "#F1F5F9"),
         }}
       >
         <Box
@@ -482,16 +650,16 @@ const RecentPosts = (props) => {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 1,
+            gap: 0.75,
             minWidth: 0,
           }}
         >
           <Typography
             noWrap
             sx={{
-              fontFamily: theme.custom.font.body,
+              fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
               fontWeight: 650,
-              fontSize: "13.5px",
+              fontSize: { xs: "13px", sm: "14.5px" },
               lineHeight: 1.25,
               letterSpacing: "-0.01em",
               color: ink,
@@ -508,70 +676,41 @@ const RecentPosts = (props) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 22,
-              height: 22,
+              width: { xs: 20, sm: 22 },
+              height: { xs: 20, sm: 22 },
               borderRadius: "50%",
-              border: `1px solid ${hairlineStrong}`,
+              backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "#F1F3F9",
+              border: `1px solid ${hairline}`,
               color: muted,
               flexShrink: 0,
-              opacity: 0,
-              transform: "translateX(-4px)",
-              transition: "opacity 160ms ease, transform 160ms ease, border-color 160ms ease, color 160ms ease",
+              opacity: { xs: 1, sm: 0 },
+              transition:
+                "opacity 180ms ease, transform 180ms ease, background-color 180ms ease, color 180ms ease, border-color 180ms ease",
               "@media (hover: none)": { opacity: 1, transform: "none" },
             }}
           >
-            <ArrowOutwardRounded sx={{ fontSize: 13 }} />
+            <ArrowOutwardRounded
+              sx={{
+                fontSize: { xs: 12, sm: 13 },
+                transform: isRTLMode ? "scaleX(-1)" : "none",
+              }}
+            />
           </Box>
         </Box>
 
-        <Box
+        <Typography
+          noWrap
           sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 0.75,
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: 500,
+            fontSize: { xs: "11px", sm: "12px" },
+            lineHeight: 1.25,
+            color: muted,
             minWidth: 0,
-            flexWrap: "nowrap",
-            overflow: "hidden",
           }}
         >
-          <Typography
-            noWrap
-            sx={{
-              fontFamily: theme.custom.font.body,
-              fontWeight: 450,
-              fontSize: "12px",
-              lineHeight: 1.3,
-              color: muted,
-              minWidth: 0,
-            }}
-          >
-            {created}
-          </Typography>
-          <Box
-            sx={{
-              width: 3,
-              height: 3,
-              borderRadius: "50%",
-              backgroundColor: alpha(muted, 0.55),
-              flexShrink: 0,
-            }}
-          />
-          <Typography
-            noWrap
-            sx={{
-              fontFamily: theme.custom.font.body,
-              fontWeight: 500,
-              fontSize: "12px",
-              lineHeight: 1.3,
-              color: muted,
-              minWidth: 0,
-              flex: 1,
-            }}
-          >
-            {categoryNames[0]}
-            {categories.length > 1 ? ` · +${categories.length - 1}` : ""}
-          </Typography>
-        </Box>
+          {created}
+        </Typography>
       </Box>
     </Box>
   );

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import TotalBox from "../TotalBox";
 import FoundLostStrip from "./FoundLostStrip";
 import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
+import { TimelineOutlined } from "@mui/icons-material";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
 
@@ -143,36 +144,52 @@ const LeftSide = ({
     return currentCount >= 1 && currentCount > viewedCount;
   }, [lostsToday, viewedNotifications.lostCount]);
 
-  const hairline = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
-  const hairlineStrong = isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,42,0.10)";
+  const hairline = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(15, 23, 42, 0.06)";
   const muted = isDark ? "#94A3B8" : "#64748B";
   const ink = theme.custom.color.ink;
 
-  const baseCardSx = {
-    backgroundColor: theme.custom.color.surfaceRaised,
+  // Google SaaS nested secondary surface styling
+  const nestedCardSx = {
+    backgroundColor: theme.custom.color.surfaceNested,
+    background: theme.custom.color.surfaceNested,
     border: `1px solid ${hairline}`,
-    boxShadow: theme.custom.elevation.e1,
-    borderRadius: "12px",
+    borderRadius: "14px",
+    boxShadow: "none",
     position: "relative",
     overflow: "hidden",
+    transition: "border-color 0.2s ease, background-color 0.2s ease",
   };
 
   const foundLostCardSx = {
-    ...baseCardSx,
+    ...nestedCardSx,
   };
 
   const totalBoxCardSx = {
-    ...baseCardSx,
-    padding: isMobile ? "1.1rem 1.2rem" : "1.35rem 1.4rem",
+    ...nestedCardSx,
+    backdropFilter: "none",
+    WebkitBackdropFilter: "none",
+    minHeight: { xs: "116px", sm: "128px" },
+    p: isMobile ? "1.1rem 1.15rem" : "1.25rem 1.35rem",
     cursor: "default",
-    "&:hover": { transform: "none", boxShadow: theme.custom.elevation.e1 },
+    "&:hover": {
+      transform: "none",
+      boxShadow: "none",
+      borderColor: isDark ? "rgba(255, 255, 255, 0.14)" : "rgba(15, 23, 42, 0.12)",
+    },
   };
 
   const returnedBoxCardSx = {
-    ...baseCardSx,
-    padding: isMobile ? "1.1rem 1.2rem" : "1.35rem 1.4rem",
+    ...nestedCardSx,
+    backdropFilter: "none",
+    WebkitBackdropFilter: "none",
+    minHeight: { xs: "116px", sm: "128px" },
+    p: isMobile ? "1.1rem 1.15rem" : "1.25rem 1.35rem",
     cursor: "default",
-    "&:hover": { transform: "none", boxShadow: theme.custom.elevation.e1 },
+    "&:hover": {
+      transform: "none",
+      boxShadow: "none",
+      borderColor: isDark ? "rgba(255, 255, 255, 0.14)" : "rgba(15, 23, 42, 0.12)",
+    },
   };
 
   return (
@@ -181,61 +198,124 @@ const LeftSide = ({
       sx={{
         position: "relative",
         overflow: "hidden",
+        isolation: "isolate",
         backgroundColor: theme.custom.color.surfaceRaised,
         border: `1px solid ${hairline}`,
-        borderRadius: "16px",
-        boxShadow: theme.custom.elevation.e1,
+        borderRadius: { xs: "18px", sm: "20px" },
+        boxShadow: isDark
+          ? "0 4px 24px rgba(0, 0, 0, 0.25)"
+          : "0 1px 3px rgba(15, 23, 42, 0.03), 0 8px 24px rgba(15, 23, 42, 0.04)",
         color: ink,
-        padding: isMobile ? "1.35rem 1rem 1.4rem" : "1.75rem 1.75rem 1.6rem",
+        p: isMobile ? "1.25rem 1rem 1.35rem" : "1.5rem 1.5rem",
         width: "100%",
         mx: 0,
         maxWidth: "100%",
         minWidth: 0,
       }}
     >
+      {/* Header */}
       <Box
         data-reveal-item=""
         sx={{
           position: "relative",
           zIndex: 1,
-          textAlign: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 1.5,
+          mb: { xs: 1.75, sm: 2 },
           direction: currentLanguage === "ar" ? "rtl" : "ltr",
-          mb: isMobile ? 1.75 : 2,
         }}
       >
-        <Typography
+        <Box
           sx={{
-            fontFamily: theme.custom.font.display,
-            fontWeight: 650,
-            fontSize: { xs: "14.5px", sm: "15px" },
-            letterSpacing: "-0.01em",
-            lineHeight: 1.2,
-            color: ink,
+            display: "flex",
+            alignItems: "center",
+            gap: 1.25,
+            minWidth: 0,
           }}
         >
-          {t('statistics')}
-        </Typography>
-        <Typography
+          <Box
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              backgroundColor: alpha(theme.custom.color.brandPrimary, isDark ? 0.16 : 0.08),
+              border: `1px solid ${alpha(theme.custom.color.brandPrimary, isDark ? 0.24 : 0.14)}`,
+              color: theme.custom.color.brandPrimary,
+            }}
+          >
+            <TimelineOutlined sx={{ fontSize: 18 }} />
+          </Box>
+          <Typography
+            component="h2"
+            sx={{
+              fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
+              fontWeight: 600,
+              fontSize: { xs: "15px", sm: "16px" },
+              letterSpacing: "-0.015em",
+              lineHeight: 1.2,
+              color: ink,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {t('statistics')}
+          </Typography>
+        </Box>
+
+        {/* Timeframe pill badge */}
+        <Box
           sx={{
-            fontFamily: theme.custom.font.body,
-            fontWeight: 450,
-            fontSize: "12px",
-            lineHeight: 1.4,
-            color: muted,
-            mt: 0.5,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 0.75,
+            height: 24,
+            px: 1.25,
+            borderRadius: "999px",
+            backgroundColor: isDark
+              ? "rgba(255, 255, 255, 0.06)"
+              : "rgba(15, 23, 42, 0.04)",
+            border: `1px solid ${hairline}`,
+            flexShrink: 0,
           }}
         >
-          {t('sinceLastMonth') || "Updated today"}
-        </Typography>
+          <Box
+            sx={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              backgroundColor: theme.custom.status.found.main,
+            }}
+          />
+          <Typography
+            sx={{
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: 500,
+              fontSize: "11.5px",
+              lineHeight: 1,
+              color: muted,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {t('sinceLastMonth') || "Updated today"}
+          </Typography>
+        </Box>
       </Box>
 
+      {/* Grid of nested stat containers */}
       <Box
         sx={{
           position: "relative",
           zIndex: 1,
           display: "grid",
           gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
-          gap: { xs: 1, sm: 1.1 },
+          gap: { xs: 1.25, sm: 1.25 },
           alignItems: "stretch",
         }}
       >
@@ -259,35 +339,35 @@ const LeftSide = ({
           icon={<RenderIcon name="total" />}
           sx={totalBoxCardSx}
           titleStyle={{
-            fontFamily: theme.custom.font.body,
+            fontFamily: "'Inter', sans-serif",
             color: muted,
             fontSize: "12.5px",
-            fontWeight: 600,
+            fontWeight: 500,
             letterSpacing: "-0.01em",
             whiteSpace: "nowrap",
           }}
           valueStyle={{
-            fontFamily: theme.custom.font.display,
+            fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
             color: ink,
-            fontSize: { xs: "1.55rem", sm: "1.7rem" },
-            fontWeight: 700,
-            lineHeight: 1,
+            fontSize: { xs: "1.6rem", sm: "1.8rem" },
+            fontWeight: 600,
+            lineHeight: 1.1,
             fontVariantNumeric: "tabular-nums",
-            letterSpacing: "-0.02em",
+            letterSpacing: "-0.025em",
           }}
           descriptionStyle={{
-            fontFamily: theme.custom.font.body,
+            fontFamily: "'Inter', sans-serif",
             color: muted,
-            fontSize: "12px",
+            fontSize: "11.5px",
             fontWeight: 500,
             whiteSpace: "nowrap",
           }}
           iconStyle={{
-            background: alpha(theme.custom.color.brandPrimary, isDark ? 0.12 : 0.08),
-            border: `1px solid ${alpha(theme.custom.color.brandPrimary, isDark ? 0.18 : 0.12)}`,
+            background: alpha(theme.custom.color.brandPrimary, isDark ? 0.16 : 0.08),
+            border: `1px solid ${alpha(theme.custom.color.brandPrimary, isDark ? 0.24 : 0.12)}`,
             boxShadow: "none",
             color: theme.custom.color.brandPrimary,
-            borderRadius: "8px",
+            borderRadius: "10px",
           }}
         />
 
@@ -300,35 +380,35 @@ const LeftSide = ({
           icon={<RenderIcon name="returned" />}
           sx={returnedBoxCardSx}
           titleStyle={{
-            fontFamily: theme.custom.font.body,
+            fontFamily: "'Inter', sans-serif",
             color: muted,
             fontSize: "12.5px",
-            fontWeight: 600,
+            fontWeight: 500,
             letterSpacing: "-0.01em",
             whiteSpace: "nowrap",
           }}
           valueStyle={{
-            fontFamily: theme.custom.font.display,
+            fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
             color: ink,
-            fontSize: { xs: "1.55rem", sm: "1.7rem" },
-            fontWeight: 700,
-            lineHeight: 1,
+            fontSize: { xs: "1.6rem", sm: "1.8rem" },
+            fontWeight: 600,
+            lineHeight: 1.1,
             fontVariantNumeric: "tabular-nums",
-            letterSpacing: "-0.02em",
+            letterSpacing: "-0.025em",
           }}
           descriptionStyle={{
-            fontFamily: theme.custom.font.body,
+            fontFamily: "'Inter', sans-serif",
             color: muted,
-            fontSize: "12px",
+            fontSize: "11.5px",
             fontWeight: 500,
             whiteSpace: "nowrap",
           }}
           iconStyle={{
-            background: alpha(theme.custom.status.found.main, isDark ? 0.12 : 0.08),
-            border: `1px solid ${alpha(theme.custom.status.found.main, isDark ? 0.18 : 0.12)}`,
+            background: alpha(theme.custom.status.found.main, isDark ? 0.16 : 0.08),
+            border: `1px solid ${alpha(theme.custom.status.found.main, isDark ? 0.24 : 0.12)}`,
             boxShadow: "none",
             color: theme.custom.status.found.main,
-            borderRadius: "8px",
+            borderRadius: "10px",
           }}
         />
       </Box>

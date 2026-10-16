@@ -1,33 +1,21 @@
+import React from "react";
 import { Box } from "@mui/material";
-import { styled } from "@mui/system";
 
-const DashRecents = styled(Box)((props) => ({
-  position: "relative",
-  margin:
-    props.cate === "cate"
-      ? "1% 0%"
-      : props.cate === "recents"
-      ? "1% 0% 0%"
-      : props.cate === "roadmap"
-      ? "2% 0% 0%"
-      : "",
-  padding:
-    props.cate === "cate"
-      ? "2rem 2.5rem"
-      : props.cate === "recents"
-      ? "2rem 2.5rem"
-      : props.cate === "roadmap"
-      ? "2rem 2.5rem"
-      : "",
-
-  // borderBottom: "1px solid #333333",
-  // borderTop: "1px solid #333333",
-}));
-
-// Create a wrapper component that forwards data attributes
-const DashRecentsWrapper = (props) => {
-  const { cate, ...otherProps } = props;
-  return <DashRecents cate={cate} {...otherProps} />;
+const DashRecents = ({ cate, sx, children, ...otherProps }) => {
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        width: "100%",
+        py: { xs: 2, sm: 2.5, md: 3 },
+        px: { xs: 1, sm: 1.5, md: 2 },
+        ...sx,
+      }}
+      {...otherProps}
+    >
+      {children}
+    </Box>
+  );
 };
 
-export default DashRecentsWrapper;
+export default DashRecents;

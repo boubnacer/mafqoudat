@@ -25,20 +25,20 @@ export const colorTokens = {
   // Defaults to brandLogo (#3498DB), unifying the dots style across the homepage.
   cyberDots: { light: '#3498DB', dark: '#3498DB' },
   ink: { light: '#0B1220', dark: '#EDEFF5' },
-  surfaceBase: { light: '#F7F8FB', dark: '#0E1116' },
-  surfaceRaised: { light: '#FFFFFF', dark: '#171B22' },
+  surfaceBase: { light: '#F8FAFD', dark: '#0E0E10' },
+  surfaceRaised: { light: '#FFFFFF', dark: '#18181B' },
+  // Nested / inner box inside an elevated card (Secondary Surface)
+  surfaceNested: { light: '#F1F5F9', dark: '#27272A' },
+  // Subtle divider / hairline border (subtle rim required in dark mode)
+  hairlineBorder: { light: 'rgba(225, 227, 225, 0.70)', dark: 'rgba(255, 255, 255, 0.08)' },
   // Backdrop for the posts list page itself (not the cards) — the page's
-  // plain surfaceBase (F7F8FB) sat only ~3% off the white surfaceRaised
-  // cards on top of it in light mode, so the cards all but vanished into the
-  // page. Gives that one page a slightly deeper tone than surfaceBase so the
-  // (unchanged, plain white) cards read clearly against it. Dark mode value
-  // equals surfaceBase's dark value verbatim (no-op there) — surfaceRaised
-  // already separates from surfaceBase enough in dark mode.
-  postsListBackdrop: { light: '#EDEFF6', dark: '#0E1116' },
+  // plain surfaceBase (F8FAFD) sits cleanly off the white surfaceRaised
+  // cards on top of it in light mode.
+  postsListBackdrop: { light: '#EDEFF6', dark: '#0E0E10' },
   // Footer background — matches the homepage canvas and raised component surfaces across both modes.
-  footerBackground: { light: '#FFFFFF', dark: '#171B22' },
+  footerBackground: { light: '#FFFFFF', dark: '#18181B' },
   // Homepage main canvas backdrop
-  homePageBackdrop: { light: '#FFFFFF', dark: '#171B22' },
+  homePageBackdrop: { light: '#F8FAFD', dark: '#0E0E10' },
   // Frosted glass section container background for homepage panels
   // (SearchReportHub, Categories, Process, Help & Support)
   sectionCard: { light: 'rgba(255, 255, 255, 0.92)', dark: 'rgba(11, 18, 32, 0.94)' },
@@ -108,6 +108,8 @@ export const resolveDesignTokens = (mode) => {
       ink: colorTokens.ink[m],
       surfaceBase: colorTokens.surfaceBase[m],
       surfaceRaised: colorTokens.surfaceRaised[m],
+      surfaceNested: colorTokens.surfaceNested[m],
+      hairlineBorder: colorTokens.hairlineBorder[m],
       postsListBackdrop: colorTokens.postsListBackdrop[m],
       footerBackground: colorTokens.footerBackground[m],
       homePageBackdrop: colorTokens.homePageBackdrop[m],

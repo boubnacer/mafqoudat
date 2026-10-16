@@ -79,8 +79,8 @@ const Segment = ({ tone, Icon, label, value, todayLabel, hasNotification, onClic
         </Box>
         <Typography
           sx={{
-            fontFamily: theme.custom.font.body,
-            fontWeight: 600,
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: 500,
             fontSize: "12.5px",
             letterSpacing: "-0.01em",
             color: muted,
@@ -98,19 +98,19 @@ const Segment = ({ tone, Icon, label, value, todayLabel, hasNotification, onClic
 
       <Typography
         sx={{
-          fontFamily: theme.custom.font.display,
-          fontWeight: 700,
-          fontSize: { xs: "1.55rem", sm: "1.75rem" },
+          fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
+          fontWeight: 600,
+          fontSize: { xs: "1.6rem", sm: "1.8rem" },
           lineHeight: 1,
           color: theme.custom.color.ink,
           fontVariantNumeric: "tabular-nums",
-          letterSpacing: "-0.02em",
+          letterSpacing: "-0.025em",
         }}
       >
         {displayValue.toLocaleString()}
       </Typography>
 
-      <Typography sx={{ fontFamily: theme.custom.font.body, fontSize: "12px", fontWeight: 500, color: muted, lineHeight: 1 }}>
+      <Typography sx={{ fontFamily: "'Inter', sans-serif", fontSize: "11.5px", fontWeight: 500, color: muted, lineHeight: 1 }}>
         {todayLabel}
       </Typography>
     </Box>
@@ -133,17 +133,17 @@ const FoundLostStrip = ({
   const isDark = theme.palette.mode === "dark";
   const { t, currentLanguage } = useTranslation();
   const isRTL = currentLanguage === "ar";
-  const hairline = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
+  const hairline = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(15, 23, 42, 0.06)";
 
   return (
     <Box
       {...rest}
       sx={{
         gridColumn: "1 / -1",
-        borderRadius: "12px",
-        backgroundColor: theme.custom.color.surfaceRaised,
+        borderRadius: "14px",
+        backgroundColor: theme.custom.color.surfaceNested,
         border: `1px solid ${hairline}`,
-        boxShadow: theme.custom.elevation.e1,
+        boxShadow: "none",
         overflow: "hidden",
         p: 0.5,
         ...sx,
