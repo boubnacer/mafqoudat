@@ -46,7 +46,7 @@ const DashLayout = () => {
         <Sidebar />
         <Box
           sx={{
-            backgroundColor: isHomePage ? (isDark ? '#0B1220' : '#FFFFFF') : theme.custom.color.surfaceBase,
+            backgroundColor: isHomePage ? theme.custom.color.homePageBackdrop : theme.custom.color.surfaceBase,
             maxWidth: '100%',
           }}
         >

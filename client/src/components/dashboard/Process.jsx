@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Box, Typography, useTheme, useMediaQuery, Link, alpha, lighten, darken } from "@mui/material";
 import { ShareOutlined, CampaignOutlined, NotificationsNoneOutlined } from "@mui/icons-material";
 import RenderIcon from "../RenderIcon";
-import CyberDotMatrix from "./CyberDotMatrix";
 import { useTranslation } from "../../utils/translations";
 import { gsap, ScrollTrigger, useGSAP } from "../../utils/gsapSetup";
 import { resolveScroller } from "../../features/dashboard/useDashboardMotion";
@@ -275,6 +274,8 @@ const Process = () => {
   const isDark = theme.palette.mode === "dark";
   const isRtl = theme.direction === "rtl";
   const { surfaceRaised, brandPrimary, brandLogo, ink } = theme.custom.color;
+  const hairline = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
+  const muted = isDark ? "#94A3B8" : "#64748B";
 
   const { hostRef, width: hostWidth } = useHostWidth();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
@@ -339,8 +340,8 @@ const Process = () => {
 
   const tintedCard = (radius) => ({
     position: "relative",
-    backgroundColor: alpha(brandPrimary, isDark ? 0.1 : 0.05),
-    border: `1px solid ${alpha(brandPrimary, isDark ? 0.3 : 0.18)}`,
+    backgroundColor: theme.custom.color.surfaceRaised,
+    border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"}`,
     borderRadius: radius,
   });
 
@@ -896,35 +897,33 @@ const Process = () => {
     <Box
       ref={rootRef}
       sx={{
-        ...theme.custom.sectionCard,
-        padding: { xs: "1.5rem", sm: "2.5rem", md: "1.75rem 2rem 2rem" },
+        position: 'relative',
+        backgroundColor: theme.custom.color.surfaceRaised,
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"}`,
+        borderRadius: "16px",
+        boxShadow: theme.custom.elevation.e1,
+        overflow: 'hidden',
+        padding: { xs: "1.5rem 1.25rem", sm: "1.75rem 1.5rem", md: "1.75rem 1.75rem 1.5rem" },
       }}
     >
-      {/* Cyber dot matrix SVG background — matches Categories/GuidedSearchDialog style */}
-      <CyberDotMatrix
-        idPrefix="dots-process"
-        inverted={false}
-      />
-
       <Box sx={{ position: "relative", zIndex: 1 }}>
-        <Box className="processHeader" sx={{ maxWidth: useWide ? 760 : 560, mx: "auto", mb: { xs: 2, md: 2 }, ...alignText("center") }}>
+        <Box className="processHeader" sx={{ maxWidth: useWide ? 760 : 560, mx: "auto", mb: { xs: 1.75, md: 1.5 }, ...alignText("center") }}>
           <Typography
             variant="overline"
-            sx={{ display: "block", fontWeight: 600, letterSpacing: 1, color: alpha(ink, 0.6) }}
+            sx={{ display: "block", fontFamily: theme.custom.font.body, fontWeight: 600, fontSize: "11px", letterSpacing: 0.6, color: muted, ...alignText("center") }}
           >
             {t("whatWeDo")}
           </Typography>
           <Typography
-            variant="h4"
-            fontWeight="700"
             sx={{
-              fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
+              fontFamily: theme.custom.font.display,
+              fontWeight: 650,
+              fontSize: { xs: "15px", sm: "16px" },
+              letterSpacing: "-0.01em",
+              lineHeight: 1.3,
+              color: ink,
               mt: 0.5,
-              display: "inline-block",
-              backgroundImage: `linear-gradient(135deg, ${brandPrimary} 0%, ${lighten(brandPrimary, 0.45)} 100%)`,
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              color: "transparent",
+              ...alignText("center"),
             }}
           >
             {t("afterPostingInMafqoudat")}
@@ -965,16 +964,15 @@ const Process = () => {
           sx={{
             position: "relative",
             zIndex: 2,
-            mt: useWide ? "-45px" : { xs: 3.5, md: 3 },
+            mt: useWide ? "-45px" : { xs: 3, md: 3 },
           }}
         >
           <Typography
-            variant="overline"
-            sx={{ display: "block", fontWeight: 600, letterSpacing: 1, color: alpha(ink, 0.6), mb: 1.5, ...alignText("center") }}
+            sx={{ display: "block", fontFamily: theme.custom.font.body, fontWeight: 600, fontSize: "11px", letterSpacing: 0.6, color: muted, mb: 1.25, ...alignText("center") }}
           >
             {t("followUs")}
           </Typography>
-          <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", gap: 1.25 }}>
             {socialLinks.map((social) => (
               <Link
                 key={social.name}
@@ -986,8 +984,8 @@ const Process = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  width: 48,
-                  height: 48,
+                  width: 36,
+                  height: 36,
                   transition: "transform 0.2s ease, box-shadow 0.2s ease",
                   "&:hover": {
                     transform: "translateY(-3px)",

@@ -229,7 +229,7 @@ const DashFooter = ({ sx = {}, ...otherProps } = {}) => {
   ];
 
   // Dynamic colors derived from design tokens and mode
-  const bgFooter = theme.custom?.color?.footerBackground || (isDark ? "#070B14" : "#F8FAFC");
+  const bgFooter = theme.custom?.color?.footerBackground || theme.custom?.color?.surfaceRaised || (isDark ? "#171B22" : "#FFFFFF");
   const borderFooter = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(11, 18, 32, 0.08)";
   const titleColor = isDark ? "#FFFFFF" : "#0B1220";
   const bodyTextColor = isDark ? "rgba(237, 239, 245, 0.72)" : "rgba(11, 18, 32, 0.70)";

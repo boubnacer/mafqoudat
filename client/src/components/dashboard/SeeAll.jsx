@@ -1,6 +1,6 @@
 import React from "react";
-import { KeyboardArrowRight } from "@mui/icons-material";
-import { Button, alpha, useTheme } from "@mui/material";
+import { Button, useTheme } from "@mui/material";
+import { ArrowOutwardRounded } from "@mui/icons-material";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setActiveLink, setFoundOrLost } from "../../app/state";
@@ -15,8 +15,6 @@ const SeeAll = ({ foundOrlostId, totalItems, type = "found" }) => {
 
   if (!totalItems) return null;
 
-  const tone = type === "found" ? theme.custom.status.found : theme.custom.status.lost;
-
   const handleSeeAll = () => {
     navigate(`/posts?fl=${foundOrlostId}`);
     dispatch(setFoundOrLost({ foundOrlost: foundOrlostId }));
@@ -26,28 +24,32 @@ const SeeAll = ({ foundOrlostId, totalItems, type = "found" }) => {
   return (
     <Button
       onClick={handleSeeAll}
-      endIcon={
-        <KeyboardArrowRight
-          sx={{ transform: theme.direction === "rtl" ? "scaleX(-1)" : "none", fontSize: 18 }}
-        />
-      }
+      endIcon={<ArrowOutwardRounded sx={{ fontSize: 13 }} />}
       sx={{
         textTransform: "none",
         fontFamily: theme.custom.font.body,
-        fontWeight: 700,
-        fontSize: { xs: "0.82rem", sm: "0.875rem" },
-        borderRadius: "999px",
-        color: tone.main,
-        flexShrink: 0,
-        px: { xs: 1.25, sm: 1.75 },
-        py: { xs: 0.35, sm: 0.5 },
-        backgroundColor: isDark ? "rgba(30, 41, 59, 0.6)" : "rgba(241, 245, 249, 0.8)",
-        border: isDark ? "1px solid rgba(51, 65, 85, 0.6)" : "1px solid rgba(226, 232, 240, 0.9)",
-        transition: "all 0.2s ease",
+        fontWeight: 600,
+        fontSize: "12px",
+        letterSpacing: 0.15,
+        lineHeight: 1,
+        color: isDark ? "#94A3B8" : "#64748B",
+        px: 1,
+        py: 0.5,
+        minWidth: 0,
+        borderRadius: "8px",
+        backgroundColor: "transparent",
+        border: "1px solid transparent",
+        "& .MuiButton-endIcon": { ml: 0.5, mr: 0 },
         "&:hover": {
-          backgroundColor: isDark ? alpha(tone.main, 0.2) : alpha(tone.main, 0.12),
-          borderColor: tone.main,
-          transform: "translateY(-1px)",
+          backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.05)",
+          color: theme.custom.color.ink,
+          borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)",
+        },
+        "&:hover .MuiSvgIcon-root": { transform: "translate(1px, -1px)" },
+        "& .MuiSvgIcon-root": { transition: "transform 160ms ease" },
+        "&:focus-visible": {
+          outline: `2px solid ${theme.custom.color.brandPrimary}`,
+          outlineOffset: 1,
         },
       }}
     >

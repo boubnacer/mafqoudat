@@ -25,7 +25,6 @@ import RecentSection from "../../components/dashboard/RecentSection";
 import HelpSupportSection from "../../components/dashboard/HelpSupportSection";
 import DashboardSkeleton from "../../components/dashboard/DashboardSkeleton";
 import CountryWelcomeDialog from "../../components/dashboard/CountryWelcomeDialog";
-import CyberDotMatrix from "../../components/dashboard/CyberDotMatrix";
 
 
 const Dash = () => {
@@ -296,7 +295,7 @@ const Dash = () => {
           pt={{ xs: "5rem", sm: "4rem" }}
           width="100%"
           sx={{
-            backgroundColor: isDark ? '#0B1220' : '#FFFFFF',
+            backgroundColor: theme.custom.color.homePageBackdrop,
             minHeight: '100vh',
             direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
             overflowX: 'hidden',
@@ -359,20 +358,13 @@ const Dash = () => {
               width: '100%',
               maxWidth: '100%',
               mx: 0,
-              backgroundColor: theme.custom.color.homePageBackdrop,
+              backgroundColor: theme.custom.color.surfaceRaised,
               borderRadius: 0,
               border: 'none',
               boxShadow: 'none',
               color: isDark ? '#ffffff' : '#0f172a',
             }}
           >
-            {/* Cyber dot matrix SVG background matching QuickActions */}
-            <CyberDotMatrix
-              idPrefix="dots-header-mobile"
-              opacity={isDark ? 0.75 : 0.9}
-              glowRadius="32%"
-              inverted={false}
-            />
             {!hasNoData && (
               <Box data-reveal="map" sx={{ position: 'absolute', inset: 0, zIndex: 0 }}>
                 <WorldActivityMap
@@ -381,7 +373,7 @@ const Dash = () => {
                   currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
                   countriesByCode={countriesByCode}
                   isLoading={isLoading}
-                  seaColor={theme.custom.color.homePageBackdrop}
+                  seaColor={theme.custom.color.surfaceRaised}
                   disableEdgeFade={true}
                 />
               </Box>
@@ -418,20 +410,13 @@ const Dash = () => {
               maxWidth: { sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
               overflow: 'hidden',
               mx: { xs: 1, sm: 2, lg: 'auto' },
-              backgroundColor: theme.custom.color.homePageBackdrop,
+              backgroundColor: theme.custom.color.surfaceRaised,
               borderRadius: 0,
               border: 'none',
               boxShadow: 'none',
               color: isDark ? '#ffffff' : '#0f172a',
             }}
           >
-            {/* Cyber dot matrix SVG background matching QuickActions */}
-            <CyberDotMatrix
-              idPrefix="dots-header-desktop"
-              opacity={isDark ? 0.75 : 0.9}
-              glowRadius="30%"
-              inverted={false}
-            />
             {!hasNoData && (
               <Box data-reveal="map" sx={{ position: 'absolute', inset: 0, zIndex: 0 }}>
                 <WorldActivityMap
@@ -440,7 +425,7 @@ const Dash = () => {
                   currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
                   countriesByCode={countriesByCode}
                   isLoading={isLoading}
-                  seaColor={theme.custom.color.homePageBackdrop}
+                  seaColor={theme.custom.color.surfaceRaised}
                   disableEdgeFade={true}
                 />
               </Box>
@@ -529,58 +514,32 @@ const Dash = () => {
               data-reveal="section"
               mb={4}
               sx={{
-                position: 'relative',
-                overflow: 'hidden',
-                isolation: 'isolate',
                 width: '100%',
-                borderRadius: 0,
-                py: { xs: 4.5, sm: 5.5, md: 7, lg: 8.5 },
+                maxWidth: { sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
+                mx: 'auto',
                 px: { xs: 1.5, sm: 2, md: 3 },
-                backgroundColor: 'transparent',
-                border: 'none',
-                borderTop: 'none',
-                borderBottom: 'none',
-                backdropFilter: 'none',
-                WebkitBackdropFilter: 'none',
-                boxShadow: 'none',
-                transition: 'all 0.3s ease',
+                display: 'grid',
+                gap: { xs: 2.5, md: 3 },
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                alignItems: 'start',
               }}
             >
-              {/* Cyber dot matrix SVG background centered at top and bottom */}
-              <CyberDotMatrix
-                idPrefix="dots-recent-parent"
-                placement="center-top-bottom"
-                falloffCurve="default"
+              <RecentSection
+                type="found"
+                items={data?.recentFounds}
+                totalItems={data?.totalFounds}
+                isLoading={isLoading}
+                onCreatePost={handleCreateNewPost}
+                foundOrlostId={foundsId}
               />
-
-              <Box
-                sx={{
-                  position: 'relative',
-                  zIndex: 1,
-                  maxWidth: { sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
-                  mx: 'auto',
-                  display: 'grid',
-                  gap: { xs: 3, md: 4 },
-                  gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                }}
-              >
-                <RecentSection
-                  type="found"
-                  items={data?.recentFounds}
-                  totalItems={data?.totalFounds}
-                  isLoading={isLoading}
-                  onCreatePost={handleCreateNewPost}
-                  foundOrlostId={foundsId}
-                />
-                <RecentSection
-                  type="lost"
-                  items={data?.recentLosts}
-                  totalItems={data?.totalLosts}
-                  isLoading={isLoading}
-                  onCreatePost={handleCreateNewPost}
-                  foundOrlostId={lostsId}
-                />
-              </Box>
+              <RecentSection
+                type="lost"
+                items={data?.recentLosts}
+                totalItems={data?.totalLosts}
+                isLoading={isLoading}
+                onCreatePost={handleCreateNewPost}
+                foundOrlostId={lostsId}
+              />
             </Box>
 
             {sectionDivider}

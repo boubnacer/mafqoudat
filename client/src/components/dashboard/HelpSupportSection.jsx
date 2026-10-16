@@ -34,22 +34,17 @@ import {
   Error as ErrorIcon,
 } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
+import { isRTL } from "../../utils/languageUtils";
 import { useSubmitContactFormMutation } from "../../features/contact/contactApiSlice";
-import CyberDotMatrix from "./CyberDotMatrix";
 
-// Calm, single-accent treatment (brandPrimary throughout, no stoplight
-// red/green/orange) — this section's job is being findable and trustworthy
-// when someone's stressed about a lost item, not driving excitement like
-// QuickActions/Categories above it. Contact is surfaced first since a direct
-// human channel matters more here than self-serve FAQ/guidelines.
 const HelpSupportSection = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  const isRTLMode = currentLanguage === 'ar' || isRTL(currentLanguage) || theme.direction === 'rtl';
   const [showHelpDialog, setShowHelpDialog] = useState(false);
 
-  // Contact form state
   const [contactFormData, setContactFormData] = useState({
     name: '',
     email: '',
@@ -68,21 +63,18 @@ const HelpSupportSection = () => {
     };
   }, []);
 
-  // RTK Query mutation hook
   const [submitContactForm, { isLoading: isContactLoading }] = useSubmitContactFormMutation();
 
   const openContactDialog = () => {
     setShowHelpDialog(true);
   };
 
-  // Contact form handlers
   const handleContactInputChange = (e) => {
     const { name, value } = e.target;
     setContactFormData(prev => ({
       ...prev,
       [name]: value,
     }));
-    // Clear error when user starts typing
     if (contactSubmitError) {
       setContactSubmitError(null);
     }
@@ -94,19 +86,13 @@ const HelpSupportSection = () => {
 
     try {
       await submitContactForm(contactFormData).unwrap();
-
-      // Success
       setIsContactSubmitted(true);
       setContactFormData({ name: '', email: '', subject: '', message: '' });
-
-      // Reset success message after 5 seconds
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
         setIsContactSubmitted(false);
       }, 5000);
-
     } catch (err) {
-      // Handle different error types
       if (err.status === 429) {
         setContactSubmitError('Too many requests. Please wait a few minutes before submitting again.');
       } else if (err.status === 400) {
@@ -120,86 +106,113 @@ const HelpSupportSection = () => {
   };
 
   const faqItems = [
-    {
-      question: t('howToReportLostItem'),
-      answer: t('howToReportLostItemAnswer')
-    },
-    {
-      question: t('howToClaimFoundItem'),
-      answer: t('howToClaimFoundItemAnswer')
-    },
-    {
-      question: t('whatInformationNeeded'),
-      answer: t('whatInformationNeededAnswer')
-    }
+    { question: t('howToReportLostItem'), answer: t('howToReportLostItemAnswer') },
+    { question: t('howToClaimFoundItem'), answer: t('howToClaimFoundItemAnswer') },
+    { question: t('whatInformationNeeded'), answer: t('whatInformationNeededAnswer') }
   ];
 
   const guidelines = [
-    {
-      title: t('beHonestInReports'),
-      description: t('beHonestInReportsDesc')
-    },
-    {
-      title: t('provideClearDescriptions'),
-      description: t('provideClearDescriptionsDesc')
-    },
-    {
-      title: t('keepCommunicationSafe'),
-      description: t('keepCommunicationSafeDesc')
-    }
+    { title: t('beHonestInReports'), description: t('beHonestInReportsDesc') },
+    { title: t('provideClearDescriptions'), description: t('provideClearDescriptionsDesc') },
+    { title: t('keepCommunicationSafe'), description: t('keepCommunicationSafeDesc') }
   ];
 
-  // Shared "generic surface card" treatment (SurfaceCard pattern) for the
-  // FAQ/Guidelines panels; Contact gets a stronger elevation below to read
-  // as the primary option without borrowing the status accent-bar idiom,
-  // which is reserved for lost/found semantics elsewhere.
-  const surfaceCardSx = {
+  const hairline = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
+  const muted = isDark ? "#94A3B8" : "#64748B";
+  const ink = theme.custom.color.ink;
+  const brand = theme.custom.color.brandPrimary;
+
+  const iconSquare = (active) => ({
+    width: 32,
+    height: 32,
+    borderRadius: "9px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    backgroundColor: active ? alpha(brand, isDark ? 0.14 : 0.09) : alpha(ink, isDark ? 0.06 : 0.04),
+    border: `1px solid ${active ? alpha(brand, isDark ? 0.18 : 0.12) : hairline}`,
+    color: active ? brand : muted,
+  });
+
+  const cardSx = {
     height: '100%',
-    p: { xs: 2.5, sm: 3 },
-    borderRadius: `${theme.custom.radius.lg}px`,
-    backgroundColor: theme.custom.color.surfaceBase,
+    display: 'flex',
+    flexDirection: 'column',
+    p: { xs: 1.75, sm: 2 },
+    borderRadius: "12px",
+    backgroundColor: theme.custom.color.surfaceRaised,
+    border: `1px solid ${hairline}`,
     boxShadow: 'none',
+  };
+
+  const contactCardSx = {
+    ...cardSx,
+    borderLeft: isRTLMode ? 'none' : `2px solid ${brand}`,
+    borderRight: isRTLMode ? `2px solid ${brand}` : 'none',
+  };
+
+  const ghostButtonSx = {
+    color: brand,
+    borderColor: alpha(brand, 0.28),
+    backgroundColor: "transparent",
+    borderRadius: "10px",
+    textTransform: "none",
+    fontFamily: theme.custom.font.body,
+    fontWeight: 600,
+    fontSize: "12.5px",
+    letterSpacing: "-0.01em",
+    py: 0.75,
+    "&:hover": {
+      backgroundColor: alpha(brand, 0.08),
+      borderColor: brand,
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${brand}`,
+      outlineOffset: 1,
+    },
   };
 
   return (
     <>
       <Box
         data-section="help"
+        dir={isRTLMode ? 'rtl' : 'ltr'}
         sx={{
-          ...theme.custom.sectionCard,
+          position: 'relative',
+          backgroundColor: theme.custom.color.surfaceRaised,
+          border: `1px solid ${hairline}`,
+          borderRadius: "16px",
+          boxShadow: theme.custom.elevation.e1,
+          overflow: 'hidden',
+          direction: isRTLMode ? 'rtl' : 'ltr',
           mx: { xs: 1, sm: 2, md: 'auto' },
-          padding: { xs: '1.5rem', sm: '2.5rem', md: '3rem' },
+          maxWidth: { lg: '1400px', xl: '1600px' },
+          px: { xs: 1.75, sm: 2.25, md: 2.5 },
+          py: { xs: 2, sm: 2.25, md: 2.5 },
         }}
       >
-        {/* Cyber dot matrix SVG background — matches Categories/Process/GuidedSearchDialog style */}
-        <CyberDotMatrix
-          idPrefix="dots-help-support"
-          inverted={true}
-        />
-
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-        {/* Heading — calm and reassuring, not a CTA-driving banner */}
-        <Box sx={{ textAlign: 'center', maxWidth: 560, mx: 'auto', mb: { xs: 3, md: 4 } }}>
+        <Box sx={{ textAlign: 'center', maxWidth: 560, mx: 'auto', mb: 2 }}>
           <Typography
-            variant="h5"
-            fontWeight={700}
-            align="center"
             sx={{
               fontFamily: theme.custom.font.display,
-              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
-              color: theme.custom.color.ink,
+              fontWeight: 650,
+              fontSize: { xs: "15px", sm: "16px" },
+              letterSpacing: "-0.01em",
+              lineHeight: 1.3,
+              color: ink,
               textAlign: 'center',
             }}
           >
             {t('helpAndSupport')}
           </Typography>
           <Typography
-            variant="body1"
-            align="center"
             sx={{
               fontFamily: theme.custom.font.body,
-              color: alpha(theme.custom.color.ink, 0.65),
-              fontSize: { xs: '0.9rem', sm: '1rem' },
+              fontWeight: 450,
+              fontSize: "12.5px",
+              lineHeight: 1.4,
+              color: muted,
               mt: 0.5,
               textAlign: 'center',
             }}
@@ -208,46 +221,49 @@ const HelpSupportSection = () => {
           </Typography>
         </Box>
 
-        <Grid container spacing={3}>
-          {/* Contact — primary option, real tel:/mailto: links, direct path to a human */}
+        <Grid container spacing={1.5} direction="row">
+          {/* Contact — primary */}
           <Grid item xs={12} md={4}>
-            <Box data-reveal-item="" sx={surfaceCardSx}>
-              <Box display="flex" alignItems="center" mb={2}>
-                <ContactMail sx={{ marginInlineEnd: 1, color: theme.custom.color.brandPrimary }} />
-                <Typography variant="h6" fontWeight={700} sx={{ color: theme.custom.color.ink }}>
+            <Box data-reveal-item="" sx={contactCardSx}>
+              <Box display="flex" alignItems="center" gap={1.25} mb={1.75} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
+                <Box sx={iconSquare(true)}><ContactMail sx={{ fontSize: 16 }} /></Box>
+                <Typography sx={{ fontFamily: theme.custom.font.body, fontWeight: 650, fontSize: "13.5px", letterSpacing: "-0.01em", color: ink, textAlign: isRTLMode ? 'right' : 'left' }}>
                   {t('contactUs')}
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mb: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1.5, flex: 1 }}>
                 <Box
                   component="a"
                   href="tel:+212711621132"
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1,
-                    p: 1.25,
-                    borderRadius: `${theme.custom.radius.md}px`,
+                    direction: isRTLMode ? 'rtl' : 'ltr',
+                    gap: 1.1,
+                    p: 1.1,
+                    borderRadius: "10px",
                     textDecoration: 'none',
-                    color: theme.custom.color.ink,
-                    backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.1 : 0.05),
-                    transition: 'background-color 0.2s ease',
-                    '&:hover': {
-                      backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.18 : 0.09),
+                    color: ink,
+                    border: `1px solid ${hairline}`,
+                    backgroundColor: "transparent",
+                    transition: 'border-color 160ms ease, background-color 160ms ease',
+                    "&:hover": {
+                      backgroundColor: alpha(brand, isDark ? 0.07 : 0.04),
+                      borderColor: alpha(brand, 0.18),
+                    },
+                    "&:focus-visible": {
+                      outline: `2px solid ${brand}`,
+                      outlineOffset: 1,
                     },
                   }}
                 >
-                  <Phone sx={{ fontSize: 20, color: theme.custom.color.brandPrimary }} />
-                  <Box>
-                    <Typography variant="caption" sx={{ display: 'block', color: alpha(theme.custom.color.ink, 0.6) }}>
+                  <Phone sx={{ fontSize: 16, color: brand, flexShrink: 0, transform: isRTLMode ? 'scaleX(-1)' : 'none' }} />
+                  <Box sx={{ minWidth: 0, flex: 1, textAlign: isRTLMode ? 'right' : 'left' }}>
+                    <Typography sx={{ fontFamily: theme.custom.font.body, fontSize: "11px", fontWeight: 500, color: muted, lineHeight: 1, textAlign: isRTLMode ? 'right' : 'left' }}>
                       {t('phoneNumber')}
                     </Typography>
-                    <Typography
-                      className="phone-number"
-                      variant="body2"
-                      fontWeight={600}
-                    >
+                    <Typography className="phone-number" dir="ltr" sx={{ fontFamily: theme.custom.font.body, fontSize: "12.5px", fontWeight: 600, color: ink, lineHeight: 1.3, textAlign: isRTLMode ? 'right' : 'left', direction: 'ltr' }}>
                       +212 711 621 132
                     </Typography>
                   </Box>
@@ -259,30 +275,37 @@ const HelpSupportSection = () => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1,
-                    p: 1.25,
-                    borderRadius: `${theme.custom.radius.md}px`,
+                    direction: isRTLMode ? 'rtl' : 'ltr',
+                    gap: 1.1,
+                    p: 1.1,
+                    borderRadius: "10px",
                     textDecoration: 'none',
-                    color: theme.custom.color.ink,
-                    backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.1 : 0.05),
-                    transition: 'background-color 0.2s ease',
-                    '&:hover': {
-                      backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.18 : 0.09),
+                    color: ink,
+                    border: `1px solid ${hairline}`,
+                    backgroundColor: "transparent",
+                    transition: 'border-color 160ms ease, background-color 160ms ease',
+                    "&:hover": {
+                      backgroundColor: alpha(brand, isDark ? 0.07 : 0.04),
+                      borderColor: alpha(brand, 0.18),
+                    },
+                    "&:focus-visible": {
+                      outline: `2px solid ${brand}`,
+                      outlineOffset: 1,
                     },
                   }}
                 >
-                  <EmailIcon sx={{ fontSize: 20, color: theme.custom.color.brandPrimary }} />
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography variant="caption" sx={{ display: 'block', color: alpha(theme.custom.color.ink, 0.6) }}>
+                  <EmailIcon sx={{ fontSize: 16, color: brand, flexShrink: 0 }} />
+                  <Box sx={{ minWidth: 0, flex: 1, textAlign: isRTLMode ? 'right' : 'left' }}>
+                    <Typography sx={{ fontFamily: theme.custom.font.body, fontSize: "11px", fontWeight: 500, color: muted, lineHeight: 1, textAlign: isRTLMode ? 'right' : 'left' }}>
                       {t('email')}
                     </Typography>
-                    <Typography variant="body2" fontWeight={600} noWrap>
+                    <Typography dir="ltr" sx={{ fontFamily: theme.custom.font.body, fontSize: "12.5px", fontWeight: 600, color: ink, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: isRTLMode ? 'right' : 'left', direction: isRTLMode ? 'ltr' : 'inherit' }}>
                       {t('supportEmail')}
                     </Typography>
                   </Box>
                 </Box>
 
-                <Typography variant="caption" sx={{ color: alpha(theme.custom.color.ink, 0.55), px: 1.25 }}>
+                <Typography sx={{ fontFamily: theme.custom.font.body, fontSize: "11px", color: muted, px: 0.5, textAlign: isRTLMode ? 'right' : 'left' }}>
                   {t('support')} · {t('support24_7')}
                 </Typography>
               </Box>
@@ -290,15 +313,21 @@ const HelpSupportSection = () => {
               <Button
                 fullWidth
                 variant="contained"
-                startIcon={<Send />}
+                startIcon={<Send sx={{ fontSize: 16, transform: isRTLMode ? 'scaleX(-1)' : 'none' }} />}
                 onClick={openContactDialog}
                 sx={{
-                  backgroundColor: theme.custom.color.brandPrimary,
-                  boxShadow: 'none',
-                  '&:hover': {
-                    backgroundColor: alpha(theme.custom.color.brandPrimary, 0.85),
-                    boxShadow: 'none',
-                  },
+                  backgroundColor: brand,
+                  color: "#fff",
+                  borderRadius: "10px",
+                  textTransform: "none",
+                  fontFamily: theme.custom.font.body,
+                  fontWeight: 600,
+                  fontSize: "12.5px",
+                  letterSpacing: "-0.01em",
+                  py: 0.85,
+                  boxShadow: "none",
+                  "&:hover": { backgroundColor: brand, filter: "brightness(0.94)", boxShadow: "none" },
+                  "&:focus-visible": { outline: `2px solid ${brand}`, outlineOffset: 1 },
                 }}
               >
                 {t('getHelp')}
@@ -306,34 +335,53 @@ const HelpSupportSection = () => {
             </Box>
           </Grid>
 
-          {/* FAQ — self-serve answers */}
+          {/* FAQ */}
           <Grid item xs={12} md={4}>
-            <Box data-reveal-item="" sx={surfaceCardSx}>
-              <Box display="flex" alignItems="center" mb={2}>
-                <Help sx={{ marginInlineEnd: 1, color: theme.custom.color.brandPrimary }} />
-                <Typography variant="h6" fontWeight={700} sx={{ color: theme.custom.color.ink }}>
+            <Box data-reveal-item="" sx={cardSx}>
+              <Box display="flex" alignItems="center" gap={1.25} mb={1.5} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
+                <Box sx={iconSquare(false)}><Help sx={{ fontSize: 16 }} /></Box>
+                <Typography sx={{ fontFamily: theme.custom.font.body, fontWeight: 650, fontSize: "13.5px", letterSpacing: "-0.01em", color: ink, textAlign: isRTLMode ? 'right' : 'left' }}>
                   {t('faq')}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, direction: isRTLMode ? 'rtl' : 'ltr' }}>
                 {faqItems.map((item, index) => (
                   <Accordion
                     key={index}
                     disableGutters
+                    elevation={0}
                     sx={{
                       boxShadow: 'none',
-                      backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.05 : 0.03),
-                      borderRadius: `${theme.custom.radius.sm}px !important`,
-                      '&:before': { display: 'none' },
+                      backgroundColor: "transparent",
+                      borderBottom: index < faqItems.length - 1 ? `1px solid ${hairline}` : "none",
+                      borderRadius: "0 !important",
+                      direction: isRTLMode ? 'rtl' : 'ltr',
+                      "&:before": { display: 'none' },
+                      "&.Mui-expanded": { margin: 0 },
                     }}
                   >
-                    <AccordionSummary expandIcon={<ExpandMore />}>
-                      <Typography variant="subtitle2" fontWeight={600} sx={{ color: theme.custom.color.ink }}>
+                    <AccordionSummary
+                      expandIcon={<ExpandMore sx={{ fontSize: 18, color: muted }} />}
+                      sx={{
+                        px: 0,
+                        py: 0.25,
+                        minHeight: 44,
+                        direction: isRTLMode ? 'rtl' : 'ltr',
+                        "& .MuiAccordionSummary-content": {
+                          my: 1,
+                          gap: 1,
+                          textAlign: isRTLMode ? 'right' : 'left',
+                        },
+                        "&:hover": { backgroundColor: alpha(ink, isDark ? 0.04 : 0.03) },
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <Typography sx={{ fontFamily: theme.custom.font.body, fontWeight: 600, fontSize: "12.5px", color: ink, lineHeight: 1.35, textAlign: isRTLMode ? 'right' : 'left', width: '100%' }}>
                         {item.question}
                       </Typography>
                     </AccordionSummary>
-                    <AccordionDetails>
-                      <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.7) }}>
+                    <AccordionDetails sx={{ px: 0, pt: 0, pb: 1.25, direction: isRTLMode ? 'rtl' : 'ltr' }}>
+                      <Typography sx={{ fontFamily: theme.custom.font.body, fontSize: "12.5px", fontWeight: 450, color: muted, lineHeight: 1.5, textAlign: isRTLMode ? 'right' : 'left' }}>
                         {item.answer}
                       </Typography>
                     </AccordionDetails>
@@ -345,210 +393,270 @@ const HelpSupportSection = () => {
 
           {/* Guidelines & safety */}
           <Grid item xs={12} md={4}>
-            <Box data-reveal-item="" sx={surfaceCardSx}>
-              <Box display="flex" alignItems="center" mb={2}>
-                <Security sx={{ marginInlineEnd: 1, color: theme.custom.color.brandPrimary }} />
-                <Typography variant="h6" fontWeight={700} sx={{ color: theme.custom.color.ink }}>
+            <Box data-reveal-item="" sx={cardSx}>
+              <Box display="flex" alignItems="center" gap={1.25} mb={1.5} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
+                <Box sx={iconSquare(false)}><Security sx={{ fontSize: 16 }} /></Box>
+                <Typography sx={{ fontFamily: theme.custom.font.body, fontWeight: 650, fontSize: "13.5px", letterSpacing: "-0.01em", color: ink, textAlign: isRTLMode ? 'right' : 'left' }}>
                   {t('guidelines')}
                 </Typography>
               </Box>
-              <List disablePadding>
+              <List disablePadding sx={{ flex: 1, direction: isRTLMode ? 'rtl' : 'ltr' }}>
                 {guidelines.map((guideline, index) => (
-                  <ListItem key={index} disableGutters alignItems="flex-start">
-                    <ListItemIcon sx={{ minWidth: 32, mt: 0.5 }}>
-                      <CheckCircle sx={{ fontSize: 20, color: theme.custom.color.brandPrimary }} />
+                  <ListItem
+                    key={index}
+                    disableGutters
+                    alignItems="flex-start"
+                    sx={{
+                      py: 0.85,
+                      gap: 1.25,
+                      direction: isRTLMode ? 'rtl' : 'ltr',
+                      textAlign: isRTLMode ? 'right' : 'left',
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 0, mt: 0.25, color: brand }}>
+                      <CheckCircle sx={{ fontSize: 16, color: brand }} />
                     </ListItemIcon>
                     <ListItemText
                       primary={guideline.title}
                       secondary={guideline.description}
-                      primaryTypographyProps={{ fontWeight: 600, color: theme.custom.color.ink, variant: 'body2' }}
-                      secondaryTypographyProps={{ color: alpha(theme.custom.color.ink, 0.65), variant: 'caption' }}
+                      primaryTypographyProps={{
+                        fontFamily: theme.custom.font.body,
+                        fontWeight: 600,
+                        color: ink,
+                        fontSize: "12.5px",
+                        lineHeight: 1.35,
+                        textAlign: isRTLMode ? 'right' : 'left',
+                      }}
+                      secondaryTypographyProps={{
+                        fontFamily: theme.custom.font.body,
+                        color: muted,
+                        fontSize: "12px",
+                        lineHeight: 1.45,
+                        textAlign: isRTLMode ? 'right' : 'left',
+                      }}
+                      sx={{
+                        my: 0,
+                        textAlign: isRTLMode ? 'right' : 'left',
+                        "& .MuiTypography-root": {
+                          textAlign: isRTLMode ? 'right' : 'left',
+                        },
+                      }}
                     />
                   </ListItem>
                 ))}
               </List>
-              <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  onClick={() => navigate('/guidelines')}
-                  sx={{
-                    color: theme.custom.color.brandPrimary,
-                    borderColor: alpha(theme.custom.color.brandPrimary, 0.5),
-                    '&:hover': {
-                      backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
-                      borderColor: theme.custom.color.brandPrimary,
-                    },
-                  }}
-                >
+              <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Button fullWidth variant="outlined" onClick={() => navigate('/guidelines')} sx={ghostButtonSx}>
                   {t('readGuidelines')}
                 </Button>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  onClick={() => navigate('/safety')}
-                  sx={{
-                    color: theme.custom.color.brandPrimary,
-                    borderColor: alpha(theme.custom.color.brandPrimary, 0.5),
-                    '&:hover': {
-                      backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
-                      borderColor: theme.custom.color.brandPrimary,
-                    },
-                  }}
-                >
+                <Button fullWidth variant="outlined" onClick={() => navigate('/safety')} sx={ghostButtonSx}>
                   {t('safetyTips')}
                 </Button>
               </Box>
             </Box>
           </Grid>
         </Grid>
-        </Box>
       </Box>
 
-      {/* Help Dialog */}
       <Dialog
         open={showHelpDialog}
         onClose={() => setShowHelpDialog(false)}
-        maxWidth="md"
+        maxWidth="sm"
         fullWidth
+        dir={isRTLMode ? 'rtl' : 'ltr'}
         PaperProps={{
           sx: {
             backgroundColor: theme.custom.color.surfaceRaised,
             backgroundImage: 'none',
-            border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.1 : 0.1)}`,
+            border: `1px solid ${hairline}`,
+            borderRadius: "16px",
+            boxShadow: theme.custom.elevation.e2,
+            overflow: 'hidden',
+            direction: isRTLMode ? 'rtl' : 'ltr',
           }
         }}
       >
         <DialogTitle sx={{
-          color: theme.custom.color.ink,
-          backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.06 : 0.03),
-          borderBottom: `1px solid ${alpha(theme.custom.color.ink, 0.1)}`,
+          fontFamily: theme.custom.font.body,
+          fontWeight: 650,
+          fontSize: "14.5px",
+          letterSpacing: "-0.01em",
+          color: ink,
+          borderBottom: `1px solid ${hairline}`,
+          py: 1.75,
+          textAlign: isRTLMode ? 'right' : 'left',
+          direction: isRTLMode ? 'rtl' : 'ltr',
         }}>
           {t('howCanWeHelpYou')}
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2 }}>
-            <Box sx={{
-              backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.03 : 0.02),
-              borderRadius: `${theme.custom.radius.md}px`,
-              p: 3,
-              border: `1px solid ${alpha(theme.custom.color.ink, 0.06)}`,
-            }}>
-              <Typography variant="h6" fontWeight={700} gutterBottom sx={{ color: theme.custom.color.ink }}>
-                {t('contactOurSupportTeam')}
-              </Typography>
+        <DialogContent sx={{ pt: 2.5, direction: isRTLMode ? 'rtl' : 'ltr' }}>
+          <Box sx={{ mt: 1 }}>
+            <Typography sx={{ fontFamily: theme.custom.font.body, fontWeight: 600, fontSize: "13px", color: ink, mb: 1.5, textAlign: isRTLMode ? 'right' : 'left' }}>
+              {t('contactOurSupportTeam')}
+            </Typography>
 
-              {isContactSubmitted && (
-                <Alert severity="success" sx={{ mb: 2 }} icon={<CheckCircle />}>
-                  {t('messageSentSuccessfully')}
-                </Alert>
-              )}
+            {isContactSubmitted && (
+              <Alert
+                severity="success"
+                sx={{
+                  mb: 2,
+                  borderRadius: "10px",
+                  fontSize: "12.5px",
+                  textAlign: isRTLMode ? 'right' : 'left',
+                  direction: isRTLMode ? 'rtl' : 'ltr',
+                  "& .MuiAlert-icon": {
+                    marginRight: isRTLMode ? 0 : '12px',
+                    marginLeft: isRTLMode ? '12px' : 0,
+                  },
+                }}
+                icon={<CheckCircle sx={{ fontSize: 18 }} />}
+              >
+                {t('messageSentSuccessfully')}
+              </Alert>
+            )}
 
-              {contactSubmitError && (
-                <Alert severity="error" sx={{ mb: 2 }} icon={<ErrorIcon />}>
-                  {contactSubmitError}
-                </Alert>
-              )}
+            {contactSubmitError && (
+              <Alert
+                severity="error"
+                sx={{
+                  mb: 2,
+                  borderRadius: "10px",
+                  fontSize: "12.5px",
+                  textAlign: isRTLMode ? 'right' : 'left',
+                  direction: isRTLMode ? 'rtl' : 'ltr',
+                  "& .MuiAlert-icon": {
+                    marginRight: isRTLMode ? 0 : '12px',
+                    marginLeft: isRTLMode ? '12px' : 0,
+                  },
+                }}
+                icon={<ErrorIcon sx={{ fontSize: 18 }} />}
+              >
+                {contactSubmitError}
+              </Alert>
+            )}
 
-              <Box component="form" onSubmit={handleContactSubmit}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label={t('yourName')}
-                      name="name"
-                      value={contactFormData.name}
-                      onChange={handleContactInputChange}
-                      required
-                      variant="outlined"
-                      size="small"
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label={t('yourEmail')}
-                      name="email"
-                      type="email"
-                      value={contactFormData.email}
-                      onChange={handleContactInputChange}
-                      required
-                      variant="outlined"
-                      size="small"
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label={t('subject')}
-                      name="subject"
-                      value={contactFormData.subject}
-                      onChange={handleContactInputChange}
-                      required
-                      variant="outlined"
-                      size="small"
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label={t('yourMessage')}
-                      name="message"
-                      multiline
-                      rows={3}
-                      value={contactFormData.message}
-                      onChange={handleContactInputChange}
-                      required
-                      variant="outlined"
-                      size="small"
-                      placeholder={t('messagePlaceholder')}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      fullWidth
-                      disabled={isContactLoading}
-                      startIcon={isContactLoading ? <CircularProgress size={20} color="inherit" /> : <Send />}
-                      sx={{
-                        backgroundColor: theme.custom.color.brandPrimary,
-                        boxShadow: 'none',
-                        '&:hover': {
-                          backgroundColor: alpha(theme.custom.color.brandPrimary, 0.85),
-                          boxShadow: 'none',
-                        },
-                        '&:disabled': {
-                          backgroundColor: alpha(theme.custom.color.ink, 0.12),
-                          color: alpha(theme.custom.color.ink, 0.35),
-                        },
-                      }}
-                    >
-                      {isContactLoading ? t('sending') : t('sendMessage')}
-                    </Button>
-                  </Grid>
+            <Box component="form" onSubmit={handleContactSubmit}>
+              <Grid container spacing={1.5} direction={isRTLMode ? 'row-reverse' : 'row'}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label={t('yourName')}
+                    name="name"
+                    value={contactFormData.name}
+                    onChange={handleContactInputChange}
+                    required
+                    variant="outlined"
+                    size="small"
+                    dir={isRTLMode ? 'rtl' : 'ltr'}
+                    inputProps={{ dir: isRTLMode ? 'rtl' : 'ltr' }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": { borderRadius: "10px", fontSize: "13px" },
+                      "& .MuiInputBase-input": { textAlign: isRTLMode ? 'right' : 'left' },
+                    }}
+                  />
                 </Grid>
-              </Box>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label={t('yourEmail')}
+                    name="email"
+                    type="email"
+                    value={contactFormData.email}
+                    onChange={handleContactInputChange}
+                    required
+                    variant="outlined"
+                    size="small"
+                    dir={isRTLMode ? 'rtl' : 'ltr'}
+                    inputProps={{ dir: isRTLMode ? 'rtl' : 'ltr' }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": { borderRadius: "10px", fontSize: "13px" },
+                      "& .MuiInputBase-input": { textAlign: isRTLMode ? 'right' : 'left' },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label={t('subject')}
+                    name="subject"
+                    value={contactFormData.subject}
+                    onChange={handleContactInputChange}
+                    required
+                    variant="outlined"
+                    size="small"
+                    dir={isRTLMode ? 'rtl' : 'ltr'}
+                    inputProps={{ dir: isRTLMode ? 'rtl' : 'ltr' }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": { borderRadius: "10px", fontSize: "13px" },
+                      "& .MuiInputBase-input": { textAlign: isRTLMode ? 'right' : 'left' },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label={t('yourMessage')}
+                    name="message"
+                    multiline
+                    rows={3}
+                    value={contactFormData.message}
+                    onChange={handleContactInputChange}
+                    required
+                    variant="outlined"
+                    size="small"
+                    placeholder={t('messagePlaceholder')}
+                    dir={isRTLMode ? 'rtl' : 'ltr'}
+                    inputProps={{ dir: isRTLMode ? 'rtl' : 'ltr' }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": { borderRadius: "10px", fontSize: "13px" },
+                      "& .MuiInputBase-input": { textAlign: isRTLMode ? 'right' : 'left' },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    disabled={isContactLoading}
+                    startIcon={
+                      isContactLoading ? (
+                        <CircularProgress size={16} color="inherit" />
+                      ) : (
+                        <Send sx={{ fontSize: 16, transform: isRTLMode ? 'scaleX(-1)' : 'none' }} />
+                      )
+                    }
+                    sx={{
+                      backgroundColor: brand,
+                      color: "#fff",
+                      borderRadius: "10px",
+                      textTransform: "none",
+                      fontFamily: theme.custom.font.body,
+                      fontWeight: 600,
+                      fontSize: "12.5px",
+                      py: 1,
+                      boxShadow: 'none',
+                      "&:hover": { backgroundColor: brand, filter: "brightness(0.94)", boxShadow: 'none' },
+                      "&:disabled": { backgroundColor: alpha(ink, 0.08), color: alpha(ink, 0.35) },
+                    }}
+                  >
+                    {isContactLoading ? t('sending') : t('sendMessage')}
+                  </Button>
+                </Grid>
+              </Grid>
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions sx={{
-          backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.06 : 0.03),
-          borderTop: `1px solid ${alpha(theme.custom.color.ink, 0.1)}`,
-          p: 2
-        }}>
-          <Button
-            onClick={() => setShowHelpDialog(false)}
-            variant="outlined"
-            sx={{
-              color: theme.custom.color.brandPrimary,
-              borderColor: alpha(theme.custom.color.brandPrimary, 0.5),
-              '&:hover': {
-                backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
-                borderColor: theme.custom.color.brandPrimary,
-              }
-            }}
-          >
+        <DialogActions
+          sx={{
+            borderTop: `1px solid ${hairline}`,
+            p: 1.75,
+            backgroundColor: alpha(ink, isDark ? 0.03 : 0.015),
+            direction: isRTLMode ? 'rtl' : 'ltr',
+            justifyContent: isRTLMode ? 'flex-start' : 'flex-end',
+          }}
+        >
+          <Button onClick={() => setShowHelpDialog(false)} variant="outlined" sx={ghostButtonSx}>
             {t('close')}
           </Button>
         </DialogActions>

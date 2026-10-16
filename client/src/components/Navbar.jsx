@@ -70,31 +70,26 @@ import { forceRefreshAllDependencies } from "../utils/cacheRefresh";
 import { selectIsLoggedIn, selectCurrentUser } from "../features/auth/authSlice";
 import { useGetSystemSettingsQuery } from "../features/admin/systemSettingsApiSlice";
 import NotificationBell from "../features/notifications/NotificationBell";
-import CyberDotMatrix from "./dashboard/CyberDotMatrix";
 
 // Phase 1 tokens only (theme.custom.*) — see designTokens.js / CLAUDE.md.
 // Three-column grid (not flex space-between) so the center cluster is
 // genuinely centered regardless of how wide the left/right clusters are.
 const StyledToolbar = styled(Toolbar)(({ theme }) => {
   const isDark = theme.palette.mode === "dark";
+  const hairline = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
   return {
     position: "relative",
-    overflow: "hidden",
     display: "grid",
     gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
     alignItems: "center",
     columnGap: "16px",
-    backgroundColor: isDark ? "rgba(11, 18, 32, 0.94)" : "rgba(255, 255, 255, 0.92)",
-    backdropFilter: "blur(28px)",
-    WebkitBackdropFilter: "blur(28px)",
-    padding: "0.75rem 2.5rem",
-    border: "none",
-    borderBottom: "none",
-    boxShadow: "none",
-    transition: "background-color 0.3s ease",
+    backgroundColor: theme.custom.color.surfaceRaised,
+    borderBottom: `1px solid ${hairline}`,
+    boxShadow: theme.custom.elevation.e1,
+    padding: "0.65rem 2.5rem",
     [theme.breakpoints.down("md")]: {
-      padding: "0.75rem 1rem",
-      minHeight: "72px",
+      padding: "0.65rem 1rem",
+      minHeight: "56px",
     },
   };
 });
@@ -719,22 +714,6 @@ const Navbar = () => {
       }}
     >
       <StyledToolbar>
-        {/* Decorative cyber dot matrix: following logo placement (bottom-right in RTL, bottom-left in LTR), clear at borders with rapid direct fade */}
-        <CyberDotMatrix
-          idPrefix="dots-navbar"
-          placement={isRTL ? "bottom-right" : "bottom-left"}
-          glowRadius="80%"
-          opacity={theme.palette.mode === "dark" ? 0.72 : 0.9}
-          sx={{
-            width: { xs: 75, sm: 95, md: 115 },
-            height: "100%",
-            top: 0,
-            bottom: 0,
-            left: isRTL ? "auto" : 0,
-            right: isRTL ? 0 : "auto",
-            zIndex: 0,
-          }}
-        />
 
         {/* Left: brand only */}
         <Box sx={{ display: "flex", alignItems: "center", justifySelf: "start", minWidth: 0, position: "relative", zIndex: 1 }}>

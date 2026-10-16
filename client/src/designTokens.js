@@ -35,12 +35,10 @@ export const colorTokens = {
   // equals surfaceBase's dark value verbatim (no-op there) — surfaceRaised
   // already separates from surfaceBase enough in dark mode.
   postsListBackdrop: { light: '#EDEFF6', dark: '#0E1116' },
-  // Footer background — harmonizes with both the pure white (#FFFFFF) light
-  // homepage and the deep midnight navy (#0B1220) dark homepage, providing
-  // a grounded, tailored foundation across both modes.
-  footerBackground: { light: '#F8FAFC', dark: '#070B14' },
+  // Footer background — matches the homepage canvas and raised component surfaces across both modes.
+  footerBackground: { light: '#FFFFFF', dark: '#171B22' },
   // Homepage main canvas backdrop
-  homePageBackdrop: { light: '#FFFFFF', dark: '#0B1220' },
+  homePageBackdrop: { light: '#FFFFFF', dark: '#171B22' },
   // Frosted glass section container background for homepage panels
   // (SearchReportHub, Categories, Process, Help & Support)
   sectionCard: { light: 'rgba(255, 255, 255, 0.92)', dark: 'rgba(11, 18, 32, 0.94)' },
