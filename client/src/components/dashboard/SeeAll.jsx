@@ -29,7 +29,7 @@ const SeeAll = ({ foundOrlostId, totalItems, type = "found" }) => {
       endIcon={
         <ArrowOutwardRounded
           sx={{
-            fontSize: 13,
+            fontSize: { xs: 15, md: 13 },
             transform: isRTLMode ? "scaleX(-1)" : "none",
           }}
         />
@@ -38,21 +38,21 @@ const SeeAll = ({ foundOrlostId, totalItems, type = "found" }) => {
         textTransform: "none",
         fontFamily: "'Plus Jakarta Sans', sans-serif",
         fontWeight: 600,
-        fontSize: "13px",
+        fontSize: { xs: "14px", md: "13px" },
         letterSpacing: "0.01em",
         lineHeight: 1,
         color: isDark ? "#CBD5E1" : "#475569",
-        px: 1.4,
-        py: 0.6,
+        px: { xs: 2, md: 1.5 },
+        py: { xs: 1, md: 0.6 },
         minWidth: 0,
-        height: 28,
+        minHeight: { xs: 44, md: 32 },
         borderRadius: "999px",
         backgroundColor: isDark
-          ? "rgba(255, 255, 255, 0.05)"
+          ? "rgba(255, 255, 255, 0.06)"
           : (theme.custom.color.surfaceNested || "#F1F5F9"),
-        border: `1px solid ${theme.custom.color.hairlineBorder || (isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(15, 23, 42, 0.06)")}`,
+        border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.9)"}`,
         transition:
-          "background-color 160ms ease, color 160ms ease, border-color 160ms ease",
+          "background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease",
         "& .MuiButton-endIcon": {
           marginInlineStart: "6px",
           marginInlineEnd: 0,
@@ -65,6 +65,9 @@ const SeeAll = ({ foundOrlostId, totalItems, type = "found" }) => {
           borderColor: isDark
             ? "rgba(138, 180, 248, 0.3)"
             : "rgba(11, 87, 208, 0.2)",
+        },
+        "&:active": {
+          transform: "scale(0.97)",
         },
         "&:hover .MuiSvgIcon-root": {
           transform: isRTLMode

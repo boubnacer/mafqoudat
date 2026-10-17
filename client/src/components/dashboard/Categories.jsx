@@ -37,13 +37,18 @@ const Categories = () => {
     ? CATEGORY_COLLAPSED_DESKTOP_COUNT
     : CATEGORY_COLLAPSED_SMALL_COUNT;
 
-  // Google SaaS Tonal Tokens
+  // Modern SaaS Tonal Tokens
   const hairline =
     theme.custom?.color?.hairlineBorder ||
-    (isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(15, 23, 42, 0.06)");
+    (isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.85)");
   const ink = theme.custom?.color?.ink || (isDark ? "#EDEFF5" : "#0B1220");
-  const nestedCardBg =
-    theme.custom?.color?.surfaceNested || (isDark ? "#27272A" : "#F1F5F9");
+  const nestedCardBg = isDark
+    ? theme.custom?.color?.surfaceNested || "#202534"
+    : "#F8FAFC";
+  const parentCardBg =
+    theme.custom?.color?.surfaceRaised || (isDark ? "#121826" : "#FFFFFF");
+  const primaryBrand =
+    theme.custom?.color?.brandPrimary || theme.palette.primary?.main || "#1B4DFF";
 
   useGSAP(
     () => {
@@ -85,25 +90,25 @@ const Categories = () => {
 
   const cardContainerSx = {
     position: "relative",
-    backgroundColor: theme.custom?.color?.surfaceRaised || (isDark ? "#18181B" : "#FFFFFF"),
+    backgroundColor: parentCardBg,
     border: `1px solid ${hairline}`,
-    borderRadius: { xs: "18px", sm: "22px" },
+    borderRadius: { xs: "20px", sm: "24px" },
     boxShadow: isDark
-      ? "0 4px 24px rgba(0, 0, 0, 0.25)"
+      ? "0 4px 24px rgba(0, 0, 0, 0.35)"
       : "0 1px 3px rgba(15, 23, 42, 0.03), 0 8px 24px rgba(15, 23, 42, 0.04)",
     overflow: "hidden",
-    px: { xs: 2, sm: 2.75, md: 3 },
-    py: { xs: 2.25, sm: 2.75, md: 3 },
+    px: { xs: 2.5, sm: 3, md: 3.5 },
+    py: { xs: 2.75, sm: 3.25, md: 3.5 },
   };
 
   const headerTitle = (
-    <Box sx={{ maxWidth: 640, mx: "auto", mb: { xs: 2, sm: 2.5 }, textAlign: "center" }}>
+    <Box sx={{ maxWidth: 640, mx: "auto", mb: { xs: 2.5, sm: 3 }, textAlign: "center" }}>
       <Typography
         component="h2"
         sx={{
           fontFamily: `'Plus Jakarta Sans', ${theme.custom?.font?.display || "sans-serif"}, sans-serif`,
-          fontWeight: 600,
-          fontSize: { xs: "15px", sm: "17px" },
+          fontWeight: 700,
+          fontSize: { xs: "1.25rem", sm: "1.375rem", md: "1.25rem" },
           lineHeight: 1.3,
           letterSpacing: "-0.015em",
           color: ink,
@@ -118,12 +123,12 @@ const Categories = () => {
   if (isError) {
     return (
       <Box sx={cardContainerSx}>
-        <Box sx={{ textAlign: "center", p: 2 }}>
+        <Box sx={{ textAlign: "center", p: { xs: 3, md: 4 } }}>
           {headerTitle}
           <Typography
             sx={{
               fontFamily: `'Inter', ${theme.custom?.font?.body || "sans-serif"}, sans-serif`,
-              fontSize: "13px",
+              fontSize: { xs: "16px", md: "14px" },
               color: theme.custom?.status?.lost?.main || "#C64335",
             }}
           >
@@ -145,7 +150,7 @@ const Categories = () => {
         <Box
           sx={{
             display: "grid",
-            gap: { xs: 1.25, sm: 1.5 },
+            gap: { xs: 1.5, sm: 2, md: 2 },
             gridTemplateColumns: {
               xs: "repeat(2, 1fr)",
               sm: "repeat(3, 1fr)",
@@ -156,8 +161,8 @@ const Categories = () => {
           {Array.from({ length: collapsedCount }).map((_, i) => (
             <SkeletonBlock
               key={i}
-              radius={16}
-              sx={{ height: { xs: 110, sm: 120 } }}
+              radius={18}
+              sx={{ height: { xs: 128, sm: 136, md: 124 } }}
             />
           ))}
         </Box>
@@ -180,7 +185,7 @@ const Categories = () => {
           ref={gridRef}
           sx={{
             display: "grid",
-            gap: { xs: 1.25, sm: 1.5 },
+            gap: { xs: 1.5, sm: 2, md: 2 },
             gridTemplateColumns: {
               xs: "repeat(2, 1fr)",
               sm: "repeat(3, 1fr)",
@@ -221,78 +226,85 @@ const Categories = () => {
                     elevation={0}
                     sx={{
                       height: "100%",
-                      minHeight: { xs: 110, sm: 120 },
+                      minHeight: { xs: 128, sm: 136, md: 124 },
                       position: "relative",
                       overflow: "hidden",
                       textDecoration: "none",
                       color: "inherit",
-                      borderRadius: "16px",
+                      borderRadius: "18px",
                       backgroundColor: nestedCardBg,
                       border: `1px solid ${hairline}`,
-                      boxShadow: "none",
+                      boxShadow: isDark
+                        ? "0 2px 8px rgba(0, 0, 0, 0.25)"
+                        : "0 1px 3px rgba(15, 23, 42, 0.03)",
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "center",
                       transition:
-                        "transform 180ms cubic-bezier(0.4, 0, 0.2, 1), background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease",
+                        "transform 200ms cubic-bezier(0.4, 0, 0.2, 1), background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease",
                       cursor: "pointer",
                       "&:hover": {
-                        transform: "translateY(-2px)",
+                        transform: "translateY(-3px)",
                         backgroundColor: isDark
                           ? alpha(iconColor, 0.12)
-                          : alpha("#FFFFFF", 0.95),
-                        borderColor: alpha(iconColor, isDark ? 0.36 : 0.26),
+                          : "#FFFFFF",
+                        borderColor: alpha(iconColor, isDark ? 0.42 : 0.32),
                         boxShadow: isDark
-                          ? "0 6px 20px rgba(0, 0, 0, 0.35)"
-                          : "0 6px 18px rgba(15, 23, 42, 0.08)",
+                          ? `0 10px 26px -4px rgba(0, 0, 0, 0.5), 0 0 16px ${alpha(iconColor, 0.2)}`
+                          : `0 10px 24px -4px rgba(15, 23, 42, 0.08), 0 0 16px ${alpha(iconColor, 0.12)}`,
                         "& .category-icon-badge": {
-                          transform: "scale(1.06)",
-                          borderColor: alpha(iconColor, isDark ? 0.45 : 0.35),
-                          backgroundColor: alpha(iconColor, isDark ? 0.26 : 0.18),
+                          transform: "scale(1.08)",
+                          borderColor: alpha(iconColor, isDark ? 0.5 : 0.36),
+                          backgroundColor: alpha(iconColor, isDark ? 0.28 : 0.16),
                         },
                       },
+                      "&:active": {
+                        transform: "translateY(-1px) scale(0.99)",
+                      },
                       "&:focus-visible": {
-                        outline: "2px solid #0B57D0",
+                        outline: `2px solid ${primaryBrand}`,
                         outlineOffset: "2px",
                       },
                     }}
                   >
                     <CardContent
                       sx={{
-                        p: { xs: 1.75, sm: 2 },
+                        p: { xs: 2.5, sm: 2.75, md: 3 },
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
                         justifyContent: "center",
                         textAlign: "center",
                         height: "100%",
-                        "&:last-child": { pb: { xs: 1.75, sm: 2 } },
+                        "&:last-child": {
+                          pb: { xs: 2.5, sm: 2.75, md: 3 },
+                        },
                       }}
                     >
                       <Box
                         className="category-icon-badge"
                         sx={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: "12px",
-                          backgroundColor: alpha(iconColor, isDark ? 0.18 : 0.12),
-                          border: `1px solid ${alpha(iconColor, isDark ? 0.30 : 0.20)}`,
+                          width: { xs: 48, md: 44 },
+                          height: { xs: 48, md: 44 },
+                          borderRadius: "14px",
+                          backgroundColor: alpha(iconColor, isDark ? 0.18 : 0.09),
+                          border: `1px solid ${alpha(iconColor, isDark ? 0.32 : 0.2)}`,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          mb: 1.25,
+                          mb: { xs: 1.5, md: 1.25 },
                           transition:
-                            "transform 180ms cubic-bezier(0.4, 0, 0.2, 1), border-color 180ms ease, background-color 180ms ease",
+                            "transform 200ms cubic-bezier(0.4, 0, 0.2, 1), border-color 200ms ease, background-color 200ms ease",
                         }}
                       >
-                        <IconComponent sx={{ color: iconColor, fontSize: 20 }} />
+                        <IconComponent sx={{ color: iconColor, fontSize: { xs: 24, md: 22 } }} />
                       </Box>
                       <Typography
                         className="category-label"
                         align="center"
                         sx={{
-                          fontFamily: `'Inter', ${theme.custom?.font?.body || "sans-serif"}, sans-serif`,
-                          fontWeight: 500,
+                          fontFamily: `'Plus Jakarta Sans', ${theme.custom?.font?.body || "sans-serif"}, sans-serif`,
+                          fontWeight: 600,
                           color: ink,
                           lineHeight: 1.35,
                           display: "-webkit-box",
@@ -300,7 +312,7 @@ const Categories = () => {
                           WebkitBoxOrient: "vertical",
                           overflow: "hidden",
                           textAlign: "center",
-                          fontSize: { xs: "12.5px", sm: "13px" },
+                          fontSize: { xs: "16px", sm: "16px", md: "14px" },
                           letterSpacing: "-0.01em",
                         }}
                       >
@@ -316,43 +328,49 @@ const Categories = () => {
       </Box>
 
       {hasMoreCategories && (
-        <Box display="flex" justifyContent="center" mt={{ xs: 2.5, sm: 3 }}>
+        <Box display="flex" justifyContent="center" mt={{ xs: 3, sm: 3.5 }}>
           <Button
             onClick={toggleShowAllCategories}
             endIcon={
               showAllCategories ? (
-                <ExpandLess sx={{ fontSize: 18 }} />
+                <ExpandLess sx={{ fontSize: 20 }} />
               ) : (
-                <ExpandMore sx={{ fontSize: 18 }} />
+                <ExpandMore sx={{ fontSize: 20 }} />
               )
             }
             sx={{
               color: ink,
               backgroundColor: isDark
-                ? "rgba(255, 255, 255, 0.05)"
+                ? "rgba(255, 255, 255, 0.06)"
                 : "rgba(15, 23, 42, 0.04)",
               border: `1px solid ${hairline}`,
               borderRadius: "9999px",
-              px: 3,
-              py: 0.85,
+              px: { xs: 3.5, sm: 4 },
+              py: { xs: 1.25, md: 1 },
+              minHeight: "44px",
+              minWidth: "160px",
               textTransform: "none",
               fontFamily: `'Plus Jakarta Sans', ${theme.custom?.font?.display || "sans-serif"}, sans-serif`,
-              fontWeight: 500,
-              fontSize: "14px",
+              fontWeight: 600,
+              fontSize: { xs: "16px", md: "14px" },
               letterSpacing: "-0.01em",
               transition:
-                "border-color 180ms ease, background-color 180ms ease, color 180ms ease, box-shadow 180ms ease",
+                "transform 180ms ease, border-color 180ms ease, background-color 180ms ease, color 180ms ease, box-shadow 180ms ease",
               "&:hover": {
                 backgroundColor: isDark
-                  ? "rgba(255, 255, 255, 0.10)"
-                  : alpha("#0B57D0", 0.08),
+                  ? "rgba(255, 255, 255, 0.12)"
+                  : alpha(primaryBrand, 0.08),
                 borderColor: isDark
-                  ? "rgba(255, 255, 255, 0.22)"
-                  : alpha("#0B57D0", 0.32),
-                color: isDark ? "#FFFFFF" : "#0B57D0",
+                  ? "rgba(255, 255, 255, 0.24)"
+                  : alpha(primaryBrand, 0.35),
+                color: isDark ? "#FFFFFF" : primaryBrand,
+                transform: "translateY(-1px)",
+              },
+              "&:active": {
+                transform: "scale(0.98)",
               },
               "&:focus-visible": {
-                outline: "2px solid #0B57D0",
+                outline: `2px solid ${primaryBrand}`,
                 outlineOffset: "2px",
               },
             }}

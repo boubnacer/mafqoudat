@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, useTheme, alpha } from "@mui/material";
-import { TaskAltOutlined, SearchOffOutlined } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
 
 const prefersReducedMotion = () =>
@@ -28,11 +27,10 @@ const useCountUp = (target, duration = 700) => {
   return value;
 };
 
-const Segment = ({ tone, Icon, label, value, todayLabel, hasNotification, onClick }) => {
+const Segment = ({ tone, label, value, todayLabel, hasNotification, onClick }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const displayValue = useCountUp(value);
-  const hairline = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.06)";
   const muted = isDark ? "#94A3B8" : "#64748B";
 
   return (
@@ -49,39 +47,39 @@ const Segment = ({ tone, Icon, label, value, todayLabel, hasNotification, onClic
       sx={{
         flex: 1,
         minWidth: 0,
-        p: { xs: 1.75, sm: 2 },
+        p: { xs: "18px 18px", sm: "18px 20px", md: "20px 22px" },
         cursor: onClick ? "pointer" : "default",
         display: "flex",
         flexDirection: "column",
-        gap: 0.75,
+        gap: { xs: 1, sm: 1.25, md: 1.5 },
         outline: "none",
-        borderRadius: "10px",
-        transition: "background-color 160ms ease",
-        "&:hover": onClick ? { backgroundColor: alpha(tone.main, isDark ? 0.07 : 0.04) } : undefined,
-        "&:focus-visible": { boxShadow: `0 0 0 2px ${theme.custom.color.surfaceRaised}, 0 0 0 4px ${alpha(theme.custom.color.brandPrimary, 0.35)}` },
+        borderRadius: "12px",
+        transition: "all 180ms cubic-bezier(0.4, 0, 0.2, 1)",
+        "&:hover": onClick ? {
+          backgroundColor: alpha(tone.main, isDark ? 0.09 : 0.05),
+        } : undefined,
+        "&:focus-visible": {
+          boxShadow: `0 0 0 2px ${theme.custom.color.surfaceRaised}, 0 0 0 4px ${alpha(theme.custom.color.brandPrimary, 0.35)}`,
+        },
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0, width: "100%" }}>
+        {/* Dot style (red for lost, green for found) replacing previous icon */}
         <Box
           sx={{
-            width: 28,
-            height: 28,
+            width: 8,
+            height: 8,
             flexShrink: 0,
-            borderRadius: "8px",
-            backgroundColor: alpha(tone.main, isDark ? 0.14 : 0.08),
-            border: `1px solid ${alpha(tone.main, isDark ? 0.18 : 0.12)}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            borderRadius: "50%",
+            backgroundColor: tone.main,
+            boxShadow: `0 0 0 3px ${alpha(tone.main, isDark ? 0.25 : 0.16)}`,
           }}
-        >
-          <Icon sx={{ fontSize: 15, color: tone.main }} />
-        </Box>
+        />
         <Typography
           sx={{
             fontFamily: "'Inter', sans-serif",
-            fontWeight: 500,
-            fontSize: "12.5px",
+            fontWeight: 600,
+            fontSize: { xs: "14px", sm: "14px", md: "13.5px" },
             letterSpacing: "-0.01em",
             color: muted,
             minWidth: 0,
@@ -91,26 +89,35 @@ const Segment = ({ tone, Icon, label, value, todayLabel, hasNotification, onClic
         >
           {label}
         </Typography>
-        {hasNotification && (
-          <Box sx={{ width: 6, height: 6, flexShrink: 0, borderRadius: "50%", backgroundColor: tone.main, boxShadow: `0 0 0 4px ${alpha(tone.main, 0.14)}` }} />
-        )}
       </Box>
 
       <Typography
         sx={{
           fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
-          fontWeight: 600,
-          fontSize: { xs: "1.6rem", sm: "1.8rem" },
-          lineHeight: 1,
+          fontWeight: 700,
+          fontSize: { xs: "1.75rem", sm: "1.85rem", md: "2rem" },
+          lineHeight: 1.1,
           color: theme.custom.color.ink,
           fontVariantNumeric: "tabular-nums",
-          letterSpacing: "-0.025em",
+          letterSpacing: "-0.03em",
+          mt: { xs: 0.5, sm: 0.75, md: 0.75 },
         }}
       >
         {displayValue.toLocaleString()}
       </Typography>
 
-      <Typography sx={{ fontFamily: "'Inter', sans-serif", fontSize: "11.5px", fontWeight: 500, color: muted, lineHeight: 1 }}>
+      <Typography
+        sx={{
+          fontFamily: "'Inter', sans-serif",
+          fontSize: { xs: "13.5px", sm: "13.5px", md: "12px" },
+          fontWeight: hasNotification ? 700 : 500,
+          color: hasNotification
+            ? (isDark ? "#34D399" : "#059669")
+            : muted,
+          lineHeight: 1.2,
+          transition: "color 0.2s ease, font-weight 0.2s ease",
+        }}
+      >
         {todayLabel}
       </Typography>
     </Box>
@@ -133,16 +140,16 @@ const FoundLostStrip = ({
   const isDark = theme.palette.mode === "dark";
   const { t, currentLanguage } = useTranslation();
   const isRTL = currentLanguage === "ar";
-  const hairline = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(15, 23, 42, 0.06)";
+  const hairline = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.85)";
 
   return (
     <Box
       {...rest}
       sx={{
         gridColumn: "1 / -1",
-        borderRadius: "14px",
-        backgroundColor: theme.custom.color.surfaceNested,
-        border: `1px solid ${hairline}`,
+        borderRadius: { xs: "14px", sm: "16px" },
+        backgroundColor: isDark ? "rgba(39, 39, 42, 0.55)" : "#F8FAFC",
+        border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.9)"}`,
         boxShadow: "none",
         overflow: "hidden",
         p: 0.5,
@@ -152,7 +159,6 @@ const FoundLostStrip = ({
       <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: isRTL ? "row-reverse" : "row" }, gap: 0.5 }}>
         <Segment
           tone={theme.custom.status.found}
-          Icon={TaskAltOutlined}
           label={t("foundItems")}
           value={totalFounds}
           todayLabel={`+${foundsToday} ${t("today")}`}
@@ -162,7 +168,6 @@ const FoundLostStrip = ({
         <Box sx={{ alignSelf: "stretch", width: { xs: "100%", sm: "1px" }, height: { xs: "1px", sm: "auto" }, backgroundColor: hairline, flexShrink: 0, mx: { xs: 1.5, sm: 0 } }} />
         <Segment
           tone={theme.custom.status.lost}
-          Icon={SearchOffOutlined}
           label={t("lostItems")}
           value={totalLosts}
           todayLabel={`+${lostsToday} ${t("today")}`}

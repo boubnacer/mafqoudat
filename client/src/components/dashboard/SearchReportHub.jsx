@@ -9,14 +9,23 @@ import {
 } from '@mui/icons-material';
 import GuidedSearchDialog from './GuidedSearchDialog';
 
+/**
+ * SearchReportHub
+ * Flagship SaaS Bento action hub:
+ * - Color Palette: Modern SaaS (Trust Blue, Rose for Lost, Emerald for Found, Slate for Ink & Muted)
+ * - Style Direction: Bento Box Grid (modular cards, soft tonal icon containers, pill badges, ambient depth)
+ * - Micro-interactions: hover:-translate-y-0.5, active:scale-[0.98], smooth cubic-bezier transitions
+ */
 const SearchReportHub = () => {
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
   const isRTLMode = currentLanguage === 'ar' || isRTL();
   const isDark = theme.palette.mode === 'dark';
-  const ink = theme.custom.color.ink;
-  const muted = isDark ? '#94A3B8' : '#64748B';
-  const hairline = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)';
+
+  // Cohesive SaaS Color Tokens
+  const ink = theme.custom?.color?.ink || (isDark ? '#F8FAFC' : '#0F172A');
+  const muted = isDark ? '#94A3B8' : '#475569';
+  const hairline = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(226, 232, 240, 0.8)';
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState('lost');
@@ -74,27 +83,75 @@ const SearchReportHub = () => {
   const primaryActions = [
     {
       key: 'lost',
-      title: t('iLostAnItem') || 'Did you lose something?',
-      subtitle: t('tapHereToReport') || 'Search or report lost item',
+      ctaText:
+        currentLanguage === 'ar'
+          ? 'انقر هنا للإبلاغ عما فقدته'
+          : currentLanguage === 'fr'
+          ? 'Appuyez ici pour signaler ce que vous avez perdu'
+          : 'Tap here to report what you lost',
+      title:
+        currentLanguage === 'ar'
+          ? 'هل فقدت شيئاً؟'
+          : currentLanguage === 'fr'
+          ? 'Avez-vous perdu un objet ?'
+          : 'Did you lose something?',
+      subtitle:
+        currentLanguage === 'ar'
+          ? 'سنتأكد أولاً من عدم وجود بلاغ مسبق يفيد بالعثور على ما فقدته.'
+          : currentLanguage === 'fr'
+          ? "Nous vérifierons d'abord si quelqu'un n'a pas déjà signalé avoir trouvé ce que vous avez perdu."
+          : "We'll make sure first that someone didn't report that he found what you lost.",
       icon: SearchOffOutlined,
-      tone: theme.custom.status.lost,
+      // Rose tonal accent for Lost
+      tone: {
+        main: isDark ? '#FB7185' : '#E11D48',
+        tailwind: 'rose',
+      },
       action: () => handleOpenDialog('lost'),
     },
     {
       key: 'found',
-      title: t('iFoundAnItem') || 'Did you find something?',
-      subtitle: t('tapHereToReport') || 'Search or report found item',
+      ctaText:
+        currentLanguage === 'ar'
+          ? 'انقر هنا للإبلاغ عما وجدته'
+          : currentLanguage === 'fr'
+          ? 'Appuyez ici pour signaler ce que vous avez trouvé'
+          : 'Tap here to report what you found',
+      title:
+        currentLanguage === 'ar'
+          ? 'هل عثرت على شيء؟'
+          : currentLanguage === 'fr'
+          ? 'Avez-vous trouvé un objet ?'
+          : 'Did you find something?',
+      subtitle:
+        currentLanguage === 'ar'
+          ? 'سنتأكد أولاً من عدم وجود بلاغ مسبق يفيد بفقدان ما عثرت عليه.'
+          : currentLanguage === 'fr'
+          ? "Nous vérifierons d'abord si quelqu'un n'a pas déjà signalé la perte de ce que vous avez trouvé."
+          : "We'll make sure first that someone didn't report that he lost what you found.",
       icon: TaskAltOutlined,
-      tone: theme.custom.status.found,
+      // Emerald tonal accent for Found
+      tone: {
+        main: isDark ? '#34D399' : '#059669',
+        tailwind: 'emerald',
+      },
       action: () => handleOpenDialog('found'),
     },
   ];
+
+  const headerTitle =
+    currentLanguage === 'ar'
+      ? 'ابدأ بهذه الإجراءات الأساسية'
+      : currentLanguage === 'fr'
+      ? 'Commencez par ces actions essentielles'
+      : 'Start with these essential actions';
 
   return (
     <>
       <Box
         data-reveal="section"
         dir={isRTLMode ? 'rtl' : 'ltr'}
+        className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mb-8"
         sx={{
           width: '100%',
           maxWidth: { sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
@@ -104,56 +161,88 @@ const SearchReportHub = () => {
           direction: isRTLMode ? 'rtl' : 'ltr',
         }}
       >
+        {/* Main Hub Shell: Layered Glass Background with Crisp 1px Inner Border */}
         <Box
+          className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-slate-200/80 dark:border-white/[0.08] bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-5 md:p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)]"
           sx={{
             position: 'relative',
-            backgroundColor: theme.custom.color.surfaceRaised,
+            backgroundColor: isDark ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
             border: `1px solid ${hairline}`,
-            borderRadius: { xs: '18px', sm: '22px' },
+            borderRadius: { xs: '20px', md: '24px' },
             boxShadow: isDark
-              ? '0 4px 24px rgba(0, 0, 0, 0.25)'
-              : '0 1px 3px rgba(15, 23, 42, 0.03), 0 8px 24px rgba(15, 23, 42, 0.04)',
+              ? '0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+              : '0 1px 3px rgba(15, 23, 42, 0.03), 0 10px 25px -5px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
             overflow: 'hidden',
-            px: { xs: 2, sm: 2.75, md: 3 },
-            py: { xs: 2.25, sm: 2.75, md: 3 },
+            p: { xs: 2.5, sm: 3, md: 3.5 },
             color: ink,
           }}
         >
-          {/* Header Title */}
-          <Box sx={{ textAlign: 'center', mb: { xs: 2, sm: 2.5 } }}>
+          {/* Subtle Ambient Radial Highlight in corner */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '-40px',
+              right: isRTLMode ? 'auto' : '-40px',
+              left: isRTLMode ? '-40px' : 'auto',
+              width: '260px',
+              height: '260px',
+              borderRadius: '50%',
+              background: isDark
+                ? 'radial-gradient(circle, rgba(59, 130, 246, 0.09) 0%, transparent 70%)'
+                : 'radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 70%)',
+              pointerEvents: 'none',
+              filter: 'blur(36px)',
+              zIndex: 0,
+            }}
+          />
+
+          {/* Section Header: Structured SaaS Header without Badge */}
+          <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center', mb: { xs: 2.5, sm: 3 } }}>
             <Typography
               component="h2"
+              className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 dark:text-white"
               sx={{
-                fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
-                fontWeight: 600,
-                fontSize: { xs: '15px', sm: '17px' },
+                fontFamily: `'Plus Jakarta Sans', ${theme.custom?.font?.display || 'sans-serif'}, sans-serif`,
+                fontWeight: 700,
+                fontSize: { xs: '1.25rem', sm: '1.375rem', md: '1.5rem' },
                 lineHeight: 1.3,
-                letterSpacing: '-0.015em',
+                letterSpacing: '-0.025em',
                 color: ink,
                 textAlign: 'center',
               }}
             >
-              {t('searchReportHubTitle') || 'Start with these essential actions'}
+              {headerTitle}
             </Typography>
           </Box>
 
-          {/* Action Cards Grid */}
+          {/* Action Cards Bento Grid */}
           <Box
             sx={{
+              position: 'relative',
+              zIndex: 1,
               display: 'grid',
               gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-              gap: { xs: 1.5, sm: 2 },
+              gap: { xs: 2, sm: 2.5 },
               direction: isRTLMode ? 'rtl' : 'ltr',
             }}
           >
             {primaryActions.map((item) => {
               const Icon = item.icon;
+              const toneMain = item.tone.main;
+              const iconBg = isDark ? alpha(toneMain, 0.14) : alpha(toneMain, 0.08);
+              const iconBorder = isDark ? alpha(toneMain, 0.28) : alpha(toneMain, 0.18);
+
+              // Subtle layered card background
               const cardBg = isDark
-                ? alpha(item.tone.main, 0.06)
-                : alpha(item.tone.main, 0.035);
+                ? 'linear-gradient(180deg, rgba(39, 39, 42, 0.55) 0%, rgba(24, 24, 27, 0.8) 100%)'
+                : 'linear-gradient(180deg, #FFFFFF 0%, rgba(248, 250, 252, 0.85) 100%)';
               const cardBorder = isDark
-                ? alpha(item.tone.main, 0.18)
-                : alpha(item.tone.main, 0.14);
+                ? 'rgba(255, 255, 255, 0.08)'
+                : 'rgba(226, 232, 240, 0.85)';
+              const cardHoverBorder = isDark
+                ? alpha(toneMain, 0.45)
+                : alpha(toneMain, 0.35);
 
               return (
                 <Box
@@ -170,131 +259,167 @@ const SearchReportHub = () => {
                     e.preventDefault();
                     handleTouchEnd(e, item.action);
                   }}
+                  className="group relative flex flex-col justify-between rounded-xl md:rounded-2xl p-5 md:p-6 border border-slate-200/80 dark:border-white/[0.08] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer"
                   sx={{
                     minWidth: 0,
-                    minHeight: { xs: 80, sm: 94 },
+                    minHeight: { xs: '160px', sm: '170px', md: '165px' },
                     display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
                     textAlign: isRTLMode ? 'right' : 'left',
-                    gap: { xs: 1.5, sm: 1.75 },
-                    p: { xs: '14px 16px', sm: '16px 18px' },
+                    p: { xs: 2.5, sm: 2.75, md: 3 },
                     cursor: 'pointer',
                     outline: 'none',
-                    borderRadius: '16px',
-                    backgroundColor: cardBg,
+                    borderRadius: { xs: '16px', md: '18px' },
+                    background: cardBg,
                     border: `1px solid ${cardBorder}`,
                     boxShadow: isDark
-                      ? '0 2px 10px rgba(0, 0, 0, 0.18)'
-                      : '0 1px 2px rgba(15, 23, 42, 0.02)',
+                      ? '0 2px 10px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.04)'
+                      : '0 1px 2px rgba(15, 23, 42, 0.03), 0 4px 12px rgba(15, 23, 42, 0.02), inset 0 1px 0 #FFFFFF',
                     transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
                     position: 'relative',
                     overflow: 'hidden',
                     '&:hover': {
                       transform: 'translateY(-2px)',
-                      backgroundColor: alpha(item.tone.main, isDark ? 0.1 : 0.06),
-                      borderColor: alpha(item.tone.main, isDark ? 0.35 : 0.28),
+                      borderColor: cardHoverBorder,
                       boxShadow: isDark
-                        ? `0 6px 20px ${alpha(item.tone.main, 0.2)}`
-                        : `0 6px 20px ${alpha(item.tone.main, 0.08)}`,
-                      '& .action-chevron': {
-                        backgroundColor: alpha(item.tone.main, isDark ? 0.22 : 0.14),
-                        borderColor: alpha(item.tone.main, isDark ? 0.35 : 0.25),
-                        color: item.tone.main,
-                        transform: isRTLMode ? 'scaleX(-1) translateX(3px)' : 'translateX(3px)',
-                      },
-                      '& .action-icon-circle': {
+                        ? `0 12px 28px -4px rgba(0, 0, 0, 0.5), 0 0 0 1px ${alpha(toneMain, 0.2)}`
+                        : `0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 0 0 1px ${alpha(toneMain, 0.15)}`,
+                      '& .action-icon-container': {
                         transform: 'scale(1.05)',
-                        borderColor: alpha(item.tone.main, isDark ? 0.35 : 0.25),
+                        borderColor: alpha(toneMain, isDark ? 0.45 : 0.3),
+                        backgroundColor: alpha(toneMain, isDark ? 0.2 : 0.12),
+                      },
+                      '& .action-cta-arrow': {
+                        transform: isRTLMode ? 'scaleX(-1) translateX(4px)' : 'translateX(4px)',
+                        backgroundColor: toneMain,
+                        color: '#FFFFFF',
+                        borderColor: toneMain,
+                      },
+                      '& .action-cta-label': {
+                        color: toneMain,
                       },
                     },
                     '&:active': {
                       transform: 'scale(0.985)',
                       boxShadow: 'none',
+                      transition: 'transform 80ms ease',
                     },
                     '&:focus-visible': {
                       borderColor: '#0B57D0',
-                      boxShadow: `0 0 0 2px ${theme.custom.color.surfaceRaised}, 0 0 0 4px #0B57D0`,
+                      boxShadow: `0 0 0 2px ${theme.custom?.color?.surfaceRaised || '#FFFFFF'}, 0 0 0 4px #0B57D0`,
                     },
                   }}
                 >
-                  {/* Icon Squircle */}
+                  {/* Top Bar: Icon Squircle + Card Title Placed Side-by-Side */}
                   <Box
-                    className="action-icon-circle"
                     sx={{
-                      flexShrink: 0,
-                      width: { xs: 42, sm: 46 },
-                      height: { xs: 42, sm: 46 },
-                      borderRadius: '12px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: alpha(item.tone.main, isDark ? 0.18 : 0.1),
-                      border: `1px solid ${alpha(item.tone.main, isDark ? 0.26 : 0.16)}`,
-                      color: item.tone.main,
-                      transition: 'all 200ms ease',
+                      gap: { xs: 1.5, sm: 1.75 },
+                      mb: { xs: 1.5, sm: 1.75 },
                     }}
                   >
-                    <Icon sx={{ fontSize: { xs: 21, sm: 23 } }} />
-                  </Box>
-
-                  {/* Text Content */}
-                  <Box
-                    sx={{
-                      minWidth: 0,
-                      flex: 1,
-                      textAlign: isRTLMode ? 'right' : 'left',
-                    }}
-                  >
-                    <Typography
+                    {/* Soft Tonal Icon Container (rounded-xl bg-tone/10 p-2.5) */}
+                    <Box
+                      className="action-icon-container rounded-xl p-2.5 transition-all duration-200"
                       sx={{
-                        fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
-                        fontWeight: 600,
-                        fontSize: { xs: '14.5px', sm: '15.5px' },
+                        flexShrink: 0,
+                        width: { xs: 44, sm: 46, md: 44 },
+                        height: { xs: 44, sm: 46, md: 44 },
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: iconBg,
+                        border: `1px solid ${iconBorder}`,
+                        color: toneMain,
+                        transition: 'all 200ms ease',
+                        boxShadow: isDark
+                          ? '0 2px 6px rgba(0, 0, 0, 0.25)'
+                          : `0 2px 6px ${alpha(toneMain, 0.12)}`,
+                      }}
+                    >
+                      <Icon sx={{ fontSize: { xs: 23, sm: 24, md: 23 } }} />
+                    </Box>
+
+                    {/* Card Title placed next to the Icon at top */}
+                    <Typography
+                      component="h3"
+                      className="text-base sm:text-lg md:text-base font-bold text-slate-900 dark:text-slate-100"
+                      sx={{
+                        fontFamily: `'Plus Jakarta Sans', ${theme.custom?.font?.display || 'sans-serif'}, sans-serif`,
+                        fontWeight: 700,
+                        fontSize: { xs: '16.5px', sm: '17.5px', md: '16.5px' },
                         lineHeight: 1.3,
-                        letterSpacing: '-0.01em',
+                        letterSpacing: '-0.015em',
                         color: ink,
                       }}
                     >
                       {item.title}
                     </Typography>
+                  </Box>
+
+                  {/* Middle: Workflow Guidance Subtitle */}
+                  <Box sx={{ mb: { xs: 2, sm: 2.25 }, flex: 1 }}>
                     <Typography
+                      className="text-sm sm:text-base md:text-sm text-slate-500 dark:text-slate-400 leading-relaxed"
                       sx={{
-                        fontFamily: `'Inter', ${theme.custom.font.body}, sans-serif`,
+                        fontFamily: `'Inter', ${theme.custom?.font?.body || 'sans-serif'}, sans-serif`,
                         fontWeight: 400,
-                        fontSize: { xs: '12.5px', sm: '13px' },
-                        lineHeight: 1.4,
+                        fontSize: { xs: '14.5px', sm: '14px', md: '13.5px' },
+                        lineHeight: 1.55,
                         color: muted,
-                        mt: 0.3,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 1,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
                       }}
                     >
                       {item.subtitle}
                     </Typography>
                   </Box>
 
-                  {/* Action Arrow Pill */}
+                  {/* Bottom: Interactive CTA Row with 44px Minimum Touch Height */}
                   <Box
-                    className="action-chevron"
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      width: 34,
-                      height: 34,
-                      borderRadius: '50%',
-                      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.04)',
-                      border: `1px solid ${hairline}`,
-                      color: muted,
-                      flexShrink: 0,
-                      transform: isRTLMode ? 'scaleX(-1)' : 'none',
-                      transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+                      justifyContent: 'space-between',
+                      pt: 1.5,
+                      borderTop: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(226, 232, 240, 0.75)'}`,
+                      minHeight: '44px',
                     }}
                   >
-                    <ArrowForwardRounded sx={{ fontSize: 17, color: 'inherit' }} />
+                    <Typography
+                      className="action-cta-label text-sm sm:text-base md:text-sm font-semibold transition-colors duration-200"
+                      sx={{
+                        fontFamily: `'Plus Jakarta Sans', ${theme.custom?.font?.display || 'sans-serif'}, sans-serif`,
+                        fontWeight: 650,
+                        fontSize: { xs: '14.5px', sm: '14px', md: '13.5px' },
+                        color: toneMain,
+                        transition: 'color 200ms ease',
+                      }}
+                    >
+                      {item.ctaText}
+                    </Typography>
+
+                    <Box
+                      className="action-cta-arrow"
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minWidth: '34px',
+                        minHeight: '34px',
+                        width: '34px',
+                        height: '34px',
+                        borderRadius: '50%',
+                        backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.04)',
+                        border: `1px solid ${hairline}`,
+                        color: muted,
+                        transform: isRTLMode ? 'scaleX(-1)' : 'none',
+                        transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+                      }}
+                    >
+                      <ArrowForwardRounded sx={{ fontSize: 18, color: 'inherit' }} />
+                    </Box>
                   </Box>
                 </Box>
               );
@@ -313,3 +438,5 @@ const SearchReportHub = () => {
 };
 
 export default SearchReportHub;
+
+

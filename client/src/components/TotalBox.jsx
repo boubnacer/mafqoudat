@@ -102,12 +102,12 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          paddingRight: { xs: '48px', sm: '48px' },
-          paddingLeft: { xs: 0, sm: 0 },
+          paddingRight: icon ? { xs: '48px', sm: '48px' } : 0,
+          paddingLeft: 0,
           // RTL support for padding
           '[dir="rtl"] &': {
-            paddingRight: { xs: 0, sm: 0 },
-            paddingLeft: { xs: '48px', sm: '48px' },
+            paddingRight: 0,
+            paddingLeft: icon ? { xs: '48px', sm: '48px' } : 0,
           },
           ...titleStyle
         }}
@@ -116,45 +116,47 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
       </Typography>
 
       {/* Icon positioned absolutely */}
-      <Box
-        className="total-box-icon"
-        sx={{
-          position: 'absolute',
-          top: '16px',
-          right: '16px', // Top-right in LTR
-          background: iconStyle?.background || (theme.palette.mode === 'dark'
-            ? 'rgba(255,255,255,0.1)'
-            : 'rgba(0,0,0,0.1)'),
-          border: iconStyle?.border || (theme.palette.mode === 'dark'
-            ? '1px solid rgba(255,255,255,0.08)'
-            : '1px solid rgba(0,0,0,0.06)'),
-          boxShadow: iconStyle?.boxShadow || 'none',
-          borderRadius: iconStyle?.borderRadius || '50%',
-          padding: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-          width: '40px', // Fixed width for uniform sizing
-          height: '40px', // Fixed height for uniform sizing
-          minWidth: '40px', // Ensure minimum width
-          minHeight: '40px', // Ensure minimum height
-          '& svg': {
-            color: iconStyle?.color || (theme.palette.mode === 'dark' ? '#B0BEC5' : '#4A5568'),
-            transition: 'color 0.25s ease',
-            fontSize: '20px', // Fixed icon size for consistency
-            width: '20px',
-            height: '20px'
-          },
-          // RTL support
-          '[dir="rtl"] &': {
-            right: 'auto',
-            left: '16px', // Top-left in RTL
-          }
-        }}
-      >
-        {icon}
-      </Box>
+      {icon && (
+        <Box
+          className="total-box-icon"
+          sx={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px', // Top-right in LTR
+            background: iconStyle?.background || (theme.palette.mode === 'dark'
+              ? 'rgba(255,255,255,0.1)'
+              : 'rgba(0,0,0,0.1)'),
+            border: iconStyle?.border || (theme.palette.mode === 'dark'
+              ? '1px solid rgba(255,255,255,0.08)'
+              : '1px solid rgba(0,0,0,0.06)'),
+            boxShadow: iconStyle?.boxShadow || 'none',
+            borderRadius: iconStyle?.borderRadius || '50%',
+            padding: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            width: '40px', // Fixed width for uniform sizing
+            height: '40px', // Fixed height for uniform sizing
+            minWidth: '40px', // Ensure minimum width
+            minHeight: '40px', // Ensure minimum height
+            '& svg': {
+              color: iconStyle?.color || (theme.palette.mode === 'dark' ? '#B0BEC5' : '#4A5568'),
+              transition: 'color 0.25s ease',
+              fontSize: '20px', // Fixed icon size for consistency
+              width: '20px',
+              height: '20px'
+            },
+            // RTL support
+            '[dir="rtl"] &': {
+              right: 'auto',
+              left: '16px', // Top-left in RTL
+            }
+          }}
+        >
+          {icon}
+        </Box>
+      )}
 
       {/* Notification Badge on Box Container */}
       {hasNotification && (
@@ -200,72 +202,76 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
         </Typography>
 
         {/* Description positioned absolutely at bottom */}
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: '0',
-            left: '0', // Bottom-left in LTR
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            flexWrap: 'nowrap',
-            // RTL support
-            '[dir="rtl"] &': {
-              left: 'auto',
-              right: '0', // Bottom-right in RTL
-            }
-          }}
-        >
-          <Typography
-            fontSize="0.875rem"
+        {(description || hasNotification) && (
+          <Box
             sx={{
-              whiteSpace: 'nowrap',
-              ...descriptionStyle,
-              textAlign: 'left',
+              position: 'absolute',
+              bottom: '0',
+              left: '0', // Bottom-left in LTR
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              flexWrap: 'nowrap',
               // RTL support
               '[dir="rtl"] &': {
-                textAlign: 'right',
+                left: 'auto',
+                right: '0', // Bottom-right in RTL
               }
             }}
           >
-            {description}
-          </Typography>
-          {/* Notification Badge */}
-          {hasNotification && (
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minWidth: '20px',
-                height: '20px',
-                px: '6px',
-                borderRadius: '10px',
-                background: `linear-gradient(135deg, ${defaultNotificationColor} 0%, ${defaultNotificationColor}DD 100%)`,
-                color: '#FFFFFF',
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                boxShadow: `0 2px 8px 0 ${defaultNotificationColor}50`,
-                animation: 'bounceIn 0.5s ease-out',
-                '@keyframes bounceIn': {
-                  '0%': {
-                    transform: 'scale(0)',
-                    opacity: 0,
+            {description && (
+              <Typography
+                fontSize="0.875rem"
+                sx={{
+                  whiteSpace: 'nowrap',
+                  ...descriptionStyle,
+                  textAlign: 'left',
+                  // RTL support
+                  '[dir="rtl"] &': {
+                    textAlign: 'right',
+                  }
+                }}
+              >
+                {description}
+              </Typography>
+            )}
+            {/* Notification Badge */}
+            {hasNotification && (
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: '20px',
+                  height: '20px',
+                  px: '6px',
+                  borderRadius: '10px',
+                  background: `linear-gradient(135deg, ${defaultNotificationColor} 0%, ${defaultNotificationColor}DD 100%)`,
+                  color: '#FFFFFF',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  boxShadow: `0 2px 8px 0 ${defaultNotificationColor}50`,
+                  animation: 'bounceIn 0.5s ease-out',
+                  '@keyframes bounceIn': {
+                    '0%': {
+                      transform: 'scale(0)',
+                      opacity: 0,
+                    },
+                    '50%': {
+                      transform: 'scale(1.15)',
+                    },
+                    '100%': {
+                      transform: 'scale(1)',
+                      opacity: 1,
+                    },
                   },
-                  '50%': {
-                    transform: 'scale(1.15)',
-                  },
-                  '100%': {
-                    transform: 'scale(1)',
-                    opacity: 1,
-                  },
-                },
-              }}
-            >
-              {t('new')}
-            </Box>
-          )}
-        </Box>
+                }}
+              >
+                {t('new')}
+              </Box>
+            )}
+          </Box>
+        )}
       </Box>
     </Box>
   );

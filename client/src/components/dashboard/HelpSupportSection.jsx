@@ -119,53 +119,99 @@ const HelpSupportSection = () => {
 
   const hairline = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
   const muted = isDark ? "#94A3B8" : "#64748B";
-  const ink = theme.custom.color.ink;
-  const brand = theme.custom.color.brandPrimary;
+  const ink = theme.custom?.color?.ink || (isDark ? "#EDEFF5" : "#0B1220");
+  const brand = theme.custom?.color?.brandPrimary || (isDark ? "#5B7FFF" : "#1B4DFF");
+  const surfaceRaised = theme.custom?.color?.surfaceRaised || (isDark ? "#18181B" : "#FFFFFF");
+  const surfaceNested = theme.custom?.color?.surfaceNested || (isDark ? "#27272A" : "#F1F5F9");
+  const successColor = theme.custom?.status?.found?.main || (isDark ? "#3DDCA6" : "#1A8563");
 
-  const iconSquare = (active) => ({
-    width: 32,
-    height: 32,
-    borderRadius: "9px",
+  const iconBadge = (color, bg, border) => ({
+    width: { xs: 44, md: 38 },
+    height: { xs: 44, md: 38 },
+    borderRadius: "12px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
-    backgroundColor: active ? alpha(brand, isDark ? 0.14 : 0.09) : alpha(ink, isDark ? 0.06 : 0.04),
-    border: `1px solid ${active ? alpha(brand, isDark ? 0.18 : 0.12) : hairline}`,
-    color: active ? brand : muted,
+    backgroundColor: bg,
+    border: `1px solid ${border}`,
+    color: color,
   });
 
   const cardSx = {
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    p: { xs: 1.75, sm: 2 },
-    borderRadius: "12px",
-    backgroundColor: theme.custom.color.surfaceRaised,
+    p: { xs: 2.5, md: 3 }, // generous p-5 on mobile (20px) and md:p-6 on desktop (24px)
+    borderRadius: "16px",
+    backgroundColor: surfaceRaised,
     border: `1px solid ${hairline}`,
-    boxShadow: 'none',
+    boxShadow: isDark
+      ? "0 4px 20px rgba(0, 0, 0, 0.28)"
+      : "0 1px 3px rgba(15, 23, 42, 0.04), 0 8px 24px -4px rgba(15, 23, 42, 0.05)",
+    transition: 'transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease',
+    "&:hover": {
+      borderColor: isDark ? "rgba(255, 255, 255, 0.16)" : alpha(brand, 0.26),
+      boxShadow: isDark
+        ? "0 8px 30px rgba(0, 0, 0, 0.38)"
+        : "0 4px 12px rgba(15, 23, 42, 0.05), 0 14px 32px -4px rgba(15, 23, 42, 0.08)",
+    },
   };
 
   const contactCardSx = {
     ...cardSx,
-    borderLeft: isRTLMode ? 'none' : `2px solid ${brand}`,
-    borderRight: isRTLMode ? `2px solid ${brand}` : 'none',
+    borderInlineStart: `3px solid ${brand}`,
+    position: 'relative',
+    overflow: 'hidden',
   };
 
   const ghostButtonSx = {
     color: brand,
-    borderColor: alpha(brand, 0.28),
-    backgroundColor: "transparent",
-    borderRadius: "10px",
+    borderColor: alpha(brand, isDark ? 0.35 : 0.26),
+    backgroundColor: isDark ? alpha(brand, 0.04) : "transparent",
+    borderRadius: "11px",
     textTransform: "none",
-    fontFamily: theme.custom.font.body,
+    fontFamily: theme.custom?.font?.body || "inherit",
     fontWeight: 600,
-    fontSize: "12.5px",
+    fontSize: { xs: "15px", md: "13.5px" },
+    minHeight: { xs: "46px", md: "42px" }, // >= 44px touch height on mobile
     letterSpacing: "-0.01em",
-    py: 0.75,
+    py: { xs: 1.15, md: 0.85 },
+    transition: 'all 180ms cubic-bezier(0.4, 0, 0.2, 1)',
     "&:hover": {
-      backgroundColor: alpha(brand, 0.08),
+      backgroundColor: alpha(brand, isDark ? 0.12 : 0.08),
       borderColor: brand,
+      transform: 'translateY(-1px)',
+    },
+    "&:active": {
+      transform: 'translateY(1px)',
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${brand}`,
+      outlineOffset: 1,
+    },
+  };
+
+  const contactLinkSx = {
+    display: 'flex',
+    alignItems: 'center',
+    direction: isRTLMode ? 'rtl' : 'ltr',
+    gap: 1.5,
+    p: { xs: 1.5, md: 1.25 },
+    minHeight: { xs: "52px", md: "46px" }, // >= 44px mobile touch target
+    borderRadius: "12px",
+    textDecoration: 'none',
+    color: ink,
+    border: `1px solid ${hairline}`,
+    backgroundColor: isDark ? alpha(surfaceNested, 0.45) : alpha(surfaceNested, 0.65),
+    transition: 'all 180ms cubic-bezier(0.4, 0, 0.2, 1)',
+    "&:hover": {
+      backgroundColor: alpha(brand, isDark ? 0.10 : 0.06),
+      borderColor: alpha(brand, 0.26),
+      transform: 'translateY(-1px)',
+    },
+    "&:active": {
+      transform: 'translateY(1px)',
     },
     "&:focus-visible": {
       outline: `2px solid ${brand}`,
@@ -180,25 +226,30 @@ const HelpSupportSection = () => {
         dir={isRTLMode ? 'rtl' : 'ltr'}
         sx={{
           position: 'relative',
-          backgroundColor: theme.custom.color.surfaceRaised,
+          backgroundColor: isDark
+            ? alpha(theme.custom?.color?.sectionCard || "#0B1220", 0.95)
+            : alpha(theme.custom?.color?.sectionCard || "#FFFFFF", 0.85),
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           border: `1px solid ${hairline}`,
-          borderRadius: "16px",
-          boxShadow: theme.custom.elevation.e1,
+          borderRadius: { xs: "20px", md: "24px" },
+          boxShadow: theme.custom?.elevation?.e1 || 'none',
           overflow: 'hidden',
           direction: isRTLMode ? 'rtl' : 'ltr',
           mx: { xs: 1, sm: 2, md: 'auto' },
           maxWidth: { lg: '1400px', xl: '1600px' },
-          px: { xs: 1.75, sm: 2.25, md: 2.5 },
-          py: { xs: 2, sm: 2.25, md: 2.5 },
+          px: { xs: 2, sm: 2.5, md: 3.5 },
+          py: { xs: 2.5, sm: 3, md: 3.5 },
         }}
       >
-        <Box sx={{ textAlign: 'center', maxWidth: 560, mx: 'auto', mb: 2 }}>
+        {/* Section Header */}
+        <Box sx={{ textAlign: 'center', maxWidth: 640, mx: 'auto', mb: { xs: 2.5, md: 3 } }}>
           <Typography
             sx={{
-              fontFamily: theme.custom.font.display,
-              fontWeight: 650,
-              fontSize: { xs: "15px", sm: "16px" },
-              letterSpacing: "-0.01em",
+              fontFamily: theme.custom?.font?.display || "inherit",
+              fontWeight: 700,
+              fontSize: { xs: "1.15rem", sm: "1.2rem", md: "1.25rem" }, // md:text-xl (20px)
+              letterSpacing: "-0.015em",
               lineHeight: 1.3,
               color: ink,
               textAlign: 'center',
@@ -208,12 +259,12 @@ const HelpSupportSection = () => {
           </Typography>
           <Typography
             sx={{
-              fontFamily: theme.custom.font.body,
+              fontFamily: theme.custom?.font?.body || "inherit",
               fontWeight: 450,
-              fontSize: "12.5px",
-              lineHeight: 1.4,
+              fontSize: { xs: "16px", md: "14px" }, // 16px (text-base) on mobile, md:text-sm (14px) on desktop
+              lineHeight: 1.5,
               color: muted,
-              mt: 0.5,
+              mt: 0.75,
               textAlign: 'center',
             }}
           >
@@ -221,113 +272,206 @@ const HelpSupportSection = () => {
           </Typography>
         </Box>
 
-        <Grid container spacing={1.5} direction="row">
-          {/* Contact — primary */}
+        {/* 3-Column Grid */}
+        <Grid container spacing={{ xs: 2, md: 2.5 }} direction="row">
+          {/* Card 1: Contact (Primary) */}
           <Grid item xs={12} md={4}>
             <Box data-reveal-item="" sx={contactCardSx}>
-              <Box display="flex" alignItems="center" gap={1.25} mb={1.75} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
-                <Box sx={iconSquare(true)}><ContactMail sx={{ fontSize: 16 }} /></Box>
-                <Typography sx={{ fontFamily: theme.custom.font.body, fontWeight: 650, fontSize: "13.5px", letterSpacing: "-0.01em", color: ink, textAlign: isRTLMode ? 'right' : 'left' }}>
+              <Box display="flex" alignItems="center" gap={1.5} mb={2} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
+                <Box sx={iconBadge(brand, alpha(brand, isDark ? 0.16 : 0.08), alpha(brand, isDark ? 0.28 : 0.16))}>
+                  <ContactMail sx={{ fontSize: { xs: 22, md: 19 } }} />
+                </Box>
+                <Typography
+                  sx={{
+                    fontFamily: theme.custom?.font?.display || "inherit",
+                    fontWeight: 700,
+                    fontSize: { xs: "17px", md: "16px" }, // md:text-base (16px)
+                    letterSpacing: "-0.01em",
+                    color: ink,
+                    textAlign: isRTLMode ? 'right' : 'left'
+                  }}
+                >
                   {t('contactUs')}
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1.5, flex: 1 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mb: 2, flex: 1 }}>
+                {/* Phone */}
                 <Box
                   component="a"
                   href="tel:+212711621132"
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    direction: isRTLMode ? 'rtl' : 'ltr',
-                    gap: 1.1,
-                    p: 1.1,
-                    borderRadius: "10px",
-                    textDecoration: 'none',
-                    color: ink,
-                    border: `1px solid ${hairline}`,
-                    backgroundColor: "transparent",
-                    transition: 'border-color 160ms ease, background-color 160ms ease',
-                    "&:hover": {
-                      backgroundColor: alpha(brand, isDark ? 0.07 : 0.04),
-                      borderColor: alpha(brand, 0.18),
-                    },
-                    "&:focus-visible": {
-                      outline: `2px solid ${brand}`,
-                      outlineOffset: 1,
-                    },
-                  }}
+                  sx={contactLinkSx}
                 >
-                  <Phone sx={{ fontSize: 16, color: brand, flexShrink: 0, transform: isRTLMode ? 'scaleX(-1)' : 'none' }} />
+                  <Box
+                    sx={{
+                      width: { xs: 36, md: 32 },
+                      height: { xs: 36, md: 32 },
+                      borderRadius: "9px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      backgroundColor: alpha(brand, isDark ? 0.16 : 0.09),
+                      color: brand,
+                    }}
+                  >
+                    <Phone sx={{ fontSize: { xs: 18, md: 16 }, transform: isRTLMode ? 'scaleX(-1)' : 'none' }} />
+                  </Box>
                   <Box sx={{ minWidth: 0, flex: 1, textAlign: isRTLMode ? 'right' : 'left' }}>
-                    <Typography sx={{ fontFamily: theme.custom.font.body, fontSize: "11px", fontWeight: 500, color: muted, lineHeight: 1, textAlign: isRTLMode ? 'right' : 'left' }}>
+                    <Typography
+                      sx={{
+                        fontFamily: theme.custom?.font?.body || "inherit",
+                        fontSize: { xs: "14px", md: "12px" }, // 14px secondary label on mobile
+                        fontWeight: 500,
+                        color: muted,
+                        lineHeight: 1.2,
+                        textAlign: isRTLMode ? 'right' : 'left'
+                      }}
+                    >
                       {t('phoneNumber')}
                     </Typography>
-                    <Typography className="phone-number" dir="ltr" sx={{ fontFamily: theme.custom.font.body, fontSize: "12.5px", fontWeight: 600, color: ink, lineHeight: 1.3, textAlign: isRTLMode ? 'right' : 'left', direction: 'ltr' }}>
+                    <Typography
+                      className="phone-number"
+                      dir="ltr"
+                      sx={{
+                        fontFamily: theme.custom?.font?.body || "inherit",
+                        fontSize: { xs: "16px", md: "14px" }, // 16px body on mobile, md:14px
+                        fontWeight: 650,
+                        color: ink,
+                        lineHeight: 1.35,
+                        mt: 0.25,
+                        textAlign: isRTLMode ? 'right' : 'left',
+                        direction: 'ltr'
+                      }}
+                    >
                       +212 711 621 132
                     </Typography>
                   </Box>
                 </Box>
 
+                {/* Email */}
                 <Box
                   component="a"
                   href="mailto:support@mafqoudat.com"
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    direction: isRTLMode ? 'rtl' : 'ltr',
-                    gap: 1.1,
-                    p: 1.1,
-                    borderRadius: "10px",
-                    textDecoration: 'none',
-                    color: ink,
-                    border: `1px solid ${hairline}`,
-                    backgroundColor: "transparent",
-                    transition: 'border-color 160ms ease, background-color 160ms ease',
-                    "&:hover": {
-                      backgroundColor: alpha(brand, isDark ? 0.07 : 0.04),
-                      borderColor: alpha(brand, 0.18),
-                    },
-                    "&:focus-visible": {
-                      outline: `2px solid ${brand}`,
-                      outlineOffset: 1,
-                    },
-                  }}
+                  sx={contactLinkSx}
                 >
-                  <EmailIcon sx={{ fontSize: 16, color: brand, flexShrink: 0 }} />
+                  <Box
+                    sx={{
+                      width: { xs: 36, md: 32 },
+                      height: { xs: 36, md: 32 },
+                      borderRadius: "9px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      backgroundColor: alpha(brand, isDark ? 0.16 : 0.09),
+                      color: brand,
+                    }}
+                  >
+                    <EmailIcon sx={{ fontSize: { xs: 18, md: 16 } }} />
+                  </Box>
                   <Box sx={{ minWidth: 0, flex: 1, textAlign: isRTLMode ? 'right' : 'left' }}>
-                    <Typography sx={{ fontFamily: theme.custom.font.body, fontSize: "11px", fontWeight: 500, color: muted, lineHeight: 1, textAlign: isRTLMode ? 'right' : 'left' }}>
+                    <Typography
+                      sx={{
+                        fontFamily: theme.custom?.font?.body || "inherit",
+                        fontSize: { xs: "14px", md: "12px" }, // 14px secondary label on mobile
+                        fontWeight: 500,
+                        color: muted,
+                        lineHeight: 1.2,
+                        textAlign: isRTLMode ? 'right' : 'left'
+                      }}
+                    >
                       {t('email')}
                     </Typography>
-                    <Typography dir="ltr" sx={{ fontFamily: theme.custom.font.body, fontSize: "12.5px", fontWeight: 600, color: ink, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: isRTLMode ? 'right' : 'left', direction: isRTLMode ? 'ltr' : 'inherit' }}>
+                    <Typography
+                      dir="ltr"
+                      sx={{
+                        fontFamily: theme.custom?.font?.body || "inherit",
+                        fontSize: { xs: "16px", md: "14px" }, // 16px body on mobile, md:14px
+                        fontWeight: 650,
+                        color: ink,
+                        lineHeight: 1.35,
+                        mt: 0.25,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        textAlign: isRTLMode ? 'right' : 'left',
+                        direction: isRTLMode ? 'ltr' : 'inherit'
+                      }}
+                    >
                       {t('supportEmail')}
                     </Typography>
                   </Box>
                 </Box>
 
-                <Typography sx={{ fontFamily: theme.custom.font.body, fontSize: "11px", color: muted, px: 0.5, textAlign: isRTLMode ? 'right' : 'left' }}>
-                  {t('support')} · {t('support24_7')}
-                </Typography>
+                {/* 24/7 Support Soft Tonal Badge */}
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    px: 1.25,
+                    py: 0.6,
+                    borderRadius: "999px",
+                    backgroundColor: alpha(successColor, isDark ? 0.12 : 0.08),
+                    border: `1px solid ${alpha(successColor, isDark ? 0.25 : 0.15)}`,
+                    width: 'fit-content',
+                    mt: 0.25,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: "50%",
+                      backgroundColor: successColor,
+                      boxShadow: `0 0 6px ${alpha(successColor, 0.6)}`,
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      fontFamily: theme.custom?.font?.body || "inherit",
+                      fontSize: { xs: "14px", md: "12px" }, // 14px secondary label on mobile
+                      fontWeight: 600,
+                      color: isDark ? "#6EE7B7" : "#065F46",
+                      lineHeight: 1,
+                      textAlign: isRTLMode ? 'right' : 'left',
+                    }}
+                  >
+                    {t('support')} · {t('support24_7')}
+                  </Typography>
+                </Box>
               </Box>
 
+              {/* Primary Contact CTA Button */}
               <Button
                 fullWidth
                 variant="contained"
-                startIcon={<Send sx={{ fontSize: 16, transform: isRTLMode ? 'scaleX(-1)' : 'none' }} />}
+                startIcon={<Send sx={{ fontSize: { xs: 18, md: 16 }, transform: isRTLMode ? 'scaleX(-1)' : 'none' }} />}
                 onClick={openContactDialog}
                 sx={{
                   backgroundColor: brand,
                   color: "#fff",
-                  borderRadius: "10px",
+                  borderRadius: "12px",
                   textTransform: "none",
-                  fontFamily: theme.custom.font.body,
-                  fontWeight: 600,
-                  fontSize: "12.5px",
+                  fontFamily: theme.custom?.font?.body || "inherit",
+                  fontWeight: 650,
+                  fontSize: { xs: "16px", md: "14px" }, // 16px primary button on mobile, md:14px
+                  minHeight: { xs: "48px", md: "44px" }, // >= 44px touch height
                   letterSpacing: "-0.01em",
-                  py: 0.85,
+                  py: { xs: 1.25, md: 1 },
                   boxShadow: "none",
-                  "&:hover": { backgroundColor: brand, filter: "brightness(0.94)", boxShadow: "none" },
-                  "&:focus-visible": { outline: `2px solid ${brand}`, outlineOffset: 1 },
+                  transition: 'all 180ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  "&:hover": {
+                    backgroundColor: brand,
+                    filter: "brightness(0.92)",
+                    boxShadow: `0 4px 14px ${alpha(brand, 0.32)}`,
+                    transform: 'translateY(-1px)',
+                  },
+                  "&:active": {
+                    transform: 'translateY(1px)',
+                  },
+                  "&:focus-visible": { outline: `2px solid ${brand}`, outlineOffset: 2 },
                 }}
               >
                 {t('getHelp')}
@@ -335,15 +479,33 @@ const HelpSupportSection = () => {
             </Box>
           </Grid>
 
-          {/* FAQ */}
+          {/* Card 2: FAQ */}
           <Grid item xs={12} md={4}>
             <Box data-reveal-item="" sx={cardSx}>
-              <Box display="flex" alignItems="center" gap={1.25} mb={1.5} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
-                <Box sx={iconSquare(false)}><Help sx={{ fontSize: 16 }} /></Box>
-                <Typography sx={{ fontFamily: theme.custom.font.body, fontWeight: 650, fontSize: "13.5px", letterSpacing: "-0.01em", color: ink, textAlign: isRTLMode ? 'right' : 'left' }}>
+              <Box display="flex" alignItems="center" gap={1.5} mb={2} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
+                <Box
+                  sx={iconBadge(
+                    isDark ? "#60A5FA" : "#2563EB",
+                    alpha(isDark ? "#60A5FA" : "#2563EB", isDark ? 0.15 : 0.08),
+                    alpha(isDark ? "#60A5FA" : "#2563EB", isDark ? 0.28 : 0.16)
+                  )}
+                >
+                  <Help sx={{ fontSize: { xs: 22, md: 19 } }} />
+                </Box>
+                <Typography
+                  sx={{
+                    fontFamily: theme.custom?.font?.display || "inherit",
+                    fontWeight: 700,
+                    fontSize: { xs: "17px", md: "16px" }, // md:text-base (16px)
+                    letterSpacing: "-0.01em",
+                    color: ink,
+                    textAlign: isRTLMode ? 'right' : 'left'
+                  }}
+                >
                   {t('faq')}
                 </Typography>
               </Box>
+
               <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, direction: isRTLMode ? 'rtl' : 'ltr' }}>
                 {faqItems.map((item, index) => (
                   <Accordion
@@ -361,27 +523,47 @@ const HelpSupportSection = () => {
                     }}
                   >
                     <AccordionSummary
-                      expandIcon={<ExpandMore sx={{ fontSize: 18, color: muted }} />}
+                      expandIcon={<ExpandMore sx={{ fontSize: { xs: 22, md: 20 }, color: muted }} />}
                       sx={{
-                        px: 0,
-                        py: 0.25,
-                        minHeight: 44,
+                        px: 1,
+                        py: { xs: 0.75, md: 0.5 },
+                        minHeight: { xs: "52px", md: "46px" }, // >= 44px touch height
                         direction: isRTLMode ? 'rtl' : 'ltr',
+                        borderRadius: "10px",
+                        transition: 'background-color 160ms ease',
                         "& .MuiAccordionSummary-content": {
                           my: 1,
                           gap: 1,
                           textAlign: isRTLMode ? 'right' : 'left',
                         },
-                        "&:hover": { backgroundColor: alpha(ink, isDark ? 0.04 : 0.03) },
-                        borderRadius: "8px",
+                        "&:hover": { backgroundColor: alpha(brand, isDark ? 0.08 : 0.04) },
                       }}
                     >
-                      <Typography sx={{ fontFamily: theme.custom.font.body, fontWeight: 600, fontSize: "12.5px", color: ink, lineHeight: 1.35, textAlign: isRTLMode ? 'right' : 'left', width: '100%' }}>
+                      <Typography
+                        sx={{
+                          fontFamily: theme.custom?.font?.body || "inherit",
+                          fontWeight: 650,
+                          fontSize: { xs: "16px", md: "14px" }, // 16px body on mobile, md:14px
+                          color: ink,
+                          lineHeight: 1.4,
+                          textAlign: isRTLMode ? 'right' : 'left',
+                          width: '100%'
+                        }}
+                      >
                         {item.question}
                       </Typography>
                     </AccordionSummary>
-                    <AccordionDetails sx={{ px: 0, pt: 0, pb: 1.25, direction: isRTLMode ? 'rtl' : 'ltr' }}>
-                      <Typography sx={{ fontFamily: theme.custom.font.body, fontSize: "12.5px", fontWeight: 450, color: muted, lineHeight: 1.5, textAlign: isRTLMode ? 'right' : 'left' }}>
+                    <AccordionDetails sx={{ px: 1, pt: 0.25, pb: 1.75, direction: isRTLMode ? 'rtl' : 'ltr' }}>
+                      <Typography
+                        sx={{
+                          fontFamily: theme.custom?.font?.body || "inherit",
+                          fontSize: { xs: "16px", md: "14px" }, // 16px body on mobile, md:14px
+                          fontWeight: 450,
+                          color: muted,
+                          lineHeight: 1.6,
+                          textAlign: isRTLMode ? 'right' : 'left'
+                        }}
+                      >
                         {item.answer}
                       </Typography>
                     </AccordionDetails>
@@ -391,15 +573,33 @@ const HelpSupportSection = () => {
             </Box>
           </Grid>
 
-          {/* Guidelines & safety */}
+          {/* Card 3: Guidelines & Safety */}
           <Grid item xs={12} md={4}>
             <Box data-reveal-item="" sx={cardSx}>
-              <Box display="flex" alignItems="center" gap={1.25} mb={1.5} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
-                <Box sx={iconSquare(false)}><Security sx={{ fontSize: 16 }} /></Box>
-                <Typography sx={{ fontFamily: theme.custom.font.body, fontWeight: 650, fontSize: "13.5px", letterSpacing: "-0.01em", color: ink, textAlign: isRTLMode ? 'right' : 'left' }}>
+              <Box display="flex" alignItems="center" gap={1.5} mb={2} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
+                <Box
+                  sx={iconBadge(
+                    successColor,
+                    alpha(successColor, isDark ? 0.15 : 0.08),
+                    alpha(successColor, isDark ? 0.28 : 0.16)
+                  )}
+                >
+                  <Security sx={{ fontSize: { xs: 22, md: 19 } }} />
+                </Box>
+                <Typography
+                  sx={{
+                    fontFamily: theme.custom?.font?.display || "inherit",
+                    fontWeight: 700,
+                    fontSize: { xs: "17px", md: "16px" }, // md:text-base (16px)
+                    letterSpacing: "-0.01em",
+                    color: ink,
+                    textAlign: isRTLMode ? 'right' : 'left'
+                  }}
+                >
                   {t('guidelines')}
                 </Typography>
               </Box>
+
               <List disablePadding sx={{ flex: 1, direction: isRTLMode ? 'rtl' : 'ltr' }}>
                 {guidelines.map((guideline, index) => (
                   <ListItem
@@ -407,31 +607,32 @@ const HelpSupportSection = () => {
                     disableGutters
                     alignItems="flex-start"
                     sx={{
-                      py: 0.85,
-                      gap: 1.25,
+                      py: { xs: 1.25, md: 1 },
+                      gap: 1.5,
                       direction: isRTLMode ? 'rtl' : 'ltr',
                       textAlign: isRTLMode ? 'right' : 'left',
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 0, mt: 0.25, color: brand }}>
-                      <CheckCircle sx={{ fontSize: 16, color: brand }} />
+                    <ListItemIcon sx={{ minWidth: 0, mt: { xs: 0.35, md: 0.2 }, color: successColor }}>
+                      <CheckCircle sx={{ fontSize: { xs: 20, md: 18 }, color: successColor }} />
                     </ListItemIcon>
                     <ListItemText
                       primary={guideline.title}
                       secondary={guideline.description}
                       primaryTypographyProps={{
-                        fontFamily: theme.custom.font.body,
-                        fontWeight: 600,
+                        fontFamily: theme.custom?.font?.body || "inherit",
+                        fontWeight: 650,
                         color: ink,
-                        fontSize: "12.5px",
+                        fontSize: { xs: "16px", md: "14px" }, // 16px body on mobile, md:14px
                         lineHeight: 1.35,
                         textAlign: isRTLMode ? 'right' : 'left',
                       }}
                       secondaryTypographyProps={{
-                        fontFamily: theme.custom.font.body,
+                        fontFamily: theme.custom?.font?.body || "inherit",
                         color: muted,
-                        fontSize: "12px",
-                        lineHeight: 1.45,
+                        fontSize: { xs: "14px", md: "12.5px" }, // 14px secondary label on mobile
+                        lineHeight: 1.55,
+                        mt: 0.35,
                         textAlign: isRTLMode ? 'right' : 'left',
                       }}
                       sx={{
@@ -445,7 +646,9 @@ const HelpSupportSection = () => {
                   </ListItem>
                 ))}
               </List>
-              <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
+
+              {/* Action Buttons */}
+              <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1.25 }}>
                 <Button fullWidth variant="outlined" onClick={() => navigate('/guidelines')} sx={ghostButtonSx}>
                   {t('readGuidelines')}
                 </Button>
@@ -458,6 +661,7 @@ const HelpSupportSection = () => {
         </Grid>
       </Box>
 
+      {/* Contact Support Dialog */}
       <Dialog
         open={showHelpDialog}
         onClose={() => setShowHelpDialog(false)}
@@ -466,32 +670,43 @@ const HelpSupportSection = () => {
         dir={isRTLMode ? 'rtl' : 'ltr'}
         PaperProps={{
           sx: {
-            backgroundColor: theme.custom.color.surfaceRaised,
+            backgroundColor: surfaceRaised,
             backgroundImage: 'none',
             border: `1px solid ${hairline}`,
-            borderRadius: "16px",
-            boxShadow: theme.custom.elevation.e2,
+            borderRadius: { xs: "18px", md: "20px" },
+            boxShadow: theme.custom?.elevation?.e3 || 'none',
             overflow: 'hidden',
             direction: isRTLMode ? 'rtl' : 'ltr',
           }
         }}
       >
         <DialogTitle sx={{
-          fontFamily: theme.custom.font.body,
-          fontWeight: 650,
-          fontSize: "14.5px",
+          fontFamily: theme.custom?.font?.display || "inherit",
+          fontWeight: 700,
+          fontSize: { xs: "18px", md: "16px" },
           letterSpacing: "-0.01em",
           color: ink,
           borderBottom: `1px solid ${hairline}`,
-          py: 1.75,
+          py: { xs: 2, md: 1.75 },
+          px: { xs: 2.5, md: 3 },
           textAlign: isRTLMode ? 'right' : 'left',
           direction: isRTLMode ? 'rtl' : 'ltr',
         }}>
           {t('howCanWeHelpYou')}
         </DialogTitle>
-        <DialogContent sx={{ pt: 2.5, direction: isRTLMode ? 'rtl' : 'ltr' }}>
+
+        <DialogContent sx={{ pt: { xs: 2.5, md: 3 }, px: { xs: 2.5, md: 3 }, direction: isRTLMode ? 'rtl' : 'ltr' }}>
           <Box sx={{ mt: 1 }}>
-            <Typography sx={{ fontFamily: theme.custom.font.body, fontWeight: 600, fontSize: "13px", color: ink, mb: 1.5, textAlign: isRTLMode ? 'right' : 'left' }}>
+            <Typography
+              sx={{
+                fontFamily: theme.custom?.font?.body || "inherit",
+                fontWeight: 650,
+                fontSize: { xs: "16px", md: "14px" }, // 16px body on mobile, md:14px
+                color: ink,
+                mb: 2,
+                textAlign: isRTLMode ? 'right' : 'left'
+              }}
+            >
               {t('contactOurSupportTeam')}
             </Typography>
 
@@ -499,9 +714,9 @@ const HelpSupportSection = () => {
               <Alert
                 severity="success"
                 sx={{
-                  mb: 2,
-                  borderRadius: "10px",
-                  fontSize: "12.5px",
+                  mb: 2.5,
+                  borderRadius: "12px",
+                  fontSize: { xs: "14px", md: "13px" },
                   textAlign: isRTLMode ? 'right' : 'left',
                   direction: isRTLMode ? 'rtl' : 'ltr',
                   "& .MuiAlert-icon": {
@@ -509,7 +724,7 @@ const HelpSupportSection = () => {
                     marginLeft: isRTLMode ? '12px' : 0,
                   },
                 }}
-                icon={<CheckCircle sx={{ fontSize: 18 }} />}
+                icon={<CheckCircle sx={{ fontSize: { xs: 22, md: 20 } }} />}
               >
                 {t('messageSentSuccessfully')}
               </Alert>
@@ -519,9 +734,9 @@ const HelpSupportSection = () => {
               <Alert
                 severity="error"
                 sx={{
-                  mb: 2,
-                  borderRadius: "10px",
-                  fontSize: "12.5px",
+                  mb: 2.5,
+                  borderRadius: "12px",
+                  fontSize: { xs: "14px", md: "13px" },
                   textAlign: isRTLMode ? 'right' : 'left',
                   direction: isRTLMode ? 'rtl' : 'ltr',
                   "& .MuiAlert-icon": {
@@ -529,14 +744,14 @@ const HelpSupportSection = () => {
                     marginLeft: isRTLMode ? '12px' : 0,
                   },
                 }}
-                icon={<ErrorIcon sx={{ fontSize: 18 }} />}
+                icon={<ErrorIcon sx={{ fontSize: { xs: 22, md: 20 } }} />}
               >
                 {contactSubmitError}
               </Alert>
             )}
 
             <Box component="form" onSubmit={handleContactSubmit}>
-              <Grid container spacing={1.5} direction={isRTLMode ? 'row-reverse' : 'row'}>
+              <Grid container spacing={2} direction={isRTLMode ? 'row-reverse' : 'row'}>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
@@ -546,12 +761,22 @@ const HelpSupportSection = () => {
                     onChange={handleContactInputChange}
                     required
                     variant="outlined"
-                    size="small"
+                    size="medium"
                     dir={isRTLMode ? 'rtl' : 'ltr'}
                     inputProps={{ dir: isRTLMode ? 'rtl' : 'ltr' }}
+                    InputLabelProps={{
+                      sx: { fontSize: { xs: "15px", md: "13.5px" } }
+                    }}
                     sx={{
-                      "& .MuiOutlinedInput-root": { borderRadius: "10px", fontSize: "13px" },
-                      "& .MuiInputBase-input": { textAlign: isRTLMode ? 'right' : 'left' },
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                        fontSize: { xs: "16px", md: "14px" }, // 16px input on mobile prevents auto-zoom
+                        minHeight: { xs: "48px", md: "44px" }, // >= 44px touch target
+                      },
+                      "& .MuiInputBase-input": {
+                        textAlign: isRTLMode ? 'right' : 'left',
+                        py: { xs: 1.5, md: 1.25 }
+                      },
                     }}
                   />
                 </Grid>
@@ -565,12 +790,22 @@ const HelpSupportSection = () => {
                     onChange={handleContactInputChange}
                     required
                     variant="outlined"
-                    size="small"
+                    size="medium"
                     dir={isRTLMode ? 'rtl' : 'ltr'}
                     inputProps={{ dir: isRTLMode ? 'rtl' : 'ltr' }}
+                    InputLabelProps={{
+                      sx: { fontSize: { xs: "15px", md: "13.5px" } }
+                    }}
                     sx={{
-                      "& .MuiOutlinedInput-root": { borderRadius: "10px", fontSize: "13px" },
-                      "& .MuiInputBase-input": { textAlign: isRTLMode ? 'right' : 'left' },
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                        fontSize: { xs: "16px", md: "14px" }, // 16px input on mobile
+                        minHeight: { xs: "48px", md: "44px" },
+                      },
+                      "& .MuiInputBase-input": {
+                        textAlign: isRTLMode ? 'right' : 'left',
+                        py: { xs: 1.5, md: 1.25 }
+                      },
                     }}
                   />
                 </Grid>
@@ -583,12 +818,22 @@ const HelpSupportSection = () => {
                     onChange={handleContactInputChange}
                     required
                     variant="outlined"
-                    size="small"
+                    size="medium"
                     dir={isRTLMode ? 'rtl' : 'ltr'}
                     inputProps={{ dir: isRTLMode ? 'rtl' : 'ltr' }}
+                    InputLabelProps={{
+                      sx: { fontSize: { xs: "15px", md: "13.5px" } }
+                    }}
                     sx={{
-                      "& .MuiOutlinedInput-root": { borderRadius: "10px", fontSize: "13px" },
-                      "& .MuiInputBase-input": { textAlign: isRTLMode ? 'right' : 'left' },
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                        fontSize: { xs: "16px", md: "14px" }, // 16px input on mobile
+                        minHeight: { xs: "48px", md: "44px" },
+                      },
+                      "& .MuiInputBase-input": {
+                        textAlign: isRTLMode ? 'right' : 'left',
+                        py: { xs: 1.5, md: 1.25 }
+                      },
                     }}
                   />
                 </Grid>
@@ -603,13 +848,23 @@ const HelpSupportSection = () => {
                     onChange={handleContactInputChange}
                     required
                     variant="outlined"
-                    size="small"
+                    size="medium"
                     placeholder={t('messagePlaceholder')}
                     dir={isRTLMode ? 'rtl' : 'ltr'}
                     inputProps={{ dir: isRTLMode ? 'rtl' : 'ltr' }}
+                    InputLabelProps={{
+                      sx: { fontSize: { xs: "15px", md: "13.5px" } }
+                    }}
                     sx={{
-                      "& .MuiOutlinedInput-root": { borderRadius: "10px", fontSize: "13px" },
-                      "& .MuiInputBase-input": { textAlign: isRTLMode ? 'right' : 'left' },
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                        fontSize: { xs: "16px", md: "14px" }, // 16px input on mobile
+                        minHeight: { xs: "96px", md: "84px" },
+                        p: { xs: 1.5, md: 1.25 },
+                      },
+                      "& .MuiInputBase-input": {
+                        textAlign: isRTLMode ? 'right' : 'left'
+                      },
                     }}
                   />
                 </Grid>
@@ -621,23 +876,36 @@ const HelpSupportSection = () => {
                     disabled={isContactLoading}
                     startIcon={
                       isContactLoading ? (
-                        <CircularProgress size={16} color="inherit" />
+                        <CircularProgress size={18} color="inherit" />
                       ) : (
-                        <Send sx={{ fontSize: 16, transform: isRTLMode ? 'scaleX(-1)' : 'none' }} />
+                        <Send sx={{ fontSize: { xs: 18, md: 16 }, transform: isRTLMode ? 'scaleX(-1)' : 'none' }} />
                       )
                     }
                     sx={{
                       backgroundColor: brand,
                       color: "#fff",
-                      borderRadius: "10px",
+                      borderRadius: "12px",
                       textTransform: "none",
-                      fontFamily: theme.custom.font.body,
-                      fontWeight: 600,
-                      fontSize: "12.5px",
-                      py: 1,
+                      fontFamily: theme.custom?.font?.body || "inherit",
+                      fontWeight: 650,
+                      fontSize: { xs: "16px", md: "14px" }, // 16px button on mobile, md:14px
+                      minHeight: { xs: "48px", md: "44px" }, // >= 44px touch height
+                      py: { xs: 1.25, md: 1 },
                       boxShadow: 'none',
-                      "&:hover": { backgroundColor: brand, filter: "brightness(0.94)", boxShadow: 'none' },
-                      "&:disabled": { backgroundColor: alpha(ink, 0.08), color: alpha(ink, 0.35) },
+                      transition: 'all 180ms cubic-bezier(0.4, 0, 0.2, 1)',
+                      "&:hover": {
+                        backgroundColor: brand,
+                        filter: "brightness(0.92)",
+                        boxShadow: `0 4px 14px ${alpha(brand, 0.32)}`,
+                        transform: 'translateY(-1px)',
+                      },
+                      "&:active": {
+                        transform: 'translateY(1px)',
+                      },
+                      "&:disabled": {
+                        backgroundColor: alpha(ink, 0.08),
+                        color: alpha(ink, 0.35)
+                      },
                     }}
                   >
                     {isContactLoading ? t('sending') : t('sendMessage')}
@@ -647,16 +915,26 @@ const HelpSupportSection = () => {
             </Box>
           </Box>
         </DialogContent>
+
         <DialogActions
           sx={{
             borderTop: `1px solid ${hairline}`,
-            p: 1.75,
+            py: { xs: 2, md: 1.75 },
+            px: { xs: 2.5, md: 3 },
             backgroundColor: alpha(ink, isDark ? 0.03 : 0.015),
             direction: isRTLMode ? 'rtl' : 'ltr',
             justifyContent: isRTLMode ? 'flex-start' : 'flex-end',
           }}
         >
-          <Button onClick={() => setShowHelpDialog(false)} variant="outlined" sx={ghostButtonSx}>
+          <Button
+            onClick={() => setShowHelpDialog(false)}
+            variant="outlined"
+            sx={{
+              ...ghostButtonSx,
+              minHeight: { xs: "44px", md: "40px" },
+              px: 3,
+            }}
+          >
             {t('close')}
           </Button>
         </DialogActions>
@@ -666,3 +944,4 @@ const HelpSupportSection = () => {
 };
 
 export default HelpSupportSection;
+

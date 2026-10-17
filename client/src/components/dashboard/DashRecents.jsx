@@ -4,11 +4,14 @@ import { Box } from "@mui/material";
 const DashRecents = ({ cate, sx, children, ...otherProps }) => {
   return (
     <Box
+      data-cate={cate}
       sx={{
         position: "relative",
         width: "100%",
-        py: { xs: 2, sm: 2.5, md: 3 },
-        px: { xs: 1, sm: 1.5, md: 2 },
+        boxSizing: "border-box",
+        isolation: "isolate",
+        py: { xs: 2.5, sm: 3, md: 3.5 },
+        px: { xs: 1.5, sm: 2, md: 2.5 },
         ...sx,
       }}
       {...otherProps}
@@ -19,3 +22,4 @@ const DashRecents = ({ cate, sx, children, ...otherProps }) => {
 };
 
 export default DashRecents;
+

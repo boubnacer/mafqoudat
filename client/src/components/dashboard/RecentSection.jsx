@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Typography, useTheme, alpha } from "@mui/material";
-import { TaskAltOutlined, SearchOffOutlined } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
+import { isRTL } from "../../utils/languageUtils";
 import { DashboardEmptyStates, RecentItemsSkeleton } from "../LoadingStates";
 import Recent from "./Recent";
 import SeeAll from "./SeeAll";
@@ -16,11 +16,11 @@ const RecentSection = ({
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  const isRTLMode = currentLanguage === "ar" || isRTL(currentLanguage);
 
   const tone =
     type === "found" ? theme.custom.status.found : theme.custom.status.lost;
-  const Icon = type === "found" ? TaskAltOutlined : SearchOffOutlined;
   const title = type === "found" ? t("recentFounds") : t("recentLosts");
   const EmptyStateComponent =
     type === "found"
@@ -28,12 +28,12 @@ const RecentSection = ({
       : DashboardEmptyStates.NoRecentLosts;
 
   const hasItems = !isLoading && items && items.length > 0;
-  const hairline = theme.custom.color.hairlineBorder || (isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(15, 23, 42, 0.06)");
-  const muted = isDark ? "#94A3B8" : "#64748B";
+  const hairline = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.85)";
   const ink = theme.custom.color.ink;
 
   return (
     <Box
+      data-reveal="card"
       sx={{
         position: "relative",
         overflow: "hidden",
@@ -41,12 +41,13 @@ const RecentSection = ({
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        backgroundColor: theme.custom.color.surfaceRaised,
+        backgroundColor: theme.custom.color.surfaceRaised || (isDark ? "#18181B" : "#FFFFFF"),
         border: `1px solid ${hairline}`,
-        borderRadius: { xs: "20px", sm: "24px" },
+        borderRadius: { xs: "18px", sm: "20px", md: "22px" },
         boxShadow: isDark
-          ? "0 4px 24px rgba(0, 0, 0, 0.25)"
-          : "0 1px 3px rgba(15, 23, 42, 0.03), 0 8px 24px rgba(15, 23, 42, 0.04)",
+          ? "0 4px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+          : "0 1px 3px rgba(15, 23, 42, 0.03), 0 8px 24px -4px rgba(15, 23, 42, 0.05)",
+        transition: "border-color 0.2s ease, box-shadow 0.2s ease",
       }}
     >
       {/* Header */}
@@ -56,45 +57,41 @@ const RecentSection = ({
           alignItems: "center",
           justifyContent: "space-between",
           gap: 1.5,
-          px: { xs: 2, sm: 2.5 },
-          py: 1.5,
+          px: { xs: "18px", sm: "20px", md: "24px" },
+          py: { xs: "14px", md: "16px" },
           borderBottom: `1px solid ${hairline}`,
-          minHeight: 56,
+          minHeight: { xs: 58, md: 54 },
+          direction: isRTLMode ? "rtl" : "ltr",
         }}
       >
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 1.25,
+            gap: { xs: 1.25, sm: 1.5 },
             minWidth: 0,
             flex: 1,
           }}
         >
+          {/* Status Dot matching the "type: found/lost" field */}
           <Box
             sx={{
-              width: 32,
-              height: 32,
-              borderRadius: "10px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              width: { xs: 9, md: 8 },
+              height: { xs: 9, md: 8 },
+              borderRadius: "50%",
+              backgroundColor: tone.main,
+              boxShadow: `0 0 0 3px ${alpha(tone.main, isDark ? 0.3 : 0.2)}`,
               flexShrink: 0,
-              backgroundColor: alpha(tone.main, isDark ? 0.16 : 0.1),
-              border: `1px solid ${alpha(tone.main, isDark ? 0.24 : 0.14)}`,
-              color: tone.main,
             }}
-          >
-            <Icon sx={{ fontSize: 18 }} />
-          </Box>
+          />
           <Typography
             component="h2"
             sx={{
               fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
-              fontWeight: 600,
-              fontSize: { xs: "15px", sm: "16px" },
-              letterSpacing: "-0.015em",
-              lineHeight: 1.2,
+              fontWeight: 700,
+              fontSize: { xs: "1.125rem", sm: "1.1875rem", md: "1.25rem" }, // 18px on mobile, md:text-xl (20px) on desktop
+              letterSpacing: "-0.02em",
+              lineHeight: 1.25,
               color: ink,
               whiteSpace: "nowrap",
               overflow: "hidden",
@@ -110,14 +107,14 @@ const RecentSection = ({
         )}
       </Box>
 
-      {/* Body */}
+      {/* Body — Generous card padding (p-5 md:p-6) */}
       <Box
         sx={{
           flex: 1,
           minHeight: 0,
           display: "flex",
           flexDirection: "column",
-          p: { xs: 1.5, sm: 2 },
+          p: { xs: "20px", sm: "20px", md: "24px" }, // 20px (p-5) mobile, 24px (p-6) desktop
           gap: 0,
         }}
       >
@@ -132,7 +129,7 @@ const RecentSection = ({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              py: 2,
+              py: { xs: 3, md: 4 },
             }}
           >
             <EmptyStateComponent onCreatePost={onCreatePost} />

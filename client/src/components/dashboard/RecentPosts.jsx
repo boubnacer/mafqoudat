@@ -59,14 +59,14 @@ const CategoryBentoPod = ({ items }) => {
         const item = items[0];
         const Icon = item.IconComponent;
         return (
-          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: { xs: 0.6, sm: 0.85 }, width: "100%", minWidth: 0 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: { xs: 0.75, sm: 0.85 }, width: "100%", minWidth: 0 }}>
             <Box
               sx={{
                 color: item.style?.main || theme.palette.text.primary,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                "& svg": { fontSize: { xs: 32, sm: 44 } },
+                "& svg": { fontSize: { xs: 38, sm: 44 } },
               }}
             >
               <Icon />
@@ -74,12 +74,12 @@ const CategoryBentoPod = ({ items }) => {
             <Typography
               noWrap
               sx={{
-                fontWeight: 750,
-                fontSize: { xs: "11.5px", sm: "13px" },
+                fontWeight: 700,
+                fontSize: { xs: "14px", sm: "14px", md: "13px" }, // 14px on mobile (<768px)
                 color: item.style?.main || theme.custom.color.ink,
-                lineHeight: 1.2,
+                lineHeight: 1.25,
                 textAlign: "center",
-                maxWidth: { xs: 120, sm: 150 },
+                maxWidth: { xs: 130, sm: 150 },
                 overflow: "hidden",
                 textOverflow: "ellipsis",
               }}
@@ -111,7 +111,7 @@ const CategoryBentoPod = ({ items }) => {
                       width: "100%",
                       height: "1px",
                       bgcolor: dividerColor,
-                      my: count >= 5 ? 0.25 : 0.35,
+                      my: count >= 5 ? 0.35 : 0.45,
                       flexShrink: 0,
                       boxSizing: "border-box",
                     }}
@@ -121,11 +121,11 @@ const CategoryBentoPod = ({ items }) => {
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    gap: { xs: 0.75, sm: 1 },
+                    gap: { xs: 0.85, sm: 1 },
                     width: "100%",
                     minWidth: 0,
                     boxSizing: "border-box",
-                    py: count >= 5 ? 0.15 : 0.25,
+                    py: count >= 5 ? 0.2 : 0.3,
                   }}
                 >
                   <Box
@@ -136,7 +136,7 @@ const CategoryBentoPod = ({ items }) => {
                       justifyContent: "center",
                       flexShrink: 0,
                       "& svg": {
-                        fontSize: count >= 5 ? { xs: 14, sm: 17 } : { xs: 16, sm: 19 },
+                        fontSize: count >= 5 ? { xs: 16, sm: 17 } : { xs: 18, sm: 19 },
                       },
                     }}
                   >
@@ -147,10 +147,10 @@ const CategoryBentoPod = ({ items }) => {
                     sx={{
                       flex: 1,
                       minWidth: 0,
-                      fontWeight: 750,
-                      fontSize: count >= 5 ? { xs: "10px", sm: "11px" } : { xs: "10.5px", sm: "11.5px" },
+                      fontWeight: 650,
+                      fontSize: count >= 5 ? { xs: "13px", md: "11px" } : { xs: "14px", md: "12px" }, // 13-14px on mobile
                       color: theme.custom.color.ink,
-                      lineHeight: 1.2,
+                      lineHeight: 1.25,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                     }}
@@ -422,7 +422,7 @@ const RecentPosts = (props) => {
     return layers.join(", ");
   }, [categoryStyles, isDark, isRTLMode, theme]);
 
-  const hairline = theme.custom.color.hairlineBorder || (isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.06)");
+  const hairline = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.9)";
   const muted = isDark ? "#94A3B8" : "#64748B";
   const ink = theme.custom.color.ink;
 
@@ -441,7 +441,7 @@ const RecentPosts = (props) => {
         width: "100%",
         minWidth: 0,
         height: fillHeight ? "100%" : undefined,
-        borderRadius: { xs: "16px", sm: "18px" },
+        borderRadius: { xs: "14px", sm: "16px", md: "18px" },
         overflow: "hidden",
         isolation: "isolate",
         cursor: "pointer",
@@ -474,9 +474,9 @@ const RecentPosts = (props) => {
             : "0 1px 2px rgba(15, 23, 42, 0.04)",
         },
         "&:focus-visible": {
-          outline: `2px solid ${theme.custom.color.brandPrimary}`,
+          outline: `2px solid ${theme.custom.color.brandPrimary || "#0B57D0"}`,
           outlineOffset: 2,
-          borderColor: alpha(theme.custom.color.brandPrimary, 0.35),
+          borderColor: alpha(theme.custom.color.brandPrimary || "#0B57D0", 0.35),
         },
       }}
     >
@@ -506,20 +506,21 @@ const RecentPosts = (props) => {
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              transition: "transform 260ms cubic-bezier(0.2, 0, 0, 1)",
+              transition: "transform 280ms cubic-bezier(0.2, 0, 0, 1)",
             }}
           />
         ) : categoryIconsData.length > 0 ? (
           <Box
             sx={{
               position: "absolute",
-              inset: 0,
+              top: { xs: "46px", sm: "44px", md: "40px" },
+              bottom: 0,
+              left: 0,
+              right: 0,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              p: { xs: 1.25, sm: 2 },
-              width: "100%",
-              height: "100%",
+              p: { xs: 1, sm: 1.5 },
               zIndex: 1,
               boxSizing: "border-box",
             }}
@@ -540,46 +541,46 @@ const RecentPosts = (props) => {
             alignItems: "flex-start",
             justifyContent: "space-between",
             gap: 1,
-            p: 1.1,
+            p: { xs: 1.25, sm: 1.5 },
             pointerEvents: "none",
           }}
         >
-          {/* Status Pill */}
+          {/* Status Pill - 14px on mobile (<768px), md:12px clean SaaS density */}
           <Box
             sx={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 0.75,
-              height: 26,
-              px: 1.15,
+              gap: { xs: 0.85, md: 0.75 },
+              height: { xs: 32, md: 26 },
+              px: { xs: 1.4, md: 1.15 },
               borderRadius: "999px",
               backgroundColor: isDark
-                ? "rgba(15,23,42,0.85)"
-                : "rgba(255,255,255,0.92)",
-              backdropFilter: "blur(10px)",
-              WebkitBackdropFilter: "blur(10px)",
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.08)"}`,
+                ? "rgba(24, 24, 27, 0.9)"
+                : "rgba(255, 255, 255, 0.95)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(226, 232, 240, 0.95)"}`,
               boxShadow: isDark
-                ? "0 2px 6px rgba(0,0,0,0.3)"
-                : "0 1px 3px rgba(15,23,42,0.06)",
+                ? "0 2px 8px rgba(0, 0, 0, 0.35)"
+                : "0 2px 8px rgba(15, 23, 42, 0.08)",
             }}
           >
             <Box
               sx={{
-                width: 6.5,
-                height: 6.5,
+                width: { xs: 8, md: 6.5 },
+                height: { xs: 8, md: 6.5 },
                 borderRadius: "50%",
                 backgroundColor: tone.main,
-                boxShadow: `0 0 0 3px ${alpha(tone.main, 0.2)}`,
+                boxShadow: `0 0 0 3px ${alpha(tone.main, isDark ? 0.3 : 0.2)}`,
                 flexShrink: 0,
               }}
             />
             <Typography
               sx={{
                 fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-                fontWeight: 600,
-                fontSize: "11.5px",
-                letterSpacing: "0.02em",
+                fontWeight: 650,
+                fontSize: { xs: "14px", md: "12px" }, // 14px on mobile (<768px), md:12px
+                letterSpacing: "0.015em",
                 lineHeight: 1,
                 color: ink,
                 whiteSpace: "nowrap",
@@ -589,60 +590,101 @@ const RecentPosts = (props) => {
             </Typography>
           </Box>
 
-          {returned && (
-            <Box
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 0.6,
-                height: 26,
-                px: 1.1,
-                borderRadius: "999px",
-                backgroundColor: isDark
-                  ? "rgba(15,23,42,0.85)"
-                  : "rgba(255,255,255,0.92)",
-                backdropFilter: "blur(10px)",
-                WebkitBackdropFilter: "blur(10px)",
-                border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.08)"}`,
-                boxShadow: isDark
-                  ? "0 2px 6px rgba(0,0,0,0.3)"
-                  : "0 1px 3px rgba(15,23,42,0.06)",
-              }}
-            >
-              <CheckCircleIcon
-                sx={{ fontSize: 14, color: theme.custom.status.found.main }}
-              />
-              <Typography
+          {/* Right badges: Returned badge and/or Category badge when post has image */}
+          <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.75, maxWidth: "58%" }}>
+            {returned && (
+              <Box
                 sx={{
-                  fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-                  fontWeight: 600,
-                  fontSize: "11.5px",
-                  letterSpacing: "0.02em",
-                  lineHeight: 1,
-                  color: ink,
-                  whiteSpace: "nowrap",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: { xs: 0.7, md: 0.6 },
+                  height: { xs: 32, md: 26 },
+                  px: { xs: 1.3, md: 1.1 },
+                  borderRadius: "999px",
+                  backgroundColor: isDark
+                    ? "rgba(24, 24, 27, 0.9)"
+                    : "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(226, 232, 240, 0.95)"}`,
+                  boxShadow: isDark
+                    ? "0 2px 8px rgba(0, 0, 0, 0.35)"
+                    : "0 2px 8px rgba(15, 23, 42, 0.08)",
                 }}
               >
-                {t("returned")}
-              </Typography>
-            </Box>
-          )}
+                <CheckCircleIcon
+                  sx={{ fontSize: { xs: 16, md: 14 }, color: theme.custom.status.found.main }}
+                />
+                <Typography
+                  sx={{
+                    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+                    fontWeight: 650,
+                    fontSize: { xs: "14px", md: "12px" }, // 14px on mobile (<768px), md:12px
+                    letterSpacing: "0.015em",
+                    lineHeight: 1,
+                    color: ink,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {t("returned")}
+                </Typography>
+              </Box>
+            )}
+
+            {hasImage && categories.length > 0 && (
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  height: { xs: 32, md: 26 },
+                  px: { xs: 1.3, md: 1.1 },
+                  borderRadius: "999px",
+                  backgroundColor: isDark
+                    ? "rgba(24, 24, 27, 0.9)"
+                    : "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(226, 232, 240, 0.95)"}`,
+                  boxShadow: isDark
+                    ? "0 2px 8px rgba(0, 0, 0, 0.35)"
+                    : "0 2px 8px rgba(15, 23, 42, 0.08)",
+                  color: categoryStyles[0]?.main || ink,
+                  maxWidth: "100%",
+                }}
+              >
+                <Typography
+                  noWrap
+                  sx={{
+                    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+                    fontWeight: 650,
+                    fontSize: { xs: "13px", md: "11.5px" },
+                    letterSpacing: "0.015em",
+                    lineHeight: 1,
+                    color: "inherit",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {categoryNames[0]}
+                </Typography>
+              </Box>
+            )}
+          </Box>
         </Box>
       </Box>
 
-      {/* Content Details */}
+      {/* Content Details — Clear surface separation & readable sizing */}
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: { xs: 0.35, sm: 0.5 },
-          px: { xs: 1.25, sm: 1.65 },
-          pt: { xs: 1, sm: 1.25 },
-          pb: { xs: 1, sm: 1.25 },
+          gap: { xs: 0.5, md: 0.6 },
+          px: { xs: 2, sm: 2, md: 2.25 },
+          py: { xs: 1.75, sm: 1.75, md: 2 },
           flexShrink: 0,
           backgroundColor: isDark
             ? "rgba(255, 255, 255, 0.05)"
             : (theme.custom.color.surfaceNested || "#F1F5F9"),
+          direction: isRTLMode ? "rtl" : "ltr",
         }}
       >
         <Box
@@ -650,18 +692,19 @@ const RecentPosts = (props) => {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 0.75,
+            gap: 1,
             minWidth: 0,
           }}
         >
+          {/* Card Title: 16px (text-base) on mobile, md:text-base (15px) on desktop */}
           <Typography
             noWrap
             sx={{
               fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
-              fontWeight: 650,
-              fontSize: { xs: "13px", sm: "14.5px" },
-              lineHeight: 1.25,
-              letterSpacing: "-0.01em",
+              fontWeight: 700,
+              fontSize: { xs: "16px", sm: "16px", md: "15px" }, // 16px (text-base) on mobile!
+              lineHeight: 1.3,
+              letterSpacing: "-0.015em",
               color: ink,
               minWidth: 0,
               flex: 1,
@@ -676,10 +719,10 @@ const RecentPosts = (props) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: { xs: 20, sm: 22 },
-              height: { xs: 20, sm: 22 },
+              width: { xs: 28, md: 24 },
+              height: { xs: 28, md: 24 },
               borderRadius: "50%",
-              backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "#F1F3F9",
+              backgroundColor: isDark ? "rgba(255, 255, 255, 0.07)" : "rgba(15, 23, 42, 0.04)",
               border: `1px solid ${hairline}`,
               color: muted,
               flexShrink: 0,
@@ -691,20 +734,21 @@ const RecentPosts = (props) => {
           >
             <ArrowOutwardRounded
               sx={{
-                fontSize: { xs: 12, sm: 13 },
+                fontSize: { xs: 15, md: 13 },
                 transform: isRTLMode ? "scaleX(-1)" : "none",
               }}
             />
           </Box>
         </Box>
 
+        {/* Date */}
         <Typography
           noWrap
           sx={{
             fontFamily: "'Inter', sans-serif",
             fontWeight: 500,
-            fontSize: { xs: "11px", sm: "12px" },
-            lineHeight: 1.25,
+            fontSize: { xs: "14px", sm: "14px", md: "12.5px" },
+            lineHeight: 1.35,
             color: muted,
             minWidth: 0,
           }}
