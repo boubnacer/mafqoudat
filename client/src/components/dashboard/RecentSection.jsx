@@ -57,10 +57,10 @@ const RecentSection = ({
           alignItems: "center",
           justifyContent: "space-between",
           gap: 1.5,
-          px: { xs: "18px", sm: "20px", md: "24px" },
-          py: { xs: "14px", md: "16px" },
+          px: { xs: "14px", sm: "20px", md: "24px" },
+          py: { xs: "12px", md: "16px" },
           borderBottom: `1px solid ${hairline}`,
-          minHeight: { xs: 58, md: 54 },
+          minHeight: { xs: 50, md: 54 },
           direction: isRTLMode ? "rtl" : "ltr",
         }}
       >
@@ -76,8 +76,8 @@ const RecentSection = ({
           {/* Status Dot matching the "type: found/lost" field */}
           <Box
             sx={{
-              width: { xs: 9, md: 8 },
-              height: { xs: 9, md: 8 },
+              width: { xs: 8, md: 8 },
+              height: { xs: 8, md: 8 },
               borderRadius: "50%",
               backgroundColor: tone.main,
               boxShadow: `0 0 0 3px ${alpha(tone.main, isDark ? 0.3 : 0.2)}`,
@@ -89,7 +89,7 @@ const RecentSection = ({
             sx={{
               fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
               fontWeight: 700,
-              fontSize: { xs: "1.125rem", sm: "1.1875rem", md: "1.25rem" }, // 18px on mobile, md:text-xl (20px) on desktop
+              fontSize: { xs: "1.05rem", sm: "1.1875rem", md: "1.25rem" },
               letterSpacing: "-0.02em",
               lineHeight: 1.25,
               color: ink,
@@ -107,14 +107,14 @@ const RecentSection = ({
         )}
       </Box>
 
-      {/* Body — Generous card padding (p-5 md:p-6) */}
+      {/* Body — Optimized padding so cards have generous width on mobile */}
       <Box
         sx={{
           flex: 1,
           minHeight: 0,
           display: "flex",
           flexDirection: "column",
-          p: { xs: "20px", sm: "20px", md: "24px" }, // 20px (p-5) mobile, 24px (p-6) desktop
+          p: { xs: "12px", sm: "16px", md: "24px" },
           gap: 0,
         }}
       >

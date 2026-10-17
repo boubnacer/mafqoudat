@@ -83,14 +83,6 @@ const ISO2_TO_NUMERIC = {
   TN: "788",
 };
 
-// Depth pass. Everything below is styling laid ON TOP of the existing layers —
-// no activity ramp, no stroke tone and no geometry changed, deliberately.
-//
-// Additions:
-//   1. "+N today" badges cast a small shadow, floating above the country fill;
-//   2. cities that got a post today pulse a slow ring out of their badge;
-//   3. the four edges dissolve into the container's own sea tone.
-
 // Pulse animation parameters for cities with new posts today.
 const PULSE_DURATION = 2.2;
 const PULSE_REPEAT_DELAY = 1.4;
@@ -148,18 +140,8 @@ const WorldActivityMap = ({
         const topo = topoModule.default;
         setMapLayers({
           countries: topojsonClient.feature(topo, topo.objects.countries).features,
-          // Internal borders only: the `a !== b` filter keeps arcs shared by two
-          // provinces and drops every arc with just one neighbour — the coast
-          // and the national outline, which the countries layer already draws.
-          // Because the country shapes were built as the union of these same
-          // provinces, this is the identical arc, not a second line beside it.
           subdivisions: topojsonClient.mesh(topo, topo.objects.subdivisions, (a, b) => a !== b),
-          // No filter on the river mesh — every arc is wanted, and mesh is
-          // still the right call over feature() because it emits each shared
-          // arc once and yields a single node instead of a hundred.
           rivers: topojsonClient.mesh(topo, topo.objects.rivers),
-          // Kept as whole FeatureCollections: d3's geoPath renders one straight
-          // into a single `d`, so each of these layers is one node too.
           lakes: topojsonClient.feature(topo, topo.objects.lakes),
           urbanAreas: topojsonClient.feature(topo, topo.objects.urbanAreas),
         });
@@ -186,14 +168,6 @@ const WorldActivityMap = ({
 
   const cities = useMemo(() => (Array.isArray(cityActivity) ? cityActivity : []), [cityActivity]);
 
-  // Not getContrastText: MUI's default contrastThreshold is 3, and white on the
-  // logo blue clears that at 3.15:1 — enough to win the check, not enough for an
-  // 11px number that is the only per-city figure the map states. Picking between
-  // the two surface tokens by actual ratio instead lands on ink in light mode
-  // (5.9:1) and on the panel tone in dark (5.5:1). Same problem the status
-  // colors solved by deepening their light-mode `main` (see designTokens.js);
-  // deepening is not an option here, since the whole point is that this is the
-  // logo's blue.
   const badgeText = getContrastRatio(brand, panel) >= 4.5 ? panel : ink;
 
   const currentNumericId = currentCountryCode ? ISO2_TO_NUMERIC[currentCountryCode] : null;
@@ -203,10 +177,8 @@ const WorldActivityMap = ({
     return geoFeatures.find((f) => f.id === currentNumericId) || null;
   }, [geoFeatures, currentNumericId]);
 
-  // Mobile: square reference canvas, kept tightly zoomed (the vertical
-  // crop below handles positioning, not this). Desktop: wide canvas
-  // matching the full header's rough proportions, zoomed out a lot further
-  // so the surrounding world reads as a backdrop, not a crop.
+  // Mobile: square reference canvas, kept tightly zoomed. Desktop: wide canvas
+  // matching the full header's rough proportions.
   const MAP_WIDTH = isMobile ? 520 : 1100;
   const mapHeight = isMobile ? 520 : 480;
 
@@ -218,10 +190,6 @@ const WorldActivityMap = ({
     const reference = geoMercator().center(initialCenter).translate([MAP_WIDTH / 2, mapHeight / 2]).scale(1);
     const [[x0, y0], [x1, y1]] = geoPath(reference).bounds(currentFeature);
 
-    // True visual center in Mercator projected coordinate space:
-    // Mercator stretches northern latitudes non-linearly, so the degree midpoint (initialCenter)
-    // sits physically lower in projected space than the visual midpoint. Inverting the projected
-    // midpoint ensures the country's top and bottom margins are equidistant and balanced.
     const visualCenter = reference.invert([(x0 + x1) / 2, (y0 + y1) / 2]) || initialCenter;
 
     const fitScale = Math.min((MAP_WIDTH - padding * 2) / Math.max(x1 - x0, 0.001), (mapHeight - padding * 2) / Math.max(y1 - y0, 0.001));
@@ -229,11 +197,6 @@ const WorldActivityMap = ({
     return { center: visualCenter, scale: fitScale * zoomMultiplier };
   }, [currentFeature, MAP_WIDTH, mapHeight, isMobile, desktopZoom, mobileZoom]);
 
-  // The projection react-simple-maps builds internally, rebuilt here so the
-  // subdivision mesh and the lakes can be drawn as plain <path> nodes in the
-  // same coordinate space as <Geography>. Safe to reconstruct rather than
-  // guess at: projectionConfig forwards center/scale verbatim and translate is
-  // always the canvas centre (see the zoom-math note above).
   const mapProjection = useMemo(
     () =>
       geoMercator()
@@ -244,7 +207,7 @@ const WorldActivityMap = ({
   );
   const mapPath = useMemo(() => geoPath(mapProjection), [mapProjection]);
 
-  // Cities projected once, then laid out: dots have been removed.
+  // Cities projected once, then laid out:
   // The city name and optional "+N today" badge form a single unit.
   // In LTR mode, "+N" is placed to the left of the city name.
   // In RTL mode, "+N" is placed to the right of the city name.
@@ -273,9 +236,6 @@ const WorldActivityMap = ({
     return { cities: projected, placements };
   }, [cities, mapProjection, MAP_WIDTH, mapHeight, isRTL]);
 
-  // Projected once per view, not per render: the subdivision mesh is a single
-  // path with tens of thousands of points, and this component re-renders on
-  // every theme, language and hover change.
   const subdivisionsPath = useMemo(
     () => (mapLayers?.subdivisions ? mapPath(mapLayers.subdivisions) : null),
     [mapLayers, mapPath]
@@ -368,20 +328,12 @@ const WorldActivityMap = ({
         }
       </Geographies>
 
-      {/* Built-up areas, under everything else that sits on the country fill:
-          a wash, not a shape — it should register as "this part is populated"
-          without ever competing with the city dots, which are the only thing on
-          this map carrying real data. */}
+      {/* Built-up areas wash */}
       {urbanPath && (
         <path d={urbanPath} fill={alpha(ink, isDark ? 0.18 : 0.12)} pointerEvents="none" />
       )}
 
-      {/* Provinces / wilayas / governorates of the supported countries, as one
-          mesh path rather than per-province shapes — the country underneath is
-          the interactive unit, and a mesh is a single node with no fill to
-          double up on the fills below it. Deliberately faint: it is texture
-          telling you the country is a real place with regions in it, not
-          information the dashboard is asking anyone to read. */}
+      {/* Provinces / wilayas / governorates mesh */}
       {subdivisionsPath && (
         <path
           d={subdivisionsPath}
@@ -393,13 +345,10 @@ const WorldActivityMap = ({
         />
       )}
 
-      {/* Lakes, in the same tone the container paints behind the map for the
-          sea (see Dash.js) — so inland water reads as water rather than as a
-          hole punched in the country. */}
+      {/* Lakes */}
       {lakesPath && <path d={lakesPath} fill={sea} stroke="none" pointerEvents="none" />}
 
-      {/* Rivers, in the same tone as the lakes and the sea, stroked rather than
-          filled. Thin enough to read as water rather than as another border. */}
+      {/* Rivers */}
       {riversPath && (
         <path
           d={riversPath}
@@ -412,20 +361,6 @@ const WorldActivityMap = ({
         />
       )}
 
-      {/* Rings pulsing out from under the dots of cities that got a post
-          today — same condition as the "+N today" badge, so the motion is
-          carrying data this map already shows rather than decorating every dot
-          with a heartbeat it hasn't earned. Stroked in ink rather than brand —
-          the same tone the marker shadow uses — because the ring crosses
-          whatever the country fill happens to be at that point (anywhere from
-          a pale wash to the deep end of the activity ramp), and ink is the one
-          tone this map already relies on to stay legible over both: near-black
-          in light mode, near-white in dark, so it reads against the fill
-          either way instead of a fixed blue disappearing into a same-toned
-          country. Rendered before the dots so the ring emanates from beneath
-          the pin, and started at opacity 0 so a reduced-motion visitor (for
-          whom no tween is ever created) sees nothing at all rather than a
-          stalled ring frozen around a dot. */}
       {/* Pulse rings emanating from the live beacon dot of active cities */}
       {cityMarkers.placements.map((placement, index) => {
         if (placement.hidden || !placement.hasNewPosts) return null;
@@ -540,62 +475,14 @@ const WorldActivityMap = ({
     />
   );
 
-  // Chrome-less full-bleed map. Dash.js renders this absolutely positioned
-  // to fill the whole header section (behind LeftSide too — on mobile
-  // that's LeftSide's own row plus a reserved spacer row below it; on
-  // desktop it's the whole side-by-side row), so here it just needs to
-  // fill 100% of whatever box it's given.
-  //
-  // Pan/crop for "same place as before": react-simple-maps always renders
-  // the projection centered on its own canvas (translate can't be
-  // customized — see the note above), so the chosen country would otherwise
-  // land dead-center of the full header and get hidden behind LeftSide. To
-  // put it back where its old dedicated card used to show it, the map is
-  // rendered oversized on the axis LeftSide pushes it along, then shifted
-  // so ITS center — always where the country renders — lands at roughly
-  // the old card's center; Dash.js's header container clips the overflow.
-  // Desktop: LeftSide sits beside the map (a flex row), so the crop runs
-  // horizontally, landing the country ~75% across from the logical start
-  // (~25% in from the end), mirroring the old half-width card. Mobile:
-  // LeftSide sits above the map (a single-column stack), so the crop runs
-  // vertically instead, landing the country ~81% down (roughly where the
-  // old square card's center sat below LeftSide's — measured taller — stats
-  // panel). The enlarged height (271%) is chosen as roughly
-  // totalHeaderHeight/spacerHeight, so the vertical CSS stretch on the
-  // visible crop works out the same as when the map had its own ~37%-tall
-  // dedicated card — same apparent zoom, just repositioned. The CSS stretch
-  // (100% of an already-oversized box) scales the SVG non-uniformly the
-  // same way it always did pre-crop (viewBox aspect ratio never matched the
-  // container's), so the zoom/padding math above is untouched by this — it
-  // still targets the same on-canvas fit as before.
   const mapCropSx = isMobile
     ? { position: "absolute", insetInlineStart: 0, width: "100%", top: "-35%", height: "228%" }
     : { position: "absolute", top: 0, bottom: 0, insetInlineStart: "-7.5%", width: "165%" };
 
-  // titleOffsetTop: lets a caller with extra chrome above this component
-  // (e.g. WelcomePage's language/mode controls, which sit inside the same
-  // full-bleed section on desktop) push the desktop title down clear of it,
-  // without affecting Dash.js's own header, which has no such chrome and
-  // never passes this prop (defaults to 0 — pixel-identical to before).
   const titleOverlaySx = isMobile
     ? { position: "absolute", top: "48%", insetInlineStart: 0, insetInlineEnd: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }
     : { position: "absolute", top: 24 + titleOffsetTop, insetInlineEnd: 32, insetInlineStart: "52%", display: "flex", flexDirection: "column", alignItems: "center", gap: 1 };
 
-  // The map's four edges dissolving into the tone the container paints behind
-  // it, so a full-bleed backdrop stops ending on a hard rectangular cut and
-  // reads as atmosphere the section is sitting in.
-  //
-  // Painted as an overlay rather than as a CSS mask on the map itself: the map
-  // layer is deliberately oversized and offset (mapCropSx is 165% wide on
-  // desktop, 271% tall on mobile), so a fade in ITS coordinate space would land
-  // mostly outside the visible window. This box is the visible window.
-  //
-  // Two stacked linear gradients, one per axis, rather than one radial: on
-  // desktop the crop lands the country ~75% across the window, and a radial
-  // vignette centred on the window would therefore dim the very country it is
-  // supposed to be framing. Each band is symmetric, so RTL needs nothing.
-  // alpha(sea, 0) rather than `transparent`, which some engines interpolate
-  // through black and would leave a grey bloom over the middle of the map.
   const edgeFadeSx = {
     position: "absolute",
     inset: 0,

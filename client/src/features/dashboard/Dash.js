@@ -529,7 +529,7 @@ const Dash = () => {
                 width: '100%',
                 maxWidth: { sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
                 mx: 'auto',
-                px: { xs: 1.5, sm: 2, md: 3 },
+                px: { xs: 1, sm: 2, md: 3 },
                 display: 'grid',
                 gap: { xs: 2.5, md: 3 },
                 gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },

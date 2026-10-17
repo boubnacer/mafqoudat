@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import TotalBox from "../TotalBox";
 import FoundLostStrip from "./FoundLostStrip";
 import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
-import { TimelineOutlined } from "@mui/icons-material";
+import { TimelineOutlined, LayersOutlined, AssignmentTurnedInOutlined } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
 
 const getTodayKey = () => {
@@ -143,16 +143,16 @@ const LeftSide = ({
     return currentCount >= 1 && currentCount > viewedCount;
   }, [lostsToday, viewedNotifications.lostCount]);
 
-  const hairline = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.85)";
+  const hairline = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.88)";
   const muted = isDark ? "#94A3B8" : "#64748B";
   const ink = theme.custom.color.ink;
 
-  // Modern SaaS nested secondary surface styling with refined transparency
+  // Modern SaaS nested secondary surface styling with refined transparency and no shadow
   const nestedCardSx = {
-    backgroundColor: isDark ? "rgba(39, 39, 42, 0.40)" : "rgba(248, 250, 252, 0.70)",
+    backgroundColor: isDark ? "rgba(39, 39, 42, 0.45)" : "rgba(248, 250, 252, 0.75)",
     backdropFilter: "blur(8px)",
     WebkitBackdropFilter: "blur(8px)",
-    border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.85)"}`,
+    border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.88)"}`,
     borderRadius: { xs: "14px", sm: "16px" },
     boxShadow: "none",
     position: "relative",
@@ -162,24 +162,30 @@ const LeftSide = ({
 
   const foundLostCardSx = {
     ...nestedCardSx,
+    boxShadow: "none",
     "&:hover": {
       borderColor: isDark ? "rgba(255, 255, 255, 0.16)" : "rgba(15, 23, 42, 0.14)",
-      backgroundColor: isDark ? "rgba(39, 39, 42, 0.55)" : "rgba(255, 255, 255, 0.85)",
+      backgroundColor: isDark ? "rgba(39, 39, 44, 0.65)" : "rgba(255, 255, 255, 0.90)",
+      boxShadow: "none",
     },
   };
 
   const totalBoxCardSx = {
     ...nestedCardSx,
-    minHeight: { xs: "110px", sm: "114px", md: "118px" },
+    minHeight: { xs: "114px", sm: "118px", md: "122px" },
     p: { xs: "18px 18px", sm: "18px 20px", md: "20px 22px" },
     cursor: "default",
+    boxShadow: "none",
     "&:hover": {
       transform: "translateY(-1px)",
-      boxShadow: "none",
       borderColor: isDark
-        ? alpha(theme.custom.color.brandPrimary, 0.32)
-        : alpha(theme.custom.color.brandPrimary, 0.26),
-      backgroundColor: isDark ? "rgba(39, 39, 42, 0.60)" : "rgba(255, 255, 255, 0.88)",
+        ? alpha(theme.custom.color.brandPrimary, 0.36)
+        : alpha(theme.custom.color.brandPrimary, 0.30),
+      backgroundColor: isDark ? "rgba(39, 39, 44, 0.65)" : "rgba(255, 255, 255, 0.90)",
+      boxShadow: "none",
+      "& .total-box-icon": {
+        transform: "scale(1.06)",
+      },
     },
     "&:active": {
       transform: "translateY(0)",
@@ -188,16 +194,20 @@ const LeftSide = ({
 
   const returnedBoxCardSx = {
     ...nestedCardSx,
-    minHeight: { xs: "110px", sm: "114px", md: "118px" },
+    minHeight: { xs: "114px", sm: "118px", md: "122px" },
     p: { xs: "18px 18px", sm: "18px 20px", md: "20px 22px" },
     cursor: "default",
+    boxShadow: "none",
     "&:hover": {
       transform: "translateY(-1px)",
-      boxShadow: "none",
       borderColor: isDark
-        ? alpha(theme.custom.status.found.main, 0.35)
-        : alpha(theme.custom.status.found.main, 0.28),
-      backgroundColor: isDark ? "rgba(39, 39, 42, 0.60)" : "rgba(255, 255, 255, 0.88)",
+        ? alpha(theme.custom.status.found.main, 0.40)
+        : alpha(theme.custom.status.found.main, 0.32),
+      backgroundColor: isDark ? "rgba(39, 39, 44, 0.65)" : "rgba(255, 255, 255, 0.90)",
+      boxShadow: "none",
+      "& .total-box-icon": {
+        transform: "scale(1.06)",
+      },
     },
     "&:active": {
       transform: "translateY(0)",
@@ -211,14 +221,14 @@ const LeftSide = ({
         position: "relative",
         overflow: "hidden",
         isolation: "isolate",
-        backgroundColor: isDark ? "rgba(24, 24, 27, 0.75)" : "rgba(255, 255, 255, 0.78)",
+        backgroundColor: isDark ? "rgba(24, 24, 27, 0.45)" : "rgba(255, 255, 255, 0.50)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
         border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.85)"}`,
         borderRadius: { xs: "18px", sm: "20px", md: "22px" },
         boxShadow: "none",
         color: ink,
-        p: { xs: "20px", sm: "20px", md: "24px" }, // 44px+ touch-friendly generous card padding (p-5 md:p-6)
+        p: { xs: "20px", sm: "20px", md: "24px" }, // Generous card padding (p-5 md:p-6)
         width: "100%",
         mx: 0,
         maxWidth: "100%",
@@ -250,9 +260,11 @@ const LeftSide = ({
         >
           <Box
             sx={{
-              width: { xs: 38, md: 34 },
-              height: { xs: 38, md: 34 },
-              borderRadius: "11px",
+              width: { xs: 44, md: 38 },
+              height: { xs: 44, md: 38 },
+              minWidth: { xs: 44, md: 38 },
+              minHeight: { xs: 44, md: 38 },
+              borderRadius: "12px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -264,14 +276,14 @@ const LeftSide = ({
               transition: "transform 0.2s ease",
             }}
           >
-            <TimelineOutlined sx={{ fontSize: { xs: 20, md: 19 } }} />
+            <TimelineOutlined sx={{ fontSize: { xs: 22, md: 20 } }} />
           </Box>
           <Typography
             component="h2"
             sx={{
               fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
               fontWeight: 700,
-              fontSize: { xs: "1.0625rem", sm: "1.125rem", md: "1.25rem" }, // 17-18px on mobile, md:text-xl (20px) on desktop
+              fontSize: { xs: "1.125rem", sm: "1.1875rem", md: "1.25rem" }, // 18px mobile, md:text-xl (20px) desktop
               letterSpacing: "-0.02em",
               lineHeight: 1.25,
               color: ink,
@@ -312,19 +324,33 @@ const LeftSide = ({
           countUp
           title={t('totalItems')}
           value={totalPosts || 0}
+          icon={<LayersOutlined sx={{ fontSize: { xs: 20, md: 19 } }} />}
+          iconStyle={{
+            background: alpha(theme.custom.color.brandPrimary, isDark ? 0.16 : 0.08),
+            border: `1px solid ${alpha(theme.custom.color.brandPrimary, isDark ? 0.28 : 0.16)}`,
+            boxShadow: "none",
+            color: theme.custom.color.brandPrimary,
+            borderRadius: "11px",
+            width: "38px",
+            height: "38px",
+            minWidth: "38px",
+            minHeight: "38px",
+          }}
           sx={totalBoxCardSx}
           titleStyle={{
-            fontFamily: "'Inter', sans-serif",
+            fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
             color: muted,
-            fontSize: { xs: "14px", sm: "14px", md: "13.5px" },
+            fontSize: { xs: "16px", sm: "16px", md: "15px" }, // 16px on mobile (text-base), clean md:text-base/sm on desktop
             fontWeight: 600,
             letterSpacing: "-0.01em",
             whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
           valueStyle={{
             fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
             color: ink,
-            fontSize: { xs: "1.75rem", sm: "1.85rem", md: "2rem" },
+            fontSize: { xs: "1.875rem", sm: "2rem", md: "2.125rem" },
             fontWeight: 700,
             lineHeight: 1.1,
             fontVariantNumeric: "tabular-nums",
@@ -337,19 +363,33 @@ const LeftSide = ({
           countUp
           title={t('returnedItems')}
           value={totalReturned?.toString() || "0"}
+          icon={<AssignmentTurnedInOutlined sx={{ fontSize: { xs: 20, md: 19 } }} />}
+          iconStyle={{
+            background: alpha(theme.custom.status.found.main, isDark ? 0.16 : 0.08),
+            border: `1px solid ${alpha(theme.custom.status.found.main, isDark ? 0.28 : 0.16)}`,
+            boxShadow: "none",
+            color: theme.custom.status.found.main,
+            borderRadius: "11px",
+            width: "38px",
+            height: "38px",
+            minWidth: "38px",
+            minHeight: "38px",
+          }}
           sx={returnedBoxCardSx}
           titleStyle={{
-            fontFamily: "'Inter', sans-serif",
+            fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
             color: muted,
-            fontSize: { xs: "14px", sm: "14px", md: "13.5px" },
+            fontSize: { xs: "16px", sm: "16px", md: "15px" }, // 16px on mobile (text-base), clean md:text-base/sm on desktop
             fontWeight: 600,
             letterSpacing: "-0.01em",
             whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
           valueStyle={{
             fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
             color: ink,
-            fontSize: { xs: "1.75rem", sm: "1.85rem", md: "2rem" },
+            fontSize: { xs: "1.875rem", sm: "2rem", md: "2.125rem" },
             fontWeight: 700,
             lineHeight: 1.1,
             fontVariantNumeric: "tabular-nums",
@@ -362,3 +402,4 @@ const LeftSide = ({
 };
 
 export default LeftSide;
+

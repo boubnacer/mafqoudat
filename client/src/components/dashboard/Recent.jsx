@@ -30,7 +30,7 @@ const Recent = ({ recent, type, maxItems }) => {
         width: "100%",
         display: "grid",
         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-        gap: { xs: 2, sm: 2, md: 2.25 },
+        gap: { xs: 1.25, sm: 1.5, md: 2.25 },
         alignItems: "stretch",
       }}
     >

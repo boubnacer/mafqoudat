@@ -59,29 +59,33 @@ let connectionState = {
     isConnected: false,
     isConnecting: false,
     lastError: null,
-    reconnectAttempts: 0,
-    maxReconnectAttempts: 5
+    reconnectAttempts: 0
 };
+
+let handlersRegistered = false;
+let isRecovering = false;
+let recoveryTimer = null;
 
 /**
  * Enhanced database connection with resilience patterns
  */
 const connectDB = async () => {
-    if (connectionState.isConnected) {
+    if (connectionState.isConnected || mongoose.connection.readyState === 1) {
+        connectionState.isConnected = true;
         console.log('📊 Database already connected');
-        return;
+        return mongoose.connection;
     }
 
     if (connectionState.isConnecting) {
         console.log('⏳ Database connection in progress...');
         return new Promise((resolve, reject) => {
             const checkConnection = setInterval(() => {
-                if (connectionState.isConnected) {
+                if (connectionState.isConnected || mongoose.connection.readyState === 1) {
                     clearInterval(checkConnection);
-                    resolve();
+                    resolve(mongoose.connection);
                 } else if (!connectionState.isConnecting) {
                     clearInterval(checkConnection);
-                    reject(connectionState.lastError);
+                    reject(connectionState.lastError || new Error('Connection failed'));
                 }
             }, 100);
         });
@@ -92,49 +96,36 @@ const connectDB = async () => {
 
     try {
         const options = getConnectionOptions();
+        const connection = await mongoose.connect(process.env.MONGODB_URI, options);
         
-        // Use circuit breaker for connection
-        await resilienceManager.executeWithCircuitBreaker('database', async () => {
-            const connection = await mongoose.connect(process.env.MONGODB_URI, options);
-            
-            connectionState.isConnected = true;
-            connectionState.isConnecting = false;
-            connectionState.lastError = null;
-            connectionState.reconnectAttempts = 0;
-            
-            connectionMetrics.activeConnections++;
-            connectionMetrics.lastConnectionTime = new Date();
-            connectionMetrics.connectionUptime = Date.now();
-            
-            console.log(`✅ MongoDB Connected: ${connection.connection.host}`);
-            
-            return connection;
-        }, async () => {
-            // Fallback: Use in-memory cache mode
-            console.log('🔄 Database connection failed, using fallback mode');
-            connectionMetrics.gracefulDegradations++;
-            connectionState.isConnected = false;
-            connectionState.isConnecting = false;
-            
-            // Set up graceful degradation
-            process.env.DB_FALLBACK_MODE = 'true';
-            
-            return { fallback: true };
-        });
+        connectionState.isConnected = true;
+        connectionState.isConnecting = false;
+        connectionState.lastError = null;
+        connectionState.reconnectAttempts = 0;
+        
+        // Reset database circuit breaker on successful connection
+        const dbCb = resilienceManager.circuitBreakers.get('database');
+        if (dbCb) {
+            dbCb.state = 'CLOSED';
+            dbCb.failures = 0;
+        }
 
-        // Set up connection event handlers
-        setupConnectionEventHandlers();
+        connectionMetrics.activeConnections = 1;
+        connectionMetrics.lastConnectionTime = new Date();
+        connectionMetrics.connectionUptime = Date.now();
         
+        console.log(`✅ MongoDB Connected: ${connection.connection.host}`);
+        
+        // Set up connection event handlers once
+        setupConnectionEventHandlers();
+        return connection;
     } catch (error) {
+        connectionState.isConnected = false;
         connectionState.isConnecting = false;
         connectionState.lastError = error;
         connectionMetrics.failedConnections++;
         
         console.error('❌ Database connection failed:', error.message);
-        
-        // Attempt automatic recovery
-        await attemptRecovery();
-        
         throw error;
     }
 };
@@ -143,10 +134,20 @@ const connectDB = async () => {
  * Setup connection event handlers for resilience
  */
 const setupConnectionEventHandlers = () => {
+    if (handlersRegistered) return;
+    handlersRegistered = true;
+
     mongoose.connection.on('connected', () => {
         connectionState.isConnected = true;
         connectionState.lastError = null;
+        connectionState.reconnectAttempts = 0;
         connectionMetrics.activeConnections = 1;
+
+        const dbCb = resilienceManager.circuitBreakers.get('database');
+        if (dbCb) {
+            dbCb.state = 'CLOSED';
+            dbCb.failures = 0;
+        }
     });
 
     mongoose.connection.on('error', async (error) => {
@@ -156,7 +157,7 @@ const setupConnectionEventHandlers = () => {
         connectionMetrics.failedConnections++;
         
         // Attempt recovery
-        await attemptRecovery();
+        attemptRecovery();
     });
 
     mongoose.connection.on('disconnected', async () => {
@@ -165,7 +166,7 @@ const setupConnectionEventHandlers = () => {
         connectionMetrics.activeConnections = 0;
         
         // Attempt reconnection
-        await attemptRecovery();
+        attemptRecovery();
     });
 
     mongoose.connection.on('reconnected', () => {
@@ -173,6 +174,12 @@ const setupConnectionEventHandlers = () => {
         connectionState.isConnected = true;
         connectionState.reconnectAttempts = 0;
         connectionMetrics.activeConnections = 1;
+
+        const dbCb = resilienceManager.circuitBreakers.get('database');
+        if (dbCb) {
+            dbCb.state = 'CLOSED';
+            dbCb.failures = 0;
+        }
     });
 
     // Monitor connection pool
@@ -182,32 +189,53 @@ const setupConnectionEventHandlers = () => {
 };
 
 /**
- * Automatic recovery mechanism
+ * Automatic recovery mechanism with continuous retry
  */
 const attemptRecovery = async () => {
-    if (connectionState.reconnectAttempts >= connectionState.maxReconnectAttempts) {
-        console.error('❌ Maximum reconnection attempts reached');
-        return false;
+    if (connectionState.isConnected || mongoose.connection.readyState === 1) {
+        if (recoveryTimer) {
+            clearTimeout(recoveryTimer);
+            recoveryTimer = null;
+        }
+        return true;
     }
 
-    connectionState.reconnectAttempts++;
-    console.log(`🔄 Attempting database recovery (attempt ${connectionState.reconnectAttempts})`);
-    
+    if (isRecovering) {
+        return false;
+    }
+    isRecovering = true;
+
     try {
-        // Use exponential backoff
-        const delay = Math.min(1000 * Math.pow(2, connectionState.reconnectAttempts - 1), 30000);
+        connectionState.reconnectAttempts++;
+        console.log(`🔄 Attempting database recovery (attempt ${connectionState.reconnectAttempts})`);
         
+        // Exponential backoff capped at 20 seconds
+        const delay = Math.min(1000 * Math.pow(1.5, Math.min(connectionState.reconnectAttempts - 1, 8)), 20000);
         await new Promise(resolve => setTimeout(resolve, delay));
         
-        if (!connectionState.isConnected) {
+        if (!connectionState.isConnected && mongoose.connection.readyState !== 1) {
             await connectDB();
+            console.log('✅ Database connection restored!');
+            if (recoveryTimer) {
+                clearTimeout(recoveryTimer);
+                recoveryTimer = null;
+            }
             return true;
         }
         
-        return false;
+        return true;
     } catch (error) {
-        console.error('❌ Database recovery failed:', error.message);
+        console.error(`❌ Database recovery attempt ${connectionState.reconnectAttempts} failed:`, error.message);
+        // Continue retrying indefinitely at a steady interval so transient drops self-heal
+        if (!recoveryTimer) {
+            recoveryTimer = setTimeout(() => {
+                recoveryTimer = null;
+                attemptRecovery();
+            }, 15000);
+        }
         return false;
+    } finally {
+        isRecovering = false;
     }
 };
 

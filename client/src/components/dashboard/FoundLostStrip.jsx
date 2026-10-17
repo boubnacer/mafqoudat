@@ -48,10 +48,11 @@ const Segment = ({ tone, label, value, todayLabel, hasNotification, onClick }) =
         flex: 1,
         minWidth: 0,
         p: { xs: "18px 18px", sm: "18px 20px", md: "20px 22px" },
+        minHeight: { xs: "56px", sm: "56px", md: "48px" },
         cursor: onClick ? "pointer" : "default",
         display: "flex",
         flexDirection: "column",
-        gap: { xs: 1, sm: 1.25, md: 1.5 },
+        gap: { xs: 1.25, sm: 1.25, md: 1.25 },
         outline: "none",
         borderRadius: "12px",
         transition: "all 180ms cubic-bezier(0.4, 0, 0.2, 1)",
@@ -63,28 +64,28 @@ const Segment = ({ tone, label, value, todayLabel, hasNotification, onClick }) =
         },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0, width: "100%" }}>
-        {/* Dot style (red for lost, green for found) replacing previous icon */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, minWidth: 0, width: "100%" }}>
+        {/* Crisp dot / indicator accent */}
         <Box
           sx={{
-            width: 8,
-            height: 8,
+            width: { xs: 9, md: 8 },
+            height: { xs: 9, md: 8 },
             flexShrink: 0,
             borderRadius: "50%",
             backgroundColor: tone.main,
-            boxShadow: `0 0 0 3px ${alpha(tone.main, isDark ? 0.25 : 0.16)}`,
+            boxShadow: `0 0 0 3px ${alpha(tone.main, isDark ? 0.28 : 0.18)}`,
           }}
         />
         <Typography
           sx={{
-            fontFamily: "'Inter', sans-serif",
+            fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
             fontWeight: 600,
-            fontSize: { xs: "14px", sm: "14px", md: "13.5px" },
+            fontSize: { xs: "16px", sm: "16px", md: "14px" }, // 16px mobile (text-base), md:text-sm desktop
             letterSpacing: "-0.01em",
             color: muted,
             minWidth: 0,
             flex: 1,
-            lineHeight: 1.2,
+            lineHeight: 1.25,
           }}
         >
           {label}
@@ -95,7 +96,7 @@ const Segment = ({ tone, label, value, todayLabel, hasNotification, onClick }) =
         sx={{
           fontFamily: `'Plus Jakarta Sans', ${theme.custom.font.display}, sans-serif`,
           fontWeight: 700,
-          fontSize: { xs: "1.75rem", sm: "1.85rem", md: "2rem" },
+          fontSize: { xs: "1.875rem", sm: "2rem", md: "2.125rem" },
           lineHeight: 1.1,
           color: theme.custom.color.ink,
           fontVariantNumeric: "tabular-nums",
@@ -106,20 +107,40 @@ const Segment = ({ tone, label, value, todayLabel, hasNotification, onClick }) =
         {displayValue.toLocaleString()}
       </Typography>
 
-      <Typography
+      {/* Soft tonal badge fill for today's count */}
+      <Box
         sx={{
-          fontFamily: "'Inter', sans-serif",
-          fontSize: { xs: "13.5px", sm: "13.5px", md: "12px" },
-          fontWeight: hasNotification ? 700 : 500,
-          color: hasNotification
-            ? (isDark ? "#34D399" : "#059669")
-            : muted,
-          lineHeight: 1.2,
-          transition: "color 0.2s ease, font-weight 0.2s ease",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 0.75,
+          px: { xs: 1.25, md: 1 },
+          py: { xs: 0.35, md: 0.2 },
+          borderRadius: "999px",
+          backgroundColor: hasNotification
+            ? alpha(tone.main, isDark ? 0.22 : 0.12)
+            : (isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(15, 23, 42, 0.04)"),
+          border: `1px solid ${hasNotification
+            ? alpha(tone.main, isDark ? 0.38 : 0.24)
+            : (isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.85)")}`,
+          width: "fit-content",
+          minHeight: { xs: "28px", md: "24px" },
+          transition: "all 0.2s ease",
         }}
       >
-        {todayLabel}
-      </Typography>
+        <Typography
+          sx={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: { xs: "14px", sm: "14px", md: "12.5px" }, // 14px mobile (text-sm), md:text-xs desktop
+            fontWeight: hasNotification ? 700 : 500,
+            color: hasNotification
+              ? tone.main
+              : muted,
+            lineHeight: 1.2,
+          }}
+        >
+          {todayLabel}
+        </Typography>
+      </Box>
     </Box>
   );
 };
@@ -140,7 +161,7 @@ const FoundLostStrip = ({
   const isDark = theme.palette.mode === "dark";
   const { t, currentLanguage } = useTranslation();
   const isRTL = currentLanguage === "ar";
-  const hairline = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.85)";
+  const hairline = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.88)";
 
   return (
     <Box
@@ -148,8 +169,8 @@ const FoundLostStrip = ({
       sx={{
         gridColumn: "1 / -1",
         borderRadius: { xs: "14px", sm: "16px" },
-        backgroundColor: isDark ? "rgba(39, 39, 42, 0.55)" : "#F8FAFC",
-        border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.9)"}`,
+        backgroundColor: isDark ? "rgba(39, 39, 42, 0.45)" : "rgba(248, 250, 252, 0.75)",
+        border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(226, 232, 240, 0.88)"}`,
         boxShadow: "none",
         overflow: "hidden",
         p: 0.5,
